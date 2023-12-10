@@ -51,3 +51,17 @@ Feel free to check [our documentation](https://docs.astro.build) or jump into ou
 
 - [graph-editor](https://github.com/topics/graph-editor) : node graph editor
 - [grapesjs](https://grapesjs.com/) : Web Builder Framework
+
+# Automation system
+
+- Event :
+    - Can be fired in a specific scope
+    - Can be listned in a specific scope and it's childens scope.name.* ?
+- Scope :
+    - With context
+- Action :
+    - Bits of code
+    
+- Workflow : serie of actions
+    - Linked together as a graph
+    - Scoped (so with context)
