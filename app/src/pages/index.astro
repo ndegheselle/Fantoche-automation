@@ -1,0 +1,11 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Explorer from './_explorer.svelte';
+
+const response = await fetch('http://localhost:4321/api/v0/scopes/root');
+const rootScope = await response.json();
+---
+
+<BaseLayout>
+    <Explorer scopes={rootScope} />
+</BaseLayout>

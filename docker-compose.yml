@@ -1,0 +1,45 @@
+version: '3'
+
+services:
+  # Node.js web application
+  app:
+    image: node:alpine
+    working_dir: /app
+    volumes:
+      - ./app:/app
+    ports:
+      - "8080:8080"
+    command: npm start
+
+  # Rust API : Superviser
+  api-supervisor:
+    image: rust:alpine
+    working_dir: /app
+    volumes:
+      - ./api-supervisor:/app
+    ports:
+      - "3001:3001"
+    command: cargo run
+
+  # Rust API : Worker
+  api-worker:
+    image: rust:alpine
+    working_dir: /app
+    volumes:
+      - ./api-worker:/app
+    ports:
+      - "3002:3002"
+    command: cargo run
+
+  # MongoDB database
+  database:
+    image: mongo:alpine
+    volumes:
+      - ./database:/data/db
+    ports:
+      - "27017:27017"
+
+networks:
+  default:
+    external:
+      name: my_network
