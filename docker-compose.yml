@@ -13,27 +13,27 @@ services:
 
   # Rust API : Superviser
   api-supervisor:
-    image: rust:alpine
+    image: node:alpine
     working_dir: /app
     volumes:
       - ./api-supervisor:/app
     ports:
       - "3001:3001"
-    command: cargo run
+    command: sh -c "npm install && npm run dev "
     depends_on:
       - db
 
   # Rust API : Worker
-  api-worker:
-    image: rust:alpine
-    working_dir: /app
-    volumes:
-      - ./api-worker:/app
-    ports:
-      - "3002:3002"
-    command: cargo run
-    depends_on:
-      - db
+#  api-worker:
+#    image: node:alpine
+#    working_dir: /app
+#    volumes:
+#      - ./api-worker:/app
+#    ports:
+#      - "3002:3002"
+#    command: sh -c "npm install && npm run dev "
+#    depends_on:
+#      - db
 
   # MongoDB database
   db:
