@@ -3,7 +3,6 @@ import { dirname, join } from 'path'
 
 import fastify from 'fastify';
 import cors from '@fastify/cors';
-import cookie from '@fastify/cookie';
 import multipart from '@fastify/multipart';
 import autoLoad from '@fastify/autoload';
 
@@ -23,7 +22,6 @@ app.register(cors, {
   methods: ['GET', 'PUT', 'POST', 'DELETE'],
   credentials: true
 });
-app.register(cookie);
 app.register(multipart);
 
 app.register(autoLoad, {
