@@ -18,7 +18,7 @@ const app = fastify({
 })
 
 app.register(cors, {
-  origin: process.env.ACCEPTED_DOMAIN,
+  origin: "*",
   methods: ['GET', 'PUT', 'POST', 'DELETE'],
   credentials: true
 });
@@ -28,6 +28,7 @@ app.register(autoLoad, {
   dir: join(__dirname, 'plugins'),
   autoHooks: true,
   cascadeHooks: true,
+  routeParams: true
   // options: { prefix: 'api' }
 })
 
