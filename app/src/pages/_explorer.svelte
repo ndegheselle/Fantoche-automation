@@ -3,6 +3,7 @@
     let selectedScope = scopes[0];
 </script>
 
+<button type="button" class="btn btn-primary">Add</button>
 <div class="list-group">
     {#each scopes as scope}
         <a

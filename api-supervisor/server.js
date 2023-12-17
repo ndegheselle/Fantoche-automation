@@ -1,12 +1,12 @@
-import { fileURLToPath } from 'url'
-import { dirname, join } from 'path'
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 
 import fastify from 'fastify';
 import cors from '@fastify/cors';
 import multipart from '@fastify/multipart';
 import autoLoad from '@fastify/autoload';
 
-import * as dotenv from 'dotenv'
+import * as dotenv from 'dotenv';
 
 dotenv.config();
 
