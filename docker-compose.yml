@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # Node.js web application
   app:
-    image: node:alpine
+    image: node:20-alpine
     working_dir: /app
     volumes:
       - ./app:/app

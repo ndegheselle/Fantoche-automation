@@ -1,0 +1,1 @@
+export const API_URL = "http://api-supervisor:3001";
