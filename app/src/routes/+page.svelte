@@ -4,14 +4,13 @@
     import ScopeModal from './ScopeModal.svelte';
 
     import {API_URL} from '$lib/params';
+    import {scopes} from '$lib/globalStores';
 
     onMount(async () => {
-        const reponse = await fetch(`${API_URL}/scopes/root`);
-        scopes = await reponse.json();
+        const reponse = await fetch(`${API_URL}/scopes/root`, {mode: "cors"});
+        $scopes = await reponse.json();
 	});
 
-    /** @type {(Array.<any>)} */
-    let scopes = [];
     /** @type {any} */
     let scopeModal = null;
 </script>
@@ -40,7 +39,7 @@
                 </div>
             </div>
 
-            {#each scopes as scope }
+            {#each $scopes as scope }
                 <Scope {scope}/>
             {/each}
 

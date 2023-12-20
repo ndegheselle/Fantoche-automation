@@ -6,6 +6,7 @@ services:
     image: node:20-alpine
     working_dir: /app
     volumes:
+      - /app/node_modules
       - ./app:/app
     ports:
       - "8080:8080"

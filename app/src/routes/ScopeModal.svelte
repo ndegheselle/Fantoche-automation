@@ -1,8 +1,25 @@
 <script>
+    import { scopes } from "$lib/globalStores";
+    import { API_URL } from "$lib/params";
 
-    function save()
-    {
+    async function save() {
+        const response = await fetch(`${API_URL}/scopes`, {
+            method: "POST", // *GET, POST, PUT, DELETE, etc.
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(scope), // body data type must match "Content-Type" header
+        });
+        
+        const newScope = await response.json();
+        scopes.update(
+            /** @param {any} items */ 
+            (items) => {
+            items.push(newScope);
+            return items;
+        });
 
+        scope = null;
     }
 
     /** @type {any} */
@@ -15,27 +32,35 @@
 </script>
 
 {#if scope}
-<div class="modal is-active">
-    <div
-        class="modal-background"
-        on:click={() => (scope = null)}
-    ></div>
-    <div class="modal-card">
-        <header class="modal-card-head">
-            <p class="modal-card-title">Add scope</p>
-            <button class="delete" aria-label="close" on:click={() => (scope = null)}></button>
-        </header>
-        <section class="modal-card-body">
-            <div class="field">
-                <div class="control">
-                    <input class="input" type="text" placeholder="Name" bind:value="{scope.name}"/>
+    <div class="modal is-active">
+        <div class="modal-background" on:click={() => (scope = null)}></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title">Add scope</p>
+                <button
+                    class="delete"
+                    aria-label="close"
+                    on:click={() => (scope = null)}
+                ></button>
+            </header>
+            <section class="modal-card-body">
+                <div class="field">
+                    <div class="control">
+                        <input
+                            class="input"
+                            type="text"
+                            placeholder="Name"
+                            bind:value={scope.name}
+                        />
+                    </div>
                 </div>
-            </div>
-        </section>
-        <footer class="modal-card-foot">
-            <button class="button is-success" on:click={save}>Add</button>
-            <button class="button" on:click={() => (scope = null)}>Cancel</button>
-        </footer>
+            </section>
+            <footer class="modal-card-foot">
+                <button class="button is-success" on:click={save}>Add</button>
+                <button class="button" on:click={() => (scope = null)}
+                    >Cancel</button
+                >
+            </footer>
+        </div>
     </div>
-</div>
 {/if}
