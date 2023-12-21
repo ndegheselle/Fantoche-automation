@@ -12,7 +12,7 @@ services:
       - "8080:8080"
     command: sh -c "npm install && npm run dev "
 
-  # Rust API : Superviser
+  # Nodejs API : Superviser
   api-supervisor:
     image: node:alpine
     working_dir: /app
@@ -20,6 +20,7 @@ services:
       - ./api-supervisor:/app
     ports:
       - "3001:3001"
+      - "5555:5555"
     command: sh -c "npm install && npm run dev "
     depends_on:
       - db

@@ -18,7 +18,7 @@ const app = fastify({
 })
 
 app.register(cors, {
-  origin: "*",
+  origin: true,
   methods: ['GET', 'PUT', 'POST', 'DELETE'],
   credentials: true
 });

@@ -11,8 +11,7 @@ model Scope {
   @@map("scope")
   id            String @id @default(auto()) @map("_id") @db.ObjectId
   name          String
-}
-
-model Scope {
-  
+  parentId      String? @unique @db.ObjectId
+  parent        Scope?  @relation("ScopeToScope", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  childs        Scope[] @relation("ScopeToScope")
 }
