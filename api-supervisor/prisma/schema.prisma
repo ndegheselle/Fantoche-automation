@@ -13,5 +13,5 @@ model Scope {
   name          String
   parentId      String? @unique @db.ObjectId
   parent        Scope?  @relation("ScopeToScope", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  childs        Scope[] @relation("ScopeToScope")
+  children      Scope[] @relation("ScopeToScope")
 }

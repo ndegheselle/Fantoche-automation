@@ -1,5 +1,5 @@
 <script>
-    import { scopes } from "$lib/globalStores";
+    import { currentScope } from "./store";
     import { API_URL } from "$lib/params";
 
     async function save() {
@@ -10,14 +10,15 @@
             },
             body: JSON.stringify(scope), // body data type must match "Content-Type" header
         });
-        
+
         const newScope = await response.json();
-        scopes.update(
-            /** @param {any} items */ 
-            (items) => {
-            items.push(newScope);
-            return items;
-        });
+        currentScope.update(
+            /** @param {any} _scope */
+            (_scope) => {
+                _scope.childs.push(newScope);
+                return _scope;
+            },
+        );
 
         scope = null;
     }

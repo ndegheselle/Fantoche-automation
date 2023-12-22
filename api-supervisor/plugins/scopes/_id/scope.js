@@ -2,8 +2,11 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function getScope(req, reply) {
-    return reply.status(200).send(await prisma.scope.findUnique({
-        where: { id: req.params.id }
+    return reply.status(200).send(await prisma.scope.findFirst({
+        where: { id: req.params.id },
+        include: {
+            children: true,
+        }
     }));
 }
 
@@ -22,7 +25,7 @@ async function deleteScope(req, reply) {
             id: req.params.id,
         },
     });
-    return reply.status(200).send({ message: "Scope deleted."});
+    return reply.status(200).send({ message: "Scope deleted." });
 }
 
 export default async function (app, opts) {
