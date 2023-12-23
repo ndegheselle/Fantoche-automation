@@ -1,9 +1,10 @@
 <script>
-    import { currentScope } from "./store";
-    import { API_URL } from "$lib/params";
+    import { currentScope } from "./[id]/store";
+    import { API } from "$lib/store";
+    import popups from "$lib/dom/popups";
 
     async function save() {
-        const response = await fetch(`${API_URL}/scopes`, {
+        const response = await fetch(`${API.url}/scopes`, {
             method: "POST", // *GET, POST, PUT, DELETE, etc.
             headers: {
                 "Content-Type": "application/json",
@@ -21,30 +22,34 @@
         );
 
         scope = null;
+        popups.close(modalElement);
     }
 
     /** @type {any} */
     let scope = null;
+    /** @type {Element|null}*/
+    let modalElement = null;
     export const modal = {
         show(_scope = null) {
             scope = _scope;
+            popups.show(modalElement);
         },
     };
 </script>
 
-{#if scope}
-    <div class="modal is-active">
-        <div class="modal-background" on:click={() => (scope = null)}></div>
-        <div class="modal-card">
-            <header class="modal-card-head">
-                <p class="modal-card-title">Add scope</p>
-                <button
-                    class="delete"
-                    aria-label="close"
-                    on:click={() => (scope = null)}
-                ></button>
-            </header>
-            <section class="modal-card-body">
+<div class="modal" bind:this={modalElement}>
+    <div class="modal-background"></div>
+    <div class="modal-card">
+        <header class="modal-card-head">
+            <p class="modal-card-title">Add scope</p>
+            <button
+                class="delete"
+                aria-label="close"
+                data-dismiss="modal"
+            ></button>
+        </header>
+        <section class="modal-card-body">
+            {#if scope}
                 <div class="field">
                     <div class="control">
                         <input
@@ -55,13 +60,13 @@
                         />
                     </div>
                 </div>
-            </section>
-            <footer class="modal-card-foot">
-                <button class="button is-success" on:click={save}>Add</button>
-                <button class="button" on:click={() => (scope = null)}
-                    >Cancel</button
-                >
-            </footer>
-        </div>
+            {/if}
+        </section>
+        <footer class="modal-card-foot">
+            <button class="button is-success" on:click={save}>Add</button>
+            <button class="button" data-dismiss="modal"
+                >Cancel</button
+            >
+        </footer>
     </div>
-{/if}
+</div>
