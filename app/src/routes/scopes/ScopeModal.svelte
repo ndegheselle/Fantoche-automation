@@ -16,7 +16,7 @@
         currentScope.update(
             /** @param {any} _scope */
             (_scope) => {
-                _scope.childs.push(newScope);
+                _scope.children.push(newScope);
                 return _scope;
             },
         );

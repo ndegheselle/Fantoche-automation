@@ -1,16 +1,30 @@
 <script>
-    import { currentScope } from "./store";
+    import { page } from "$app/stores";
+    import { API } from "$lib/store";
+    import { currentScope, currentScopeTree, Scope } from "./store";
     import ScopeModal from "../ScopeModal.svelte";
+
+    $: loadScope($page.params.id);
+
+    /** @param {string} scopeId */
+    async function loadScope(scopeId) {
+        const reponse = await fetch(`${API.url}/scopes/${scopeId}`);
+        $currentScope = await reponse.json();
+
+        if (!$currentScope._id) return;
+        const reponseTree = await fetch(`${API.url}/scopes/${scopeId}/tree`);
+        $currentScopeTree = await reponseTree.json();
+    }
 
     /** @type {any} */
     let scopeModal = null;
 </script>
 
 <div class="columns is-gapless mb-0">
-    <div class="column has-background-light side-menu">
-        <aside class="menu has-background-light m-2">
+    <div class="column side-menu">
+        <aside class="menu m-2">
             <div class="field has-addons">
-                <p class="control has-icons-right">
+                <div class="control has-icons-right is-fullwidth">
                     <input
                         class="input is-small"
                         type="email"
@@ -19,7 +33,7 @@
                     <span class="icon is-small is-right">
                         <i class="fa-solid fa-magnifying-glass"></i>
                     </span>
-                </p>
+                </div>
                 <div class="control">
                     <div class="dropdown">
                         <div class="dropdown-trigger">
@@ -37,21 +51,13 @@
                             role="menu"
                         >
                             <div class="dropdown-content">
-                                <a href="#" class="dropdown-item" on:click={() => scopeModal.show(null)}>
+                                <a
+                                    href="#"
+                                    class="dropdown-item"
+                                    on:click={() =>
+                                        scopeModal.show(new Scope())}
+                                >
                                     Add scope
-                                </a>
-                                <a class="dropdown-item">
-                                    Add action
-                                </a>
-                                <a href="#" class="dropdown-item is-active">
-                                    Add workflow
-                                </a>
-                                <a href="#" class="dropdown-item">
-                                    Other dropdown item
-                                </a>
-                                <hr class="dropdown-divider" />
-                                <a href="#" class="dropdown-item">
-                                    With a divider
                                 </a>
                             </div>
                         </div>
@@ -59,12 +65,32 @@
                 </div>
             </div>
 
-            {#each $currentScope.children as scope}
-                <a href="/scopes/{scope.id}">{scope.name}</a>
-            {/each}
+            <ul class="menu-list">
+                {#each $currentScope.children as scope}
+                    <li>
+                        <a href="/scopes/{scope._id}">{scope.name}</a>
+                    </li>
+                {/each}
+            </ul>
         </aside>
     </div>
     <div class="column">
+        {#if $currentScope._id}
+            <nav class="breadcrumb" aria-label="breadcrumbs">
+                <ul>
+                    <li><a href="/scopes/root">..</a></li>
+                    {#each $currentScopeTree as scope}
+                        <li>
+                            <a href="/scopes/{scope._id}">{scope.name}</a>
+                        </li>
+                    {/each}
+
+                    <li class="is-active">
+                        <a aria-current="page">{$currentScope.name}</a>
+                    </li>
+                </ul>
+            </nav>
+        {/if}
         <main class="container is-fluid">
             <p>Some content</p>
         </main>

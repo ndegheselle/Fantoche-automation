@@ -1,13 +1,14 @@
 import { writable } from 'svelte/store';
 
-class Scope
+export class Scope
 {
     constructor()
     {
-        this.id = 0;
+        this._id = "";
         this.name = "";
         this.children = [];
     }
 }
 
 export const currentScope = writable(new Scope());
+export const currentScopeTree = writable([]);
