@@ -1,21 +1,25 @@
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+import { db } from '#lib/database.js';
+const scopes = db.collection("scope");
 
 async function getRoot(req, reply) {
+    const rootScopes = await scopes.find({
+        parentId: null
+    }).toArray();
     return reply.status(200).send({
         id: null,
         name: 'root',
-        children: await prisma.scope.findMany({
-            where: { parent: null }
-        })
+        children: rootScopes
     });
 }
 
-
 async function createScope(req, reply) {
-    return reply.status(200).send(await prisma.scope.create({
-        data: req.body
-    }));
+    const result = await scopes.insertOne(req.body);
+    // Retrive the newly created scope
+    const scope = await scopes.findOne({
+        _id: result.insertedId
+    });
+
+    return reply.status(200).send(scope);
 }
 
 export default async function (app, opts) {

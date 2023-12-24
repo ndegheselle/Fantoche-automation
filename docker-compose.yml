@@ -41,6 +41,5 @@ services:
   db:
     image: mongo
     restart: always
-    command: --replSet s0
     ports:
       - "27017:27017"

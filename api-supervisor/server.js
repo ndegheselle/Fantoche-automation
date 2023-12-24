@@ -5,10 +5,12 @@ import fastify from 'fastify';
 import cors from '@fastify/cors';
 import multipart from '@fastify/multipart';
 import autoLoad from '@fastify/autoload';
+import { connect } from './lib/database.js';
 
 import * as dotenv from 'dotenv';
 
 dotenv.config();
+connect(process.env.DATABASE_URL);
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)

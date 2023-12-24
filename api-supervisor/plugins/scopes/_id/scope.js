@@ -1,31 +1,24 @@
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+import { db } from '#lib/database.js';
+
+const scopes = db.collection("scopes");
 
 async function getScope(req, reply) {
-    return reply.status(200).send(await prisma.scope.findFirst({
-        where: { id: req.params.id },
-        include: {
-            children: true,
-        }
-    }));
+    const scope = await scopes.findOne({
+        _id: req.params.id
+    });
+    scope.children = await scopes.find({
+        parentId: req.params.id
+    });
+
+    return reply.status(200).send(scope);
 }
 
 async function updateScope(req, reply) {
-    return reply.status(200).send(await prisma.scope.update({
-        where: {
-            id: req.params.id,
-        },
-        data: req.body,
-    }));
+    return reply.status(500);
 }
 
 async function deleteScope(req, reply) {
-    await prisma.scope.delete({
-        where: {
-            id: req.params.id,
-        },
-    });
-    return reply.status(200).send({ message: "Scope deleted." });
+    return 500;
 }
 
 export default async function (app, opts) {

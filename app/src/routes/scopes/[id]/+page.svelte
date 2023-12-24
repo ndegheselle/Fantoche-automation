@@ -38,13 +38,13 @@
                         >
                             <div class="dropdown-content">
                                 <a href="#" class="dropdown-item" on:click={() => scopeModal.show(null)}>
-                                    Dropdown item
+                                    Add scope
                                 </a>
                                 <a class="dropdown-item">
-                                    Other dropdown item
+                                    Add action
                                 </a>
                                 <a href="#" class="dropdown-item is-active">
-                                    Active dropdown item
+                                    Add workflow
                                 </a>
                                 <a href="#" class="dropdown-item">
                                     Other dropdown item
