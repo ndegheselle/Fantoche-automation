@@ -2,11 +2,19 @@ import { writable } from 'svelte/store';
 
 export class Scope
 {
-    constructor()
+    /** @param {string} _type */
+    constructor(_type = "")
     {
-        this._id = "";
+        this._id = undefined;
         this.name = "";
-        this.children = [];
+        this.parentId = "";
+
+        /** @type {string} */
+        this.type = _type;
+        /** @type {string|undefined} */
+        this.actionId = undefined;
+        /** @type {Array<any>|undefined} */
+        this.children = undefined;
     }
 }
 

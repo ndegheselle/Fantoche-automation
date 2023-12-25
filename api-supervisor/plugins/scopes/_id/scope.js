@@ -1,19 +1,19 @@
 import { db } from '#lib/database.js';
 import { ObjectId } from 'mongodb';
 
-const scopes = db.collection("scope");
+const scopes = db.collection("scopes");
+const actions = db.collection("actions");
 
 async function getScopeTree(req, reply) {
 
     const tree = [];
-    console.log(req.params);
     let scope = await scopes.findOne({
         _id: new ObjectId(req.params.id)
     });
     while(scope.parentId)
     {
         const parentScope = await scopes.findOne({
-            parentId: scope.parentId
+            _id: scope.parentId
         });
         scope = parentScope;
         tree.push(scope);
@@ -27,7 +27,7 @@ async function getScope(req, reply) {
     });
     scope.children = await scopes.find({
         parentId: new ObjectId(req.params.id)
-    }).toArray() || [];
+    }).sort({ type: 1, name: 1 }).toArray() || [];
 
     return reply.status(200).send(scope);
 }
@@ -37,7 +37,7 @@ async function updateScope(req, reply) {
 }
 
 async function deleteScope(req, reply) {
-    return 500;
+    return reply.status(500);
 }
 
 export default async function (app, opts) {

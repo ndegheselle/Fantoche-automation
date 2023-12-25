@@ -18,6 +18,8 @@
 
     /** @type {any} */
     let scopeModal = null;
+    /** @type {any} */
+    let actionModal = null;
 </script>
 
 <div class="columns is-gapless mb-0">
@@ -57,7 +59,15 @@
                                     on:click={() =>
                                         scopeModal.show(new Scope())}
                                 >
-                                    Add scope
+                                    <i class="fa-solid fa-folder"></i> Add scope
+                                </a>
+                                <a
+                                    href="#"
+                                    class="dropdown-item"
+                                    on:click={() =>
+                                        scopeModal.show(new Scope("action"))}
+                                >
+                                    <i class="fa-solid fa-gears"></i> Add action
                                 </a>
                             </div>
                         </div>
@@ -65,13 +75,22 @@
                 </div>
             </div>
 
-            <ul class="menu-list">
-                {#each $currentScope.children as scope}
-                    <li>
-                        <a href="/scopes/{scope._id}">{scope.name}</a>
-                    </li>
-                {/each}
-            </ul>
+            {#if $currentScope.children}
+                <ul class="menu-list">
+                    {#each $currentScope.children as scope}
+                        <li>
+                            <a href="/scopes/{scope._id}">
+                                <i
+                                    class="fa-solid {scope.type == 'action'
+                                        ? 'fa-gears'
+                                        : 'fa-folder'}"
+                                ></i>
+                                {scope.name}
+                            </a>
+                        </li>
+                    {/each}
+                </ul>
+            {/if}
         </aside>
     </div>
     <div class="column">

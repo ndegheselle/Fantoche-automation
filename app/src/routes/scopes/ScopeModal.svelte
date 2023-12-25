@@ -1,9 +1,10 @@
 <script>
-    import { currentScope } from "./[id]/store";
+    import { currentScope, Scope } from "./[id]/store";
     import { API } from "$lib/store";
     import popups from "$lib/dom/popups";
 
     async function save() {
+        scope.parentId = $currentScope._id;
         const response = await fetch(`${API.url}/scopes`, {
             method: "POST", // *GET, POST, PUT, DELETE, etc.
             headers: {
@@ -17,6 +18,20 @@
             /** @param {any} _scope */
             (_scope) => {
                 _scope.children.push(newScope);
+
+                // Order by type and name
+                _scope.children.sort(
+                    /** 
+                     * @param {Scope} a
+                     * @param {Scope} b
+                     * */
+                    ( a, b) => {
+                    if (a.type == b.type) {
+                        return a.name.localeCompare(b.name);
+                    }
+                    return a.type.localeCompare(b.type);
+                });
+
                 return _scope;
             },
         );
@@ -41,7 +56,7 @@
     <div class="modal-background"></div>
     <div class="modal-card">
         <header class="modal-card-head">
-            <p class="modal-card-title">Add scope</p>
+            <p class="modal-card-title">Add {scope?.type == "action" ? "action" : "scope"}</p>
             <button
                 class="delete"
                 aria-label="close"

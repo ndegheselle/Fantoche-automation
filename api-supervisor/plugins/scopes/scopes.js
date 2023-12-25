@@ -1,18 +1,23 @@
 import { db } from '#lib/database.js';
-const scopes = db.collection("scope");
+import { ObjectId } from 'mongodb';
+
+const scopes = db.collection("scopes");
 
 async function getRoot(req, reply) {
     const rootScopes = await scopes.find({
         parentId: null
-    }).toArray();
+    }).sort({ type: 1, name: 1 }).toArray();
+
     return reply.status(200).send({
         id: null,
         name: 'root',
-        children: rootScopes
+        children: rootScopes || [],
     });
 }
 
 async function createScope(req, reply) {
+
+    req.body.parentId = req.body.parentId ? new ObjectId(req.body.parentId) : null;
     const result = await scopes.insertOne(req.body);
     // Retrive the newly created scope
     const scope = await scopes.findOne({
