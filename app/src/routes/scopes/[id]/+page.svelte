@@ -1,28 +1,27 @@
 <script>
     import { page } from "$app/stores";
-    import { API } from "$lib/store";
-    import { currentScope, currentScopeTree, Scope } from "./store";
+    import {
+        currentScope,
+        currentScopeTree,
+        Scope,
+        loadCurrent,
+    } from "../store";
     import ScopeModal from "../ScopeModal.svelte";
+    import ScopeHistory from "./ScopeHistory.svelte";
+    import ScopeAction from "./ScopeAction.svelte";
 
-    $: loadScope($page.params.id);
-
-    /** @param {string} scopeId */
-    async function loadScope(scopeId) {
-        const reponse = await fetch(`${API.url}/scopes/${scopeId}`);
-        $currentScope = await reponse.json();
-
-        if (!$currentScope._id) return;
-        const reponseTree = await fetch(`${API.url}/scopes/${scopeId}/tree`);
-        $currentScopeTree = await reponseTree.json();
+    $: {
+        loadCurrent($page.params.id);
+        currentView = "history";
     }
 
     /** @type {any} */
     let scopeModal = null;
-    /** @type {any} */
-    let actionModal = null;
+    let currentView = "history";
 </script>
 
 <div class="columns is-gapless mb-0">
+    {#if $currentScope.type != 'action'}
     <div class="column side-menu">
         <aside class="menu m-2">
             <div class="field has-addons">
@@ -93,25 +92,64 @@
             {/if}
         </aside>
     </div>
+    {/if}
     <div class="column">
-        {#if $currentScope._id}
-            <nav class="breadcrumb" aria-label="breadcrumbs">
-                <ul>
-                    <li><a href="/scopes/root">..</a></li>
-                    {#each $currentScopeTree as scope}
-                        <li>
-                            <a href="/scopes/{scope._id}">{scope.name}</a>
-                        </li>
-                    {/each}
+        <nav class="navbar" role="navigation" aria-label="main navigation">
+            <div id="navbarBasicExample" class="navbar-menu">
+                <div class="navbar-start">
+                    <div class="navbar-item">
+                        {#if $currentScope._id}
+                            <nav class="breadcrumb" aria-label="breadcrumbs">
+                                <ul>
+                                    <li><a href="/scopes/root">..</a></li>
+                                    {#each $currentScopeTree as scope}
+                                        <li>
+                                            <a href="/scopes/{scope._id}"
+                                                >{scope.name}</a
+                                            >
+                                        </li>
+                                    {/each}
 
-                    <li class="is-active">
-                        <a aria-current="page">{$currentScope.name}</a>
-                    </li>
-                </ul>
-            </nav>
-        {/if}
+                                    <li class="is-active">
+                                        <p>{$currentScope.name}</p>
+                                    </li>
+                                </ul>
+                            </nav>
+                        {/if}
+                    </div>
+                </div>
+                {#if $currentScope._id != null}
+                <div class="navbar-end">
+                    <div class="navbar-item">
+                        <div class="buttons">
+                            <button class="button is-small is-light" on:click={() => scopeModal.show($currentScope)}>
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button class="button is-small is-danger">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {/if}
+            </div>
+        </nav>
+
         <main class="container is-fluid">
-            <p>Some content</p>
+            {#if $currentScope.type == 'action'}
+            <div class="tabs">
+                <ul>
+                    <li class:is-active={currentView == 'history'}><a on:click={() => currentView = 'history'}>History</a></li>
+                    <li class:is-active={currentView == 'action'}><a on:click={() => currentView = 'action'}>Action</a></li>
+                </ul>
+            </div>
+            {/if}
+
+            {#if currentView == 'history'}
+            <ScopeHistory scope={$currentScope}/>
+            {:else if currentView == 'action'}
+            <ScopeAction scope={$currentScope}/>
+            {/if}
         </main>
     </div>
 </div>

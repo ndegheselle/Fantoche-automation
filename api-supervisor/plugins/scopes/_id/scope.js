@@ -5,7 +5,7 @@ const scopes = db.collection("scopes");
 const actions = db.collection("actions");
 
 async function getScopeTree(req, reply) {
-
+    const MAX_DEPTH = 10;
     const tree = [];
     let scope = await scopes.findOne({
         _id: new ObjectId(req.params.id)
@@ -17,6 +17,11 @@ async function getScopeTree(req, reply) {
         });
         scope = parentScope;
         tree.push(scope);
+
+        if(tree.length > MAX_DEPTH)
+        {
+            return reply.status(500).send("Max depth reached");
+        }
     }
     return reply.status(200).send(tree);
 }
