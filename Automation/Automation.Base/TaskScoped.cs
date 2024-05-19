@@ -1,0 +1,64 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data.SqlTypes;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Automation.Base
+{
+    public enum EnumTaskStatus
+    {
+        Completed,
+        Failed
+    }
+
+    public class TaskBase
+    {
+        public object Context { get; set; }
+
+        public Dictionary<string, Type> InputsDefinition { get; protected set; }
+        public Dictionary<string, Type> OutputsDefinition { get; protected set; }
+
+        public Task<EnumTaskStatus> Start(Dictionary<string, object> inputs)
+        {
+            if (!ValidateInputs(inputs))
+                return Task.FromResult(EnumTaskStatus.Failed);
+            
+
+            return Task.FromResult(EnumTaskStatus.Completed);
+        }
+
+        protected virtual bool ValidateInputs(Dictionary<string, object> inputs)
+        {
+            foreach (var definition in InputsDefinition)
+            {
+                // If the input is not nullable and the input is not provided, return false
+                if (!inputs.ContainsKey(definition.Key) && Nullable.GetUnderlyingType(definition.Value) == null)
+                {
+                    return false;
+                }
+                // Incorect type
+                else if (inputs.ContainsKey(definition.Key) && !definition.Value.IsInstanceOfType(inputs[definition.Key]))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+
+    public class TaskGraph : TaskBase
+    {
+        public List<TaskBase> Tasks { get; set; }
+        public List<TaskLink> Links { get; set; }
+    }
+
+    public class TaskLink
+    {
+        public string SourceOutput { get; set; }
+        public TaskBase Source { get; set; }
+        public string TargetInput { get; set; }
+        public TaskBase Target { get; set; }
+    }
+}
