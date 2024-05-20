@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Automation.Plugins.Base;
+using System;
 using System.Collections.Generic;
 using System.Data.SqlTypes;
 using System.Linq;
@@ -7,29 +8,22 @@ using System.Threading.Tasks;
 
 namespace Automation.Base
 {
-    public enum EnumTaskStatus
+    public class TaskBase : ITask
     {
-        Completed,
-        Failed
-    }
-
-    public class TaskBase
-    {
-        public object Context { get; set; }
+        public dynamic? Context { get; set; }
 
         public Dictionary<string, Type> InputsDefinition { get; protected set; }
         public Dictionary<string, Type> OutputsDefinition { get; protected set; }
 
-        public Task<EnumTaskStatus> Start(Dictionary<string, object> inputs)
+        public Task<EnumTaskStatus> Start(Dictionary<string, dynamic> inputs)
         {
             if (!ValidateInputs(inputs))
                 return Task.FromResult(EnumTaskStatus.Failed);
             
-
             return Task.FromResult(EnumTaskStatus.Completed);
         }
 
-        protected virtual bool ValidateInputs(Dictionary<string, object> inputs)
+        protected virtual bool ValidateInputs(Dictionary<string, dynamic> inputs)
         {
             foreach (var definition in InputsDefinition)
             {

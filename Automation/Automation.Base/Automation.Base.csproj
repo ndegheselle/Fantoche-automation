@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Automation.Plugins.Base\Automation.Plugins.Base.csproj" />
+  </ItemGroup>
+
 </Project>
