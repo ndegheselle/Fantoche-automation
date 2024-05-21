@@ -5,6 +5,7 @@
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     xmlns:adonisControls="clr-namespace:AdonisUI.Controls;assembly=AdonisUI"
     xmlns:local="clr-namespace:Automation.App"
+    xmlns:components="clr-namespace:Automation.App.Base.Components"
     Title="Automation - test"
     Height="450"
     Width="800">
@@ -21,7 +22,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="auto" />
-                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
             <GroupBox Header="Class selection">
@@ -31,7 +32,14 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                    <TextBox />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Plugins folder" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                        <components:FolderPicker Grid.Column="1"/>
+                    </Grid>
                     <ListBox Margin="0,2,0,0" Grid.Row="1" />
                 </Grid>
             </GroupBox>
