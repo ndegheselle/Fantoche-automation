@@ -23,7 +23,7 @@ namespace Automation.App.Base.Components
     public partial class FolderPicker : UserControl, INotifyPropertyChanged
     {
         public static readonly DependencyProperty SelectedFolderPathProperty = DependencyProperty.Register(
-            "SelectedFilePath", typeof(string), typeof(FolderPicker), new FrameworkPropertyMetadata(string.Empty, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+            nameof(SelectedFolderPath), typeof(string), typeof(FolderPicker), new FrameworkPropertyMetadata(string.Empty, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
 
         public string SelectedFolderPath
         {
@@ -51,5 +51,6 @@ namespace Automation.App.Base.Components
         {
             SelectedFolderPath = string.Empty;
         }
+
     }
 }

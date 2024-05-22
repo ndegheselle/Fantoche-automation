@@ -20,15 +20,27 @@ namespace Automation.Supervisor
     public class TaskSuperviser
     {
         private readonly TaskSupervisorParams Params;
-        public List<Type> AvailableTasks { get; private set; }
+        public List<Type> AvailableClasses { get; private set; }
 
         public TaskSuperviser(TaskSupervisorParams taskSupervisorParams)
         {
             Params = taskSupervisorParams;
-            AvailableTasks = LoadDllsClasses(Params.DllsFolderPaths);
+            AvailableClasses = LoadClassesFromDlls(Params.DllsFolderPaths);
         }
 
-        private List<Type> LoadDllsClasses(List<string> dllsFolderPaths)
+        private List<Type> LoadClassesFromAssembly(string assemblyName)
+        {
+            List<Type> availableTasks = new List<Type>();
+            var assembly = System.Reflection.Assembly.Load(assemblyName);
+            foreach (var type in assembly.GetTypes())
+            {
+                if (type.IsAssignableFrom(typeof(ITask)))
+                    availableTasks.Add(type);
+            }
+            return availableTasks;
+        }
+
+        private List<Type> LoadClassesFromDlls(List<string> dllsFolderPaths)
         {
             // Load all DLLs from the specified folder and get all classes that implement ITask
             List<Type> availableTasks = new List<Type>();

@@ -21,6 +21,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Automation.Plugins\Automation.Plugins.csproj" />
+    <ProjectReference Include="..\Automation.Supervisor\Automation.Supervisor.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Resource Include="Resources\Fonts\Font Awesome 6 Brands-Regular-400.otf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>

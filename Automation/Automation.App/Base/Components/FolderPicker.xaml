@@ -13,7 +13,7 @@
             <ColumnDefinition Width="auto" />
         </Grid.ColumnDefinitions>
 
-        <TextBox MinWidth="50" Text="{Binding SelectedFolderPath, RelativeSource={RelativeSource AncestorType=local:FolderPicker}, Mode=TwoWay}"/>
+        <TextBox MinWidth="50" Text="{Binding SelectedFolderPath, RelativeSource={RelativeSource AncestorType=local:FolderPicker}, Mode=TwoWay}" />
         <Button Grid.Column="1" Click="Clear_Click">
             <Button.Style>
                 <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
