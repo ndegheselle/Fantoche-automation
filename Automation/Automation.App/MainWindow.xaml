@@ -4,11 +4,18 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:adonisControls="clr-namespace:AdonisUI.Controls;assembly=AdonisUI"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
+    xmlns:adonisExtensions="clr-namespace:AdonisUI.Extensions;assembly=AdonisUI"
     xmlns:components="clr-namespace:Automation.App.Base.Components"
     xmlns:local="clr-namespace:Automation.App"
     Title="Automation - test"
     Width="800"
     Height="450">
+
+    <adonisControls:AdonisWindow.Resources>
+        <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+            <Setter Property="adonisExtensions:ScrollViewerExtension.VerticalScrollBarExpansionMode" Value="AlwaysExpand" />
+        </Style>
+    </adonisControls:AdonisWindow.Resources>
 
     <Grid Margin="2" DataContext="{Binding TaskContext, RelativeSource={RelativeSource AncestorType=local:MainWindow}}">
 
@@ -41,9 +48,15 @@
                             Margin="0,0,4,0"
                             VerticalAlignment="Center"
                             Text="Plugins folder" />
-                        <components:FolderPicker Grid.Column="1" SelectedFolderPath="{Binding DllFolderPath}"/>
+                        <components:FolderPicker Grid.Column="1" SelectedFolderPath="{Binding DllFolderPath}" />
                     </Grid>
-                    <ListBox Grid.Row="1" Margin="0,2,0,0" ItemsSource="{Binding AvailableClasses}" />
+                    <Border Grid.Row="1" Margin="0,2,0,0">
+                        <ListBox
+                            ItemsSource="{Binding AvailableClasses}"
+                            SelectedItem="{Binding SelectedClass}"
+                            adonisExtensions:ScrollViewerExtension.VerticalScrollBarPlacement="Overlay"
+                            adonisExtensions:ScrollViewerExtension.HideScrollBarsUntilMouseOver="True" />
+                    </Border>
                 </Grid>
             </GroupBox>
 
@@ -53,9 +66,7 @@
                 Margin="2,0"
                 Background="{DynamicResource {x:Static adonisUi:Brushes.Layer1BackgroundBrush}}" />
 
-            <GroupBox
-                Grid.Column="2"
-                Header="Actions">
+            <GroupBox Grid.Column="2" Header="Actions">
                 <GroupBox.Style>
                     <Style TargetType="GroupBox" BasedOn="{StaticResource {x:Type GroupBox}}">
                         <Style.Triggers>
@@ -72,13 +83,19 @@
                         <RowDefinition Height="auto" />
                     </Grid.RowDefinitions>
                     <TextBlock Margin="0,4">Json context</TextBlock>
-                    <TextBox Grid.Row="1" />
+
+                    <TextBox
+                        Grid.Row="1"
+                        TextWrapping="Wrap"
+                        AcceptsReturn="True"
+                        VerticalContentAlignment="Top"
+                        adonisExtensions:ScrollViewerExtension.VerticalScrollBarPlacement="Overlay"
+                        adonisExtensions:ScrollViewerExtension.HideScrollBarsUntilMouseOver="True" />
                     <Button
                         Grid.Row="2"
                         Margin="0,2,0,0"
                         HorizontalAlignment="Right">
                         <StackPanel Orientation="Horizontal">
-
                             <TextBlock
                                 VerticalAlignment="Center"
                                 FontFamily="{StaticResource FontAwesomeSolid}"
@@ -97,11 +114,10 @@
             Background="{DynamicResource {x:Static adonisUi:Brushes.Layer1BackgroundBrush}}" />
 
         <GroupBox Grid.Row="2" Header="Output">
-            <ScrollViewer Padding="0">
-                <TextBox IsReadOnly="True">
-                    
-                </TextBox>
-            </ScrollViewer>
+            <TextBox
+                IsReadOnly="True"
+                adonisExtensions:ScrollViewerExtension.VerticalScrollBarPlacement="Overlay"
+                adonisExtensions:ScrollViewerExtension.HideScrollBarsUntilMouseOver="True" />
         </GroupBox>
     </Grid>
 

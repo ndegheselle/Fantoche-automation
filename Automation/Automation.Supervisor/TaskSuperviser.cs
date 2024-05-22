@@ -7,11 +7,6 @@ using System.Threading.Tasks;
 
 namespace Automation.Supervisor
 {
-    public class  TaskSupervisorParams
-    {
-        public List<string> DllsFolderPaths { get; set; }
-    }
-
     /// <summary>
     /// Handle DLL resolution
     /// Handle load balancing
@@ -19,42 +14,29 @@ namespace Automation.Supervisor
     /// </summary>
     public class TaskSuperviser
     {
-        private readonly TaskSupervisorParams Params;
-        public List<Type> AvailableClasses { get; private set; }
+        public List<Type> AvailableClasses { get; private set; } = new List<Type>();
 
-        public TaskSuperviser(TaskSupervisorParams taskSupervisorParams)
-        {
-            Params = taskSupervisorParams;
-            AvailableClasses = LoadClassesFromDlls(Params.DllsFolderPaths);
-        }
-
-        private List<Type> LoadClassesFromAssembly(string assemblyName)
-        {
-            List<Type> availableTasks = new List<Type>();
-            var assembly = System.Reflection.Assembly.Load(assemblyName);
-            foreach (var type in assembly.GetTypes())
-            {
-                if (type.IsAssignableFrom(typeof(ITask)))
-                    availableTasks.Add(type);
-            }
-            return availableTasks;
-        }
-
-        private List<Type> LoadClassesFromDlls(List<string> dllsFolderPaths)
+        public List<Type> RefreshClassesFromFolderDlls(string dllsFolderPaths)
         {
             // Load all DLLs from the specified folder and get all classes that implement ITask
-            List<Type> availableTasks = new List<Type>();
-            foreach (var dllPath in dllsFolderPaths)
+            AvailableClasses.Clear();
+
+            // Get all DLLs from the specified folder
+            var dlls = System.IO.Directory.GetFiles(dllsFolderPaths, "*.dll");
+            foreach ( var dll in dlls)
             {
-                var dll = System.Reflection.Assembly.LoadFile(dllPath);
-                
-                foreach (var type in dll.GetTypes())
+                var assembly = System.Reflection.Assembly.LoadFrom(dll);
+                var types = assembly.GetTypes();
+                foreach (var type in types)
                 {
-                    if (type.IsAssignableFrom(typeof(ITask)))
-                        availableTasks.Add(type);
+                    if (type.GetInterface(nameof(ITask)) != null)
+                    {
+                        AvailableClasses.Add(type);
+                    }
                 }
             }
-            return availableTasks;
+
+            return AvailableClasses;
         }
     }
 }

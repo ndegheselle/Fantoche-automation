@@ -32,12 +32,17 @@ namespace Automation.App
     /// </summary>
     public partial class MainWindow : AdonisWindow
     {
+        private readonly TaskSuperviser _supervisor = new TaskSuperviser();
         public TaskContext TaskContext { get; set; } = new TaskContext();
 
         public MainWindow()
         {
-            InitializeComponent();
             TaskContext.PropertyChanged += TaskContext_PropertyChanged;
+            // Get the executable path
+            string path = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            TaskContext.DllFolderPath = path;
+
+            InitializeComponent();
         }
 
         private void TaskContext_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -45,12 +50,7 @@ namespace Automation.App
             if (e.PropertyName == nameof(TaskContext.DllFolderPath))
             {
                 TaskContext.AvailableClasses.Clear();
-                TaskSuperviser taskSuperviser = new TaskSuperviser(new TaskSupervisorParams
-                {
-                    DllsFolderPaths = new List<string> { TaskContext.DllFolderPath }
-                });
-
-                foreach (var task in taskSuperviser.AvailableClasses)
+                foreach (var task in _supervisor.RefreshClassesFromFolderDlls(TaskContext.DllFolderPath))
                     TaskContext.AvailableClasses.Add(task);
             }
         }

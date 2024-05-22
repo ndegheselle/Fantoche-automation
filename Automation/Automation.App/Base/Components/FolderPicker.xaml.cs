@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -38,8 +39,11 @@ namespace Automation.App.Base.Components
 
         private void OpenFolderPicker_Click(object sender, RoutedEventArgs e)
         {
-            var folderDialog = new OpenFolderDialog
-            {};
+            var folderDialog = new OpenFolderDialog();
+
+            // If SelectedFolderPath is not empty, set the initial directory
+            if (Directory.Exists(SelectedFolderPath))
+                folderDialog.InitialDirectory = SelectedFolderPath;
 
             if (folderDialog.ShowDialog() == true)
             {
