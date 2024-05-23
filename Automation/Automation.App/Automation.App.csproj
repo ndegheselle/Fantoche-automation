@@ -23,6 +23,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Automation.Plugins\Automation.Plugins.csproj" />
     <ProjectReference Include="..\Automation.Supervisor\Automation.Supervisor.csproj" />
+    <ProjectReference Include="..\Automation.Worker\Automation.Worker.csproj" />
   </ItemGroup>
 
   <ItemGroup>

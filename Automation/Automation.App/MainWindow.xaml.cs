@@ -1,5 +1,6 @@
 ﻿using AdonisUI.Controls;
 using Automation.Supervisor;
+using Automation.Worker;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -53,6 +54,12 @@ namespace Automation.App
                 foreach (var task in _supervisor.RefreshClassesFromFolderDlls(TaskContext.DllFolderPath))
                     TaskContext.AvailableClasses.Add(task);
             }
+        }
+
+        private void StartTask_Click(object sender, RoutedEventArgs e)
+        {
+            TaskWorker worker = new TaskWorker(TaskContext.SelectedClass, TaskContext.JsonContext);
+            worker.ExecuteTask(new Dictionary<string, object>());
         }
     }
 }

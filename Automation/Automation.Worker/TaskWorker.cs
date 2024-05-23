@@ -24,7 +24,7 @@ namespace Automation.Worker
         {
             ITask? task = Activator.CreateInstance(TaskType) as ITask;
             if (task == null)
-                throw new Exception("Task is not an ITask");
+                throw new Exception($"'{TaskType}' is not an ITask");
 
             task.Context = Context;
             return task.Start(inputs);
@@ -32,6 +32,9 @@ namespace Automation.Worker
 
         private dynamic? LoadContext(string serializedContext)
         {
+            if (string.IsNullOrWhiteSpace(serializedContext))
+                return null;
+
             // deserialize the context from json
             return JsonSerializer.Deserialize<dynamic>(serializedContext);
         }

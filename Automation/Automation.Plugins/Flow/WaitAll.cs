@@ -10,6 +10,7 @@ namespace Automation.Plugins.Flow
     public class WaitAll : ITask
     {
         public dynamic? Context { get; set; }
+        public event EventHandler<TaskProgress>? Progress;
 
         public Task<EnumTaskStatus> Start(Dictionary<string, dynamic> inputs)
         {

@@ -12,8 +12,16 @@ namespace Automation.Plugins.Base
         Failed
     }
 
+    public struct TaskProgress
+    {
+        public EnumTaskStatus Status { get; set; }
+        public string Message { get; set; }
+    }
+
     public interface ITask
     {
+        public event EventHandler<TaskProgress>? Progress;
+
         public dynamic? Context { get; set; }
         public Task<EnumTaskStatus> Start(Dictionary<string, dynamic> inputs);
     }

@@ -85,6 +85,7 @@
                     <TextBlock Margin="0,4">Json context</TextBlock>
 
                     <TextBox
+                        Text="{Binding JsonContext, Mode=TwoWay}"
                         Grid.Row="1"
                         TextWrapping="Wrap"
                         AcceptsReturn="True"
@@ -94,7 +95,8 @@
                     <Button
                         Grid.Row="2"
                         Margin="0,2,0,0"
-                        HorizontalAlignment="Right">
+                        HorizontalAlignment="Right"
+                        Click="StartTask_Click">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock
                                 VerticalAlignment="Center"

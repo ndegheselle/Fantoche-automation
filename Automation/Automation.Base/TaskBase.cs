@@ -11,6 +11,7 @@ namespace Automation.Base
     public class TaskBase : ITask
     {
         public dynamic? Context { get; set; }
+        public event EventHandler<TaskProgress>? Progress;
 
         public Dictionary<string, Type> InputsDefinition { get; protected set; }
         public Dictionary<string, Type> OutputsDefinition { get; protected set; }
