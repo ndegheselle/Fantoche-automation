@@ -43,6 +43,11 @@ namespace Automation.Base
         }
     }
 
+    public class TaskWorkflow : TaskBase
+    {
+        public List<TaskBase> Tasks { get; set; }
+    }
+
     public class TaskGraph : TaskBase
     {
         public List<TaskBase> Tasks { get; set; }
