@@ -18,9 +18,18 @@ namespace Automation.Plugins.Base
         public string Message { get; set; }
     }
 
+    public class TaskEndpoint
+    {
+        public Type Type { get; set; }
+        public dynamic Data { get; set; }
+    }
+
     public interface ITask
     {
         public event EventHandler<TaskProgress>? Progress;
+
+        public Dictionary<string, TaskEndpoint> Inputs { get; }
+        public Dictionary<string, TaskEndpoint> Outputs { get; }
 
         public dynamic? Context { get; set; }
         public Task<EnumTaskStatus> Start(Dictionary<string, dynamic> inputs);
