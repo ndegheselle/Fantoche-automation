@@ -16,9 +16,10 @@ namespace Automation.Base
         public Dictionary<string, TaskEndpoint> Inputs { get; protected set; }
         public Dictionary<string, TaskEndpoint> Outputs { get; protected set; }
 
-        public virtual Task<EnumTaskStatus> Start(Dictionary<string, dynamic> inputs)
+
+        public virtual Task<EnumTaskStatus> Start()
         {
-            if (!ValidateInputs(inputs))
+            if (!ValidateInputs())
                 return Task.FromResult(EnumTaskStatus.Failed);
             
             foreach (var input in inputs)
@@ -27,7 +28,7 @@ namespace Automation.Base
             return Task.FromResult(EnumTaskStatus.Completed);
         }
 
-        protected virtual bool ValidateInputs(Dictionary<string, dynamic> inputs)
+        protected virtual bool ValidateInputs()
         {
             foreach (var input in Inputs)
             {

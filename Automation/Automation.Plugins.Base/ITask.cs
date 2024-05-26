@@ -32,6 +32,8 @@ namespace Automation.Plugins.Base
         public Dictionary<string, TaskEndpoint> Outputs { get; }
 
         public dynamic? Context { get; set; }
-        public Task<EnumTaskStatus> Start(Dictionary<string, dynamic> inputs);
+        EnumTaskStatus Status { get; }
+
+        public Task<EnumTaskStatus> Start();
     }
 }
