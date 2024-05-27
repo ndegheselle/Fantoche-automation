@@ -11,42 +11,25 @@ namespace Automation.Base
     public class TaskBase : ITask
     {
         public dynamic? Context { get; set; }
-        public event EventHandler<TaskProgress>? Progress;
 
-        public Dictionary<string, TaskEndpoint> Inputs { get; protected set; }
-        public Dictionary<string, TaskEndpoint> Outputs { get; protected set; }
+        public Dictionary<string, TaskEndpoint> Inputs { get; set; } = [];
 
-        public virtual Task<EnumTaskStatus> Start(Dictionary<string, dynamic> inputs)
+        public Dictionary<string, TaskEndpoint> Outputs { get; set; } = [];
+
+        public virtual Task<bool> Start()
         {
-            if (!ValidateInputs(inputs))
-                return Task.FromResult(EnumTaskStatus.Failed);
-            
+            if (!ValidateInputs(Inputs))
+                return Task.FromResult(false);
+            return Task.FromResult(true);
+        }
+
+        protected virtual bool ValidateInputs(Dictionary<string, TaskEndpoint> inputs)
+        {
             foreach (var input in inputs)
-                Inputs[input.Key].Data = inputs[input.Key];
-
-            return Task.FromResult(EnumTaskStatus.Completed);
-        }
-
-        protected virtual bool ValidateInputs(Dictionary<string, dynamic> inputs)
-        {
-            foreach (var input in Inputs)
             {
-                // If the input is not nullable and the input is not provided, return false
-                if (!inputs.ContainsKey(input.Key) && Nullable.GetUnderlyingType(input.Value.Type) == null)
-                {
+                if (!input.Value.IsValid())
                     return false;
-                }
-                // Incorect type
-                else if (inputs.ContainsKey(input.Key) && !input.Value.Type.IsInstanceOfType(inputs[input.Key]))
-                {
-                    return false;
-                }
             }
-            return true;
-        }
-
-        protected virtual bool CheckErrors()
-        {
             return true;
         }
     }
