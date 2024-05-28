@@ -9,92 +9,72 @@ namespace Automation.Base
 {
     public class TaskGraph : TaskBase
     {
-        public List<ITask> Tasks { get; set; }
-        public List<TaskLink> Links { get; set; }
+        public List<ITask> Tasks { get; set; } = [];
 
-        private ITask _StartingTask
+        public List<TaskLink> Links { get; set; } = [];
+
+        public override async Task<bool> Start()
         {
-            get
-            {
-                IEnumerable<ITask> startingTasks = Tasks.Where(t => t is GraphFlowStart);
-                if (startingTasks.Count() == 0)
-                    throw new Exception("No starting task found");
-                if (startingTasks.Count() > 1)
-                    throw new Exception("Multiple starting tasks found");
+            if (!ValidateInputs(Inputs))
+                return false;
+            var startingTask = GetStartingTask();
 
-                return startingTasks.First();
-            }
+            startingTask.Inputs = Inputs;
+            return await ExecuteNode(startingTask);
+        }
+        
+        private ITask GetStartingTask()
+        {
+            IEnumerable<ITask> startingTasks = Tasks.Where(t => t is GraphFlowStart);
+            if (startingTasks.Count() == 0)
+                throw new Exception("No starting task found");
+            if (startingTasks.Count() > 1)
+                throw new Exception("Multiple starting tasks found");
+
+            return startingTasks.First();
         }
 
-        private ITask _EndingTask
+        private async Task<bool> ExecuteNode(ITask node)
         {
-            get
+            bool result = await node.Start();
+            if (!result)
+                return false;
+
+            foreach (TaskLink link in Links.Where(l => l.From.Parent == node))
             {
-                IEnumerable<ITask> endingTasks = Tasks.Where(t => t is GraphFlowEnd);
-                if (endingTasks.Count() == 0)
-                    throw new Exception("No ending task found");
-                if (endingTasks.Count() > 1)
-                    throw new Exception("Multiple ending tasks found");
-                return endingTasks.First();
+                link.Status = true;
+                // Ignore the link if the target node doesn't have all its links ready
+                if (Links.Where(l => l.From.Parent == link.To).Any(l => l.Status == false))
+                    continue;
+                result = await ExecuteNode(link.To.Parent);
+                if (!result)
+                    return false;
             }
-        }
-
-        public override async Task<EnumTaskStatus> Start()
-        {
-            if (!ValidateInputs(inputs))
-                return EnumTaskStatus.Failed;
-
-            await StartNode(_StartingTask);
-
-            return EnumTaskStatus.Completed;
-        }
-
-        private async Task<EnumTaskStatus> StartNode(ITask node)
-        {
-            EnumTaskStatus status = await node.Start();
-            if (status == EnumTaskStatus.Failed)
-                return EnumTaskStatus.Failed;
-
-            foreach (var link in Links.Where(l => l.Source == node))
-            {
-                link.Status = EnumTaskStatus.Completed;
-                var linkInputs = Links.Where(l => l.Target == link.Target);
-                // If all inputs are not completed, skip
-                if (linkInputs.Any(x => x.Status != EnumTaskStatus.Completed))
-                    break;
-
-                EnumTaskStatus statut = await StartNode(link.Target);
-
-                if (statut == EnumTaskStatus.Failed)
-                    return EnumTaskStatus.Failed;
-            }
-            return EnumTaskStatus.Completed;
+            return true;
         }
     }
 
     public class TaskLink
     {
-        public string SourceOutput { get; set; }
-        public ITask Source { get; set; }
-        public string TargetInput { get; set; }
-        public ITask Target { get; set; }
+        public TaskEndpoint From { get; set; }
+        public TaskEndpoint To { get; set; }
 
-        private EnumTaskStatus _status;
-        public EnumTaskStatus Status
+        private bool? _Status;
+        public bool? Status
         {
-            get => _status;
+            get => _Status;
             set
             {
-                _status = value;
-                if (value == EnumTaskStatus.Completed)
-                    OnCompleted();
+                _Status = value;
+                if (value == true)
+                    To.Data = From.Data;
             }
         }
 
-        public void OnCompleted()
+        public TaskLink(TaskEndpoint from, TaskEndpoint to)
         {
-            // Set the target input data
-            Target.Inputs[TargetInput].Data = Source.Outputs[SourceOutput].Data;
+            From = from;
+            To = to;
         }
     }
 }

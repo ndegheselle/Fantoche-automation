@@ -6,34 +6,32 @@ using System.Threading.Tasks;
 
 namespace Automation.Plugins.Base
 {
-    public enum EnumTaskStatus
-    {
-        Completed,
-        Failed
-    }
-
-    public struct TaskProgress
-    {
-        public EnumTaskStatus Status { get; set; }
-        public string Message { get; set; }
-    }
-
     public class TaskEndpoint
     {
         public Type Type { get; set; }
-        public dynamic Data { get; set; }
+        public ITask Parent { get; set; }
+        public object? Data { get; set; }
+
+        public TaskEndpoint(Type type, ITask parent)
+        {
+            Type = type;
+            Parent = parent;
+        }
+
+        public bool IsValid()
+        {
+            if (Nullable.GetUnderlyingType(Type) == null && Data == null)
+                return false;
+            return Data?.GetType().IsInstanceOfType(Type) == true;
+        }
     }
 
     public interface ITask
     {
-        public event EventHandler<TaskProgress>? Progress;
-
-        public Dictionary<string, TaskEndpoint> Inputs { get; }
-        public Dictionary<string, TaskEndpoint> Outputs { get; }
+        public Dictionary<string, TaskEndpoint> Inputs { get; set; }
+        public Dictionary<string, TaskEndpoint> Outputs { get; set; }
 
         public dynamic? Context { get; set; }
-        EnumTaskStatus Status { get; }
-
-        public Task<EnumTaskStatus> Start();
+        public Task<bool> Start();
     }
 }
