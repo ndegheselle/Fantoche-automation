@@ -59,7 +59,7 @@ namespace Automation.App
         private void StartTask_Click(object sender, RoutedEventArgs e)
         {
             TaskWorker worker = new TaskWorker(TaskContext.SelectedClass, TaskContext.JsonContext);
-            worker.ExecuteTask(new Dictionary<string, object>());
+            worker.ExecuteTask();
         }
     }
 }

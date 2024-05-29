@@ -19,7 +19,9 @@ namespace Automation.Base
                 return false;
             var startingTask = GetStartingTask();
 
-            startingTask.Inputs = Inputs;
+            foreach (var input in Inputs)
+                startingTask.Inputs.Add(input.Key, input.Value);
+
             return await ExecuteNode(startingTask);
         }
         
@@ -37,6 +39,9 @@ namespace Automation.Base
         private async Task<bool> ExecuteNode(ITask node)
         {
             bool result = await node.Start();
+            // Get the current outputs
+            this.Outputs = node.Outputs;
+
             if (!result)
                 return false;
 

@@ -20,14 +20,14 @@ namespace Automation.Worker
             Context = LoadContext(serializedContext);
         }
 
-        public Task<EnumTaskStatus> ExecuteTask(Dictionary<string, object> inputs)
+        public Task<bool> ExecuteTask()
         {
             ITask? task = Activator.CreateInstance(TaskType) as ITask;
             if (task == null)
                 throw new Exception($"'{TaskType}' is not an ITask");
 
             task.Context = Context;
-            return task.Start(inputs);
+            return task.Start();
         }
 
         private dynamic? LoadContext(string serializedContext)
