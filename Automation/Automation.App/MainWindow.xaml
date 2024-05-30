@@ -7,120 +7,16 @@
     xmlns:adonisExtensions="clr-namespace:AdonisUI.Extensions;assembly=AdonisUI"
     xmlns:components="clr-namespace:Automation.App.Base.Components"
     xmlns:local="clr-namespace:Automation.App"
+    xmlns:layout="clr-namespace:Automation.App.Layout"
+    xmlns:menus="clr-namespace:Automation.App.Views.Menus"
     Title="Automation - test"
     Width="800"
     Height="450">
 
-    <adonisControls:AdonisWindow.Resources>
-        <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
-            <Setter Property="adonisExtensions:ScrollViewerExtension.VerticalScrollBarExpansionMode" Value="AlwaysExpand" />
-        </Style>
-    </adonisControls:AdonisWindow.Resources>
-
-    <Grid Margin="2" DataContext="{Binding TaskContext, RelativeSource={RelativeSource AncestorType=local:MainWindow}}">
-
-        <Grid.RowDefinitions>
-            <RowDefinition Height="2*" />
-            <RowDefinition Height="auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="auto" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-
-            <GroupBox Header="Class selection">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="auto" />
-                            <ColumnDefinition />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock
-                            Margin="0,0,4,0"
-                            VerticalAlignment="Center"
-                            Text="Plugins folder" />
-                        <components:FolderPicker Grid.Column="1" SelectedFolderPath="{Binding DllFolderPath}" />
-                    </Grid>
-                    <Border Grid.Row="1" Margin="0,2,0,0">
-                        <ListBox
-                            ItemsSource="{Binding AvailableClasses}"
-                            SelectedItem="{Binding SelectedClass}"
-                            adonisExtensions:ScrollViewerExtension.VerticalScrollBarPlacement="Overlay"
-                            adonisExtensions:ScrollViewerExtension.HideScrollBarsUntilMouseOver="True" />
-                    </Border>
-                </Grid>
-            </GroupBox>
-
-            <GridSplitter
-                Grid.Column="1"
-                Width="2"
-                Margin="2,0"
-                Background="{DynamicResource {x:Static adonisUi:Brushes.Layer1BackgroundBrush}}" />
-
-            <GroupBox Grid.Column="2" Header="Actions">
-                <GroupBox.Style>
-                    <Style TargetType="GroupBox" BasedOn="{StaticResource {x:Type GroupBox}}">
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding SelectedClass}" Value="{x:Null}">
-                                <Setter Property="IsEnabled" Value="False" />
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </GroupBox.Style>
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="auto" />
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="auto" />
-                    </Grid.RowDefinitions>
-                    <TextBlock Margin="0,4">Json context</TextBlock>
-
-                    <TextBox
-                        Text="{Binding JsonContext, Mode=TwoWay}"
-                        Grid.Row="1"
-                        TextWrapping="Wrap"
-                        AcceptsReturn="True"
-                        VerticalContentAlignment="Top"
-                        adonisExtensions:ScrollViewerExtension.VerticalScrollBarPlacement="Overlay"
-                        adonisExtensions:ScrollViewerExtension.HideScrollBarsUntilMouseOver="True" />
-                    <Button
-                        Grid.Row="2"
-                        Margin="0,2,0,0"
-                        HorizontalAlignment="Right"
-                        Click="StartTask_Click">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock
-                                VerticalAlignment="Center"
-                                FontFamily="{StaticResource FontAwesomeSolid}"
-                                Text="&#xf04b;" />
-                            <TextBlock Margin="4,0,0,0">Start</TextBlock>
-                        </StackPanel>
-                    </Button>
-                </Grid>
-            </GroupBox>
-        </Grid>
-
-        <GridSplitter
-            Grid.Row="1"
-            Height="2"
-            Margin="0,2"
-            Background="{DynamicResource {x:Static adonisUi:Brushes.Layer1BackgroundBrush}}" />
-
-        <GroupBox Grid.Row="2" Header="Output">
-            <TextBox
-                IsReadOnly="True"
-                adonisExtensions:ScrollViewerExtension.VerticalScrollBarPlacement="Overlay"
-                adonisExtensions:ScrollViewerExtension.HideScrollBarsUntilMouseOver="True" />
-        </GroupBox>
-    </Grid>
+    <layout:MainLayout>
+        <layout:MainLayout.SideMenu>
+            <menus:SideMenu />
+        </layout:MainLayout.SideMenu>
+    </layout:MainLayout>
 
 </adonisControls:AdonisWindow>

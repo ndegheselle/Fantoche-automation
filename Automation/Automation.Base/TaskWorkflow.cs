@@ -1,13 +1,8 @@
 ﻿using Automation.Plugins.Base;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Automation.Base
 {
-    public class TaskGraph : TaskBase
+    public class TaskWorkflow : TaskBase
     {
         public List<ITask> Tasks { get; set; } = [];
 

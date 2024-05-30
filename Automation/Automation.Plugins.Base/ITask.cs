@@ -28,10 +28,9 @@ namespace Automation.Plugins.Base
 
     public interface ITask
     {
+        public dynamic? Context { get; set; }
         public Dictionary<string, TaskEndpoint> Inputs { get; }
         public Dictionary<string, TaskEndpoint> Outputs { get; }
-
-        public dynamic? Context { get; set; }
         public Task<bool> Start();
     }
 }
