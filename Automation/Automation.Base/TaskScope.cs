@@ -1,17 +1,10 @@
-﻿using Automation.Plugins.Base;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Automation.Base
+﻿namespace Automation.Base
 {
-    public class TaskScope
+    public class TaskScope : IContextElement
     {
         public dynamic? Context { get; set; }
         public string Name { get; set; }
         // Can either be a ITask or a TaskScope
-        public List<object> Childrens { get; set; } = new List<object>();
+        public List<IContextElement> Childrens { get; set; } = new List<IContextElement>();
     }
 }

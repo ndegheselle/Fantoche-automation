@@ -1,28 +1,18 @@
-﻿using Automation.Plugins.Base;
+﻿using Automation.Base;
 
 namespace Automation.Plugins.Flow
 {
-    public class  WaitDelay : ITask
+    public class  WaitDelay : TaskBase
     {
-        public dynamic? Context { get; set; }
-
-        public Dictionary<string, TaskEndpoint> Inputs { get; private set; }
-        public Dictionary<string, TaskEndpoint> Outputs { get; private set; }
-
-        public Task<bool> Start()
+        public override Task<bool> Start()
         {
             throw new NotImplementedException();
         }
     }
 
-    public class WaitAllTasks : ITask
+    public class WaitAllTasks : TaskBase
     {
-        public dynamic? Context { get; set; }
-
-        public Dictionary<string, TaskEndpoint> Inputs { get; private set; }
-        public Dictionary<string, TaskEndpoint> Outputs { get; private set; }
-
-        public Task<bool> Start()
+        public override Task<bool> Start()
         {
             throw new NotImplementedException();
         }

@@ -16,7 +16,6 @@
         </Grid.ColumnDefinitions>
 
         <ContentControl Content="{Binding SideMenu}" />
-
-        <ContentControl x:Name="MainContainer" />
+        <ContentControl Grid.Column="1" Content="{Binding CurrentPage}" />
     </Grid>
 </UserControl>

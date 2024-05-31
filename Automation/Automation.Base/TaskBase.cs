@@ -1,20 +1,48 @@
-﻿using Automation.Plugins.Base;
-using System;
-using System.Collections.Generic;
-using System.Data.SqlTypes;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Automation.Base
+﻿namespace Automation.Base
 {
+    public interface IContextElement
+    {
+        public string Name { get; }
+        public dynamic? Context { get; set; }
+    }
+
+    // XXX : Check if for plugins ITask should be in a separated Automation.Plugins.Base ?
+    public interface ITask : IContextElement
+    {
+        public Dictionary<string, TaskEndpoint> Inputs { get; }
+        public Dictionary<string, TaskEndpoint> Outputs { get; }
+        public Task<bool> Start();
+    }
+
+    public class TaskEndpoint
+    {
+        public Type Type { get; set; }
+        public ITask Parent { get; set; }
+        public object? Data { get; set; }
+
+        public TaskEndpoint(Type type, ITask parent)
+        {
+            Type = type;
+            Parent = parent;
+        }
+
+        public bool IsValid()
+        {
+            if (Nullable.GetUnderlyingType(Type) == null && Data == null)
+                return false;
+            return Data?.GetType().IsInstanceOfType(Type) == true;
+        }
+    }
+
     public class TaskBase : ITask
     {
+        public string Name { get; set; }
         public dynamic? Context { get; set; }
 
         public Dictionary<string, TaskEndpoint> Inputs { get; set; } = [];
 
         public Dictionary<string, TaskEndpoint> Outputs { get; set; } = [];
+
 
         public virtual Task<bool> Start()
         {

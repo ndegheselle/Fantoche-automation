@@ -20,12 +20,20 @@ namespace Automation.App.Layout
     /// </summary>
     public partial class MainLayout : UserControl, IPageContainer
     {
-        // dependency property for the side menu
+        // Dependency property for the side menu
         public static readonly DependencyProperty SideMenuProperty = DependencyProperty.Register("SideMenu", typeof(FrameworkElement), typeof(MainLayout), new PropertyMetadata(null));
         public FrameworkElement SideMenu
         {
             get => (FrameworkElement)GetValue(SideMenuProperty);
             set => SetValue(SideMenuProperty, value);
+        }
+
+        // Dependency property for the default page
+        public static readonly DependencyProperty CurrentPageProperty = DependencyProperty.Register("CurrentPage", typeof(FrameworkElement), typeof(MainLayout), new PropertyMetadata(null));
+        public FrameworkElement CurrentPage
+        {
+            get => (FrameworkElement)GetValue(CurrentPageProperty);
+            set => SetValue(CurrentPageProperty, value);
         }
 
         public MainLayout()
@@ -37,7 +45,7 @@ namespace Automation.App.Layout
 
         public void Show(FrameworkElement page)
         {
-            MainContainer.Content = page;
+            CurrentPage = page;
         }
     }
 }

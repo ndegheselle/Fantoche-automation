@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Automation.App.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,6 +24,7 @@ namespace Automation.App.Views.Menus
         public SideMenu()
         {
             InitializeComponent();
+            this.DataContext = GlobalContext.Instance.SideMenuVM;
         }
     }
 }

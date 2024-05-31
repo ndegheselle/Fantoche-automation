@@ -6,31 +6,5 @@ using System.Threading.Tasks;
 
 namespace Automation.Plugins.Base
 {
-    public class TaskEndpoint
-    {
-        public Type Type { get; set; }
-        public ITask Parent { get; set; }
-        public object? Data { get; set; }
 
-        public TaskEndpoint(Type type, ITask parent)
-        {
-            Type = type;
-            Parent = parent;
-        }
-
-        public bool IsValid()
-        {
-            if (Nullable.GetUnderlyingType(Type) == null && Data == null)
-                return false;
-            return Data?.GetType().IsInstanceOfType(Type) == true;
-        }
-    }
-
-    public interface ITask
-    {
-        public dynamic? Context { get; set; }
-        public Dictionary<string, TaskEndpoint> Inputs { get; }
-        public Dictionary<string, TaskEndpoint> Outputs { get; }
-        public Task<bool> Start();
-    }
 }

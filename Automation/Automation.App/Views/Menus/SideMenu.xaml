@@ -5,6 +5,58 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Automation.App.Views.Menus"
-    mc:Ignorable="d">
-    <Border Background="Gray" MinWidth="200" />
+    xmlns:viewModels="clr-namespace:Automation.App.ViewModels"
+    xmlns:base="clr-namespace:Automation.Base;assembly=Automation.Base"
+    xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
+    mc:Ignorable="d"
+    d:DataContext="{d:DesignInstance viewModels:SideMenuVM}">
+
+    <Grid>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+
+        <TextBox IsEnabled="False" />
+        <TreeView
+            Grid.Row="1"
+            Background="{DynamicResource {x:Static adonisUi:Brushes.Layer1BackgroundBrush}}"
+            MinWidth="200"
+            ItemsSource="{Binding RootScope.Childrens}">
+            <TreeView.Resources>
+                <HierarchicalDataTemplate DataType="{x:Type base:TaskScope}" ItemsSource="{Binding Childrens}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock
+                            Text="&#xf07b;"
+                            FontFamily="{StaticResource FontAwesomeSolid}"
+                            VerticalAlignment="Center"
+                            Margin="0,0,4,0" />
+                        <TextBlock Text="{Binding Name}" />
+                    </StackPanel>
+                </HierarchicalDataTemplate>
+                <DataTemplate DataType="{x:Type base:TaskWorkflow}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock
+                            Text="&#xf1b3;"
+                            FontFamily="{StaticResource FontAwesomeSolid}"
+                            VerticalAlignment="Center"
+                            Margin="0,0,4,0" />
+                        <TextBlock Text="{Binding Name}" />
+                    </StackPanel>
+                </DataTemplate>
+                <!--  XXX : What about ITask ?  -->
+                <DataTemplate DataType="{x:Type base:TaskBase}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock
+                            Text="&#xf1b2;"
+                            FontFamily="{StaticResource FontAwesomeSolid}"
+                            VerticalAlignment="Center"
+                            Margin="0,0,4,0" />
+                        <TextBlock Text="{Binding Name}" />
+                    </StackPanel>
+                </DataTemplate>
+            </TreeView.Resources>
+        </TreeView>
+    </Grid>
 </UserControl>

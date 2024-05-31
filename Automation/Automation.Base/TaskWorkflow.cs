@@ -1,4 +1,4 @@
-﻿using Automation.Plugins.Base;
+﻿using System.Xml.Linq;
 
 namespace Automation.Base
 {
@@ -17,12 +17,19 @@ namespace Automation.Base
             foreach (var input in Inputs)
                 startingTask.Inputs.Add(input.Key, input.Value);
 
-            return await ExecuteNode(startingTask);
+            bool result = await ExecuteNode(startingTask);
+
+            // Set outputs if the workflow is designed that way
+            ITask endingTask = GetEndingTask();
+            if (endingTask != null)
+                this.Outputs = endingTask.Outputs;
+
+            return result;
         }
         
         private ITask GetStartingTask()
         {
-            IEnumerable<ITask> startingTasks = Tasks.Where(t => t is GraphFlowStart);
+            IEnumerable<ITask> startingTasks = Tasks.Where(t => t is WorkflowStart);
             if (startingTasks.Count() == 0)
                 throw new Exception("No starting task found");
             if (startingTasks.Count() > 1)
@@ -31,11 +38,18 @@ namespace Automation.Base
             return startingTasks.First();
         }
 
+        private ITask? GetEndingTask()
+        {
+            IEnumerable<ITask> endingTasks = Tasks.Where(t => t is WorkflowEnd);
+            if (endingTasks.Count() > 1)
+                throw new Exception("Multiple ending tasks found");
+
+            return endingTasks.FirstOrDefault();
+        }
+
         private async Task<bool> ExecuteNode(ITask node)
         {
             bool result = await node.Start();
-            // Get the current outputs
-            this.Outputs = node.Outputs;
 
             if (!result)
                 return false;
