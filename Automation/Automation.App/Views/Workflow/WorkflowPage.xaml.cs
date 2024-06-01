@@ -20,7 +20,7 @@ namespace Automation.App.Views.Workflow
     /// </summary>
     public partial class WorkflowPage : UserControl
     {
-        public WorkflowPage()
+        public WorkflowPage(Automation.Base.TaskWorkflow workflow)
         {
             InitializeComponent();
         }

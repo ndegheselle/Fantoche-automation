@@ -1,4 +1,6 @@
-﻿using Automation.App.ViewModels;
+﻿using Automation.App.Layout;
+using Automation.App.ViewModels;
+using Automation.Base;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,10 +23,23 @@ namespace Automation.App.Views.Menus
     /// </summary>
     public partial class SideMenu : UserControl
     {
+        private readonly SideMenuContext SideMenuContext = GlobalContext.Instance.SideMenu;
+
         public SideMenu()
         {
             InitializeComponent();
-            this.DataContext = GlobalContext.Instance.SideMenuVM;
+            this.DataContext = SideMenuContext;
+        }
+
+        private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            TreeView treeView = (TreeView)sender;
+            IContextElement? contextElement = treeView.SelectedItem as IContextElement;
+
+            if (contextElement == null)
+                return;
+
+            SideMenuContext.SelectedElement = contextElement;
         }
     }
 }

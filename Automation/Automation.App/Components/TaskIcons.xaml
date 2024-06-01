@@ -1,0 +1,44 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:Automation.App.Components"
+    xmlns:base="clr-namespace:Automation.Base;assembly=Automation.Base">
+    <local:TaskIconSelector x:Key="TaskIconSelector">
+        <local:TaskIconSelector.ScopeIconTemplate>
+            <HierarchicalDataTemplate DataType="{x:Type base:TaskScope}" ItemsSource="{Binding Childrens}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock
+                        Text="&#xf07b;"
+                        FontFamily="{StaticResource FontAwesomeSolid}"
+                        VerticalAlignment="Center"
+                        Margin="0,0,4,0" />
+                    <TextBlock Text="{Binding Name}" />
+                </StackPanel>
+            </HierarchicalDataTemplate>
+        </local:TaskIconSelector.ScopeIconTemplate>
+        <local:TaskIconSelector.WorkflowIconTemplate>
+            <DataTemplate>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock
+                        Text="&#xf1b3;"
+                        FontFamily="{StaticResource FontAwesomeSolid}"
+                        VerticalAlignment="Center"
+                        Margin="0,0,4,0" />
+                    <TextBlock Text="{Binding Name}" />
+                </StackPanel>
+            </DataTemplate>
+        </local:TaskIconSelector.WorkflowIconTemplate>
+        <local:TaskIconSelector.TaskIconTemplate>
+            <DataTemplate>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock
+                        Text="&#xf1b2;"
+                        FontFamily="{StaticResource FontAwesomeSolid}"
+                        VerticalAlignment="Center"
+                        Margin="0,0,4,0" />
+                    <TextBlock Text="{Binding Name}" />
+                </StackPanel>
+            </DataTemplate>
+        </local:TaskIconSelector.TaskIconTemplate>
+    </local:TaskIconSelector>
+</ResourceDictionary>

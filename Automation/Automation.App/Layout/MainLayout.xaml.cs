@@ -18,7 +18,7 @@ namespace Automation.App.Layout
     /// <summary>
     /// Logique d'interaction pour MainLayout.xaml
     /// </summary>
-    public partial class MainLayout : UserControl, IPageContainer
+    public partial class MainLayout : UserControl
     {
         // Dependency property for the side menu
         public static readonly DependencyProperty SideMenuProperty = DependencyProperty.Register("SideMenu", typeof(FrameworkElement), typeof(MainLayout), new PropertyMetadata(null));
@@ -40,12 +40,6 @@ namespace Automation.App.Layout
         {
             InitializeComponent();
             this.DataContext = this;
-            Navigation.Instance.CurrentContainer = this;
-        }
-
-        public void Show(FrameworkElement page)
-        {
-            CurrentPage = page;
         }
     }
 }

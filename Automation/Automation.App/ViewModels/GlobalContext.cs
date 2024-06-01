@@ -14,9 +14,9 @@ namespace Automation.App.ViewModels
 
         private GlobalContext()
         {
-            SideMenuVM = new SideMenuVM();
+            SideMenu = new SideMenuContext();
         }
 
-        public SideMenuVM SideMenuVM { get; }
+        public SideMenuContext SideMenu { get; }
     }
 }

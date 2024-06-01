@@ -13,14 +13,14 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Automation.App.Views.Workflow
+namespace Automation.App.Views.Task
 {
     /// <summary>
-    /// Logique d'interaction pour WorkflowEditPage.xaml
+    /// Logique d'interaction pour TaskPage.xaml
     /// </summary>
-    public partial class WorkflowEditPage : UserControl
+    public partial class TaskPage : UserControl
     {
-        public WorkflowEditPage()
+        public TaskPage(Automation.Base.ITask task)
         {
             InitializeComponent();
         }

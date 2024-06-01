@@ -19,14 +19,7 @@
         </layout:MainLayout.SideMenu>
 
         <layout:MainLayout.CurrentPage>
-            <ContentControl
-                VerticalAlignment="Center"
-                HorizontalAlignment="Center"
-                ContentTemplate="{DynamicResource {x:Static adonisUi:Templates.LoadingDots}}"
-                Foreground="{DynamicResource {x:Static adonisUi:Brushes.ForegroundBrush}}"
-                Width="24"
-                Height="24"
-                Focusable="False" />
+            <layout:RouterView />
         </layout:MainLayout.CurrentPage>
 
     </layout:MainLayout>
