@@ -1,4 +1,4 @@
-﻿namespace Automation.Base
+﻿namespace Automation.Base.Tasks
 {
     /// <summary>
     /// Represents the starting point of a graph

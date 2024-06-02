@@ -34,7 +34,7 @@ namespace Automation.App.Views.Menus
         private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             TreeView treeView = (TreeView)sender;
-            IContextElement? contextElement = treeView.SelectedItem as IContextElement;
+            ScopedElement? contextElement = treeView.SelectedItem as ScopedElement;
 
             if (contextElement == null)
                 return;

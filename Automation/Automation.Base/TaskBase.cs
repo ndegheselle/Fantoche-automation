@@ -1,14 +1,11 @@
 ﻿namespace Automation.Base
 {
-    public interface IContextElement
+    // XXX : Check if for plugins ITask should be in a separated Automation.Plugins.Base ?
+    public interface ITask
     {
         public string Name { get; }
         public dynamic? Context { get; set; }
-    }
 
-    // XXX : Check if for plugins ITask should be in a separated Automation.Plugins.Base ?
-    public interface ITask : IContextElement
-    {
         public Dictionary<string, TaskEndpoint> Inputs { get; }
         public Dictionary<string, TaskEndpoint> Outputs { get; }
         public Task<bool> Start();

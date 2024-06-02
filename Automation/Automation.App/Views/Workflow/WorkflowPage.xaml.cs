@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Automation.Base;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,7 +21,7 @@ namespace Automation.App.Views.Workflow
     /// </summary>
     public partial class WorkflowPage : UserControl
     {
-        public WorkflowPage(Automation.Base.TaskWorkflow workflow)
+        public WorkflowPage(ScopedElement scope)
         {
             InitializeComponent();
         }

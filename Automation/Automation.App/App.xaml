@@ -13,6 +13,14 @@
             </ResourceDictionary.MergedDictionaries>
 
             <FontFamily x:Key="FontAwesomeSolid">/Resources/Fonts/FontAwesomeSolid.otf#Font Awesome 6 Free Solid</FontFamily>
+
+            <!--  HACK : fix a binding error  -->
+            <Style TargetType="{x:Type ComboBoxItem}" BasedOn="{StaticResource {x:Type ComboBoxItem}}">
+                <Setter Property="HorizontalContentAlignment" Value="Left" />
+                <Setter Property="VerticalContentAlignment" Value="Top" />
+            </Style>
+            <Style TargetType="TreeViewItem" BasedOn="{StaticResource TreeViewItemStyle}" />
+
         </ResourceDictionary>
     </Application.Resources>
 </Application>

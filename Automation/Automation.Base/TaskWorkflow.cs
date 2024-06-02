@@ -1,4 +1,5 @@
 ﻿using System.Xml.Linq;
+using Automation.Base.Tasks;
 
 namespace Automation.Base
 {

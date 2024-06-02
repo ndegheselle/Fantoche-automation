@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Formats.Asn1;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -19,10 +20,10 @@ namespace Automation.App.ViewModels
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public TaskScope RootScope { get; set; }
+        public Scope RootScope { get; set; }
 
-        private IContextElement? _selectedElement;
-        public IContextElement? SelectedElement
+        private ScopedElement? _selectedElement;
+        public ScopedElement? SelectedElement
         {
             get => _selectedElement;
             set
@@ -37,14 +38,14 @@ namespace Automation.App.ViewModels
 
         public SideMenuContext()
         {
-            RootScope = new TaskScope();
-            RootScope.Childrens.Add(new TaskScope()
+            RootScope = new Scope();
+            RootScope.Childrens.Add(new Scope()
             {
                 Name = "Scope 1",
-                Childrens = new List<IContextElement>()
+                Childrens = new List<ScopedElement>()
                 {
-                    new WaitAllTasks() { Name = "Wait all"},
-                    new WaitDelay() { Name = "Delay" },
+                    new ScopedElement() { Name = "Wait all", Type = EnumTaskType.Task, TaskClass = typeof(WaitAllTasks)},
+                    new ScopedElement() { Name = "Delay", Type = EnumTaskType.Task, TaskClass = typeof(WaitDelay) },
                 }
             });
         }

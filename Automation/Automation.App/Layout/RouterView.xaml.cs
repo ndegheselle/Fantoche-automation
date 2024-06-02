@@ -1,23 +1,8 @@
 ﻿using Automation.App.ViewModels;
-using Automation.App.Views.Menus;
-using Automation.App.Views.Scope;
-using Automation.App.Views.Task;
+using Automation.App.Views.TaskUI;
 using Automation.App.Views.Workflow;
 using Automation.Base;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace Automation.App.Layout
 {
@@ -42,17 +27,17 @@ namespace Automation.App.Layout
             if (SideMenuContext.SelectedElement == null)
                 return;
 
-            if (SideMenuContext.SelectedElement is TaskScope scope)
+            switch (SideMenuContext.SelectedElement.Type)
             {
-                this.Content =  new ScopePage(scope);
-            }
-            else if (SideMenuContext.SelectedElement is TaskWorkflow workflow)
-            {
-                this.Content =  new WorkflowPage(workflow);
-            }
-            else if (SideMenuContext.SelectedElement is ITask task)
-            {
-                this.Content =  new TaskPage(task);
+                case EnumTaskType.Scope:
+                    this.Content = new ScopePage((Scope)SideMenuContext.SelectedElement);
+                    break;
+                case EnumTaskType.Workflow:
+                    this.Content = new WorkflowPage(SideMenuContext.SelectedElement);
+                    break;
+                case EnumTaskType.Task:
+                    this.Content = new TaskPage(SideMenuContext.SelectedElement);
+                    break;
             }
         }
     }
