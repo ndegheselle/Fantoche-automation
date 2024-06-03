@@ -42,7 +42,7 @@ namespace Automation.App.ViewModels
             RootScope.Childrens.Add(new Scope()
             {
                 Name = "Scope 1",
-                Childrens = new List<ScopedElement>()
+                Childrens = new ObservableCollection<ScopedElement>()
                 {
                     new ScopedElement() { Name = "Wait all", Type = EnumTaskType.Task, TaskClass = typeof(WaitAllTasks)},
                     new ScopedElement() { Name = "Delay", Type = EnumTaskType.Task, TaskClass = typeof(WaitDelay) },

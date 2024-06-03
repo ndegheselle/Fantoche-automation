@@ -1,4 +1,6 @@
-﻿namespace Automation.Base
+﻿using System.Collections.ObjectModel;
+
+namespace Automation.Base
 {
     public enum EnumTaskType
     {
@@ -16,8 +18,7 @@
 
     public class Scope : ScopedElement
     {
-        public List<ScopedElement> Childrens { get; set; } = new List<ScopedElement>();
-
+        public ObservableCollection<ScopedElement> Childrens { get; set; } = [];
         public Scope()
         {
             Type = EnumTaskType.Scope;

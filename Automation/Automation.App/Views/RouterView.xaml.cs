@@ -4,7 +4,7 @@ using Automation.App.Views.Workflow;
 using Automation.Base;
 using System.Windows.Controls;
 
-namespace Automation.App.Layout
+namespace Automation.App.Views
 {
     /// <summary>
     /// Experimenting a system without a navigation service Change content based on the selected item in the side menu

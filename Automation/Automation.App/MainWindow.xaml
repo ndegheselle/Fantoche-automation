@@ -7,21 +7,21 @@
     xmlns:adonisExtensions="clr-namespace:AdonisUI.Extensions;assembly=AdonisUI"
     xmlns:components="clr-namespace:Automation.App.Base.Components"
     xmlns:local="clr-namespace:Automation.App"
-    xmlns:layout="clr-namespace:Automation.App.Layout"
+    xmlns:views="clr-namespace:Automation.App.Views"
     xmlns:menus="clr-namespace:Automation.App.Views.Menus"
     Title="Automation - test"
     Width="800"
     Height="450">
+    <Grid>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
 
-    <layout:MainLayout>
-        <layout:MainLayout.SideMenu>
             <menus:SideMenu />
-        </layout:MainLayout.SideMenu>
-
-        <layout:MainLayout.CurrentPage>
-            <layout:RouterView />
-        </layout:MainLayout.CurrentPage>
-
-    </layout:MainLayout>
-
+            <views:RouterView Grid.Column="1" />
+        </Grid>
+        <views:Modal x:Name="ModalContainer" />
+    </Grid>
 </adonisControls:AdonisWindow>

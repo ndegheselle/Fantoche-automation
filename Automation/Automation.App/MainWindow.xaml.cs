@@ -1,4 +1,5 @@
 ﻿using AdonisUI.Controls;
+using Automation.App.Base;
 using Automation.Supervisor;
 using Automation.Worker;
 using System.Collections.ObjectModel;
@@ -31,10 +32,12 @@ namespace Automation.App
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : AdonisWindow
+    public partial class MainWindow : AdonisWindow, IWindowContainer
     {
         private readonly TaskSuperviser _supervisor = new TaskSuperviser();
         public TaskContext TaskContext { get; set; } = new TaskContext();
+
+        public IModalContainer Modal => this.ModalContainer;
 
         public MainWindow()
         {
