@@ -19,7 +19,19 @@ namespace Automation.App.Base
 
     public interface IModalContainer
     {
-        public void Show(FrameworkElement content);
+        public void Show<T>(string title, IModalContent<T> content);
         public void Close();
+    }
+
+    public interface IModalContent<T>
+    {
+        public event Action<T>? OnFinish;
+    }
+    /// <summary>
+    /// For modal content that need to know when it's closed
+    /// </summary>
+    public interface IModalContentFeedback
+    {
+        public void OnClose();
     }
 }

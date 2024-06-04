@@ -1,0 +1,44 @@
+﻿<UserControl
+    x:Class="Automation.App.Views.TaskUI.ScopeEdit"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Automation.App.Views.TaskUI"
+    mc:Ignorable="d"
+    MinHeight="300"
+    MinWidth="300">
+    <Grid Margin="4">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Margin="0,4">Name</TextBlock>
+        <TextBox Grid.Row="1" />
+
+        <TextBlock Grid.Row="2" Margin="0,4">Context</TextBlock>
+        <TextBox
+            Grid.Row="3"
+            VerticalContentAlignment="Top"
+            TextWrapping="Wrap"
+            AcceptsReturn="True"
+            VerticalScrollBarVisibility="Visible" />
+
+        <StackPanel
+            Margin="0,4,0,0"
+            Grid.Row="4"
+            HorizontalAlignment="Right"
+            Orientation="Horizontal">
+            <Button Margin="4,0" Click="ButtonCancel_Click">
+                Cancel
+            </Button>
+            <Button Click="ButtonSave_Click">
+                Save
+            </Button>
+        </StackPanel>
+    </Grid>
+</UserControl>

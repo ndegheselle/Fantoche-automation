@@ -22,6 +22,7 @@ namespace Automation.App.Views
     /// </summary>
     public partial class Modal : UserControl, IModalContainer
     {
+        private IModalContentFeedback? _content;
         public Modal()
         {
             InitializeComponent();
@@ -33,14 +34,23 @@ namespace Automation.App.Views
             ContentContainer.Content = null;
         }
 
-        public void Show(FrameworkElement content)
+        public void Show<T>(string title, IModalContent<T> content)
         {
+            if (content is IModalContentFeedback feedback)
+                _content = feedback;
+
+            ModalTitle.Text = title;
             ContentContainer.Content = content;
             this.Visibility = Visibility.Visible;
+
+            // Wait for onfinish event and return result
+            // Allow cancel from close
         }
 
         private void ButtonClose(object sender, RoutedEventArgs e)
         {
+            if (_content != null)
+                _content.OnClose();
             Close();
         }
     }

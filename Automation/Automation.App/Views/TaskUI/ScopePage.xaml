@@ -29,7 +29,7 @@
             <Button Grid.Column="1" Click="ButtonAdd_Click">
                 <Button.ContextMenu>
                     <ContextMenu Placement="Bottom">
-                        <MenuItem Header="Add scope">
+                        <MenuItem Header="Add scope" Click="MenuAddScope_Click">
                             <MenuItem.Icon>
                                 <components:ScopedElementIcon Type="Scope" Margin="0,0,4,0" />
                             </MenuItem.Icon>

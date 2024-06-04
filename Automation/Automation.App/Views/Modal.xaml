@@ -24,14 +24,28 @@
                     <RowDefinition Height="auto" />
                     <RowDefinition />
                 </Grid.RowDefinitions>
-                <Button
-                    Background="Transparent"
-                    BorderThickness="0"
-                    HorizontalAlignment="Right"
-                    ContentTemplate="{DynamicResource {x:Static adonisUi:Icons.WindowClose}}"
-                    Width="23"
-                    Height="23"
-                    Click="ButtonClose" />
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition />
+                        <ColumnDefinition Width="auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock
+                        Margin="6,0"
+                        VerticalAlignment="Center"
+                        x:Name="ModalTitle"
+                        FontWeight="Bold" />
+                    <Button
+                        Grid.Column="1"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        HorizontalAlignment="Right"
+                        ContentTemplate="{DynamicResource {x:Static adonisUi:Icons.WindowClose}}"
+                        Width="23"
+                        Height="23"
+                        Click="ButtonClose" />
+                </Grid>
                 <ContentPresenter x:Name="ContentContainer" Grid.Row="1" />
             </Grid>
         </Border>
