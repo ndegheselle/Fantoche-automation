@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-
-namespace Automation.App.Base
+﻿namespace Automation.App.Base
 {
     public interface IWindowContainer
     {
@@ -19,19 +12,13 @@ namespace Automation.App.Base
 
     public interface IModalContainer
     {
-        public void Show<T>(string title, IModalContent<T> content);
-        public void Close();
+        public event Action<bool>? OnClose;
+        public Task<bool> Show(string title, IModalContent content);
+        public void Close(bool result = false);
     }
 
-    public interface IModalContent<T>
+    public interface IModalContent
     {
-        public event Action<T>? OnFinish;
-    }
-    /// <summary>
-    /// For modal content that need to know when it's closed
-    /// </summary>
-    public interface IModalContentFeedback
-    {
-        public void OnClose();
+        public IModalContainer? ModalParent { get; set; }
     }
 }

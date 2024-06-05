@@ -16,13 +16,12 @@ namespace Automation.App.ViewModels
     {
         public event PropertyChangedEventHandler? PropertyChanged;
         private void OnPropertyChanged([CallerMemberName]string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+        { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
 
         public Scope RootScope { get; set; }
 
         private ScopedElement? _selectedElement;
+
         public ScopedElement? SelectedElement
         {
             get => _selectedElement;
@@ -39,15 +38,31 @@ namespace Automation.App.ViewModels
         public SideMenuContext()
         {
             RootScope = new Scope();
-            RootScope.Childrens.Add(new Scope()
-            {
-                Name = "Scope 1",
-                Childrens = new ObservableCollection<ScopedElement>()
-                {
-                    new ScopedElement() { Name = "Wait all", Type = EnumTaskType.Task, TaskClass = typeof(WaitAllTasks)},
-                    new ScopedElement() { Name = "Delay", Type = EnumTaskType.Task, TaskClass = typeof(WaitDelay) },
-                }
-            });
+            RootScope.Childrens
+                .Add(
+                    new Scope()
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "Scope 1",
+                        Childrens =
+                            new ObservableCollection<ScopedElement>()
+                                {
+                                    new ScopedElement()
+                                    {
+                                        Id = Guid.NewGuid(),
+                                        Name = "Wait all",
+                                        Type = EnumTaskType.Task,
+                                        TaskClass = typeof(WaitAllTasks)
+                                    },
+                                    new ScopedElement()
+                                    {
+                                        Id = Guid.NewGuid(),
+                                        Name = "Delay",
+                                        Type = EnumTaskType.Task,
+                                        TaskClass = typeof(WaitDelay)
+                                    },
+                                }
+                    });
         }
     }
 }

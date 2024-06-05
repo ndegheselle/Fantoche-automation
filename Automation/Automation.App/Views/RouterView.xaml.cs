@@ -1,7 +1,9 @@
-﻿using Automation.App.ViewModels;
+﻿using Automation.App.Base;
+using Automation.App.ViewModels;
 using Automation.App.Views.TaskUI;
 using Automation.App.Views.Workflow;
 using Automation.Base;
+using Microsoft.Extensions.DependencyInjection;
 using System.Windows.Controls;
 
 namespace Automation.App.Views
@@ -11,32 +13,33 @@ namespace Automation.App.Views
     /// </summary>
     public partial class RouterView : UserControl
     {
-        private readonly SideMenuContext SideMenuContext = GlobalContext.Instance.SideMenu;
+        private readonly SideMenuContext _sideMenuContext;
+        private readonly App _app = (App)App.Current;
 
         public RouterView()
         {
-            SideMenuContext.PropertyChanged += SideMenuContext_PropertyChanged;
-
+            _sideMenuContext = _app.ServiceProvider.GetRequiredService<SideMenuContext>();
+            _sideMenuContext.PropertyChanged += SideMenuContext_PropertyChanged;
             InitializeComponent();
         }
 
         private void SideMenuContext_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (e.PropertyName != nameof(SideMenuContext.SelectedElement))
+            if (e.PropertyName != nameof(_sideMenuContext.SelectedElement))
                 return;
-            if (SideMenuContext.SelectedElement == null)
+            if (_sideMenuContext.SelectedElement == null)
                 return;
 
-            switch (SideMenuContext.SelectedElement.Type)
+            switch (_sideMenuContext.SelectedElement.Type)
             {
                 case EnumTaskType.Scope:
-                    this.Content = new ScopePage((Scope)SideMenuContext.SelectedElement);
+                    this.Content = new ScopePage(_app.ServiceProvider.GetRequiredService<IModalContainer>(), (Scope)_sideMenuContext.SelectedElement);
                     break;
                 case EnumTaskType.Workflow:
-                    this.Content = new WorkflowPage(SideMenuContext.SelectedElement);
+                    this.Content = new WorkflowPage(_sideMenuContext.SelectedElement);
                     break;
                 case EnumTaskType.Task:
-                    this.Content = new TaskPage(SideMenuContext.SelectedElement);
+                    this.Content = new TaskPage(_sideMenuContext.SelectedElement);
                     break;
             }
         }

@@ -22,35 +22,40 @@ namespace Automation.App.Views
     /// </summary>
     public partial class Modal : UserControl, IModalContainer
     {
-        private IModalContentFeedback? _content;
+        public event Action<bool>? OnClose;
+        private TaskCompletionSource<bool>? _taskCompletionSource = null;
+
         public Modal()
         {
             InitializeComponent();
         }
 
-        public void Close()
+        public void Close(bool result = false)
         {
-            this.Visibility = Visibility.Collapsed;
+            if (_taskCompletionSource == null)
+                return;
+
+            OnClose?.Invoke(result);
+            _taskCompletionSource.SetResult(result);
+            _taskCompletionSource = null;
+            // Hide the modal
+            Visibility = Visibility.Collapsed;
             ContentContainer.Content = null;
         }
 
-        public void Show<T>(string title, IModalContent<T> content)
+        public Task<bool> Show(string title, IModalContent content)
         {
-            if (content is IModalContentFeedback feedback)
-                _content = feedback;
-
-            ModalTitle.Text = title;
+            content.ModalParent = this;
             ContentContainer.Content = content;
+            ModalTitle.Text = title;
             this.Visibility = Visibility.Visible;
 
-            // Wait for onfinish event and return result
-            // Allow cancel from close
+            _taskCompletionSource = new TaskCompletionSource<bool>();
+            return _taskCompletionSource.Task;
         }
 
         private void ButtonClose(object sender, RoutedEventArgs e)
         {
-            if (_content != null)
-                _content.OnClose();
             Close();
         }
     }

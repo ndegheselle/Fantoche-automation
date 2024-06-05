@@ -1,5 +1,6 @@
 ﻿using Automation.App.ViewModels;
 using Automation.Base;
+using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -10,12 +11,14 @@ namespace Automation.App.Views.Menus
     /// </summary>
     public partial class SideMenu : UserControl
     {
-        private readonly SideMenuContext SideMenuContext = GlobalContext.Instance.SideMenu;
+        private readonly SideMenuContext _sideMenuContext;
+        private readonly App _app = (App)App.Current;
 
         public SideMenu()
         {
+            _sideMenuContext = _app.ServiceProvider.GetRequiredService<SideMenuContext>();
             InitializeComponent();
-            this.DataContext = SideMenuContext;
+            this.DataContext = _sideMenuContext;
         }
 
         private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
@@ -26,7 +29,7 @@ namespace Automation.App.Views.Menus
             if (contextElement == null)
                 return;
 
-            SideMenuContext.SelectedElement = contextElement;
+            _sideMenuContext.SelectedElement = contextElement;
         }
     }
 }

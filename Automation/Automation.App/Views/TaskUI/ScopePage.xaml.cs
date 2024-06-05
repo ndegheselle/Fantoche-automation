@@ -10,22 +10,15 @@ namespace Automation.App.Views.TaskUI
     /// </summary>
     public partial class ScopePage : UserControl
     {
-        private IWindowContainer _windowContainer;
-        public Scope Scope { get; set; }
+        private readonly IModalContainer _modal;
+        private readonly Scope _scope;
 
-        public ScopePage(Scope scope)
+        public ScopePage(IModalContainer modal, Scope scope)
         {
-            Scope = scope;
+            _scope = scope;
+            _modal = modal;
             InitializeComponent();
-            this.DataContext = Scope;
-
-            this.Loaded += OnLoaded;
-        }
-
-        private void OnLoaded(object? sender, EventArgs e)
-        {
-            if (_windowContainer == null)
-                _windowContainer = (IWindowContainer)Window.GetWindow(this);
+            this.DataContext = _scope;
         }
 
         #region UI Events
@@ -37,9 +30,11 @@ namespace Automation.App.Views.TaskUI
             contextMenu.IsOpen = true;
         }
 
-        private void MenuAddScope_Click(object sender, RoutedEventArgs e)
+        private async void MenuAddScope_Click(object sender, RoutedEventArgs e)
         {
-            _windowContainer.Modal.Show("Add Scope", new ScopeEdit());
+            Scope newScope = new Scope();
+            if (await _modal.Show("Add scope", new ScopeEdit(newScope)))
+                _scope.AddChild(newScope);
         }
         #endregion
     }

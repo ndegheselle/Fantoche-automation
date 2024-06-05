@@ -18,7 +18,6 @@
                 <ColumnDefinition Width="auto" />
                 <ColumnDefinition />
             </Grid.ColumnDefinitions>
-
             <menus:SideMenu />
             <views:RouterView Grid.Column="1" />
         </Grid>

@@ -11,6 +11,8 @@ namespace Automation.Base
 
     public class ScopedElement
     {
+        public Guid Id { get; set; }
+        public Scope Parent { get; set; }
         public string Name { get; set; }
         public EnumTaskType Type { get; set; }
         public Type TaskClass { get; set; }
@@ -22,6 +24,12 @@ namespace Automation.Base
         public Scope()
         {
             Type = EnumTaskType.Scope;
+        }
+
+        public void AddChild(ScopedElement child)
+        {
+            child.Parent = this;
+            Childrens.Add(child);
         }
     }
 }

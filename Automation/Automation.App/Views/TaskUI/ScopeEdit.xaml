@@ -7,7 +7,9 @@
     xmlns:local="clr-namespace:Automation.App.Views.TaskUI"
     mc:Ignorable="d"
     MinHeight="300"
-    MinWidth="300">
+    MinWidth="300"
+    xmlns:base="clr-namespace:Automation.Base;assembly=Automation.Base"
+    d:DataContext="{d:DesignInstance base:Scope}">
     <Grid Margin="4">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
@@ -18,7 +20,7 @@
         </Grid.RowDefinitions>
 
         <TextBlock Margin="0,4">Name</TextBlock>
-        <TextBox Grid.Row="1" />
+        <TextBox Grid.Row="1" Text="{Binding Name}"/>
 
         <TextBlock Grid.Row="2" Margin="0,4">Context</TextBlock>
         <TextBox

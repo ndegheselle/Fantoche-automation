@@ -1,18 +1,8 @@
 ﻿using Automation.App.Base;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Automation.App.ViewModels;
+using Automation.Base;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace Automation.App.Views.TaskUI
 {
@@ -21,21 +11,28 @@ namespace Automation.App.Views.TaskUI
     /// </summary>
     public partial class ScopeEdit : UserControl, IModalContent
     {
-        public event Action<bool>? OnFinish;
+        private readonly Scope _scope;
+        public IModalContainer? ModalParent { get; set; }
 
-        public ScopeEdit()
+        public ScopeEdit(Scope scope)
         {
+            _scope = scope;
             InitializeComponent();
+            this.DataContext = _scope;
         }
 
         private void ButtonCancel_Click(object sender, RoutedEventArgs e)
         {
-            OnFinish?.Invoke(false);
+            ModalParent?.Close();
         }
 
         private void ButtonSave_Click(object sender, RoutedEventArgs e)
         {
-            OnFinish?.Invoke(true);
+            // New scope
+            if (_scope.Id == Guid.Empty)
+                _scope.Id = Guid.NewGuid();
+
+            ModalParent?.Close(true);
         }
     }
 }
