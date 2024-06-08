@@ -2,3 +2,5 @@ Alternative tasks systems :
 
 object Start(object input)
 and then use DynamicMethod to build mapping between tasks
+
+Use attributes instead of dictionnaries for inputs / outputs ?
