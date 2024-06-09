@@ -1,30 +1,31 @@
 ﻿<UserControl
-    x:Class="Automation.App.Views.TaskUI.ScopeEdit"
+    x:Class="Automation.App.Views.WorkflowUI.WorkflowEdit"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:local="clr-namespace:Automation.App.Views.TaskUI"
+    xmlns:local="clr-namespace:Automation.App.Views.WorkflowUI"
     mc:Ignorable="d"
     MinHeight="300"
     MinWidth="300"
     xmlns:base="clr-namespace:Automation.Base;assembly=Automation.Base"
-    d:DataContext="{d:DesignInstance base:Scope}">
+    xmlns:components="clr-namespace:Automation.App.Components"
+    d:DataContext="{d:DesignInstance base:ScopedElement}">
     <Grid Margin="4">
         <Grid.RowDefinitions>
-            <RowDefinition Height="auto" />
-            <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
             <RowDefinition />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
-        <TextBlock Margin="0,4">Name</TextBlock>
-        <TextBox Grid.Row="1" Text="{Binding Name}"/>
+        <StackPanel Orientation="Vertical">
+            <TextBlock Margin="0,4">Name</TextBlock>
+            <TextBox Text="{Binding Name}" />
+            <TextBlock Margin="0,4">Context</TextBlock>
+        </StackPanel>
 
-        <TextBlock Grid.Row="2" Margin="0,4">Context</TextBlock>
         <TextBox
-            Grid.Row="3"
+            Grid.Row="1"
             VerticalContentAlignment="Top"
             TextWrapping="Wrap"
             AcceptsReturn="True"
@@ -32,7 +33,7 @@
 
         <StackPanel
             Margin="0,4,0,0"
-            Grid.Row="4"
+            Grid.Row="2"
             HorizontalAlignment="Right"
             Orientation="Horizontal">
             <Button Margin="4,0" Click="ButtonCancel_Click">

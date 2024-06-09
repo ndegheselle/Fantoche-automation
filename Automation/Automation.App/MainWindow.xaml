@@ -11,15 +11,26 @@
     xmlns:menus="clr-namespace:Automation.App.Views.Menus"
     Title="Automation - test"
     Width="800"
-    Height="450">
+    Height="450"
+    BorderBrush="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}"
+    BorderThickness="1">
     <Grid>
         <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="auto" />
-                <ColumnDefinition />
-            </Grid.ColumnDefinitions>
-            <menus:SideMenu />
-            <views:RouterView Grid.Column="1" />
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="auto" />
+            </Grid.RowDefinitions>
+            <menus:TopMenu />
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <menus:SideMenu />
+                <views:RouterView Grid.Column="1" />
+            </Grid>
+            <menus:Footer Grid.Row="2" />
         </Grid>
         <views:Modal x:Name="ModalContainer" />
     </Grid>

@@ -15,7 +15,6 @@ namespace Automation.Base
         public Scope Parent { get; set; }
         public string Name { get; set; }
         public EnumTaskType Type { get; set; }
-        public Type TaskClass { get; set; }
     }
 
     public class Scope : ScopedElement
@@ -30,6 +29,23 @@ namespace Automation.Base
         {
             child.Parent = this;
             Childrens.Add(child);
+        }
+    }
+
+    public class  WorkflowScope : ScopedElement
+    {
+        public WorkflowScope()
+        {
+            Type = EnumTaskType.Workflow;
+        }
+    }
+
+    public class TaskScope : ScopedElement
+    {
+        public Type TaskClass { get; set; }
+        public TaskScope()
+        {
+            Type = EnumTaskType.Task;
         }
     }
 }

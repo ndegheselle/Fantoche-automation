@@ -47,18 +47,17 @@ namespace Automation.App.ViewModels
                         Childrens =
                             new ObservableCollection<ScopedElement>()
                                 {
-                                    new ScopedElement()
+                                    new WorkflowScope() { Id = Guid.NewGuid(), Name = "Workflow test" },
+                                    new TaskScope()
                                     {
                                         Id = Guid.NewGuid(),
                                         Name = "Wait all",
-                                        Type = EnumTaskType.Task,
                                         TaskClass = typeof(WaitAllTasks)
                                     },
-                                    new ScopedElement()
+                                    new TaskScope()
                                     {
                                         Id = Guid.NewGuid(),
                                         Name = "Delay",
-                                        Type = EnumTaskType.Task,
                                         TaskClass = typeof(WaitDelay)
                                     },
                                 }

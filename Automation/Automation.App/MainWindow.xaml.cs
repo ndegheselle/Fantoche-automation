@@ -37,6 +37,7 @@ namespace Automation.App
         private readonly TaskSuperviser _supervisor = new TaskSuperviser();
         public TaskContext TaskContext { get; set; } = new TaskContext();
 
+        // XXX : if called before InitializeComponent, the property will be null
         public IModalContainer Modal => this.ModalContainer;
 
         public MainWindow()

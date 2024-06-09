@@ -1,5 +1,4 @@
-﻿using Automation.Base;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,14 +13,14 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Automation.App.Views.Workflow
+namespace Automation.App.Views.WorkflowUI
 {
     /// <summary>
-    /// Logique d'interaction pour WorkflowPage.xaml
+    /// Logique d'interaction pour WorkflowGraph.xaml
     /// </summary>
-    public partial class WorkflowPage : UserControl
+    public partial class WorkflowGraph : UserControl
     {
-        public WorkflowPage(ScopedElement scope)
+        public WorkflowGraph()
         {
             InitializeComponent();
         }

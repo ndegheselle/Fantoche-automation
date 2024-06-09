@@ -1,9 +1,11 @@
 ﻿using Automation.App.Base;
+using Automation.App.Views.TaskUI;
+using Automation.App.Views.WorkflowUI;
 using Automation.Base;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace Automation.App.Views.TaskUI
+namespace Automation.App.Views.ScopeUI
 {
     /// <summary>
     /// Logique d'interaction pour ScopePage.xaml
@@ -34,6 +36,20 @@ namespace Automation.App.Views.TaskUI
         {
             Scope newScope = new Scope();
             if (await _modal.Show("Add scope", new ScopeEdit(newScope)))
+                _scope.AddChild(newScope);
+        }
+
+        private async void MenuAddTask_Click(object sender, RoutedEventArgs e)
+        {
+            TaskScope newScope = new TaskScope();
+            if (await _modal.Show("Add task", new TaskEdit(newScope)))
+                _scope.AddChild(newScope);
+        }
+
+        private async void MenuAddWorkflow_Click(object sender, RoutedEventArgs e)
+        {
+            WorkflowScope newScope = new WorkflowScope();
+            if (await _modal.Show("Add workflow", new WorkflowEdit(newScope)))
                 _scope.AddChild(newScope);
         }
         #endregion

@@ -1,10 +1,9 @@
 ﻿using Automation.App.Base;
-using Automation.App.ViewModels;
 using Automation.Base;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace Automation.App.Views.TaskUI
+namespace Automation.App.Views.ScopeUI
 {
     /// <summary>
     /// Logique d'interaction pour ScopeEdit.xaml
@@ -21,6 +20,7 @@ namespace Automation.App.Views.TaskUI
             this.DataContext = _scope;
         }
 
+        #region UI Events
         private void ButtonCancel_Click(object sender, RoutedEventArgs e)
         {
             ModalParent?.Close();
@@ -34,5 +34,6 @@ namespace Automation.App.Views.TaskUI
 
             ModalParent?.Close(true);
         }
+        #endregion
     }
 }

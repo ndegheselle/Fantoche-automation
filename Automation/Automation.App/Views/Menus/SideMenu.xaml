@@ -17,7 +17,7 @@
             <RowDefinition />
         </Grid.RowDefinitions>
 
-        <TextBox IsEnabled="False" />
+        <TextBox Visibility="Collapsed" />
         <TreeView
             Grid.Row="1"
             Background="{DynamicResource {x:Static adonisUi:Brushes.Layer1BackgroundBrush}}"

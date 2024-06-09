@@ -10,12 +10,13 @@
     Visibility="Collapsed">
     <Grid>
         <Border
-            Background="Black"
+            Background="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}"
             Opacity="0.8"
             MouseUp="ButtonClose" />
         <Border
+            CornerRadius="{StaticResource {x:Static adonisUi:Dimensions.CornerRadius}}"
+            BorderThickness="{StaticResource {x:Static adonisUi:Dimensions.BorderThickness}}"
             Background="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}"
-            BorderThickness="1"
             BorderBrush="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}"
             VerticalAlignment="Center"
             HorizontalAlignment="Center">

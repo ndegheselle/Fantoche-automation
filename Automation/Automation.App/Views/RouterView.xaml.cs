@@ -1,7 +1,8 @@
 ﻿using Automation.App.Base;
 using Automation.App.ViewModels;
+using Automation.App.Views.ScopeUI;
 using Automation.App.Views.TaskUI;
-using Automation.App.Views.Workflow;
+using Automation.App.Views.WorkflowUI;
 using Automation.Base;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows.Controls;

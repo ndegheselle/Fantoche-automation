@@ -40,4 +40,8 @@
     </Resource>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Components\Graph\" />
+  </ItemGroup>
+
 </Project>
