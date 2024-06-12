@@ -5,7 +5,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Automation.App.Views.Menus"
-    xmlns:viewModels="clr-namespace:Automation.App.ViewModels"
+    xmlns:viewModels="clr-namespace:Automation.App.Contexts"
     mc:Ignorable="d"
     MinHeight="300"
     MinWidth="300"

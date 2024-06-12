@@ -6,7 +6,6 @@ namespace Automation.Base
     public class TaskWorkflow : TaskBase
     {
         public List<ITask> Tasks { get; set; } = [];
-
         public List<TaskLink> Links { get; set; } = [];
 
         public override async Task<bool> Start()

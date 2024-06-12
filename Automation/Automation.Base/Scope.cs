@@ -32,20 +32,29 @@ namespace Automation.Base
         }
     }
 
-    public class  WorkflowScope : ScopedElement
+    public class TaskScopeConnector
     {
-        public WorkflowScope()
-        {
-            Type = EnumTaskType.Workflow;
-        }
+        public string Name { get; set; }
     }
 
     public class TaskScope : ScopedElement
     {
-        public Type TaskClass { get; set; }
+        public ObservableCollection<TaskScopeConnector> Inputs { get; set; } = new ObservableCollection<TaskScopeConnector>();
+        public ObservableCollection<TaskScopeConnector> Outputs { get; set; } = new ObservableCollection<TaskScopeConnector>();
+
         public TaskScope()
         {
             Type = EnumTaskType.Task;
+        }
+    }
+
+    public class  WorkflowScope : TaskScope
+    {
+        public ObservableCollection<TaskScope> Nodes { get; } = new ObservableCollection<TaskScope>();
+
+        public WorkflowScope()
+        {
+            Type = EnumTaskType.Workflow;
         }
     }
 }

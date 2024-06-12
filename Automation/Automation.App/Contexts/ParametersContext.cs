@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace Automation.App.ViewModels
+namespace Automation.App.Contexts
 {
     public enum EnumTheme
     {

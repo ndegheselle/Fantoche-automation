@@ -1,16 +1,9 @@
 ﻿using Automation.Base;
-using Automation.Plugins.Flow;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Formats.Asn1;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Automation.App.ViewModels
+namespace Automation.App.Contexts
 {
     public class SideMenuContext : INotifyPropertyChanged
     {
@@ -52,13 +45,11 @@ namespace Automation.App.ViewModels
                                     {
                                         Id = Guid.NewGuid(),
                                         Name = "Wait all",
-                                        TaskClass = typeof(WaitAllTasks)
                                     },
                                     new TaskScope()
                                     {
                                         Id = Guid.NewGuid(),
                                         Name = "Delay",
-                                        TaskClass = typeof(WaitDelay)
                                     },
                                 }
                     });
