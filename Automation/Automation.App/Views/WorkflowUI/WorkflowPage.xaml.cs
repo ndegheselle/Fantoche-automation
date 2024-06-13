@@ -21,9 +21,10 @@ namespace Automation.App.Views.WorkflowUI
     /// </summary>
     public partial class WorkflowPage : UserControl
     {
-        public WorkflowPage(ScopedElement scope)
+        public WorkflowPage(WorkflowScope scope)
         {
             InitializeComponent();
+            this.DataContext = scope;
         }
     }
 }

@@ -30,6 +30,29 @@ namespace Automation.App.Contexts
 
         public SideMenuContext()
         {
+            TaskScope taskScope1 = new TaskScope()
+            {
+                Name = "Task 1",
+                Inputs = new ObservableCollection<TaskScopeEndpoint>() { new TaskScopeEndpoint() { Name = "Input 1" }, },
+                Outputs =
+                    new ObservableCollection<TaskScopeEndpoint>() { new TaskScopeEndpoint() { Name = "Output 1" }, },
+            };
+
+            TaskScope taskScope2 = new TaskScope()
+            {
+                Name = "Task 2",
+                Inputs = new ObservableCollection<TaskScopeEndpoint>() { new TaskScopeEndpoint() { Name = "Input 1" }, },
+                Outputs =
+                    new ObservableCollection<TaskScopeEndpoint>() { new TaskScopeEndpoint() { Name = "Output 1" }, },
+            };
+
+            WorkflowScope workflowScope = new WorkflowScope() { Name = "Workflow 1", };
+            workflowScope.Nodes.Add(taskScope1);
+            workflowScope.Nodes.Add(taskScope2);
+
+            workflowScope.Links
+                .Add(new TaskScopeLink() { Source = taskScope1.Inputs[0], Target = taskScope2.Outputs[0], });
+
             RootScope = new Scope();
             RootScope.Childrens
                 .Add(
@@ -37,21 +60,7 @@ namespace Automation.App.Contexts
                     {
                         Id = Guid.NewGuid(),
                         Name = "Scope 1",
-                        Childrens =
-                            new ObservableCollection<ScopedElement>()
-                                {
-                                    new WorkflowScope() { Id = Guid.NewGuid(), Name = "Workflow test" },
-                                    new TaskScope()
-                                    {
-                                        Id = Guid.NewGuid(),
-                                        Name = "Wait all",
-                                    },
-                                    new TaskScope()
-                                    {
-                                        Id = Guid.NewGuid(),
-                                        Name = "Delay",
-                                    },
-                                }
+                        Childrens = new ObservableCollection<ScopedElement>() { workflowScope, taskScope1, taskScope2, }
                     });
         }
     }

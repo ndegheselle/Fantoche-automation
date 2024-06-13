@@ -1,4 +1,6 @@
 ﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Windows;
 
 namespace Automation.Base
 {
@@ -11,7 +13,7 @@ namespace Automation.Base
 
     public class ScopedElement
     {
-        public Guid Id { get; set; }
+        public Guid Id { get; set; } = Guid.NewGuid();
         public Scope Parent { get; set; }
         public string Name { get; set; }
         public EnumTaskType Type { get; set; }
@@ -32,15 +34,26 @@ namespace Automation.Base
         }
     }
 
-    public class TaskScopeConnector
+    public class TaskScopeEndpoint : INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler? PropertyChanged;
+
         public string Name { get; set; }
+        public Point Anchor { get; set; }
+    }
+
+    public class TaskScopeLink : INotifyPropertyChanged
+    {
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        public TaskScopeEndpoint Source { get; set; }
+        public TaskScopeEndpoint Target { get; set; }
     }
 
     public class TaskScope : ScopedElement
     {
-        public ObservableCollection<TaskScopeConnector> Inputs { get; set; } = new ObservableCollection<TaskScopeConnector>();
-        public ObservableCollection<TaskScopeConnector> Outputs { get; set; } = new ObservableCollection<TaskScopeConnector>();
+        public ObservableCollection<TaskScopeEndpoint> Inputs { get; set; } = new ObservableCollection<TaskScopeEndpoint>();
+        public ObservableCollection<TaskScopeEndpoint> Outputs { get; set; } = new ObservableCollection<TaskScopeEndpoint>();
 
         public TaskScope()
         {
@@ -51,6 +64,7 @@ namespace Automation.Base
     public class  WorkflowScope : TaskScope
     {
         public ObservableCollection<TaskScope> Nodes { get; } = new ObservableCollection<TaskScope>();
+        public ObservableCollection<TaskScopeLink> Links { get; } = new ObservableCollection<TaskScopeLink>();
 
         public WorkflowScope()
         {

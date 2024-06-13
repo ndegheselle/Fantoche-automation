@@ -1,17 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Automation.Base;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace Automation.App.Views.WorkflowUI
 {
@@ -20,9 +9,19 @@ namespace Automation.App.Views.WorkflowUI
     /// </summary>
     public partial class WorkflowGraph : UserControl
     {
-        public WorkflowGraph()
+        // Dependency property WorkflowScope
+        public static readonly DependencyProperty WorkflowScopeProperty = DependencyProperty.Register(
+            "WorkflowScope",
+            typeof(WorkflowScope),
+            typeof(WorkflowGraph),
+            new PropertyMetadata(null));
+
+        public WorkflowScope WorkflowScope
         {
-            InitializeComponent();
+            get { return (WorkflowScope)GetValue(WorkflowScopeProperty); }
+            set { SetValue(WorkflowScopeProperty, value); }
         }
+
+        public WorkflowGraph() { InitializeComponent(); }
     }
 }

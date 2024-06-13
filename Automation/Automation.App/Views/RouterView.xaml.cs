@@ -37,7 +37,7 @@ namespace Automation.App.Views
                     this.Content = new ScopePage(_app.ServiceProvider.GetRequiredService<IModalContainer>(), (Scope)_sideMenuContext.SelectedElement);
                     break;
                 case EnumTaskType.Workflow:
-                    this.Content = new WorkflowPage(_sideMenuContext.SelectedElement);
+                    this.Content = new WorkflowPage((WorkflowScope)_sideMenuContext.SelectedElement);
                     break;
                 case EnumTaskType.Task:
                     this.Content = new TaskPage(_sideMenuContext.SelectedElement);

@@ -5,6 +5,40 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:nodify="clr-namespace:Nodify;assembly=Nodify"
+    xmlns:local="clr-namespace:Automation.App.Views.WorkflowUI"
+    xmlns:base="clr-namespace:Automation.Base;assembly=Automation.Base"
     mc:Ignorable="d">
-    <nodify:NodifyEditor />
+    <nodify:NodifyEditor ItemsSource="{Binding WorkflowScope.Nodes, RelativeSource={RelativeSource AncestorType=local:WorkflowGraph}}">
+        <nodify:NodifyEditor.ConnectionTemplate>
+            <DataTemplate DataType="{x:Type base:TaskScopeLink}">
+                <nodify:LineConnection Source="{Binding Source.Anchor}" Target="{Binding Target.Anchor}" />
+            </DataTemplate>
+        </nodify:NodifyEditor.ConnectionTemplate>
+        <nodify:NodifyEditor.ItemTemplate>
+            <DataTemplate DataType="{x:Type base:TaskScope}">
+                <nodify:Node
+                    Header="{Binding Name}"
+                    Input="{Binding Inputs}"
+                    Output="{Binding Outputs}">
+                    <nodify:Node.InputConnectorTemplate>
+                        <DataTemplate DataType="{x:Type base:TaskScopeEndpoint}">
+                            <nodify:NodeInput
+                                Header="{Binding Name}"
+                                IsConnected="True"
+                                Anchor="{Binding Anchor, Mode=OneWayToSource}" />
+                        </DataTemplate>
+                    </nodify:Node.InputConnectorTemplate>
+
+                    <nodify:Node.OutputConnectorTemplate>
+                        <DataTemplate DataType="{x:Type base:TaskScopeEndpoint}">
+                            <nodify:NodeOutput
+                                Header="{Binding Name}"
+                                IsConnected="True"
+                                Anchor="{Binding Anchor, Mode=OneWayToSource}" />
+                        </DataTemplate>
+                    </nodify:Node.OutputConnectorTemplate>
+                </nodify:Node>
+            </DataTemplate>
+        </nodify:NodifyEditor.ItemTemplate>
+    </nodify:NodifyEditor>
 </UserControl>
