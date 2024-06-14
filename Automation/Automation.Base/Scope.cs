@@ -19,6 +19,7 @@ namespace Automation.Base
         public EnumTaskType Type { get; set; }
     }
 
+    // Move to 
     public class Scope : ScopedElement
     {
         public ObservableCollection<ScopedElement> Childrens { get; set; } = [];
@@ -34,7 +35,7 @@ namespace Automation.Base
         }
     }
 
-    public class TaskScopeEndpoint : INotifyPropertyChanged
+    public class ElementEndpoint : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -42,18 +43,18 @@ namespace Automation.Base
         public Point Anchor { get; set; }
     }
 
-    public class TaskScopeLink : INotifyPropertyChanged
+    public class ElementLink : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public TaskScopeEndpoint Source { get; set; }
-        public TaskScopeEndpoint Target { get; set; }
+        public ElementEndpoint Source { get; set; }
+        public ElementEndpoint Target { get; set; }
     }
 
     public class TaskScope : ScopedElement
     {
-        public ObservableCollection<TaskScopeEndpoint> Inputs { get; set; } = new ObservableCollection<TaskScopeEndpoint>();
-        public ObservableCollection<TaskScopeEndpoint> Outputs { get; set; } = new ObservableCollection<TaskScopeEndpoint>();
+        public ObservableCollection<ElementEndpoint> Inputs { get; set; } = new ObservableCollection<ElementEndpoint>();
+        public ObservableCollection<ElementEndpoint> Outputs { get; set; } = new ObservableCollection<ElementEndpoint>();
 
         public TaskScope()
         {
@@ -64,7 +65,7 @@ namespace Automation.Base
     public class  WorkflowScope : TaskScope
     {
         public ObservableCollection<TaskScope> Nodes { get; } = new ObservableCollection<TaskScope>();
-        public ObservableCollection<TaskScopeLink> Links { get; } = new ObservableCollection<TaskScopeLink>();
+        public ObservableCollection<ElementLink> Links { get; } = new ObservableCollection<ElementLink>();
 
         public WorkflowScope()
         {

@@ -33,17 +33,17 @@ namespace Automation.App.Contexts
             TaskScope taskScope1 = new TaskScope()
             {
                 Name = "Task 1",
-                Inputs = new ObservableCollection<TaskScopeEndpoint>() { new TaskScopeEndpoint() { Name = "Input 1" }, },
+                Inputs = new ObservableCollection<ElementEndpoint>() { new ElementEndpoint() { Name = "Input 1" }, },
                 Outputs =
-                    new ObservableCollection<TaskScopeEndpoint>() { new TaskScopeEndpoint() { Name = "Output 1" }, },
+                    new ObservableCollection<ElementEndpoint>() { new ElementEndpoint() { Name = "Output 1" }, },
             };
 
             TaskScope taskScope2 = new TaskScope()
             {
                 Name = "Task 2",
-                Inputs = new ObservableCollection<TaskScopeEndpoint>() { new TaskScopeEndpoint() { Name = "Input 1" }, },
+                Inputs = new ObservableCollection<ElementEndpoint>() { new ElementEndpoint() { Name = "Input 1" }, },
                 Outputs =
-                    new ObservableCollection<TaskScopeEndpoint>() { new TaskScopeEndpoint() { Name = "Output 1" }, },
+                    new ObservableCollection<ElementEndpoint>() { new ElementEndpoint() { Name = "Output 1" }, },
             };
 
             WorkflowScope workflowScope = new WorkflowScope() { Name = "Workflow 1", };
@@ -51,7 +51,7 @@ namespace Automation.App.Contexts
             workflowScope.Nodes.Add(taskScope2);
 
             workflowScope.Links
-                .Add(new TaskScopeLink() { Source = taskScope1.Inputs[0], Target = taskScope2.Outputs[0], });
+                .Add(new ElementLink() { Source = taskScope1.Inputs[0], Target = taskScope2.Outputs[0], });
 
             RootScope = new Scope();
             RootScope.Childrens

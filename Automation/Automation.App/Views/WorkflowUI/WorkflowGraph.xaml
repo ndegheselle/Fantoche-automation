@@ -10,7 +10,7 @@
     mc:Ignorable="d">
     <nodify:NodifyEditor ItemsSource="{Binding WorkflowScope.Nodes, RelativeSource={RelativeSource AncestorType=local:WorkflowGraph}}">
         <nodify:NodifyEditor.ConnectionTemplate>
-            <DataTemplate DataType="{x:Type base:TaskScopeLink}">
+            <DataTemplate DataType="{x:Type base:ElementLink}">
                 <nodify:LineConnection Source="{Binding Source.Anchor}" Target="{Binding Target.Anchor}" />
             </DataTemplate>
         </nodify:NodifyEditor.ConnectionTemplate>
@@ -21,7 +21,7 @@
                     Input="{Binding Inputs}"
                     Output="{Binding Outputs}">
                     <nodify:Node.InputConnectorTemplate>
-                        <DataTemplate DataType="{x:Type base:TaskScopeEndpoint}">
+                        <DataTemplate DataType="{x:Type base:ElementEndpoint}">
                             <nodify:NodeInput
                                 Header="{Binding Name}"
                                 IsConnected="True"
@@ -30,7 +30,7 @@
                     </nodify:Node.InputConnectorTemplate>
 
                     <nodify:Node.OutputConnectorTemplate>
-                        <DataTemplate DataType="{x:Type base:TaskScopeEndpoint}">
+                        <DataTemplate DataType="{x:Type base:ElementEndpoint}">
                             <nodify:NodeOutput
                                 Header="{Binding Name}"
                                 IsConnected="True"

@@ -1,4 +1,4 @@
-﻿using Automation.Base;
+﻿using Automation.Plugins.Base;
 using System.Text.Json;
 
 namespace Automation.Worker

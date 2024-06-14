@@ -1,6 +1,5 @@
-﻿namespace Automation.Base
+﻿namespace Automation.Plugins.Base
 {
-    // XXX : Check if for plugins ITask should be in a separated Automation.Plugins.Base ?
     public interface ITask
     {
         public string Name { get; }
