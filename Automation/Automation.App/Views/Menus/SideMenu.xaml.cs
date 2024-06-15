@@ -1,5 +1,5 @@
-﻿using Automation.App.Contexts;
-using Automation.Base;
+﻿using Automation.App.ViewModels;
+using Automation.App.ViewModels.Scopes;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 using System.Windows.Controls;
@@ -11,12 +11,12 @@ namespace Automation.App.Views.Menus
     /// </summary>
     public partial class SideMenu : UserControl
     {
-        private readonly SideMenuContext _sideMenuContext;
+        private readonly SideMenuViewModel _sideMenuContext;
         private readonly App _app = (App)App.Current;
 
         public SideMenu()
         {
-            _sideMenuContext = _app.ServiceProvider.GetRequiredService<SideMenuContext>();
+            _sideMenuContext = _app.ServiceProvider.GetRequiredService<SideMenuViewModel>();
             InitializeComponent();
             this.DataContext = _sideMenuContext;
         }

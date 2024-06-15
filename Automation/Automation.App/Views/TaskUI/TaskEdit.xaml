@@ -8,9 +8,9 @@
     mc:Ignorable="d"
     MinHeight="300"
     MinWidth="300"
-    xmlns:base="clr-namespace:Automation.Base;assembly=Automation.Base"
+    xmlns:scopes="clr-namespace:Automation.App.ViewModels.Scopes"
     xmlns:components="clr-namespace:Automation.App.Components"
-    d:DataContext="{d:DesignInstance base:ScopedElement}">
+    d:DataContext="{d:DesignInstance scopes:ScopedElement}">
     <Grid Margin="4">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
@@ -23,7 +23,10 @@
             <TextBox Text="{Binding Name}" />
 
             <TextBlock Margin="0,4">DLL path</TextBlock>
-            <components:FilePicker MaxWidth="400" Margin="0,4" Filter="Dynamic Link Library (*.dll)|*.dll" />
+            <components:FilePicker
+                MaxWidth="400"
+                Margin="0,4"
+                Filter="Dynamic Link Library (*.dll)|*.dll" />
 
             <TextBlock Margin="0,4">Context</TextBlock>
         </StackPanel>

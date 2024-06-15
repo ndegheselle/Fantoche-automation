@@ -1,9 +1,9 @@
 ﻿using Automation.App.Base;
-using Automation.App.Contexts;
+using Automation.App.ViewModels;
+using Automation.App.ViewModels.Scopes;
 using Automation.App.Views.ScopeUI;
 using Automation.App.Views.TaskUI;
 using Automation.App.Views.WorkflowUI;
-using Automation.Base;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows.Controls;
 
@@ -14,12 +14,12 @@ namespace Automation.App.Views
     /// </summary>
     public partial class RouterView : UserControl
     {
-        private readonly SideMenuContext _sideMenuContext;
+        private readonly SideMenuViewModel _sideMenuContext;
         private readonly App _app = (App)App.Current;
 
         public RouterView()
         {
-            _sideMenuContext = _app.ServiceProvider.GetRequiredService<SideMenuContext>();
+            _sideMenuContext = _app.ServiceProvider.GetRequiredService<SideMenuViewModel>();
             _sideMenuContext.PropertyChanged += SideMenuContext_PropertyChanged;
             InitializeComponent();
         }

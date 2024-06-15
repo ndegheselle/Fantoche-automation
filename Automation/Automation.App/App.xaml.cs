@@ -1,5 +1,5 @@
 ﻿using Automation.App.Base;
-using Automation.App.Contexts;
+using Automation.App.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using System.Configuration;
 using System.Data;
@@ -34,7 +34,7 @@ namespace Automation.App
             services.AddTransient<MainWindow>();
             services.AddTransient<IModalContainer>((provider) => GetActiveWindow()?.Modal);
 
-            services.AddSingleton<SideMenuContext>();
+            services.AddSingleton<SideMenuViewModel>();
 
             return services.BuildServiceProvider();
         }

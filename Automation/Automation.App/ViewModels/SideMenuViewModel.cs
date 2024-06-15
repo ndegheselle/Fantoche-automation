@@ -1,11 +1,12 @@
-﻿using Automation.Base;
+﻿using Automation.App.ViewModels.Graph;
+using Automation.App.ViewModels.Scopes;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace Automation.App.Contexts
+namespace Automation.App.ViewModels
 {
-    public class SideMenuContext : INotifyPropertyChanged
+    public class SideMenuViewModel : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
         private void OnPropertyChanged([CallerMemberName]string? propertyName = null)
@@ -28,7 +29,7 @@ namespace Automation.App.Contexts
             }
         }
 
-        public SideMenuContext()
+        public SideMenuViewModel()
         {
             TaskScope taskScope1 = new TaskScope()
             {
@@ -51,7 +52,7 @@ namespace Automation.App.Contexts
             workflowScope.Nodes.Add(taskScope2);
 
             workflowScope.Links
-                .Add(new ElementLink() { Source = taskScope1.Inputs[0], Target = taskScope2.Outputs[0], });
+                .Add(new ElementLink(taskScope2.Outputs[0], taskScope1.Inputs[0]));
 
             RootScope = new Scope();
             RootScope.Childrens

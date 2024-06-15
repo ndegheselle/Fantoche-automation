@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
+﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 
-namespace Automation.App.Contexts
+namespace Automation.App.ViewModels
 {
     public enum EnumTheme
     {
@@ -15,7 +10,7 @@ namespace Automation.App.Contexts
         Light
     }
 
-    public class ParametersContext : INotifyPropertyChanged
+    public class ParametersViewModel : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
         private void OnPropertyChanged([CallerMemberName] string? propertyName = null)

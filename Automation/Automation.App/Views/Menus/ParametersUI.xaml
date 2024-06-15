@@ -5,11 +5,11 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Automation.App.Views.Menus"
-    xmlns:viewModels="clr-namespace:Automation.App.Contexts"
+    xmlns:viewModels="clr-namespace:Automation.App.ViewModels"
     mc:Ignorable="d"
     MinHeight="300"
     MinWidth="300"
-    d:DataContext="{d:DesignInstance viewModels:ParametersContext}">
+    d:DataContext="{d:DesignInstance viewModels:ParametersViewModel}">
     <StackPanel Margin="4">
         <TextBlock>Theme</TextBlock>
         <ComboBox

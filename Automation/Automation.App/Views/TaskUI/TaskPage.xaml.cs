@@ -1,4 +1,4 @@
-﻿using Automation.Base;
+﻿using Automation.App.ViewModels.Scopes;
 using System.Windows.Controls;
 
 namespace Automation.App.Views.TaskUI

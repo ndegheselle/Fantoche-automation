@@ -1,5 +1,5 @@
 ﻿using Automation.App.Base;
-using Automation.App.Contexts;
+using Automation.App.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows.Controls;
 
@@ -12,11 +12,11 @@ namespace Automation.App.Views.Menus
     {
         public IModalContainer? ModalParent { get; set; }
         private readonly App _app = (App)App.Current;
-        private readonly ParametersContext _context;
+        private readonly ParametersViewModel _context;
 
         public ParametersUI()
         {
-            _context = _app.ServiceProvider.GetRequiredService<ParametersContext>();
+            _context = _app.ServiceProvider.GetRequiredService<ParametersViewModel>();
             InitializeComponent();
             this.DataContext = _context;
         }

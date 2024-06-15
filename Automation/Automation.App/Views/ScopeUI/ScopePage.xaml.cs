@@ -1,7 +1,7 @@
 ﻿using Automation.App.Base;
+using Automation.App.ViewModels.Scopes;
 using Automation.App.Views.TaskUI;
 using Automation.App.Views.WorkflowUI;
-using Automation.Base;
 using System.Windows;
 using System.Windows.Controls;
 

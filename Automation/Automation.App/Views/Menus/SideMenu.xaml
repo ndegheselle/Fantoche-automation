@@ -6,11 +6,11 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Automation.App.Views.Menus"
     xmlns:components="clr-namespace:Automation.App.Components"
-    xmlns:viewModels="clr-namespace:Automation.App.Contexts"
-    xmlns:base="clr-namespace:Automation.Base;assembly=Automation.Base"
+    xmlns:viewModels="clr-namespace:Automation.App.ViewModels"
+    xmlns:scopes="clr-namespace:Automation.App.ViewModels.Scopes"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     mc:Ignorable="d"
-    d:DataContext="{d:DesignInstance viewModels:SideMenuContext}">
+    d:DataContext="{d:DesignInstance viewModels:SideMenuViewModel}">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
@@ -25,13 +25,13 @@
             ItemsSource="{Binding RootScope.Childrens}"
             SelectedItemChanged="TreeView_SelectedItemChanged">
             <TreeView.Resources>
-                <HierarchicalDataTemplate DataType="{x:Type base:Scope}" ItemsSource="{Binding Childrens}">
+                <HierarchicalDataTemplate DataType="{x:Type scopes:Scope}" ItemsSource="{Binding Childrens}">
                     <StackPanel Orientation="Horizontal">
                         <components:ScopedElementIcon Type="Scope" Margin="0,0,4,0" />
                         <TextBlock Text="{Binding Name}" />
                     </StackPanel>
                 </HierarchicalDataTemplate>
-                <DataTemplate DataType="{x:Type base:ScopedElement}">
+                <DataTemplate DataType="{x:Type scopes:ScopedElement}">
                     <StackPanel Orientation="Horizontal">
                         <components:ScopedElementIcon Type="{Binding Type}" Margin="0,0,4,0" />
                         <TextBlock Text="{Binding Name}" />
