@@ -1,15 +1,41 @@
-﻿using Automation.App.ViewModels.Scopes;
+﻿using Automation.App.Base;
+using Automation.App.ViewModels.Scopes;
+using Nodify;
 using System.ComponentModel;
 using System.Windows;
+using System.Windows.Input;
 
 namespace Automation.App.ViewModels.Graph
 {
-    public class EditorViewModel
+    public class EditorViewModel : INotifyPropertyChanged
     {
-        public WorkflowScope WorkflowScope { get; set; }
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        public ICommand DisconnectConnectorCommand { get; }
+        public PendingConnection? PendingConnection { get; }
+        public WorkflowScope Workflow { get; set; }
+
+        public EditorViewModel(WorkflowScope workflow)
+        {
+            Workflow = workflow;
+
+            PendingConnection = new PendingConnection(this);
+            DisconnectConnectorCommand = new DelegateCommand<ElementConnector>(connector =>
+            {
+                var connection = Workflow.Connections.First(x => x.Source == connector || x.Target == connector);
+                connection.Source.IsConnected = false;  // This is not correct if there are multiple connections to the same connector
+                connection.Target.IsConnected = false;
+                Workflow.Connections.Remove(connection);
+            });
+        }
+
+        public void Connect(ElementConnector source, ElementConnector target)
+        {
+            Workflow?.Connections.Add(new ElementConnection(source, target));
+        }
     }
 
-    public class ElementEndpoint : INotifyPropertyChanged
+    public class ElementConnector : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -18,11 +44,11 @@ namespace Automation.App.ViewModels.Graph
         public bool IsConnected { get; set; }
     }
 
-    public class ElementLink : INotifyPropertyChanged
+    public class ElementConnection : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public ElementLink(ElementEndpoint source, ElementEndpoint target)
+        public ElementConnection(ElementConnector source, ElementConnector target)
         {
             Source = source;
             Target = target;
@@ -31,7 +57,27 @@ namespace Automation.App.ViewModels.Graph
             Target.IsConnected = true;
         }
 
-        public ElementEndpoint Source { get; set; }
-        public ElementEndpoint Target { get; set; }
+        public ElementConnector Source { get; set; }
+        public ElementConnector Target { get; set; }
+    }
+
+    public class PendingConnection
+    {
+        private readonly EditorViewModel _editor;
+        private ElementConnector _source;
+
+        public PendingConnection(EditorViewModel editor)
+        {
+            _editor = editor;
+            StartCommand = new DelegateCommand<ElementConnector>(source => _source = source);
+            FinishCommand = new DelegateCommand<ElementConnector>(target =>
+            {
+                if (target != null)
+                    _editor.Connect(_source, target);
+            });
+        }
+
+        public ICommand StartCommand { get; }
+        public ICommand FinishCommand { get; }
     }
 }

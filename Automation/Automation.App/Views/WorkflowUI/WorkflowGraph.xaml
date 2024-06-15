@@ -8,40 +8,90 @@
     xmlns:local="clr-namespace:Automation.App.Views.WorkflowUI"
     xmlns:graph="clr-namespace:Automation.App.ViewModels.Graph"
     xmlns:scopes="clr-namespace:Automation.App.ViewModels.Scopes"
-    mc:Ignorable="d">
+    mc:Ignorable="d"
+    d:DataContext="{d:DesignInstance graph:EditorViewModel}">
     <UserControl.DataContext>
-        <graph:EditorViewModel WorkflowScope="{Binding WorkflowScope, RelativeSource={RelativeSource AncestorType=local:WorkflowGraph}}" />
+        <Binding Path="Editor" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type UserControl}}" />
     </UserControl.DataContext>
-    <nodify:NodifyEditor ItemsSource="{Binding Nodes}" Connections="{Binding Links}">
-        <nodify:NodifyEditor.ConnectionTemplate>
-            <DataTemplate DataType="{x:Type graph:ElementLink}">
-                <nodify:Connection Source="{Binding Source.Anchor}" Target="{Binding Target.Anchor}" />
-            </DataTemplate>
-        </nodify:NodifyEditor.ConnectionTemplate>
-        <nodify:NodifyEditor.ItemTemplate>
-            <DataTemplate DataType="{x:Type scopes:TaskScope}">
-                <nodify:Node
-                    Header="{Binding Name}"
-                    Input="{Binding Inputs}"
-                    Output="{Binding Outputs}">
-                    <nodify:Node.InputConnectorTemplate>
-                        <DataTemplate DataType="{x:Type graph:ElementEndpoint}">
-                            <nodify:NodeInput
-                                Header="{Binding Name}"
-                                IsConnected="{Binding IsConnected}"
-                                Anchor="{Binding Anchor, Mode=OneWayToSource}" />
-                        </DataTemplate>
-                    </nodify:Node.InputConnectorTemplate>
-                    <nodify:Node.OutputConnectorTemplate>
-                        <DataTemplate DataType="{x:Type graph:ElementEndpoint}">
-                            <nodify:NodeOutput
-                                Header="{Binding Name}"
-                                IsConnected="{Binding IsConnected}"
-                                Anchor="{Binding Anchor, Mode=OneWayToSource}" />
-                        </DataTemplate>
-                    </nodify:Node.OutputConnectorTemplate>
-                </nodify:Node>
-            </DataTemplate>
-        </nodify:NodifyEditor.ItemTemplate>
-    </nodify:NodifyEditor>
+    <UserControl.Resources>
+        <GeometryDrawing
+            x:Key="SmallGridGeometry"
+            Geometry="M0,0 L0,1 0.03,1 0.03,0.03 1,0.03 1,0 Z"
+            Brush="{StaticResource NodifyEditor.SelectionRectangleBackgroundBrush}" />
+
+        <GeometryDrawing
+            x:Key="LargeGridGeometry"
+            Geometry="M0,0 L0,1 0.015,1 0.015,0.015 1,0.015 1,0 Z"
+            Brush="{StaticResource NodifyEditor.SelectionRectangleBackgroundBrush}" />
+
+        <DrawingBrush
+            x:Key="SmallGridLinesDrawingBrush"
+            TileMode="Tile"
+            ViewportUnits="Absolute"
+            Viewport="0 0 20 20"
+            Transform="{Binding ViewportTransform, ElementName=Editor}"
+            Drawing="{StaticResource SmallGridGeometry}" />
+
+        <DrawingBrush
+            x:Key="LargeGridLinesDrawingBrush"
+            TileMode="Tile"
+            ViewportUnits="Absolute"
+            Opacity="0.5"
+            Viewport="0 0 100 100"
+            Transform="{Binding ViewportTransform, ElementName=Editor}"
+            Drawing="{StaticResource LargeGridGeometry}" />
+    </UserControl.Resources>
+    <Grid Background="{StaticResource NodifyEditor.BackgroundBrush}">
+        <nodify:NodifyEditor
+            Background="{StaticResource SmallGridLinesDrawingBrush}"
+            ItemsSource="{Binding Workflow.Nodes}"
+            Connections="{Binding Workflow.Connections}"
+            PendingConnection="{Binding PendingConnection}"
+            DisconnectConnectorCommand="{Binding DisconnectConnectorCommand}">
+            <nodify:NodifyEditor.ItemContainerStyle>
+                <Style TargetType="{x:Type nodify:ItemContainer}">
+                    <Setter Property="Location" Value="{Binding Location}" />
+                </Style>
+            </nodify:NodifyEditor.ItemContainerStyle>
+            <nodify:NodifyEditor.ConnectionTemplate>
+                <DataTemplate DataType="{x:Type graph:ElementConnection}">
+                    <nodify:Connection Source="{Binding Source.Anchor}" Target="{Binding Target.Anchor}" />
+                </DataTemplate>
+            </nodify:NodifyEditor.ConnectionTemplate>
+            <nodify:NodifyEditor.PendingConnectionTemplate>
+                <DataTemplate DataType="{x:Type graph:PendingConnection}">
+                    <nodify:PendingConnection
+                        StartedCommand="{Binding StartCommand}"
+                        CompletedCommand="{Binding FinishCommand}"
+                        AllowOnlyConnectors="True" />
+                </DataTemplate>
+            </nodify:NodifyEditor.PendingConnectionTemplate>
+            <nodify:NodifyEditor.ItemTemplate>
+                <DataTemplate DataType="{x:Type scopes:TaskScope}">
+                    <nodify:Node
+                        Header="{Binding Name}"
+                        Input="{Binding Inputs}"
+                        Output="{Binding Outputs}">
+                        <nodify:Node.InputConnectorTemplate>
+                            <DataTemplate DataType="{x:Type graph:ElementConnector}">
+                                <nodify:NodeInput
+                                    Header="{Binding Name}"
+                                    IsConnected="{Binding IsConnected}"
+                                    Anchor="{Binding Anchor, Mode=OneWayToSource}" />
+                            </DataTemplate>
+                        </nodify:Node.InputConnectorTemplate>
+                        <nodify:Node.OutputConnectorTemplate>
+                            <DataTemplate DataType="{x:Type graph:ElementConnector}">
+                                <nodify:NodeOutput
+                                    Header="{Binding Name}"
+                                    IsConnected="{Binding IsConnected}"
+                                    Anchor="{Binding Anchor, Mode=OneWayToSource}" />
+                            </DataTemplate>
+                        </nodify:Node.OutputConnectorTemplate>
+                    </nodify:Node>
+                </DataTemplate>
+            </nodify:NodifyEditor.ItemTemplate>
+        </nodify:NodifyEditor>
+        <Grid Background="{StaticResource LargeGridLinesDrawingBrush}" Panel.ZIndex="-2" />
+    </Grid>
 </UserControl>

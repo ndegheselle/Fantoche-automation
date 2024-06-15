@@ -7,6 +7,7 @@
     xmlns:local="clr-namespace:Automation.App.Views.WorkflowUI"
     mc:Ignorable="d"
     xmlns:scopes="clr-namespace:Automation.App.ViewModels.Scopes"
-    d:DataContext="{d:DesignInstance scopes:WorkflowScope}">
-    <local:WorkflowGraph WorkflowScope="{Binding}" />
+    d:DataContext="{d:DesignInstance local:WorkflowPage}">
+
+    <local:WorkflowGraph Editor="{Binding Editor}"  />
 </UserControl>

@@ -1,13 +1,19 @@
 ﻿using Automation.App.ViewModels.Graph;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Windows;
 
 namespace Automation.App.ViewModels.Scopes
 {
 
-    public class TaskScope : ScopedElement
+    public class TaskScope : ScopedElement, INotifyPropertyChanged
     {
-        public ObservableCollection<ElementEndpoint> Inputs { get; set; } = new ObservableCollection<ElementEndpoint>();
-        public ObservableCollection<ElementEndpoint> Outputs { get; set; } = new ObservableCollection<ElementEndpoint>();
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        public Point Location { get; set; }
+
+        public ObservableCollection<ElementConnector> Inputs { get; set; } = new ObservableCollection<ElementConnector>();
+        public ObservableCollection<ElementConnector> Outputs { get; set; } = new ObservableCollection<ElementConnector>();
 
         public TaskScope()
         {
@@ -18,7 +24,7 @@ namespace Automation.App.ViewModels.Scopes
     public class WorkflowScope : TaskScope
     {
         public ObservableCollection<TaskScope> Nodes { get; } = new ObservableCollection<TaskScope>();
-        public ObservableCollection<ElementLink> Links { get; } = new ObservableCollection<ElementLink>();
+        public ObservableCollection<ElementConnection> Connections { get; } = new ObservableCollection<ElementConnection>();
 
         public WorkflowScope()
         {

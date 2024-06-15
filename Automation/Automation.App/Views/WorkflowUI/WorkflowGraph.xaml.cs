@@ -1,4 +1,5 @@
-﻿using Automation.App.ViewModels.Scopes;
+﻿using Automation.App.ViewModels.Graph;
+using Automation.App.ViewModels.Scopes;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -9,19 +10,22 @@ namespace Automation.App.Views.WorkflowUI
     /// </summary>
     public partial class WorkflowGraph : UserControl
     {
-        // Dependency property WorkflowScope
-        public static readonly DependencyProperty WorkflowScopeProperty = DependencyProperty.Register(
-            "WorkflowScope",
-            typeof(WorkflowScope),
+        // Dependency property Editor of type EditorViewModel
+        public static readonly DependencyProperty EditorProperty = DependencyProperty.Register(
+            "Editor",
+            typeof(EditorViewModel),
             typeof(WorkflowGraph),
             new PropertyMetadata(null));
 
-        public WorkflowScope WorkflowScope
+        public EditorViewModel Editor
         {
-            get { return (WorkflowScope)GetValue(WorkflowScopeProperty); }
-            set { SetValue(WorkflowScopeProperty, value); }
+            get => (EditorViewModel)GetValue(EditorProperty);
+            set => SetValue(EditorProperty, value);
         }
 
-        public WorkflowGraph() { InitializeComponent(); }
+        public WorkflowGraph()
+        {
+            InitializeComponent();
+        }
     }
 }

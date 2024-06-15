@@ -34,25 +34,25 @@ namespace Automation.App.ViewModels
             TaskScope taskScope1 = new TaskScope()
             {
                 Name = "Task 1",
-                Inputs = new ObservableCollection<ElementEndpoint>() { new ElementEndpoint() { Name = "Input 1" }, },
+                Inputs = new ObservableCollection<ElementConnector>() { new ElementConnector() { Name = "Input 1" }, },
                 Outputs =
-                    new ObservableCollection<ElementEndpoint>() { new ElementEndpoint() { Name = "Output 1" }, },
+                    new ObservableCollection<ElementConnector>() { new ElementConnector() { Name = "Output 1" }, },
             };
 
             TaskScope taskScope2 = new TaskScope()
             {
                 Name = "Task 2",
-                Inputs = new ObservableCollection<ElementEndpoint>() { new ElementEndpoint() { Name = "Input 1" }, },
+                Inputs = new ObservableCollection<ElementConnector>() { new ElementConnector() { Name = "Input 1" }, },
                 Outputs =
-                    new ObservableCollection<ElementEndpoint>() { new ElementEndpoint() { Name = "Output 1" }, },
+                    new ObservableCollection<ElementConnector>() { new ElementConnector() { Name = "Output 1" }, },
             };
 
             WorkflowScope workflowScope = new WorkflowScope() { Name = "Workflow 1", };
             workflowScope.Nodes.Add(taskScope1);
             workflowScope.Nodes.Add(taskScope2);
 
-            workflowScope.Links
-                .Add(new ElementLink(taskScope2.Outputs[0], taskScope1.Inputs[0]));
+            workflowScope.Connections
+                .Add(new ElementConnection(taskScope2.Outputs[0], taskScope1.Inputs[0]));
 
             RootScope = new Scope();
             RootScope.Childrens
