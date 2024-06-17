@@ -54,15 +54,19 @@ namespace Automation.App.ViewModels
             workflowScope.Connections
                 .Add(new ElementConnection(taskScope2.Outputs[0], taskScope1.Inputs[0]));
 
+            Scope subScope = new Scope() { Name = "SubScope 1", };
+            subScope.AddChild(taskScope1);
+
+            Scope mainScope = new Scope()
+            {
+                Name = "Scope 1",
+            };
+            mainScope.AddChild(subScope);
+            mainScope.AddChild(workflowScope);
+            mainScope.AddChild(taskScope2);
+
             RootScope = new Scope();
-            RootScope.Childrens
-                .Add(
-                    new Scope()
-                    {
-                        Id = Guid.NewGuid(),
-                        Name = "Scope 1",
-                        Childrens = new ObservableCollection<ScopedElement>() { workflowScope, taskScope1, taskScope2, }
-                    });
+            RootScope.AddChild(mainScope);
         }
     }
 }

@@ -8,11 +8,7 @@
     xmlns:local="clr-namespace:Automation.App.Views.WorkflowUI"
     xmlns:graph="clr-namespace:Automation.App.ViewModels.Graph"
     xmlns:scopes="clr-namespace:Automation.App.ViewModels.Scopes"
-    mc:Ignorable="d"
-    d:DataContext="{d:DesignInstance graph:EditorViewModel}">
-    <UserControl.DataContext>
-        <Binding Path="Editor" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type UserControl}}" />
-    </UserControl.DataContext>
+    mc:Ignorable="d">
     <UserControl.Resources>
         <GeometryDrawing
             x:Key="SmallGridGeometry"
@@ -41,8 +37,9 @@
             Transform="{Binding ViewportTransform, ElementName=Editor}"
             Drawing="{StaticResource LargeGridGeometry}" />
     </UserControl.Resources>
-    <Grid Background="{StaticResource NodifyEditor.BackgroundBrush}">
+    <Grid DataContext="{Binding EditorData, RelativeSource={RelativeSource AncestorType={x:Type local:WorkflowGraph}}}" Background="{StaticResource NodifyEditor.BackgroundBrush}">
         <nodify:NodifyEditor
+            x:Name="Editor"
             Background="{StaticResource SmallGridLinesDrawingBrush}"
             ItemsSource="{Binding Workflow.Nodes}"
             Connections="{Binding Workflow.Connections}"
@@ -93,5 +90,19 @@
             </nodify:NodifyEditor.ItemTemplate>
         </nodify:NodifyEditor>
         <Grid Background="{StaticResource LargeGridLinesDrawingBrush}" Panel.ZIndex="-2" />
+        <Grid
+            Margin="2"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top">
+            <Button>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock
+                        FontFamily="{StaticResource FontAwesomeSolid}"
+                        VerticalAlignment="Center"
+                        Text="&#x2b;" />
+                    <TextBlock Margin="4,0,0,0">Add</TextBlock>
+                </StackPanel>
+            </Button>
+        </Grid>
     </Grid>
 </UserControl>

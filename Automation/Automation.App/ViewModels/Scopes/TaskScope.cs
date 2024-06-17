@@ -6,10 +6,8 @@ using System.Windows;
 namespace Automation.App.ViewModels.Scopes
 {
 
-    public class TaskScope : ScopedElement, INotifyPropertyChanged
+    public class TaskScope : ScopedElement
     {
-        public event PropertyChangedEventHandler? PropertyChanged;
-
         public Point Location { get; set; }
 
         public ObservableCollection<ElementConnector> Inputs { get; set; } = new ObservableCollection<ElementConnector>();

@@ -8,6 +8,5 @@
     mc:Ignorable="d"
     xmlns:scopes="clr-namespace:Automation.App.ViewModels.Scopes"
     d:DataContext="{d:DesignInstance local:WorkflowPage}">
-
-    <local:WorkflowGraph Editor="{Binding Editor}"  />
+    <local:WorkflowGraph EditorData="{Binding Editor}" />
 </UserControl>

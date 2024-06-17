@@ -17,8 +17,8 @@ namespace Automation.App.Views.Menus
         public SideMenu()
         {
             _sideMenuContext = _app.ServiceProvider.GetRequiredService<SideMenuViewModel>();
-            InitializeComponent();
             this.DataContext = _sideMenuContext;
+            InitializeComponent();
         }
 
         private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)

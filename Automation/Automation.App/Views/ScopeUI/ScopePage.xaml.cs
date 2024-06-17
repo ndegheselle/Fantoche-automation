@@ -1,4 +1,5 @@
 ﻿using Automation.App.Base;
+using Automation.App.ViewModels;
 using Automation.App.ViewModels.Scopes;
 using Automation.App.Views.TaskUI;
 using Automation.App.Views.WorkflowUI;
@@ -14,6 +15,7 @@ namespace Automation.App.Views.ScopeUI
     {
         private readonly IModalContainer _modal;
         private readonly Scope _scope;
+        private readonly SideMenuViewModel _sideMenu;
 
         public ScopePage(IModalContainer modal, Scope scope)
         {
@@ -53,5 +55,16 @@ namespace Automation.App.Views.ScopeUI
                 _scope.AddChild(newScope);
         }
         #endregion
+
+        private void ListBox_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            ListBox listBox = (ListBox)sender;
+            ScopedElement? selectedElement = listBox.SelectedItem as ScopedElement;
+
+            if (selectedElement == null)
+                return;
+
+            selectedElement.IsSelected = true;
+        }
     }
 }

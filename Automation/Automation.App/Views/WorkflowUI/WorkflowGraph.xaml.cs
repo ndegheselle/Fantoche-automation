@@ -1,5 +1,4 @@
 ﻿using Automation.App.ViewModels.Graph;
-using Automation.App.ViewModels.Scopes;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -11,16 +10,16 @@ namespace Automation.App.Views.WorkflowUI
     public partial class WorkflowGraph : UserControl
     {
         // Dependency property Editor of type EditorViewModel
-        public static readonly DependencyProperty EditorProperty = DependencyProperty.Register(
-            "Editor",
+        public static readonly DependencyProperty EditorDataProperty = DependencyProperty.Register(
+            "EditorData",
             typeof(EditorViewModel),
             typeof(WorkflowGraph),
             new PropertyMetadata(null));
 
-        public EditorViewModel Editor
+        public EditorViewModel EditorData
         {
-            get => (EditorViewModel)GetValue(EditorProperty);
-            set => SetValue(EditorProperty, value);
+            get => (EditorViewModel)GetValue(EditorDataProperty);
+            set => SetValue(EditorDataProperty, value);
         }
 
         public WorkflowGraph()

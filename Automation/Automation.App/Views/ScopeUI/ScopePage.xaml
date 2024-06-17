@@ -49,7 +49,7 @@
                 <TextBlock Text="&#x2b;" FontFamily="{StaticResource FontAwesomeSolid}" />
             </Button>
         </Grid>
-        <ListBox Grid.Row="1" ItemsSource="{Binding Childrens}">
+        <ListBox Grid.Row="1" ItemsSource="{Binding Childrens}" MouseDoubleClick="ListBox_MouseDoubleClick">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal">

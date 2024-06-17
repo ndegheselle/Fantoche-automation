@@ -14,8 +14,8 @@ namespace Automation.App.Views.WorkflowUI
         public WorkflowPage(WorkflowScope scope)
         {
             Editor = new EditorViewModel(scope);
-            InitializeComponent();
             this.DataContext = this;
+            InitializeComponent();
         }
     }
 }
