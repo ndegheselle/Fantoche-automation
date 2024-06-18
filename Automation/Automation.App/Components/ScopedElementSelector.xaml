@@ -1,0 +1,47 @@
+﻿<UserControl
+    x:Class="Automation.App.Components.ScopedElementSelector"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Automation.App.Components"
+    xmlns:components="clr-namespace:Automation.App.Components"
+    xmlns:scopes="clr-namespace:Automation.App.ViewModels.Scopes"
+    xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
+    mc:Ignorable="d"
+    d:DataContext="{d:DesignInstance local:ScopedElementSelector}">
+    <TreeView
+        DataContext="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:ScopedElementSelector}}}"
+        Background="{DynamicResource {x:Static adonisUi:Brushes.Layer1BackgroundBrush}}"
+        MinWidth="200"
+        ItemsSource="{Binding RootScope.Childrens}"
+        SelectedItemChanged="TreeView_SelectedItemChanged">
+        <TreeView.ItemContainerStyle>
+            <Style TargetType="{x:Type TreeViewItem}" BasedOn="{StaticResource TreeViewItemStyle}">
+                <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+                <Setter Property="IsExpanded">
+                    <Setter.Value>
+                        <!--  Avoids warnings for nodes that do not have the "IsExpanded" property  -->
+                        <PriorityBinding>
+                            <Binding Path="IsExpanded" Mode="TwoWay" />
+                        </PriorityBinding>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </TreeView.ItemContainerStyle>
+        <TreeView.Resources>
+            <HierarchicalDataTemplate DataType="{x:Type scopes:Scope}" ItemsSource="{Binding Childrens}">
+                <StackPanel Orientation="Horizontal">
+                    <components:ScopedElementIcon Type="Scope" Margin="0,0,4,0" />
+                    <TextBlock Text="{Binding Name}" />
+                </StackPanel>
+            </HierarchicalDataTemplate>
+            <DataTemplate DataType="{x:Type scopes:ScopedElement}">
+                <StackPanel Orientation="Horizontal">
+                    <components:ScopedElementIcon Type="{Binding Type}" Margin="0,0,4,0" />
+                    <TextBlock Text="{Binding Name}" />
+                </StackPanel>
+            </DataTemplate>
+        </TreeView.Resources>
+    </TreeView>
+</UserControl>

@@ -20,16 +20,5 @@ namespace Automation.App.Views.Menus
             this.DataContext = _sideMenuContext;
             InitializeComponent();
         }
-
-        private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
-        {
-            TreeView treeView = (TreeView)sender;
-            ScopedElement? contextElement = treeView.SelectedItem as ScopedElement;
-
-            if (contextElement == null)
-                return;
-
-            _sideMenuContext.SelectedElement = contextElement;
-        }
     }
 }

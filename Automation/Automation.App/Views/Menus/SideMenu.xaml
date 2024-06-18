@@ -18,39 +18,9 @@
         </Grid.RowDefinitions>
 
         <TextBox Visibility="Collapsed" />
-        <TreeView
+        <components:ScopedElementSelector
             Grid.Row="1"
-            Background="{DynamicResource {x:Static adonisUi:Brushes.Layer1BackgroundBrush}}"
-            MinWidth="200"
-            ItemsSource="{Binding RootScope.Childrens}"
-            SelectedItemChanged="TreeView_SelectedItemChanged">
-            <TreeView.ItemContainerStyle>
-                <Style TargetType="{x:Type TreeViewItem}" BasedOn="{StaticResource TreeViewItemStyle}">
-                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
-                    <Setter Property="IsExpanded">
-                        <Setter.Value>
-                            <!--  Avoids warnings for nodes that do not have the "IsExpanded" property  -->
-                            <PriorityBinding>
-                                <Binding Path="IsExpanded" Mode="TwoWay" />
-                            </PriorityBinding>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-            </TreeView.ItemContainerStyle>
-            <TreeView.Resources>
-                <HierarchicalDataTemplate DataType="{x:Type scopes:Scope}" ItemsSource="{Binding Childrens}">
-                    <StackPanel Orientation="Horizontal">
-                        <components:ScopedElementIcon Type="Scope" Margin="0,0,4,0" />
-                        <TextBlock Text="{Binding Name}" />
-                    </StackPanel>
-                </HierarchicalDataTemplate>
-                <DataTemplate DataType="{x:Type scopes:ScopedElement}">
-                    <StackPanel Orientation="Horizontal">
-                        <components:ScopedElementIcon Type="{Binding Type}" Margin="0,0,4,0" />
-                        <TextBlock Text="{Binding Name}" />
-                    </StackPanel>
-                </DataTemplate>
-            </TreeView.Resources>
-        </TreeView>
+            RootScope="{Binding RootScope}"
+            Selected="{Binding SelectedElement, Mode=OneWayToSource}" />
     </Grid>
 </UserControl>
