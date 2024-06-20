@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using Automation.Base;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
@@ -11,20 +12,8 @@ namespace Automation.App.ViewModels.Scopes
         Task
     }
 
-    public class ScopedElement : INotifyPropertyChanged
+    public class NodeUI : Node
     {
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName]string? propertyName = null)
-        { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
-
-        public Guid Id { get; set; } = Guid.NewGuid();
-
-        public Scope Parent { get; set; }
-
-        public string Name { get; set; }
-
-        public EnumTaskType Type { get; set; }
-
         private bool _isSelected;
 
         public bool IsSelected
@@ -52,7 +41,7 @@ namespace Automation.App.ViewModels.Scopes
     }
 
     // Move to 
-    public class Scope : ScopedElement
+    public class ScopeUIWrapper : ScopedElement
     {
         public ObservableCollection<ScopedElement> Childrens { get; set; } = [];
         public Scope() { Type = EnumTaskType.Scope; }
