@@ -51,14 +51,9 @@ namespace Automation.Supervisor.Repositories
 
         public Scope GetRootScope() { return _rootScope; }
 
-        public Scope GetScopeChildrens(Guid id)
+        public IEnumerable<Node> GetScopeChildrens(Guid id)
         {
-            // Get scope
-        }
-
-        public Scope GetScope(Guid id)
-        {
-            // Get scope
+            return _nodes.Where(n => n.ParentId == id);
         }
     }
 }
