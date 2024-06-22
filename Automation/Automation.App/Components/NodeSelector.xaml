@@ -7,6 +7,7 @@
     xmlns:local="clr-namespace:Automation.App.Components"
     xmlns:components="clr-namespace:Automation.App.Components"
     xmlns:scopes="clr-namespace:Automation.Base;assembly=Automation.Base"
+    xmlns:graph="clr-namespace:Automation.App.ViewModels.Graph"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     mc:Ignorable="d"
     d:DataContext="{d:DesignInstance local:NodeSelector}">
@@ -14,32 +15,26 @@
         DataContext="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:NodeSelector}}}"
         Background="{DynamicResource {x:Static adonisUi:Brushes.Layer1BackgroundBrush}}"
         MinWidth="200"
-        ItemsSource="{Binding RootScope.Childrens}"
+        ItemsSource="{Binding RootScopeWrapper.Childrens}"
         SelectedItemChanged="TreeView_SelectedItemChanged">
         <TreeView.ItemContainerStyle>
             <Style TargetType="{x:Type TreeViewItem}" BasedOn="{StaticResource TreeViewItemStyle}">
                 <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
-                <Setter Property="IsExpanded">
-                    <Setter.Value>
-                        <!--  Avoids warnings for nodes that do not have the "IsExpanded" property  -->
-                        <PriorityBinding>
-                            <Binding Path="IsExpanded" Mode="TwoWay" />
-                        </PriorityBinding>
-                    </Setter.Value>
-                </Setter>
+                <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
             </Style>
         </TreeView.ItemContainerStyle>
         <TreeView.Resources>
-            <HierarchicalDataTemplate DataType="{x:Type scopes:Scope}" ItemsSource="{Binding Childrens}">
+            <HierarchicalDataTemplate DataType="{x:Type graph:ScopeWrapper}" ItemsSource="{Binding Childrens}">
                 <StackPanel Orientation="Horizontal">
-                    <components:ScopedElementIcon Type="Scope" Margin="0,0,4,0" />
-                    <TextBlock Text="{Binding Name}" />
+
+                    <components:NodeIcon Type="Scope" Margin="0,0,4,0" />
+                    <TextBlock Text="{Binding Scope.Name}" />
                 </StackPanel>
             </HierarchicalDataTemplate>
-            <DataTemplate DataType="{x:Type scopes:ScopedElement}">
+            <DataTemplate DataType="{x:Type graph:NodeWrapper}">
                 <StackPanel Orientation="Horizontal">
-                    <components:ScopedElementIcon Type="{Binding Type}" Margin="0,0,4,0" />
-                    <TextBlock Text="{Binding Name}" />
+                    <components:NodeIcon Type="{Binding Node.Type}" Margin="0,0,4,0" />
+                    <TextBlock Text="{Binding Node.Name}" />
                 </StackPanel>
             </DataTemplate>
         </TreeView.Resources>

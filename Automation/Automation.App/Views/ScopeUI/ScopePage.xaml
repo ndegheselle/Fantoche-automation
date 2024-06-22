@@ -6,7 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     mc:Ignorable="d"
     xmlns:components="clr-namespace:Automation.App.Components"
-    xmlns:scopes="clr-namespace:Automation.App.ViewModels.Scopes"
+    xmlns:scopes="clr-namespace:Automation.Base;assembly=Automation.Base"
     d:DataContext="{d:DesignInstance scopes:Scope}">
     <Grid>
         <Grid.RowDefinitions>
@@ -31,17 +31,17 @@
                     <ContextMenu Placement="Bottom">
                         <MenuItem Header="Add scope" Click="MenuAddScope_Click">
                             <MenuItem.Icon>
-                                <components:ScopedElementIcon Type="Scope" Margin="0,0,4,0" />
+                                <components:NodeIcon Type="Scope" Margin="0,0,4,0" />
                             </MenuItem.Icon>
                         </MenuItem>
                         <MenuItem Header="Add workflow" Click="MenuAddWorkflow_Click">
                             <MenuItem.Icon>
-                                <components:ScopedElementIcon Type="Workflow" Margin="0,0,4,0" />
+                                <components:NodeIcon Type="Workflow" Margin="0,0,4,0" />
                             </MenuItem.Icon>
                         </MenuItem>
                         <MenuItem Header="Add task" Click="MenuAddTask_Click">
                             <MenuItem.Icon>
-                                <components:ScopedElementIcon Type="Task" Margin="0,0,4,0" />
+                                <components:NodeIcon Type="Task" Margin="0,0,4,0" />
                             </MenuItem.Icon>
                         </MenuItem>
                     </ContextMenu>
@@ -49,11 +49,14 @@
                 <TextBlock Text="&#x2b;" FontFamily="{StaticResource FontAwesomeSolid}" />
             </Button>
         </Grid>
-        <ListBox Grid.Row="1" ItemsSource="{Binding Childrens}" MouseDoubleClick="ListBox_MouseDoubleClick">
+        <ListBox
+            Grid.Row="1"
+            ItemsSource="{Binding Childrens}"
+            MouseDoubleClick="ListBox_MouseDoubleClick">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal">
-                        <components:ScopedElementIcon Type="{Binding Type}" Margin="0,0,4,0" />
+                        <components:NodeIcon Type="{Binding Type}" Margin="0,0,4,0" />
                         <TextBlock Text="{Binding Name}" />
                     </StackPanel>
                 </DataTemplate>

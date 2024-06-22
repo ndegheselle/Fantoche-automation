@@ -1,5 +1,5 @@
 ﻿using Automation.App.ViewModels.Graph;
-using Automation.App.ViewModels.Scopes;
+using Automation.Base;
 using System.Windows.Controls;
 
 namespace Automation.App.Views.WorkflowUI
@@ -11,7 +11,7 @@ namespace Automation.App.Views.WorkflowUI
     {
         public EditorViewModel Editor { get; set; }
 
-        public WorkflowPage(WorkflowScope scope)
+        public WorkflowPage(WorkflowNode scope)
         {
             Editor = new EditorViewModel(scope);
             this.DataContext = this;

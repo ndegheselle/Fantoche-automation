@@ -1,4 +1,4 @@
-﻿using Automation.App.ViewModels.Scopes;
+﻿using Automation.Base;
 using System.Windows.Controls;
 
 namespace Automation.App.Views.TaskUI
@@ -8,7 +8,7 @@ namespace Automation.App.Views.TaskUI
     /// </summary>
     public partial class TaskPage : UserControl
     {
-        public TaskPage(ScopedElement scope)
+        public TaskPage(Node scope)
         {
             InitializeComponent();
         }

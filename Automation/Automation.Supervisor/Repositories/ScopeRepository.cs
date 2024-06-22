@@ -8,20 +8,21 @@ namespace Automation.Supervisor.Repositories
         private readonly Scope _rootScope;
         private readonly List<Node> _nodes;
 
+        // XXX : should return Scope with only one depth of children
         public ScopeRepository()
         {
             TaskNode taskScope1 = new TaskNode()
             {
                 Name = "Task 1",
-                Inputs = new ObservableCollection<NodeConnector>() { new NodeConnector() { Name = "Input 1" }, },
-                Outputs = new ObservableCollection<NodeConnector>() { new NodeConnector() { Name = "Output 1" }, },
+                Inputs = new List<NodeConnector>() { new NodeConnector() { Name = "Input 1" }, },
+                Outputs = new List<NodeConnector>() { new NodeConnector() { Name = "Output 1" }, },
             };
 
             TaskNode taskScope2 = new TaskNode()
             {
                 Name = "Task 2",
-                Inputs = new ObservableCollection<NodeConnector>() { new NodeConnector() { Name = "Input 1" }, },
-                Outputs = new ObservableCollection<NodeConnector>() { new NodeConnector() { Name = "Output 1" }, },
+                Inputs = new List<NodeConnector>() { new NodeConnector() { Name = "Input 1" }, },
+                Outputs = new List<NodeConnector>() { new NodeConnector() { Name = "Output 1" }, },
             };
 
             WorkflowNode workflowScope = new WorkflowNode() { Name = "Workflow 1", };
@@ -49,11 +50,34 @@ namespace Automation.Supervisor.Repositories
             _nodes.Add(_rootScope);
         }
 
-        public Scope GetRootScope() { return _rootScope; }
+        public Scope GetRootScope() { return GetScopeWithDirectChildrenOnly(_rootScope); }
 
-        public IEnumerable<Node> GetScopeChildrens(Guid id)
+        public Node? GetNode(Guid id)
         {
-            return _nodes.Where(n => n.ParentId == id);
+            Node? node = _nodes.FirstOrDefault(x => x.Id == id);
+            if (node is Scope scope)
+            {
+                return GetScopeWithDirectChildrenOnly(scope);
+            }
+            return node;
+        }
+
+        private Scope GetScopeWithDirectChildrenOnly(Scope scope)
+        {
+            Scope shallowScope = new Scope() { Name = scope.Name, Id = scope.Id };
+            foreach (var child in scope.Childrens)
+            {
+                if (child is Scope)
+                {
+                    shallowScope.AddChild(new Scope() { Name = child.Name, Id = child.Id });
+                }
+                else
+                {
+                    shallowScope.AddChild(child);
+                }
+            }
+
+            return shallowScope;
         }
     }
 }

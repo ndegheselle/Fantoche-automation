@@ -8,8 +8,9 @@
     mc:Ignorable="d"
     MinHeight="300"
     MinWidth="300"
-    xmlns:scopes="clr-namespace:Automation.App.ViewModels.Scopes"
-    d:DataContext="{d:DesignInstance scopes:Scope}">
+    xmlns:scopes="clr-namespace:Automation.Base;assembly=Automation.Base"
+    xmlns:components="clr-namespace:Automation.App.Components"
+    d:DataContext="{d:DesignInstance scopes:Node}">
     <Grid Margin="4">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />

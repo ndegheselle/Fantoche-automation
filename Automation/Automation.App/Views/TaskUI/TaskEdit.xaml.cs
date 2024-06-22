@@ -1,5 +1,5 @@
 ﻿using Automation.App.Base;
-using Automation.App.ViewModels.Scopes;
+using Automation.Base;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -11,9 +11,9 @@ namespace Automation.App.Views.TaskUI
     public partial class TaskEdit : UserControl, IModalContent
     {
         public IModalContainer? ModalParent { get; set; }
-        private readonly TaskScope _scope;
+        private readonly TaskNode _scope;
 
-        public TaskEdit(TaskScope taskScope)
+        public TaskEdit(TaskNode taskScope)
         {
             _scope = taskScope;
             InitializeComponent();

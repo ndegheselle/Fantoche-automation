@@ -1,7 +1,5 @@
 ﻿using Automation.App.ViewModels;
-using Automation.App.ViewModels.Scopes;
 using Microsoft.Extensions.DependencyInjection;
-using System.Windows;
 using System.Windows.Controls;
 
 namespace Automation.App.Views.Menus

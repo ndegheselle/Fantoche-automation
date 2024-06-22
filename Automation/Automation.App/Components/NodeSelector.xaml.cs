@@ -5,23 +5,33 @@ using System.Windows.Controls;
 
 namespace Automation.App.Components
 {
-    // XXX : TODO : Add on demand loading
     /// <summary>
     /// Logique d'interaction pour ScopedElementSelector.xaml
     /// </summary>
     public partial class NodeSelector : UserControl
     {
+
+        #region Dependency Properties
+
         // Dependency property Scope RootScope
         public static readonly DependencyProperty RootScopeProperty = DependencyProperty.Register(
             nameof(RootScope),
             typeof(Scope),
             typeof(NodeSelector),
-            new PropertyMetadata(null));
+            new PropertyMetadata(null, (e, d) => ((NodeSelector)e).OnRootScopeChange()));
 
         public Scope RootScope
         {
             get { return (Scope)GetValue(RootScopeProperty); }
             set { SetValue(RootScopeProperty, value); }
+        }
+
+        private void OnRootScopeChange()
+        {
+            if (RootScope != null)
+            {
+                RootScopeWrapper = new ScopeWrapper(RootScope);
+            }
         }
 
         // Dependency property ScopedElement Selected
@@ -31,11 +41,15 @@ namespace Automation.App.Components
             typeof(NodeSelector),
             new PropertyMetadata(null));
 
-        public Node? Selected
+        public NodeWrapper? Selected
         {
-            get { return (Node?)GetValue(SelectedProperty); }
+            get { return (NodeWrapper?)GetValue(SelectedProperty); }
             set { SetValue(SelectedProperty, value); }
         }
+
+        #endregion
+
+        public ScopeWrapper? RootScopeWrapper { get; set; }
 
         public NodeSelector() {
             InitializeComponent();
@@ -44,13 +58,8 @@ namespace Automation.App.Components
         private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             TreeView treeView = (TreeView)sender;
-            NodeUIWrapper? contextElement = treeView.SelectedItem as NodeUIWrapper;
-            Selected = contextElement?.Node;
-
-            if (contextElement is ScopeUIWrapper scope && scope.Childrens == null)
-            {
-                // Load the children of the selected scope
-            }
+            NodeWrapper? contextElement = treeView.SelectedItem as NodeWrapper;
+            Selected = contextElement;
         }
     }
 }

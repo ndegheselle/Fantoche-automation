@@ -7,7 +7,6 @@
     xmlns:local="clr-namespace:Automation.App.Views.Menus"
     xmlns:components="clr-namespace:Automation.App.Components"
     xmlns:viewModels="clr-namespace:Automation.App.ViewModels"
-    xmlns:scopes="clr-namespace:Automation.App.ViewModels.Scopes"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     mc:Ignorable="d"
     d:DataContext="{d:DesignInstance viewModels:SideMenuViewModel}">

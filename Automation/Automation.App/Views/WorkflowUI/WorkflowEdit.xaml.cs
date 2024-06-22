@@ -1,5 +1,5 @@
 ﻿using Automation.App.Base;
-using Automation.App.ViewModels.Scopes;
+using Automation.Base;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -11,9 +11,9 @@ namespace Automation.App.Views.WorkflowUI
     public partial class WorkflowEdit : UserControl, IModalContent
     {
         public IModalContainer? ModalParent { get; set; }
-        private readonly WorkflowScope _scope;
+        private readonly WorkflowNode _scope;
 
-        public WorkflowEdit(WorkflowScope workflowScope)
+        public WorkflowEdit(WorkflowNode workflowScope)
         {
             _scope= workflowScope;
             InitializeComponent();

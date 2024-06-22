@@ -1,9 +1,5 @@
-﻿using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Drawing;
-using System.Runtime.CompilerServices;
+﻿using System.Drawing;
 
-// XXX : some properties are used only on the UI, should separate them but since it a Tree structure, it will be hard
 namespace Automation.Base
 {
     public enum EnumNodeType
@@ -13,12 +9,10 @@ namespace Automation.Base
         Task
     }
 
-    public class Node : INotifyPropertyChanged
+    public class Node
     {
-        public event PropertyChangedEventHandler? PropertyChanged;
-
         public Guid Id { get; set; } = Guid.NewGuid();
-        public Guid? ParentId { get; set; }
+        public Scope? Parent { get; set; }
 
         public string Name { get; set; }
         public EnumNodeType Type { get; set; }
@@ -26,23 +20,20 @@ namespace Automation.Base
 
     public class Scope : Node
     {
-        public ObservableCollection<Node> Childrens { get; set; } = [];
-
+        public List<Node> Childrens { get; set; } = [];
         public Scope() { Type = EnumNodeType.Scope; }
 
-        public void AddChild(Node child)
+        public void AddChild(Node node)
         {
-            child.Parent = this;
-            Childrens.Add(child);
+            node.Parent = this;
+            Childrens.Add(node);
         }
     }
 
     public class TaskNode : Node
     {
-        public Point Location { get; set; }
-
-        public ObservableCollection<NodeConnector> Inputs { get; set; } = new ObservableCollection<NodeConnector>();
-        public ObservableCollection<NodeConnector> Outputs { get; set; } = new ObservableCollection<NodeConnector>();
+        public List<NodeConnector> Inputs { get; set; } = [];
+        public List<NodeConnector> Outputs { get; set; } = [];
 
         public TaskNode()
         {
@@ -52,8 +43,8 @@ namespace Automation.Base
 
     public class WorkflowNode : TaskNode
     {
-        public ObservableCollection<NodeConnection> Connections { get; } = new ObservableCollection<NodeConnection>();
-        public List<Guid> Nodes { get; set; }
+        public List<NodeConnection> Connections { get; } = [];
+        public List<Node> Nodes { get; set; } = [];
 
         public WorkflowNode()
         {
@@ -65,11 +56,23 @@ namespace Automation.Base
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public string Name { get; set; }
+
+        // TODO : move to a UI specific class ? Means a TaskWrapper, NodeConnectionWrapper, NodeConnectorWrapperK.
+        #region UI Specific
+        public bool IsConnected { get; set; }
+        public Point Anchor { get; set; }
+        #endregion
     }
 
     public class NodeConnection
     {
-        public Guid SourceConnectorId { get; set; }
-        public Guid TargetConnectorId { get; set; }
+        public NodeConnector Source { get; set; }
+        public NodeConnector Target { get; set; }
+
+        public NodeConnection(NodeConnector source, NodeConnector target)
+        {
+            Source = source;
+            Target = target;
+        }
     }
 }

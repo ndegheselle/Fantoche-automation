@@ -23,7 +23,7 @@ namespace Automation.App.ViewModels.Graph
             DisconnectConnectorCommand = new DelegateCommand<NodeConnector>(connector =>
             {
                 var connection = Workflow.Connections.First(x => x.Source == connector || x.Target == connector);
-                connection.Source.IsConnected = false;  // This is not correct if there are multiple connections to the same connector
+                connection.Source.IsConnected = false;
                 connection.Target.IsConnected = false;
                 Workflow.Connections.Remove(connection);
             });
@@ -55,7 +55,7 @@ namespace Automation.App.ViewModels.Graph
         public ICommand FinishCommand { get; }
     }
 
-    public class NodeUIWrapper : INotifyPropertyChanged
+    public class NodeWrapper : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
@@ -63,10 +63,10 @@ namespace Automation.App.ViewModels.Graph
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public Node Node { get; }
-        public ScopeUIWrapper Parent { get; set; }
+        public Node Node { get; set; }
+        public ScopeWrapper? Parent { get; set; }
+        public bool IsExpanded { get; set; }
 
-        #region UI Properties
         private bool _isSelected;
         public bool IsSelected
         {
@@ -82,7 +82,13 @@ namespace Automation.App.ViewModels.Graph
             }
         }
 
-        private void ExpandParent()
+        public NodeWrapper(Node node, ScopeWrapper? parent)
+        {
+            Node = node;
+            Parent = parent;
+        }
+
+        public void ExpandParent()
         {
             if (Parent == null)
                 return;
@@ -90,13 +96,16 @@ namespace Automation.App.ViewModels.Graph
             Parent.IsExpanded = true;
             Parent.ExpandParent();
         }
-        #endregion
     }
-
-    public class ScopeUIWrapper : NodeUIWrapper
+    public class ScopeWrapper : NodeWrapper
     {
-        public Scope Scope => (Scope)Node;
-        public ObservableCollection<NodeUIWrapper> Childrens { get; set; } = new ObservableCollection<NodeUIWrapper>();
-        public bool IsExpanded { get; set; }
+        public new Scope Scope { get; }
+        public new List<NodeWrapper> Childrens { get; }
+
+        public ScopeWrapper(Scope scope) : base(scope, null)
+        {
+            Scope = scope;
+            Childrens = scope.Childrens.Select(n => n is Scope s ? new ScopeWrapper(s) : new NodeWrapper(n, this)).ToList();
+        }
     }
 }

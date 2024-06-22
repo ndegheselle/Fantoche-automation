@@ -1,5 +1,5 @@
 ﻿using Automation.App.Base;
-using Automation.App.ViewModels.Scopes;
+using Automation.Base;
 using System.Windows;
 using System.Windows.Controls;
 

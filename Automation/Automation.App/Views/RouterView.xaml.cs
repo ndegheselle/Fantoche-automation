@@ -1,9 +1,10 @@
 ﻿using Automation.App.Base;
 using Automation.App.ViewModels;
-using Automation.App.ViewModels.Scopes;
+using Automation.App.ViewModels.Graph;
 using Automation.App.Views.ScopeUI;
 using Automation.App.Views.TaskUI;
 using Automation.App.Views.WorkflowUI;
+using Automation.Base;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows.Controls;
 
@@ -31,16 +32,16 @@ namespace Automation.App.Views
             if (_sideMenuContext.SelectedElement == null)
                 return;
 
-            switch (_sideMenuContext.SelectedElement.Type)
+            switch (_sideMenuContext.SelectedElement.Node.Type)
             {
-                case EnumTaskType.Scope:
-                    this.Content = new ScopePage(_app.ServiceProvider.GetRequiredService<IModalContainer>(), (Scope)_sideMenuContext.SelectedElement);
+                case EnumNodeType.Scope:
+                    this.Content = new ScopePage(_app.ServiceProvider.GetRequiredService<IModalContainer>(), (ScopeWrapper)_sideMenuContext.SelectedElement);
                     break;
-                case EnumTaskType.Workflow:
-                    this.Content = new WorkflowPage((WorkflowScope)_sideMenuContext.SelectedElement);
+                case EnumNodeType.Workflow:
+                    this.Content = new WorkflowPage((WorkflowNode)_sideMenuContext.SelectedElement.Node);
                     break;
-                case EnumTaskType.Task:
-                    this.Content = new TaskPage(_sideMenuContext.SelectedElement);
+                case EnumNodeType.Task:
+                    this.Content = new TaskPage(_sideMenuContext.SelectedElement.Node);
                     break;
             }
         }

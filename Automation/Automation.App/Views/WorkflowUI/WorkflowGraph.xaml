@@ -7,7 +7,7 @@
     xmlns:nodify="clr-namespace:Nodify;assembly=Nodify"
     xmlns:local="clr-namespace:Automation.App.Views.WorkflowUI"
     xmlns:graph="clr-namespace:Automation.App.ViewModels.Graph"
-    xmlns:scopes="clr-namespace:Automation.App.ViewModels.Scopes"
+    xmlns:scopes="clr-namespace:Automation.Base;assembly=Automation.Base"
     mc:Ignorable="d">
     <UserControl.Resources>
         <GeometryDrawing
@@ -51,7 +51,7 @@
                 </Style>
             </nodify:NodifyEditor.ItemContainerStyle>
             <nodify:NodifyEditor.ConnectionTemplate>
-                <DataTemplate DataType="{x:Type graph:ElementConnection}">
+                <DataTemplate DataType="{x:Type scopes:NodeConnection}">
                     <nodify:Connection Source="{Binding Source.Anchor}" Target="{Binding Target.Anchor}" />
                 </DataTemplate>
             </nodify:NodifyEditor.ConnectionTemplate>
@@ -64,13 +64,13 @@
                 </DataTemplate>
             </nodify:NodifyEditor.PendingConnectionTemplate>
             <nodify:NodifyEditor.ItemTemplate>
-                <DataTemplate DataType="{x:Type scopes:TaskScope}">
+                <DataTemplate DataType="{x:Type scopes:TaskNode}">
                     <nodify:Node
                         Header="{Binding Name}"
                         Input="{Binding Inputs}"
                         Output="{Binding Outputs}">
                         <nodify:Node.InputConnectorTemplate>
-                            <DataTemplate DataType="{x:Type graph:ElementConnector}">
+                            <DataTemplate DataType="{x:Type scopes:NodeConnector}">
                                 <nodify:NodeInput
                                     Header="{Binding Name}"
                                     IsConnected="{Binding IsConnected}"
@@ -78,7 +78,7 @@
                             </DataTemplate>
                         </nodify:Node.InputConnectorTemplate>
                         <nodify:Node.OutputConnectorTemplate>
-                            <DataTemplate DataType="{x:Type graph:ElementConnector}">
+                            <DataTemplate DataType="{x:Type scopes:NodeConnector}">
                                 <nodify:NodeOutput
                                     Header="{Binding Name}"
                                     IsConnected="{Binding IsConnected}"

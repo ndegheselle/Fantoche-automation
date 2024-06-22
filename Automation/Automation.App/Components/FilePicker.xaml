@@ -32,7 +32,7 @@
                 Foreground="{DynamicResource {x:Static adonisUi:Brushes.AccentBrush}}"
                 Text="&#xf057;"
                 FontFamily="{StaticResource FontAwesomeSolid}"
-                DataContext="{Binding Type, RelativeSource={RelativeSource AncestorType=local:ScopedElementIcon}}" />
+                DataContext="{Binding Type, RelativeSource={RelativeSource AncestorType=local:NodeIcon}}" />
         </Button>
         <Button
             Grid.Column="2"
@@ -42,7 +42,7 @@
                 Foreground="{DynamicResource {x:Static adonisUi:Brushes.AccentBrush}}"
                 Text="&#xf15b;"
                 FontFamily="{StaticResource FontAwesomeSolid}"
-                DataContext="{Binding Type, RelativeSource={RelativeSource AncestorType=local:ScopedElementIcon}}" />
+                DataContext="{Binding Type, RelativeSource={RelativeSource AncestorType=local:NodeIcon}}" />
         </Button>
     </Grid>
 </UserControl>
