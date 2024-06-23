@@ -12,6 +12,7 @@
     Title="Automation - test"
     Width="800"
     Height="450"
+    TitleBarBackground="{DynamicResource {x:Static adonisUi:Brushes.Layer1BackgroundBrush}}"
     BorderBrush="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}"
     BorderThickness="1">
     <Grid>

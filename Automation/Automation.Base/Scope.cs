@@ -1,4 +1,8 @@
-﻿using System.Drawing;
+﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Drawing;
+using System.Windows.Data;
+using System.Windows.Markup;
 
 namespace Automation.Base
 {
@@ -9,7 +13,7 @@ namespace Automation.Base
         Task
     }
 
-    public class Node
+    public partial class Node
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public Scope? Parent { get; set; }
@@ -18,10 +22,16 @@ namespace Automation.Base
         public EnumNodeType Type { get; set; }
     }
 
-    public class Scope : Node
+    public partial class Scope : Node
     {
-        public List<Node> Childrens { get; set; } = [];
-        public Scope() { Type = EnumNodeType.Scope; }
+        public ObservableCollection<Node> Childrens { get; set; } = [];
+        public Scope() { 
+            Type = EnumNodeType.Scope;
+            // UI specific
+            SortedChildrens = (ListCollectionView)CollectionViewSource.GetDefaultView(Childrens);
+            SortedChildrens.SortDescriptions.Add(new SortDescription(nameof(Type), ListSortDirection.Ascending));
+            SortedChildrens.SortDescriptions.Add(new SortDescription(nameof(Name), ListSortDirection.Ascending));
+        }
 
         public void AddChild(Node node)
         {
@@ -30,7 +40,7 @@ namespace Automation.Base
         }
     }
 
-    public class TaskNode : Node
+    public partial class TaskNode : Node
     {
         public List<NodeConnector> Inputs { get; set; } = [];
         public List<NodeConnector> Outputs { get; set; } = [];
@@ -43,8 +53,8 @@ namespace Automation.Base
 
     public class WorkflowNode : TaskNode
     {
-        public List<NodeConnection> Connections { get; } = [];
-        public List<Node> Nodes { get; set; } = [];
+        public ObservableCollection<NodeConnection> Connections { get; } = [];
+        public ObservableCollection<Node> Nodes { get; set; } = [];
 
         public WorkflowNode()
         {
@@ -52,27 +62,15 @@ namespace Automation.Base
         }
     }
 
-    public class NodeConnector
+    public partial class NodeConnector
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public string Name { get; set; }
-
-        // TODO : move to a UI specific class ? Means a TaskWrapper, NodeConnectionWrapper, NodeConnectorWrapperK.
-        #region UI Specific
-        public bool IsConnected { get; set; }
-        public Point Anchor { get; set; }
-        #endregion
     }
 
-    public class NodeConnection
+    public partial class NodeConnection
     {
         public NodeConnector Source { get; set; }
         public NodeConnector Target { get; set; }
-
-        public NodeConnection(NodeConnector source, NodeConnector target)
-        {
-            Source = source;
-            Target = target;
-        }
     }
 }

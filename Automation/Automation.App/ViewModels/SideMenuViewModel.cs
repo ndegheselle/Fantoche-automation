@@ -1,7 +1,5 @@
-﻿using Automation.App.ViewModels.Graph;
-using Automation.Base;
+﻿using Automation.Base;
 using Automation.Supervisor.Repositories;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
@@ -15,9 +13,9 @@ namespace Automation.App.ViewModels
 
         public Scope RootScope { get; set; }
 
-        private NodeWrapper? _selectedElement;
+        private Node? _selectedElement;
 
-        public NodeWrapper? SelectedElement
+        public Node? SelectedElement
         {
             get => _selectedElement;
             set
@@ -27,12 +25,17 @@ namespace Automation.App.ViewModels
 
                 _selectedElement = value;
 
+                // If the selected element is a scope and its childrens are not loaded, we load them
+                // FIXME : handle empty scope
                 if (_selectedElement != null &&
-                    _selectedElement is ScopeWrapper scopeWrapper &&
-                    scopeWrapper.Childrens == null)
+                    _selectedElement is Scope scope &&
+                    scope.Childrens.Count == 0)
                 {
                     ScopeRepository scopeRepository = new ScopeRepository();
-                    _selectedElement = new ScopeWrapper((Scope)scopeRepository.GetNode(_selectedElement.Node.Id));
+                    Scope? fullScope = scopeRepository.GetNode(_selectedElement.Id) as Scope;
+
+                    foreach (Node child in fullScope.Childrens)
+                        scope.AddChild(child);
                 }
 
                 OnPropertyChanged();

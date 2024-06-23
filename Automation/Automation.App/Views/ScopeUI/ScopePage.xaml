@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     mc:Ignorable="d"
     xmlns:components="clr-namespace:Automation.App.Components"
+    xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
     xmlns:scopes="clr-namespace:Automation.Base;assembly=Automation.Base"
     d:DataContext="{d:DesignInstance scopes:Scope}">
     <Grid>
@@ -51,7 +52,7 @@
         </Grid>
         <ListBox
             Grid.Row="1"
-            ItemsSource="{Binding Childrens}"
+            ItemsSource="{Binding SortedChildrens}"
             MouseDoubleClick="ListBox_MouseDoubleClick">
             <ListBox.ItemTemplate>
                 <DataTemplate>

@@ -32,16 +32,16 @@ namespace Automation.App.Views
             if (_sideMenuContext.SelectedElement == null)
                 return;
 
-            switch (_sideMenuContext.SelectedElement.Node.Type)
+            switch (_sideMenuContext.SelectedElement.Type)
             {
                 case EnumNodeType.Scope:
-                    this.Content = new ScopePage(_app.ServiceProvider.GetRequiredService<IModalContainer>(), (ScopeWrapper)_sideMenuContext.SelectedElement);
+                    this.Content = new ScopePage(_app.ServiceProvider.GetRequiredService<IModalContainer>(), (Scope)_sideMenuContext.SelectedElement);
                     break;
                 case EnumNodeType.Workflow:
-                    this.Content = new WorkflowPage((WorkflowNode)_sideMenuContext.SelectedElement.Node);
+                    this.Content = new WorkflowPage((WorkflowNode)_sideMenuContext.SelectedElement);
                     break;
                 case EnumNodeType.Task:
-                    this.Content = new TaskPage(_sideMenuContext.SelectedElement.Node);
+                    this.Content = new TaskPage(_sideMenuContext.SelectedElement);
                     break;
             }
         }

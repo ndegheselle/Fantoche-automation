@@ -35,6 +35,7 @@ namespace Automation.App
             services.AddTransient<IModalContainer>((provider) => GetActiveWindow()?.Modal);
 
             services.AddSingleton<SideMenuViewModel>();
+            services.AddSingleton<ParametersViewModel>();
 
             return services.BuildServiceProvider();
         }

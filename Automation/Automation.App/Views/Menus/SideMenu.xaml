@@ -17,7 +17,7 @@
         </Grid.RowDefinitions>
 
         <TextBox Visibility="Collapsed" />
-        <components:ScopedElementSelector
+        <components:NodeSelector
             Grid.Row="1"
             RootScope="{Binding RootScope}"
             Selected="{Binding SelectedElement, Mode=OneWayToSource}" />

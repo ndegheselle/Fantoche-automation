@@ -15,7 +15,7 @@
         DataContext="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:NodeSelector}}}"
         Background="{DynamicResource {x:Static adonisUi:Brushes.Layer1BackgroundBrush}}"
         MinWidth="200"
-        ItemsSource="{Binding RootScopeWrapper.Childrens}"
+        ItemsSource="{Binding RootScope.SortedChildrens}"
         SelectedItemChanged="TreeView_SelectedItemChanged">
         <TreeView.ItemContainerStyle>
             <Style TargetType="{x:Type TreeViewItem}" BasedOn="{StaticResource TreeViewItemStyle}">
@@ -24,17 +24,17 @@
             </Style>
         </TreeView.ItemContainerStyle>
         <TreeView.Resources>
-            <HierarchicalDataTemplate DataType="{x:Type graph:ScopeWrapper}" ItemsSource="{Binding Childrens}">
+            <HierarchicalDataTemplate DataType="{x:Type scopes:Scope}" ItemsSource="{Binding SortedChildrens}">
                 <StackPanel Orientation="Horizontal">
 
                     <components:NodeIcon Type="Scope" Margin="0,0,4,0" />
-                    <TextBlock Text="{Binding Scope.Name}" />
+                    <TextBlock Text="{Binding Name}" />
                 </StackPanel>
             </HierarchicalDataTemplate>
-            <DataTemplate DataType="{x:Type graph:NodeWrapper}">
+            <DataTemplate DataType="{x:Type scopes:Node}">
                 <StackPanel Orientation="Horizontal">
-                    <components:NodeIcon Type="{Binding Node.Type}" Margin="0,0,4,0" />
-                    <TextBlock Text="{Binding Node.Name}" />
+                    <components:NodeIcon Type="{Binding Type}" Margin="0,0,4,0" />
+                    <TextBlock Text="{Binding Name}" />
                 </StackPanel>
             </DataTemplate>
         </TreeView.Resources>

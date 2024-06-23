@@ -7,7 +7,10 @@
     xmlns:local="clr-namespace:Automation.App.Views.Menus"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     mc:Ignorable="d">
-    <Menu BorderBrush="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}" BorderThickness="0,0,0,1">
+    <Menu
+        Background="{DynamicResource {x:Static adonisUi:Brushes.Layer1BackgroundBrush}}"
+        BorderBrush="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}"
+        BorderThickness="0,0,0,1">
         <MenuItem Header="File">
             <MenuItem Header="Parameters" Click="Parameters_Click">
                 <MenuItem.Icon>

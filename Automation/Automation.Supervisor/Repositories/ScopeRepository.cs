@@ -5,11 +5,48 @@ namespace Automation.Supervisor.Repositories
 {
     public class ScopeRepository
     {
-        private readonly Scope _rootScope;
-        private readonly List<Node> _nodes;
+        private static Scope _rootScope;
+        private static List<Node> _nodes;
 
         // XXX : should return Scope with only one depth of children
         public ScopeRepository()
+        {
+            if (_nodes == null)
+                CreateTestNodes();
+        }
+
+        public Scope GetRootScope() { return GetScopeWithDirectChildrenOnly(_rootScope); }
+
+        public Node? GetNode(Guid id)
+        {
+            Node? node = _nodes.FirstOrDefault(x => x.Id == id);
+            if (node is Scope scope)
+            {
+                return GetScopeWithDirectChildrenOnly(scope);
+            }
+            return node;
+        }
+
+        #region Debug
+        private Scope GetScopeWithDirectChildrenOnly(Scope scope)
+        {
+            Scope shallowScope = new Scope() { Name = scope.Name, Id = scope.Id };
+            foreach (var child in scope.Childrens)
+            {
+                if (child is Scope)
+                {
+                    shallowScope.AddChild(new Scope() { Name = child.Name, Id = child.Id });
+                }
+                else
+                {
+                    shallowScope.AddChild(child);
+                }
+            }
+
+            return shallowScope;
+        }
+
+        private void CreateTestNodes()
         {
             TaskNode taskScope1 = new TaskNode()
             {
@@ -35,8 +72,8 @@ namespace Automation.Supervisor.Repositories
             subScope.AddChild(taskScope1);
 
             Scope mainScope = new Scope() { Name = "Scope 1", };
-            mainScope.AddChild(subScope);
             mainScope.AddChild(workflowScope);
+            mainScope.AddChild(subScope);
             mainScope.AddChild(taskScope2);
 
             _rootScope = new Scope();
@@ -47,37 +84,9 @@ namespace Automation.Supervisor.Repositories
             _nodes.Add(taskScope2);
             _nodes.Add(workflowScope);
             _nodes.Add(subScope);
+            _nodes.Add(mainScope);
             _nodes.Add(_rootScope);
         }
-
-        public Scope GetRootScope() { return GetScopeWithDirectChildrenOnly(_rootScope); }
-
-        public Node? GetNode(Guid id)
-        {
-            Node? node = _nodes.FirstOrDefault(x => x.Id == id);
-            if (node is Scope scope)
-            {
-                return GetScopeWithDirectChildrenOnly(scope);
-            }
-            return node;
-        }
-
-        private Scope GetScopeWithDirectChildrenOnly(Scope scope)
-        {
-            Scope shallowScope = new Scope() { Name = scope.Name, Id = scope.Id };
-            foreach (var child in scope.Childrens)
-            {
-                if (child is Scope)
-                {
-                    shallowScope.AddChild(new Scope() { Name = child.Name, Id = child.Id });
-                }
-                else
-                {
-                    shallowScope.AddChild(child);
-                }
-            }
-
-            return shallowScope;
-        }
+        #endregion
     }
 }

@@ -1,6 +1,5 @@
 ﻿using Automation.App.Base;
 using Automation.App.ViewModels;
-using Automation.App.ViewModels.Graph;
 using Automation.App.Views.TaskUI;
 using Automation.App.Views.WorkflowUI;
 using Automation.Base;
@@ -15,10 +14,10 @@ namespace Automation.App.Views.ScopeUI
     public partial class ScopePage : UserControl
     {
         private readonly IModalContainer _modal;
-        private readonly ScopeWrapper _scope;
+        private readonly Scope _scope;
         private readonly SideMenuViewModel _sideMenu;
 
-        public ScopePage(IModalContainer modal, ScopeWrapper scope)
+        public ScopePage(IModalContainer modal, Scope scope)
         {
             _scope = scope;
             _modal = modal;
@@ -60,7 +59,7 @@ namespace Automation.App.Views.ScopeUI
         private void ListBox_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             ListBox listBox = (ListBox)sender;
-            Node? selectedElement = listBox.SelectedItem as ScopedElement;
+            Node? selectedElement = listBox.SelectedItem as Node;
 
             if (selectedElement == null)
                 return;

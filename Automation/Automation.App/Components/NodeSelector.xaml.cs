@@ -18,20 +18,12 @@ namespace Automation.App.Components
             nameof(RootScope),
             typeof(Scope),
             typeof(NodeSelector),
-            new PropertyMetadata(null, (e, d) => ((NodeSelector)e).OnRootScopeChange()));
+            new PropertyMetadata(null));
 
         public Scope RootScope
         {
             get { return (Scope)GetValue(RootScopeProperty); }
             set { SetValue(RootScopeProperty, value); }
-        }
-
-        private void OnRootScopeChange()
-        {
-            if (RootScope != null)
-            {
-                RootScopeWrapper = new ScopeWrapper(RootScope);
-            }
         }
 
         // Dependency property ScopedElement Selected
@@ -41,15 +33,13 @@ namespace Automation.App.Components
             typeof(NodeSelector),
             new PropertyMetadata(null));
 
-        public NodeWrapper? Selected
+        public Node? Selected
         {
-            get { return (NodeWrapper?)GetValue(SelectedProperty); }
+            get { return (Node?)GetValue(SelectedProperty); }
             set { SetValue(SelectedProperty, value); }
         }
 
         #endregion
-
-        public ScopeWrapper? RootScopeWrapper { get; set; }
 
         public NodeSelector() {
             InitializeComponent();
@@ -58,8 +48,7 @@ namespace Automation.App.Components
         private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             TreeView treeView = (TreeView)sender;
-            NodeWrapper? contextElement = treeView.SelectedItem as NodeWrapper;
-            Selected = contextElement;
+            Selected = treeView.SelectedItem as Node;
         }
     }
 }
