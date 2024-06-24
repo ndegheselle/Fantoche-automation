@@ -2,6 +2,8 @@
 using Automation.App.Components;
 using Automation.App.ViewModels.Graph;
 using Automation.App.Views.ScopeUI;
+using Automation.Base;
+using Automation.Supervisor.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 using System.Windows.Controls;
@@ -27,7 +29,6 @@ namespace Automation.App.Views.WorkflowUI
             get => (EditorViewModel)GetValue(EditorDataProperty);
             set => SetValue(EditorDataProperty, value);
         }
-
         #endregion
 
         private readonly App _app = (App)App.Current;
@@ -41,7 +42,11 @@ namespace Automation.App.Views.WorkflowUI
 
         private async void ButtonAdd_Click(object sender, RoutedEventArgs e)
         {
-            NodeSelectorModal nodeSelector = new NodeSelectorModal();
+            ScopeRepository scopeRepository = new ScopeRepository();
+            NodeSelectorModal nodeSelector = new NodeSelectorModal() { 
+                RootScope = scopeRepository.GetRootScope(),
+                AllowedSelectedNodes = EnumNodeType.Workflow | EnumNodeType.Task
+            };
             if (await _modal.Show(nodeSelector, new ModalOptions() { Title = "Add node", ValidButtonText = "Select" }))
             {
                 // nodeSelector.Selected;

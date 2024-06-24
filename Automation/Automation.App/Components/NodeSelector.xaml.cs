@@ -1,6 +1,7 @@
 ﻿using Automation.App.Base;
 using Automation.App.ViewModels.Graph;
 using Automation.Base;
+using Automation.Supervisor.Repositories;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -45,6 +46,12 @@ namespace Automation.App.Components
 
         #endregion
 
+        #region Props
+
+        public EnumNodeType AllowedSelectedNodes { get; set; } = EnumNodeType.Scope | EnumNodeType.Workflow | EnumNodeType.Task;
+
+        #endregion
+
         public NodeSelector() {
             InitializeComponent();
         }
@@ -52,7 +59,24 @@ namespace Automation.App.Components
         private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             TreeView treeView = (TreeView)sender;
-            Selected = treeView.SelectedItem as Node;
+            Node? selected = treeView.SelectedItem as Node;
+
+            // Load childrens if the selected element is a scope and its childrens are not loaded
+            if (selected != null && selected is Scope scope && scope.Childrens.Count == 0)
+            {
+                ScopeRepository scopeRepository = new ScopeRepository();
+                Scope? fullScope = scopeRepository.GetNode(selected.Id) as Scope;
+
+                foreach (Node child in fullScope.Childrens)
+                    scope.AddChild(child);
+            }
+
+            if (selected != null && !AllowedSelectedNodes.HasFlag(selected.Type))
+            {
+                selected.IsSelected = false;
+                return;
+            }
+            Selected = selected;
         }
     }
 }

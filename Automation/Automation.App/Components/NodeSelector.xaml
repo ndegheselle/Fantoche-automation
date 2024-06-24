@@ -20,7 +20,14 @@
         <TreeView.ItemContainerStyle>
             <Style TargetType="{x:Type TreeViewItem}" BasedOn="{StaticResource TreeViewItemStyle}">
                 <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
-                <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                <Setter Property="IsExpanded">
+                    <Setter.Value>
+                        <!--  Avoids warnings for nodes that do not have the "IsExpanded" property  -->
+                        <PriorityBinding>
+                            <Binding Path="IsExpanded" Mode="TwoWay" />
+                        </PriorityBinding>
+                    </Setter.Value>
+                </Setter>
             </Style>
         </TreeView.ItemContainerStyle>
         <TreeView.Resources>

@@ -1,21 +1,29 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Drawing;
+using System.Text.Json.Serialization;
 using System.Windows.Data;
 using System.Windows.Markup;
 
 namespace Automation.Base
 {
+    [Flags]
     public enum EnumNodeType
     {
-        Scope,
-        Workflow,
-        Task
+        Scope = 1,
+        Workflow = 2,
+        Task = 4
     }
 
+    [JsonDerivedType(typeof(Scope), typeDiscriminator: "scope")]
+    [JsonDerivedType(typeof(TaskNode), typeDiscriminator: "task")]
+    [JsonDerivedType(typeof(WorkflowNode), typeDiscriminator: "workflow")]
     public partial class Node
     {
         public Guid Id { get; set; } = Guid.NewGuid();
+
+        public Guid? ParentId { get; set; }
+        [JsonIgnore]
         public Scope? Parent { get; set; }
 
         public string Name { get; set; }
@@ -24,6 +32,7 @@ namespace Automation.Base
 
     public partial class Scope : Node
     {
+        [JsonIgnore]
         public ObservableCollection<Node> Childrens { get; set; } = [];
         public Scope() { 
             Type = EnumNodeType.Scope;

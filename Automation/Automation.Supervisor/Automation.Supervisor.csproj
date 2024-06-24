@@ -8,6 +8,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\test.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\test.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Text.Json" Version="9.0.0-preview.5.24306.7" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Automation.Base\Automation.Base.csproj" />
     <ProjectReference Include="..\Automation.Plugins.Base\Automation.Plugins.Base.csproj" />
   </ItemGroup>

@@ -15,7 +15,6 @@ namespace Automation.App.Views.ScopeUI
     {
         private readonly IModalContainer _modal;
         private readonly Scope _scope;
-        private readonly SideMenuViewModel _sideMenu;
 
         public ScopePage(IModalContainer modal, Scope scope)
         {

@@ -20,6 +20,7 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0-preview.4.24266.19" />
     <PackageReference Include="Nodify" Version="6.0.0" />
     <PackageReference Include="PropertyChanged.Fody" Version="4.1.0" />
+    <PackageReference Include="System.Text.Json" Version="9.0.0-preview.5.24306.7" />
   </ItemGroup>
 
   <ItemGroup>

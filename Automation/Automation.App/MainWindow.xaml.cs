@@ -1,6 +1,7 @@
 ﻿using AdonisUI.Controls;
 using Automation.App.Base;
 using Automation.Supervisor;
+using Automation.Supervisor.Repositories;
 using Automation.Worker;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -35,35 +36,16 @@ namespace Automation.App
     public partial class MainWindow : AdonisWindow, IWindowContainer
     {
         private readonly TaskSuperviser _supervisor = new TaskSuperviser();
-        public TaskContext TaskContext { get; set; } = new TaskContext();
 
         // XXX : if called before InitializeComponent, the property will be null
         public IModalContainer Modal => this.ModalContainer;
 
         public MainWindow()
         {
-            TaskContext.PropertyChanged += TaskContext_PropertyChanged;
-            // Get the executable path
-            string path = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-            TaskContext.DllFolderPath = path;
-
             InitializeComponent();
-        }
 
-        private void TaskContext_PropertyChanged(object? sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(TaskContext.DllFolderPath))
-            {
-                TaskContext.AvailableClasses.Clear();
-                foreach (var task in _supervisor.RefreshClassesFromFolderDlls(TaskContext.DllFolderPath))
-                    TaskContext.AvailableClasses.Add(task);
-            }
-        }
-
-        private void StartTask_Click(object sender, RoutedEventArgs e)
-        {
-            TaskWorker worker = new TaskWorker(TaskContext.SelectedClass, TaskContext.JsonContext);
-            worker.ExecuteTask();
+            ScopeRepository scopeRepository = new ScopeRepository();
+            SideMenu.RootScope = scopeRepository.GetRootScope();
         }
     }
 }

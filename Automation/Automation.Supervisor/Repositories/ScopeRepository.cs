@@ -1,49 +1,55 @@
 ﻿using Automation.Base;
 using System.Collections.ObjectModel;
+using System.IO;
+using System.Reflection;
+using System.Text.Json;
+using System.Xml.Linq;
 
 namespace Automation.Supervisor.Repositories
 {
     public class ScopeRepository
     {
-        private static Scope _rootScope;
-        private static List<Node> _nodes;
-
         // XXX : should return Scope with only one depth of children
         public ScopeRepository()
         {
-            if (_nodes == null)
-                CreateTestNodes();
         }
 
-        public Scope GetRootScope() { return GetScopeWithDirectChildrenOnly(_rootScope); }
+        public Scope GetRootScope() {
+            return (Scope)GetNode(Guid.Parse("00000000-0000-0000-0000-000000000001"));
+        }
 
         public Node? GetNode(Guid id)
         {
-            Node? node = _nodes.FirstOrDefault(x => x.Id == id);
+            var nodes = LoadTestData();
+            Node? node = nodes.FirstOrDefault(x => x.Id == id);
+
+            if (node == null)
+                return null;
+
             if (node is Scope scope)
             {
-                return GetScopeWithDirectChildrenOnly(scope);
+                foreach (Node child in nodes.Where(x => x.ParentId == scope.Id))
+                {
+                    scope.AddChild(child);
+                }
             }
+
             return node;
         }
 
         #region Debug
-        private Scope GetScopeWithDirectChildrenOnly(Scope scope)
-        {
-            Scope shallowScope = new Scope() { Name = scope.Name, Id = scope.Id };
-            foreach (var child in scope.Childrens)
-            {
-                if (child is Scope)
-                {
-                    shallowScope.AddChild(new Scope() { Name = child.Name, Id = child.Id });
-                }
-                else
-                {
-                    shallowScope.AddChild(child);
-                }
-            }
 
-            return shallowScope;
+        private List<Node> LoadTestData()
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            var resourceName = "Automation.Supervisor.Resources.test.json";
+
+            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+            using (StreamReader reader = new StreamReader(stream))
+            {
+                string jsonFile = reader.ReadToEnd(); //Make string equal to full file
+                return JsonSerializer.Deserialize<List<Node>>(jsonFile);
+            }
         }
 
         private void CreateTestNodes()
@@ -69,24 +75,30 @@ namespace Automation.Supervisor.Repositories
             workflowScope.Connections.Add(new NodeConnection(taskScope2.Outputs[0], taskScope1.Inputs[0]));
 
             Scope subScope = new Scope() { Name = "SubScope 1", };
-            subScope.AddChild(taskScope1);
+            taskScope1.ParentId = subScope.Id;
 
-            Scope mainScope = new Scope() { Name = "Scope 1", };
-            mainScope.AddChild(workflowScope);
-            mainScope.AddChild(subScope);
-            mainScope.AddChild(taskScope2);
+            var rootScope = new Scope();
+            rootScope.Id = Guid.Parse("00000000-0000-0000-0000-000000000001");
+            workflowScope.ParentId = rootScope.Id;
+            subScope.ParentId = rootScope.Id;
+            taskScope2.ParentId = rootScope.Id;
 
-            _rootScope = new Scope();
-            _rootScope.AddChild(mainScope);
+            var nodes = new List<Node>
+            {
+                taskScope1,
+                taskScope2,
+                workflowScope,
+                subScope,
+                rootScope
+            };
 
-            _nodes = new List<Node>();
-            _nodes.Add(taskScope1);
-            _nodes.Add(taskScope2);
-            _nodes.Add(workflowScope);
-            _nodes.Add(subScope);
-            _nodes.Add(mainScope);
-            _nodes.Add(_rootScope);
+            JsonSerializerOptions options = new JsonSerializerOptions
+            {
+                WriteIndented = true
+            };
+            string json = JsonSerializer.Serialize(nodes, options);
         }
+
         #endregion
     }
 }

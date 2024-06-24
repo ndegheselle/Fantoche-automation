@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Data;
 
@@ -15,9 +16,11 @@ namespace Automation.Base
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
+        [JsonIgnore]
         public bool IsExpanded { get; set; }
 
         private bool _isSelected;
+        [JsonIgnore]
         public bool IsSelected
         {
             get { return _isSelected; }
@@ -27,7 +30,11 @@ namespace Automation.Base
 
                 // Since we are using a treeview, we need to expand the parent when a child is selected (otherwise the selection will not go through)
                 if (value)
+                {
                     ExpandParent();
+                    IsExpanded = true;
+                }
+
                 OnPropertyChanged();
             }
         }
@@ -37,13 +44,14 @@ namespace Automation.Base
             if (Parent == null)
                 return;
 
-            Parent.IsExpanded = true;
             Parent.ExpandParent();
+            Parent.IsExpanded = true;
         }
     }
 
     public partial class Scope
     {
+        [JsonIgnore]
         public ListCollectionView SortedChildrens { get; set; }
     }
 
@@ -55,7 +63,9 @@ namespace Automation.Base
 
     public partial class NodeConnector : INotifyPropertyChanged
     {
+        [JsonIgnore]
         public bool IsConnected { get; set; }
+        [JsonIgnore]
         public Point Anchor { get; set; }
     }
 

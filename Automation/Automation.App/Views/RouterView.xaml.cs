@@ -6,6 +6,7 @@ using Automation.App.Views.TaskUI;
 using Automation.App.Views.WorkflowUI;
 using Automation.Base;
 using Microsoft.Extensions.DependencyInjection;
+using System.Windows;
 using System.Windows.Controls;
 
 namespace Automation.App.Views
@@ -15,35 +16,44 @@ namespace Automation.App.Views
     /// </summary>
     public partial class RouterView : UserControl
     {
-        private readonly SideMenuViewModel _sideMenuContext;
-        private readonly App _app = (App)App.Current;
+        #region Dependency properties
+        // Dependency property selected node
+        public static readonly DependencyProperty SelectedProperty = DependencyProperty.Register(
+            "Selected",
+            typeof(Node),
+            typeof(RouterView),
+            new PropertyMetadata(null, (o, e) => ((RouterView)o).OnSelectedNodeChanged()));
 
-        public RouterView()
+        public Node Selected
         {
-            _sideMenuContext = _app.ServiceProvider.GetRequiredService<SideMenuViewModel>();
-            _sideMenuContext.PropertyChanged += SideMenuContext_PropertyChanged;
-            InitializeComponent();
+            get { return (Node)GetValue(SelectedProperty); }
+            set { SetValue(SelectedProperty, value); }
         }
 
-        private void SideMenuContext_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        void OnSelectedNodeChanged()
         {
-            if (e.PropertyName != nameof(_sideMenuContext.SelectedElement))
-                return;
-            if (_sideMenuContext.SelectedElement == null)
+            if (Selected == null)
                 return;
 
-            switch (_sideMenuContext.SelectedElement.Type)
+            switch (Selected.Type)
             {
                 case EnumNodeType.Scope:
-                    this.Content = new ScopePage(_app.ServiceProvider.GetRequiredService<IModalContainer>(), (Scope)_sideMenuContext.SelectedElement);
+                    this.Content = new ScopePage(
+                        _app.ServiceProvider.GetRequiredService<IModalContainer>(),
+                        (Scope)Selected);
                     break;
                 case EnumNodeType.Workflow:
-                    this.Content = new WorkflowPage((WorkflowNode)_sideMenuContext.SelectedElement);
+                    this.Content = new WorkflowPage((WorkflowNode)Selected);
                     break;
                 case EnumNodeType.Task:
-                    this.Content = new TaskPage(_sideMenuContext.SelectedElement);
+                    this.Content = new TaskPage(Selected);
                     break;
             }
         }
+        #endregion
+
+        private readonly App _app = (App)App.Current;
+
+        public RouterView() { InitializeComponent(); }
     }
 }
