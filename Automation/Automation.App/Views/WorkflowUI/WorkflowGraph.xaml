@@ -92,9 +92,9 @@
         <Grid Background="{StaticResource LargeGridLinesDrawingBrush}" Panel.ZIndex="-2" />
         <Grid
             Margin="2"
-            HorizontalAlignment="Left"
+            HorizontalAlignment="Right"
             VerticalAlignment="Top">
-            <Button>
+            <Button Click="ButtonAdd_Click">
                 <StackPanel Orientation="Horizontal">
                     <TextBlock
                         FontFamily="{StaticResource FontAwesomeSolid}"

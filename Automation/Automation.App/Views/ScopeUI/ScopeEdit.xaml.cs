@@ -8,7 +8,7 @@ namespace Automation.App.Views.ScopeUI
     /// <summary>
     /// Logique d'interaction pour ScopeEdit.xaml
     /// </summary>
-    public partial class ScopeEdit : UserControl, IModalContent
+    public partial class ScopeEdit : UserControl, IModalContentCallback
     {
         private readonly Scope _scope;
         public IModalContainer? ModalParent { get; set; }
@@ -20,20 +20,11 @@ namespace Automation.App.Views.ScopeUI
             this.DataContext = _scope;
         }
 
-        #region UI Events
-        private void ButtonCancel_Click(object sender, RoutedEventArgs e)
-        {
-            ModalParent?.Close();
-        }
-
-        private void ButtonSave_Click(object sender, RoutedEventArgs e)
+        public void OnModalClose(bool result)
         {
             // New scope
             if (_scope.Id == Guid.Empty)
                 _scope.Id = Guid.NewGuid();
-
-            ModalParent?.Close(true);
         }
-        #endregion
     }
 }

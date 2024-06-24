@@ -8,7 +8,7 @@ namespace Automation.App.Views.WorkflowUI
     /// <summary>
     /// Logique d'interaction pour WorkflowEdit.xaml
     /// </summary>
-    public partial class WorkflowEdit : UserControl, IModalContent
+    public partial class WorkflowEdit : UserControl, IModalContentCallback
     {
         public IModalContainer? ModalParent { get; set; }
         private readonly WorkflowNode _scope;
@@ -20,20 +20,11 @@ namespace Automation.App.Views.WorkflowUI
             this.DataContext = _scope;
         }
 
-        #region UI Events
-        private void ButtonCancel_Click(object sender, RoutedEventArgs e)
-        {
-            ModalParent?.Close();
-        }
-
-        private void ButtonSave_Click(object sender, RoutedEventArgs e)
+        public void OnModalClose(bool result)
         {
             // New scope
             if (_scope.Id == Guid.Empty)
                 _scope.Id = Guid.NewGuid();
-
-            ModalParent?.Close(true);
         }
-        #endregion
     }
 }

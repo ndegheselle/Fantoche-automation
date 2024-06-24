@@ -22,8 +22,10 @@ namespace Automation.App.Views
     /// </summary>
     public partial class Modal : UserControl, IModalContainer
     {
+        public ModalOptions Options { get; set; }
         public event Action<bool>? OnClose;
         private TaskCompletionSource<bool>? _taskCompletionSource = null;
+        private IModalContent? _content;
 
         public Modal()
         {
@@ -35,19 +37,25 @@ namespace Automation.App.Views
             if (_taskCompletionSource == null)
                 return;
 
+            if (_content is IModalContentCallback callback)
+                callback.OnModalClose(result);
+
             OnClose?.Invoke(result);
             _taskCompletionSource.SetResult(result);
             _taskCompletionSource = null;
             // Hide the modal
             Visibility = Visibility.Collapsed;
             ContentContainer.Content = null;
+            _content = null;
         }
 
-        public Task<bool> Show(string title, IModalContent content)
+        public Task<bool> Show(IModalContent content, ModalOptions options = default)
         {
-            content.ModalParent = this;
-            ContentContainer.Content = content;
-            ModalTitle.Text = title;
+            _content = content;
+            _content.ModalParent = this;
+            ContentContainer.Content = _content;
+            Options = options;
+            this.DataContext = Options;
             this.Visibility = Visibility.Visible;
 
             _taskCompletionSource = new TaskCompletionSource<bool>();
@@ -57,6 +65,11 @@ namespace Automation.App.Views
         private void ButtonClose(object sender, RoutedEventArgs e)
         {
             Close();
+        }
+
+        private void ButtonValidate_Click(object sender, RoutedEventArgs e)
+        {
+            Close(true);
         }
     }
 }

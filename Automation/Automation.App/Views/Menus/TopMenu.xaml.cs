@@ -27,7 +27,7 @@ namespace Automation.App.Views.Menus
         private void Parameters_Click(object sender, RoutedEventArgs e)
         {
             IModalContainer modal = _app.ServiceProvider.GetRequiredService<IModalContainer>();
-            modal.Show("Parameters", new ParametersUI());
+            modal.Show(new ParametersUI(), new ModalOptions() { Title = "Parameters", ShowFooter = false });
         }
 
         #endregion

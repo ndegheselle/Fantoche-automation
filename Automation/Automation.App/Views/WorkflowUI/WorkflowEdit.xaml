@@ -15,7 +15,6 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
             <RowDefinition />
-            <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
         <StackPanel Orientation="Vertical">
@@ -30,18 +29,5 @@
             TextWrapping="Wrap"
             AcceptsReturn="True"
             VerticalScrollBarVisibility="Visible" />
-
-        <StackPanel
-            Margin="0,4,0,0"
-            Grid.Row="2"
-            HorizontalAlignment="Right"
-            Orientation="Horizontal">
-            <Button Margin="4,0" Click="ButtonCancel_Click">
-                Cancel
-            </Button>
-            <Button Click="ButtonSave_Click">
-                Save
-            </Button>
-        </StackPanel>
     </Grid>
 </UserControl>

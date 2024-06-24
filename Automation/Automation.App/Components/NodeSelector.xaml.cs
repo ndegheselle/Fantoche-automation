@@ -1,18 +1,22 @@
-﻿using Automation.App.ViewModels.Graph;
+﻿using Automation.App.Base;
+using Automation.App.ViewModels.Graph;
 using Automation.Base;
 using System.Windows;
 using System.Windows.Controls;
 
 namespace Automation.App.Components
 {
+    public class NodeSelectorModal : NodeSelector, IModalContent
+    {
+        public IModalContainer? ModalParent { get; set; }
+    }
+
     /// <summary>
     /// Logique d'interaction pour ScopedElementSelector.xaml
     /// </summary>
     public partial class NodeSelector : UserControl
     {
-
         #region Dependency Properties
-
         // Dependency property Scope RootScope
         public static readonly DependencyProperty RootScopeProperty = DependencyProperty.Register(
             nameof(RootScope),
