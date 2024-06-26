@@ -1,15 +1,14 @@
-﻿namespace Automation.App.Base
+﻿using System.ComponentModel;
+
+namespace Automation.App.Base
 {
     public interface IWindowContainer
     {
         public IModalContainer Modal { get; }
+        public IAlert Alert { get; }
     }
 
-    public interface IAlertContainer
-    {
-        public void Show(string message);
-    }
-
+    #region Modal
     public struct ModalOptions
     {
         public string Title { get; set; }
@@ -39,4 +38,36 @@
     {
         public void OnModalClose(bool result);
     }
+    #endregion
+
+    #region Alert
+
+    public enum EnumAlertType
+    {
+        Info,
+        Warning,
+        Error,
+        Success
+    }
+
+    public class AlertOptions : INotifyPropertyChanged
+    {
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        public EnumAlertType Type { get; set; }
+        public string Message { get; set; }
+    }
+
+    public interface IAlert
+    {
+        public void Show(EnumAlertType type, string message);
+        public void Hide();
+
+        public void Info(string message);
+        public void Warning(string message);
+        public void Error(string message);
+        public void Success(string message);
+    }
+
+    #endregion
 }

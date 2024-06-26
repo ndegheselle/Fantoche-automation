@@ -34,5 +34,6 @@
             <menus:Footer Grid.Row="2" />
         </Grid>
         <views:Modal x:Name="ModalContainer" />
+        <views:Alert x:Name="AlertContainer" />
     </Grid>
 </adonisControls:AdonisWindow>

@@ -39,6 +39,7 @@ namespace Automation.App
 
         // XXX : if called before InitializeComponent, the property will be null
         public IModalContainer Modal => this.ModalContainer;
+        public IAlert Alert => this.AlertContainer;
 
         public MainWindow()
         {

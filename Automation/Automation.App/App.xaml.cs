@@ -33,6 +33,7 @@ namespace Automation.App
         {
             services.AddTransient<MainWindow>();
             services.AddTransient<IModalContainer>((provider) => GetActiveWindow()?.Modal);
+            services.AddTransient<IAlert>((provider) => GetActiveWindow()?.Alert);
             services.AddSingleton<ParametersViewModel>();
 
             return services.BuildServiceProvider();

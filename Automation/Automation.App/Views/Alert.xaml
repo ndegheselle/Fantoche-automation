@@ -1,0 +1,96 @@
+﻿<UserControl
+    x:Class="Automation.App.Views.Alert"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Automation.App.Views"
+    xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
+    xmlns:adonisExtensions="clr-namespace:AdonisUI.Extensions;assembly=AdonisUI"
+    xmlns:base="clr-namespace:Automation.App.Base"
+    xmlns:components="clr-namespace:Automation.App.Components"
+    mc:Ignorable="d"
+    Width="500"
+    HorizontalAlignment="Center"
+    VerticalAlignment="Top"
+    d:DataContext="{d:DesignInstance base:AlertOptions}">
+    <UserControl.Resources>
+        <Storyboard x:Key="FillProgressBar">
+            <DoubleAnimation
+                Storyboard.TargetProperty="Value"
+                From="0"
+                To="100"
+                Duration="0:0:5" />
+        </Storyboard>
+        <Storyboard x:Key="SlideInFromTop">
+            <DoubleAnimation
+                Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"
+                From="-200"
+                To="0"
+                Duration="0:0:0.5" />
+        </Storyboard>
+    </UserControl.Resources>
+    <Border
+        x:Name="AlertContainer"
+        CornerRadius="{StaticResource {x:Static adonisUi:Dimensions.CornerRadius}}"
+        BorderThickness="{StaticResource {x:Static adonisUi:Dimensions.BorderThickness}}"
+        Background="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}"
+        BorderBrush="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}">
+        <Border.RenderTransform>
+            <TranslateTransform Y="-200" />
+        </Border.RenderTransform>
+        <Grid>
+            <ProgressBar
+                adonisExtensions:ProgressBarExtension.IsProgressAnimationEnabled="False"
+                Foreground="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}"
+                x:Name="ProgressBarTimer"
+                VerticalAlignment="Top"
+                Height="4"
+                BorderThickness="0" />
+
+            <Grid Margin="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="24" />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <TextBlock
+                    FontFamily="{StaticResource FontAwesomeSolid}"
+                    VerticalAlignment="Center"
+                    FontSize="16">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                            <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.AccentBrush}}" />
+                            <Setter Property="Text" Value="{x:Static components:IconFont.CircleInfo}" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Type}" Value="Warning">
+                                    <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.AlertBrush}}" />
+                                    <Setter Property="Text" Value="{x:Static components:IconFont.CircleExclamation}" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Type}" Value="Error">
+                                    <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.ErrorBrush}}" />
+                                    <Setter Property="Text" Value="{x:Static components:IconFont.CircleExclamation}" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Type}" Value="Success">
+                                    <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.SuccessBrush}}" />
+                                    <Setter Property="Text" Value="{x:Static components:IconFont.CircleCheck}" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+                <TextBlock Grid.Column="1" Text="{Binding Message}" />
+            </Grid>
+
+            <Button
+                Grid.Column="1"
+                Background="Transparent"
+                BorderThickness="0"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                ContentTemplate="{DynamicResource {x:Static adonisUi:Icons.WindowClose}}"
+                Width="23"
+                Height="23"
+                Click="ButtonClose_Click" />
+        </Grid>
+    </Border>
+</UserControl>
