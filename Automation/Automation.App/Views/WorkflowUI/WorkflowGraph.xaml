@@ -41,7 +41,7 @@
         <nodify:NodifyEditor
             x:Name="Editor"
             Background="{StaticResource SmallGridLinesDrawingBrush}"
-            ItemsSource="{Binding Workflow.Nodes}"
+            ItemsSource="{Binding Workflow.Tasks}"
             Connections="{Binding Workflow.Connections}"
             PendingConnection="{Binding PendingConnection}"
             DisconnectConnectorCommand="{Binding DisconnectConnectorCommand}">

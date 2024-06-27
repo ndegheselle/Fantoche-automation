@@ -30,7 +30,7 @@
             </Button.Resources>
             <TextBlock
                 Foreground="{DynamicResource {x:Static adonisUi:Brushes.AccentBrush}}"
-                Text="&#xf057;"
+                Text="{x:Static local:IconFont.CircleXmark}"
                 FontFamily="{StaticResource FontAwesomeSolid}"
                 DataContext="{Binding Type, RelativeSource={RelativeSource AncestorType=local:NodeIcon}}" />
         </Button>
@@ -40,7 +40,7 @@
             Click="ButtonSelect_Click">
             <TextBlock
                 Foreground="{DynamicResource {x:Static adonisUi:Brushes.AccentBrush}}"
-                Text="&#xf15b;"
+                Text="{x:Static local:IconFont.File}"
                 FontFamily="{StaticResource FontAwesomeSolid}"
                 DataContext="{Binding Type, RelativeSource={RelativeSource AncestorType=local:NodeIcon}}" />
         </Button>

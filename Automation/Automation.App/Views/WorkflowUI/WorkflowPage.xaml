@@ -7,5 +7,5 @@
     xmlns:local="clr-namespace:Automation.App.Views.WorkflowUI"
     mc:Ignorable="d"
     d:DataContext="{d:DesignInstance local:WorkflowPage}">
-    <local:WorkflowGraph EditorData="{Binding Editor}" />
+    <local:WorkflowGraph EditorData="{Binding Editor, Mode=OneTime}" />
 </UserControl>

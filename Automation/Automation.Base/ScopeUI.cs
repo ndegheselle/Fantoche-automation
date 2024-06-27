@@ -68,16 +68,4 @@ namespace Automation.Base
         [JsonIgnore]
         public Point Anchor { get; set; }
     }
-
-    public partial class NodeConnection
-    {
-        public NodeConnection(NodeConnector source, NodeConnector target)
-        {
-            Source = source;
-            Target = target;
-
-            source.IsConnected = true;
-            target.IsConnected = true;
-        }
-    }
 }

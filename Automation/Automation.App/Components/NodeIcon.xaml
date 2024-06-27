@@ -15,13 +15,13 @@
             <Style TargetType="TextBlock">
                 <Style.Triggers>
                     <DataTrigger Binding="{Binding}" Value="Scope">
-                        <Setter Property="Text" Value="&#xf07b;" />
+                        <Setter Property="Text" Value="{x:Static local:IconFont.Folder}" />
                     </DataTrigger>
                     <DataTrigger Binding="{Binding}" Value="Workflow">
-                        <Setter Property="Text" Value="&#xf1b3;" />
+                        <Setter Property="Text" Value="{x:Static local:IconFont.Cubes}" />
                     </DataTrigger>
                     <DataTrigger Binding="{Binding}" Value="Task">
-                        <Setter Property="Text" Value="&#xf1b2;" />
+                        <Setter Property="Text" Value="{x:Static local:IconFont.Cube}" />
                     </DataTrigger>
                 </Style.Triggers>
             </Style>
