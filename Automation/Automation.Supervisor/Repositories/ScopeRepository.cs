@@ -63,9 +63,9 @@ namespace Automation.Supervisor.Repositories
                 // Get the connections
                 foreach (NodeConnection connection in testData.Connections.Where(x => x.ParentId == workflow.Id))
                 {
-                    connection.Source = workflow.Tasks.SelectMany(x => x.Inputs).First(x => x.Id == connection.TargetId);
-                    connection.Target = workflow.Tasks.SelectMany(x => x.Outputs).First(x => x.Id == connection.SourceId);
-                    workflow.AddConnection(connection);
+                    connection.Source = workflow.Tasks.SelectMany(x => x.Outputs).First(x => x.Id == connection.SourceId);
+                    connection.Target = workflow.Tasks.SelectMany(x => x.Inputs).First(x => x.Id == connection.TargetId);
+                    workflow.AddConnection(new NodeConnection(workflow, connection.Source, connection.Target));
                 }
             }
             else if (node is Scope scope)

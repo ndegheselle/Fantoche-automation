@@ -8,7 +8,7 @@ namespace Automation.App.ViewModels.Graph
     public class EditorViewModel : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
-        public event Action? InvalidConnection;
+        public event Action<string>? InvalidConnection;
 
         public ICommand DisconnectConnectorCommand { get; }
         public PendingConnection? PendingConnection { get; }
@@ -40,12 +40,24 @@ namespace Automation.App.ViewModels.Graph
 
         public void Connect(NodeConnector source, NodeConnector target)
         {
-            Workflow?.AddConnection(new NodeConnection(Workflow, source, target));
+            NodeConnection connection = new NodeConnection(Workflow, source, target);
+
+            if (source.Type == EnumNodeConnectorType.Flow)
+                connection.Type = EnumNodeConnectionType.Flow;
+
+            Workflow?.AddConnection(connection);
         }
 
-        public void TriggerInvalidConnection()
+        public void Disconnect(NodeConnection connection)
         {
-            InvalidConnection?.Invoke();
+            Workflow.Connections.Remove(connection);
+            connection.Source.IsConnected = false;
+            connection.Target.IsConnected = false;
+        }
+
+        public void TriggerInvalidConnection(string message)
+        {
+            InvalidConnection?.Invoke(message);
         }
 
         public void RemoveNode(TaskNode node)
@@ -74,13 +86,30 @@ namespace Automation.App.ViewModels.Graph
                 if (target == null || _source == null)
                     return;
 
-                if (_source == target ||
-                (_source is NodeOutput && target is NodeOutput) ||
-                (_source is NodeInput && target is NodeInput))
+                if (_source == target)
                 {
-                    _editor.TriggerInvalidConnection();
+                    _editor.TriggerInvalidConnection("Can't connect a connector to itself.");
                     return;
                 }
+
+                if (_source.Type != target.Type)
+                {
+                    _editor.TriggerInvalidConnection("Can't connect two connectors of different types.");
+                    return;
+                }
+
+                if (_source is NodeOutput && target is NodeOutput)
+                {
+                    _editor.TriggerInvalidConnection("Can't connect two output connectors.");
+                    return;
+                }
+
+                if (_source is NodeInput && target is NodeInput)
+                {
+                    _editor.TriggerInvalidConnection("Can't connect two input connectors.");
+                    return;
+                }
+
 
                 // If target is output, swap source and target
                 if (target is NodeOutput)
@@ -94,9 +123,7 @@ namespace Automation.App.ViewModels.Graph
                 var existingConnection = _editor.Workflow.Connections.FirstOrDefault(x => x.Source == _source && x.Target == target);
                 if (existingConnection != null)
                 {
-                    _editor.Workflow.Connections.Remove(existingConnection);
-                    _source.IsConnected = false;
-                    target.IsConnected = false;
+                    _editor.Disconnect(existingConnection);
                     return;
                 }
 

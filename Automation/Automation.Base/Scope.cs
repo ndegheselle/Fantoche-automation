@@ -52,6 +52,11 @@ namespace Automation.Base
     public partial class TaskNode : Node
     {
         [JsonIgnore]
+        public NodeConnector FlowInput { get; set; } = new NodeConnector() { Type = EnumNodeConnectorType.Flow };
+        [JsonIgnore]
+        public NodeConnector FlowOutput { get; set; } = new NodeConnector() { Type = EnumNodeConnectorType.Flow };
+
+        [JsonIgnore]
         public List<NodeConnector> Inputs { get; set; } = [];
         [JsonIgnore]
         public List<NodeConnector> Outputs { get; set; } = [];
@@ -105,7 +110,6 @@ namespace Automation.Base
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public string Name { get; set; }
-        public Type Type { get; set; }
 
         public Guid ParentId { get; set; }
         [JsonIgnore]
@@ -113,16 +117,15 @@ namespace Automation.Base
     }
 
     public class NodeInput : NodeConnector
-    {}
+    { }
     public class NodeOutput : NodeConnector
-    {}
+    { }
 
     public partial class NodeConnection
     {
         public Guid ParentId { get; set; }
         public Guid SourceId { get; set; }
         public Guid TargetId { get; set; }
-
 
         [JsonIgnore]
         public WorkflowNode ParentWorkflow { get; set; }

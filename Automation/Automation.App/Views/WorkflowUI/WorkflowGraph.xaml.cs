@@ -35,7 +35,7 @@ namespace Automation.App.Views.WorkflowUI
 
         private void OnEditorDataChange()
         {
-            EditorData.InvalidConnection += () => _alert.Warning("This type of connection is not possible.");
+            EditorData.InvalidConnection += _alert.Warning;
 
             foreach (var test in EditorData.Workflow.Tasks)
             {

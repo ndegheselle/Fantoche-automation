@@ -59,13 +59,37 @@ namespace Automation.Base
     {
         public event PropertyChangedEventHandler? PropertyChanged;
         public Point Location { get; set; }
+
+        [JsonIgnore]
+        public IEnumerable<NodeConnector> AllInputs => new List<NodeConnector>() { FlowInput }.Concat(Inputs);
+        [JsonIgnore]
+        public IEnumerable<NodeConnector> AllOutputs => new List<NodeConnector>() { FlowOutput }.Concat(Outputs);
+    }
+
+    public enum EnumNodeConnectorType
+    {
+        Data,
+        Flow
     }
 
     public partial class NodeConnector : INotifyPropertyChanged
     {
+        public EnumNodeConnectorType Type { get; set; } = EnumNodeConnectorType.Data;
+
         [JsonIgnore]
         public bool IsConnected { get; set; }
         [JsonIgnore]
         public Point Anchor { get; set; }
+    }
+
+    public enum EnumNodeConnectionType
+    {
+        Data,
+        Flow
+    }
+
+    public partial class NodeConnection
+    {
+        public EnumNodeConnectionType Type { get; set; } = EnumNodeConnectionType.Data;
     }
 }
