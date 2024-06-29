@@ -8,6 +8,7 @@
     xmlns:local="clr-namespace:Automation.App.Views.WorkflowUI"
     xmlns:graph="clr-namespace:Automation.App.ViewModels.Graph"
     xmlns:scopes="clr-namespace:Automation.Base;assembly=Automation.Base"
+    xmlns:components="clr-namespace:Automation.App.Components"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     mc:Ignorable="d">
     <UserControl.Resources>
@@ -56,43 +57,20 @@
     <Grid DataContext="{Binding EditorData, RelativeSource={RelativeSource AncestorType={x:Type local:WorkflowGraph}}}" Background="{StaticResource NodifyEditor.BackgroundBrush}">
         <nodify:NodifyEditor
             x:Name="Editor"
+            SelectedItems="{Binding SelectedNodes}"
             Background="{StaticResource SmallGridLinesDrawingBrush}"
-            ItemsSource="{Binding Workflow.Tasks}"
+            ItemsSource="{Binding Workflow.Nodes}"
             Connections="{Binding Workflow.Connections}"
             PendingConnection="{Binding PendingConnection}"
             DisconnectConnectorCommand="{Binding DisconnectConnectorCommand}">
-            <nodify:NodifyEditor.ItemContainerStyle>
-                <Style TargetType="{x:Type nodify:ItemContainer}">
-                    <Setter Property="Location" Value="{Binding Location}" />
-                </Style>
-            </nodify:NodifyEditor.ItemContainerStyle>
-            <nodify:NodifyEditor.ConnectionTemplate>
-                <DataTemplate DataType="{x:Type scopes:NodeConnection}">
-                    <nodify:Connection Source="{Binding Source.Anchor}" Target="{Binding Target.Anchor}">
-                        <nodify:Connection.Style>
-                            <Style TargetType="{x:Type nodify:Connection}" BasedOn="{StaticResource {x:Type nodify:Connection}}">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Type}" Value="{x:Static scopes:EnumNodeConnectionType.Data}">
-                                        <Setter Property="ArrowEnds" Value="None" />
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding Type}" Value="{x:Static scopes:EnumNodeConnectionType.Flow}">
-                                        <Setter Property="Stroke" Value="{StaticResource {x:Static adonisUi:Brushes.ForegroundBrush}}" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </nodify:Connection.Style>
-                    </nodify:Connection>
+            <nodify:NodifyEditor.Resources>
+                <DataTemplate DataType="{x:Type scopes:NodeGroup}">
+                    <nodify:GroupingNode
+                        ActualSize="{Binding Size}"
+                        Header="{Binding Name}"
+                        MovementMode="Group" />
                 </DataTemplate>
-            </nodify:NodifyEditor.ConnectionTemplate>
-            <nodify:NodifyEditor.PendingConnectionTemplate>
-                <DataTemplate DataType="{x:Type graph:PendingConnection}">
-                    <nodify:PendingConnection
-                        StartedCommand="{Binding StartCommand}"
-                        CompletedCommand="{Binding FinishCommand}"
-                        AllowOnlyConnectors="True" />
-                </DataTemplate>
-            </nodify:NodifyEditor.PendingConnectionTemplate>
-            <nodify:NodifyEditor.ItemTemplate>
+
                 <DataTemplate DataType="{x:Type scopes:TaskNode}">
                     <nodify:Node
                         Header="{Binding Name}"
@@ -138,22 +116,140 @@
                         </nodify:Node.OutputConnectorTemplate>
                     </nodify:Node>
                 </DataTemplate>
-            </nodify:NodifyEditor.ItemTemplate>
+            </nodify:NodifyEditor.Resources>
+            <nodify:NodifyEditor.ItemContainerStyle>
+                <Style TargetType="{x:Type nodify:ItemContainer}">
+                    <Setter Property="Location" Value="{Binding Location}" />
+                </Style>
+            </nodify:NodifyEditor.ItemContainerStyle>
+            <nodify:NodifyEditor.ConnectionTemplate>
+                <DataTemplate DataType="{x:Type scopes:NodeConnection}">
+                    <nodify:Connection Source="{Binding Source.Anchor}" Target="{Binding Target.Anchor}">
+                        <nodify:Connection.Style>
+                            <Style TargetType="{x:Type nodify:Connection}" BasedOn="{StaticResource {x:Type nodify:Connection}}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Type}" Value="{x:Static scopes:EnumNodeConnectionType.Data}">
+                                        <Setter Property="ArrowEnds" Value="None" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Type}" Value="{x:Static scopes:EnumNodeConnectionType.Flow}">
+                                        <Setter Property="Stroke" Value="{StaticResource {x:Static adonisUi:Brushes.ForegroundBrush}}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </nodify:Connection.Style>
+                    </nodify:Connection>
+                </DataTemplate>
+            </nodify:NodifyEditor.ConnectionTemplate>
+            <nodify:NodifyEditor.PendingConnectionTemplate>
+                <DataTemplate DataType="{x:Type graph:PendingConnection}">
+                    <nodify:PendingConnection
+                        StartedCommand="{Binding StartCommand}"
+                        CompletedCommand="{Binding FinishCommand}"
+                        AllowOnlyConnectors="True" />
+                </DataTemplate>
+            </nodify:NodifyEditor.PendingConnectionTemplate>
         </nodify:NodifyEditor>
         <Grid Background="{StaticResource LargeGridLinesDrawingBrush}" Panel.ZIndex="-2" />
-        <Grid
+
+        <Border
+            VerticalAlignment="Bottom"
+            HorizontalAlignment="Left"
             Margin="2"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Top">
-            <Button Click="ButtonAdd_Click">
-                <StackPanel Orientation="Horizontal">
+            CornerRadius="{StaticResource {x:Static adonisUi:Dimensions.CornerRadius}}"
+            BorderThickness="{StaticResource {x:Static adonisUi:Dimensions.BorderThickness}}"
+            Background="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}"
+            BorderBrush="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}">
+            <StackPanel>
+                <Button
+                    BorderThickness="0"
+                    Height="28"
+                    Width="28"
+                    Click="ButtonZoomIn_Click"
+                    ToolTip="Zoom in">
                     <TextBlock
                         FontFamily="{StaticResource FontAwesomeSolid}"
                         VerticalAlignment="Center"
-                        Text="&#x2b;" />
-                    <TextBlock Margin="4,0,0,0">Add</TextBlock>
-                </StackPanel>
-            </Button>
-        </Grid>
+                        Text="{x:Static components:IconFont.Plus}" />
+                </Button>
+                <Button
+                    BorderThickness="0"
+                    Height="28"
+                    Width="28"
+                    Click="ButtonZoomOut_Click"
+                    ToolTip="Zoom out">
+                    <TextBlock
+                        FontFamily="{StaticResource FontAwesomeSolid}"
+                        VerticalAlignment="Center"
+                        Text="{x:Static components:IconFont.Minus}" />
+                </Button>
+                <Button
+                    BorderThickness="0"
+                    Height="28"
+                    Width="28"
+                    Click="ButtonZoomFit_Click"
+                    ToolTip="Fit nodes to screen">
+                    <TextBlock
+                        FontFamily="{StaticResource FontAwesomeSolid}"
+                        VerticalAlignment="Center"
+                        Text="{x:Static components:IconFont.Expand}" />
+                </Button>
+                <ToggleButton
+                    BorderThickness="0"
+                    Height="28"
+                    Width="28"
+                    ToolTip="Allow snaping"
+                    Click="ToggleButtonSnapping_Click">
+                    <TextBlock
+                        FontFamily="{StaticResource FontAwesomeSolid}"
+                        VerticalAlignment="Center"
+                        Text="{x:Static components:IconFont.TableCells}" />
+                </ToggleButton>
+            </StackPanel>
+        </Border>
+
+        <Border
+            VerticalAlignment="Bottom"
+            HorizontalAlignment="Right"
+            Margin="2"
+            CornerRadius="{StaticResource {x:Static adonisUi:Dimensions.CornerRadius}}"
+            BorderThickness="{StaticResource {x:Static adonisUi:Dimensions.BorderThickness}}"
+            Background="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}"
+            BorderBrush="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}">
+            <StackPanel Orientation="Horizontal">
+                <Button
+                    BorderThickness="0"
+                    Height="28"
+                    Width="28"
+                    Click="ButtonAdd_Click"
+                    ToolTip="Add node">
+                    <TextBlock
+                        FontFamily="{StaticResource FontAwesomeSolid}"
+                        VerticalAlignment="Center"
+                        Text="{x:Static components:IconFont.Plus}" />
+                </Button>
+                <Button
+                    BorderThickness="0"
+                    Height="28"
+                    Width="28"
+                    Click="ButtonGroup_Click"
+                    ToolTip="Group selected nodes">
+                    <TextBlock
+                        FontFamily="{StaticResource FontAwesomeSolid}"
+                        VerticalAlignment="Center"
+                        Text="{x:Static components:IconFont.ObjectGroup}" />
+                </Button>
+                <Button
+                    BorderThickness="0"
+                    Height="28"
+                    Width="28"
+                    Click="ButtonDelete_Click"
+                    ToolTip="Delete selection">
+                    <TextBlock
+                        FontFamily="{StaticResource FontAwesomeSolid}"
+                        VerticalAlignment="Center"
+                        Text="{x:Static components:IconFont.Trash}" />
+                </Button>
+            </StackPanel>
+        </Border>
     </Grid>
 </UserControl>

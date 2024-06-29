@@ -57,14 +57,14 @@ namespace Automation.Supervisor.Repositories
                     .Select(x => x.NodeId))
                 {
                     TaskNode childNode = (TaskNode)GetNode(childId);
-                    workflow.Tasks.Add(childNode);
+                    workflow.Nodes.Add(childNode);
                 }
 
                 // Get the connections
                 foreach (NodeConnection connection in testData.Connections.Where(x => x.ParentId == workflow.Id))
                 {
-                    connection.Source = workflow.Tasks.SelectMany(x => x.Outputs).First(x => x.Id == connection.SourceId);
-                    connection.Target = workflow.Tasks.SelectMany(x => x.Inputs).First(x => x.Id == connection.TargetId);
+                    connection.Source = workflow.Nodes.Where(x => x is TaskNode).SelectMany(x => ((TaskNode)x).Outputs).First(x => x.Id == connection.SourceId);
+                    connection.Target = workflow.Nodes.Where(x => x is TaskNode).SelectMany(x => ((TaskNode)x).Inputs).First(x => x.Id == connection.TargetId);
                     workflow.AddConnection(new NodeConnection(workflow, connection.Source, connection.Target));
                 }
             }

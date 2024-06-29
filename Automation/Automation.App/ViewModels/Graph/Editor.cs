@@ -1,15 +1,44 @@
 ﻿using Automation.App.Base;
 using Automation.Base;
 using System.ComponentModel;
+using System.Windows;
 using System.Windows.Input;
 
 namespace Automation.App.ViewModels.Graph
 {
+    public static class NodeExtensions
+    {
+        public static Rect GetBoundingBox(this IList<Node> nodes, double padding = 0)
+        {
+            // HACK : check if it's possible to store the node size in the node
+            const int node_width = 200;
+            const int node_height = 200;
+
+            Point min = new Point(double.MaxValue, double.MaxValue);
+            Point max = new Point(double.MinValue, double.MinValue);
+            foreach (var node in nodes)
+            {
+                if (node is TaskNode task)
+                {
+                    min.X = Math.Min(min.X, task.Location.X);
+                    min.Y = Math.Min(min.Y, task.Location.Y);
+                    max.X = Math.Max(max.X, task.Location.X + node_width);
+                    max.Y = Math.Max(max.Y, task.Location.Y + node_height);
+                }
+            }
+
+            return new Rect(min.X - padding, min.Y - padding, max.X - min.X + padding * 2, max.Y - min.Y + padding * 2);
+        }
+    }
+
     public class EditorViewModel : INotifyPropertyChanged
     {
+        public const uint GRID_DEFAULT_SIZE = 20;
+
         public event PropertyChangedEventHandler? PropertyChanged;
         public event Action<string>? InvalidConnection;
 
+        public List<Node> SelectedNodes { get; set; } = [];
         public ICommand DisconnectConnectorCommand { get; }
         public PendingConnection? PendingConnection { get; }
         public WorkflowNode Workflow { get; set; }
@@ -60,15 +89,29 @@ namespace Automation.App.ViewModels.Graph
             InvalidConnection?.Invoke(message);
         }
 
-        public void RemoveNode(TaskNode node)
+        public void RemoveNodes(IList<Node> nodes)
         {
-            Workflow.Tasks.Remove(node);
-            var connections = Workflow.Connections.Where(x => x.Source.Parent == node || x.Target.Parent == node);
-            for (int i = connections.Count() - 1; i >= 0; i--)
+            foreach (var node in nodes)
             {
-                var connection = connections.ElementAt(i);
-                Workflow.Connections.Remove(connection);
+                Workflow.Nodes.Remove(node);
+                var connections = Workflow.Connections.Where(x => x.Source.Parent == node || x.Target.Parent == node);
+                for (int i = connections.Count() - 1; i >= 0; i--)
+                {
+                    var connection = connections.ElementAt(i);
+                    Workflow.Connections.Remove(connection);
+                }
             }
+        }
+
+        public void CreateGroup(IList<Node> nodes)
+        {
+            Rect boundingRect = nodes.GetBoundingBox(10);
+            NodeGroup group = new NodeGroup()
+            {
+                Location = boundingRect.Location,
+                Size = boundingRect.Size
+            };
+            Workflow.Nodes.Add(group);
         }
     }
 

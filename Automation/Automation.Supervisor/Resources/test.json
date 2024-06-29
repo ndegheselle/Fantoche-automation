@@ -6,8 +6,8 @@
         "X": 0,
         "Y": 0
       },
-      "Id": "5b1d51c7-3092-4f05-852c-30731d94a998",
-      "ParentId": "d4d3dd5f-df32-43f9-9efd-82c052a0930a",
+      "Id": "e152bf6e-f7d9-4316-b2fc-6140afe30bdc",
+      "ParentId": "a1be4606-c1de-421c-9845-14825606f70b",
       "Name": "Task 1",
       "Type": 4
     },
@@ -17,7 +17,7 @@
         "X": 0,
         "Y": 0
       },
-      "Id": "abbaf396-c181-40e4-b105-8e0bd9ef35d6",
+      "Id": "09fb1704-6c40-4e9f-96f3-973cc2d5ec9b",
       "ParentId": "00000000-0000-0000-0000-000000000001",
       "Name": "Task 2",
       "Type": 4
@@ -28,14 +28,14 @@
         "X": 0,
         "Y": 0
       },
-      "Id": "0f3ecf73-524b-4be3-b87f-a67547fe0daf",
+      "Id": "4b420aac-1b85-4bcf-a8e8-34e83a54c657",
       "ParentId": "00000000-0000-0000-0000-000000000001",
       "Name": "Workflow 1",
       "Type": 2
     },
     {
       "$type": "scope",
-      "Id": "d4d3dd5f-df32-43f9-9efd-82c052a0930a",
+      "Id": "a1be4606-c1de-421c-9845-14825606f70b",
       "ParentId": "00000000-0000-0000-0000-000000000001",
       "Name": "SubScope 1",
       "Type": 1
@@ -51,49 +51,49 @@
   "Connectors": [
     {
       "$type": "input",
-      "Id": "013093bb-e390-4cc8-ab5a-b5f5466aee0f",
+      "Id": "c547b6eb-3146-49dd-8dcd-717c62d2479e",
       "Name": "Input 2",
-      "ParentId": "5b1d51c7-3092-4f05-852c-30731d94a998",
+      "ParentId": "e152bf6e-f7d9-4316-b2fc-6140afe30bdc",
       "Type": 0
     },
     {
       "$type": "output",
-      "Id": "d6e58ca3-ab43-443a-9af8-a0edd8a14846",
+      "Id": "b424d1d3-7e02-49a8-9e13-f96ecca92702",
       "Name": "Output 2",
-      "ParentId": "5b1d51c7-3092-4f05-852c-30731d94a998",
+      "ParentId": "e152bf6e-f7d9-4316-b2fc-6140afe30bdc",
       "Type": 0
     },
     {
       "$type": "input",
-      "Id": "453d0d40-694a-4ddb-8a3f-568c020b095f",
+      "Id": "93e07777-f058-4fdd-b76f-6b6805a9d0a1",
       "Name": "Input 1",
-      "ParentId": "abbaf396-c181-40e4-b105-8e0bd9ef35d6",
+      "ParentId": "09fb1704-6c40-4e9f-96f3-973cc2d5ec9b",
       "Type": 0
     },
     {
       "$type": "output",
-      "Id": "30a0b768-56df-4598-b127-05d8b668bed7",
+      "Id": "4ebaaf7d-245c-4029-870d-20738d6adad0",
       "Name": "Output 1",
-      "ParentId": "abbaf396-c181-40e4-b105-8e0bd9ef35d6",
+      "ParentId": "09fb1704-6c40-4e9f-96f3-973cc2d5ec9b",
       "Type": 0
     }
   ],
   "Connections": [
     {
-      "ParentId": "0f3ecf73-524b-4be3-b87f-a67547fe0daf",
-      "SourceId": "30a0b768-56df-4598-b127-05d8b668bed7",
-      "TargetId": "013093bb-e390-4cc8-ab5a-b5f5466aee0f",
+      "ParentId": "4b420aac-1b85-4bcf-a8e8-34e83a54c657",
+      "SourceId": "4ebaaf7d-245c-4029-870d-20738d6adad0",
+      "TargetId": "c547b6eb-3146-49dd-8dcd-717c62d2479e",
       "Type": 0
     }
   ],
   "WorkflowRelations": [
     {
-      "WorkflowId": "0f3ecf73-524b-4be3-b87f-a67547fe0daf",
-      "NodeId": "5b1d51c7-3092-4f05-852c-30731d94a998"
+      "WorkflowId": "4b420aac-1b85-4bcf-a8e8-34e83a54c657",
+      "NodeId": "e152bf6e-f7d9-4316-b2fc-6140afe30bdc"
     },
     {
-      "WorkflowId": "0f3ecf73-524b-4be3-b87f-a67547fe0daf",
-      "NodeId": "abbaf396-c181-40e4-b105-8e0bd9ef35d6"
+      "WorkflowId": "4b420aac-1b85-4bcf-a8e8-34e83a54c657",
+      "NodeId": "09fb1704-6c40-4e9f-96f3-973cc2d5ec9b"
     }
   ]
 }

@@ -58,8 +58,6 @@ namespace Automation.Base
     public partial class TaskNode
     {
         public event PropertyChangedEventHandler? PropertyChanged;
-        public Point Location { get; set; }
-
         [JsonIgnore]
         public IEnumerable<NodeConnector> AllInputs => new List<NodeConnector>() { FlowInput }.Concat(Inputs);
         [JsonIgnore]

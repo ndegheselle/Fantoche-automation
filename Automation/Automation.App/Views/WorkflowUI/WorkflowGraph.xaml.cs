@@ -36,14 +36,6 @@ namespace Automation.App.Views.WorkflowUI
         private void OnEditorDataChange()
         {
             EditorData.InvalidConnection += _alert.Warning;
-
-            foreach (var test in EditorData.Workflow.Tasks)
-            {
-                foreach (var input in test.Inputs)
-                {
-                    input.Anchor = new Point(10, 20);
-                }
-            }
         }
         #endregion
 
@@ -58,6 +50,8 @@ namespace Automation.App.Views.WorkflowUI
             InitializeComponent();
         }
 
+        #region UI Events
+
         private async void ButtonAdd_Click(object sender, RoutedEventArgs e)
         {
             ScopeRepository scopeRepository = new ScopeRepository();
@@ -69,7 +63,7 @@ namespace Automation.App.Views.WorkflowUI
             if (await _modal.Show(nodeSelector, new ModalOptions() { Title = "Add node", ValidButtonText = "Add" }) &&
                 nodeSelector.Selected != null)
             {
-                EditorData.Workflow.Tasks.Add((TaskNode)nodeSelector.Selected);
+                EditorData.Workflow.Nodes.Add((TaskNode)nodeSelector.Selected);
             }
         }
 
@@ -78,17 +72,46 @@ namespace Automation.App.Views.WorkflowUI
         {
             if (e.Key == Key.Delete)
             {
-                var selectedItems = ((MultiSelector)Editor).SelectedItems;
-                // Reverse loop for deletion
-                for (int i = selectedItems.Count - 1; i >= 0; i--)
-                {
-                    TaskNode? node = selectedItems[i] as TaskNode;
-                    if (node == null)
-                        return;
-
-                    EditorData.RemoveNode(node);
-                }
+                DeleteSelectedNodes();
             }
+        }
+
+        private void ButtonZoomIn_Click(object sender, RoutedEventArgs e)
+        {
+            Editor.ZoomIn();
+        }
+
+        private void ButtonZoomOut_Click(object sender, RoutedEventArgs e)
+        {
+            Editor.ZoomOut();
+        }
+
+        private void ButtonZoomFit_Click(object sender, RoutedEventArgs e)
+        {
+            Editor.FitToScreen();
+        }
+
+        private void ToggleButtonSnapping_Click(object sender, RoutedEventArgs e)
+        {
+            ToggleButton toggleButton = (ToggleButton)sender;
+            Editor.GridCellSize = toggleButton.IsChecked == true ? EditorViewModel.GRID_DEFAULT_SIZE : 1;
+        }
+
+        private void ButtonDelete_Click(object sender, RoutedEventArgs e)
+        {
+            DeleteSelectedNodes();
+        }
+
+        private void ButtonGroup_Click(object sender, RoutedEventArgs e)
+        {
+            EditorData.CreateGroup(EditorData.SelectedNodes);
+        }
+
+        #endregion
+
+        private void DeleteSelectedNodes()
+        {
+            EditorData.RemoveNodes(EditorData.SelectedNodes);
         }
     }
 }

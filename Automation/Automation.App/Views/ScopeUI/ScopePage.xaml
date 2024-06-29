@@ -47,7 +47,7 @@
                         </MenuItem>
                     </ContextMenu>
                 </Button.ContextMenu>
-                <TextBlock Text="&#x2b;" FontFamily="{StaticResource FontAwesomeSolid}" />
+                <TextBlock Text="{x:Static components:IconFont.Plus}" FontFamily="{StaticResource FontAwesomeSolid}" />
             </Button>
         </Grid>
         <ListBox

@@ -1,9 +1,8 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Drawing;
 using System.Text.Json.Serialization;
+using System.Windows;
 using System.Windows.Data;
-using System.Windows.Markup;
 
 namespace Automation.Base
 {
@@ -12,12 +11,14 @@ namespace Automation.Base
     {
         Scope = 1,
         Workflow = 2,
-        Task = 4
+        Task = 4,
+        Group = 8
     }
 
     [JsonDerivedType(typeof(Scope), typeDiscriminator: "scope")]
     [JsonDerivedType(typeof(TaskNode), typeDiscriminator: "task")]
     [JsonDerivedType(typeof(WorkflowNode), typeDiscriminator: "workflow")]
+    [JsonDerivedType(typeof(NodeGroup), typeDiscriminator: "group")]
     public partial class Node
     {
         public Guid Id { get; set; } = Guid.NewGuid();
@@ -28,6 +29,16 @@ namespace Automation.Base
 
         public string Name { get; set; }
         public EnumNodeType Type { get; set; }
+    }
+
+    public class NodeGroup : Node
+    {
+        public Point Location { get; set; }
+        public Size Size { get; set; }
+        public NodeGroup()
+        {
+            Type = EnumNodeType.Group;
+        }
     }
 
     public partial class Scope : Node
@@ -51,6 +62,7 @@ namespace Automation.Base
 
     public partial class TaskNode : Node
     {
+        public Point Location { get; set; }
         [JsonIgnore]
         public NodeConnector FlowInput { get; set; } = new NodeConnector() { Type = EnumNodeConnectorType.Flow };
         [JsonIgnore]
@@ -84,7 +96,7 @@ namespace Automation.Base
         [JsonIgnore]
         public ObservableCollection<NodeConnection> Connections { get; } = [];
         [JsonIgnore]
-        public ObservableCollection<TaskNode> Tasks { get; set; } = [];
+        public ObservableCollection<Node> Nodes { get; set; } = [];
 
         public WorkflowNode()
         {
