@@ -57,11 +57,15 @@ namespace Automation.Base
 
     public partial class TaskNode
     {
-        public event PropertyChangedEventHandler? PropertyChanged;
-        [JsonIgnore]
-        public IEnumerable<NodeConnector> AllInputs => new List<NodeConnector>() { FlowInput }.Concat(Inputs);
-        [JsonIgnore]
-        public IEnumerable<NodeConnector> AllOutputs => new List<NodeConnector>() { FlowOutput }.Concat(Outputs);
+        public EnumTaskNodeConnectorsOptions ConnectorsOptions { get; set; } = EnumTaskNodeConnectorsOptions.None;
+    }
+
+    [Flags]
+    public enum EnumTaskNodeConnectorsOptions
+    {
+        None = 0,
+        EditInputs = 1,
+        EditOutputs = 2,
     }
 
     public enum EnumNodeConnectorType

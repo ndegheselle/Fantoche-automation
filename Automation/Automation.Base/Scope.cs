@@ -12,7 +12,8 @@ namespace Automation.Base
         Scope = 1,
         Workflow = 2,
         Task = 4,
-        Group = 8
+        Group = 8,
+        FlowTask = 16,
     }
 
     [JsonDerivedType(typeof(Scope), typeDiscriminator: "scope")]
@@ -41,6 +42,7 @@ namespace Automation.Base
         }
     }
 
+    // TODO : separate Scope from node
     public partial class Scope : Node
     {
         [JsonIgnore]
@@ -64,11 +66,6 @@ namespace Automation.Base
     {
         public Point Location { get; set; }
         [JsonIgnore]
-        public NodeConnector FlowInput { get; set; } = new NodeConnector() { Type = EnumNodeConnectorType.Flow };
-        [JsonIgnore]
-        public NodeConnector FlowOutput { get; set; } = new NodeConnector() { Type = EnumNodeConnectorType.Flow };
-
-        [JsonIgnore]
         public List<NodeConnector> Inputs { get; set; } = [];
         [JsonIgnore]
         public List<NodeConnector> Outputs { get; set; } = [];
@@ -91,9 +88,27 @@ namespace Automation.Base
         }
     }
 
+    public class WorkflowInputNode : TaskNode
+    {
+        public WorkflowInputNode() : base()
+        {
+            Name = "Start";
+            Type = EnumNodeType.FlowTask;
+            ConnectorsOptions = EnumTaskNodeConnectorsOptions.EditInputs;
+        }
+    }
+    public class WorkflowOutputNode : TaskNode
+    {
+        public WorkflowOutputNode() : base()
+        {
+            Name = "End";
+            Type = EnumNodeType.FlowTask;
+            ConnectorsOptions = EnumTaskNodeConnectorsOptions.EditOutputs;
+        }
+    }
+
     public class WorkflowNode : TaskNode
     {
-        [JsonIgnore]
         public ObservableCollection<NodeConnection> Connections { get; } = [];
         [JsonIgnore]
         public ObservableCollection<Node> Nodes { get; set; } = [];
@@ -122,8 +137,8 @@ namespace Automation.Base
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public string Name { get; set; }
-
         public Guid ParentId { get; set; }
+
         [JsonIgnore]
         public Node Parent { get; set; }
     }

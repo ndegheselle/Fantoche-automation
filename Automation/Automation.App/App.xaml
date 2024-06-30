@@ -15,6 +15,7 @@
 
             <FontFamily x:Key="FontAwesomeSolid">/Resources/Fonts/FontAwesomeSolid.otf#Font Awesome 6 Free Solid</FontFamily>
             <converters:EnumToListConverter x:Key="EnumToListConverter" />
+            <converters:EnumToBooleanConverter x:Key="EnumToBooleanConverter" />
 
             <!--  Adonis customization  -->
             <CornerRadius x:Key="{x:Static adonisUi:Dimensions.CornerRadius}">2</CornerRadius>

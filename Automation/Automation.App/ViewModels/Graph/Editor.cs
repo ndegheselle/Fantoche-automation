@@ -91,8 +91,9 @@ namespace Automation.App.ViewModels.Graph
 
         public void RemoveNodes(IList<Node> nodes)
         {
-            foreach (var node in nodes)
+            for (int j = nodes.Count - 1; j >= 0; j--)
             {
+                var node = nodes[j];
                 Workflow.Nodes.Remove(node);
                 var connections = Workflow.Connections.Where(x => x.Source.Parent == node || x.Target.Parent == node);
                 for (int i = connections.Count() - 1; i >= 0; i--)
