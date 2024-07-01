@@ -5,26 +5,37 @@ using System.Windows.Controls;
 
 namespace Automation.App.Views.ScopeUI
 {
-    /// <summary>
-    /// Logique d'interaction pour ScopeEdit.xaml
-    /// </summary>
-    public partial class ScopeEdit : UserControl, IModalContentCallback
+    public class ScopeEditModal : ScopeEdit, IModalContentCallback
     {
-        private readonly Scope _scope;
         public IModalContainer? ModalParent { get; set; }
+        public ModalOptions Options => new ModalOptions() { Title = "Edit scope", ValidButtonText = "Save" };
 
-        public ScopeEdit(Scope scope)
+        public ScopeEditModal(Scope scope) : base(scope)
         {
-            _scope = scope;
-            InitializeComponent();
-            this.DataContext = _scope;
+            if (scope.Id == Guid.Empty)
+                Options.Title = "New scope";
         }
 
         public void OnModalClose(bool result)
         {
-            // New scope
+            // Not a new scope anymore !
             if (_scope.Id == Guid.Empty)
                 _scope.Id = Guid.NewGuid();
+        }
+    }
+
+    /// <summary>
+    /// Logique d'interaction pour ScopeEdit.xaml
+    /// </summary>
+    public partial class ScopeEdit : UserControl
+    {
+        protected readonly Scope _scope;
+
+        public ScopeEdit(Scope scope)
+        {
+            _scope = scope;
+            this.DataContext = _scope;
+            InitializeComponent();
         }
     }
 }

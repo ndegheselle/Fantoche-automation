@@ -9,7 +9,7 @@ namespace Automation.App.Base
     }
 
     #region Modal
-    public struct ModalOptions
+    public class ModalOptions
     {
         public string Title { get; set; }
         public string ValidButtonText { get; set; }
@@ -25,12 +25,13 @@ namespace Automation.App.Base
     public interface IModalContainer
     {
         public event Action<bool>? OnClose;
-        public Task<bool> Show(IModalContent content, ModalOptions options = default);
+        public Task<bool> Show(IModalContent content, ModalOptions? options = null);
         public void Close(bool result = false);
     }
 
     public interface IModalContent
     {
+        public ModalOptions Options { get; }
         public IModalContainer? ModalParent { get; set; }
     }
 

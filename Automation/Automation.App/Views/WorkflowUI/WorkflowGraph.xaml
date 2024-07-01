@@ -77,8 +77,11 @@
                         Output="{Binding Outputs}"
                         Header="{Binding Name}">
                         <nodify:Node.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem Header="Add input">
+                            <ContextMenu DataContext="{Binding Path=PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                                <MenuItem
+                                    Header="Add input"
+                                    Click="MenuItemAddInput_Click"
+                                    IsEnabled="{Binding ConnectorsOptions, ConverterParameter={x:Static scopes:EnumTaskNodeConnectorsOptions.EditInputs}, Converter={StaticResource EnumToBooleanConverter}}">
                                     <MenuItem.Icon>
                                         <TextBlock
                                             VerticalAlignment="Center"
@@ -86,7 +89,10 @@
                                             Text="{x:Static components:IconFont.RightToBracket}" />
                                     </MenuItem.Icon>
                                 </MenuItem>
-                                <MenuItem Header="Add Output">
+                                <MenuItem
+                                    Header="Add Output"
+                                    Click="MenuItemAddOutput_Click"
+                                    IsEnabled="{Binding ConnectorsOptions, ConverterParameter={x:Static scopes:EnumTaskNodeConnectorsOptions.EditOutputs}, Converter={StaticResource EnumToBooleanConverter}}">
                                     <MenuItem.Icon>
                                         <TextBlock
                                             VerticalAlignment="Center"
@@ -113,7 +119,10 @@
                                     Anchor="{Binding Anchor, Mode=OneWayToSource}">
                                     <nodify:NodeInput.ContextMenu>
                                         <ContextMenu>
-                                            <MenuItem Header="Delete connector">
+                                            <MenuItem
+                                                Header="Delete connector"
+                                                Command="{Binding Delete}"
+                                                CommandParameter="{Binding}">
                                                 <MenuItem.Icon>
                                                     <TextBlock
                                                         VerticalAlignment="Center"
@@ -144,7 +153,10 @@
                                     Anchor="{Binding Anchor, Mode=OneWayToSource}">
                                     <nodify:NodeOutput.ContextMenu>
                                         <ContextMenu>
-                                            <MenuItem Header="Delete connector">
+                                            <MenuItem
+                                                Header="Delete connector"
+                                                Command="{Binding Delete}"
+                                                CommandParameter="{Binding}">
                                                 <MenuItem.Icon>
                                                     <TextBlock
                                                         VerticalAlignment="Center"

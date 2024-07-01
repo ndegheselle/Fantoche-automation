@@ -55,11 +55,6 @@ namespace Automation.Base
         public ListCollectionView SortedChildrens { get; set; }
     }
 
-    public partial class TaskNode
-    {
-        public EnumTaskNodeConnectorsOptions ConnectorsOptions { get; set; } = EnumTaskNodeConnectorsOptions.None;
-    }
-
     [Flags]
     public enum EnumTaskNodeConnectorsOptions
     {

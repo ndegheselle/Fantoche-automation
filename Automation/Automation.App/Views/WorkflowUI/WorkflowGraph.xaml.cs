@@ -6,10 +6,12 @@ using Automation.Base;
 using Automation.Supervisor.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using Nodify;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using System.Xml.Linq;
 
 namespace Automation.App.Views.WorkflowUI
 {
@@ -60,7 +62,7 @@ namespace Automation.App.Views.WorkflowUI
                 RootScope = scopeRepository.GetRootScope(),
                 AllowedSelectedNodes = EnumNodeType.Workflow | EnumNodeType.Task
             };
-            if (await _modal.Show(nodeSelector, new ModalOptions() { Title = "Add node", ValidButtonText = "Add" }) &&
+            if (await _modal.Show(nodeSelector) &&
                 nodeSelector.Selected != null)
             {
                 EditorData.Workflow.Nodes.Add((TaskNode)nodeSelector.Selected);
@@ -104,7 +106,22 @@ namespace Automation.App.Views.WorkflowUI
 
         private void ButtonGroup_Click(object sender, RoutedEventArgs e)
         {
-            EditorData.CreateGroup(EditorData.SelectedNodes);
+            Rect boundingBox = GetSelectedBoundingBox(10);
+            EditorData.CreateGroup(boundingBox);
+        }
+
+
+        private async void MenuItemAddInput_Click(object sender, RoutedEventArgs e)
+        {
+            ConnectorEditModal connectorEditModal = new ConnectorEditModal(new NodeConnector());
+            if (await _modal.Show(connectorEditModal))
+            {
+            }
+        }
+
+        private void MenuItemAddOutput_Click(object sender, RoutedEventArgs e)
+        {
+
         }
 
         #endregion
@@ -112,6 +129,26 @@ namespace Automation.App.Views.WorkflowUI
         private void DeleteSelectedNodes()
         {
             EditorData.RemoveNodes(EditorData.SelectedNodes);
+        }
+
+        private Rect GetSelectedBoundingBox(double padding)
+        {
+            Point min = new Point(double.MaxValue, double.MaxValue);
+            Point max = new Point(double.MinValue, double.MinValue);
+
+            foreach (var node in Editor.SelectedItems)
+            {
+                var container = Editor.ItemContainerGenerator.ContainerFromItem(node) as ItemContainer;
+                if (container == null)
+                    continue;
+
+                min.X = Math.Min(min.X, container.Location.X);
+                min.Y = Math.Min(min.Y, container.Location.Y);
+                max.X = Math.Max(max.X, container.Location.X + container.ActualSize.Width);
+                max.Y = Math.Max(max.Y, container.Location.Y + container.ActualSize.Height);
+            }
+            
+            return new Rect(min.X - padding, min.Y - padding, max.X - min.X + padding * 2, max.Y - min.Y + padding * 2);
         }
     }
 }

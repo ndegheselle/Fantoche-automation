@@ -3,6 +3,8 @@ using System.ComponentModel;
 using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Data;
+using System.Windows.Input;
+using System.Xml.Linq;
 
 namespace Automation.Base
 {
@@ -69,6 +71,8 @@ namespace Automation.Base
         public List<NodeConnector> Inputs { get; set; } = [];
         [JsonIgnore]
         public List<NodeConnector> Outputs { get; set; } = [];
+
+        public EnumTaskNodeConnectorsOptions ConnectorsOptions { get; set; } = EnumTaskNodeConnectorsOptions.None;
 
         public TaskNode()
         {
@@ -140,7 +144,23 @@ namespace Automation.Base
         public Guid ParentId { get; set; }
 
         [JsonIgnore]
-        public Node Parent { get; set; }
+        public TaskNode Parent { get; set; }
+
+        public ICommand Delete { get; set; } = new DelegateCommand<NodeConnector>(connector =>
+        {
+            if (connector is NodeInput input)
+            {
+                connector.Parent.Inputs.Remove(input);
+            }
+            else if (connector is NodeOutput output)
+            {
+                connector.Parent.Outputs.Remove(output);
+            }
+        }, (connector) =>
+        {
+            return connector.Parent.ConnectorsOptions.HasFlag(EnumTaskNodeConnectorsOptions.EditInputs) ||
+                   connector.Parent.ConnectorsOptions.HasFlag(EnumTaskNodeConnectorsOptions.EditOutputs);
+        });
     }
 
     public class NodeInput : NodeConnector

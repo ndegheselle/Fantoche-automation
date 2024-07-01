@@ -1,6 +1,6 @@
 ﻿using System.Windows.Input;
 
-namespace Automation.App.Base
+namespace Automation.Base
 {
     public class DelegateCommand : ICommand
     {

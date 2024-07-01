@@ -6,31 +6,6 @@ using System.Windows.Input;
 
 namespace Automation.App.ViewModels.Graph
 {
-    public static class NodeExtensions
-    {
-        public static Rect GetBoundingBox(this IList<Node> nodes, double padding = 0)
-        {
-            // HACK : check if it's possible to store the node size in the node
-            const int node_width = 200;
-            const int node_height = 200;
-
-            Point min = new Point(double.MaxValue, double.MaxValue);
-            Point max = new Point(double.MinValue, double.MinValue);
-            foreach (var node in nodes)
-            {
-                if (node is TaskNode task)
-                {
-                    min.X = Math.Min(min.X, task.Location.X);
-                    min.Y = Math.Min(min.Y, task.Location.Y);
-                    max.X = Math.Max(max.X, task.Location.X + node_width);
-                    max.Y = Math.Max(max.Y, task.Location.Y + node_height);
-                }
-            }
-
-            return new Rect(min.X - padding, min.Y - padding, max.X - min.X + padding * 2, max.Y - min.Y + padding * 2);
-        }
-    }
-
     public class EditorViewModel : INotifyPropertyChanged
     {
         public const uint GRID_DEFAULT_SIZE = 20;
@@ -104,13 +79,12 @@ namespace Automation.App.ViewModels.Graph
             }
         }
 
-        public void CreateGroup(IList<Node> nodes)
+        public void CreateGroup(Rect boundingBox)
         {
-            Rect boundingRect = nodes.GetBoundingBox(10);
             NodeGroup group = new NodeGroup()
             {
-                Location = boundingRect.Location,
-                Size = boundingRect.Size
+                Location = boundingBox.Location,
+                Size = boundingBox.Size
             };
             Workflow.Nodes.Add(group);
         }

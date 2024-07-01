@@ -11,6 +11,9 @@ namespace Automation.App.Views.Menus
     public partial class ParametersUI : UserControl, IModalContent
     {
         public IModalContainer? ModalParent { get; set; }
+
+        public ModalOptions Options => new ModalOptions() { Title = "Parameters", ShowFooter = false };
+
         private readonly App _app = (App)App.Current;
         private readonly ParametersViewModel _context;
 

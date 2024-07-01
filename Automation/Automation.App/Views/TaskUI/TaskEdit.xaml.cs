@@ -5,26 +5,37 @@ using System.Windows.Controls;
 
 namespace Automation.App.Views.TaskUI
 {
-    /// <summary>
-    /// Logique d'interaction pour TaskEdit.xaml
-    /// </summary>
-    public partial class TaskEdit : UserControl, IModalContentCallback
+    public class TaskEditModal : TaskEdit, IModalContentCallback
     {
-        public IModalContainer? ModalParent { get; set; }
-        private readonly TaskNode _scope;
+        public IModalContainer? ModalParent { get; set; } = null;
+        public ModalOptions Options => new ModalOptions() { Title = "Edit task", ValidButtonText = "Save" };
 
-        public TaskEdit(TaskNode taskScope)
+        public TaskEditModal(TaskNode task) : base(task)
         {
-            _scope = taskScope;
-            InitializeComponent();
-            this.DataContext = _scope;
+            if (task.Id == Guid.Empty)
+                Options.Title = "New task";
         }
 
         public void OnModalClose(bool result)
         {
             // New scope
-            if (_scope.Id == Guid.Empty)
-                _scope.Id = Guid.NewGuid();
+            if (_task.Id == Guid.Empty)
+                _task.Id = Guid.NewGuid();
+        }
+    }
+
+    /// <summary>
+    /// Logique d'interaction pour TaskEdit.xaml
+    /// </summary>
+    public partial class TaskEdit : UserControl
+    {
+        protected readonly TaskNode _task;
+
+        public TaskEdit(TaskNode task)
+        {
+            _task = task;
+            this.DataContext = _task;
+            InitializeComponent();
         }
     }
 }

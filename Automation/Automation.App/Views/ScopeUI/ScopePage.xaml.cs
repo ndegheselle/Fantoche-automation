@@ -36,21 +36,21 @@ namespace Automation.App.Views.ScopeUI
         private async void MenuAddScope_Click(object sender, RoutedEventArgs e)
         {
             Scope newScope = new Scope();
-            if (await _modal.Show(new ScopeEdit(newScope), new ModalOptions() { Title = "Add scope" }))
+            if (await _modal.Show(new ScopeEditModal(newScope)))
                 _scope.AddChild(newScope);
         }
 
         private async void MenuAddTask_Click(object sender, RoutedEventArgs e)
         {
             TaskNode newScope = new TaskNode();
-            if (await _modal.Show(new TaskEdit(newScope), new ModalOptions() { Title = "Add task" }))
+            if (await _modal.Show(new TaskEditModal(newScope)))
                 _scope.AddChild(newScope);
         }
 
         private async void MenuAddWorkflow_Click(object sender, RoutedEventArgs e)
         {
             WorkflowNode newScope = new WorkflowNode();
-            if (await _modal.Show(new WorkflowEdit(newScope), new ModalOptions() { Title = "Add workflow" }))
+            if (await _modal.Show(new WorkflowEditModal(newScope)))
                 _scope.AddChild(newScope);
         }
         #endregion

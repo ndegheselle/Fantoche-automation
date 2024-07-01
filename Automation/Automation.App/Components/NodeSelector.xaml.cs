@@ -10,6 +10,7 @@ namespace Automation.App.Components
     public class NodeSelectorModal : NodeSelector, IModalContent
     {
         public IModalContainer? ModalParent { get; set; }
+        public ModalOptions? Options => new ModalOptions() { Title = "Add node", ValidButtonText = "Add" };
     }
 
     /// <summary>
