@@ -1,4 +1,4 @@
-﻿using Automation.Base;
+﻿using Automation.Base.ViewModels;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Reflection;
@@ -10,7 +10,7 @@ namespace Automation.Supervisor.Repositories
     // Separated like it would be in a relationnal database
     public class TestData
     {
-        public List<Node> Nodes { get; set; }
+        public List<ScopedElement> Nodes { get; set; }
 
         public List<NodeConnector> Connectors { get; set; }
 
@@ -27,10 +27,10 @@ namespace Automation.Supervisor.Repositories
 
         public Scope GetRootScope() { return (Scope)GetNode(Guid.Parse("00000000-0000-0000-0000-000000000001")); }
 
-        public Node? GetNode(Guid id)
+        public ScopedElement? GetNode(Guid id)
         {
             var testData = LoadTestData();
-            Node? node = testData.Nodes.FirstOrDefault(x => x.Id == id);
+            INode? node = testData.Nodes.FirstOrDefault(x => x.Id == id);
 
             if (node == null)
                 return null;
@@ -132,7 +132,7 @@ namespace Automation.Supervisor.Repositories
             string json = JsonSerializer.Serialize(
                 new TestData()
                 {
-                    Nodes = new List<Node> { taskScope1, taskScope2, workflowScope, subScope, rootScope, workflowInput },
+                    Nodes = new List<ScopedElement> { taskScope1, taskScope2, workflowScope, subScope, rootScope, workflowInput },
                     Connectors = new List<NodeConnector>() { input1, output1, input2, output2, flowIn1, flowIn2, flowOut1, flowOut2, flowOut3, flowIn3 },
                     Connections = new List<NodeConnection>() { connection },
                     WorkflowRelations =

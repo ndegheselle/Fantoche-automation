@@ -1,6 +1,6 @@
 ﻿using Automation.App.Base;
 using Automation.App.ViewModels.Graph;
-using Automation.Base;
+using Automation.Base.ViewModels;
 using Automation.Supervisor.Repositories;
 using System.Windows;
 using System.Windows.Controls;

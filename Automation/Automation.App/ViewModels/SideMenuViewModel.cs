@@ -1,4 +1,4 @@
-﻿using Automation.Base;
+﻿using Automation.Base.ViewModels;
 using Automation.Supervisor.Repositories;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
