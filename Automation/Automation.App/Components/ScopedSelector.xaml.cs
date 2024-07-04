@@ -7,7 +7,7 @@ using System.Windows.Controls;
 
 namespace Automation.App.Components
 {
-    public class NodeSelectorModal : NodeSelector, IModalContent
+    public class ScopedSelectorModal : ScopedSelector, IModalContent
     {
         public IModalContainer? ModalParent { get; set; }
         public ModalOptions? Options => new ModalOptions() { Title = "Add node", ValidButtonText = "Add" };
@@ -16,14 +16,14 @@ namespace Automation.App.Components
     /// <summary>
     /// Logique d'interaction pour ScopedElementSelector.xaml
     /// </summary>
-    public partial class NodeSelector : UserControl
+    public partial class ScopedSelector : UserControl
     {
         #region Dependency Properties
         // Dependency property Scope RootScope
         public static readonly DependencyProperty RootScopeProperty = DependencyProperty.Register(
             nameof(RootScope),
             typeof(Scope),
-            typeof(NodeSelector),
+            typeof(ScopedSelector),
             new PropertyMetadata(null));
 
         public Scope RootScope
@@ -35,13 +35,13 @@ namespace Automation.App.Components
         // Dependency property ScopedElement Selected
         public static readonly DependencyProperty SelectedProperty = DependencyProperty.Register(
             nameof(Selected),
-            typeof(Node),
-            typeof(NodeSelector),
+            typeof(ScopedElement),
+            typeof(ScopedSelector),
             new PropertyMetadata(null));
 
-        public Node? Selected
+        public ScopedElement? Selected
         {
-            get { return (Node?)GetValue(SelectedProperty); }
+            get { return (ScopedElement?)GetValue(SelectedProperty); }
             set { SetValue(SelectedProperty, value); }
         }
 
@@ -49,18 +49,18 @@ namespace Automation.App.Components
 
         #region Props
 
-        public EnumNodeType AllowedSelectedNodes { get; set; } = EnumNodeType.Scope | EnumNodeType.Workflow | EnumNodeType.Task;
+        public EnumScopedType AllowedSelectedNodes { get; set; } = EnumScopedType.Scope | EnumScopedType.Workflow | EnumScopedType.Task;
 
         #endregion
 
-        public NodeSelector() {
+        public ScopedSelector() {
             InitializeComponent();
         }
 
         private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             TreeView treeView = (TreeView)sender;
-            Node? selected = treeView.SelectedItem as Node;
+            ScopedElement? selected = treeView.SelectedItem as ScopedElement;
 
             // Load childrens if the selected element is a scope and its childrens are not loaded
             if (selected != null && selected is Scope scope && scope.Childrens.Count == 0)
@@ -68,7 +68,7 @@ namespace Automation.App.Components
                 ScopeRepository scopeRepository = new ScopeRepository();
                 Scope? fullScope = scopeRepository.GetNode(selected.Id) as Scope;
 
-                foreach (Node child in fullScope.Childrens)
+                foreach (ScopedElement child in fullScope.Childrens)
                     scope.AddChild(child);
             }
 

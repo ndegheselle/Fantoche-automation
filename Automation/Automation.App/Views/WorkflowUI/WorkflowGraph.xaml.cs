@@ -3,6 +3,7 @@ using Automation.App.Components;
 using Automation.App.ViewModels.Graph;
 using Automation.App.Views.ScopeUI;
 using Automation.Base;
+using Automation.Base.ViewModels;
 using Automation.Supervisor.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using Nodify;
@@ -57,10 +58,10 @@ namespace Automation.App.Views.WorkflowUI
         private async void ButtonAdd_Click(object sender, RoutedEventArgs e)
         {
             ScopeRepository scopeRepository = new ScopeRepository();
-            NodeSelectorModal nodeSelector = new NodeSelectorModal()
+            ScopedSelectorModal nodeSelector = new ScopedSelectorModal()
             {
                 RootScope = scopeRepository.GetRootScope(),
-                AllowedSelectedNodes = EnumNodeType.Workflow | EnumNodeType.Task
+                AllowedSelectedNodes = EnumScopedType.Workflow | EnumScopedType.Task
             };
             if (await _modal.Show(nodeSelector) &&
                 nodeSelector.Selected != null)

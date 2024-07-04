@@ -1,5 +1,6 @@
 ﻿using Automation.App.Base;
 using Automation.Base;
+using Automation.Base.ViewModels;
 using System.Windows;
 using System.Windows.Controls;
 

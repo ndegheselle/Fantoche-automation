@@ -1,99 +1,137 @@
 {
-  "Nodes": [
+  "ScopedElements": [
     {
-      "$type": "task",
-      "Location": {
-        "X": 0,
-        "Y": 0
-      },
-      "Id": "e152bf6e-f7d9-4316-b2fc-6140afe30bdc",
-      "ParentId": "a1be4606-c1de-421c-9845-14825606f70b",
+      "Id": "7e3d730b-c700-4927-b24b-1cf826ec9ad6",
+      "ParentId": "f9d68683-9da8-4179-b48e-88d356b8b2f2",
       "Name": "Task 1",
-      "Type": 4
+      "ScopedType": 0
     },
     {
-      "$type": "task",
-      "Location": {
-        "X": 0,
-        "Y": 0
-      },
-      "Id": "09fb1704-6c40-4e9f-96f3-973cc2d5ec9b",
+      "Id": "a1e61680-de3b-47a5-ac12-57762ae4a356",
       "ParentId": "00000000-0000-0000-0000-000000000001",
       "Name": "Task 2",
-      "Type": 4
+      "ScopedType": 0
     },
     {
-      "$type": "workflow",
-      "Location": {
-        "X": 0,
-        "Y": 0
-      },
-      "Id": "4b420aac-1b85-4bcf-a8e8-34e83a54c657",
+      "Id": "279b4432-04f9-4118-a912-c59af5d909de",
       "ParentId": "00000000-0000-0000-0000-000000000001",
       "Name": "Workflow 1",
-      "Type": 2
+      "ScopedType": 0
     },
     {
-      "$type": "scope",
-      "Id": "a1be4606-c1de-421c-9845-14825606f70b",
+      "Id": "f9d68683-9da8-4179-b48e-88d356b8b2f2",
       "ParentId": "00000000-0000-0000-0000-000000000001",
       "Name": "SubScope 1",
-      "Type": 1
+      "ScopedType": 0
     },
     {
-      "$type": "scope",
       "Id": "00000000-0000-0000-0000-000000000001",
       "ParentId": null,
       "Name": null,
-      "Type": 1
+      "ScopedType": 0
+    },
+    {
+      "Id": "03934162-0c06-4e71-b261-1560b00a6595",
+      "ParentId": null,
+      "Name": "Start",
+      "ScopedType": 0
     }
   ],
   "Connectors": [
     {
-      "$type": "input",
-      "Id": "c547b6eb-3146-49dd-8dcd-717c62d2479e",
+      "Type": 0,
+      "Id": "1aa3b61e-cec0-43d9-8ed6-7e805b8506b9",
       "Name": "Input 2",
-      "ParentId": "e152bf6e-f7d9-4316-b2fc-6140afe30bdc",
-      "Type": 0
+      "ParentId": "7e3d730b-c700-4927-b24b-1cf826ec9ad6",
+      "Delete": {}
     },
     {
-      "$type": "output",
-      "Id": "b424d1d3-7e02-49a8-9e13-f96ecca92702",
+      "Type": 0,
+      "Id": "4cf57686-2ae4-4f31-a8d8-de7120a027be",
       "Name": "Output 2",
-      "ParentId": "e152bf6e-f7d9-4316-b2fc-6140afe30bdc",
-      "Type": 0
+      "ParentId": "7e3d730b-c700-4927-b24b-1cf826ec9ad6",
+      "Delete": {}
     },
     {
-      "$type": "input",
-      "Id": "93e07777-f058-4fdd-b76f-6b6805a9d0a1",
+      "Type": 0,
+      "Id": "3787a964-b5ae-4051-8b53-938d9725c73a",
       "Name": "Input 1",
-      "ParentId": "09fb1704-6c40-4e9f-96f3-973cc2d5ec9b",
-      "Type": 0
+      "ParentId": "a1e61680-de3b-47a5-ac12-57762ae4a356",
+      "Delete": {}
     },
     {
-      "$type": "output",
-      "Id": "4ebaaf7d-245c-4029-870d-20738d6adad0",
+      "Type": 0,
+      "Id": "928fc5de-9859-4ec9-98e9-61dffe187c72",
       "Name": "Output 1",
-      "ParentId": "09fb1704-6c40-4e9f-96f3-973cc2d5ec9b",
-      "Type": 0
+      "ParentId": "a1e61680-de3b-47a5-ac12-57762ae4a356",
+      "Delete": {}
+    },
+    {
+      "Type": 1,
+      "Id": "f9a624d9-6d02-4457-8417-86bef740c8da",
+      "Name": null,
+      "ParentId": "7e3d730b-c700-4927-b24b-1cf826ec9ad6",
+      "Delete": {}
+    },
+    {
+      "Type": 1,
+      "Id": "75bd2e1d-63ca-4d25-a45d-bbbab88e9ad4",
+      "Name": null,
+      "ParentId": "a1e61680-de3b-47a5-ac12-57762ae4a356",
+      "Delete": {}
+    },
+    {
+      "Type": 1,
+      "Id": "32a06ff9-e1fb-4a8d-b496-0902cc526ba4",
+      "Name": null,
+      "ParentId": "7e3d730b-c700-4927-b24b-1cf826ec9ad6",
+      "Delete": {}
+    },
+    {
+      "Type": 1,
+      "Id": "3604cc8d-d558-4a96-bf41-1f008e098700",
+      "Name": null,
+      "ParentId": "a1e61680-de3b-47a5-ac12-57762ae4a356",
+      "Delete": {}
+    },
+    {
+      "Type": 1,
+      "Id": "32773162-08fa-47d6-b953-f6545bad5368",
+      "Name": null,
+      "ParentId": "03934162-0c06-4e71-b261-1560b00a6595",
+      "Delete": {}
+    },
+    {
+      "Type": 1,
+      "Id": "7a86376d-ac8d-46e3-b350-488e771f1816",
+      "Name": null,
+      "ParentId": "9342e968-06ab-4e59-a108-bab7bdabdfc8",
+      "Delete": {}
     }
   ],
   "Connections": [
     {
-      "ParentId": "4b420aac-1b85-4bcf-a8e8-34e83a54c657",
-      "SourceId": "4ebaaf7d-245c-4029-870d-20738d6adad0",
-      "TargetId": "c547b6eb-3146-49dd-8dcd-717c62d2479e",
-      "Type": 0
+      "ParentId": "279b4432-04f9-4118-a912-c59af5d909de",
+      "SourceId": "928fc5de-9859-4ec9-98e9-61dffe187c72",
+      "TargetId": "1aa3b61e-cec0-43d9-8ed6-7e805b8506b9"
     }
   ],
   "WorkflowRelations": [
     {
-      "WorkflowId": "4b420aac-1b85-4bcf-a8e8-34e83a54c657",
-      "NodeId": "e152bf6e-f7d9-4316-b2fc-6140afe30bdc"
+      "WorkflowId": "279b4432-04f9-4118-a912-c59af5d909de",
+      "NodeId": "7e3d730b-c700-4927-b24b-1cf826ec9ad6"
     },
     {
-      "WorkflowId": "4b420aac-1b85-4bcf-a8e8-34e83a54c657",
-      "NodeId": "09fb1704-6c40-4e9f-96f3-973cc2d5ec9b"
+      "WorkflowId": "279b4432-04f9-4118-a912-c59af5d909de",
+      "NodeId": "a1e61680-de3b-47a5-ac12-57762ae4a356"
+    },
+    {
+      "WorkflowId": "279b4432-04f9-4118-a912-c59af5d909de",
+      "NodeId": "03934162-0c06-4e71-b261-1560b00a6595"
+    },
+    {
+      "WorkflowId": "279b4432-04f9-4118-a912-c59af5d909de",
+      "NodeId": "9342e968-06ab-4e59-a108-bab7bdabdfc8"
     }
   ]
 }

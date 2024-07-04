@@ -1,8 +1,6 @@
 ﻿using Automation.App.Base;
-using Automation.Base;
-using System.Windows;
+using Automation.Base.ViewModels;
 using System.Windows.Controls;
-using static System.Formats.Asn1.AsnWriter;
 
 namespace Automation.App.Views.WorkflowUI
 {

@@ -13,7 +13,7 @@ namespace Automation.Base.ViewModels
     {
         public ObservableCollection<NodeConnection> Connections { get; } = [];
         [JsonIgnore]
-        public ObservableCollection<INode> Nodes { get; set; } = [];
+        public ObservableCollection<Node> Nodes { get; set; } = [];
 
         public void AddConnection(NodeConnection connection)
         {

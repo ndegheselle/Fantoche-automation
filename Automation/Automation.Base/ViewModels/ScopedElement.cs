@@ -6,21 +6,32 @@ using System.Windows.Data;
 
 namespace Automation.Base.ViewModels
 {
+    [Flags]
+    public enum EnumScopedType
+    {
+        Scope,
+        Task,
+        Workflow,
+    }
+
+    [JsonDerivedType(typeof(ScopedNode), typeDiscriminator: "node")]
+    [JsonDerivedType(typeof(Scope), typeDiscriminator: "scope")]
     public class ScopedElement : INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
+
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public Guid? ParentId { get; set; }
+
         [JsonIgnore]
         public Scope? Parent { get; set; }
 
         public string Name { get; set; }
 
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+        public EnumScopedType Type { get; set; }
 
         [JsonIgnore]
         public bool IsExpanded { get; set; }
@@ -56,7 +67,21 @@ namespace Automation.Base.ViewModels
         }
     }
 
-    public partial class Scope : ScopedElement
+    public class ScopedNode : ScopedElement
+    {
+        public Node Node { get; set; }
+
+        public ScopedNode(Node node)
+        {
+            Node = node;
+            if (node is TaskNode task)
+                Type = EnumScopedType.Task;
+            else if (node is WorkflowNode workflow)
+                Type = EnumScopedType.Workflow;
+        }
+    }
+
+    public class Scope : ScopedElement
     {
         [JsonIgnore]
         public ObservableCollection<ScopedElement> Childrens { get; set; } = [];
@@ -65,7 +90,7 @@ namespace Automation.Base.ViewModels
 
         public Scope()
         {
-            // UI specific
+            Type = EnumScopedType.Scope;
             SortedChildrens = (ListCollectionView)CollectionViewSource.GetDefaultView(Childrens);
             SortedChildrens.SortDescriptions.Add(new SortDescription(nameof(Type), ListSortDirection.Ascending));
             SortedChildrens.SortDescriptions.Add(new SortDescription(nameof(Name), ListSortDirection.Ascending));

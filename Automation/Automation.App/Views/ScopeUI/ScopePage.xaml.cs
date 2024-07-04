@@ -58,7 +58,7 @@ namespace Automation.App.Views.ScopeUI
         private void ListBox_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             ListBox listBox = (ListBox)sender;
-            Node? selectedElement = listBox.SelectedItem as Node;
+            ScopedElement? selectedElement = listBox.SelectedItem as ScopedElement;
 
             if (selectedElement == null)
                 return;

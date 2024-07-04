@@ -13,9 +13,9 @@ namespace Automation.App.ViewModels
 
         public Scope RootScope { get; set; }
 
-        private Node? _selectedElement;
+        private ScopedElement? _selectedElement;
 
-        public Node? SelectedElement
+        public ScopedElement? SelectedElement
         {
             get => _selectedElement;
             set
@@ -34,7 +34,7 @@ namespace Automation.App.ViewModels
                     ScopeRepository scopeRepository = new ScopeRepository();
                     Scope? fullScope = scopeRepository.GetNode(_selectedElement.Id) as Scope;
 
-                    foreach (Node child in fullScope.Childrens)
+                    foreach (ScopedElement child in fullScope.Childrens)
                         scope.AddChild(child);
                 }
 

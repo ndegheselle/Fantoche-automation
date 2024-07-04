@@ -7,7 +7,7 @@
     xmlns:nodify="clr-namespace:Nodify;assembly=Nodify"
     xmlns:local="clr-namespace:Automation.App.Views.WorkflowUI"
     xmlns:graph="clr-namespace:Automation.App.ViewModels.Graph"
-    xmlns:scopes="clr-namespace:Automation.Base;assembly=Automation.Base"
+    xmlns:baseViewModels="clr-namespace:Automation.Base.ViewModels;assembly=Automation.Base"
     xmlns:components="clr-namespace:Automation.App.Components"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     mc:Ignorable="d">
@@ -64,14 +64,14 @@
             PendingConnection="{Binding PendingConnection}"
             DisconnectConnectorCommand="{Binding DisconnectConnectorCommand}">
             <nodify:NodifyEditor.Resources>
-                <DataTemplate DataType="{x:Type scopes:NodeGroup}">
+                <DataTemplate DataType="{x:Type baseViewModels:NodeGroup}">
                     <nodify:GroupingNode
                         ActualSize="{Binding Size}"
                         Header="{Binding Name}"
                         MovementMode="Group" />
                 </DataTemplate>
 
-                <DataTemplate DataType="{x:Type scopes:TaskNode}">
+                <DataTemplate DataType="{x:Type baseViewModels:TaskNode}">
                     <nodify:Node
                         Input="{Binding Inputs}"
                         Output="{Binding Outputs}"
@@ -81,7 +81,7 @@
                                 <MenuItem
                                     Header="Add input"
                                     Click="MenuItemAddInput_Click"
-                                    IsEnabled="{Binding ConnectorsOptions, ConverterParameter={x:Static scopes:EnumTaskNodeConnectorsOptions.EditInputs}, Converter={StaticResource EnumToBooleanConverter}}">
+                                    IsEnabled="{Binding AllowedConnectorEdits, ConverterParameter={x:Static baseViewModels:EnumConnectorsDirection.In}, Converter={StaticResource EnumToBooleanConverter}}">
                                     <MenuItem.Icon>
                                         <TextBlock
                                             VerticalAlignment="Center"
@@ -92,7 +92,7 @@
                                 <MenuItem
                                     Header="Add Output"
                                     Click="MenuItemAddOutput_Click"
-                                    IsEnabled="{Binding ConnectorsOptions, ConverterParameter={x:Static scopes:EnumTaskNodeConnectorsOptions.EditOutputs}, Converter={StaticResource EnumToBooleanConverter}}">
+                                    IsEnabled="{Binding AllowedConnectorEdits, ConverterParameter={x:Static baseViewModels:EnumConnectorsDirection.In}, Converter={StaticResource EnumToBooleanConverter}}">
                                     <MenuItem.Icon>
                                         <TextBlock
                                             VerticalAlignment="Center"
@@ -112,7 +112,7 @@
                             </Style>
                         </nodify:Node.Style>
                         <nodify:Node.InputConnectorTemplate>
-                            <DataTemplate DataType="{x:Type scopes:NodeConnector}">
+                            <DataTemplate DataType="{x:Type baseViewModels:NodeConnector}">
                                 <nodify:NodeInput
                                     Header="{Binding Name}"
                                     IsConnected="{Binding IsConnected}"
@@ -135,7 +135,7 @@
                                     <nodify:NodeInput.Style>
                                         <Style TargetType="{x:Type nodify:NodeInput}" BasedOn="{StaticResource {x:Type nodify:NodeInput}}">
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding Type}" Value="{x:Static scopes:EnumNodeConnectorType.Flow}">
+                                                <DataTrigger Binding="{Binding Type}" Value="{x:Static baseViewModels:EnumNodeConnectorType.Flow}">
                                                     <Setter Property="ConnectorTemplate" Value="{StaticResource FlowConnector}" />
                                                     <Setter Property="BorderBrush" Value="{StaticResource {x:Static adonisUi:Brushes.ForegroundBrush}}" />
                                                 </DataTrigger>
@@ -146,7 +146,7 @@
                             </DataTemplate>
                         </nodify:Node.InputConnectorTemplate>
                         <nodify:Node.OutputConnectorTemplate>
-                            <DataTemplate DataType="{x:Type scopes:NodeConnector}">
+                            <DataTemplate DataType="{x:Type baseViewModels:NodeConnector}">
                                 <nodify:NodeOutput
                                     Header="{Binding Name}"
                                     IsConnected="{Binding IsConnected}"
@@ -169,7 +169,7 @@
                                     <nodify:NodeOutput.Style>
                                         <Style TargetType="{x:Type nodify:NodeOutput}" BasedOn="{StaticResource {x:Type nodify:NodeOutput}}">
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding Type}" Value="{x:Static scopes:EnumNodeConnectorType.Flow}">
+                                                <DataTrigger Binding="{Binding Type}" Value="{x:Static baseViewModels:EnumNodeConnectorType.Flow}">
                                                     <Setter Property="ConnectorTemplate" Value="{StaticResource FlowConnector}" />
                                                     <Setter Property="BorderBrush" Value="{StaticResource {x:Static adonisUi:Brushes.ForegroundBrush}}" />
                                                 </DataTrigger>
@@ -188,15 +188,15 @@
                 </Style>
             </nodify:NodifyEditor.ItemContainerStyle>
             <nodify:NodifyEditor.ConnectionTemplate>
-                <DataTemplate DataType="{x:Type scopes:NodeConnection}">
+                <DataTemplate DataType="{x:Type baseViewModels:NodeConnection}">
                     <nodify:Connection Source="{Binding Source.Anchor}" Target="{Binding Target.Anchor}">
                         <nodify:Connection.Style>
                             <Style TargetType="{x:Type nodify:Connection}" BasedOn="{StaticResource {x:Type nodify:Connection}}">
                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Type}" Value="{x:Static scopes:EnumNodeConnectionType.Data}">
+                                    <DataTrigger Binding="{Binding Source.Type}" Value="{x:Static baseViewModels:EnumNodeConnectorType.Data}">
                                         <Setter Property="ArrowEnds" Value="None" />
                                     </DataTrigger>
-                                    <DataTrigger Binding="{Binding Type}" Value="{x:Static scopes:EnumNodeConnectionType.Flow}">
+                                    <DataTrigger Binding="{Binding Source.Type}" Value="{x:Static baseViewModels:EnumNodeConnectorType.Flow}">
                                         <Setter Property="Stroke" Value="{StaticResource {x:Static adonisUi:Brushes.ForegroundBrush}}" />
                                     </DataTrigger>
                                 </Style.Triggers>

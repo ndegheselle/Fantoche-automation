@@ -1,4 +1,5 @@
 ﻿using Automation.Base;
+using Automation.Base.ViewModels;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -8,13 +9,13 @@ namespace Automation.App.Components
     {
         public static readonly DependencyProperty TypeProperty = DependencyProperty.Register(
             "Type",
-            typeof(EnumNodeType),
+            typeof(EnumScopedType),
             typeof(NodeIcon),
-            new PropertyMetadata(EnumNodeType.Task));
+            new PropertyMetadata(EnumScopedType.Task));
 
-        public EnumNodeType Type
+        public EnumScopedType Type
         {
-            get { return (EnumNodeType)GetValue(TypeProperty); }
+            get { return (EnumScopedType)GetValue(TypeProperty); }
             set { SetValue(TypeProperty, value); }
         }
 

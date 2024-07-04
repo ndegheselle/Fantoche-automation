@@ -28,7 +28,7 @@
                     <ColumnDefinition Width="auto" />
                     <ColumnDefinition />
                 </Grid.ColumnDefinitions>
-                <components:NodeSelector x:Name="SideMenu" />
+                <components:ScopedSelector x:Name="SideMenu" />
                 <views:RouterView Grid.Column="1" Selected="{Binding Selected, ElementName=SideMenu, Mode=OneWay}" />
             </Grid>
             <menus:Footer Grid.Row="2" />

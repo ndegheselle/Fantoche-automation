@@ -1,5 +1,5 @@
-﻿using Automation.App.Base;
-using Automation.Base;
+﻿using Automation.Base;
+using Automation.Base.ViewModels;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
@@ -45,10 +45,6 @@ namespace Automation.App.ViewModels.Graph
         public void Connect(NodeConnector source, NodeConnector target)
         {
             NodeConnection connection = new NodeConnection(Workflow, source, target);
-
-            if (source.Type == EnumNodeConnectorType.Flow)
-                connection.Type = EnumNodeConnectionType.Flow;
-
             Workflow?.AddConnection(connection);
         }
 

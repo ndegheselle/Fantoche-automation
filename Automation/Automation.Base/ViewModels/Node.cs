@@ -11,19 +11,18 @@ using System.Xml.Linq;
 
 namespace Automation.Base.ViewModels
 {
-    public interface INode
+    [JsonDerivedType(typeof(NodeGroup), typeDiscriminator: "group")]
+    [JsonDerivedType(typeof(TaskNode), typeDiscriminator: "task")]
+    [JsonDerivedType(typeof(WorkflowNode), typeDiscriminator: "workflow")]
+    public class Node
     {
         public Guid Id { get; set; }
         public string Name { get; set; }
         public Point Location { get; set; }
     }
 
-    public class NodeGroup : INode
+    public class NodeGroup : Node
     {
-        public Guid Id { get; set; }
-        public string Name { get; set; }
-
-        public Point Location { get; set; }
         public Size Size { get; set; }
     }
 
@@ -41,9 +40,10 @@ namespace Automation.Base.ViewModels
         Flow
     }
 
-    public class TaskNode : ScopedElement, INode
+    public class TaskNode : Node
     {
-        public Point Location { get; set; }
+        public Guid ParentScopeId { get; set; }
+
         [JsonIgnore]
         public List<NodeConnector> Inputs { get; set; } = [];
         [JsonIgnore]
@@ -64,8 +64,12 @@ namespace Automation.Base.ViewModels
         }
     }
 
-    public partial class NodeConnector : INotifyPropertyChanged
+    [JsonDerivedType(typeof(NodeInput), typeDiscriminator: "input")]
+    [JsonDerivedType(typeof(NodeOutput), typeDiscriminator: "output")]
+    public class NodeConnector : INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler? PropertyChanged;
+
         public EnumNodeConnectorType Type { get; set; } = EnumNodeConnectorType.Data;
 
         public Guid Id { get; set; } = Guid.NewGuid();

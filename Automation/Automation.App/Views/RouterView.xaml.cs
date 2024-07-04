@@ -20,13 +20,13 @@ namespace Automation.App.Views
         // Dependency property selected node
         public static readonly DependencyProperty SelectedProperty = DependencyProperty.Register(
             "Selected",
-            typeof(Node),
+            typeof(ScopedElement),
             typeof(RouterView),
             new PropertyMetadata(null, (o, e) => ((RouterView)o).OnSelectedNodeChanged()));
 
-        public Node Selected
+        public ScopedElement Selected
         {
-            get { return (Node)GetValue(SelectedProperty); }
+            get { return (ScopedElement)GetValue(SelectedProperty); }
             set { SetValue(SelectedProperty, value); }
         }
 
@@ -37,16 +37,16 @@ namespace Automation.App.Views
 
             switch (Selected.Type)
             {
-                case EnumNodeType.Scope:
+                case EnumScopedType.Scope:
                     this.Content = new ScopePage(
                         _app.ServiceProvider.GetRequiredService<IModalContainer>(),
                         (Scope)Selected);
                     break;
-                case EnumNodeType.Workflow:
+                case EnumScopedType.Workflow:
                     this.Content = new WorkflowPage((WorkflowNode)Selected);
                     break;
-                case EnumNodeType.Task:
-                    this.Content = new TaskPage(Selected);
+                case EnumScopedType.Task:
+                    this.Content = new TaskPage((TaskNode)Selected);
                     break;
             }
         }
