@@ -69,11 +69,14 @@ namespace Automation.Base.ViewModels
 
     public class ScopedNode : ScopedElement
     {
+        public Guid NodeId { get; set; }
+        [JsonIgnore]
         public Node Node { get; set; }
 
         public ScopedNode(Node node)
         {
             Node = node;
+            Name = node.Name;
             if (node is TaskNode task)
                 Type = EnumScopedType.Task;
             else if (node is WorkflowNode workflow)
