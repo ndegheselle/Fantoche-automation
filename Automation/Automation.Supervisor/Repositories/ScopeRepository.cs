@@ -11,6 +11,7 @@ namespace Automation.Supervisor.Repositories
     public class TestData
     {
         public List<Node> Nodes { get; set; }
+
         public List<ScopedElement> ScopedElements { get; set; }
 
         public List<NodeConnector> Connectors { get; set; }
@@ -22,11 +23,13 @@ namespace Automation.Supervisor.Repositories
 
     public class ScopeRepository
     {
-        public ScopeRepository() {
-            CreateTestNodes(); 
+        public ScopeRepository()
+        {
+            // CreateTestNodes(); 
         }
 
         public Scope GetRootScope() { return (Scope)GetScoped(Guid.Parse("00000000-0000-0000-0000-000000000001")); }
+
         public ScopedElement? GetScoped(Guid id)
         {
             var testData = LoadTestData();
@@ -56,12 +59,16 @@ namespace Automation.Supervisor.Repositories
             if (node is TaskNode task)
             {
                 // For each inputs set the parent node
-                foreach (NodeInput input in testData.Connectors.Where(x => x is NodeInput && x.ParentId == task.Id))
+                foreach (NodeInput input in testData.Connectors
+                    .Where(x => x is NodeInput && x.ParentId == task.Id)
+                    .OrderByDescending(x => x.Type))
                 {
                     task.AddInput(input);
                 }
                 // For each outputs set the parent node
-                foreach (NodeOutput output in testData.Connectors.Where(x => x is NodeOutput && x.ParentId == task.Id))
+                foreach (NodeOutput output in testData.Connectors
+                    .Where(x => x is NodeOutput && x.ParentId == task.Id)
+                    .OrderByDescending(x => x.Type))
                 {
                     task.AddOutput(output);
                 }
@@ -80,8 +87,14 @@ namespace Automation.Supervisor.Repositories
                 // Get the connections
                 foreach (NodeConnection connection in testData.Connections.Where(x => x.ParentId == workflow.Id))
                 {
-                    connection.Source = workflow.Nodes.Where(x => x is TaskNode).SelectMany(x => ((TaskNode)x).Outputs).First(x => x.Id == connection.SourceId);
-                    connection.Target = workflow.Nodes.Where(x => x is TaskNode).SelectMany(x => ((TaskNode)x).Inputs).First(x => x.Id == connection.TargetId);
+                    connection.Source = workflow.Nodes
+                        .Where(x => x is TaskNode)
+                        .SelectMany(x => ((TaskNode)x).Outputs)
+                        .First(x => x.Id == connection.SourceId);
+                    connection.Target = workflow.Nodes
+                        .Where(x => x is TaskNode)
+                        .SelectMany(x => ((TaskNode)x).Inputs)
+                        .First(x => x.Id == connection.TargetId);
                     workflow.AddConnection(new NodeConnection(workflow, connection.Source, connection.Target));
                 }
             }
@@ -126,9 +139,7 @@ namespace Automation.Supervisor.Repositories
             WorkflowNode workflowScope = new WorkflowNode() { Name = "Workflow 1", };
 
             var connection = new NodeConnection(workflowScope, output2, input1);
-
             #region Scoped elements
-
             Scope subScope = new Scope() { Name = "SubScope 1", };
             ScopedNode subTask = new ScopedNode(taskScope1);
             subTask.ParentId = subScope.Id;
@@ -140,19 +151,40 @@ namespace Automation.Supervisor.Repositories
             ScopedNode taskScope1Node = new ScopedNode(taskScope1);
             ScopedNode taskScope2Node = new ScopedNode(taskScope2);
 
+            subScope.ParentId = rootScope.Id;
             workflowScopeNode.ParentId = rootScope.Id;
             taskScope1Node.ParentId = rootScope.Id;
             taskScope2Node.ParentId = rootScope.Id;
-
             #endregion
-
             JsonSerializerOptions options = new JsonSerializerOptions { WriteIndented = true };
             string json = JsonSerializer.Serialize(
                 new TestData()
                 {
                     Nodes = new List<Node> { taskScope1, taskScope2, workflowInput, workflowOutput, workflowScope },
-                    ScopedElements = new List<ScopedElement> { subTask, subScope, rootScope, workflowScopeNode, taskScope1Node, taskScope2Node },
-                    Connectors = new List<NodeConnector>() { input1, output1, input2, output2, flowIn1, flowIn2, flowOut1, flowOut2, flowOut3, flowIn3 },
+                    ScopedElements =
+                        new List<ScopedElement>
+                            {
+                                subTask,
+                                subScope,
+                                rootScope,
+                                workflowScopeNode,
+                                taskScope1Node,
+                                taskScope2Node
+                            },
+                    Connectors =
+                        new List<NodeConnector>()
+                            {
+                                input1,
+                                output1,
+                                input2,
+                                output2,
+                                flowIn1,
+                                flowIn2,
+                                flowOut1,
+                                flowOut2,
+                                flowOut3,
+                                flowIn3
+                            },
                     Connections = new List<NodeConnection>() { connection },
                     WorkflowRelations =
                         new List<WorkflowRelation>()

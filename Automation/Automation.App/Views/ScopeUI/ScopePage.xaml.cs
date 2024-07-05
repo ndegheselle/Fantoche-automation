@@ -20,8 +20,8 @@ namespace Automation.App.Views.ScopeUI
         {
             _scope = scope;
             _modal = modal;
-            InitializeComponent();
             this.DataContext = _scope;
+            InitializeComponent();
         }
 
         #region UI Events
@@ -42,16 +42,16 @@ namespace Automation.App.Views.ScopeUI
 
         private async void MenuAddTask_Click(object sender, RoutedEventArgs e)
         {
-            TaskNode newScope = new TaskNode();
-            if (await _modal.Show(new TaskEditModal(newScope)))
-                _scope.AddChild(newScope);
+            TaskNode newTask = new TaskNode();
+            if (await _modal.Show(new TaskEditModal(newTask)))
+                _scope.AddChild(new ScopedNode(newTask));
         }
 
         private async void MenuAddWorkflow_Click(object sender, RoutedEventArgs e)
         {
-            WorkflowNode newScope = new WorkflowNode();
-            if (await _modal.Show(new WorkflowEditModal(newScope)))
-                _scope.AddChild(newScope);
+            WorkflowNode newWorkflow = new WorkflowNode();
+            if (await _modal.Show(new WorkflowEditModal(newWorkflow)))
+                _scope.AddChild(new ScopedNode(newWorkflow));
         }
         #endregion
 

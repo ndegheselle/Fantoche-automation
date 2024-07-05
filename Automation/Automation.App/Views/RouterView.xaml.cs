@@ -43,10 +43,10 @@ namespace Automation.App.Views
                         (Scope)Selected);
                     break;
                 case EnumScopedType.Workflow:
-                    this.Content = new WorkflowPage((WorkflowNode)Selected);
+                    this.Content = new WorkflowPage(((ScopedNode)Selected).NodeId);
                     break;
                 case EnumScopedType.Task:
-                    this.Content = new TaskPage((TaskNode)Selected);
+                    this.Content = new TaskPage(((ScopedNode)Selected).NodeId);
                     break;
             }
         }

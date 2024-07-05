@@ -9,7 +9,7 @@ namespace Automation.App.Views.TaskUI
     /// </summary>
     public partial class TaskPage : UserControl
     {
-        public TaskPage(TaskNode task)
+        public TaskPage(Guid id)
         {
             InitializeComponent();
         }

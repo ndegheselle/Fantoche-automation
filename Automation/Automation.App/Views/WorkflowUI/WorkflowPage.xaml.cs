@@ -12,11 +12,11 @@ namespace Automation.App.Views.WorkflowUI
     {
         public EditorViewModel Editor { get; set; }
 
-        public WorkflowPage(WorkflowNode workflow)
+        public WorkflowPage(Guid id)
         {
             // Load full workflow
             ScopeRepository scopeRepository = new ScopeRepository();
-            workflow = (WorkflowNode)scopeRepository.GetNode(workflow.Id);
+            WorkflowNode workflow = (WorkflowNode)scopeRepository.GetNode(id);
 
             Editor = new EditorViewModel(workflow);
             this.DataContext = this;

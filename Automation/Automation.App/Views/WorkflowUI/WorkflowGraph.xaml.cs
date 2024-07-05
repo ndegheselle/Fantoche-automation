@@ -66,7 +66,8 @@ namespace Automation.App.Views.WorkflowUI
             if (await _modal.Show(nodeSelector) &&
                 nodeSelector.Selected != null)
             {
-                EditorData.Workflow.Nodes.Add((TaskNode)nodeSelector.Selected);
+                Guid nodeId = ((ScopedNode)nodeSelector.Selected).NodeId;
+                EditorData.Workflow.Nodes.Add(scopeRepository.GetNode(nodeId));
             }
         }
 

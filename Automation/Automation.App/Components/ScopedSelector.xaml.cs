@@ -66,7 +66,7 @@ namespace Automation.App.Components
             if (selected != null && selected is Scope scope && scope.Childrens.Count == 0)
             {
                 ScopeRepository scopeRepository = new ScopeRepository();
-                Scope? fullScope = scopeRepository.GetNode(selected.Id) as Scope;
+                Scope? fullScope = scopeRepository.GetScoped(selected.Id) as Scope;
 
                 foreach (ScopedElement child in fullScope.Childrens)
                     scope.AddChild(child);

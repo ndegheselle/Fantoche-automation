@@ -32,7 +32,7 @@ namespace Automation.App.ViewModels
                     scope.Childrens.Count == 0)
                 {
                     ScopeRepository scopeRepository = new ScopeRepository();
-                    Scope? fullScope = scopeRepository.GetNode(_selectedElement.Id) as Scope;
+                    Scope? fullScope = scopeRepository.GetScoped(_selectedElement.Id) as Scope;
 
                     foreach (ScopedElement child in fullScope.Childrens)
                         scope.AddChild(child);
