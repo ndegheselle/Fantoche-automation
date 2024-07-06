@@ -29,14 +29,6 @@ namespace Automation.Base.ViewModels
         public Size Size { get; set; }
     }
 
-    [Flags]
-    public enum EnumConnectorsDirection
-    {
-        None = 0,
-        In = 1,
-        Out = 2,
-    }
-
     public enum EnumNodeConnectorType
     {
         Data,
@@ -51,8 +43,6 @@ namespace Automation.Base.ViewModels
         public List<NodeConnector> Inputs { get; set; } = [];
         [JsonIgnore]
         public List<NodeConnector> Outputs { get; set; } = [];
-
-        public EnumConnectorsDirection AllowedConnectorEdits { get; set; } = EnumConnectorsDirection.None;
 
         public void AddInput(NodeConnector input)
         {
@@ -85,23 +75,6 @@ namespace Automation.Base.ViewModels
         public Point Anchor { get; set; }
         [JsonIgnore]
         public TaskNode Parent { get; set; }
-
-        [JsonIgnore]
-        public ICommand Delete { get; set; } = new DelegateCommand<NodeConnector>(connector =>
-        {
-            if (connector is NodeInput input)
-            {
-                connector.Parent.Inputs.Remove(input);
-            }
-            else if (connector is NodeOutput output)
-            {
-                connector.Parent.Outputs.Remove(output);
-            }
-        }, (connector) =>
-        {
-            return connector is NodeInput && connector.Parent.AllowedConnectorEdits.HasFlag(EnumConnectorsDirection.In) ||
-                   connector is NodeOutput && connector.Parent.AllowedConnectorEdits.HasFlag(EnumConnectorsDirection.Out);
-        });
     }
 
     public class NodeInput : NodeConnector

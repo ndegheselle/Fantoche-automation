@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace Automation.Base.ViewModels
 {
@@ -27,7 +21,6 @@ namespace Automation.Base.ViewModels
         public WorkflowInputNode() : base()
         {
             Name = "Start";
-            AllowedConnectorEdits = EnumConnectorsDirection.Out;
         }
     }
 
@@ -36,7 +29,6 @@ namespace Automation.Base.ViewModels
         public WorkflowOutputNode() : base()
         {
             Name = "End";
-            AllowedConnectorEdits = EnumConnectorsDirection.In;
         }
     }
 

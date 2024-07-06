@@ -10,8 +10,8 @@
     xmlns:views="clr-namespace:Automation.App.Views"
     xmlns:menus="clr-namespace:Automation.App.Views.Menus"
     Title="Automation - test"
-    Width="800"
-    Height="450"
+    Width="1600"
+    Height="800"
     TitleBarBackground="{DynamicResource {x:Static adonisUi:Brushes.Layer1BackgroundBrush}}"
     BorderBrush="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}"
     BorderThickness="1">

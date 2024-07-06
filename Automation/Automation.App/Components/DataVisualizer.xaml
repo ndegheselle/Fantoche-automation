@@ -1,0 +1,46 @@
+﻿<UserControl
+    x:Class="Automation.App.Components.DataVisualizer"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Automation.App.Components"
+    xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
+    mc:Ignorable="d"
+    d:DesignHeight="450"
+    d:DesignWidth="800">
+    <TreeView x:Name="TestTreeView" ItemsSource="{Binding DataTree.Childrens, RelativeSource={RelativeSource AncestorType=local:DataVisualizer}}">
+        <TreeView.Resources>
+            <HierarchicalDataTemplate DataType="{x:Type local:DataTree}" ItemsSource="{Binding Childrens}">
+                <TextBox Text="{Binding Key}" />
+            </HierarchicalDataTemplate>
+            <DataTemplate DataType="{x:Type local:DataValue}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBox Text="{Binding Key}">
+                        <TextBox.Style>
+                            <Style TargetType="TextBox">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Key}" Value="{x:Null}">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBox.Style>
+                    </TextBox>
+                    <TextBlock Text=":" Margin="4,0">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Key}" Value="{x:Null}">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                    <TextBox IsReadOnly="True" Text="{Binding Value}" />
+                </StackPanel>
+            </DataTemplate>
+        </TreeView.Resources>
+    </TreeView>
+</UserControl>
