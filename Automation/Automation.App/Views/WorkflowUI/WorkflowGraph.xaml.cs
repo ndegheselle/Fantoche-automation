@@ -1,18 +1,14 @@
 ﻿using Automation.App.Base;
-using Automation.App.Components;
+using Automation.App.Components.Inputs;
 using Automation.App.ViewModels.Graph;
-using Automation.App.Views.ScopeUI;
-using Automation.Base;
 using Automation.Base.ViewModels;
 using Automation.Supervisor.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using Nodify;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
-using System.Xml.Linq;
 
 namespace Automation.App.Views.WorkflowUI
 {
@@ -110,20 +106,6 @@ namespace Automation.App.Views.WorkflowUI
         {
             Rect boundingBox = GetSelectedBoundingBox(10);
             EditorData.CreateGroup(boundingBox);
-        }
-
-
-        private async void MenuItemAddInput_Click(object sender, RoutedEventArgs e)
-        {
-            ConnectorEditModal connectorEditModal = new ConnectorEditModal(new NodeConnector());
-            if (await _modal.Show(connectorEditModal))
-            {
-            }
-        }
-
-        private void MenuItemAddOutput_Click(object sender, RoutedEventArgs e)
-        {
-
         }
 
         #endregion

@@ -3,7 +3,7 @@ using Automation.Base.ViewModels;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace Automation.App.Components
+namespace Automation.App.Components.Display
 {
     public partial class NodeIcon : UserControl
     {

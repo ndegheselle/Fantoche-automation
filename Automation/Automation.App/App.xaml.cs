@@ -1,8 +1,6 @@
 ﻿using Automation.App.Base;
 using Automation.App.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
-using System.Configuration;
-using System.Data;
 using System.Windows;
 
 namespace Automation.App

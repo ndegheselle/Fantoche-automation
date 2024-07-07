@@ -14,7 +14,7 @@
         <Border
             Background="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}"
             Opacity="0.8"
-            MouseUp="ButtonClose" />
+            MouseDown="ButtonClose" />
         <Border
             CornerRadius="{StaticResource {x:Static adonisUi:Dimensions.CornerRadius}}"
             BorderThickness="{StaticResource {x:Static adonisUi:Dimensions.BorderThickness}}"

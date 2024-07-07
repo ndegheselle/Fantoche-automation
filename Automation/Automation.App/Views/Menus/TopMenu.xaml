@@ -5,7 +5,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Automation.App.Views.Menus"
-    xmlns:components="clr-namespace:Automation.App.Components"
+    xmlns:display="clr-namespace:Automation.App.Components.Display"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     mc:Ignorable="d">
     <Menu
@@ -16,7 +16,7 @@
             <MenuItem Header="Parameters" Click="Parameters_Click">
                 <MenuItem.Icon>
                     <TextBlock
-                        Text="{x:Static components:IconFont.Gear}"
+                        Text="{x:Static display:IconFont.Gear}"
                         FontFamily="{StaticResource FontAwesomeSolid}"
                         VerticalAlignment="Center" />
                 </MenuItem.Icon>

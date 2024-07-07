@@ -9,7 +9,7 @@
     MinHeight="300"
     MinWidth="300"
     xmlns:scopes="clr-namespace:Automation.Base;assembly=Automation.Base"
-    xmlns:components="clr-namespace:Automation.App.Components"
+    xmlns:inputs="clr-namespace:Automation.App.Components.Inputs"
     d:DataContext="{d:DesignInstance scopes:Node}">
     <Grid Margin="4">
         <Grid.RowDefinitions>
@@ -22,7 +22,7 @@
             <TextBox Text="{Binding Name}" />
 
             <TextBlock Margin="0,4">DLL path</TextBlock>
-            <components:FilePicker
+            <inputs:FilePicker
                 MaxWidth="400"
                 Margin="0,4"
                 Filter="Dynamic Link Library (*.dll)|*.dll" />

@@ -5,7 +5,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     mc:Ignorable="d"
-    xmlns:components="clr-namespace:Automation.App.Components"
+    xmlns:display="clr-namespace:Automation.App.Components.Display"
     xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
     xmlns:scopes="clr-namespace:Automation.Base;assembly=Automation.Base"
     d:DataContext="{d:DesignInstance scopes:Scope}">
@@ -32,22 +32,22 @@
                     <ContextMenu Placement="Bottom">
                         <MenuItem Header="Add scope" Click="MenuAddScope_Click">
                             <MenuItem.Icon>
-                                <components:NodeIcon Type="Scope" Margin="0,0,4,0" />
+                                <display:NodeIcon Type="Scope" Margin="0,0,4,0" />
                             </MenuItem.Icon>
                         </MenuItem>
                         <MenuItem Header="Add workflow" Click="MenuAddWorkflow_Click">
                             <MenuItem.Icon>
-                                <components:NodeIcon Type="Workflow" Margin="0,0,4,0" />
+                                <display:NodeIcon Type="Workflow" Margin="0,0,4,0" />
                             </MenuItem.Icon>
                         </MenuItem>
                         <MenuItem Header="Add task" Click="MenuAddTask_Click">
                             <MenuItem.Icon>
-                                <components:NodeIcon Type="Task" Margin="0,0,4,0" />
+                                <display:NodeIcon Type="Task" Margin="0,0,4,0" />
                             </MenuItem.Icon>
                         </MenuItem>
                     </ContextMenu>
                 </Button.ContextMenu>
-                <TextBlock Text="{x:Static components:IconFont.Plus}" FontFamily="{StaticResource FontAwesomeSolid}" />
+                <TextBlock Text="{x:Static display:IconFont.Plus}" FontFamily="{StaticResource FontAwesomeSolid}" />
             </Button>
         </Grid>
         <ListBox
@@ -57,7 +57,7 @@
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal">
-                        <components:NodeIcon Type="{Binding Type}" Margin="0,0,4,0" />
+                        <display:NodeIcon Type="{Binding Type}" Margin="0,0,4,0" />
                         <TextBlock Text="{Binding Name}" />
                     </StackPanel>
                 </DataTemplate>

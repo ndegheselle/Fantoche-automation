@@ -49,12 +49,12 @@ namespace Automation.App.Views
             _content = null;
         }
 
-        public Task<bool> Show(IModalContent content, ModalOptions options = default)
+        public Task<bool> Show(IModalContent content, ModalOptions? options = null)
         {
             _content = content;
             _content.ModalParent = this;
             ContentContainer.Content = _content;
-            Options = options;
+            Options = options ?? _content.Options;
             this.DataContext = Options;
             this.Visibility = Visibility.Visible;
 

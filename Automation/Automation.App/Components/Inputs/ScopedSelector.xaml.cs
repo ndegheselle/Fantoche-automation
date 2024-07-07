@@ -1,11 +1,10 @@
 ﻿using Automation.App.Base;
-using Automation.App.ViewModels.Graph;
 using Automation.Base.ViewModels;
 using Automation.Supervisor.Repositories;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace Automation.App.Components
+namespace Automation.App.Components.Inputs
 {
     public class ScopedSelectorModal : ScopedSelector, IModalContent
     {

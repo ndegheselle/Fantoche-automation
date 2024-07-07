@@ -5,7 +5,7 @@
     xmlns:adonisControls="clr-namespace:AdonisUI.Controls;assembly=AdonisUI"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     xmlns:adonisExtensions="clr-namespace:AdonisUI.Extensions;assembly=AdonisUI"
-    xmlns:components="clr-namespace:Automation.App.Components"
+    xmlns:inputs="clr-namespace:Automation.App.Components.Inputs"
     xmlns:local="clr-namespace:Automation.App"
     xmlns:views="clr-namespace:Automation.App.Views"
     xmlns:menus="clr-namespace:Automation.App.Views.Menus"
@@ -28,7 +28,7 @@
                     <ColumnDefinition Width="auto" />
                     <ColumnDefinition />
                 </Grid.ColumnDefinitions>
-                <components:ScopedSelector x:Name="SideMenu" />
+                <inputs:ScopedSelector x:Name="SideMenu" />
                 <views:RouterView Grid.Column="1" Selected="{Binding Selected, ElementName=SideMenu, Mode=OneWay}" />
             </Grid>
             <menus:Footer Grid.Row="2" />

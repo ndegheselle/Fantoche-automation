@@ -8,7 +8,7 @@
     xmlns:local="clr-namespace:Automation.App.Views.WorkflowUI"
     xmlns:graph="clr-namespace:Automation.App.ViewModels.Graph"
     xmlns:baseViewModels="clr-namespace:Automation.Base.ViewModels;assembly=Automation.Base"
-    xmlns:components="clr-namespace:Automation.App.Components"
+    xmlns:display="clr-namespace:Automation.App.Components.Display"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     mc:Ignorable="d">
     <UserControl.Resources>
@@ -170,48 +170,40 @@
             BorderBrush="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}">
             <StackPanel>
                 <Button
-                    BorderThickness="0"
-                    Height="28"
-                    Width="28"
+                    Style="{StaticResource IconButton}"
                     Click="ButtonZoomIn_Click"
                     ToolTip="Zoom in">
                     <TextBlock
                         FontFamily="{StaticResource FontAwesomeSolid}"
                         VerticalAlignment="Center"
-                        Text="{x:Static components:IconFont.Plus}" />
+                        Text="{x:Static display:IconFont.Plus}" />
                 </Button>
                 <Button
-                    BorderThickness="0"
-                    Height="28"
-                    Width="28"
+                    Style="{StaticResource IconButton}"
                     Click="ButtonZoomOut_Click"
                     ToolTip="Zoom out">
                     <TextBlock
                         FontFamily="{StaticResource FontAwesomeSolid}"
                         VerticalAlignment="Center"
-                        Text="{x:Static components:IconFont.Minus}" />
+                        Text="{x:Static display:IconFont.Minus}" />
                 </Button>
                 <Button
-                    BorderThickness="0"
-                    Height="28"
-                    Width="28"
+                    Style="{StaticResource IconButton}"
                     Click="ButtonZoomFit_Click"
                     ToolTip="Fit nodes to screen">
                     <TextBlock
                         FontFamily="{StaticResource FontAwesomeSolid}"
                         VerticalAlignment="Center"
-                        Text="{x:Static components:IconFont.Expand}" />
+                        Text="{x:Static display:IconFont.Expand}" />
                 </Button>
                 <ToggleButton
-                    BorderThickness="0"
-                    Height="28"
-                    Width="28"
+                    Style="{StaticResource IconButton}"
                     ToolTip="Allow snaping"
                     Click="ToggleButtonSnapping_Click">
                     <TextBlock
                         FontFamily="{StaticResource FontAwesomeSolid}"
                         VerticalAlignment="Center"
-                        Text="{x:Static components:IconFont.TableCells}" />
+                        Text="{x:Static display:IconFont.TableCells}" />
                 </ToggleButton>
             </StackPanel>
         </Border>
@@ -226,37 +218,31 @@
             BorderBrush="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}">
             <StackPanel Orientation="Horizontal">
                 <Button
-                    BorderThickness="0"
-                    Height="28"
-                    Width="28"
+                    Style="{StaticResource IconButton}"
                     Click="ButtonAdd_Click"
                     ToolTip="Add node">
                     <TextBlock
                         FontFamily="{StaticResource FontAwesomeSolid}"
                         VerticalAlignment="Center"
-                        Text="{x:Static components:IconFont.Plus}" />
+                        Text="{x:Static display:IconFont.Plus}" />
                 </Button>
                 <Button
-                    BorderThickness="0"
-                    Height="28"
-                    Width="28"
+                    Style="{StaticResource IconButton}"
                     Click="ButtonGroup_Click"
                     ToolTip="Group selected nodes">
                     <TextBlock
                         FontFamily="{StaticResource FontAwesomeSolid}"
                         VerticalAlignment="Center"
-                        Text="{x:Static components:IconFont.ObjectGroup}" />
+                        Text="{x:Static display:IconFont.ObjectGroup}" />
                 </Button>
                 <Button
-                    BorderThickness="0"
-                    Height="28"
-                    Width="28"
+                    Style="{StaticResource IconButton}"
                     Click="ButtonDelete_Click"
                     ToolTip="Delete selection">
                     <TextBlock
                         FontFamily="{StaticResource FontAwesomeSolid}"
                         VerticalAlignment="Center"
-                        Text="{x:Static components:IconFont.Trash}" />
+                        Text="{x:Static display:IconFont.Trash}" />
                 </Button>
             </StackPanel>
         </Border>
