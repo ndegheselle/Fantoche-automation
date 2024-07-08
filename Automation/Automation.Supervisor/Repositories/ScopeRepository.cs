@@ -25,7 +25,7 @@ namespace Automation.Supervisor.Repositories
     {
         public ScopeRepository()
         {
-            // CreateTestNodes(); 
+            // CreateTestNodes();
         }
 
         public Scope GetRootScope() { return (Scope)GetScoped(Guid.Parse("00000000-0000-0000-0000-000000000001")); }
@@ -141,6 +141,12 @@ namespace Automation.Supervisor.Repositories
             var connection = new NodeConnection(workflowScope, output2, input1);
             #region Scoped elements
             Scope subScope = new Scope() { Name = "SubScope 1", };
+            subScope.Context = new ContextDictionnary()
+            {
+                { "key", new ContextValue("val") },
+                { "key2", new ContextList() { new ContextValue("val1"), new ContextValue("val2") } },
+                { "key3", new ContextDictionnary { { "subkey", new ContextValue("subval") } } }
+            };
             ScopedNode subTask = new ScopedNode(taskScope1);
             subTask.ParentId = subScope.Id;
 

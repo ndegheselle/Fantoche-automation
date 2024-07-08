@@ -1,4 +1,5 @@
 ﻿using Automation.App.Base;
+using Automation.Base.ViewModels;
 using System.Windows.Controls;
 
 namespace Automation.App.Components.Data

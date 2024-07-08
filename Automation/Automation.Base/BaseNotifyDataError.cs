@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Automation.App.Base
+namespace Automation.Base
 {
     public class BaseNotifyDataError : INotifyDataErrorInfo
     {
@@ -17,7 +12,7 @@ namespace Automation.App.Base
 
         public IEnumerable GetErrors(string? propertyName)
         {
-            return !String.IsNullOrEmpty(propertyName) && _errorsByPropertyName.ContainsKey(propertyName) ?
+            return !string.IsNullOrEmpty(propertyName) && _errorsByPropertyName.ContainsKey(propertyName) ?
             _errorsByPropertyName[propertyName] : new List<string>();
         }
 
@@ -49,7 +44,7 @@ namespace Automation.App.Base
 
         public void ClearErrors([CallerMemberName] string? propertyName = null)
         {
-            if (!String.IsNullOrEmpty(propertyName) && _errorsByPropertyName.ContainsKey(propertyName))
+            if (!string.IsNullOrEmpty(propertyName) && _errorsByPropertyName.ContainsKey(propertyName))
             {
                 _errorsByPropertyName.Remove(propertyName);
                 OnErrorsChanged(propertyName);

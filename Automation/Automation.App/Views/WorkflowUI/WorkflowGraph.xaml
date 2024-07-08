@@ -197,7 +197,7 @@
                         Text="{x:Static display:IconFont.Expand}" />
                 </Button>
                 <ToggleButton
-                    Style="{StaticResource IconButton}"
+                    Style="{StaticResource IconToggleButton}"
                     ToolTip="Allow snaping"
                     Click="ToggleButtonSnapping_Click">
                     <TextBlock

@@ -14,6 +14,29 @@ namespace Automation.Base.ViewModels
         Task
     }
 
+    // XXX : for serialization, maybe just use a converter ?
+    [JsonDerivedType(typeof(ContextValue), typeDiscriminator: "value")]
+    [JsonDerivedType(typeof(ContextList), typeDiscriminator: "list")]
+    [JsonDerivedType(typeof(ContextDictionnary), typeDiscriminator: "dico")]
+    public interface IContextNode
+    {}
+
+    public class ContextValue : IContextNode
+    {
+        public object Value { get; set; }
+
+        public ContextValue(object value)
+        {
+            Value = value;
+        }
+    }
+
+    public class ContextList : List<IContextNode>, IContextNode
+    {}
+
+    public class ContextDictionnary : Dictionary<string, IContextNode>, IContextNode
+    {}
+
     [JsonDerivedType(typeof(ScopedNode), typeDiscriminator: "node")]
     [JsonDerivedType(typeof(Scope), typeDiscriminator: "scope")]
     public class ScopedElement : INotifyPropertyChanged
@@ -33,6 +56,8 @@ namespace Automation.Base.ViewModels
         public string Name { get; set; }
 
         public EnumScopedType Type { get; set; }
+
+        public ContextDictionnary Context { get; set; } = new ContextDictionnary();
 
         [JsonIgnore]
         public bool IsExpanded { get; set; }

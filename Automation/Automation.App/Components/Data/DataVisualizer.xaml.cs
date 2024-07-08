@@ -1,12 +1,9 @@
 ﻿using Automation.App.Base;
+using Automation.Base.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Input;
 
 namespace Automation.App.Components.Data

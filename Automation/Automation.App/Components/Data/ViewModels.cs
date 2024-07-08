@@ -1,4 +1,4 @@
-﻿using Automation.App.Base;
+﻿using Automation.Base;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -55,6 +55,7 @@ namespace Automation.App.Components.Data
     public class DataValue : DataNode
     {
         // TODO : handle multiples types (string, Guid, decimal, bool, datetime, timespan) with different controls + serialization
+        // May use these classes for a filter system
         public string? Value { get; set; }
         public DataValue()
         {
@@ -84,6 +85,5 @@ namespace Automation.App.Components.Data
             SortedChildrens = (ListCollectionView)CollectionViewSource.GetDefaultView(Childrens);
             SortedChildrens.SortDescriptions.Add(new SortDescription(nameof(Key), ListSortDirection.Ascending));
         }
-
     }
 }
