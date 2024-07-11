@@ -9,6 +9,7 @@ using System.Windows.Input;
 namespace Automation.App.Components.Data
 {
     /// <summary>
+    /// [Experimental] Show any data in a tree view
     /// Logique d'interaction pour DataVisualizer.xaml
     /// </summary>
     public partial class DataVisualizer : UserControl
@@ -70,25 +71,5 @@ namespace Automation.App.Components.Data
                 return value;
             }
         }
-
-        #region UI Events
-
-        private void Key_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            // Double click
-            if (e.ChangedButton != MouseButton.Left || e.ClickCount != 2)
-                return;
-
-            FrameworkElement element = (FrameworkElement)sender;
-            DataNode? node = element.DataContext as DataNode;
-
-            if (node == null)
-                return;
-
-            // Open a modal to edit the key
-            _modal.Show(new DataNodeEditModal(node));
-        }
-
-        #endregion
     }
 }

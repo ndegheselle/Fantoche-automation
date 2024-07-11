@@ -1,5 +1,4 @@
 ﻿using Automation.App.Base;
-using Automation.App.ViewModels;
 using Automation.App.Views.TaskUI;
 using Automation.App.Views.WorkflowUI;
 using Automation.Base.ViewModels;
@@ -31,6 +30,11 @@ namespace Automation.App.Views.ScopeUI
             ContextMenu contextMenu = element.ContextMenu;
             contextMenu.PlacementTarget = element;
             contextMenu.IsOpen = true;
+        }
+
+        private void ButtonParam_Click(object sender, RoutedEventArgs e)
+        {
+            _modal.Show(new ScopeEditModal(_scope));
         }
 
         private async void MenuAddScope_Click(object sender, RoutedEventArgs e)

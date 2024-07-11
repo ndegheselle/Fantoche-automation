@@ -4,22 +4,22 @@ using System.Windows.Controls;
 
 namespace Automation.App.Components.Data
 {
-    public class  DataNodeEditModal : DataNodeEdit, IModalContent
+    public class ContextEditModal : ContextEdit, IModalContent
     {
         public IModalContainer? ModalParent { get; set; }
         public ModalOptions Options => new ModalOptions() { Title = "Edit key", ValidButtonText = "Save" };
 
-        public DataNodeEditModal(DataNode node) : base(node)
+        public ContextEditModal(DataNode node) : base(node)
         {}
     }
 
     /// <summary>
     /// Logique d'interaction pour DataNodeEdit.xaml
     /// </summary>
-    public partial class DataNodeEdit : UserControl
+    public partial class ContextEdit : UserControl
     {
         private readonly DataNode _node;
-        public DataNodeEdit(DataNode node)
+        public ContextEdit(DataNode node)
         {
             this._node = node;
             this.DataContext = _node;

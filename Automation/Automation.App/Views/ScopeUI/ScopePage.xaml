@@ -7,8 +7,8 @@
     mc:Ignorable="d"
     xmlns:display="clr-namespace:Automation.App.Components.Display"
     xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
-    xmlns:scopes="clr-namespace:Automation.Base;assembly=Automation.Base"
-    d:DataContext="{d:DesignInstance scopes:Scope}">
+    xmlns:viewModels="clr-namespace:Automation.Base.ViewModels;assembly=Automation.Base"
+    d:DataContext="{d:DesignInstance viewModels:Scope}">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
@@ -27,28 +27,36 @@
                 FontWeight="Bold"
                 FontSize="14" />
 
-            <Button Grid.Column="1" Click="ButtonAdd_Click">
-                <Button.ContextMenu>
-                    <ContextMenu Placement="Bottom">
-                        <MenuItem Header="Add scope" Click="MenuAddScope_Click">
-                            <MenuItem.Icon>
-                                <display:NodeIcon Type="Scope" Margin="0,0,4,0" />
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <MenuItem Header="Add workflow" Click="MenuAddWorkflow_Click">
-                            <MenuItem.Icon>
-                                <display:NodeIcon Type="Workflow" Margin="0,0,4,0" />
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <MenuItem Header="Add task" Click="MenuAddTask_Click">
-                            <MenuItem.Icon>
-                                <display:NodeIcon Type="Task" Margin="0,0,4,0" />
-                            </MenuItem.Icon>
-                        </MenuItem>
-                    </ContextMenu>
-                </Button.ContextMenu>
-                <TextBlock Text="{x:Static display:IconFont.Plus}" FontFamily="{StaticResource FontAwesomeSolid}" />
-            </Button>
+            <StackPanel
+                Grid.Column="1"
+                Orientation="Horizontal"
+                Margin="2">
+                <Button Click="ButtonParam_Click">
+                    <TextBlock Text="{x:Static display:IconFont.Gear}" FontFamily="{StaticResource FontAwesomeSolid}" />
+                </Button>
+                <Button Click="ButtonAdd_Click" Margin="2,0,0,0">
+                    <Button.ContextMenu>
+                        <ContextMenu Placement="Bottom">
+                            <MenuItem Header="Add scope" Click="MenuAddScope_Click">
+                                <MenuItem.Icon>
+                                    <display:NodeIcon Type="Scope" Margin="0,0,4,0" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Header="Add workflow" Click="MenuAddWorkflow_Click">
+                                <MenuItem.Icon>
+                                    <display:NodeIcon Type="Workflow" Margin="0,0,4,0" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Header="Add task" Click="MenuAddTask_Click">
+                                <MenuItem.Icon>
+                                    <display:NodeIcon Type="Task" Margin="0,0,4,0" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                        </ContextMenu>
+                    </Button.ContextMenu>
+                    <TextBlock Text="{x:Static display:IconFont.Plus}" FontFamily="{StaticResource FontAwesomeSolid}" />
+                </Button>
+            </StackPanel>
         </Grid>
         <ListBox
             Grid.Row="1"

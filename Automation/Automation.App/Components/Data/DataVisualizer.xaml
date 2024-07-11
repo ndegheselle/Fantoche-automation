@@ -13,7 +13,7 @@
     <TreeView x:Name="TestTreeView" ItemsSource="{Binding DataTree.Childrens, RelativeSource={RelativeSource AncestorType=local:DataVisualizer}}">
         <TreeView.Resources>
             <HierarchicalDataTemplate DataType="{x:Type local:DataTree}" ItemsSource="{Binding SortedChildrens}">
-                <Grid MouseDown="Key_MouseDown">
+                <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="auto" />
                         <ColumnDefinition Width="auto" />
@@ -63,7 +63,7 @@
                 </Grid>
             </HierarchicalDataTemplate>
             <DataTemplate DataType="{x:Type local:DataValue}">
-                <Grid MouseDown="Key_MouseDown">
+                <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="auto" />
                         <ColumnDefinition Width="*" />

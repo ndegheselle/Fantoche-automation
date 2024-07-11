@@ -8,9 +8,9 @@
     mc:Ignorable="d"
     MinHeight="300"
     MinWidth="300"
-    xmlns:scopes="clr-namespace:Automation.Base;assembly=Automation.Base"
-    xmlns:components="clr-namespace:Automation.App.Components"
-    d:DataContext="{d:DesignInstance scopes:Node}">
+    xmlns:viewModels="clr-namespace:Automation.Base.ViewModels;assembly=Automation.Base"
+    xmlns:data="clr-namespace:Automation.App.Components.Data"
+    d:DataContext="{d:DesignInstance viewModels:Scope}">
     <Grid Margin="4">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
@@ -23,11 +23,6 @@
         <TextBox Grid.Row="1" Text="{Binding Name}" />
 
         <TextBlock Grid.Row="2" Margin="0,4">Context</TextBlock>
-        <TextBox
-            Grid.Row="3"
-            VerticalContentAlignment="Top"
-            TextWrapping="Wrap"
-            AcceptsReturn="True"
-            VerticalScrollBarVisibility="Visible" />
+        <data:ContextVisualizer Grid.Row="3" Context="{Binding Context}" />
     </Grid>
 </UserControl>

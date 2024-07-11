@@ -141,11 +141,13 @@ namespace Automation.Supervisor.Repositories
             var connection = new NodeConnection(workflowScope, output2, input1);
             #region Scoped elements
             Scope subScope = new Scope() { Name = "SubScope 1", };
-            subScope.Context = new ContextDictionnary()
+            subScope.Context = new Dictionary<string, string>()
             {
-                { "key", new ContextValue("val") },
-                { "key2", new ContextList() { new ContextValue("val1"), new ContextValue("val2") } },
-                { "key3", new ContextDictionnary { { "subkey", new ContextValue("subval") } } }
+                { "Key1", "Value1" },
+                { "Key2", "2" },
+                { "Key3", "true" },
+                { "Key4", "DateTime.Now" },
+                { "Key5", "new TimeSpan()" }
             };
             ScopedNode subTask = new ScopedNode(taskScope1);
             subTask.ParentId = subScope.Id;
