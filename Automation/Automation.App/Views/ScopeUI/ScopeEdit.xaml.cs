@@ -5,15 +5,15 @@ using System.Windows.Controls;
 
 namespace Automation.App.Views.ScopeUI
 {
-    public class ScopeEditModal : ScopeEdit, IModalContentCallback
+    public class ScopedEditModal : ScopedEdit, IModalContentCallback
     {
         public IModalContainer? ModalParent { get; set; }
-        public ModalOptions Options => new ModalOptions() { Title = "Edit scope", ValidButtonText = "Save" };
+        public ModalOptions Options => new ModalOptions() { Title = "Edit scoped", ValidButtonText = "Save" };
 
-        public ScopeEditModal(Scope scope) : base(scope)
+        public ScopedEditModal(ScopedElement scope) : base(scope)
         {
             if (scope.Id == Guid.Empty)
-                Options.Title = "New scope";
+                Options.Title = "New scoped";
         }
 
         public void OnModalClose(bool result)
@@ -27,11 +27,11 @@ namespace Automation.App.Views.ScopeUI
     /// <summary>
     /// Logique d'interaction pour ScopeEdit.xaml
     /// </summary>
-    public partial class ScopeEdit : UserControl
+    public partial class ScopedEdit : UserControl
     {
-        protected readonly Scope _scope;
+        protected readonly ScopedElement _scope;
 
-        public ScopeEdit(Scope scope)
+        public ScopedEdit(ScopedElement scope)
         {
             _scope = scope;
             this.DataContext = _scope;

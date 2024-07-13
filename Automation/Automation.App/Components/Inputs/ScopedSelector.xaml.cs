@@ -54,12 +54,12 @@ namespace Automation.App.Components.Inputs
         public EnumScopedType AllowedSelectedNodes { get; set; } = EnumScopedType.Scope | EnumScopedType.Workflow | EnumScopedType.Task;
 
         private readonly App _app = (App)App.Current;
-        private readonly INodeRepository _repository;
+        private readonly IScopeRepository _repository;
 
         #endregion
 
         public ScopedSelector() {
-            _repository = _app.ServiceProvider.GetRequiredService<INodeRepository>();
+            _repository = _app.ServiceProvider.GetRequiredService<IScopeRepository>();
             InitializeComponent();
         }
 

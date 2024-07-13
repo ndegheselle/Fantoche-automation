@@ -8,16 +8,25 @@ namespace Automation.Shared.Supervisor
         public void ExecuteTask(Guid taksId);
     }
 
-    // XXX : in theory Scoped are not nodes but just how nodes are organized, maybe it should be separated
     public interface INodeRepository
+    {
+        public Node? GetNode(Guid id);
+
+        public int GetTaskInstancesCount(Guid taskId);
+        public IEnumerable<TaskInstance> GetTaskInstances(Guid taskId, int number, int page);
+
+        // Async versions of the methods
+        public Task<Node?> GetNodeAsync(Guid id);
+        public Task<int> GetTaskInstancesCountAsync(Guid taskId);
+        public Task<IEnumerable<TaskInstance>> GetTaskInstancesAsync(Guid taskId, int number, int page);
+    }
+
+    public interface IScopeRepository
     {
         public Scope GetRootScope();
         public ScopedElement? GetScoped(Guid id);
-        public Node? GetNode(Guid id);
 
-        // Async versions of the methods
         public Task<Scope> GetRootScopeAsync();
         public Task<ScopedElement?> GetScopedAsync(Guid id);
-        public Task<Node?> GetNodeAsync(Guid id);
     }
 }

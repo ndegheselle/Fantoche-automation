@@ -37,6 +37,7 @@ namespace Automation.App
             services.AddSingleton<ParametersViewModel>();
 
             services.AddSingleton<INodeRepository>((provider) => new NodeTestRepository());
+            services.AddSingleton<IScopeRepository>((provider) => new NodeTestRepository());
 
             return services.BuildServiceProvider();
         }

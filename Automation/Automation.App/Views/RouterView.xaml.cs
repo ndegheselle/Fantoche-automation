@@ -46,7 +46,7 @@ namespace Automation.App.Views
                     this.Content = new WorkflowPage(((ScopedNode)Selected).NodeId);
                     break;
                 case EnumScopedType.Task:
-                    this.Content = new TaskPage(((ScopedNode)Selected).NodeId);
+                    this.Content = new TaskPage(_app.ServiceProvider.GetRequiredService<IModalContainer>(), (ScopedNode)Selected);
                     break;
             }
         }

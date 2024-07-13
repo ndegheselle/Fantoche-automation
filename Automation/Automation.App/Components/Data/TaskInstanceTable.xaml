@@ -5,15 +5,87 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Automation.App.Components.Data"
+    xmlns:display="clr-namespace:Automation.App.Components.Display"
+    xmlns:jouffluData="clr-namespace:Joufflu.Data.Components;assembly=Joufflu.Data"
+    xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     mc:Ignorable="d"
     d:DesignHeight="450"
     d:DesignWidth="800">
-    <DataGrid
-        CanUserAddRows="False"
-        CanUserDeleteRows="False"
-        ItemsSource="{Binding Instances, RelativeSource={RelativeSource AncestorType={x:Type local:TaskInstanceTable}}}">
-        <DataGrid.Columns>
-            <DataGridTextColumn />
-        </DataGrid.Columns>
-    </DataGrid>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+        <DataGrid
+            AutoGenerateColumns="False"
+            CanUserAddRows="False"
+            CanUserSortColumns="False"
+            CanUserDeleteRows="False"
+            ItemsSource="{Binding Instances, RelativeSource={RelativeSource AncestorType={x:Type local:TaskInstanceTable}}}">
+            <DataGrid.Resources>
+                <Style TargetType="TextBlock" x:Key="StatusTextBlock">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Status}" Value="Pending">
+                            <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.AlertBrush}}" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Status}" Value="Stopped">
+                            <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.AlertBrush}}" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Status}" Value="Completed">
+                            <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.SuccessBrush}}" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Status}" Value="Failed">
+                            <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.ErrorBrush}}" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.Resources>
+            <DataGrid.Columns>
+                <DataGridTemplateColumn Header="Status">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock FontFamily="{StaticResource FontAwesomeSolid}" VerticalAlignment="Center">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock" BasedOn="{StaticResource StatusTextBlock}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Status}" Value="Pending">
+                                                    <Setter Property="Text" Value="{x:Static display:IconFont.Clock}" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Status}" Value="Running">
+                                                    <Setter Property="Text" Value="{x:Static display:IconFont.Hourglass}" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Status}" Value="Stopped">
+                                                    <Setter Property="Text" Value="{x:Static display:IconFont.CirclePause}" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Status}" Value="Completed">
+                                                    <Setter Property="Text" Value="{x:Static display:IconFont.CircleCheck}" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Status}" Value="Failed">
+                                                    <Setter Property="Text" Value="{x:Static display:IconFont.CircleXmark}" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                <TextBlock
+                                    Margin="4,0,0,0"
+                                    Text="{Binding Status}"
+                                    Style="{StaticResource StatusTextBlock}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Start" Binding="{Binding StartDate}" />
+                <DataGridTextColumn Header="End" Binding="{Binding EndDate}" />
+            </DataGrid.Columns>
+        </DataGrid>
+        <jouffluData:Paging
+            x:Name="InstancesPaging"
+            PagingChange="InstancesPaging_PagingChange"
+            Margin="0,2,0,0"
+            Grid.Row="1"
+            Capacity="50"
+            Total="{Binding TotalInstances, RelativeSource={RelativeSource AncestorType={x:Type local:TaskInstanceTable}}}" />
+    </Grid>
 </UserControl>

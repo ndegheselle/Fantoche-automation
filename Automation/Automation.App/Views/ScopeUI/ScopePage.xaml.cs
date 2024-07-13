@@ -34,28 +34,30 @@ namespace Automation.App.Views.ScopeUI
 
         private void ButtonParam_Click(object sender, RoutedEventArgs e)
         {
-            _modal.Show(new ScopeEditModal(_scope));
+            _modal.Show(new ScopedEditModal(_scope));
         }
 
         private async void MenuAddScope_Click(object sender, RoutedEventArgs e)
         {
             Scope newScope = new Scope();
-            if (await _modal.Show(new ScopeEditModal(newScope)))
+            if (await _modal.Show(new ScopedEditModal(newScope)))
                 _scope.AddChild(newScope);
         }
 
         private async void MenuAddTask_Click(object sender, RoutedEventArgs e)
         {
             TaskNode newTask = new TaskNode();
-            if (await _modal.Show(new TaskEditModal(newTask)))
-                _scope.AddChild(new ScopedNode(newTask));
+            ScopedNode newScopedNode = new ScopedNode(newTask);
+            if (await _modal.Show(new ScopedEditModal(newScopedNode)))
+                _scope.AddChild(newScopedNode);
         }
 
         private async void MenuAddWorkflow_Click(object sender, RoutedEventArgs e)
         {
             WorkflowNode newWorkflow = new WorkflowNode();
-            if (await _modal.Show(new WorkflowEditModal(newWorkflow)))
-                _scope.AddChild(new ScopedNode(newWorkflow));
+            ScopedNode newScopedNode = new ScopedNode(newWorkflow);
+            if (await _modal.Show(new ScopedEditModal(newScopedNode)))
+                _scope.AddChild(newScopedNode);
         }
         #endregion
 

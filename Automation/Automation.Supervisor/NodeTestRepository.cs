@@ -23,7 +23,7 @@ namespace Automation.Supervisor.Repositories
     /// <summary>
     /// Test repository for the supervisor
     /// </summary>
-    public class NodeTestRepository : INodeRepository
+    public class NodeTestRepository : INodeRepository, IScopeRepository
     {
         public NodeTestRepository()
         {
@@ -117,6 +117,39 @@ namespace Automation.Supervisor.Repositories
         public Task<Node?> GetNodeAsync(Guid id)
         {
             return Task.FromResult(GetNode(id));
+        }
+
+        public IEnumerable<TaskInstance> GetTaskInstances(Guid taskId, int number, int page)
+        {
+            List<TaskInstance> testList = new List<TaskInstance>();
+            for (int i = page * number; i < page * number + number; i++)
+            {
+                var testInstance = new TaskInstance()
+                {
+                    Id = Guid.NewGuid(),
+                    TaskId = taskId,
+                    StartDate = DateTime.Now,
+                    EndDate = DateTime.Now.AddSeconds(10)
+                };
+                testList.Add(testInstance);
+                testInstance.Status = (EnumInstanceStatus)(i % 5);
+            }
+            return testList;
+        }
+
+        public Task<IEnumerable<TaskInstance>> GetTaskInstancesAsync(Guid taskId, int number, int page)
+        {
+            return Task.FromResult(GetTaskInstances(taskId, number, page));
+        }
+
+        public int GetTaskInstancesCount(Guid taskId)
+        {
+            return 100000;
+        }
+
+        public Task<int> GetTaskInstancesCountAsync(Guid taskId)
+        {
+            return Task.FromResult(GetTaskInstancesCount(taskId));
         }
 
         #region Debug
@@ -222,6 +255,7 @@ namespace Automation.Supervisor.Repositories
                 },
                 options);
         }
+
         #endregion
     }
 }

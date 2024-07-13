@@ -39,11 +39,13 @@ namespace Automation.App.Views.WorkflowUI
         private readonly App _app = (App)App.Current;
         private readonly IModalContainer _modal;
         private readonly IAlert _alert;
-        private readonly INodeRepository _repository;
+        private readonly INodeRepository _nodeRepository;
+        private readonly IScopeRepository _scopeRepository;
 
         public WorkflowGraph()
         {
-            _repository = _app.ServiceProvider.GetRequiredService<INodeRepository>();
+            _nodeRepository = _app.ServiceProvider.GetRequiredService<INodeRepository>();
+            _scopeRepository = _app.ServiceProvider.GetRequiredService<IScopeRepository>();
             _modal = _app.ServiceProvider.GetRequiredService<IModalContainer>();
             _alert = _app.ServiceProvider.GetRequiredService<IAlert>();
             InitializeComponent();
@@ -54,14 +56,14 @@ namespace Automation.App.Views.WorkflowUI
         {
             ScopedSelectorModal nodeSelector = new ScopedSelectorModal()
             {
-                RootScope = await _repository.GetRootScopeAsync(),
+                RootScope = await _scopeRepository.GetRootScopeAsync(),
                 AllowedSelectedNodes = EnumScopedType.Workflow | EnumScopedType.Task
             };
             if (await _modal.Show(nodeSelector) && nodeSelector.Selected != null)
             {
                 Guid nodeId = ((ScopedNode)nodeSelector.Selected).NodeId;
 
-                if (await _repository.GetNodeAsync(nodeId) is not WorkflowNode node)
+                if (await _nodeRepository.GetNodeAsync(nodeId) is not WorkflowNode node)
                     throw new ArgumentException("Node not found");
                 EditorData.Workflow.Nodes.Add(node);
             }

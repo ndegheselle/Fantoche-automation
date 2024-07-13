@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 
 namespace Automation.Shared.ViewModels
 {
-    public enum EnumInstanceState
+    public enum EnumInstanceStatus
     {
         Pending,
         Running,
+        Stopped,
         Completed,
         Failed
     }
@@ -18,12 +19,13 @@ namespace Automation.Shared.ViewModels
     public class TaskInstance
     {
         public Guid Id { get; set; }
+        public Guid ParentTaskId { get; set; }
         public Guid TaskId { get; set; }
 
         public DateTime StartDate { get; set; }
         public DateTime? EndDate { get; set; }
 
-        public EnumInstanceState State { get; set; }
+        public EnumInstanceStatus Status { get; set; }
     }
 
     public class ScheduledTask

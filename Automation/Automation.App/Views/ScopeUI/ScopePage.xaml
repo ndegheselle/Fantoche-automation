@@ -31,10 +31,7 @@
                 Grid.Column="1"
                 Orientation="Horizontal"
                 Margin="2">
-                <Button Click="ButtonParam_Click">
-                    <TextBlock Text="{x:Static display:IconFont.Gear}" FontFamily="{StaticResource FontAwesomeSolid}" />
-                </Button>
-                <Button Click="ButtonAdd_Click" Margin="2,0,0,0">
+                <Button Click="ButtonAdd_Click">
                     <Button.ContextMenu>
                         <ContextMenu Placement="Bottom">
                             <MenuItem Header="Add scope" Click="MenuAddScope_Click">
@@ -55,6 +52,9 @@
                         </ContextMenu>
                     </Button.ContextMenu>
                     <TextBlock Text="{x:Static display:IconFont.Plus}" FontFamily="{StaticResource FontAwesomeSolid}" />
+                </Button>
+                <Button Click="ButtonParam_Click" Margin="2,0,0,0">
+                    <TextBlock Text="{x:Static display:IconFont.Gear}" FontFamily="{StaticResource FontAwesomeSolid}" />
                 </Button>
             </StackPanel>
         </Grid>

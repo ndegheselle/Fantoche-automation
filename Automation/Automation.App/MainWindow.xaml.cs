@@ -42,11 +42,11 @@ namespace Automation.App
         public IAlert Alert => this.AlertContainer;
 
         private readonly App _app = (App)App.Current;
-        private readonly INodeRepository _repository;
+        private readonly IScopeRepository _repository;
 
         public MainWindow()
         {
-            _repository = _app.ServiceProvider.GetRequiredService<INodeRepository>();
+            _repository = _app.ServiceProvider.GetRequiredService<IScopeRepository>();
             InitializeComponent();
             OnLoaded();
         }
