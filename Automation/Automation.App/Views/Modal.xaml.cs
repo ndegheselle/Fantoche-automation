@@ -22,7 +22,7 @@ namespace Automation.App.Views
     /// </summary>
     public partial class Modal : UserControl, IModalContainer
     {
-        public ModalOptions Options { get; set; }
+        public ModalOptions Options { get; set; } = new ModalOptions();
         public event Action<bool>? OnClose;
         private TaskCompletionSource<bool>? _taskCompletionSource = null;
         private IModalContent? _content;

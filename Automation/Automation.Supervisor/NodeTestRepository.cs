@@ -1,9 +1,8 @@
-﻿using Automation.Shared.ViewModels;
-using System.Collections.ObjectModel;
+﻿using Automation.Shared.Supervisor;
+using Automation.Shared.ViewModels;
 using System.IO;
 using System.Reflection;
 using System.Text.Json;
-using System.Xml.Linq;
 
 namespace Automation.Supervisor.Repositories
 {
@@ -21,14 +20,22 @@ namespace Automation.Supervisor.Repositories
         public List<WorkflowRelation> WorkflowRelations { get; set; }
     }
 
-    public class ScopeRepository
+    /// <summary>
+    /// Test repository for the supervisor
+    /// </summary>
+    public class NodeTestRepository : INodeRepository
     {
-        public ScopeRepository()
+        public NodeTestRepository()
         {
             // CreateTestNodes();
         }
 
         public Scope GetRootScope() { return (Scope)GetScoped(Guid.Parse("00000000-0000-0000-0000-000000000001")); }
+
+        public Task<Scope> GetRootScopeAsync()
+        {
+            return Task.FromResult(GetRootScope());
+        }
 
         public ScopedElement? GetScoped(Guid id)
         {
@@ -45,6 +52,11 @@ namespace Automation.Supervisor.Repositories
             }
 
             return scoped;
+        }
+
+        public Task<ScopedElement?> GetScopedAsync(Guid id)
+        {
+            return Task.FromResult(GetScoped(id));
         }
 
         public Node? GetNode(Guid id)
@@ -100,6 +112,11 @@ namespace Automation.Supervisor.Repositories
             }
 
             return node;
+        }
+
+        public Task<Node?> GetNodeAsync(Guid id)
+        {
+            return Task.FromResult(GetNode(id));
         }
 
         #region Debug

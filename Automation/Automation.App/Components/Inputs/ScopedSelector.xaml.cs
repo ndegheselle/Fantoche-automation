@@ -1,6 +1,9 @@
 ﻿using Automation.App.Base;
+using Automation.App.ViewModels;
+using Automation.Shared.Supervisor;
 using Automation.Shared.ViewModels;
 using Automation.Supervisor.Repositories;
+using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -50,13 +53,17 @@ namespace Automation.App.Components.Inputs
 
         public EnumScopedType AllowedSelectedNodes { get; set; } = EnumScopedType.Scope | EnumScopedType.Workflow | EnumScopedType.Task;
 
+        private readonly App _app = (App)App.Current;
+        private readonly INodeRepository _repository;
+
         #endregion
 
         public ScopedSelector() {
+            _repository = _app.ServiceProvider.GetRequiredService<INodeRepository>();
             InitializeComponent();
         }
 
-        private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        private async void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             TreeView treeView = (TreeView)sender;
             ScopedElement? selected = treeView.SelectedItem as ScopedElement;
@@ -64,9 +71,10 @@ namespace Automation.App.Components.Inputs
             // Load childrens if the selected element is a scope and its childrens are not loaded
             if (selected != null && selected is Scope scope && scope.Childrens.Count == 0)
             {
-                ScopeRepository scopeRepository = new ScopeRepository();
-                Scope? fullScope = scopeRepository.GetScoped(selected.Id) as Scope;
+                Scope? fullScope = await _repository.GetScopedAsync(selected.Id) as Scope;
 
+                if (fullScope == null)
+                    return;
                 foreach (ScopedElement child in fullScope.Childrens)
                     scope.AddChild(child);
             }

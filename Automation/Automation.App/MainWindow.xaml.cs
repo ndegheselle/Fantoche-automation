@@ -1,8 +1,10 @@
 ﻿using AdonisUI.Controls;
 using Automation.App.Base;
+using Automation.Shared.Supervisor;
 using Automation.Supervisor;
 using Automation.Supervisor.Repositories;
 using Automation.Worker;
+using Microsoft.Extensions.DependencyInjection;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -35,18 +37,23 @@ namespace Automation.App
     /// </summary>
     public partial class MainWindow : AdonisWindow, IWindowContainer
     {
-        private readonly TaskSuperviser _supervisor = new TaskSuperviser();
-
         // XXX : if called before InitializeComponent, the property will be null
         public IModalContainer Modal => this.ModalContainer;
         public IAlert Alert => this.AlertContainer;
 
+        private readonly App _app = (App)App.Current;
+        private readonly INodeRepository _repository;
+
         public MainWindow()
         {
+            _repository = _app.ServiceProvider.GetRequiredService<INodeRepository>();
             InitializeComponent();
+            OnLoaded();
+        }
 
-            ScopeRepository scopeRepository = new ScopeRepository();
-            SideMenu.RootScope = scopeRepository.GetRootScope();
+        protected async void OnLoaded()
+        {
+            SideMenu.RootScope = await _repository.GetRootScopeAsync();
         }
     }
 }

@@ -21,6 +21,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Automation.Plugins.Shared",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Automation.Shared", "Automation.Shared\Automation.Shared.csproj", "{A07395ED-D082-46CC-B614-656178B3EF8E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Automation.Supervisor.Client", "Automation.Supervisor.Client\Automation.Supervisor.Client.csproj", "{B3B2D52F-4571-428C-98BB-504716CADF92}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{A07395ED-D082-46CC-B614-656178B3EF8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A07395ED-D082-46CC-B614-656178B3EF8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A07395ED-D082-46CC-B614-656178B3EF8E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B3B2D52F-4571-428C-98BB-504716CADF92}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B3B2D52F-4571-428C-98BB-504716CADF92}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B3B2D52F-4571-428C-98BB-504716CADF92}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B3B2D52F-4571-428C-98BB-504716CADF92}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -62,6 +68,7 @@ Global
 		{FDD42281-CB13-4EFB-81A2-E651DE67EBD4} = {2F8AA1CC-245F-4240-B392-B4B8E128E319}
 		{15238586-7055-4F0F-83CA-4F4265C15615} = {2F8AA1CC-245F-4240-B392-B4B8E128E319}
 		{A07395ED-D082-46CC-B614-656178B3EF8E} = {5A3373EB-AB17-4713-85EF-071F9AB50EFA}
+		{B3B2D52F-4571-428C-98BB-504716CADF92} = {5A3373EB-AB17-4713-85EF-071F9AB50EFA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AFEC477D-0D28-4C5A-9622-5F97F806819C}

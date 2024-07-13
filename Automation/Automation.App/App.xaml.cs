@@ -1,5 +1,7 @@
 ﻿using Automation.App.Base;
 using Automation.App.ViewModels;
+using Automation.Shared.Supervisor;
+using Automation.Supervisor.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 
@@ -33,6 +35,8 @@ namespace Automation.App
             services.AddTransient<IModalContainer>((provider) => GetActiveWindow()?.Modal);
             services.AddTransient<IAlert>((provider) => GetActiveWindow()?.Alert);
             services.AddSingleton<ParametersViewModel>();
+
+            services.AddSingleton<INodeRepository>((provider) => new NodeTestRepository());
 
             return services.BuildServiceProvider();
         }

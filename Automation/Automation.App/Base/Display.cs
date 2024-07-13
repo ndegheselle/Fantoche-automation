@@ -39,6 +39,7 @@ namespace Automation.App.Base
     {
         public void OnModalClose(bool result);
     }
+
     #endregion
 
     #region Alert

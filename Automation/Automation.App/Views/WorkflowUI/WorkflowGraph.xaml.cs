@@ -1,6 +1,8 @@
 ﻿using Automation.App.Base;
+using Automation.App.Components.Display;
 using Automation.App.Components.Inputs;
 using Automation.App.ViewModels.Graph;
+using Automation.Shared.Supervisor;
 using Automation.Shared.ViewModels;
 using Automation.Supervisor.Repositories;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,38 +34,36 @@ namespace Automation.App.Views.WorkflowUI
             set => SetValue(EditorDataProperty, value);
         }
 
-        private void OnEditorDataChange()
-        {
-            EditorData.InvalidConnection += _alert.Warning;
-        }
+        private void OnEditorDataChange() { EditorData.InvalidConnection += _alert.Warning; }
         #endregion
-
         private readonly App _app = (App)App.Current;
         private readonly IModalContainer _modal;
         private readonly IAlert _alert;
+        private readonly INodeRepository _repository;
 
         public WorkflowGraph()
         {
+            _repository = _app.ServiceProvider.GetRequiredService<INodeRepository>();
             _modal = _app.ServiceProvider.GetRequiredService<IModalContainer>();
             _alert = _app.ServiceProvider.GetRequiredService<IAlert>();
             InitializeComponent();
         }
 
         #region UI Events
-
         private async void ButtonAdd_Click(object sender, RoutedEventArgs e)
         {
-            ScopeRepository scopeRepository = new ScopeRepository();
             ScopedSelectorModal nodeSelector = new ScopedSelectorModal()
             {
-                RootScope = scopeRepository.GetRootScope(),
+                RootScope = await _repository.GetRootScopeAsync(),
                 AllowedSelectedNodes = EnumScopedType.Workflow | EnumScopedType.Task
             };
-            if (await _modal.Show(nodeSelector) &&
-                nodeSelector.Selected != null)
+            if (await _modal.Show(nodeSelector) && nodeSelector.Selected != null)
             {
                 Guid nodeId = ((ScopedNode)nodeSelector.Selected).NodeId;
-                EditorData.Workflow.Nodes.Add(scopeRepository.GetNode(nodeId));
+
+                if (await _repository.GetNodeAsync(nodeId) is not WorkflowNode node)
+                    throw new ArgumentException("Node not found");
+                EditorData.Workflow.Nodes.Add(node);
             }
         }
 
@@ -76,20 +76,11 @@ namespace Automation.App.Views.WorkflowUI
             }
         }
 
-        private void ButtonZoomIn_Click(object sender, RoutedEventArgs e)
-        {
-            Editor.ZoomIn();
-        }
+        private void ButtonZoomIn_Click(object sender, RoutedEventArgs e) { Editor.ZoomIn(); }
 
-        private void ButtonZoomOut_Click(object sender, RoutedEventArgs e)
-        {
-            Editor.ZoomOut();
-        }
+        private void ButtonZoomOut_Click(object sender, RoutedEventArgs e) { Editor.ZoomOut(); }
 
-        private void ButtonZoomFit_Click(object sender, RoutedEventArgs e)
-        {
-            Editor.FitToScreen();
-        }
+        private void ButtonZoomFit_Click(object sender, RoutedEventArgs e) { Editor.FitToScreen(); }
 
         private void ToggleButtonSnapping_Click(object sender, RoutedEventArgs e)
         {
@@ -97,21 +88,21 @@ namespace Automation.App.Views.WorkflowUI
             Editor.GridCellSize = toggleButton.IsChecked == true ? EditorViewModel.GRID_DEFAULT_SIZE : 1;
         }
 
-        private void ButtonDelete_Click(object sender, RoutedEventArgs e)
-        {
-            DeleteSelectedNodes();
-        }
+        private void ButtonDelete_Click(object sender, RoutedEventArgs e) { DeleteSelectedNodes(); }
 
         private void ButtonGroup_Click(object sender, RoutedEventArgs e)
         {
             Rect boundingBox = GetSelectedBoundingBox(10);
             EditorData.CreateGroup(boundingBox);
         }
-
         #endregion
 
-        private void DeleteSelectedNodes()
+        private async void DeleteSelectedNodes()
         {
+            if (await _modal.Show(
+                new ConfirmationModal($"Are you sure you want to delete these {Editor.SelectedItems?.Count} nodes ?")) == false)
+                return;
+
             EditorData.RemoveNodes(EditorData.SelectedNodes);
         }
 
@@ -119,6 +110,9 @@ namespace Automation.App.Views.WorkflowUI
         {
             Point min = new Point(double.MaxValue, double.MaxValue);
             Point max = new Point(double.MinValue, double.MinValue);
+
+            if (Editor.SelectedItems == null || Editor.SelectedItems.Count == 0)
+                return Rect.Empty;
 
             foreach (var node in Editor.SelectedItems)
             {
@@ -131,7 +125,7 @@ namespace Automation.App.Views.WorkflowUI
                 max.X = Math.Max(max.X, container.Location.X + container.ActualSize.Width);
                 max.Y = Math.Max(max.Y, container.Location.Y + container.ActualSize.Height);
             }
-            
+
             return new Rect(min.X - padding, min.Y - padding, max.X - min.X + padding * 2, max.Y - min.Y + padding * 2);
         }
     }
