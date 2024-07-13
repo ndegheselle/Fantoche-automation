@@ -1,5 +1,5 @@
 ﻿
-namespace Automation.Plugins.Base
+namespace Automation.Plugins.Shared
 {
     public class TaskWorkflow : TaskBase
     {

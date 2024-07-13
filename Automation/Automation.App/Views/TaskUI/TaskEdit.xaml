@@ -8,7 +8,7 @@
     mc:Ignorable="d"
     MinHeight="300"
     MinWidth="300"
-    xmlns:scopes="clr-namespace:Automation.Base;assembly=Automation.Base"
+    xmlns:scopes="clr-namespace:Automation.Shared;assembly=Automation.Shared"
     xmlns:inputs="clr-namespace:Automation.App.Components.Inputs"
     d:DataContext="{d:DesignInstance scopes:Node}">
     <Grid Margin="4">

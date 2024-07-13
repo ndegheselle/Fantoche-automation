@@ -7,7 +7,7 @@
     mc:Ignorable="d"
     xmlns:display="clr-namespace:Automation.App.Components.Display"
     xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
-    xmlns:viewModels="clr-namespace:Automation.Base.ViewModels;assembly=Automation.Base"
+    xmlns:viewModels="clr-namespace:Automation.Shared.ViewModels;assembly=Automation.Shared"
     d:DataContext="{d:DesignInstance viewModels:Scope}">
     <Grid>
         <Grid.RowDefinitions>

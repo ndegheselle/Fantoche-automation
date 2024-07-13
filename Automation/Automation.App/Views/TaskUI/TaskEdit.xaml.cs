@@ -1,6 +1,6 @@
 ﻿using Automation.App.Base;
-using Automation.Base;
-using Automation.Base.ViewModels;
+using Automation.Shared;
+using Automation.Shared.ViewModels;
 using System.Windows;
 using System.Windows.Controls;
 

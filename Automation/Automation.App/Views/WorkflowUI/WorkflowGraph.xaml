@@ -7,7 +7,7 @@
     xmlns:nodify="clr-namespace:Nodify;assembly=Nodify"
     xmlns:local="clr-namespace:Automation.App.Views.WorkflowUI"
     xmlns:graph="clr-namespace:Automation.App.ViewModels.Graph"
-    xmlns:baseViewModels="clr-namespace:Automation.Base.ViewModels;assembly=Automation.Base"
+    xmlns:baseViewModels="clr-namespace:Automation.Shared.ViewModels;assembly=Automation.Shared"
     xmlns:display="clr-namespace:Automation.App.Components.Display"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     mc:Ignorable="d">

@@ -1,7 +1,7 @@
 ﻿using Automation.App.Base;
 using Automation.App.Components.Inputs;
 using Automation.App.ViewModels.Graph;
-using Automation.Base.ViewModels;
+using Automation.Shared.ViewModels;
 using Automation.Supervisor.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using Nodify;

@@ -6,7 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Automation.App.Components.Inputs"
     xmlns:display="clr-namespace:Automation.App.Components.Display"
-    xmlns:baseViewModels="clr-namespace:Automation.Base.ViewModels;assembly=Automation.Base"
+    xmlns:baseViewModels="clr-namespace:Automation.Shared.ViewModels;assembly=Automation.Shared"
     xmlns:graph="clr-namespace:Automation.App.ViewModels.Graph"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     mc:Ignorable="d">

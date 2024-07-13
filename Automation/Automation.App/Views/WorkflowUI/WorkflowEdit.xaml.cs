@@ -1,5 +1,5 @@
 ﻿using Automation.App.Base;
-using Automation.Base.ViewModels;
+using Automation.Shared.ViewModels;
 using System.Windows.Controls;
 
 namespace Automation.App.Views.WorkflowUI

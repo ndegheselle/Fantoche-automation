@@ -1,5 +1,5 @@
-﻿using Automation.Base;
-using Automation.Base.ViewModels;
+﻿using Automation.Shared;
+using Automation.Shared.ViewModels;
 using System.Windows.Controls;
 
 namespace Automation.App.Views.TaskUI

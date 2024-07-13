@@ -20,8 +20,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Automation.Base\Automation.Base.csproj" />
-    <ProjectReference Include="..\Automation.Plugins.Base\Automation.Plugins.Base.csproj" />
+    <ProjectReference Include="..\Automation.Shared\Automation.Shared.csproj" />
+    <ProjectReference Include="..\Automation.Plugins.Shared\Automation.Plugins.Shared.csproj" />
   </ItemGroup>
 
 </Project>

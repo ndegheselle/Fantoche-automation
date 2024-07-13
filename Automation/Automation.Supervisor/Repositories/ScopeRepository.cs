@@ -1,4 +1,4 @@
-﻿using Automation.Base.ViewModels;
+﻿using Automation.Shared.ViewModels;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Reflection;

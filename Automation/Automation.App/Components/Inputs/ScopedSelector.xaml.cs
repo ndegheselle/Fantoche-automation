@@ -1,5 +1,5 @@
 ﻿using Automation.App.Base;
-using Automation.Base.ViewModels;
+using Automation.Shared.ViewModels;
 using Automation.Supervisor.Repositories;
 using System.Windows;
 using System.Windows.Controls;

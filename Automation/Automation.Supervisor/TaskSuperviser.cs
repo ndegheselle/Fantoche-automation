@@ -1,4 +1,4 @@
-﻿using Automation.Plugins.Base;
+﻿using Automation.Plugins.Shared;
 
 namespace Automation.Supervisor
 {

@@ -1,5 +1,5 @@
 ﻿using Automation.App.Base;
-using Automation.Base.ViewModels;
+using Automation.Shared.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections;
 using System.Windows;

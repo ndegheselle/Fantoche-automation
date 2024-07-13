@@ -7,11 +7,5 @@
     xmlns:local="clr-namespace:Automation.App.Views.WorkflowUI"
     mc:Ignorable="d"
     d:DataContext="{d:DesignInstance local:WorkflowPage}">
-
-    <TabControl>
-        <TabItem Header="Parameters" />
-        <TabItem Header="Graph">
-            <local:WorkflowGraph EditorData="{Binding Editor, Mode=OneTime}" />
-        </TabItem>
-    </TabControl>
+    <local:WorkflowGraph EditorData="{Binding Editor, Mode=OneTime}" />
 </UserControl>

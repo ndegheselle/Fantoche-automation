@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace Automation.Base
+namespace Automation.Shared
 {
     public class BaseNotifyDataError : INotifyDataErrorInfo
     {

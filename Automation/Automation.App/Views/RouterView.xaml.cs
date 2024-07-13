@@ -4,7 +4,7 @@ using Automation.App.ViewModels.Graph;
 using Automation.App.Views.ScopeUI;
 using Automation.App.Views.TaskUI;
 using Automation.App.Views.WorkflowUI;
-using Automation.Base.ViewModels;
+using Automation.Shared.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 using System.Windows.Controls;

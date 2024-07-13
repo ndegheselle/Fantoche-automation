@@ -1,4 +1,4 @@
-﻿namespace Automation.Plugins.Base
+﻿namespace Automation.Plugins.Shared
 {
     public interface ITask
     {

@@ -17,9 +17,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugins", "Plugins", "{2F8A
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Automation.Plugins", "Automation.Plugins\Automation.Plugins.csproj", "{FDD42281-CB13-4EFB-81A2-E651DE67EBD4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Automation.Plugins.Base", "Automation.Plugins.Base\Automation.Plugins.Base.csproj", "{15238586-7055-4F0F-83CA-4F4265C15615}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Automation.Plugins.Shared", "Automation.Plugins.Shared\Automation.Plugins.Shared.csproj", "{15238586-7055-4F0F-83CA-4F4265C15615}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Automation.Base", "Automation.Base\Automation.Base.csproj", "{A07395ED-D082-46CC-B614-656178B3EF8E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Automation.Shared", "Automation.Shared\Automation.Shared.csproj", "{A07395ED-D082-46CC-B614-656178B3EF8E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using System.Windows.Data;
 
-namespace Automation.Base.ViewModels
+namespace Automation.Shared.ViewModels
 {
     [Flags]
     public enum EnumScopedType

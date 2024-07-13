@@ -1,7 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
 
-namespace Automation.Base.ViewModels
+namespace Automation.Shared.ViewModels
 {
     public class WorkflowNode : TaskNode
     {

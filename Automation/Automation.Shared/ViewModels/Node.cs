@@ -9,7 +9,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Xml.Linq;
 
-namespace Automation.Base.ViewModels
+namespace Automation.Shared.ViewModels
 {
     [JsonDerivedType(typeof(NodeGroup), typeDiscriminator: "group")]
     [JsonDerivedType(typeof(TaskNode), typeDiscriminator: "task")]
