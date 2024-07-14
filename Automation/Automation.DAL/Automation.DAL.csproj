@@ -1,19 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0-windows7.0</TargetFramework>
-    <UseWPF>true</UseWPF>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Text.Json" Version="9.0.0-preview.5.24306.7" />
+    <None Remove="Resources\test.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\test.json" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Automation.Shared\Automation.Shared.csproj" />
-    <ProjectReference Include="..\Automation.Plugins.Shared\Automation.Plugins.Shared.csproj" />
   </ItemGroup>
 
 </Project>

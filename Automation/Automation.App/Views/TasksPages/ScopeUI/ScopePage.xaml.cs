@@ -1,17 +1,19 @@
 ﻿using Automation.App.Base;
-using Automation.App.Views.TaskUI;
-using Automation.App.Views.WorkflowUI;
+using Automation.App.Views.TasksPages.TaskUI;
+using Automation.App.Views.TasksPages.WorkflowUI;
 using Automation.Shared.ViewModels;
+using Joufflu.Shared;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace Automation.App.Views.ScopeUI
+namespace Automation.App.Views.TasksPages.ScopeUI
 {
     /// <summary>
     /// Logique d'interaction pour ScopePage.xaml
     /// </summary>
-    public partial class ScopePage : UserControl
+    public partial class ScopePage : UserControl, IPage
     {
+        public INavigationLayout? Layout { get; set; }
         private readonly IModalContainer _modal;
         private readonly Scope _scope;
 

@@ -8,7 +8,7 @@
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     xmlns:adonisExtensions="clr-namespace:AdonisUI.Extensions;assembly=AdonisUI"
     xmlns:base="clr-namespace:Automation.App.Base"
-    xmlns:display="clr-namespace:Automation.App.Components.Display"
+    xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     mc:Ignorable="d"
     Width="500"
     HorizontalAlignment="Center"
@@ -53,31 +53,28 @@
                     <ColumnDefinition Width="24" />
                     <ColumnDefinition />
                 </Grid.ColumnDefinitions>
-                <TextBlock
-                    FontFamily="{StaticResource FontAwesomeSolid}"
-                    VerticalAlignment="Center"
-                    FontSize="16">
-                    <TextBlock.Style>
-                        <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                <fonts:Icon VerticalAlignment="Center" FontSize="16">
+                    <fonts:Icon.Style>
+                        <Style TargetType="{x:Type fonts:Icon}" BasedOn="{StaticResource {x:Type fonts:Icon}}">
                             <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.AccentBrush}}" />
-                            <Setter Property="Text" Value="{x:Static display:IconFont.CircleInfo}" />
+                            <Setter Property="Text" Value="{x:Static fonts:IconFont.CircleInfo}" />
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding Type}" Value="Warning">
                                     <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.AlertBrush}}" />
-                                    <Setter Property="Text" Value="{x:Static display:IconFont.CircleExclamation}" />
+                                    <Setter Property="Text" Value="{x:Static fonts:IconFont.CircleExclamation}" />
                                 </DataTrigger>
                                 <DataTrigger Binding="{Binding Type}" Value="Error">
                                     <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.ErrorBrush}}" />
-                                    <Setter Property="Text" Value="{x:Static display:IconFont.CircleExclamation}" />
+                                    <Setter Property="Text" Value="{x:Static fonts:IconFont.CircleExclamation}" />
                                 </DataTrigger>
                                 <DataTrigger Binding="{Binding Type}" Value="Success">
                                     <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.SuccessBrush}}" />
-                                    <Setter Property="Text" Value="{x:Static display:IconFont.CircleCheck}" />
+                                    <Setter Property="Text" Value="{x:Static fonts:IconFont.CircleCheck}" />
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
-                    </TextBlock.Style>
-                </TextBlock>
+                    </fonts:Icon.Style>
+                </fonts:Icon>
                 <TextBlock Grid.Column="1" Text="{Binding Message}" />
             </Grid>
 

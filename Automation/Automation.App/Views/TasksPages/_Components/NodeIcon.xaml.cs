@@ -1,9 +1,8 @@
-﻿using Automation.Shared;
-using Automation.Shared.ViewModels;
+﻿using Automation.Shared.ViewModels;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace Automation.App.Components.Display
+namespace Automation.App.Views.TasksPages.Components
 {
     public partial class NodeIcon : UserControl
     {

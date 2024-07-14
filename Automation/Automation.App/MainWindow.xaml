@@ -28,8 +28,8 @@
                     <ColumnDefinition Width="auto" />
                     <ColumnDefinition />
                 </Grid.ColumnDefinitions>
-                <inputs:ScopedSelector x:Name="SideMenu" />
-                <views:RouterView Grid.Column="1" Selected="{Binding Selected, ElementName=SideMenu, Mode=OneWay}" />
+                <menus:NavigationSideMenu NavigationChanged="NavigationSideMenu_NavigationChanged" />
+                <ContentPresenter Grid.Column="1" x:Name="NavigationContent" />
             </Grid>
             <menus:Footer Grid.Row="2" />
         </Grid>

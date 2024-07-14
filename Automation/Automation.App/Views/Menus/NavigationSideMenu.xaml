@@ -1,0 +1,59 @@
+﻿<UserControl
+    x:Class="Automation.App.Views.Menus.NavigationSideMenu"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Automation.App.Views.Menus"
+    xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
+    mc:Ignorable="d"
+    xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
+    Background="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}">
+    <StackPanel Orientation="Vertical" DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:NavigationSideMenu}}">
+        <Button
+            Padding="10"
+            ToolTip="Tasks"
+            Click="NavigationTasks_Click">
+            <Button.Style>
+                <Style TargetType="Button" BasedOn="{StaticResource IconButton}">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding CurrentPage}" Value="Tasks">
+                            <Setter Property="Background" Value="{DynamicResource {x:Static adonisUi:Brushes.AccentBrush}}" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Button.Style>
+            <fonts:Icon FontSize="24" Text="{x:Static fonts:IconFont.Cubes}" />
+        </Button>
+        <Button
+            Padding="10"
+            ToolTip="Supervisor"
+            Click="NavigationSupervisor_Click">
+            <Button.Style>
+                <Style TargetType="Button" BasedOn="{StaticResource IconButton}">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding CurrentPage}" Value="Supervisor">
+                            <Setter Property="Background" Value="{DynamicResource {x:Static adonisUi:Brushes.AccentBrush}}" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Button.Style>
+            <fonts:Icon FontSize="24" Text="{x:Static fonts:IconFont.UserTie}" />
+        </Button>
+        <Button
+            Padding="10"
+            ToolTip="Workers"
+            Click="NavigationWorkers_Click">
+            <Button.Style>
+                <Style TargetType="Button" BasedOn="{StaticResource IconButton}">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding CurrentPage}" Value="Workers">
+                            <Setter Property="Background" Value="{DynamicResource {x:Static adonisUi:Brushes.AccentBrush}}" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Button.Style>
+            <fonts:Icon FontSize="24" Text="{x:Static fonts:IconFont.Server}" />
+        </Button>
+    </StackPanel>
+</UserControl>

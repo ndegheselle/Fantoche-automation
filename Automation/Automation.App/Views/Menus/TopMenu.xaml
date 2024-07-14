@@ -5,8 +5,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Automation.App.Views.Menus"
-    xmlns:display="clr-namespace:Automation.App.Components.Display"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
+    xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     mc:Ignorable="d">
     <Menu
         Background="{DynamicResource {x:Static adonisUi:Brushes.Layer1BackgroundBrush}}"
@@ -15,10 +15,7 @@
         <MenuItem Header="File">
             <MenuItem Header="Parameters" Click="Parameters_Click">
                 <MenuItem.Icon>
-                    <TextBlock
-                        Text="{x:Static display:IconFont.Gear}"
-                        FontFamily="{StaticResource FontAwesomeSolid}"
-                        VerticalAlignment="Center" />
+                    <fonts:Icon Text="{x:Static fonts:IconFont.Gear}" />
                 </MenuItem.Icon>
             </MenuItem>
             <Separator />

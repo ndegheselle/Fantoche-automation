@@ -1,15 +1,15 @@
 ﻿<UserControl
-    x:Class="Automation.App.Views.WorkflowUI.WorkflowGraph"
+    x:Class="Automation.App.Views.TasksPages.WorkflowUI.WorkflowGraph"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:nodify="clr-namespace:Nodify;assembly=Nodify"
-    xmlns:local="clr-namespace:Automation.App.Views.WorkflowUI"
+    xmlns:local="clr-namespace:Automation.App.Views.TasksPages.WorkflowUI"
     xmlns:graph="clr-namespace:Automation.App.ViewModels.Graph"
     xmlns:baseViewModels="clr-namespace:Automation.Shared.ViewModels;assembly=Automation.Shared"
-    xmlns:display="clr-namespace:Automation.App.Components.Display"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
+    xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     mc:Ignorable="d">
     <UserControl.Resources>
         <GeometryDrawing
@@ -173,37 +173,25 @@
                     Style="{StaticResource IconButton}"
                     Click="ButtonZoomIn_Click"
                     ToolTip="Zoom in">
-                    <TextBlock
-                        FontFamily="{StaticResource FontAwesomeSolid}"
-                        VerticalAlignment="Center"
-                        Text="{x:Static display:IconFont.Plus}" />
+                    <fonts:Icon Text="{x:Static fonts:IconFont.Plus}" />
                 </Button>
                 <Button
                     Style="{StaticResource IconButton}"
                     Click="ButtonZoomOut_Click"
                     ToolTip="Zoom out">
-                    <TextBlock
-                        FontFamily="{StaticResource FontAwesomeSolid}"
-                        VerticalAlignment="Center"
-                        Text="{x:Static display:IconFont.Minus}" />
+                    <fonts:Icon Text="{x:Static fonts:IconFont.Minus}" />
                 </Button>
                 <Button
                     Style="{StaticResource IconButton}"
                     Click="ButtonZoomFit_Click"
                     ToolTip="Fit nodes to screen">
-                    <TextBlock
-                        FontFamily="{StaticResource FontAwesomeSolid}"
-                        VerticalAlignment="Center"
-                        Text="{x:Static display:IconFont.Expand}" />
+                    <fonts:Icon Text="{x:Static fonts:IconFont.Expand}" />
                 </Button>
                 <ToggleButton
                     Style="{StaticResource IconToggleButton}"
                     ToolTip="Allow snaping"
                     Click="ToggleButtonSnapping_Click">
-                    <TextBlock
-                        FontFamily="{StaticResource FontAwesomeSolid}"
-                        VerticalAlignment="Center"
-                        Text="{x:Static display:IconFont.TableCells}" />
+                    <fonts:Icon Text="{x:Static fonts:IconFont.TableCells}" />
                 </ToggleButton>
             </StackPanel>
         </Border>
@@ -221,28 +209,19 @@
                     Style="{StaticResource IconButton}"
                     Click="ButtonAdd_Click"
                     ToolTip="Add node">
-                    <TextBlock
-                        FontFamily="{StaticResource FontAwesomeSolid}"
-                        VerticalAlignment="Center"
-                        Text="{x:Static display:IconFont.Plus}" />
+                    <fonts:Icon Text="{x:Static fonts:IconFont.Plus}" />
                 </Button>
                 <Button
                     Style="{StaticResource IconButton}"
                     Click="ButtonGroup_Click"
                     ToolTip="Group selected nodes">
-                    <TextBlock
-                        FontFamily="{StaticResource FontAwesomeSolid}"
-                        VerticalAlignment="Center"
-                        Text="{x:Static display:IconFont.ObjectGroup}" />
+                    <fonts:Icon Text="{x:Static fonts:IconFont.ObjectGroup}" />
                 </Button>
                 <Button
                     Style="{StaticResource IconButton}"
                     Click="ButtonDelete_Click"
                     ToolTip="Delete selection">
-                    <TextBlock
-                        FontFamily="{StaticResource FontAwesomeSolid}"
-                        VerticalAlignment="Center"
-                        Text="{x:Static display:IconFont.Trash}" />
+                    <fonts:Icon Text="{x:Static fonts:IconFont.Trash}" />
                 </Button>
             </StackPanel>
         </Border>

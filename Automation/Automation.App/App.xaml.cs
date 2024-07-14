@@ -1,7 +1,7 @@
 ﻿using Automation.App.Base;
 using Automation.App.ViewModels;
+using Automation.DAL.Respositories;
 using Automation.Shared.Supervisor;
-using Automation.Supervisor.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 

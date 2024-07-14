@@ -4,7 +4,7 @@ using System.IO;
 using System.Reflection;
 using System.Text.Json;
 
-namespace Automation.Supervisor.Repositories
+namespace Automation.DAL.Respositories
 {
     // Separated like it would be in a relationnal database
     public class TestData
@@ -156,14 +156,14 @@ namespace Automation.Supervisor.Repositories
         private TestData LoadTestData()
         {
             var assembly = Assembly.GetExecutingAssembly();
-            var resourceName = "Automation.Supervisor.Resources.test.json";
+            var resourceName = "Automation.DAL.Resources.test.json";
 
             using (Stream stream = assembly.GetManifestResourceStream(resourceName))
-                using (StreamReader reader = new StreamReader(stream))
-                {
-                    string jsonFile = reader.ReadToEnd(); //Make string equal to full file
-                    return JsonSerializer.Deserialize<TestData>(jsonFile);
-                }
+            using (StreamReader reader = new StreamReader(stream))
+            {
+                string jsonFile = reader.ReadToEnd(); //Make string equal to full file
+                return JsonSerializer.Deserialize<TestData>(jsonFile);
+            }
         }
 
         private void CreateTestNodes()

@@ -5,7 +5,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Automation.App.Components.Inputs"
-    xmlns:display="clr-namespace:Automation.App.Components.Display"
+    xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     mc:Ignorable="d">
     <Grid DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:FilePicker}}">
@@ -29,21 +29,13 @@
                     </Style.Triggers>
                 </Style>
             </Button.Resources>
-            <TextBlock
-                Foreground="{DynamicResource {x:Static adonisUi:Brushes.AccentBrush}}"
-                Text="{x:Static display:IconFont.CircleXmark}"
-                FontFamily="{StaticResource FontAwesomeSolid}"
-                DataContext="{Binding Type, RelativeSource={RelativeSource AncestorType=local:NodeIcon}}" />
+            <fonts:Icon Foreground="{DynamicResource {x:Static adonisUi:Brushes.AccentBrush}}" Text="{x:Static fonts:IconFont.CircleXmark}" />
         </Button>
         <Button
             Grid.Column="2"
             Margin="2,0,0,0"
             Click="ButtonSelect_Click">
-            <TextBlock
-                Foreground="{DynamicResource {x:Static adonisUi:Brushes.AccentBrush}}"
-                Text="{x:Static display:IconFont.File}"
-                FontFamily="{StaticResource FontAwesomeSolid}"
-                DataContext="{Binding Type, RelativeSource={RelativeSource AncestorType=local:NodeIcon}}" />
+            <fonts:Icon Foreground="{DynamicResource {x:Static adonisUi:Brushes.AccentBrush}}" Text="{x:Static fonts:IconFont.File}" />
         </Button>
     </Grid>
 </UserControl>

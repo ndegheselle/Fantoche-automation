@@ -1,10 +1,9 @@
 ﻿using Automation.App.Base;
 using Automation.App.Components.Display;
-using Automation.App.Components.Inputs;
 using Automation.App.ViewModels.Graph;
+using Automation.App.Views.TasksPages.Components;
 using Automation.Shared.Supervisor;
 using Automation.Shared.ViewModels;
-using Automation.Supervisor.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using Nodify;
 using System.Windows;
@@ -12,7 +11,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 
-namespace Automation.App.Views.WorkflowUI
+namespace Automation.App.Views.TasksPages.WorkflowUI
 {
     /// <summary>
     /// Logique d'interaction pour WorkflowGraph.xaml
@@ -36,6 +35,7 @@ namespace Automation.App.Views.WorkflowUI
 
         private void OnEditorDataChange() { EditorData.InvalidConnection += _alert.Warning; }
         #endregion
+
         private readonly App _app = (App)App.Current;
         private readonly IModalContainer _modal;
         private readonly IAlert _alert;

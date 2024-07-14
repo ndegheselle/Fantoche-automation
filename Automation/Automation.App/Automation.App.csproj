@@ -25,6 +25,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\wpf-components\Joufflu.Data\Joufflu.Data.csproj" />
+    <ProjectReference Include="..\..\..\wpf-components\Joufflu.Shared\Joufflu.Shared.csproj" />
+    <ProjectReference Include="..\Automation.DAL\Automation.DAL.csproj" />
     <ProjectReference Include="..\Automation.Plugins\Automation.Plugins.csproj" />
     <ProjectReference Include="..\Automation.Supervisor\Automation.Supervisor.csproj" />
     <ProjectReference Include="..\Automation.Worker\Automation.Worker.csproj" />
@@ -40,6 +42,11 @@
     <Resource Include="Resources\Fonts\FontAwesomeSolid.otf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Views\WorkersPages\" />
+    <Folder Include="Views\SupervisorPages\" />
   </ItemGroup>
 
 </Project>

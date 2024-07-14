@@ -1,11 +1,11 @@
 ﻿<UserControl
-    x:Class="Automation.App.Components.Data.TaskInstanceTable"
+    x:Class="Automation.App.Views.TasksPages.Components.TaskInstanceTable"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:local="clr-namespace:Automation.App.Components.Data"
-    xmlns:display="clr-namespace:Automation.App.Components.Display"
+    xmlns:local="clr-namespace:Automation.App.Views.TasksPages.Components"
+    xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     xmlns:jouffluData="clr-namespace:Joufflu.Data.Components;assembly=Joufflu.Data"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     mc:Ignorable="d"
@@ -45,29 +45,33 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock FontFamily="{StaticResource FontAwesomeSolid}" VerticalAlignment="Center">
-                                    <TextBlock.Style>
-                                        <Style TargetType="TextBlock" BasedOn="{StaticResource StatusTextBlock}">
+                                <fonts:Icon>
+                                    <fonts:Icon.Style>
+                                        <Style TargetType="fonts:Icon" BasedOn="{StaticResource {x:Type fonts:Icon}}">
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding Status}" Value="Pending">
-                                                    <Setter Property="Text" Value="{x:Static display:IconFont.Clock}" />
+                                                    <Setter Property="Text" Value="{x:Static fonts:IconFont.Clock}" />
+                                                    <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.AlertBrush}}" />
                                                 </DataTrigger>
                                                 <DataTrigger Binding="{Binding Status}" Value="Running">
-                                                    <Setter Property="Text" Value="{x:Static display:IconFont.Hourglass}" />
+                                                    <Setter Property="Text" Value="{x:Static fonts:IconFont.Hourglass}" />
                                                 </DataTrigger>
                                                 <DataTrigger Binding="{Binding Status}" Value="Stopped">
-                                                    <Setter Property="Text" Value="{x:Static display:IconFont.CirclePause}" />
+                                                    <Setter Property="Text" Value="{x:Static fonts:IconFont.CirclePause}" />
+                                                    <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.AlertBrush}}" />
                                                 </DataTrigger>
                                                 <DataTrigger Binding="{Binding Status}" Value="Completed">
-                                                    <Setter Property="Text" Value="{x:Static display:IconFont.CircleCheck}" />
+                                                    <Setter Property="Text" Value="{x:Static fonts:IconFont.CircleCheck}" />
+                                                    <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.SuccessBrush}}" />
                                                 </DataTrigger>
                                                 <DataTrigger Binding="{Binding Status}" Value="Failed">
-                                                    <Setter Property="Text" Value="{x:Static display:IconFont.CircleXmark}" />
+                                                    <Setter Property="Text" Value="{x:Static fonts:IconFont.CircleXmark}" />
+                                                    <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.ErrorBrush}}" />
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
-                                    </TextBlock.Style>
-                                </TextBlock>
+                                    </fonts:Icon.Style>
+                                </fonts:Icon>
                                 <TextBlock
                                     Margin="4,0,0,0"
                                     Text="{Binding Status}"

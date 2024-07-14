@@ -1,24 +1,11 @@
 ﻿using AdonisUI.Controls;
 using Automation.App.Base;
+using Automation.App.Views.TasksPages;
 using Automation.Shared.Supervisor;
-using Automation.Supervisor;
-using Automation.Supervisor.Repositories;
-using Automation.Worker;
+using Joufflu.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace Automation.App
 {
@@ -35,25 +22,36 @@ namespace Automation.App
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : AdonisWindow, IWindowContainer
+    public partial class MainWindow : AdonisWindow, IWindowContainer, INavigationLayout
     {
         // XXX : if called before InitializeComponent, the property will be null
         public IModalContainer Modal => this.ModalContainer;
         public IAlert Alert => this.AlertContainer;
 
+        public INavigationLayout? Layout { get; set; }
+
         private readonly App _app = (App)App.Current;
-        private readonly IScopeRepository _repository;
 
         public MainWindow()
         {
-            _repository = _app.ServiceProvider.GetRequiredService<IScopeRepository>();
             InitializeComponent();
-            OnLoaded();
+            Show(new TasksMainPage());
         }
 
-        protected async void OnLoaded()
+        public void Show(IPage page)
         {
-            SideMenu.RootScope = await _repository.GetRootScopeAsync();
+            page.Layout = this;
+            NavigationContent.Content = page;
+        }
+
+        private void NavigationSideMenu_NavigationChanged(Views.Menus.EnumNavigationPages page)
+        {
+            switch(page)
+            {
+                case Views.Menus.EnumNavigationPages.Tasks:
+                    Show(new TasksMainPage());
+                    break;
+            }
         }
     }
 }

@@ -1,13 +1,11 @@
 ﻿using Automation.App.Base;
-using Automation.App.ViewModels;
 using Automation.Shared.Supervisor;
 using Automation.Shared.ViewModels;
-using Automation.Supervisor.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace Automation.App.Components.Inputs
+namespace Automation.App.Views.TasksPages.Components
 {
     public class ScopedSelectorModal : ScopedSelector, IModalContent
     {
@@ -20,6 +18,8 @@ namespace Automation.App.Components.Inputs
     /// </summary>
     public partial class ScopedSelector : UserControl
     {
+        public event Action<ScopedElement?>? SelectedChanged;
+
         #region Dependency Properties
         // Dependency property Scope RootScope
         public static readonly DependencyProperty RootScopeProperty = DependencyProperty.Register(
@@ -85,6 +85,7 @@ namespace Automation.App.Components.Inputs
                 return;
             }
             Selected = selected;
+            SelectedChanged?.Invoke(Selected);
         }
     }
 }

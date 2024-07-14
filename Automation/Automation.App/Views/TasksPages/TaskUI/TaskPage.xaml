@@ -1,11 +1,11 @@
 ﻿<UserControl
-    x:Class="Automation.App.Views.TaskUI.TaskPage"
+    x:Class="Automation.App.Views.TasksPages.TaskUI.TaskPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:data="clr-namespace:Automation.App.Components.Data"
-    xmlns:display="clr-namespace:Automation.App.Components.Display"
+    xmlns:components="clr-namespace:Automation.App.Views.TasksPages.Components"
+    xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     mc:Ignorable="d"
     xmlns:viewModels="clr-namespace:Automation.Shared.ViewModels;assembly=Automation.Shared"
     d:DataContext="{d:DesignInstance viewModels:ScopedNode}">
@@ -32,14 +32,14 @@
                 Orientation="Horizontal"
                 Margin="2">
                 <Button Click="ButtonParam_Click" Margin="2,0,0,0">
-                    <TextBlock Text="{x:Static display:IconFont.Gear}" FontFamily="{StaticResource FontAwesomeSolid}" />
+                    <fonts:Icon Text="{x:Static fonts:IconFont.Gear}" />
                 </Button>
             </StackPanel>
         </Grid>
         <TabControl Grid.Row="1">
             <TabItem Header="Scheduler" />
             <TabItem Header="History">
-                <data:TaskInstanceTable TaskId="{Binding NodeId}" Margin="-6" />
+                <components:TaskInstanceTable TaskId="{Binding NodeId}" Margin="-6" />
             </TabItem>
         </TabControl>
     </Grid>

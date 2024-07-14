@@ -12,9 +12,10 @@
                 <ResourceDictionary Source="pack://application:,,,/AdonisUI.ClassicTheme;component/Resources.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/Nodify;component/Themes/Dark.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/Automation.App;component/Resources/Resources.xaml" />
+
+                <ResourceDictionary Source="pack://application:,,,/Joufflu.Shared;component/Styles/Resources.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
-            <FontFamily x:Key="FontAwesomeSolid">/Resources/Fonts/FontAwesomeSolid.otf#Font Awesome 6 Free Solid</FontFamily>
             <converters:EnumToListConverter x:Key="EnumToListConverter" />
             <converters:EnumToBooleanConverter x:Key="EnumToBooleanConverter" />
 

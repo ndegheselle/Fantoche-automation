@@ -1,17 +1,18 @@
 ﻿using Automation.App.ViewModels.Graph;
 using Automation.Shared.Supervisor;
 using Automation.Shared.ViewModels;
-using Automation.Supervisor.Repositories;
+using Joufflu.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows.Controls;
 
-namespace Automation.App.Views.WorkflowUI
+namespace Automation.App.Views.TasksPages.WorkflowUI
 {
     /// <summary>
     /// Logique d'interaction pour WorkflowPage.xaml
     /// </summary>
-    public partial class WorkflowPage : UserControl
+    public partial class WorkflowPage : UserControl, IPage
     {
+        public INavigationLayout? Layout { get; set; }
         public EditorViewModel? Editor { get; set; } = null;
         private readonly App _app = (App)App.Current;
         private readonly INodeRepository _repository;

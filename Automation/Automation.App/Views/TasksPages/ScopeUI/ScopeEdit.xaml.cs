@@ -3,7 +3,7 @@ using Automation.Shared.ViewModels;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace Automation.App.Views.ScopeUI
+namespace Automation.App.Views.TasksPages.ScopeUI
 {
     public class ScopedEditModal : ScopedEdit, IModalContentCallback
     {
