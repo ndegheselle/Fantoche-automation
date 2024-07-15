@@ -1,17 +1,15 @@
 ﻿<UserControl
-    x:Class="Automation.App.Views.TasksPages.ScopeUI.ScopedEdit"
+    x:Class="Automation.App.Views.TasksPages.Components.ScopedParameters"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:local="clr-namespace:Automation.App.Views.TasksPages.TaskUI"
+    xmlns:local="clr-namespace:Automation.App.Views.TasksPages.Components"
     mc:Ignorable="d"
-    MinHeight="300"
-    MinWidth="300"
     xmlns:viewModels="clr-namespace:Automation.Shared.ViewModels;assembly=Automation.Shared"
     xmlns:data="clr-namespace:Automation.App.Components.Data"
-    d:DataContext="{d:DesignInstance viewModels:ScopedElement}">
-    <Grid Margin="4">
+    xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared">
+    <Grid Margin="4" DataContext="{Binding Scoped, RelativeSource={RelativeSource AncestorType={x:Type local:ScopedParameters}}}">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
@@ -19,10 +17,10 @@
             <RowDefinition />
         </Grid.RowDefinitions>
 
-        <TextBlock Margin="0,4">Name</TextBlock>
+        <TextBlock Margin="0,0,0,4">Name</TextBlock>
         <TextBox Grid.Row="1" Text="{Binding Name}" />
 
-        <TextBlock Grid.Row="2" Margin="0,4">Context</TextBlock>
-        <data:ContextVisualizer Grid.Row="3" Context="{Binding Context}" />
+        <TextBlock Grid.Row="2" Margin="0,4,0,2">Context</TextBlock>
+        <local:ContextVisualizer Grid.Row="3" Context="{Binding Context}" />
     </Grid>
 </UserControl>

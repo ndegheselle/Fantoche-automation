@@ -5,7 +5,23 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Automation.App.Views.TasksPages.WorkflowUI"
+    xmlns:components="clr-namespace:Automation.App.Views.TasksPages.Components"
+    xmlns:tasks="clr-namespace:Automation.App.Views.TasksPages.TaskUI"
     mc:Ignorable="d"
-    d:DataContext="{d:DesignInstance local:WorkflowPage}">
-    <local:WorkflowGraph EditorData="{Binding Editor, Mode=OneTime}" />
+    xmlns:viewModels="clr-namespace:Automation.Shared.ViewModels;assembly=Automation.Shared"
+    d:DataContext="{d:DesignInstance viewModels:WorkflowNode}">
+    <TabControl>
+        <TabItem Header="Graph">
+            <local:WorkflowGraph EditorData="{Binding Editor, RelativeSource={RelativeSource AncestorType={x:Type local:WorkflowPage}}}" />
+        </TabItem>
+        <TabItem Header="Scheduler">
+            <tasks:TaskSchedules />
+        </TabItem>
+        <TabItem Header="History">
+            <components:ScopedInstances ScopedId="{Binding ParentScopeId}" />
+        </TabItem>
+        <TabItem Header="Parameters">
+            <local:WorkflowEdit Workflow="{Binding}" />
+        </TabItem>
+    </TabControl>
 </UserControl>

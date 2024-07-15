@@ -38,6 +38,7 @@ namespace Automation.App.Components.Inputs
         {
             // Open file dialog
             var dialog = new Microsoft.Win32.OpenFileDialog();
+            dialog.DefaultExt = "*.dll";
             dialog.Filter = Filter;
             if (dialog.ShowDialog() == true)
             {

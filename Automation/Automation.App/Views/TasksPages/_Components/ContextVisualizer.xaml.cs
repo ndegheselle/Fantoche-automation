@@ -3,7 +3,7 @@ using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace Automation.App.Components.Data
+namespace Automation.App.Views.TasksPages.Components
 {
     public class ContextValue
     { 

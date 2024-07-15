@@ -4,6 +4,7 @@ using Automation.Shared.ViewModels;
 using Joufflu.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows.Controls;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace Automation.App.Views.TasksPages.WorkflowUI
 {
@@ -14,23 +15,27 @@ namespace Automation.App.Views.TasksPages.WorkflowUI
     {
         public INavigationLayout? Layout { get; set; }
         public EditorViewModel? Editor { get; set; } = null;
+        public WorkflowNode Workflow { get; set; }
+
         private readonly App _app = (App)App.Current;
         private readonly INodeRepository _repository;
 
-        public WorkflowPage(Guid id)
+        public WorkflowPage(ScopedTask scope)
         {
             _repository = _app.ServiceProvider.GetRequiredService<INodeRepository>();
             InitializeComponent();
-            LoadWokflow(id);
+            LoadWokflow(scope);
         }
 
-        public async void LoadWokflow(Guid id)
+        public async void LoadWokflow(ScopedTask scope)
         {
             // Load full workflow
-            if (await _repository.GetNodeAsync(id) is not WorkflowNode workflow)
+            if (await _repository.GetNodeAsync(scope.TaskId) is not WorkflowNode workflow)
                 throw new ArgumentException("Workflow not found");
-            Editor = new EditorViewModel(workflow);
-            this.DataContext = this;
+            Workflow = workflow;
+            Workflow.ParentScope = scope;
+            Editor = new EditorViewModel(Workflow);
+            this.DataContext = Workflow;
         }
     }
 }

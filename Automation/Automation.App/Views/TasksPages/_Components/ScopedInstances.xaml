@@ -1,5 +1,5 @@
 ﻿<UserControl
-    x:Class="Automation.App.Views.TasksPages.Components.TaskInstanceTable"
+    x:Class="Automation.App.Views.TasksPages.Components.ScopedInstances"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -21,7 +21,7 @@
             CanUserAddRows="False"
             CanUserSortColumns="False"
             CanUserDeleteRows="False"
-            ItemsSource="{Binding Instances, RelativeSource={RelativeSource AncestorType={x:Type local:TaskInstanceTable}}}">
+            ItemsSource="{Binding Instances, RelativeSource={RelativeSource AncestorType={x:Type local:ScopedInstances}}}">
             <DataGrid.Resources>
                 <Style TargetType="TextBlock" x:Key="StatusTextBlock">
                     <Style.Triggers>
@@ -80,6 +80,8 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
+                <DataGridTextColumn Header="ParentTask" Binding="{Binding ParentTask.Name}" />
+                <DataGridTextColumn Header="Task" Binding="{Binding Task.Name}" />
                 <DataGridTextColumn Header="Start" Binding="{Binding StartDate}" />
                 <DataGridTextColumn Header="End" Binding="{Binding EndDate}" />
             </DataGrid.Columns>
@@ -90,6 +92,6 @@
             Margin="0,2,0,0"
             Grid.Row="1"
             Capacity="50"
-            Total="{Binding TotalInstances, RelativeSource={RelativeSource AncestorType={x:Type local:TaskInstanceTable}}}" />
+            Total="{Binding TotalInstances, RelativeSource={RelativeSource AncestorType={x:Type local:ScopedInstances}}}" />
     </Grid>
 </UserControl>

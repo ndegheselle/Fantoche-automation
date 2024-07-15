@@ -14,7 +14,7 @@ namespace Automation.Shared.ViewModels
         Task
     }
 
-    [JsonDerivedType(typeof(ScopedNode), typeDiscriminator: "node")]
+    [JsonDerivedType(typeof(ScopedTask), typeDiscriminator: "node")]
     [JsonDerivedType(typeof(Scope), typeDiscriminator: "scope")]
     public class ScopedElement : INotifyPropertyChanged
     {
@@ -71,19 +71,18 @@ namespace Automation.Shared.ViewModels
         }
     }
 
-    public class ScopedNode : ScopedElement
+    // XXX : Not to sure if ScopedTask should exist, could use only the relationship from TaskNode.ParentScopeId
+    // XXX : Question are : Does a task need a specific context ? Get all the tasks from a scope and display them in a tree ?
+    public class ScopedTask : ScopedElement
     {
-        public Guid NodeId { get; set; }
-        [JsonIgnore]
-        public Node Node { get; set; }
+        public Guid TaskId { get; set; }
 
-        public ScopedNode()
+        public ScopedTask()
         {}
 
-        public ScopedNode(Node node)
+        public ScopedTask(TaskNode node)
         {
-            NodeId = node.Id;
-            Node = node;
+            TaskId = node.Id;
             Name = node.Name;
             if (node is WorkflowNode)
                 Type = EnumScopedType.Workflow;

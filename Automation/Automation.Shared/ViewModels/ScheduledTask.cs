@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Automation.Shared.ViewModels
@@ -19,8 +20,13 @@ namespace Automation.Shared.ViewModels
     public class TaskInstance
     {
         public Guid Id { get; set; }
-        public Guid ParentTaskId { get; set; }
+        public Guid? ParentTaskId { get; set; }
         public Guid TaskId { get; set; }
+
+        [JsonIgnore]
+        public INode Task { get; set; }
+        [JsonIgnore]
+        public INode? ParentTask { get; set; }
 
         public DateTime StartDate { get; set; }
         public DateTime? EndDate { get; set; }

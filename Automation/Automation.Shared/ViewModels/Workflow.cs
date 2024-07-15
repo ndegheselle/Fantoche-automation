@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
+using System.Windows;
 
 namespace Automation.Shared.ViewModels
 {
@@ -7,7 +8,7 @@ namespace Automation.Shared.ViewModels
     {
         public ObservableCollection<NodeConnection> Connections { get; } = [];
         [JsonIgnore]
-        public ObservableCollection<Node> Nodes { get; set; } = [];
+        public ObservableCollection<INode> Nodes { get; set; } = [];
 
         public void AddConnection(NodeConnection connection)
         {

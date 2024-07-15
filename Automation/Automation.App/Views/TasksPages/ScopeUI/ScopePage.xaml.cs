@@ -1,4 +1,5 @@
 ﻿using Automation.App.Base;
+using Automation.App.Views.TasksPages.Components;
 using Automation.App.Views.TasksPages.TaskUI;
 using Automation.App.Views.TasksPages.WorkflowUI;
 using Automation.Shared.ViewModels;
@@ -36,29 +37,29 @@ namespace Automation.App.Views.TasksPages.ScopeUI
 
         private void ButtonParam_Click(object sender, RoutedEventArgs e)
         {
-            _modal.Show(new ScopedEditModal(_scope));
+            _modal.Show(new ScopedParametersModal(_scope));
         }
 
         private async void MenuAddScope_Click(object sender, RoutedEventArgs e)
         {
             Scope newScope = new Scope();
-            if (await _modal.Show(new ScopedEditModal(newScope)))
+            if (await _modal.Show(new ScopedParametersModal(newScope)))
                 _scope.AddChild(newScope);
         }
 
         private async void MenuAddTask_Click(object sender, RoutedEventArgs e)
         {
             TaskNode newTask = new TaskNode();
-            ScopedNode newScopedNode = new ScopedNode(newTask);
-            if (await _modal.Show(new ScopedEditModal(newScopedNode)))
+            ScopedTask newScopedNode = new ScopedTask(newTask);
+            if (await _modal.Show(new ScopedParametersModal(newScopedNode)))
                 _scope.AddChild(newScopedNode);
         }
 
         private async void MenuAddWorkflow_Click(object sender, RoutedEventArgs e)
         {
             WorkflowNode newWorkflow = new WorkflowNode();
-            ScopedNode newScopedNode = new ScopedNode(newWorkflow);
-            if (await _modal.Show(new ScopedEditModal(newScopedNode)))
+            ScopedTask newScopedNode = new ScopedTask(newWorkflow);
+            if (await _modal.Show(new ScopedParametersModal(newScopedNode)))
                 _scope.AddChild(newScopedNode);
         }
         #endregion

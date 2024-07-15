@@ -13,14 +13,14 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Automation.App.Views.TasksPages.ScopeUI
+namespace Automation.App.Views.TasksPages.TaskUI
 {
     /// <summary>
-    /// Logique d'interaction pour ScopedParameters.xaml
+    /// Logique d'interaction pour TaskSchedules.xaml
     /// </summary>
-    public partial class ScopedParameters : UserControl
+    public partial class TaskSchedules : UserControl
     {
-        public ScopedParameters()
+        public TaskSchedules()
         {
             InitializeComponent();
         }

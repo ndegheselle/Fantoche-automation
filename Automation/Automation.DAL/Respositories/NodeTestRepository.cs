@@ -1,6 +1,6 @@
 ﻿using Automation.Shared.Supervisor;
 using Automation.Shared.ViewModels;
-using System.IO;
+using System.Collections.ObjectModel;
 using System.Reflection;
 using System.Text.Json;
 
@@ -9,7 +9,7 @@ namespace Automation.DAL.Respositories
     // Separated like it would be in a relationnal database
     public class TestData
     {
-        public List<Node> Nodes { get; set; }
+        public List<INode> Nodes { get; set; }
 
         public List<ScopedElement> ScopedElements { get; set; }
 
@@ -27,7 +27,7 @@ namespace Automation.DAL.Respositories
     {
         public NodeTestRepository()
         {
-            // CreateTestNodes();
+            // string test = CreateTestNodes();
         }
 
         public Scope GetRootScope() { return (Scope)GetScoped(Guid.Parse("00000000-0000-0000-0000-000000000001")); }
@@ -59,10 +59,10 @@ namespace Automation.DAL.Respositories
             return Task.FromResult(GetScoped(id));
         }
 
-        public Node? GetNode(Guid id)
+        public INode? GetNode(Guid id)
         {
             var testData = LoadTestData();
-            Node? node = testData.Nodes.FirstOrDefault(x => x.Id == id);
+            INode? node = testData.Nodes.FirstOrDefault(x => x.Id == id);
 
             if (node == null)
                 return null;
@@ -92,7 +92,7 @@ namespace Automation.DAL.Respositories
                     .Where(x => x.WorkflowId == workflow.Id)
                     .Select(x => x.NodeId))
                 {
-                    TaskNode childNode = (TaskNode)GetNode(childId);
+                    INode childNode = (INode)GetNode(childId);
                     workflow.Nodes.Add(childNode);
                 }
 
@@ -100,11 +100,11 @@ namespace Automation.DAL.Respositories
                 foreach (NodeConnection connection in testData.Connections.Where(x => x.ParentId == workflow.Id))
                 {
                     connection.Source = workflow.Nodes
-                        .Where(x => x is TaskNode)
+                        .Where(x => x is INode)
                         .SelectMany(x => ((TaskNode)x).Outputs)
                         .First(x => x.Id == connection.SourceId);
                     connection.Target = workflow.Nodes
-                        .Where(x => x is TaskNode)
+                        .Where(x => x is INode)
                         .SelectMany(x => ((TaskNode)x).Inputs)
                         .First(x => x.Id == connection.TargetId);
                     workflow.AddConnection(new NodeConnection(workflow, connection.Source, connection.Target));
@@ -114,13 +114,14 @@ namespace Automation.DAL.Respositories
             return node;
         }
 
-        public Task<Node?> GetNodeAsync(Guid id)
+        public Task<INode?> GetNodeAsync(Guid id)
         {
             return Task.FromResult(GetNode(id));
         }
 
-        public IEnumerable<TaskInstance> GetTaskInstances(Guid taskId, int number, int page)
+        public IEnumerable<TaskInstance> GetScopedInstances(Guid taskId, int number, int page)
         {
+            var testData = LoadTestData();
             List<TaskInstance> testList = new List<TaskInstance>();
             for (int i = page * number; i < page * number + number; i++)
             {
@@ -128,6 +129,8 @@ namespace Automation.DAL.Respositories
                 {
                     Id = Guid.NewGuid(),
                     TaskId = taskId,
+                    Task = (INode)testData.Nodes.First(x => x.Id == taskId),
+                    ParentTask = testData.Nodes.FirstOrDefault(x => x is WorkflowNode) as INode,
                     StartDate = DateTime.Now,
                     EndDate = DateTime.Now.AddSeconds(10)
                 };
@@ -137,19 +140,19 @@ namespace Automation.DAL.Respositories
             return testList;
         }
 
-        public Task<IEnumerable<TaskInstance>> GetTaskInstancesAsync(Guid taskId, int number, int page)
+        public Task<IEnumerable<TaskInstance>> GetScopedInstancesAsync(Guid taskId, int number, int page)
         {
-            return Task.FromResult(GetTaskInstances(taskId, number, page));
+            return Task.FromResult(GetScopedInstances(taskId, number, page));
         }
 
-        public int GetTaskInstancesCount(Guid taskId)
+        public int GetScopedInstancesCount(Guid taskId)
         {
             return 100000;
         }
 
-        public Task<int> GetTaskInstancesCountAsync(Guid taskId)
+        public Task<int> GetScopedInstancesCountAsync(Guid taskId)
         {
-            return Task.FromResult(GetTaskInstancesCount(taskId));
+            return Task.FromResult(GetScopedInstancesCount(taskId));
         }
 
         #region Debug
@@ -166,7 +169,7 @@ namespace Automation.DAL.Respositories
             }
         }
 
-        private void CreateTestNodes()
+        private string CreateTestNodes()
         {
             TaskNode taskScope1 = new TaskNode() { Name = "Task 1" };
             var flowIn1 = new NodeInput() { ParentId = taskScope1.Id, Type = EnumNodeConnectorType.Flow };
@@ -194,20 +197,18 @@ namespace Automation.DAL.Respositories
             subScope.Context = new Dictionary<string, string>()
             {
                 { "Key1", "Value1" },
-                { "Key2", "2" },
-                { "Key3", "true" },
-                { "Key4", "DateTime.Now" },
-                { "Key5", "new TimeSpan()" }
+                { "Key2", "Value2" },
+                { "Key3", "Value3" },
             };
-            ScopedNode subTask = new ScopedNode(taskScope1);
+            ScopedTask subTask = new ScopedTask(taskScope1);
             subTask.ParentId = subScope.Id;
 
             var rootScope = new Scope();
             rootScope.Id = Guid.Parse("00000000-0000-0000-0000-000000000001");
 
-            ScopedNode workflowScopeNode = new ScopedNode(workflowScope);
-            ScopedNode taskScope1Node = new ScopedNode(taskScope1);
-            ScopedNode taskScope2Node = new ScopedNode(taskScope2);
+            ScopedTask workflowScopeNode = new ScopedTask(workflowScope);
+            ScopedTask taskScope1Node = new ScopedTask(taskScope1);
+            ScopedTask taskScope2Node = new ScopedTask(taskScope2);
 
             subScope.ParentId = rootScope.Id;
             workflowScopeNode.ParentId = rootScope.Id;
@@ -215,10 +216,10 @@ namespace Automation.DAL.Respositories
             taskScope2Node.ParentId = rootScope.Id;
             #endregion
             JsonSerializerOptions options = new JsonSerializerOptions { WriteIndented = true };
-            string json = JsonSerializer.Serialize(
+            return JsonSerializer.Serialize(
                 new TestData()
                 {
-                    Nodes = new List<Node> { taskScope1, taskScope2, workflowInput, workflowOutput, workflowScope },
+                    Nodes = new List<INode> { taskScope1, taskScope2, workflowInput, workflowOutput, workflowScope },
                     ScopedElements =
                         new List<ScopedElement>
                             {

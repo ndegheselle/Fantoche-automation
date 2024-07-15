@@ -35,7 +35,7 @@
                     <TextBlock Text="{Binding Name}" />
                 </StackPanel>
             </HierarchicalDataTemplate>
-            <DataTemplate DataType="{x:Type baseViewModels:ScopedNode}">
+            <DataTemplate DataType="{x:Type baseViewModels:ScopedTask}">
                 <StackPanel Orientation="Horizontal">
                     <local:NodeIcon Type="{Binding Type}" Margin="0,0,4,0" />
                     <TextBlock Text="{Binding Name}" />

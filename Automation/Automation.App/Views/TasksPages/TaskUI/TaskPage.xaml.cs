@@ -1,7 +1,10 @@
 ﻿using Automation.App.Base;
+using Automation.App.ViewModels.Graph;
 using Automation.App.Views.TasksPages.ScopeUI;
+using Automation.Shared.Supervisor;
 using Automation.Shared.ViewModels;
 using Joufflu.Shared;
+using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -13,20 +16,26 @@ namespace Automation.App.Views.TasksPages.TaskUI
     public partial class TaskPage : UserControl, IPage
     {
         public INavigationLayout? Layout { get; set; }
-        private readonly IModalContainer _modal;
-        private readonly ScopedNode _scope;
+        public TaskNode Task { get; set; }
 
-        public TaskPage(IModalContainer modal, ScopedNode scope)
+        private readonly App _app = (App)App.Current;
+        private readonly INodeRepository _repository;
+
+        public TaskPage(ScopedTask scope)
         {
-            _scope = scope;
-            _modal = modal;
-            this.DataContext = _scope;
+            _repository = _app.ServiceProvider.GetRequiredService<INodeRepository>();
             InitializeComponent();
+            LoadTask(scope);
         }
 
-        private void ButtonParam_Click(object sender, RoutedEventArgs e)
+        public async void LoadTask(ScopedTask scope)
         {
-            _modal.Show(new ScopedEditModal(_scope));
+            // Load full workflow
+            if (await _repository.GetNodeAsync(scope.TaskId) is not TaskNode task)
+                throw new ArgumentException("Task not found.");
+            Task = task;
+            Task.ParentScope = scope;
+            this.DataContext = Task;
         }
     }
 }

@@ -13,7 +13,7 @@ namespace Automation.App.ViewModels.Graph
         public event PropertyChangedEventHandler? PropertyChanged;
         public event Action<string>? InvalidConnection;
 
-        public List<Node> SelectedNodes { get; set; } = [];
+        public List<INode> SelectedNodes { get; set; } = [];
         public ICommand DisconnectConnectorCommand { get; }
         public PendingConnection? PendingConnection { get; }
         public WorkflowNode Workflow { get; set; }
@@ -60,7 +60,7 @@ namespace Automation.App.ViewModels.Graph
             InvalidConnection?.Invoke(message);
         }
 
-        public void RemoveNodes(IList<Node> nodes)
+        public void RemoveNodes(IList<INode> nodes)
         {
             for (int j = nodes.Count - 1; j >= 0; j--)
             {

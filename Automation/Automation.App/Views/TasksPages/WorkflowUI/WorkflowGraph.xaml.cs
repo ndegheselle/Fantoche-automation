@@ -61,7 +61,7 @@ namespace Automation.App.Views.TasksPages.WorkflowUI
             };
             if (await _modal.Show(nodeSelector) && nodeSelector.Selected != null)
             {
-                Guid nodeId = ((ScopedNode)nodeSelector.Selected).NodeId;
+                Guid nodeId = ((ScopedTask)nodeSelector.Selected).TaskId;
 
                 if (await _nodeRepository.GetNodeAsync(nodeId) is not WorkflowNode node)
                     throw new ArgumentException("Node not found");

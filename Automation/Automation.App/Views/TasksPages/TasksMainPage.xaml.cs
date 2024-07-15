@@ -49,10 +49,10 @@ namespace Automation.App.Views.TasksPages
                         (Scope)selected));
                     break;
                 case EnumScopedType.Workflow:
-                    Show(new WorkflowPage(((ScopedNode)selected).NodeId));
+                    Show(new WorkflowPage((ScopedTask)selected));
                     break;
                 case EnumScopedType.Task:
-                    Show(new TaskPage(_app.ServiceProvider.GetRequiredService<IModalContainer>(), (ScopedNode)selected));
+                    Show(new TaskPage((ScopedTask)selected));
                     break;
             }
         }

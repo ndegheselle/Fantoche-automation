@@ -4,43 +4,21 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Automation.App.Views.TasksPages.TaskUI"
     xmlns:components="clr-namespace:Automation.App.Views.TasksPages.Components"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     mc:Ignorable="d"
     xmlns:viewModels="clr-namespace:Automation.Shared.ViewModels;assembly=Automation.Shared"
-    d:DataContext="{d:DesignInstance viewModels:ScopedNode}">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="auto" />
-            <RowDefinition />
-        </Grid.RowDefinitions>
-
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="auto" />
-            </Grid.ColumnDefinitions>
-
-            <TextBlock
-                Margin="4"
-                Text="{Binding Name}"
-                FontWeight="Bold"
-                FontSize="14" />
-
-            <StackPanel
-                Grid.Column="1"
-                Orientation="Horizontal"
-                Margin="2">
-                <Button Click="ButtonParam_Click" Margin="2,0,0,0">
-                    <fonts:Icon Text="{x:Static fonts:IconFont.Gear}" />
-                </Button>
-            </StackPanel>
-        </Grid>
-        <TabControl Grid.Row="1">
-            <TabItem Header="Scheduler" />
-            <TabItem Header="History">
-                <components:TaskInstanceTable TaskId="{Binding NodeId}" Margin="-6" />
-            </TabItem>
-        </TabControl>
-    </Grid>
+    d:DataContext="{d:DesignInstance viewModels:TaskNode}">
+    <TabControl>
+        <TabItem Header="Scheduler">
+            <local:TaskSchedules />
+        </TabItem>
+        <TabItem Header="History">
+            <components:ScopedInstances ScopedId="{Binding ParentScopeId}" />
+        </TabItem>
+        <TabItem Header="Parameters">
+            <local:TaskEdit Task="{Binding}" />
+        </TabItem>
+    </TabControl>
 </UserControl>
