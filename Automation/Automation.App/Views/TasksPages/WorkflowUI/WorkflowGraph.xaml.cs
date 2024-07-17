@@ -2,14 +2,17 @@
 using Automation.App.Components.Display;
 using Automation.App.ViewModels.Graph;
 using Automation.App.Views.TasksPages.Components;
-using Automation.Shared.Supervisor;
 using Automation.Shared.ViewModels;
+using Automation.Supervisor.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Nodify;
+using System.Drawing;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+
+using Point = System.Drawing.Point;
 
 namespace Automation.App.Views.TasksPages.WorkflowUI
 {
@@ -39,13 +42,13 @@ namespace Automation.App.Views.TasksPages.WorkflowUI
         private readonly App _app = (App)App.Current;
         private readonly IModalContainer _modal;
         private readonly IAlert _alert;
-        private readonly INodeRepository _nodeRepository;
-        private readonly IScopeRepository _scopeRepository;
+        private readonly ITaskClient _nodeClient;
+        private readonly IScopeClient _scopeClient;
 
         public WorkflowGraph()
         {
-            _nodeRepository = _app.ServiceProvider.GetRequiredService<INodeRepository>();
-            _scopeRepository = _app.ServiceProvider.GetRequiredService<IScopeRepository>();
+            _nodeClient = _app.ServiceProvider.GetRequiredService<ITaskClient>();
+            _scopeClient = _app.ServiceProvider.GetRequiredService<IScopeClient>();
             _modal = _app.ServiceProvider.GetRequiredService<IModalContainer>();
             _alert = _app.ServiceProvider.GetRequiredService<IAlert>();
             InitializeComponent();
@@ -56,14 +59,14 @@ namespace Automation.App.Views.TasksPages.WorkflowUI
         {
             ScopedSelectorModal nodeSelector = new ScopedSelectorModal()
             {
-                RootScope = await _scopeRepository.GetRootScopeAsync(),
+                RootScope = await _scopeClient.GetRootScopeAsync(),
                 AllowedSelectedNodes = EnumScopedType.Workflow | EnumScopedType.Task
             };
             if (await _modal.Show(nodeSelector) && nodeSelector.Selected != null)
             {
                 Guid nodeId = ((ScopedTask)nodeSelector.Selected).TaskId;
 
-                if (await _nodeRepository.GetNodeAsync(nodeId) is not WorkflowNode node)
+                if (await _nodeClient.GetNodeAsync(nodeId) is not WorkflowNode node)
                     throw new ArgumentException("Node not found");
                 EditorData.Workflow.Nodes.Add(node);
             }
@@ -94,7 +97,7 @@ namespace Automation.App.Views.TasksPages.WorkflowUI
 
         private void ButtonGroup_Click(object sender, RoutedEventArgs e)
         {
-            Rect boundingBox = GetSelectedBoundingBox(10);
+            Rectangle boundingBox = GetSelectedBoundingBox(10);
             EditorData.CreateGroup(boundingBox);
         }
         #endregion
@@ -108,13 +111,13 @@ namespace Automation.App.Views.TasksPages.WorkflowUI
             EditorData.RemoveNodes(EditorData.SelectedNodes);
         }
 
-        private Rect GetSelectedBoundingBox(double padding)
+        private Rectangle GetSelectedBoundingBox(int padding)
         {
-            Point min = new Point(double.MaxValue, double.MaxValue);
-            Point max = new Point(double.MinValue, double.MinValue);
+            Point min = new Point(int.MaxValue, int.MaxValue);
+            Point max = new Point(int.MinValue, int.MinValue);
 
             if (Editor.SelectedItems == null || Editor.SelectedItems.Count == 0)
-                return Rect.Empty;
+                return Rectangle.Empty;
 
             foreach (var node in Editor.SelectedItems)
             {
@@ -122,13 +125,13 @@ namespace Automation.App.Views.TasksPages.WorkflowUI
                 if (container == null)
                     continue;
 
-                min.X = Math.Min(min.X, container.Location.X);
-                min.Y = Math.Min(min.Y, container.Location.Y);
-                max.X = Math.Max(max.X, container.Location.X + container.ActualSize.Width);
-                max.Y = Math.Max(max.Y, container.Location.Y + container.ActualSize.Height);
+                min.X = Math.Min(min.X, (int)container.Location.X);
+                min.Y = Math.Min(min.Y, (int)container.Location.Y);
+                max.X = Math.Max(max.X, (int)container.Location.X + (int)container.ActualSize.Width);
+                max.Y = Math.Max(max.Y, (int)container.Location.Y + (int)container.ActualSize.Height);
             }
 
-            return new Rect(min.X - padding, min.Y - padding, max.X - min.X + padding * 2, max.Y - min.Y + padding * 2);
+            return new Rectangle(min.X - padding, min.Y - padding, max.X - min.X + padding * 2, max.Y - min.Y + padding * 2);
         }
     }
 }

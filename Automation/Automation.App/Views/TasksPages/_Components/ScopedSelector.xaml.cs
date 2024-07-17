@@ -1,6 +1,6 @@
 ﻿using Automation.App.Base;
-using Automation.Shared.Supervisor;
 using Automation.Shared.ViewModels;
+using Automation.Supervisor.Client;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 using System.Windows.Controls;
@@ -54,12 +54,12 @@ namespace Automation.App.Views.TasksPages.Components
         public EnumScopedType AllowedSelectedNodes { get; set; } = EnumScopedType.Scope | EnumScopedType.Workflow | EnumScopedType.Task;
 
         private readonly App _app = (App)App.Current;
-        private readonly IScopeRepository _repository;
+        private readonly IScopeClient _client;
 
         #endregion
 
         public ScopedSelector() {
-            _repository = _app.ServiceProvider.GetRequiredService<IScopeRepository>();
+            _client = _app.ServiceProvider.GetRequiredService<IScopeClient>();
             InitializeComponent();
         }
 
@@ -71,7 +71,7 @@ namespace Automation.App.Views.TasksPages.Components
             // Load childrens if the selected element is a scope and its childrens are not loaded
             if (selected != null && selected is Scope scope && scope.Childrens.Count == 0)
             {
-                Scope? fullScope = await _repository.GetScopedAsync(selected.Id) as Scope;
+                Scope? fullScope = await _client.GetScopedAsync(selected.Id) as Scope;
 
                 if (fullScope == null)
                     return;

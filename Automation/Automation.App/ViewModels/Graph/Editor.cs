@@ -1,6 +1,7 @@
 ﻿using Automation.Shared;
 using Automation.Shared.ViewModels;
 using System.ComponentModel;
+using System.Drawing;
 using System.Windows;
 using System.Windows.Input;
 
@@ -75,7 +76,7 @@ namespace Automation.App.ViewModels.Graph
             }
         }
 
-        public void CreateGroup(Rect boundingBox)
+        public void CreateGroup(Rectangle boundingBox)
         {
             NodeGroup group = new NodeGroup()
             {

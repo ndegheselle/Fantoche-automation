@@ -1,5 +1,5 @@
-﻿using Automation.Shared.Supervisor;
-using Automation.Shared.ViewModels;
+﻿using Automation.Shared.ViewModels;
+using Automation.Supervisor.Client;
 using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;
 using System.Windows;
@@ -26,17 +26,17 @@ namespace Automation.App.Views.TasksPages.Components
             if (ScopedId == Guid.Empty)
                 return;
 
-            TotalInstances = await _scopeRepository.GetScopedInstancesCountAsync(ScopedId);
+            TotalInstances = await _scopeClient.GetScopedInstancesCountAsync(ScopedId);
         }
 
         public int TotalInstances { get; set; } = 0;
         public IEnumerable<TaskInstance> Instances { get; set; } = new List<TaskInstance>();
 
         private readonly App _app = (App)App.Current;
-        private readonly IScopeRepository _scopeRepository;
+        private readonly IScopeClient _scopeClient;
 
         public ScopedInstances() {
-            _scopeRepository = _app.ServiceProvider.GetRequiredService<IScopeRepository>();
+            _scopeClient = _app.ServiceProvider.GetRequiredService<IScopeClient>();
             InitializeComponent();
         }
 
@@ -44,7 +44,7 @@ namespace Automation.App.Views.TasksPages.Components
         {
             if (ScopedId == Guid.Empty)
                 return;
-            Instances = await _scopeRepository.GetScopedInstancesAsync(ScopedId, InstancesPaging.Capacity, InstancesPaging.PageNumber);
+            Instances = await _scopeClient.GetScopedInstancesAsync(ScopedId, InstancesPaging.Capacity, InstancesPaging.PageNumber);
         }
     }
 }

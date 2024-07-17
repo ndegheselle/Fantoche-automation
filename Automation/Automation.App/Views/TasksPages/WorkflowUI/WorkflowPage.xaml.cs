@@ -1,10 +1,9 @@
 ﻿using Automation.App.ViewModels.Graph;
-using Automation.Shared.Supervisor;
 using Automation.Shared.ViewModels;
+using Automation.Supervisor.Client;
 using Joufflu.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows.Controls;
-using static System.Formats.Asn1.AsnWriter;
 
 namespace Automation.App.Views.TasksPages.WorkflowUI
 {
@@ -18,11 +17,11 @@ namespace Automation.App.Views.TasksPages.WorkflowUI
         public WorkflowNode Workflow { get; set; }
 
         private readonly App _app = (App)App.Current;
-        private readonly INodeRepository _repository;
+        private readonly ITaskClient _client;
 
         public WorkflowPage(ScopedTask scope)
         {
-            _repository = _app.ServiceProvider.GetRequiredService<INodeRepository>();
+            _client = _app.ServiceProvider.GetRequiredService<ITaskClient>();
             InitializeComponent();
             LoadWokflow(scope);
         }
@@ -30,7 +29,7 @@ namespace Automation.App.Views.TasksPages.WorkflowUI
         public async void LoadWokflow(ScopedTask scope)
         {
             // Load full workflow
-            if (await _repository.GetNodeAsync(scope.TaskId) is not WorkflowNode workflow)
+            if (await _client.GetNodeAsync(scope.TaskId) is not WorkflowNode workflow)
                 throw new ArgumentException("Workflow not found");
             Workflow = workflow;
             Workflow.ParentScope = scope;

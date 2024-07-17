@@ -1,11 +1,7 @@
-﻿using Automation.App.Base;
-using Automation.App.ViewModels.Graph;
-using Automation.App.Views.TasksPages.ScopeUI;
-using Automation.Shared.Supervisor;
-using Automation.Shared.ViewModels;
+﻿using Automation.Shared.ViewModels;
+using Automation.Supervisor.Client;
 using Joufflu.Shared;
 using Microsoft.Extensions.DependencyInjection;
-using System.Windows;
 using System.Windows.Controls;
 
 namespace Automation.App.Views.TasksPages.TaskUI
@@ -19,11 +15,11 @@ namespace Automation.App.Views.TasksPages.TaskUI
         public TaskNode Task { get; set; }
 
         private readonly App _app = (App)App.Current;
-        private readonly INodeRepository _repository;
+        private readonly ITaskClient _client;
 
         public TaskPage(ScopedTask scope)
         {
-            _repository = _app.ServiceProvider.GetRequiredService<INodeRepository>();
+            _client = _app.ServiceProvider.GetRequiredService<ITaskClient>();
             InitializeComponent();
             LoadTask(scope);
         }
@@ -31,7 +27,7 @@ namespace Automation.App.Views.TasksPages.TaskUI
         public async void LoadTask(ScopedTask scope)
         {
             // Load full workflow
-            if (await _repository.GetNodeAsync(scope.TaskId) is not TaskNode task)
+            if (await _client.GetNodeAsync(scope.TaskId) is not TaskNode task)
                 throw new ArgumentException("Task not found.");
             Task = task;
             Task.ParentScope = scope;

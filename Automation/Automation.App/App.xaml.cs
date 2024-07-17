@@ -1,7 +1,7 @@
 ﻿using Automation.App.Base;
 using Automation.App.ViewModels;
-using Automation.DAL.Respositories;
-using Automation.Shared.Supervisor;
+using Automation.Supervisor.Client;
+using Automation.Supervisor.Client.Test;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 
@@ -36,8 +36,8 @@ namespace Automation.App
             services.AddTransient<IAlert>((provider) => GetActiveWindow()?.Alert);
             services.AddSingleton<ParametersViewModel>();
 
-            services.AddSingleton<INodeRepository>((provider) => new NodeTestRepository());
-            services.AddSingleton<IScopeRepository>((provider) => new NodeTestRepository());
+            services.AddSingleton<ITaskClient>((provider) => new TestClients());
+            services.AddSingleton<IScopeClient>((provider) => new TestClients());
 
             return services.BuildServiceProvider();
         }

@@ -1,9 +1,7 @@
 ﻿using AdonisUI.Controls;
 using Automation.App.Base;
 using Automation.App.Views.TasksPages;
-using Automation.Shared.Supervisor;
 using Joufflu.Shared;
-using Microsoft.Extensions.DependencyInjection;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 

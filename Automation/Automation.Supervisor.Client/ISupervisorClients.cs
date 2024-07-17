@@ -1,6 +1,6 @@
 ﻿using Automation.Shared.ViewModels;
 
-namespace Automation.Shared.Supervisor
+namespace Automation.Supervisor.Client
 {
     public interface ISupervisorClient
     {
@@ -8,7 +8,7 @@ namespace Automation.Shared.Supervisor
         public void ExecuteTask(Guid taksId);
     }
 
-    public interface INodeRepository
+    public interface ITaskClient
     {
         public INode? GetNode(Guid id);
 
@@ -16,13 +16,12 @@ namespace Automation.Shared.Supervisor
         public Task<INode?> GetNodeAsync(Guid id);
     }
 
-    public interface IScopeRepository
+    public interface IScopeClient
     {
         public Scope GetRootScope();
         public ScopedElement? GetScoped(Guid id);
         public int GetScopedInstancesCount(Guid taskId);
         public IEnumerable<TaskInstance> GetScopedInstances(Guid taskId, int number, int page);
-
 
         public Task<Scope> GetRootScopeAsync();
         public Task<ScopedElement?> GetScopedAsync(Guid id);

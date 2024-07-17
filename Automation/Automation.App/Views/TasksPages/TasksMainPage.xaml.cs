@@ -1,16 +1,12 @@
 ﻿using Automation.App.Base;
-using Automation.App.ViewModels;
-using Automation.App.ViewModels.Graph;
 using Automation.App.Views.TasksPages.ScopeUI;
 using Automation.App.Views.TasksPages.TaskUI;
 using Automation.App.Views.TasksPages.WorkflowUI;
-using Automation.Shared.Supervisor;
 using Automation.Shared.ViewModels;
+using Automation.Supervisor.Client;
 using Joufflu.Shared;
 using Microsoft.Extensions.DependencyInjection;
-using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 
 namespace Automation.App.Views.TasksPages
 {
@@ -21,18 +17,18 @@ namespace Automation.App.Views.TasksPages
     {
         public INavigationLayout? Layout { get; set; }
         private readonly App _app = (App)App.Current;
-        private readonly IScopeRepository _repository;
+        private readonly IScopeClient _client;
 
         public TasksMainPage()
         {
-            _repository = _app.ServiceProvider.GetRequiredService<IScopeRepository>();
+            _client = _app.ServiceProvider.GetRequiredService<IScopeClient>();
             InitializeComponent();
             OnLoaded();
         }
 
         protected async void OnLoaded()
         {
-            SideMenu.RootScope = await _repository.GetRootScopeAsync();
+            SideMenu.RootScope = await _client.GetRootScopeAsync();
         }
 
         private void ScopedSelector_SelectedChanged(ScopedElement? selected)
