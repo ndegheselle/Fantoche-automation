@@ -7,11 +7,13 @@
     xmlns:nodify="clr-namespace:Nodify;assembly=Nodify"
     xmlns:local="clr-namespace:Automation.App.Views.TasksPages.WorkflowUI"
     xmlns:graph="clr-namespace:Automation.App.ViewModels.Graph"
+    xmlns:converters="clr-namespace:Automation.App.Converters"
     xmlns:baseViewModels="clr-namespace:Automation.Shared.ViewModels;assembly=Automation.Shared"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     mc:Ignorable="d">
     <UserControl.Resources>
+        <converters:PointConverter x:Key="PointConverter" />
         <GeometryDrawing
             x:Key="SmallGridGeometry"
             Geometry="M0,0 L0,1 0.03,1 0.03,0.03 1,0.03 1,0 Z"
@@ -128,7 +130,7 @@
             </nodify:NodifyEditor.Resources>
             <nodify:NodifyEditor.ItemContainerStyle>
                 <Style TargetType="{x:Type nodify:ItemContainer}">
-                    <Setter Property="Location" Value="{Binding Location}" />
+                    <Setter Property="Location" Value="{Binding Location, Converter={StaticResource PointConverter}}" />
                 </Style>
             </nodify:NodifyEditor.ItemContainerStyle>
             <nodify:NodifyEditor.ConnectionTemplate>

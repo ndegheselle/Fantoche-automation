@@ -13,7 +13,7 @@
         DataContext="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:ScopedSelector}}}"
         Background="{DynamicResource {x:Static adonisUi:Brushes.Layer1BackgroundBrush}}"
         MinWidth="200"
-        ItemsSource="{Binding RootScope.SortedChildrens}"
+        ItemsSource="{Binding RootScope.Childrens}"
         SelectedItemChanged="TreeView_SelectedItemChanged">
         <TreeView.ItemContainerStyle>
             <Style TargetType="{x:Type TreeViewItem}" BasedOn="{StaticResource TreeViewItemStyle}">

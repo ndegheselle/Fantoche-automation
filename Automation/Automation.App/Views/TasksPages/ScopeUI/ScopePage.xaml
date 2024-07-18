@@ -61,7 +61,7 @@
                     SelectionMode="Multiple"
                     Background="{StaticResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}"
                     Grid.Row="1"
-                    ItemsSource="{Binding SortedChildrens}"
+                    ItemsSource="{Binding Childrens}"
                     MouseDoubleClick="ListBox_MouseDoubleClick">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
