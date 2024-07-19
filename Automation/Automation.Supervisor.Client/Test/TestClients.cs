@@ -97,13 +97,13 @@ namespace Automation.Supervisor.Client.Test
 
         public Task<INode?> GetNodeAsync(Guid id) { return Task.FromResult(GetNode(id)); }
 
-        public IEnumerable<TaskInstance> GetScopedInstances(Guid taskId, int number, int page)
+        public IEnumerable<TaskHistory> GetScopedInstances(Guid taskId, int number, int page)
         {
             var testData = TestDataFactory.LoadTestData();
-            List<TaskInstance> testList = new List<TaskInstance>();
+            List<TaskHistory> testList = new List<TaskHistory>();
             for (int i = page * number; i < page * number + number; i++)
             {
-                var testInstance = new TaskInstance()
+                var testInstance = new TaskHistory()
                 {
                     Id = Guid.NewGuid(),
                     TaskId = taskId,
@@ -118,7 +118,7 @@ namespace Automation.Supervisor.Client.Test
             return testList;
         }
 
-        public Task<IEnumerable<TaskInstance>> GetScopedInstancesAsync(Guid taskId, int number, int page)
+        public Task<IEnumerable<TaskHistory>> GetScopedInstancesAsync(Guid taskId, int number, int page)
         { return Task.FromResult(GetScopedInstances(taskId, number, page)); }
 
         public int GetScopedInstancesCount(Guid taskId) { return 100000; }

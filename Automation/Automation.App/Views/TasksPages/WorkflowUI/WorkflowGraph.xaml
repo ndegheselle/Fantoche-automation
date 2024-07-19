@@ -88,7 +88,7 @@
                             </Style>
                         </nodify:Node.Style>
                         <nodify:Node.InputConnectorTemplate>
-                            <DataTemplate DataType="{x:Type baseViewModels:NodeConnector}">
+                            <DataTemplate DataType="{x:Type baseViewModels:TaskConnector}">
                                 <nodify:NodeInput
                                     Header="{Binding Name}"
                                     IsConnected="{Binding IsConnected}"
@@ -107,7 +107,7 @@
                             </DataTemplate>
                         </nodify:Node.InputConnectorTemplate>
                         <nodify:Node.OutputConnectorTemplate>
-                            <DataTemplate DataType="{x:Type baseViewModels:NodeConnector}">
+                            <DataTemplate DataType="{x:Type baseViewModels:TaskConnector}">
                                 <nodify:NodeOutput
                                     Header="{Binding Name}"
                                     IsConnected="{Binding IsConnected}"

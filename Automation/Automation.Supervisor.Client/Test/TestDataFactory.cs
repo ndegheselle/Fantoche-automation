@@ -16,7 +16,7 @@ namespace Automation.Supervisor.Client.Test
 
         public List<ScopedElement> ScopedElements { get; set; }
 
-        public List<NodeConnector> Connectors { get; set; }
+        public List<TaskConnector> Connectors { get; set; }
 
         public List<NodeConnection> Connections { get; set; }
 
@@ -42,22 +42,22 @@ namespace Automation.Supervisor.Client.Test
         public static string CreateTestData()
         {
             TaskNode taskScope1 = new TaskNode() { Name = "Task 1" };
-            var flowIn1 = new NodeInput() { ParentId = taskScope1.Id, Type = EnumNodeConnectorType.Flow };
-            var flowOut1 = new NodeOutput() { ParentId = taskScope1.Id, Type = EnumNodeConnectorType.Flow };
+            var flowIn1 = new NodeInput() { ParentId = taskScope1.Id, Type = EnumTaskConnectorType.Flow };
+            var flowOut1 = new NodeOutput() { ParentId = taskScope1.Id, Type = EnumTaskConnectorType.Flow };
             var input1 = new NodeInput() { Name = "Input 2", ParentId = taskScope1.Id };
             var output1 = new NodeOutput() { Name = "Output 2", ParentId = taskScope1.Id };
 
             TaskNode taskScope2 = new TaskNode() { Name = "Task 2", };
-            var flowIn2 = new NodeInput() { ParentId = taskScope2.Id, Type = EnumNodeConnectorType.Flow };
-            var flowOut2 = new NodeOutput() { ParentId = taskScope2.Id, Type = EnumNodeConnectorType.Flow };
+            var flowIn2 = new NodeInput() { ParentId = taskScope2.Id, Type = EnumTaskConnectorType.Flow };
+            var flowOut2 = new NodeOutput() { ParentId = taskScope2.Id, Type = EnumTaskConnectorType.Flow };
             var input2 = new NodeInput() { Name = "Input 1", ParentId = taskScope2.Id };
             var output2 = new NodeOutput() { Name = "Output 1", ParentId = taskScope2.Id };
 
             WorkflowInputNode workflowInput = new WorkflowInputNode() { Name = "Start", };
-            var flowOut3 = new NodeOutput() { ParentId = workflowInput.Id, Type = EnumNodeConnectorType.Flow };
+            var flowOut3 = new NodeOutput() { ParentId = workflowInput.Id, Type = EnumTaskConnectorType.Flow };
 
             WorkflowInputNode workflowOutput = new WorkflowInputNode() { Name = "End", };
-            var flowIn3 = new NodeInput() { ParentId = workflowOutput.Id, Type = EnumNodeConnectorType.Flow };
+            var flowIn3 = new NodeInput() { ParentId = workflowOutput.Id, Type = EnumTaskConnectorType.Flow };
 
             WorkflowNode workflowScope = new WorkflowNode() { Name = "Workflow 1", };
 
@@ -99,7 +99,7 @@ namespace Automation.Supervisor.Client.Test
                                 taskScope2Node
                             },
                     Connectors =
-                        new List<NodeConnector>()
+                        new List<TaskConnector>()
                             {
                                 input1,
                                 output1,

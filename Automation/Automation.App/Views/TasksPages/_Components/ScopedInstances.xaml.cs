@@ -30,7 +30,7 @@ namespace Automation.App.Views.TasksPages.Components
         }
 
         public int TotalInstances { get; set; } = 0;
-        public IEnumerable<TaskInstance> Instances { get; set; } = new List<TaskInstance>();
+        public IEnumerable<TaskHistory> Instances { get; set; } = new List<TaskHistory>();
 
         private readonly App _app = (App)App.Current;
         private readonly IScopeClient _scopeClient;

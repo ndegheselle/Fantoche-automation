@@ -24,7 +24,7 @@ namespace Automation.App.ViewModels.Graph
             Workflow = workflow;
 
             PendingConnection = new PendingConnection(this);
-            DisconnectConnectorCommand = new DelegateCommand<NodeConnector>(connector =>
+            DisconnectConnectorCommand = new DelegateCommand<TaskConnector>(connector =>
             {
                 connector.IsConnected = false;
                 var connections = Workflow.Connections.Where(x => x.Source == connector || x.Target == connector);
@@ -32,7 +32,7 @@ namespace Automation.App.ViewModels.Graph
                 {
                     var connection = connections.ElementAt(i);
                     // Get opposite connector
-                    NodeConnector oppositeConnector = connection.Source == connector ? connection.Target : connection.Source;
+                    TaskConnector oppositeConnector = connection.Source == connector ? connection.Target : connection.Source;
                     // Check if opposite connector is connected to another connector and if not, set IsConnected to false
                     var oppositeConnections = Workflow.Connections.Where(x => x.Source == oppositeConnector || x.Target == oppositeConnector);
                     if (oppositeConnections.Count() == 1)
@@ -43,7 +43,7 @@ namespace Automation.App.ViewModels.Graph
             });
         }
 
-        public void Connect(NodeConnector source, NodeConnector target)
+        public void Connect(TaskConnector source, TaskConnector target)
         {
             NodeConnection connection = new NodeConnection(Workflow, source, target);
             Workflow?.AddConnection(connection);
@@ -90,13 +90,13 @@ namespace Automation.App.ViewModels.Graph
     public class PendingConnection
     {
         private readonly EditorViewModel _editor;
-        private NodeConnector? _source;
+        private TaskConnector? _source;
 
         public PendingConnection(EditorViewModel editor)
         {
             _editor = editor;
-            StartCommand = new DelegateCommand<NodeConnector>(source => _source = source);
-            FinishCommand = new DelegateCommand<NodeConnector>(target =>
+            StartCommand = new DelegateCommand<TaskConnector>(source => _source = source);
+            FinishCommand = new DelegateCommand<TaskConnector>(target =>
             {
                 if (target == null || _source == null)
                     return;

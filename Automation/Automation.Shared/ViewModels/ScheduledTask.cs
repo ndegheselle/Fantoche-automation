@@ -18,7 +18,7 @@ namespace Automation.Shared.ViewModels
     }
 
     // TODO : Inputs and outputs log
-    public class TaskInstance
+    public class TaskHistory
     {
         public Guid Id { get; set; }
         public Guid? ParentTaskId { get; set; }
