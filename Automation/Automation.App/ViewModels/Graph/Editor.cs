@@ -45,11 +45,11 @@ namespace Automation.App.ViewModels.Graph
 
         public void Connect(TaskConnector source, TaskConnector target)
         {
-            NodeConnection connection = new NodeConnection(Workflow, source, target);
+            TaskConnection connection = new TaskConnection(Workflow, source, target);
             Workflow?.AddConnection(connection);
         }
 
-        public void Disconnect(NodeConnection connection)
+        public void Disconnect(TaskConnection connection)
         {
             Workflow.Connections.Remove(connection);
             connection.Source.IsConnected = false;

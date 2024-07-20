@@ -1,5 +1,4 @@
 ﻿using Automation.App.Base;
-using Automation.Shared.ViewModels;
 using Automation.Supervisor.Client;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows;

@@ -1,9 +1,8 @@
 ﻿using System.ComponentModel;
 using System.Drawing;
 using System.Text.Json.Serialization;
-using System.Windows;
 
-namespace Automation.Shared.ViewModels
+namespace Automation.Shared.Data
 {
     public interface INode
     {
@@ -31,14 +30,18 @@ namespace Automation.Shared.ViewModels
         Out
     }
 
+    public enum EnumTaskType {
+        Task,
+        Workflow
+    }
+
     public class TaskNode : INode
     {
         public Guid Id { get; set; } = Guid.NewGuid();
+        public Guid ScopeId { get; set; }
+
         // Parent scope name ?
         public string Name { get; set; }
-
-        [JsonIgnore]
-        public ScopedTask ParentScope { get; set; }
 
         [JsonIgnore]
         public List<TaskConnector> Inputs { get; set; } = [];

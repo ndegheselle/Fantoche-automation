@@ -1,10 +1,6 @@
-﻿using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Drawing;
-using System.Runtime.CompilerServices;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
-namespace Automation.Shared.ViewModels
+namespace Automation.Shared.Data
 {
     public class Scope
     {

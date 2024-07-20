@@ -36,8 +36,8 @@ namespace Automation.App
             services.AddTransient<IAlert>((provider) => GetActiveWindow()?.Alert);
             services.AddSingleton<ParametersViewModel>();
 
-            services.AddSingleton<ITaskClient>((provider) => new TestClients());
-            services.AddSingleton<IScopeClient>((provider) => new TestClients());
+            services.AddSingleton<ITaskClient>((provider) => new TestTaskClient());
+            services.AddSingleton<IScopeClient>((provider) => new TestScopeClient());
 
             return services.BuildServiceProvider();
         }

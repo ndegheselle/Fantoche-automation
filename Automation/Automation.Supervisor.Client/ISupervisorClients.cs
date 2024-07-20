@@ -1,7 +1,11 @@
-﻿using Automation.Shared.ViewModels;
+﻿using Automation.Shared;
+using Automation.Shared.Data;
 
 namespace Automation.Supervisor.Client
 {
+    public class TaskHistories : PageWrapper<IEnumerable<TaskHistory>> 
+    {}
+
     public interface ISupervisorClient
     {
         // TODO : Get progress ?
@@ -10,29 +14,15 @@ namespace Automation.Supervisor.Client
 
     public interface ITaskClient
     {
-        public TaskNode? GetTask(Guid id);
-        public WorkflowNode? GetWorkflow(Guid id);
-        public int GetHistoryCount(Guid taskId);
-        public IEnumerable<TaskHistory> GetHistory(Guid taskId, int number, int page);
-
-        // Async version
         public Task<TaskNode?> GetTaskAsync(Guid id);
-        public Task<WorkflowNode?> GetWorkflowAsync(Guid id);
-        public Task<int> GetHistoryCountAsync(Guid taskId);
-        public Task<IEnumerable<TaskHistory>> GetHistoryAsync(Guid taskId, int number, int page);
+        public Task<T?> GetTaskAsync<T>(Guid id) where T : TaskNode;
+        public Task<TaskHistories> GetHistoryAsync(Guid taskId, int pageSize, int page);
     }
 
     public interface IScopeClient
     {
-        public Scope GetRootScope();
-        public Scope? GetScope(Guid id);
-        public int GetHistoryCount(Guid scopeId);
-        public IEnumerable<TaskHistory> GetHistory(Guid scopeId, int number, int page);
-
-        // Async version
-        public Task<Scope> GetRootScopeAsync();
         public Task<Scope?> GetScopeAsync(Guid id);
-        public Task<int> GetHistoryCountAsync(Guid scopeId);
-        public Task<IEnumerable<TaskHistory>> GetHistoryAsync(Guid scopeId, int number, int page);
+        public Task<T?> GetScopeAsync<T>(Guid id) where T : Scope;
+        public Task<TaskHistories> GetHistoryAsync(Guid scopeId, int pageSize, int page);
     }
 }

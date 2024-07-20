@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
+﻿using System.Text.Json.Serialization;
 
-namespace Automation.Shared.ViewModels
+namespace Automation.Shared.Data
 {
     public enum EnumInstanceStatus
     {
@@ -23,11 +17,6 @@ namespace Automation.Shared.ViewModels
         public Guid Id { get; set; }
         public Guid? ParentTaskId { get; set; }
         public Guid TaskId { get; set; }
-
-        [JsonIgnore]
-        public INode Task { get; set; }
-        [JsonIgnore]
-        public INode? ParentTask { get; set; }
 
         public DateTime StartDate { get; set; }
         public DateTime? EndDate { get; set; }
