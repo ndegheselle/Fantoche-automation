@@ -26,10 +26,7 @@ namespace Automation.Supervisor.Client.Test
                 .Where(x => x.ParentId == task.Id)
                 .OrderByDescending(x => x.Type))
             {
-                if (connector.Direction == EnumTaskConnectorDirection.In)
-                    task.AddInput(connector);
-                else
-                    task.AddOutput(connector);
+                task.Connectors.Add(connector);
             }
             return task;
         }
@@ -71,10 +68,7 @@ namespace Automation.Supervisor.Client.Test
                 scope.SubScope.Add(child);
             }
 
-            foreach (TaskNode child in TestDataFactory.Data.Tasks
-                .Where(x => x.ScopeId == scope.Id)
-                .OrderBy(x => x.Type)
-                .ThenBy(x => x.Name))
+            foreach (TaskNode child in TestDataFactory.Data.Tasks.Where(x => x.ScopeId == scope.Id))
             {
                 scope.Childrens.Add(child);
             }

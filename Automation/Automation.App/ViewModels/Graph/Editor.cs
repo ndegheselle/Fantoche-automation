@@ -1,8 +1,7 @@
 ﻿using Automation.Shared;
-using Automation.Shared.ViewModels;
+using Automation.Shared.Data;
 using System.ComponentModel;
 using System.Drawing;
-using System.Windows;
 using System.Windows.Input;
 
 namespace Automation.App.ViewModels.Graph
@@ -17,14 +16,14 @@ namespace Automation.App.ViewModels.Graph
         public List<INode> SelectedNodes { get; set; } = [];
         public ICommand DisconnectConnectorCommand { get; }
         public PendingConnection? PendingConnection { get; }
-        public WorkflowNode Workflow { get; set; }
+        public WorkflowWrapper Workflow { get; }
 
         public EditorViewModel(WorkflowNode workflow)
         {
-            Workflow = workflow;
+            Workflow = new WorkflowWrapper(workflow);
 
             PendingConnection = new PendingConnection(this);
-            DisconnectConnectorCommand = new DelegateCommand<TaskConnector>(connector =>
+            DisconnectConnectorCommand = new DelegateCommand<NodifyConnector>(connector =>
             {
                 connector.IsConnected = false;
                 var connections = Workflow.Connections.Where(x => x.Source == connector || x.Target == connector);
@@ -32,7 +31,7 @@ namespace Automation.App.ViewModels.Graph
                 {
                     var connection = connections.ElementAt(i);
                     // Get opposite connector
-                    TaskConnector oppositeConnector = connection.Source == connector ? connection.Target : connection.Source;
+                    NodifyConnector oppositeConnector = connection.Source == connector ? connection.Target : connection.Source;
                     // Check if opposite connector is connected to another connector and if not, set IsConnected to false
                     var oppositeConnections = Workflow.Connections.Where(x => x.Source == oppositeConnector || x.Target == oppositeConnector);
                     if (oppositeConnections.Count() == 1)
@@ -43,13 +42,13 @@ namespace Automation.App.ViewModels.Graph
             });
         }
 
-        public void Connect(TaskConnector source, TaskConnector target)
+        public void Connect(NodifyConnector source, NodifyConnector target)
         {
-            TaskConnection connection = new TaskConnection(Workflow, source, target);
-            Workflow?.AddConnection(connection);
+            NodifyConnection connection = new NodifyConnection(source, target);
+            Workflow.Connections.Add(connection);
         }
 
-        public void Disconnect(TaskConnection connection)
+        public void Disconnect(NodifyConnection connection)
         {
             Workflow.Connections.Remove(connection);
             connection.Source.IsConnected = false;
@@ -85,68 +84,5 @@ namespace Automation.App.ViewModels.Graph
             };
             Workflow.Nodes.Add(group);
         }
-    }
-
-    public class PendingConnection
-    {
-        private readonly EditorViewModel _editor;
-        private TaskConnector? _source;
-
-        public PendingConnection(EditorViewModel editor)
-        {
-            _editor = editor;
-            StartCommand = new DelegateCommand<TaskConnector>(source => _source = source);
-            FinishCommand = new DelegateCommand<TaskConnector>(target =>
-            {
-                if (target == null || _source == null)
-                    return;
-
-                if (_source == target)
-                {
-                    _editor.TriggerInvalidConnection("Can't connect a connector to itself.");
-                    return;
-                }
-
-                if (_source.Type != target.Type)
-                {
-                    _editor.TriggerInvalidConnection("Can't connect two connectors of different types.");
-                    return;
-                }
-
-                if (_source is NodeOutput && target is NodeOutput)
-                {
-                    _editor.TriggerInvalidConnection("Can't connect two output connectors.");
-                    return;
-                }
-
-                if (_source is NodeInput && target is NodeInput)
-                {
-                    _editor.TriggerInvalidConnection("Can't connect two input connectors.");
-                    return;
-                }
-
-
-                // If target is output, swap source and target
-                if (target is NodeOutput)
-                {
-                    var temp = _source;
-                    _source = target;
-                    target = temp;
-                }
-
-                // If already exists delete the connection
-                var existingConnection = _editor.Workflow.Connections.FirstOrDefault(x => x.Source == _source && x.Target == target);
-                if (existingConnection != null)
-                {
-                    _editor.Disconnect(existingConnection);
-                    return;
-                }
-
-                _editor.Connect(_source, target);
-            });
-        }
-
-        public ICommand StartCommand { get; }
-        public ICommand FinishCommand { get; }
     }
 }

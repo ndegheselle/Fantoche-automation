@@ -4,13 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace Automation.Shared.Data
 {
-    public interface INode
-    {
-        public Guid Id { get; set; }
-        public string Name { get; }
-    }
-
-    public class NodeGroup : INode
+    public class NodeGroup 
     {
         public Size Size { get; set; }
         public Guid Id { get; set; }
@@ -30,37 +24,14 @@ namespace Automation.Shared.Data
         Out
     }
 
-    public enum EnumTaskType {
-        Task,
-        Workflow
-    }
-
-    public class TaskNode : INode
+    public class TaskNode
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public Guid ScopeId { get; set; }
 
         // Parent scope name ?
         public string Name { get; set; }
-
-        [JsonIgnore]
-        public List<TaskConnector> Inputs { get; set; } = [];
-        [JsonIgnore]
-        public List<TaskConnector> Outputs { get; set; } = [];
-
-        public void AddInput(TaskConnector input)
-        {
-            input.Parent = this;
-            input.Direction = EnumTaskConnectorDirection.In;
-            Inputs.Add(input);
-        }
-
-        public void AddOutput(TaskConnector output)
-        {
-            output.Parent = this;
-            output.Direction = EnumTaskConnectorDirection.Out;
-            Outputs.Add(output);
-        }
+        public List<TaskConnector> Connectors { get; set; } = [];
     }
 
     public class TaskConnector : INotifyPropertyChanged
@@ -73,7 +44,5 @@ namespace Automation.Shared.Data
         public Guid Id { get; set; } = Guid.NewGuid();
         public string Name { get; set; }
         public Guid ParentId { get; set; }
-        [JsonIgnore]
-        public TaskNode Parent { get; set; }
     }
 }
