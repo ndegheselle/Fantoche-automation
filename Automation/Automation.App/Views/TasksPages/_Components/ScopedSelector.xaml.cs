@@ -1,4 +1,6 @@
 ﻿using Automation.App.Base;
+using Automation.App.ViewModels.Tasks;
+using Automation.Shared.Data;
 using Automation.Supervisor.Client;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
@@ -17,32 +19,32 @@ namespace Automation.App.Views.TasksPages.Components
     /// </summary>
     public partial class ScopedSelector : UserControl
     {
-        public event Action<ScopedElement?>? SelectedChanged;
+        public event Action<ScopedItem?>? SelectedChanged;
 
         #region Dependency Properties
         // Dependency property Scope RootScope
         public static readonly DependencyProperty RootScopeProperty = DependencyProperty.Register(
             nameof(RootScope),
-            typeof(Scope),
+            typeof(ScopeItem),
             typeof(ScopedSelector),
             new PropertyMetadata(null));
 
-        public Scope RootScope
+        public ScopeItem RootScope
         {
-            get { return (Scope)GetValue(RootScopeProperty); }
+            get { return (ScopeItem)GetValue(RootScopeProperty); }
             set { SetValue(RootScopeProperty, value); }
         }
 
         // Dependency property ScopedElement Selected
         public static readonly DependencyProperty SelectedProperty = DependencyProperty.Register(
             nameof(Selected),
-            typeof(ScopedElement),
+            typeof(ScopedItem),
             typeof(ScopedSelector),
             new PropertyMetadata(null));
 
-        public ScopedElement? Selected
+        public ScopedItem? Selected
         {
-            get { return (ScopedElement?)GetValue(SelectedProperty); }
+            get { return (ScopedItem?)GetValue(SelectedProperty); }
             set { SetValue(SelectedProperty, value); }
         }
 
@@ -65,17 +67,16 @@ namespace Automation.App.Views.TasksPages.Components
         private async void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             TreeView treeView = (TreeView)sender;
-            ScopedElement? selected = treeView.SelectedItem as ScopedElement;
+            ScopedItem? selected = treeView.SelectedItem as ScopedItem;
 
             // Load childrens if the selected element is a scope and its childrens are not loaded
-            if (selected != null && selected is Scope scope && scope.Childrens.Count == 0)
+            if (selected != null && selected is ScopeItem scope && scope.Childrens.Count == 0)
             {
-                Scope? fullScope = await _client.GetScopedAsync(selected.Id) as Scope;
+                Scope? fullScope = await _client.GetScopeAsync(scope.ScopeNode.Id);
 
                 if (fullScope == null)
                     return;
-                foreach (ScopedElement child in fullScope.Childrens)
-                    scope.AddChild(child);
+                scope.RefreshChildrens(fullScope);
             }
 
             if (selected != null && !AllowedSelectedNodes.HasFlag(selected.Type))

@@ -8,14 +8,14 @@
     xmlns:components="clr-namespace:Automation.App.Views.TasksPages.Components"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     mc:Ignorable="d"
-    xmlns:viewModels="clr-namespace:Automation.Shared.ViewModels;assembly=Automation.Shared"
-    d:DataContext="{d:DesignInstance viewModels:TaskNode}">
+    xmlns:viewmodels="clr-namespace:Automation.App.ViewModels.Tasks"
+    d:DataContext="{d:DesignInstance viewmodels:TaskScopedItem}">
     <TabControl>
         <TabItem Header="Scheduler">
             <local:TaskSchedules />
         </TabItem>
         <TabItem Header="History">
-            <components:ScopedInstances ScopedId="{Binding ParentScopeId}" />
+            <components:ScopedHistory Scoped="{Binding}" />
         </TabItem>
         <TabItem Header="Parameters">
             <local:TaskEdit Task="{Binding}" />

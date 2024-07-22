@@ -8,8 +8,8 @@
     xmlns:components="clr-namespace:Automation.App.Views.TasksPages.Components"
     xmlns:tasks="clr-namespace:Automation.App.Views.TasksPages.TaskUI"
     mc:Ignorable="d"
-    xmlns:viewModels="clr-namespace:Automation.Shared.ViewModels;assembly=Automation.Shared"
-    d:DataContext="{d:DesignInstance viewModels:WorkflowNode}">
+    xmlns:viewmodels="clr-namespace:Automation.App.ViewModels.Tasks"
+    d:DataContext="{d:DesignInstance viewmodels:WorkflowScopedItem}">
     <TabControl>
         <TabItem Header="Graph">
             <local:WorkflowGraph EditorData="{Binding Editor, RelativeSource={RelativeSource AncestorType={x:Type local:WorkflowPage}}}" />
@@ -18,7 +18,7 @@
             <tasks:TaskSchedules />
         </TabItem>
         <TabItem Header="History">
-            <components:ScopedInstances ScopedId="{Binding ParentScopeId}" />
+            <components:ScopedHistory Scoped="{Binding}" />
         </TabItem>
         <TabItem Header="Parameters">
             <local:WorkflowEdit Workflow="{Binding}" />

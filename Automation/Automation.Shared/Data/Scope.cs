@@ -4,7 +4,7 @@ namespace Automation.Shared.Data
 {
     public class Scope
     {
-        public Guid Id { get; set; } = Guid.NewGuid();
+        public Guid Id { get; set; }
         public Guid? ParentId { get; set; }
         [JsonIgnore]
         public Scope? Parent { get; set; }

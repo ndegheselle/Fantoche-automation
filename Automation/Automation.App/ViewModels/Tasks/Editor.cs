@@ -4,7 +4,7 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Input;
 
-namespace Automation.App.ViewModels.Graph
+namespace Automation.App.ViewModels.Tasks
 {
     public class EditorViewModel : INotifyPropertyChanged
     {

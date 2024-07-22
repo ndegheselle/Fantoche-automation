@@ -6,7 +6,7 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
 
-namespace Automation.App.ViewModels.Graph
+namespace Automation.App.ViewModels.Tasks
 {
     public class NodifyConnector : INotifyPropertyChanged
     {
@@ -115,7 +115,7 @@ namespace Automation.App.ViewModels.Graph
                     return;
                 }
 
-                if (_source.TaskConnector.Direction ==  target.TaskConnector.Direction)
+                if (_source.TaskConnector.Direction == target.TaskConnector.Direction)
                 {
                     _editor.TriggerInvalidConnection("Can't connect two output or input connectors.");
                     return;

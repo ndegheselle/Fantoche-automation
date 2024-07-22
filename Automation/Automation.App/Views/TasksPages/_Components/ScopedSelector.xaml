@@ -5,8 +5,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Automation.App.Views.TasksPages.Components"
-    xmlns:baseViewModels="clr-namespace:Automation.Shared.ViewModels;assembly=Automation.Shared"
-    xmlns:graph="clr-namespace:Automation.App.ViewModels.Graph"
+    xmlns:viewmodels="clr-namespace:Automation.App.ViewModels.Tasks"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     mc:Ignorable="d">
     <TreeView
@@ -29,13 +28,13 @@
             </Style>
         </TreeView.ItemContainerStyle>
         <TreeView.Resources>
-            <HierarchicalDataTemplate DataType="{x:Type baseViewModels:Scope}" ItemsSource="{Binding Childrens}">
+            <HierarchicalDataTemplate DataType="{x:Type viewmodels:ScopeItem}" ItemsSource="{Binding Childrens}">
                 <StackPanel Orientation="Horizontal">
                     <local:NodeIcon Type="Scope" Margin="0,0,4,0" />
                     <TextBlock Text="{Binding Name}" />
                 </StackPanel>
             </HierarchicalDataTemplate>
-            <DataTemplate DataType="{x:Type baseViewModels:ScopedTask}">
+            <DataTemplate DataType="{x:Type viewmodels:ScopedItem}">
                 <StackPanel Orientation="Horizontal">
                     <local:NodeIcon Type="{Binding Type}" Margin="0,0,4,0" />
                     <TextBlock Text="{Binding Name}" />

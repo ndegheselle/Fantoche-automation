@@ -3,6 +3,7 @@ using System.Text.Json;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Threading.Tasks;
 using Automation.Shared;
+using System.ComponentModel.DataAnnotations;
 
 namespace Automation.Supervisor.Client.Test
 {
@@ -41,13 +42,16 @@ namespace Automation.Supervisor.Client.Test
                 return string.Empty;
 
             // Get the nodes
-            foreach (Guid childId in TestDataFactory.Data.WorkflowRelations
-                .Where(x => x.WorkflowId == workflow.Id)
-                .Select(x => x.TaskId))
-            {
-                workflow.Tasks.Add(LoadTask(childId));
-            }
             workflow.Connections = TestDataFactory.Data.Connections.Where(x => x.ParentId == workflow.Id).ToList();
+            workflow.Relations = TestDataFactory.Data.WorkflowRelations.Where(x => x.WorkflowId == workflow.Id).ToList();
+
+            foreach (var relation in TestDataFactory.Data.WorkflowRelations.Where(x => x.WorkflowId == workflow.Id))
+            {
+                var workflowTask = LoadTask(relation.TaskId);
+                if (workflowTask != null && !workflow.Tasks.ContainsKey(workflowTask.Id))
+                    workflow.Tasks.Add(workflowTask.Id, workflowTask);
+                workflow.Relations.Add(relation);
+            }
 
             return Serialize(workflow);
         }

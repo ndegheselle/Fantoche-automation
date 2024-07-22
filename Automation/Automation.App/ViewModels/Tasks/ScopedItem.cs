@@ -2,7 +2,6 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Text.Json.Serialization;
 using System.Windows.Data;
 
 namespace Automation.App.ViewModels.Tasks
@@ -21,7 +20,7 @@ namespace Automation.App.ViewModels.Tasks
         { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
 
         public ScopeItem? Parent { get; set; }
-        public string Name { get; set; }
+        public string Name { get; protected set; }
 
         public EnumScopedType Type { get; set; }
         public bool IsExpanded { get; set; }
@@ -56,58 +55,52 @@ namespace Automation.App.ViewModels.Tasks
         }
     }
 
-    public class TaskScopedItem : ScopedItem
+    public class ScopedTaskItem : ScopedItem
     {
-        public TaskNode Task { get; set; }
+        public TaskNode TaskNode { get; set; }
         
-        public TaskScopedItem(TaskNode task)
+        public ScopedTaskItem(TaskNode task)
         {
-            Task = task;
+            TaskNode = task;
             Name = task.Name;
             Type = EnumScopedType.Task;
         }
     }
 
-    public class WorkflowScopedItem : ScopedItem
-    {
-        public WorkflowNode Workflow { get; set; }
-
-        public WorkflowScopedItem(WorkflowNode workflow)
-        {
-            Workflow = workflow;
-            Name = workflow.Name;
-            Type = EnumScopedType.Workflow;
-        }
-    }
-
     public class ScopeItem : ScopedItem
     {
-        public Scope Scope { get; set; }
+        public Scope ScopeNode { get; set; }
         public ObservableCollection<ScopedItem> Childrens { get; set; } = new ObservableCollection<ScopedItem>();
         public ListCollectionView SortedChildrens { get; set; }
 
         public ScopeItem(Scope scope)
         {
-            Scope = scope;
+            ScopeNode = scope;
             Name = scope.Name;
             Type = EnumScopedType.Scope;
 
+            RefreshChildrens(ScopeNode);
+
+            SortedChildrens = (ListCollectionView)CollectionViewSource.GetDefaultView(Childrens);
+            SortedChildrens.SortDescriptions.Add(new SortDescription(nameof(Type), ListSortDirection.Ascending));
+            SortedChildrens.SortDescriptions.Add(new SortDescription(nameof(Name), ListSortDirection.Ascending));
+        }
+
+        public void RefreshChildrens(Scope scope)
+        {
+            Childrens.Clear();
             foreach (var subScope in scope.SubScope)
             {
                 Childrens.Add(new ScopeItem(subScope));
             }
             foreach (var task in scope.Childrens)
             {
-                if (task is TaskNode taskNode)
-                    Childrens.Add(new TaskScopedItem(taskNode));
-                else if (task is WorkflowNode workflow)
-                    Childrens.Add(new WorkflowScopedItem(workflow));
+                var taskScopedItem = new ScopedTaskItem(task)
+                {
+                    Type = (task is WorkflowNode) ? EnumScopedType.Workflow : EnumScopedType.Task
+                };
+                Childrens.Add(taskScopedItem);
             }
-
-            Type = EnumScopedType.Scope;
-            SortedChildrens = (ListCollectionView)CollectionViewSource.GetDefaultView(Childrens);
-            SortedChildrens.SortDescriptions.Add(new SortDescription(nameof(Type), ListSortDirection.Ascending));
-            SortedChildrens.SortDescriptions.Add(new SortDescription(nameof(Name), ListSortDirection.Ascending));
         }
     }
 }

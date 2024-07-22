@@ -23,29 +23,29 @@ namespace Automation.Supervisor.Client.Test
 
         public static TestData CreateTestData()
         {
-            TaskNode taskScope1 = new TaskNode() { Name = "Task 1" };
+            TaskNode taskScope1 = new TaskNode() { Name = "Task 1", Id = Guid.NewGuid() };
             var flowIn1 = new TaskConnector() { ParentId = taskScope1.Id, Type = EnumTaskConnectorType.Flow, Direction = EnumTaskConnectorDirection.In };
             var flowOut1 = new TaskConnector() { ParentId = taskScope1.Id, Type = EnumTaskConnectorType.Flow, Direction = EnumTaskConnectorDirection.Out };
             var input1 = new TaskConnector() { Name = "Input 2", ParentId = taskScope1.Id, Direction = EnumTaskConnectorDirection.In };
             var output1 = new TaskConnector() { Name = "Output 2", ParentId = taskScope1.Id, Direction = EnumTaskConnectorDirection.Out };
 
-            TaskNode taskScope2 = new TaskNode() { Name = "Task 2", };
+            TaskNode taskScope2 = new TaskNode() { Name = "Task 2", Id = Guid.NewGuid() };
             var flowIn2 = new TaskConnector() { ParentId = taskScope2.Id, Type = EnumTaskConnectorType.Flow, Direction = EnumTaskConnectorDirection.In };
             var flowOut2 = new TaskConnector() { ParentId = taskScope2.Id, Type = EnumTaskConnectorType.Flow, Direction = EnumTaskConnectorDirection.Out };
             var input2 = new TaskConnector() { Name = "Input 1", ParentId = taskScope2.Id, Direction = EnumTaskConnectorDirection.In };
             var output2 = new TaskConnector() { Name = "Output 1", ParentId = taskScope2.Id, Direction = EnumTaskConnectorDirection.Out };
 
-            TaskNode workflowInput = new TaskNode() { Name = "Start", };
+            TaskNode workflowInput = new TaskNode() { Name = "Start", Id = Guid.NewGuid() };
             var flowOut3 = new TaskConnector() { ParentId = workflowInput.Id, Type = EnumTaskConnectorType.Flow, Direction = EnumTaskConnectorDirection.Out };
 
-            TaskNode workflowOutput = new TaskNode() { Name = "End", };
+            TaskNode workflowOutput = new TaskNode() { Name = "End", Id = Guid.NewGuid() };
             var flowIn3 = new TaskConnector() { ParentId = workflowOutput.Id, Type = EnumTaskConnectorType.Flow, Direction = EnumTaskConnectorDirection.In };
 
-            WorkflowNode workflowScope = new WorkflowNode() { Name = "Workflow 1", };
+            WorkflowNode workflowScope = new WorkflowNode() { Name = "Workflow 1", Id = Guid.NewGuid() };
 
             var connection = new TaskConnection(workflowScope, output2, input1);
 
-            Scope subScope = new Scope() { Name = "SubScope 1", };
+            Scope subScope = new Scope() { Name = "SubScope 1", Id = Guid.NewGuid() };
             subScope.Context = new Dictionary<string, string>()
             { { "Key1", "Value1" }, { "Key2", "Value2" }, { "Key3", "Value3" }, };
 

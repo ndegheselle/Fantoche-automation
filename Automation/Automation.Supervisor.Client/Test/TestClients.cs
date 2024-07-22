@@ -11,19 +11,39 @@ namespace Automation.Supervisor.Client.Test
     {
         private readonly FakeApi _api = new FakeApi();
 
-        public Task<TaskHistories> GetHistoryAsync(Guid taskId, int pageSize, int page)
+        public Task<TaskHistories> GetHistoryAsync(Guid taskId, int page, int pageSize)
         {
             return Task.FromResult(JsonSerializer.Deserialize<TaskHistories>(_api.GetTaskHistory(taskId, pageSize, page)));
         }
 
         public Task<TaskNode?> GetTaskAsync(Guid id)
         {
-            return GetTaskAsync<TaskNode>(id);
+            return Task.FromResult(JsonSerializer.Deserialize<TaskNode>(_api.GetTask(id)));
         }
 
-        public Task<T?> GetTaskAsync<T>(Guid id) where T : TaskNode
+        public Task<WorkflowNode?> GetWorkflowAsync(Guid id)
         {
-            return Task.FromResult(JsonSerializer.Deserialize<T>(_api.GetTask(id)));
+            return Task.FromResult(JsonSerializer.Deserialize<WorkflowNode>(_api.GetWorkflow(id)));
+        }
+
+        public Task<TaskNode> CreateTaskAsync(TaskNode task)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<WorkflowNode> CreateWorkflowAsync(WorkflowNode workflow)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<TaskNode> UpdateTaskAsync(TaskNode task)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<WorkflowNode> UpdateWorkflowAsync(WorkflowNode workflow)
+        {
+            throw new NotImplementedException();
         }
     }
 
@@ -31,19 +51,29 @@ namespace Automation.Supervisor.Client.Test
     {
         private readonly FakeApi _api = new FakeApi();
 
-        public Task<TaskHistories> GetHistoryAsync(Guid scopeId, int pageSize, int page)
+        public Task<TaskHistories> GetHistoryAsync(Guid scopeId, int page, int pageSize)
         {
             return Task.FromResult(JsonSerializer.Deserialize<TaskHistories>(_api.GetScopeHistory(scopeId, pageSize, page)));
         }
 
-        public Task<Scope?> GetScopeAsync(Guid id)
+        public Task<Scope> GetRootScopeAsync()
         {
-            return GetScopeAsync<Scope>(id);
+            return Task.FromResult(JsonSerializer.Deserialize<Scope>(_api.GetScope(Guid.Parse("00000000-0000-0000-0000-000000000001"))));
         }
 
-        public Task<T?> GetScopeAsync<T>(Guid id) where T : Scope
+        public Task<Scope?> GetScopeAsync(Guid id)
         {
-            return Task.FromResult(JsonSerializer.Deserialize<T>(_api.GetScope(id)));
+            return Task.FromResult(JsonSerializer.Deserialize<Scope>(_api.GetScope(id)));
+        }
+
+        public Task<Scope> CreateScopeAsync(Scope scope)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Scope> UpdateScopeAsync(Scope scope)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -1,38 +1,44 @@
-﻿using Automation.App.Views.TasksPages.TaskUI;
-using Automation.Shared.ViewModels;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Automation.App.Base;
+using Automation.App.ViewModels.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace Automation.App.Views.TasksPages.WorkflowUI
 {
+    public class WorkflowEditModal : WorkflowEdit, IModalContent
+    {
+        public IModalContainer? ModalParent { get; set; }
+        public ModalOptions Options => new ModalOptions() { Title = "Edit workflow", ValidButtonText = "Save" };
+
+        public WorkflowEditModal(WorkflowScopedItem workflow) : base(workflow)
+        {
+            if (Workflow.WorkflowNode.Id == Guid.Empty)
+                Options.Title = "New workflow";
+        }
+    }
+
     /// <summary>
     /// Logique d'interaction pour WorkflowEdit.xaml
     /// </summary>
     public partial class WorkflowEdit : UserControl
     {
         public static readonly DependencyProperty WorkflowProperty =
-            DependencyProperty.Register(nameof(Workflow), typeof(WorkflowNode), typeof(WorkflowEdit), new PropertyMetadata(null));
+            DependencyProperty.Register(nameof(Workflow), typeof(WorkflowScopedItem), typeof(WorkflowEdit), new PropertyMetadata(null));
 
-        public WorkflowNode Workflow
+        public WorkflowScopedItem Workflow
         {
-            get { return (WorkflowNode)GetValue(WorkflowProperty); }
+            get { return (WorkflowScopedItem)GetValue(WorkflowProperty); }
             set { SetValue(WorkflowProperty, value); }
         }
 
         public WorkflowEdit()
         {
+            InitializeComponent();
+        }
+
+        public WorkflowEdit(WorkflowScopedItem workflow)
+        {
+            Workflow = workflow;
             InitializeComponent();
         }
     }

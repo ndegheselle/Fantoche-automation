@@ -1,4 +1,5 @@
-﻿using Automation.Shared.ViewModels;
+﻿using Automation.App.ViewModels.Tasks;
+using Automation.Shared.Data;
 using Automation.Supervisor.Client;
 using Joufflu.Shared;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,25 +13,26 @@ namespace Automation.App.Views.TasksPages.TaskUI
     public partial class TaskPage : UserControl, IPage
     {
         public INavigationLayout? Layout { get; set; }
-        public TaskNode Task { get; set; }
+        public ScopedTaskItem Task { get; set; }
 
         private readonly App _app = (App)App.Current;
         private readonly ITaskClient _client;
 
-        public TaskPage(ScopedTask scope)
+        public TaskPage(ScopedTaskItem task)
         {
             _client = _app.ServiceProvider.GetRequiredService<ITaskClient>();
             InitializeComponent();
-            LoadTask(scope);
+            LoadTask(task);
         }
 
-        public async void LoadTask(ScopedTask scope)
+        public async void LoadTask(ScopedTaskItem task)
         {
-            // Load full workflow
-            if (await _client.GetNodeAsync(scope.TaskId) is not TaskNode task)
-                throw new ArgumentException("Task not found.");
-            Task = task;
-            Task.ParentScope = scope;
+            TaskNode? fullTask = await _client.GetTaskAsync(task.TaskNode.Id);
+
+            if (fullTask == null)
+                throw new ArgumentException("Task not found");
+
+            Task.TaskNode = fullTask;
             this.DataContext = Task;
         }
     }

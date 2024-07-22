@@ -7,22 +7,11 @@
     xmlns:local="clr-namespace:Automation.App.Views.TasksPages.TaskUI"
     xmlns:components="clr-namespace:Automation.App.Views.TasksPages.Components"
     xmlns:inputs="clr-namespace:Automation.App.Components.Inputs"
-    mc:Ignorable="d"
-    d:DesignHeight="450"
-    d:DesignWidth="800">
-    <Grid DataContext="{Binding Task, RelativeSource={RelativeSource AncestorType=local:TaskEdit}}">
-        <Grid.RowDefinitions>
-            <RowDefinition />
-            <RowDefinition />
-        </Grid.RowDefinitions>
-        <GroupBox Header="Scoped parameters">
-            <components:ScopedParameters Scoped="{Binding ParentScope}" />
-        </GroupBox>
-        <GroupBox Grid.Row="1" Margin="0,4,0,0" Header="Task">
-            <StackPanel Orientation="Vertical">
-                <TextBlock Margin="0,0,0,4">Source DLL</TextBlock>
-                <inputs:FilePicker />
-            </StackPanel>
-        </GroupBox>
-    </Grid>
+    mc:Ignorable="d">
+    <StackPanel Orientation="Vertical" DataContext="{Binding Task, RelativeSource={RelativeSource AncestorType=local:TaskEdit}}">
+        <TextBlock Margin="0,0,0,4">Name</TextBlock>
+        <TextBox Text="{Binding TaskNode.Name}" />
+        <TextBlock Margin="0,0,0,4">Source DLL</TextBlock>
+        <inputs:FilePicker />
+    </StackPanel>
 </UserControl>

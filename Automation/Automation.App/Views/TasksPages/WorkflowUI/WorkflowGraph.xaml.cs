@@ -1,6 +1,6 @@
 ﻿using Automation.App.Base;
 using Automation.App.Components.Display;
-using Automation.App.ViewModels.Graph;
+using Automation.App.ViewModels.Tasks;
 using Automation.App.Views.TasksPages.Components;
 using Automation.Supervisor.Client;
 using Microsoft.Extensions.DependencyInjection;
@@ -58,16 +58,15 @@ namespace Automation.App.Views.TasksPages.WorkflowUI
         {
             ScopedSelectorModal nodeSelector = new ScopedSelectorModal()
             {
-                RootScope = await _scopeClient.GetRootScopeAsync(),
+                RootScope = new ScopeItem(await _scopeClient.GetRootScopeAsync()),
                 AllowedSelectedNodes = EnumScopedType.Workflow | EnumScopedType.Task
             };
+
             if (await _modal.Show(nodeSelector) && nodeSelector.Selected != null)
             {
-                Guid nodeId = ((ScopedTask)nodeSelector.Selected).TaskId;
-
-                if (await _nodeClient.GetNodeAsync(nodeId) is not WorkflowNode node)
-                    throw new ArgumentException("Node not found");
-                EditorData.Workflow.Nodes.Add(node);
+                ScopedTaskItem taskScopedItem = (ScopedTaskItem)nodeSelector.Selected;
+                // TODO : Create the relation through the API
+                EditorData.Workflow.Nodes.Add(new NodifyNode(new Shared.Data.WorkflowRelation(), taskScopedItem.TaskNode));
             }
         }
 
