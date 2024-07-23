@@ -13,7 +13,8 @@ namespace Automation.App.Views.TasksPages.TaskUI
     public partial class TaskPage : UserControl, IPage
     {
         public INavigationLayout? Layout { get; set; }
-        public ScopedTaskItem Task { get; set; }
+        public ScopedTaskItem Scoped { get; set; }
+        public TaskNode Task { get; set; }
 
         private readonly App _app = (App)App.Current;
         private readonly ITaskClient _client;
@@ -27,13 +28,11 @@ namespace Automation.App.Views.TasksPages.TaskUI
 
         public async void LoadTask(ScopedTaskItem task)
         {
-            TaskNode? fullTask = await _client.GetTaskAsync(task.TaskNode.Id);
+            TaskNode? fullTask = await _client.GetTaskAsync(task.TargetId);
 
             if (fullTask == null)
                 throw new ArgumentException("Task not found");
-
-            Task.TaskNode = fullTask;
-            this.DataContext = Task;
+            Task = fullTask;
         }
     }
 }

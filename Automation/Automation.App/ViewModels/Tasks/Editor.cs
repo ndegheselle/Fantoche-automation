@@ -1,5 +1,7 @@
 ﻿using Automation.Shared;
 using Automation.Shared.Data;
+using Automation.Supervisor.Client;
+using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Input;
@@ -15,14 +17,18 @@ namespace Automation.App.ViewModels.Tasks
 
         public List<INode> SelectedNodes { get; set; } = [];
         public ICommand DisconnectConnectorCommand { get; }
-        public PendingConnection? PendingConnection { get; }
+        public NodifyPendingConnection? PendingConnection { get; }
         public WorkflowWrapper Workflow { get; }
+
+        private readonly App _app = (App)App.Current;
+        private readonly ITaskClient _nodeClient;
 
         public EditorViewModel(WorkflowNode workflow)
         {
+            _nodeClient = _app.ServiceProvider.GetRequiredService<ITaskClient>();
             Workflow = new WorkflowWrapper(workflow);
 
-            PendingConnection = new PendingConnection(this);
+            PendingConnection = new NodifyPendingConnection(this);
             DisconnectConnectorCommand = new DelegateCommand<NodifyConnector>(connector =>
             {
                 connector.IsConnected = false;
@@ -75,13 +81,24 @@ namespace Automation.App.ViewModels.Tasks
             }
         }
 
+        public async void AddNode(ScopedTaskItem taskScopedItem)
+        {
+            // TODO : Create the relation through the API and get the task from the API
+            // TODO : Add the node to the center of the view
+            TaskNode? addedTask = await _nodeClient.GetTaskAsync(taskScopedItem.TargetId);
+            if (addedTask == null)
+                return;
+            Workflow.Nodes.Add(new NodifyNode(new Shared.Data.WorkflowRelation(), addedTask));
+        }
+
         public void CreateGroup(Rectangle boundingBox)
         {
-            NodeGroup group = new NodeGroup()
+            // TODO : Create the group through the API
+            NodifyGroup group = new NodifyGroup(new NodeGroup()
             {
                 Location = boundingBox.Location,
                 Size = boundingBox.Size
-            };
+            });
             Workflow.Nodes.Add(group);
         }
     }

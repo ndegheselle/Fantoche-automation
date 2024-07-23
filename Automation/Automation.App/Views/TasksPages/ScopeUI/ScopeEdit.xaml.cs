@@ -1,5 +1,6 @@
 ﻿using Automation.App.Base;
 using Automation.App.ViewModels.Tasks;
+using Automation.Shared.Data;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -10,9 +11,9 @@ namespace Automation.App.Views.TasksPages.ScopeUI
         public IModalContainer? ModalParent { get; set; }
         public ModalOptions Options => new ModalOptions() { Title = "Edit scoped", ValidButtonText = "Save" };
 
-        public ScopeEditModal(ScopeItem scope) : base(scope)
+        public ScopeEditModal(Scope scope) : base(scope)
         {
-            if (scope.ScopeNode.Id == Guid.Empty)
+            if (scope.Id == Guid.Empty)
                 Options.Title = "New scoped";
         }
     }
@@ -26,17 +27,17 @@ namespace Automation.App.Views.TasksPages.ScopeUI
         public static readonly DependencyProperty ScopedProperty =
             DependencyProperty.Register(
             nameof(Scope),
-            typeof(ScopeItem),
+            typeof(Scope),
             typeof(ScopeEdit),
             new PropertyMetadata(null));
 
-        public ScopeItem Scope
+        public Scope Scope
         {
-            get { return (ScopeItem)GetValue(ScopedProperty); }
+            get { return (Scope)GetValue(ScopedProperty); }
             set { SetValue(ScopedProperty, value); }
         }
 
-        public ScopeEdit(ScopeItem scoped)
+        public ScopeEdit(Scope scoped)
         {
             Scope = scoped;
             InitializeComponent();

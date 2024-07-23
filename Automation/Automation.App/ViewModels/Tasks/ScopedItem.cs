@@ -23,6 +23,8 @@ namespace Automation.App.ViewModels.Tasks
         public string Name { get; protected set; }
 
         public EnumScopedType Type { get; set; }
+        public Guid TargetId { get; set; }
+
         public bool IsExpanded { get; set; }
 
         private bool _isSelected;
@@ -45,6 +47,13 @@ namespace Automation.App.ViewModels.Tasks
             }
         }
 
+        public ScopedItem(EnumScopedType type, Guid targetId, string name)
+        {
+            Type = type;
+            Name = name;
+            TargetId = targetId;
+        }
+
         public void ExpandParent()
         {
             if (Parent == null)
@@ -57,29 +66,20 @@ namespace Automation.App.ViewModels.Tasks
 
     public class ScopedTaskItem : ScopedItem
     {
-        public TaskNode TaskNode { get; set; }
-        
-        public ScopedTaskItem(TaskNode task)
-        {
-            TaskNode = task;
-            Name = task.Name;
-            Type = EnumScopedType.Task;
-        }
+        public ScopedTaskItem(TaskNode task) : base(task is WorkflowNode ? EnumScopedType.Workflow : EnumScopedType.Task, task.Id, task.Name)
+        {}
     }
 
     public class ScopeItem : ScopedItem
     {
-        public Scope ScopeNode { get; set; }
         public ObservableCollection<ScopedItem> Childrens { get; set; } = new ObservableCollection<ScopedItem>();
         public ListCollectionView SortedChildrens { get; set; }
+        public Scope Scope { get; set; }
 
-        public ScopeItem(Scope scope)
+        public ScopeItem(Scope scope) : base(EnumScopedType.Scope, scope.Id, scope.Name)
         {
-            ScopeNode = scope;
-            Name = scope.Name;
-            Type = EnumScopedType.Scope;
-
-            RefreshChildrens(ScopeNode);
+            Scope = scope;
+            RefreshChildrens(scope);
 
             SortedChildrens = (ListCollectionView)CollectionViewSource.GetDefaultView(Childrens);
             SortedChildrens.SortDescriptions.Add(new SortDescription(nameof(Type), ListSortDirection.Ascending));

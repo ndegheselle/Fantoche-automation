@@ -17,8 +17,9 @@ namespace Automation.App.Views.TasksPages.ScopeUI
     public partial class ScopePage : UserControl, IPage
     {
         public INavigationLayout? Layout { get; set; }
+        public ScopeItem Scope { get; set; }
+
         private readonly IModalContainer _modal;
-        private readonly ScopeItem _scope;
 
         private readonly App _app = (App)App.Current;
         private readonly IScopeClient _scopeClient;
@@ -29,9 +30,8 @@ namespace Automation.App.Views.TasksPages.ScopeUI
             _scopeClient = _app.ServiceProvider.GetRequiredService<IScopeClient>();
             _taskClient = _app.ServiceProvider.GetRequiredService<ITaskClient>();
 
-            _scope = scope;
+            Scope = scope;
             _modal = modal;
-            this.DataContext = _scope;
             InitializeComponent();
         }
 
@@ -44,38 +44,33 @@ namespace Automation.App.Views.TasksPages.ScopeUI
             contextMenu.IsOpen = true;
         }
 
-        private void ButtonParam_Click(object sender, RoutedEventArgs e)
-        {
-            _modal.Show(new ScopeEditModal(_scope));
-        }
-
         private async void MenuAddScope_Click(object sender, RoutedEventArgs e)
         {
-            ScopeItem newScope = new ScopeItem(new Scope());
+            Scope newScope = new Scope();
             if (await _modal.Show(new ScopeEditModal(newScope)))
             {
-                newScope.ScopeNode = await _scopeClient.CreateScopeAsync(newScope.ScopeNode);
-                _scope.Childrens.Add(newScope);
+                newScope = await _scopeClient.CreateScopeAsync(newScope);
+                Scope.Childrens.Add(new ScopeItem(newScope));
             }
         }
 
         private async void MenuAddTask_Click(object sender, RoutedEventArgs e)
         {
-            ScopedTaskItem taskScopedItem = new ScopedTaskItem(new TaskNode());
-            if (await _modal.Show(new TaskEditModal(taskScopedItem)))
+            var task = new TaskNode();
+            if (await _modal.Show(new TaskEditModal(task)))
             {
-                taskScopedItem.TaskNode = await _taskClient.CreateTaskAsync(taskScopedItem.TaskNode);
-                _scope.Childrens.Add(taskScopedItem);
+                task= await _taskClient.CreateTaskAsync(task);
+                Scope.Childrens.Add(new ScopedTaskItem(task));
             }
         }
 
         private async void MenuAddWorkflow_Click(object sender, RoutedEventArgs e)
         {
-            WorkflowScopedItem workflowItem = new WorkflowScopedItem(new WorkflowNode());
-            if (await _modal.Show(new WorkflowEditModal(workflowItem)))
+            WorkflowNode workflow = new WorkflowNode();
+            if (await _modal.Show(new WorkflowEditModal(workflow)))
             {
-                workflowItem.WorkflowNode = await _taskClient.CreateWorkflowAsync(workflowItem.WorkflowNode);
-                _scope.Childrens.Add(workflowItem);
+                workflow = await _taskClient.CreateWorkflowAsync(workflow);
+                Scope.Childrens.Add(new ScopedTaskItem(workflow));
             }
         }
         #endregion

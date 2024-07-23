@@ -2,6 +2,7 @@
 using Automation.App.Components.Display;
 using Automation.App.ViewModels.Tasks;
 using Automation.App.Views.TasksPages.Components;
+using Automation.Shared.Data;
 using Automation.Supervisor.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Nodify;
@@ -65,8 +66,7 @@ namespace Automation.App.Views.TasksPages.WorkflowUI
             if (await _modal.Show(nodeSelector) && nodeSelector.Selected != null)
             {
                 ScopedTaskItem taskScopedItem = (ScopedTaskItem)nodeSelector.Selected;
-                // TODO : Create the relation through the API
-                EditorData.Workflow.Nodes.Add(new NodifyNode(new Shared.Data.WorkflowRelation(), taskScopedItem.TaskNode));
+                EditorData.AddNode(taskScopedItem);
             }
         }
 

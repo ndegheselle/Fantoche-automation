@@ -5,6 +5,7 @@ using Joufflu.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using System.Threading.Tasks;
 using System.Windows.Controls;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace Automation.App.Views.TasksPages.WorkflowUI
 {
@@ -15,28 +16,29 @@ namespace Automation.App.Views.TasksPages.WorkflowUI
     {
         public INavigationLayout? Layout { get; set; }
         public EditorViewModel? Editor { get; set; } = null;
-        public WorkflowScopedItem Workflow { get; set; }
+        public ScopedTaskItem Scoped { get; set; }
+        public WorkflowNode Workflow { get; set; }
 
         private readonly App _app = (App)App.Current;
         private readonly ITaskClient _client;
 
-        public WorkflowPage(WorkflowScopedItem workflow)
+        public WorkflowPage(ScopedTaskItem workflow)
         {
+            Scoped = workflow;
             _client = _app.ServiceProvider.GetRequiredService<ITaskClient>();
             InitializeComponent();
-            LoadWokflow(workflow);
+            LoadWokflow(Scoped);
         }
 
-        public async void LoadWokflow(WorkflowScopedItem workflow)
+        public async void LoadWokflow(ScopedTaskItem workflow)
         {
-            WorkflowNode? fullWorkflow = await _client.GetWorkflowAsync(workflow.WorkflowNode.Id);
+            WorkflowNode? fullWorkflow = await _client.GetWorkflowAsync(workflow.TargetId);
 
             if (fullWorkflow == null)
                 throw new ArgumentException("Workflow not found");
 
-            Workflow.WorkflowNode = fullWorkflow;
-            Editor = new EditorViewModel(fullWorkflow);
-            this.DataContext = Workflow;
+            Workflow = fullWorkflow;
+            Editor = new EditorViewModel(Workflow);
         }
     }
 }

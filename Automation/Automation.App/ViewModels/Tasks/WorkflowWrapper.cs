@@ -80,21 +80,23 @@ namespace Automation.App.ViewModels.Tasks
 
         public string Name { get; set; }
         public Point Position { get; set; }
+        public Size Size { get; set; }
 
         public NodifyGroup(NodeGroup nodeGroup)
         {
             NodeGroup = nodeGroup;
             Name = nodeGroup.Name;
             Position = new Point(nodeGroup.Location.X, nodeGroup.Location.Y);
+            Size = new Size(nodeGroup.Size.Width, nodeGroup.Size.Height);
         }
     }
 
-    public class PendingConnection
+    public class NodifyPendingConnection
     {
         private readonly EditorViewModel _editor;
         private NodifyConnector? _source;
 
-        public PendingConnection(EditorViewModel editor)
+        public NodifyPendingConnection(EditorViewModel editor)
         {
             _editor = editor;
             StartCommand = new DelegateCommand<NodifyConnector>(source => _source = source);

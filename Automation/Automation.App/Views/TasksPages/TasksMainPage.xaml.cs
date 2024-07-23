@@ -46,7 +46,7 @@ namespace Automation.App.Views.TasksPages
                         (ScopeItem)selected));
                     break;
                 case EnumScopedType.Workflow:
-                    Show(new WorkflowPage((WorkflowScopedItem)selected));
+                    Show(new WorkflowPage((ScopedTaskItem)selected));
                     break;
                 case EnumScopedType.Task:
                     Show(new TaskPage((ScopedTaskItem)selected));

@@ -1,5 +1,6 @@
 ﻿using Automation.App.Base;
 using Automation.App.ViewModels.Tasks;
+using Automation.Shared.Data;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -10,9 +11,9 @@ namespace Automation.App.Views.TasksPages.WorkflowUI
         public IModalContainer? ModalParent { get; set; }
         public ModalOptions Options => new ModalOptions() { Title = "Edit workflow", ValidButtonText = "Save" };
 
-        public WorkflowEditModal(WorkflowScopedItem workflow) : base(workflow)
+        public WorkflowEditModal(WorkflowNode workflow) : base(workflow)
         {
-            if (Workflow.WorkflowNode.Id == Guid.Empty)
+            if (Workflow.Id == Guid.Empty)
                 Options.Title = "New workflow";
         }
     }
@@ -23,11 +24,11 @@ namespace Automation.App.Views.TasksPages.WorkflowUI
     public partial class WorkflowEdit : UserControl
     {
         public static readonly DependencyProperty WorkflowProperty =
-            DependencyProperty.Register(nameof(Workflow), typeof(WorkflowScopedItem), typeof(WorkflowEdit), new PropertyMetadata(null));
+            DependencyProperty.Register(nameof(Workflow), typeof(WorkflowNode), typeof(WorkflowEdit), new PropertyMetadata(null));
 
-        public WorkflowScopedItem Workflow
+        public WorkflowNode Workflow
         {
-            get { return (WorkflowScopedItem)GetValue(WorkflowProperty); }
+            get { return (WorkflowNode)GetValue(WorkflowProperty); }
             set { SetValue(WorkflowProperty, value); }
         }
 
@@ -36,7 +37,7 @@ namespace Automation.App.Views.TasksPages.WorkflowUI
             InitializeComponent();
         }
 
-        public WorkflowEdit(WorkflowScopedItem workflow)
+        public WorkflowEdit(WorkflowNode workflow)
         {
             Workflow = workflow;
             InitializeComponent();

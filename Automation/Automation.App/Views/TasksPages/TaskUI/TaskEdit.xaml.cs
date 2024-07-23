@@ -1,5 +1,6 @@
 ﻿using Automation.App.Base;
 using Automation.App.ViewModels.Tasks;
+using Automation.Shared.Data;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -10,9 +11,9 @@ namespace Automation.App.Views.TasksPages.TaskUI
         public IModalContainer? ModalParent { get; set; }
         public ModalOptions Options => new ModalOptions() { Title = "Edit task", ValidButtonText = "Save" };
 
-        public TaskEditModal(ScopedTaskItem task) : base(task)
+        public TaskEditModal(TaskNode task) : base(task)
         {
-            if (Task.TaskNode.Id == Guid.Empty)
+            if (Task.Id == Guid.Empty)
                 Options.Title = "New task";
         }
     }
@@ -23,11 +24,11 @@ namespace Automation.App.Views.TasksPages.TaskUI
     public partial class TaskEdit : UserControl
     {
         public static readonly DependencyProperty TaskProperty =
-            DependencyProperty.Register(nameof(Task), typeof(ScopedTaskItem), typeof(TaskEdit), new PropertyMetadata(null));
+            DependencyProperty.Register(nameof(Task), typeof(TaskNode), typeof(TaskEdit), new PropertyMetadata(null));
 
-        public ScopedTaskItem Task
+        public TaskNode Task
         {
-            get { return (ScopedTaskItem)GetValue(TaskProperty); }
+            get { return (TaskNode)GetValue(TaskProperty); }
             set { SetValue(TaskProperty, value); }
         }
 
@@ -36,7 +37,7 @@ namespace Automation.App.Views.TasksPages.TaskUI
             InitializeComponent();
         }
 
-        public TaskEdit(ScopedTaskItem task)
+        public TaskEdit(TaskNode task)
         {
             Task = task;
             InitializeComponent();

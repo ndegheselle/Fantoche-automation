@@ -7,18 +7,16 @@
     xmlns:local="clr-namespace:Automation.App.Views.TasksPages.TaskUI"
     xmlns:components="clr-namespace:Automation.App.Views.TasksPages.Components"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
-    mc:Ignorable="d"
-    xmlns:viewmodels="clr-namespace:Automation.App.ViewModels.Tasks"
-    d:DataContext="{d:DesignInstance viewmodels:TaskScopedItem}">
-    <TabControl>
+    mc:Ignorable="d">
+    <TabControl DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:TaskPage}}">
         <TabItem Header="Scheduler">
             <local:TaskSchedules />
         </TabItem>
         <TabItem Header="History">
-            <components:ScopedHistory Scoped="{Binding}" />
+            <components:ScopedHistory Scoped="{Binding Scoped}" />
         </TabItem>
         <TabItem Header="Parameters">
-            <local:TaskEdit Task="{Binding}" />
+            <local:TaskEdit Task="{Binding Task}" />
         </TabItem>
     </TabControl>
 </UserControl>

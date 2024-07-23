@@ -50,11 +50,11 @@ namespace Automation.App.Views.TasksPages.Components
 
             if (Scoped is ScopedTaskItem taskScoped)
             {
-                History = await _taskClient.GetHistoryAsync(taskScoped.TaskNode.Id, pageNumber, capacity);
+                History = await _taskClient.GetHistoryAsync(taskScoped.TargetId, pageNumber, capacity);
             }
             else if (Scoped is ScopeItem scopeScoped)
             {
-                History = await _scopeClient.GetHistoryAsync(scopeScoped.ScopeNode.Id, pageNumber, capacity);
+                History = await _scopeClient.GetHistoryAsync(scopeScoped.TargetId, pageNumber, capacity);
             }
         }
     }

@@ -6,14 +6,12 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     mc:Ignorable="d"
     xmlns:components="clr-namespace:Automation.App.Views.TasksPages.Components"
+    xmlns:local="clr-namespace:Automation.App.Views.TasksPages.ScopeUI"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
-    xmlns:viewModels="clr-namespace:Automation.Shared.ViewModels;assembly=Automation.Shared"
-    xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
-    d:DataContext="{d:DesignInstance viewModels:Scope}">
-    <TabControl>
+    xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI">
+    <TabControl DataContext="{Binding Scope, RelativeSource={RelativeSource AncestorType=local:ScopePage}}">
         <TabItem Header="Tasks">
-
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto" />
@@ -74,9 +72,11 @@
                 </ListBox>
             </Grid>
         </TabItem>
-        <TabItem Header="History" />
+        <TabItem Header="History">
+            <components:ScopedHistory Scoped="{Binding}" />
+        </TabItem>
         <TabItem Header="Parameters">
-            <components:ScopedParameters Scoped="{Binding}" />
+            <local:ScopeEdit Scope="{Binding Scope}" />
         </TabItem>
     </TabControl>
 </UserControl>

@@ -1,10 +1,7 @@
 ﻿using Automation.App.Base;
-using Automation.Shared.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections;
-using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 
 namespace Automation.App.Components.Data
 {
