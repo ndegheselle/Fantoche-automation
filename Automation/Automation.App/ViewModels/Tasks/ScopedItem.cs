@@ -74,11 +74,9 @@ namespace Automation.App.ViewModels.Tasks
     {
         public ObservableCollection<ScopedItem> Childrens { get; set; } = new ObservableCollection<ScopedItem>();
         public ListCollectionView SortedChildrens { get; set; }
-        public Scope Scope { get; set; }
 
         public ScopeItem(Scope scope) : base(EnumScopedType.Scope, scope.Id, scope.Name)
         {
-            Scope = scope;
             RefreshChildrens(scope);
 
             SortedChildrens = (ListCollectionView)CollectionViewSource.GetDefaultView(Childrens);

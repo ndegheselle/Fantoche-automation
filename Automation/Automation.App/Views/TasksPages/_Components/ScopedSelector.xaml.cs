@@ -72,7 +72,7 @@ namespace Automation.App.Views.TasksPages.Components
             // Load childrens if the selected element is a scope and its childrens are not loaded
             if (selected != null && selected is ScopeItem scope && scope.Childrens.Count == 0)
             {
-                Scope? fullScope = await _client.GetScopeAsync(scope.TargetId);
+                Scope? fullScope = await _client.GetScopeAsync(scope.TargetId, new ScopeLoadOptions() { WithContext = false});
 
                 if (fullScope == null)
                     return;

@@ -17,7 +17,7 @@ namespace Automation.App.Views.TasksPages.WorkflowUI
         public INavigationLayout? Layout { get; set; }
         public EditorViewModel? Editor { get; set; } = null;
         public ScopedTaskItem Scoped { get; set; }
-        public WorkflowNode Workflow { get; set; }
+        public WorkflowNode? Workflow { get; set; }
 
         private readonly App _app = (App)App.Current;
         private readonly ITaskClient _client;

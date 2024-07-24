@@ -56,19 +56,27 @@ namespace Automation.Supervisor.Client.Test
             return Serialize(workflow);
         }
 
-        public string GetRootScope()
+        public string GetRootScope(ScopeLoadOptions options = default)
         {
-            return GetScope(Guid.Parse("00000000-0000-0000-0000-000000000001"));
+            return GetScope(Guid.Parse("00000000-0000-0000-0000-000000000001"), options);
         }
 
-        public string GetScope(Guid id)
+        public string GetScope(Guid id, ScopeLoadOptions options = default)
         {
             Scope? scope = TestDataFactory.Data.Scopes.FirstOrDefault(x => x.Id == id);
             if (scope == null)
                 return string.Empty;
 
+            if (!options.WithContext)
+                scope.Context = new Dictionary<string, string>();
+
+            if (!options.WithChildrens)
+                return Serialize(scope);
+
             foreach (Scope child in TestDataFactory.Data.Scopes.Where(x => x.ParentId == scope.Id).OrderBy(x => x.Name))
             {
+                if (!options.WithContext)
+                    child.Context = new Dictionary<string, string>();
                 scope.SubScope.Add(child);
             }
 

@@ -11,6 +11,15 @@ namespace Automation.Supervisor.Client
         }
     }
 
+    public struct ScopeLoadOptions 
+    {
+        public bool WithContext { get; set; } = true;
+        public bool WithChildrens { get; set; } = true;
+
+        public ScopeLoadOptions()
+        {}
+    }
+
     public interface ISupervisorClient
     {
         // TODO : Get progress ?
@@ -32,8 +41,8 @@ namespace Automation.Supervisor.Client
 
     public interface IScopeClient
     {
-        public Task<Scope> GetRootScopeAsync();
-        public Task<Scope?> GetScopeAsync(Guid id);
+        public Task<Scope> GetRootScopeAsync(ScopeLoadOptions options = default);
+        public Task<Scope?> GetScopeAsync(Guid id, ScopeLoadOptions options = default);
         public Task<TaskHistories> GetHistoryAsync(Guid scopeId, int page, int pageSize);
 
         public Task<Scope> CreateScopeAsync(Scope scope);

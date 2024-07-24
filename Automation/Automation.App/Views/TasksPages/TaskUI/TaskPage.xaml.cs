@@ -4,6 +4,7 @@ using Automation.Supervisor.Client;
 using Joufflu.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows.Controls;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace Automation.App.Views.TasksPages.TaskUI
 {
@@ -14,7 +15,7 @@ namespace Automation.App.Views.TasksPages.TaskUI
     {
         public INavigationLayout? Layout { get; set; }
         public ScopedTaskItem Scoped { get; set; }
-        public TaskNode Task { get; set; }
+        public TaskNode? Task { get; set; }
 
         private readonly App _app = (App)App.Current;
         private readonly ITaskClient _client;
@@ -22,6 +23,7 @@ namespace Automation.App.Views.TasksPages.TaskUI
         public TaskPage(ScopedTaskItem task)
         {
             _client = _app.ServiceProvider.GetRequiredService<ITaskClient>();
+            Scoped = task;
             InitializeComponent();
             LoadTask(task);
         }

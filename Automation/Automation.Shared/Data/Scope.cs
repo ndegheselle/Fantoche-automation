@@ -13,9 +13,7 @@ namespace Automation.Shared.Data
         // TODO : Handle different type of objects
         public Dictionary<string, string> Context { get; set; } = new Dictionary<string, string>();
 
-        [JsonIgnore]
         public List<Scope> SubScope { get; set; } = [];
-        [JsonIgnore]
         public List<TaskNode> Childrens { get; set; } = [];
     }
 }

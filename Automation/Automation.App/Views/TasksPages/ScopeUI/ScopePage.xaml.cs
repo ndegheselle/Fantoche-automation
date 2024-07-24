@@ -17,7 +17,8 @@ namespace Automation.App.Views.TasksPages.ScopeUI
     public partial class ScopePage : UserControl, IPage
     {
         public INavigationLayout? Layout { get; set; }
-        public ScopeItem Scope { get; set; }
+        public ScopeItem Scoped { get; set; }
+        public Scope? Scope { get; set; }
 
         private readonly IModalContainer _modal;
 
@@ -29,10 +30,20 @@ namespace Automation.App.Views.TasksPages.ScopeUI
         {
             _scopeClient = _app.ServiceProvider.GetRequiredService<IScopeClient>();
             _taskClient = _app.ServiceProvider.GetRequiredService<ITaskClient>();
-
-            Scope = scope;
             _modal = modal;
+
+            Scoped = scope;
             InitializeComponent();
+            LoadScope(scope);
+        }
+
+        public async void LoadScope(ScopeItem scope)
+        {
+            Scope? fullScope = await _scopeClient.GetScopeAsync(scope.TargetId, new ScopeLoadOptions() { WithChildrens = false});
+
+            if (fullScope == null)
+                throw new ArgumentException("Scope not found");
+            Scope = fullScope;
         }
 
         #region UI Events
@@ -50,7 +61,7 @@ namespace Automation.App.Views.TasksPages.ScopeUI
             if (await _modal.Show(new ScopeEditModal(newScope)))
             {
                 newScope = await _scopeClient.CreateScopeAsync(newScope);
-                Scope.Childrens.Add(new ScopeItem(newScope));
+                Scoped.Childrens.Add(new ScopeItem(newScope));
             }
         }
 
@@ -60,7 +71,7 @@ namespace Automation.App.Views.TasksPages.ScopeUI
             if (await _modal.Show(new TaskEditModal(task)))
             {
                 task= await _taskClient.CreateTaskAsync(task);
-                Scope.Childrens.Add(new ScopedTaskItem(task));
+                Scoped.Childrens.Add(new ScopedTaskItem(task));
             }
         }
 
@@ -70,7 +81,7 @@ namespace Automation.App.Views.TasksPages.ScopeUI
             if (await _modal.Show(new WorkflowEditModal(workflow)))
             {
                 workflow = await _taskClient.CreateWorkflowAsync(workflow);
-                Scope.Childrens.Add(new ScopedTaskItem(workflow));
+                Scoped.Childrens.Add(new ScopedTaskItem(workflow));
             }
         }
         #endregion

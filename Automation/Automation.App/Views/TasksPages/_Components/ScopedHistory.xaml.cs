@@ -17,7 +17,7 @@ namespace Automation.App.Views.TasksPages.Components
             nameof(Scoped),
             typeof(ScopedItem),
             typeof(ScopedHistory),
-            new PropertyMetadata(new ScopedHistory(), (o, e) => ((ScopedHistory)o).OnScopedChange()));
+            new PropertyMetadata(default(ScopedItem), (o, e) => ((ScopedHistory)o).OnScopedChange()));
 
         public ScopedItem Scoped { get { return (ScopedItem)GetValue(ScopedProperty); } set { SetValue(ScopedProperty, value); } }
 
@@ -35,7 +35,13 @@ namespace Automation.App.Views.TasksPages.Components
         public ScopedHistory() {
             _scopeClient = _app.ServiceProvider.GetRequiredService<IScopeClient>();
             _taskClient = _app.ServiceProvider.GetRequiredService<ITaskClient>();
+            this.Loaded += ScopedHistory_Loaded;
             InitializeComponent();
+        }
+
+        private void ScopedHistory_Loaded(object sender, RoutedEventArgs e)
+        {
+            RefreshHistory(History.Page, History.PageSize);
         }
 
         private void InstancesPaging_PagingChange(int pageNumber, int capacity)
@@ -45,7 +51,7 @@ namespace Automation.App.Views.TasksPages.Components
 
         private async void RefreshHistory(int pageNumber, int capacity)
         {
-            if (Scoped == null)
+            if (Scoped == null || IsLoaded == false)
                 return;
 
             if (Scoped is ScopedTaskItem taskScoped)

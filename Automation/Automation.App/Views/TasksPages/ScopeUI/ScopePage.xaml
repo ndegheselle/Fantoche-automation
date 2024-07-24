@@ -10,7 +10,7 @@
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI">
-    <TabControl DataContext="{Binding Scope, RelativeSource={RelativeSource AncestorType=local:ScopePage}}">
+    <TabControl DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:ScopePage}}">
         <TabItem Header="Tasks">
             <Grid>
                 <Grid.RowDefinitions>
@@ -59,7 +59,7 @@
                     SelectionMode="Multiple"
                     Background="{StaticResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}"
                     Grid.Row="1"
-                    ItemsSource="{Binding Childrens}"
+                    ItemsSource="{Binding Scoped.SortedChildrens}"
                     MouseDoubleClick="ListBox_MouseDoubleClick">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
@@ -73,7 +73,7 @@
             </Grid>
         </TabItem>
         <TabItem Header="History">
-            <components:ScopedHistory Scoped="{Binding}" />
+            <components:ScopedHistory Scoped="{Binding Scoped}" />
         </TabItem>
         <TabItem Header="Parameters">
             <local:ScopeEdit Scope="{Binding Scope}" />

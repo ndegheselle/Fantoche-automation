@@ -13,7 +13,7 @@ namespace Automation.Supervisor.Client.Test
 
         public Task<TaskHistories> GetHistoryAsync(Guid taskId, int page, int pageSize)
         {
-            return Task.FromResult(JsonSerializer.Deserialize<TaskHistories>(_api.GetTaskHistory(taskId, pageSize, page)));
+            return Task.FromResult(JsonSerializer.Deserialize<TaskHistories>(_api.GetTaskHistory(taskId, page, pageSize)));
         }
 
         public Task<TaskNode?> GetTaskAsync(Guid id)
@@ -53,17 +53,17 @@ namespace Automation.Supervisor.Client.Test
 
         public Task<TaskHistories> GetHistoryAsync(Guid scopeId, int page, int pageSize)
         {
-            return Task.FromResult(JsonSerializer.Deserialize<TaskHistories>(_api.GetScopeHistory(scopeId, pageSize, page)));
+            return Task.FromResult(JsonSerializer.Deserialize<TaskHistories>(_api.GetScopeHistory(scopeId, page, pageSize)));
         }
 
-        public Task<Scope> GetRootScopeAsync()
+        public Task<Scope> GetRootScopeAsync(ScopeLoadOptions options = default)
         {
-            return Task.FromResult(JsonSerializer.Deserialize<Scope>(_api.GetScope(Guid.Parse("00000000-0000-0000-0000-000000000001"))));
+            return Task.FromResult(JsonSerializer.Deserialize<Scope>(_api.GetRootScope(options)));
         }
 
-        public Task<Scope?> GetScopeAsync(Guid id)
+        public Task<Scope?> GetScopeAsync(Guid id, ScopeLoadOptions options = default)
         {
-            return Task.FromResult(JsonSerializer.Deserialize<Scope>(_api.GetScope(id)));
+            return Task.FromResult(JsonSerializer.Deserialize<Scope>(_api.GetScope(id, options)));
         }
 
         public Task<Scope> CreateScopeAsync(Scope scope)

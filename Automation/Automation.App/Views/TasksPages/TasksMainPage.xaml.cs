@@ -29,7 +29,7 @@ namespace Automation.App.Views.TasksPages
 
         protected async void OnLoaded()
         {
-            SideMenu.RootScope = new ScopeItem(await _client.GetRootScopeAsync());
+            SideMenu.RootScope = new ScopeItem(await _client.GetRootScopeAsync(new ScopeLoadOptions() { WithContext = false}));
         }
 
         private void ScopedSelector_SelectedChanged(ScopedItem? selected)

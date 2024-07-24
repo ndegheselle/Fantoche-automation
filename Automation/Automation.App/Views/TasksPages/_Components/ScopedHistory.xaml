@@ -80,8 +80,6 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTextColumn Header="ParentTask" Binding="{Binding ParentTask.Name}" />
-                <DataGridTextColumn Header="Task" Binding="{Binding Task.Name}" />
                 <DataGridTextColumn Header="Start" Binding="{Binding StartDate}" />
                 <DataGridTextColumn Header="End" Binding="{Binding EndDate}" />
             </DataGrid.Columns>

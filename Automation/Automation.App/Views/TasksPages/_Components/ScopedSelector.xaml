@@ -28,7 +28,7 @@
             </Style>
         </TreeView.ItemContainerStyle>
         <TreeView.Resources>
-            <HierarchicalDataTemplate DataType="{x:Type viewmodels:ScopeItem}" ItemsSource="{Binding Childrens}">
+            <HierarchicalDataTemplate DataType="{x:Type viewmodels:ScopeItem}" ItemsSource="{Binding SortedChildrens}">
                 <StackPanel Orientation="Horizontal">
                     <local:NodeIcon Type="Scope" Margin="0,0,4,0" />
                     <TextBlock Text="{Binding Name}" />
