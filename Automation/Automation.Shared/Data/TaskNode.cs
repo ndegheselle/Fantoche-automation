@@ -24,6 +24,7 @@ namespace Automation.Shared.Data
         Out
     }
 
+    [JsonDerivedType(typeof(WorkflowNode), typeDiscriminator: "workflow")]
     public class TaskNode
     {
         public Guid Id { get; set; } = Guid.NewGuid();

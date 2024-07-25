@@ -43,14 +43,14 @@ namespace Automation.Supervisor.Client.Test
 
             // Get the nodes
             workflow.Connections = TestDataFactory.Data.Connections.Where(x => x.ParentId == workflow.Id).ToList();
-            workflow.Relations = TestDataFactory.Data.WorkflowRelations.Where(x => x.WorkflowId == workflow.Id).ToList();
-
             foreach (var relation in TestDataFactory.Data.WorkflowRelations.Where(x => x.WorkflowId == workflow.Id))
             {
                 var workflowTask = LoadTask(relation.TaskId);
-                if (workflowTask != null && !workflow.Tasks.ContainsKey(workflowTask.Id))
-                    workflow.Tasks.Add(workflowTask.Id, workflowTask);
-                workflow.Relations.Add(relation);
+                if (workflowTask != null && !workflow.Relations.ContainsKey(workflowTask.Id))
+                {
+                    workflow.Tasks.Add(workflowTask);
+                    workflow.Relations.Add(workflowTask.Id, relation);
+                }
             }
 
             return Serialize(workflow);

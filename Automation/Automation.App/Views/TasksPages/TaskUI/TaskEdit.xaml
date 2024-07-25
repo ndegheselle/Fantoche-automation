@@ -10,7 +10,7 @@
     mc:Ignorable="d">
     <StackPanel Orientation="Vertical" DataContext="{Binding Task, RelativeSource={RelativeSource AncestorType=local:TaskEdit}}">
         <TextBlock Margin="0,0,0,4">Name</TextBlock>
-        <TextBox Text="{Binding TaskNode.Name}" />
+        <TextBox Text="{Binding Name}" />
         <TextBlock Margin="0,0,0,4">Source DLL</TextBlock>
         <inputs:FilePicker />
     </StackPanel>

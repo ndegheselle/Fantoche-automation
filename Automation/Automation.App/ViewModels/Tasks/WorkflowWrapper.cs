@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media.Imaging;
 
 namespace Automation.App.ViewModels.Tasks
 {
@@ -164,9 +165,9 @@ namespace Automation.App.ViewModels.Tasks
             }
 
             // Set nodes and connectors
-            foreach (var relation in workflowNode.Relations)
+            foreach (var task in workflowNode.Tasks)
             {
-                var node = new NodifyNode(relation, workflowNode.Tasks[relation.TaskId]);
+                var node = new NodifyNode(workflowNode.Relations[task.Id], task);
 
                 // Store connectors for connections
                 foreach (var connector in node.Inputs)

@@ -9,8 +9,8 @@ namespace Automation.Shared.Data
     {
         public List<TaskConnection> Connections { get; set; } = [];
         public List<NodeGroup> Groups { get; set; } = [];
-        public Dictionary<Guid, TaskNode> Tasks { get; set; } = [];
-        public List<WorkflowRelation> Relations { get; set; } = [];
+        public List<TaskNode> Tasks { get; set; } = [];
+        public Dictionary<Guid, WorkflowRelation> Relations { get; set; } = [];
     }
 
     public class WorkflowRelation
