@@ -1,9 +1,12 @@
-﻿using Automation.App.ViewModels.Tasks;
+﻿using Automation.App.Base;
+using Automation.App.ViewModels.Tasks;
+using Automation.App.Views.TasksPages.TaskUI;
 using Automation.Shared.Data;
 using Automation.Supervisor.Client;
 using Joufflu.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 using static System.Formats.Asn1.AsnWriter;
 
@@ -21,11 +24,13 @@ namespace Automation.App.Views.TasksPages.WorkflowUI
 
         private readonly App _app = (App)App.Current;
         private readonly ITaskClient _client;
+        private readonly IModalContainer _modal;
 
         public WorkflowPage(ScopedTaskItem workflow)
         {
-            Scoped = workflow;
+            _modal = _app.ServiceProvider.GetRequiredService<IModalContainer>();
             _client = _app.ServiceProvider.GetRequiredService<ITaskClient>();
+            Scoped = workflow;
             InitializeComponent();
             LoadWokflow(Scoped);
         }
@@ -40,5 +45,15 @@ namespace Automation.App.Views.TasksPages.WorkflowUI
             Workflow = fullWorkflow;
             Editor = new EditorViewModel(Workflow);
         }
+
+        #region UI Events
+        private async void ButtonParameters_Click(object sender, RoutedEventArgs e)
+        {
+            if (Workflow == null)
+                return;
+            if (await _modal.Show(new WorkflowEditModal(Workflow)))
+                Workflow = await _client.UpdateWorkflowAsync(Workflow);
+        }
+        #endregion
     }
 }

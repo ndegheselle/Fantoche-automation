@@ -10,73 +10,82 @@
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI">
-    <TabControl DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:ScopePage}}">
-        <TabItem Header="Tasks">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="auto" />
-                    <RowDefinition />
-                </Grid.RowDefinitions>
+    <Grid>
+        <TabControl DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:ScopePage}}">
+            <TabItem Header="Tasks">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto" />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
 
-                <StackPanel
-                    Grid.Column="1"
-                    Orientation="Horizontal"
-                    Margin="2"
-                    HorizontalAlignment="Right">
-                    <Button Click="ButtonAdd_Click" Padding="10,8">
-                        <Button.ContextMenu>
-                            <ContextMenu Placement="Bottom">
-                                <MenuItem Header="Add scope" Click="MenuAddScope_Click">
-                                    <MenuItem.Icon>
-                                        <components:NodeIcon Type="Scope" Margin="0,0,4,0" />
-                                    </MenuItem.Icon>
-                                </MenuItem>
-                                <MenuItem Header="Add workflow" Click="MenuAddWorkflow_Click">
-                                    <MenuItem.Icon>
-                                        <components:NodeIcon Type="Workflow" Margin="0,0,4,0" />
-                                    </MenuItem.Icon>
-                                </MenuItem>
-                                <MenuItem Header="Add task" Click="MenuAddTask_Click">
-                                    <MenuItem.Icon>
-                                        <components:NodeIcon Type="Task" Margin="0,0,4,0" />
-                                    </MenuItem.Icon>
-                                </MenuItem>
-                            </ContextMenu>
-                        </Button.ContextMenu>
-                        <StackPanel Orientation="Horizontal">
-                            <fonts:Icon Text="{x:Static fonts:IconFont.Plus}" />
-                            <TextBlock Margin="10,0,0,0">New task</TextBlock>
-                        </StackPanel>
-                    </Button>
-                    <Button Margin="2,0,0,0">
-                        <StackPanel Orientation="Horizontal">
-                            <fonts:Icon Text="{x:Static fonts:IconFont.Trash}" />
-                            <TextBlock Margin="10,0,0,0">Remove selection</TextBlock>
-                        </StackPanel>
-                    </Button>
-                </StackPanel>
-                <ListBox
-                    SelectionMode="Multiple"
-                    Background="{StaticResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}"
-                    Grid.Row="1"
-                    ItemsSource="{Binding Scoped.SortedChildrens}"
-                    MouseDoubleClick="ListBox_MouseDoubleClick">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
+                    <StackPanel
+                        Grid.Column="1"
+                        Orientation="Horizontal"
+                        Margin="2"
+                        HorizontalAlignment="Right">
+                        <Button Click="ButtonAdd_Click">
+                            <Button.ContextMenu>
+                                <ContextMenu Placement="Bottom">
+                                    <MenuItem Header="Add scope" Click="MenuAddScope_Click">
+                                        <MenuItem.Icon>
+                                            <components:NodeIcon Type="Scope" Margin="0,0,4,0" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="Add workflow" Click="MenuAddWorkflow_Click">
+                                        <MenuItem.Icon>
+                                            <components:NodeIcon Type="Workflow" Margin="0,0,4,0" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="Add task" Click="MenuAddTask_Click">
+                                        <MenuItem.Icon>
+                                            <components:NodeIcon Type="Task" Margin="0,0,4,0" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                </ContextMenu>
+                            </Button.ContextMenu>
                             <StackPanel Orientation="Horizontal">
-                                <components:NodeIcon Type="{Binding Type}" Margin="0,0,4,0" />
-                                <TextBlock Text="{Binding Name}" />
+                                <fonts:Icon Text="{x:Static fonts:IconFont.Plus}" />
+                                <TextBlock Margin="10,0,0,0">New task</TextBlock>
                             </StackPanel>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
-            </Grid>
-        </TabItem>
-        <TabItem Header="History">
-            <components:ScopedHistory Scoped="{Binding Scoped}" />
-        </TabItem>
-        <TabItem Header="Parameters">
-            <local:ScopeEdit Scope="{Binding Scope}" />
-        </TabItem>
-    </TabControl>
+                        </Button>
+                        <Button Margin="2,0,0,0">
+                            <StackPanel Orientation="Horizontal">
+                                <fonts:Icon Text="{x:Static fonts:IconFont.Trash}" />
+                                <TextBlock Margin="10,0,0,0">Remove selection</TextBlock>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                    <ListBox
+                        SelectionMode="Multiple"
+                        Background="{StaticResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}"
+                        Grid.Row="1"
+                        ItemsSource="{Binding Scoped.SortedChildrens}"
+                        MouseDoubleClick="ListBox_MouseDoubleClick">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <components:NodeIcon Type="{Binding Type}" Margin="0,0,4,0" />
+                                    <TextBlock Text="{Binding Name}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </TabItem>
+            <TabItem Header="History">
+                <components:ScopedHistory Scoped="{Binding Scoped}" />
+            </TabItem>
+        </TabControl>
+        <Button
+            HorizontalAlignment="Right"
+            VerticalAlignment="Top"
+            Margin="1"
+            Click="ButtonParameters_Click">
+            <StackPanel Orientation="Horizontal">
+                <fonts:Icon Text="{x:Static fonts:IconFont.Gear}" />
+                <TextBlock Margin="4,0,0,0">Settings</TextBlock>
+            </StackPanel>
+        </Button>
+    </Grid>
 </UserControl>

@@ -84,6 +84,15 @@ namespace Automation.App.Views.TasksPages.ScopeUI
                 Scoped.Childrens.Add(new ScopedTaskItem(workflow));
             }
         }
+
+        private async void ButtonParameters_Click(object sender, RoutedEventArgs e)
+        {
+            if (Scope == null)
+                return;
+            if (await _modal.Show(new ScopeEditModal(Scope)))
+                Scope = await _scopeClient.UpdateScopeAsync(Scope);
+        }
+
         #endregion
 
         private void ListBox_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)

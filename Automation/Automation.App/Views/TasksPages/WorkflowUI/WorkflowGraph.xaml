@@ -77,15 +77,6 @@
                         Input="{Binding Inputs}"
                         Output="{Binding Outputs}"
                         Header="{Binding Name}">
-                        <nodify:Node.Style>
-                            <Style TargetType="{x:Type nodify:Node}" BasedOn="{StaticResource {x:Type nodify:Node}}">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Type}" Value="FlowTask">
-                                        <Setter Property="HeaderBrush" Value="{DynamicResource ItemContainer.BorderBrush}" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </nodify:Node.Style>
                         <nodify:Node.InputConnectorTemplate>
                             <DataTemplate DataType="{x:Type viewmodels:NodifyConnector}">
                                 <nodify:NodeInput

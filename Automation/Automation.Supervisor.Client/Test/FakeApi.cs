@@ -45,11 +45,11 @@ namespace Automation.Supervisor.Client.Test
             workflow.Connections = TestDataFactory.Data.Connections.Where(x => x.ParentId == workflow.Id).ToList();
             foreach (var relation in TestDataFactory.Data.WorkflowRelations.Where(x => x.WorkflowId == workflow.Id))
             {
-                var workflowTask = LoadTask(relation.TaskId);
-                if (workflowTask != null && !workflow.Relations.ContainsKey(workflowTask.Id))
+                if (!workflow.Relations.ContainsKey(relation.TaskId))
                 {
+                    var workflowTask = LoadTask(relation.TaskId);
                     workflow.Tasks.Add(workflowTask);
-                    workflow.Relations.Add(workflowTask.Id, relation);
+                    workflow.Relations.Add(relation.TaskId, relation);
                 }
             }
 

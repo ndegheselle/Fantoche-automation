@@ -7,7 +7,10 @@
     xmlns:local="clr-namespace:Automation.App.Views.TasksPages.TaskUI"
     xmlns:components="clr-namespace:Automation.App.Views.TasksPages.Components"
     xmlns:inputs="clr-namespace:Automation.App.Components.Inputs"
-    mc:Ignorable="d">
+    mc:Ignorable="d"
+    MinHeight="100"
+    MinWidth="250"
+    Padding="2">
     <StackPanel Orientation="Vertical" DataContext="{Binding Task, RelativeSource={RelativeSource AncestorType=local:TaskEdit}}">
         <TextBlock Margin="0,0,0,4">Name</TextBlock>
         <TextBox Text="{Binding Name}" />

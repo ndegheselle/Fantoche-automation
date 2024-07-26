@@ -7,8 +7,9 @@
     xmlns:local="clr-namespace:Automation.App.Views.TasksPages.WorkflowUI"
     xmlns:components="clr-namespace:Automation.App.Views.TasksPages.Components"
     mc:Ignorable="d"
-    d:DesignHeight="450"
-    d:DesignWidth="800">
+    MinHeight="100"
+    MinWidth="250"
+    Padding="2">
     <StackPanel Orientation="Vertical" DataContext="{Binding Workflow, RelativeSource={RelativeSource AncestorType=local:WorkflowEdit}}">
         <TextBlock Margin="0,0,0,4">Name</TextBlock>
         <TextBox Text="{Binding Name}" />

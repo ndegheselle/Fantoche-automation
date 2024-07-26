@@ -75,7 +75,10 @@
                         </Style>
                     </fonts:Icon.Style>
                 </fonts:Icon>
-                <TextBlock Grid.Column="1" Text="{Binding Message}" />
+                <TextBlock
+                    Margin="4,0,0,0"
+                    Grid.Column="1"
+                    Text="{Binding Message}" />
             </Grid>
 
             <Button

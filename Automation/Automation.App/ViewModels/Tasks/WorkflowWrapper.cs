@@ -16,15 +16,15 @@ namespace Automation.App.ViewModels.Tasks
         public TaskConnector TaskConnector { get; set; }
         public NodifyNode Parent { get; set; }
 
-        public string Name { get; set; }
         public bool IsConnected { get; set; }
         public Point Anchor { get; set; }
+        public string Name => TaskConnector.Name;
+        public EnumTaskConnectorType Type => TaskConnector.Type;
 
         public NodifyConnector(NodifyNode parent, TaskConnector taskConnector)
         {
             Parent = parent;
             TaskConnector = taskConnector;
-            Name = taskConnector.Name;
         }
     }
 

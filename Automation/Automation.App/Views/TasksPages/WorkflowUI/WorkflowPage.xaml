@@ -7,19 +7,29 @@
     xmlns:local="clr-namespace:Automation.App.Views.TasksPages.WorkflowUI"
     xmlns:components="clr-namespace:Automation.App.Views.TasksPages.Components"
     xmlns:tasks="clr-namespace:Automation.App.Views.TasksPages.TaskUI"
+    xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     mc:Ignorable="d">
-    <TabControl DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:WorkflowPage}}">
-        <TabItem Header="Graph">
-            <local:WorkflowGraph EditorData="{Binding Editor}" />
-        </TabItem>
-        <TabItem Header="Scheduler">
-            <tasks:TaskSchedules />
-        </TabItem>
-        <TabItem Header="History">
-            <components:ScopedHistory Scoped="{Binding Scoped}" />
-        </TabItem>
-        <TabItem Header="Parameters">
-            <local:WorkflowEdit Workflow="{Binding Workflow}" />
-        </TabItem>
-    </TabControl>
+    <Grid>
+        <TabControl DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:WorkflowPage}}">
+            <TabItem Header="Graph">
+                <local:WorkflowGraph EditorData="{Binding Editor}" />
+            </TabItem>
+            <TabItem Header="Scheduler">
+                <tasks:TaskSchedules />
+            </TabItem>
+            <TabItem Header="History">
+                <components:ScopedHistory Scoped="{Binding Scoped}" />
+            </TabItem>
+        </TabControl>
+        <Button
+            HorizontalAlignment="Right"
+            VerticalAlignment="Top"
+            Margin="1"
+            Click="ButtonParameters_Click">
+            <StackPanel Orientation="Horizontal">
+                <fonts:Icon Text="{x:Static fonts:IconFont.Gear}" />
+                <TextBlock Margin="4,0,0,0">Settings</TextBlock>
+            </StackPanel>
+        </Button>
+    </Grid>
 </UserControl>

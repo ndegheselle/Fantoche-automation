@@ -8,15 +8,24 @@
     xmlns:components="clr-namespace:Automation.App.Views.TasksPages.Components"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     mc:Ignorable="d">
-    <TabControl DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:TaskPage}}">
-        <TabItem Header="Scheduler">
-            <local:TaskSchedules />
-        </TabItem>
-        <TabItem Header="History">
-            <components:ScopedHistory Scoped="{Binding Scoped}" />
-        </TabItem>
-        <TabItem Header="Parameters">
-            <local:TaskEdit Task="{Binding Task}" />
-        </TabItem>
-    </TabControl>
+    <Grid>
+        <TabControl DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:TaskPage}}">
+            <TabItem Header="Scheduler">
+                <local:TaskSchedules />
+            </TabItem>
+            <TabItem Header="History">
+                <components:ScopedHistory Scoped="{Binding Scoped}" />
+            </TabItem>
+        </TabControl>
+        <Button
+            HorizontalAlignment="Right"
+            VerticalAlignment="Top"
+            Margin="1"
+            Click="ButtonParameters_Click">
+            <StackPanel Orientation="Horizontal">
+                <fonts:Icon Text="{x:Static fonts:IconFont.Gear}" />
+                <TextBlock Margin="4,0,0,0">Settings</TextBlock>
+            </StackPanel>
+        </Button>
+    </Grid>
 </UserControl>
