@@ -16,7 +16,7 @@ namespace Automation.App.ViewModels
         private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
 
-        private EnumTheme theme = EnumTheme.Dark;
+        private EnumTheme theme = EnumTheme.Light;
         public EnumTheme Theme
         {
             get => theme;
