@@ -6,7 +6,6 @@ namespace Automation.App.Views.Menus
     public enum EnumNavigationPages
     {
         Tasks,
-        Supervisor,
         Workers
     }
 
@@ -19,18 +18,12 @@ namespace Automation.App.Views.Menus
         public event Action<EnumNavigationPages>? NavigationChanged;
         public NavigationSideMenu()
         {
-            InitializeComponent();;
+            InitializeComponent();
         }
 
         private void NavigationTasks_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             CurrentPage = EnumNavigationPages.Tasks;
-            NavigationChanged?.Invoke(CurrentPage);
-        }
-
-        private void NavigationSupervisor_Click(object sender, System.Windows.RoutedEventArgs e)
-        {
-            CurrentPage = EnumNavigationPages.Supervisor;
             NavigationChanged?.Invoke(CurrentPage);
         }
 

@@ -1,6 +1,7 @@
 ﻿using AdonisUI.Controls;
 using Automation.App.Base;
 using Automation.App.Views.TasksPages;
+using Automation.App.Views.WorkersPages;
 using Joufflu.Shared;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -48,6 +49,9 @@ namespace Automation.App
             {
                 case Views.Menus.EnumNavigationPages.Tasks:
                     Show(new TasksMainPage());
+                    break;
+                case Views.Menus.EnumNavigationPages.Workers:
+                    Show(new WorkerMainPage());
                     break;
             }
         }

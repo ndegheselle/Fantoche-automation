@@ -9,6 +9,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Views\SupervisorPages\**" />
+    <EmbeddedResource Remove="Views\SupervisorPages\**" />
+    <None Remove="Views\SupervisorPages\**" />
+    <Page Remove="Views\SupervisorPages\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Resources\Fonts\Font Awesome 6 Brands-Regular-400.otf" />
     <None Remove="Resources\Fonts\Font Awesome 6 Free-Regular-400.otf" />
     <None Remove="Resources\Fonts\FontAwesomeSolid.otf" />
@@ -41,11 +48,6 @@
     <Resource Include="Resources\Fonts\FontAwesomeSolid.otf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Views\WorkersPages\" />
-    <Folder Include="Views\SupervisorPages\" />
   </ItemGroup>
 
 </Project>

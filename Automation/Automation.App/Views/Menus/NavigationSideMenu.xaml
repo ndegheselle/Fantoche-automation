@@ -27,21 +27,6 @@
         </Button>
         <Button
             Padding="10"
-            ToolTip="Supervisor"
-            Click="NavigationSupervisor_Click">
-            <Button.Style>
-                <Style TargetType="Button" BasedOn="{StaticResource IconButton}">
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding CurrentPage}" Value="Supervisor">
-                            <Setter Property="Background" Value="{DynamicResource {x:Static adonisUi:Brushes.AccentBrush}}" />
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </Button.Style>
-            <fonts:Icon FontSize="24" Text="{x:Static fonts:IconFont.UserTie}" />
-        </Button>
-        <Button
-            Padding="10"
             ToolTip="Workers"
             Click="NavigationWorkers_Click">
             <Button.Style>
