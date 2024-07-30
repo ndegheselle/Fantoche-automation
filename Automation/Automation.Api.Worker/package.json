@@ -1,0 +1,14 @@
+{
+  "name": "automation.api.worker",
+  "version": "0.0.0",
+  "description": "Automation.Api.Worker",
+  "main": "app.js",
+  "author": {
+    "name": ""
+  },
+  "devDependencies": {
+    "eslint": "^8.21.0"
+  },
+  "eslintConfig": {
+  }
+}

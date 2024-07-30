@@ -1,7 +1,7 @@
 ﻿using Automation.Shared.Data;
 using System.Text.Json;
 
-namespace Automation.Supervisor.Client.Test
+namespace Automation.Api.Client.Test
 {
     /// <summary>
     /// Test repository for the supervisor

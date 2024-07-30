@@ -1,7 +1,7 @@
 ﻿using Automation.Shared;
 using Automation.Shared.Data;
 
-namespace Automation.Supervisor.Client
+namespace Automation.Api.Client
 {
     public class TaskHistories : PageWrapper<IEnumerable<TaskHistory>> 
     {

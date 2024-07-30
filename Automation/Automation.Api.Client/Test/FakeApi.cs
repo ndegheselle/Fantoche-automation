@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Automation.Shared;
 using System.ComponentModel.DataAnnotations;
 
-namespace Automation.Supervisor.Client.Test
+namespace Automation.Api.Client.Test
 {
     public class FakeApi
     {
