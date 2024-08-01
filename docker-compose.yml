@@ -1,45 +1,35 @@
-version: '3.8'
-
 services:
-  # Node.js web application
-  app:
-    image: node:20-alpine
-    working_dir: /app
-    volumes:
-      - /app/node_modules
-      - ./app:/app
-    ports:
-      - "8080:8080"
-    command: sh -c "npm install && npm run dev "
-
-  # Nodejs API : Superviser
-  api-supervisor:
-    image: node:alpine
-    working_dir: /app
-    volumes:
-      - ./api-supervisor:/app
-    ports:
-      - "3001:3001"
-      - "5555:5555"
-    command: sh -c "npm install && npm run dev "
-    depends_on:
-      - db
-
-  # Rust API : Worker
-#  api-worker:
-#    image: node:alpine
-#    working_dir: /app
-#    volumes:
-#      - ./api-worker:/app
-#    ports:
-#      - "3002:3002"
-#    command: sh -c "npm install && npm run dev "
-#    depends_on:
-#      - db
-
   # MongoDB database
   db:
     image: mongo
     restart: always
     ports:
       - "27017:27017"
+
+  # ASP.NET Core API Supervisor
+  api-supervisor:
+    build:
+      context: ./Automation
+      dockerfile: Automation.Api.Supervisor/Dockerfile
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    depends_on:
+      - db
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__MongoDB=mongodb://db:27017
+
+  # ASP.NET Core API Worker
+  api-worker:
+    build:
+      context: ./Automation
+      dockerfile: Automation.Api.Worker/Dockerfile
+    ports:
+      - "8082:8080"
+      - "8083:8081"
+    depends_on:
+      - db
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__MongoDB=mongodb://db:27017
