@@ -2,6 +2,30 @@
 
 namespace Automation.Shared.Data
 {
+    #region Interfaces
+    public interface ITaskHistory
+    {
+        Guid Id { get; set; }
+        Guid? ParentTaskId { get; set; }
+        Guid TaskId { get; set; }
+        DateTime StartDate { get; set; }
+        DateTime? EndDate { get; set; }
+        EnumInstanceStatus Status { get; set; }
+    }
+
+    public interface IScheduledTask
+    {
+        Guid Id { get; set; }
+        Guid TaskId { get; set; }
+        int? Year { get; set; }
+        int? Month { get; set; }
+        int? Day { get; set; }
+        int? Hour { get; set; }
+        int? Minute { get; set; }
+        int? DayOfWeek { get; set; }
+    }
+    #endregion
+
     public enum EnumInstanceStatus
     {
         Pending,
