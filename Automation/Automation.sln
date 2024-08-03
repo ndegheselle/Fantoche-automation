@@ -29,9 +29,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Api", "Api", "{128D718D-165
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Automation.Api.Client", "Automation.Api.Client\Automation.Api.Client.csproj", "{8CD7FAB3-E1DE-40D9-A08F-127395F7A3B2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Automation.Api.Worker", "Automation.Api.Worker\Automation.Api.Worker.csproj", "{4942F442-C28E-4975-9026-1BA761AFC78C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Automation.Api.Worker", "Automation.Api.Worker\Automation.Api.Worker.csproj", "{4942F442-C28E-4975-9026-1BA761AFC78C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Automation.Api.Supervisor", "Automation.Api.Supervisor\Automation.Api.Supervisor.csproj", "{AE24B4FF-9EEE-4C94-8489-2F3FE3471092}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Automation.Api.Supervisor", "Automation.Api.Supervisor\Automation.Api.Supervisor.csproj", "{AE24B4FF-9EEE-4C94-8489-2F3FE3471092}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Automation.Dal", "Automation.Dal\Automation.Dal.csproj", "{4FC7104C-48F6-4A16-8FB0-5A3C35329156}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -83,6 +85,10 @@ Global
 		{AE24B4FF-9EEE-4C94-8489-2F3FE3471092}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AE24B4FF-9EEE-4C94-8489-2F3FE3471092}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AE24B4FF-9EEE-4C94-8489-2F3FE3471092}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4FC7104C-48F6-4A16-8FB0-5A3C35329156}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4FC7104C-48F6-4A16-8FB0-5A3C35329156}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4FC7104C-48F6-4A16-8FB0-5A3C35329156}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4FC7104C-48F6-4A16-8FB0-5A3C35329156}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -99,6 +105,7 @@ Global
 		{8CD7FAB3-E1DE-40D9-A08F-127395F7A3B2} = {128D718D-1656-4F30-98A5-3764D87E87C4}
 		{4942F442-C28E-4975-9026-1BA761AFC78C} = {128D718D-1656-4F30-98A5-3764D87E87C4}
 		{AE24B4FF-9EEE-4C94-8489-2F3FE3471092} = {128D718D-1656-4F30-98A5-3764D87E87C4}
+		{4FC7104C-48F6-4A16-8FB0-5A3C35329156} = {5A3373EB-AB17-4713-85EF-071F9AB50EFA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AFEC477D-0D28-4C5A-9622-5F97F806819C}

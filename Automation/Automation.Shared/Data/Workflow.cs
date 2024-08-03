@@ -5,32 +5,6 @@ using System.Windows;
 
 namespace Automation.Shared.Data
 {
-    #region Interfaces
-
-    public interface IWorkflowNode : ITaskNode
-    {
-        IList<ITaskConnection> Connections { get; }
-        IList<INodeGroup> Groups { get; }
-        IList<ITaskNode> Tasks { get; }
-        IList<IWorkflowRelation> Relations { get; }
-    }
-
-    public interface IWorkflowRelation
-    {
-        Guid WorkflowId { get; set; }
-        Guid TaskId { get; set; }
-        Point TaskPosition { get; set; }
-    }
-
-    public interface ITaskConnection
-    {
-        Guid ParentId { get; set; }
-        Guid SourceId { get; set; }
-        Guid TargetId { get; set; }
-    }
-
-    #endregion
-
     public class WorkflowNode : TaskNode
     {
         public List<TaskConnection> Connections { get; set; } = [];

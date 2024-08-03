@@ -2,17 +2,6 @@
 
 namespace Automation.Shared.Data
 {
-    public interface IScope
-    {
-        Guid Id { get; set; }
-        Guid? ParentId { get; set; }
-        IScope? Parent { get; set; }
-        string Name { get; set; }
-        Dictionary<string, string> Context { get; }
-        List<IScope> SubScope { get; }
-        List<ITaskNode> Childrens { get; }
-    }
-
     public class Scope
     {
         public Guid Id { get; set; }
