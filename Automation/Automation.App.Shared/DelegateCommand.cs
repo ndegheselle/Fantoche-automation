@@ -1,6 +1,6 @@
 ﻿using System.Windows.Input;
 
-namespace Automation.Shared
+namespace Automation.App.Shared
 {
     public class DelegateCommand : ICommand
     {
@@ -15,10 +15,10 @@ namespace Automation.Shared
             _condition = executeCondition;
         }
 
-        public bool CanExecute(object parameter)
+        public bool CanExecute(object? parameter)
             => _condition?.Invoke() ?? true;
 
-        public void Execute(object parameter)
+        public void Execute(object? parameter)
             => _action();
 
         public void RaiseCanExecuteChanged()
@@ -38,7 +38,7 @@ namespace Automation.Shared
             _condition = executeCondition;
         }
 
-        public bool CanExecute(object parameter)
+        public bool CanExecute(object? parameter)
         {
             if (parameter is T value)
             {
@@ -48,7 +48,7 @@ namespace Automation.Shared
             return _condition?.Invoke(default!) ?? true;
         }
 
-        public void Execute(object parameter)
+        public void Execute(object? parameter)
         {
             if (parameter is T value)
             {

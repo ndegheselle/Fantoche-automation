@@ -33,7 +33,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Automation.Api.Worker", "Au
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Automation.Api.Supervisor", "Automation.Api.Supervisor\Automation.Api.Supervisor.csproj", "{AE24B4FF-9EEE-4C94-8489-2F3FE3471092}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Automation.Dal", "Automation.Dal\Automation.Dal.csproj", "{4FC7104C-48F6-4A16-8FB0-5A3C35329156}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Automation.Dal", "Automation.Dal\Automation.Dal.csproj", "{4FC7104C-48F6-4A16-8FB0-5A3C35329156}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Automation.App.Shared", "Automation.App.Shared\Automation.App.Shared.csproj", "{F455C5BD-19BF-4D15-B53E-4C1A51B3D50A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -89,6 +91,10 @@ Global
 		{4FC7104C-48F6-4A16-8FB0-5A3C35329156}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4FC7104C-48F6-4A16-8FB0-5A3C35329156}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4FC7104C-48F6-4A16-8FB0-5A3C35329156}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F455C5BD-19BF-4D15-B53E-4C1A51B3D50A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F455C5BD-19BF-4D15-B53E-4C1A51B3D50A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F455C5BD-19BF-4D15-B53E-4C1A51B3D50A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F455C5BD-19BF-4D15-B53E-4C1A51B3D50A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -106,6 +112,7 @@ Global
 		{4942F442-C28E-4975-9026-1BA761AFC78C} = {128D718D-1656-4F30-98A5-3764D87E87C4}
 		{AE24B4FF-9EEE-4C94-8489-2F3FE3471092} = {128D718D-1656-4F30-98A5-3764D87E87C4}
 		{4FC7104C-48F6-4A16-8FB0-5A3C35329156} = {5A3373EB-AB17-4713-85EF-071F9AB50EFA}
+		{F455C5BD-19BF-4D15-B53E-4C1A51B3D50A} = {3D73906E-1336-48AD-B5FA-34B251926611}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AFEC477D-0D28-4C5A-9622-5F97F806819C}

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Drawing;
 
 namespace Automation.Shared.Data
 {
@@ -13,8 +8,14 @@ namespace Automation.Shared.Data
         IList<ILinkedNode> Nodes { get; }
     }
 
+    public interface INodeGroup : ILinkedNode
+    {
+        Size Size { get; set; }
+        Point Location { get; set; }
+    }
+
     // Represent a node that is linked to a workflow
-    public interface ILinkedNode : INode
+    public interface ILinkedNode : INamed
     {
         Point Position { get; set; }
     }

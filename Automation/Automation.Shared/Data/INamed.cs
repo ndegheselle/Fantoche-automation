@@ -19,19 +19,13 @@ namespace Automation.Shared.Data
         Out
     }
 
-    public interface INode
+    public interface INamed
     {
         Guid Id { get; set; }
         string Name { get; set; }
     }
 
-    public interface INodeGroup : INode
-    {
-        Size Size { get; set; }
-        Point Location { get; set; }
-    }
-
-    public interface ITaskNode : INode
+    public interface ITaskNode : INamed
     {
         Guid ScopeId { get; set; }
         IList<ITaskConnector> Connectors { get; }

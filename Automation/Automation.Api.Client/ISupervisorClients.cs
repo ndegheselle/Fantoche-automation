@@ -1,4 +1,4 @@
-﻿using Automation.Shared;
+﻿using Automation.Shared.Base;
 using Automation.Shared.Data;
 
 namespace Automation.Api.Client
