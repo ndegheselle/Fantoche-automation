@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "Docker Compose": {
+      "commandName": "DockerCompose",
+      "commandVersion": "1.0",
+      "serviceActions": {
+        "automation.api.supervisor": "StartDebugging",
+        "automation.api.worker": "StartDebugging"
+      }
+    }
+  }
+}

@@ -1,0 +1,37 @@
+version: '3.4'
+
+services:
+  automation.api.supervisor:
+    image: ${DOCKER_REGISTRY-}automationapisupervisor
+    depends_on:
+      - mongo
+    build:
+      context: .
+      dockerfile: Automation.Api.Supervisor/Dockerfile
+
+  automation.api.worker:
+    image: ${DOCKER_REGISTRY-}automationapiworker
+    depends_on:
+      - mongo
+    build:
+      context: .
+      dockerfile: Automation.Api.Worker/Dockerfile
+  mongo:
+    restart: always
+    image: mongo:latest
+    container_name: mongodb-container
+    command: mongod --auth --bind_ip_all
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-data:/data/db
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    environment:
+      MONGO_INITDB_DATABASE: UserDB
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: Test123!
+
+volumes:
+  mongodb-data:
+    driver: local  
+
