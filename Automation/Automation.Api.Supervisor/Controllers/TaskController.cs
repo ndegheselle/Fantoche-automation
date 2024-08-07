@@ -9,12 +9,5 @@ namespace Automation.Api.Supervisor.Controllers
     {
         public TaskController()
         {}
-
-        [Route("{id}")]
-        [HttpGet]
-        public TaskNode GetById()
-        {
-
-        }
     }
 }

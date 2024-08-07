@@ -1,12 +1,15 @@
 ﻿using Automation.Shared.Data;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace Automation.Dal.Models
 {
     public class Scope : IScope
     {
+        [BsonId]
         public Guid Id { get; set; }
-        public string Name { get; set; } = string.Empty;
+        [BsonId]
         public Guid? ParentId { get; set; }
+        public string Name { get; set; } = string.Empty;
         public IScope? Parent { get; set; }
         public Dictionary<string, string> Context { get; private set; } = new Dictionary<string, string>();
         public IList<INamed> Childrens { get; set; } = new List<INamed>();

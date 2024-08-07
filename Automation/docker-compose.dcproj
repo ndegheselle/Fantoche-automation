@@ -10,11 +10,13 @@
     <DockerServiceName>automation.api.supervisor</DockerServiceName>
   </PropertyGroup>
   <ItemGroup>
+    <None Include=".env" />
+    <None Include=".env.example" />
     <None Include="docker-compose.override.yml">
       <DependentUpon>docker-compose.yml</DependentUpon>
     </None>
     <None Include="docker-compose.yml" />
     <None Include=".dockerignore" />
-    <None Include="init-mongo.js" />
+    <None Include="mongo-init.js" />
   </ItemGroup>
 </Project>
