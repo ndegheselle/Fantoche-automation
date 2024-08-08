@@ -22,4 +22,5 @@ RUN dotnet publish "./Automation.Api.Worker.csproj" -c $BUILD_CONFIGURATION -o /
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+COPY .env .
 ENTRYPOINT ["dotnet", "Automation.Api.Worker.dll"]
