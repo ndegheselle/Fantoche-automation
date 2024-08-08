@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Automation.Shared.Data
+namespace Automation.Shared.Contracts
 {
     public enum EnumTaskConnectorType
     {

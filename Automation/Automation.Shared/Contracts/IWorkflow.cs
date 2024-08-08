@@ -1,6 +1,6 @@
 ﻿using System.Drawing;
 
-namespace Automation.Shared.Data
+namespace Automation.Shared.Contracts
 {
     public interface IWorkflowNode : ITaskNode
     {

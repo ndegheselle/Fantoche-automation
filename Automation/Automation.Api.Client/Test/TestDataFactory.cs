@@ -1,4 +1,4 @@
-﻿using Automation.Shared.Data;
+﻿using Automation.Shared.Contracts;
 using System.Text.Json;
 
 namespace Automation.Api.Client.Test

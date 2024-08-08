@@ -1,6 +1,6 @@
 ﻿using Automation.App.Base;
 using Automation.App.ViewModels.Tasks;
-using Automation.Shared.Data;
+using Automation.Shared.Contracts;
 using Automation.Supervisor.Client;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows;

@@ -1,4 +1,4 @@
-﻿using Automation.Shared.Data;
+﻿using Automation.Shared.Contracts;
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace Automation.Dal.Models

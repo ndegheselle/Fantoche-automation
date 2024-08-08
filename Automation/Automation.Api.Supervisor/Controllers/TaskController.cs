@@ -1,4 +1,4 @@
-using Automation.Shared.Data;
+using Automation.Shared.Contracts;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Automation.Api.Supervisor.Controllers

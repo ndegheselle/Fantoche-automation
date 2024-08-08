@@ -1,5 +1,5 @@
 ﻿using Automation.Shared;
-using Automation.Shared.Data;
+using Automation.Shared.Contracts;
 using Automation.Supervisor.Client;
 using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;
@@ -88,7 +88,7 @@ namespace Automation.App.ViewModels.Tasks
             TaskNode? addedTask = await _nodeClient.GetTaskAsync(taskScopedItem.TargetId);
             if (addedTask == null)
                 return;
-            Workflow.Nodes.Add(new NodifyNode(new Shared.Data.WorkflowRelation(), addedTask));
+            Workflow.Nodes.Add(new NodifyNode(new Shared.Contracts.WorkflowRelation(), addedTask));
         }
 
         public void CreateGroup(Rectangle boundingBox)

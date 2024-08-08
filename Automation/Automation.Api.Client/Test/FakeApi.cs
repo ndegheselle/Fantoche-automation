@@ -1,4 +1,4 @@
-﻿using Automation.Shared.Data;
+﻿using Automation.Shared.Contracts;
 using System.Text.Json;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Threading.Tasks;
