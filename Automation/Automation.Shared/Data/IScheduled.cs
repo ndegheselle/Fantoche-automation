@@ -1,4 +1,4 @@
-﻿namespace Automation.Shared.Contracts
+﻿namespace Automation.Shared.Data
 {
 
     public enum EnumInstanceStatus

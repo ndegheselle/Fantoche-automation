@@ -14,9 +14,16 @@ builder.Services.AddSwaggerGen();
 
 #region Services
 
-string? connectionString = Environment.GetEnvironmentVariable("MONGODB_URI") ??
-    throw new ArgumentException("Missing MONGODB_URI in .env file");
-builder.Services.AddSingleton((services) => new MongoClient(connectionString));
+builder.Services.AddSingleton((services) =>
+{
+    string? connectionString = Environment.GetEnvironmentVariable("MONGODB_URI") ??
+        throw new ArgumentException("Missing MONGODB_URI in .env file");
+    string? databaseName = Environment.GetEnvironmentVariable("MONGO_INITDB_DATABASE") ??
+        throw new ArgumentException("Missing MONGO_INITDB_DATABASE in .env file");
+
+    MongoClient client = new MongoClient(connectionString);
+    return client.GetDatabase(databaseName);
+});
 
 #endregion
 

@@ -1,4 +1,4 @@
-﻿namespace Automation.Shared.Contracts
+﻿namespace Automation.Shared.Data
 {
     public interface IScope : INamed
     {

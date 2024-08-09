@@ -2,7 +2,7 @@
 using Automation.App.Components.Display;
 using Automation.App.ViewModels.Tasks;
 using Automation.App.Views.TasksPages.Components;
-using Automation.Shared.Contracts;
+using Automation.Shared.Data;
 using Automation.Supervisor.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Nodify;

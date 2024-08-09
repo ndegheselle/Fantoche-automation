@@ -7,7 +7,7 @@
     xmlns:nodify="clr-namespace:Nodify;assembly=Nodify"
     xmlns:local="clr-namespace:Automation.App.Views.TasksPages.WorkflowUI"
     xmlns:viewmodels="clr-namespace:Automation.App.ViewModels.Tasks"
-    xmlns:data="clr-namespace:Automation.Shared.Contracts;assembly=Automation.Shared"
+    xmlns:data="clr-namespace:Automation.Shared.Data;assembly=Automation.Shared"
     xmlns:converters="clr-namespace:Automation.App.Converters"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"

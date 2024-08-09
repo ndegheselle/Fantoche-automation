@@ -1,5 +1,5 @@
 ﻿using Automation.Shared.Base;
-using Automation.Shared.Contracts;
+using Automation.Shared.Data;
 
 namespace Automation.Api.Client
 {

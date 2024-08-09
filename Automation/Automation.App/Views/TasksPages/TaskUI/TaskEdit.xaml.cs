@@ -1,6 +1,6 @@
 ﻿using Automation.App.Base;
 using Automation.App.ViewModels.Tasks;
-using Automation.Shared.Contracts;
+using Automation.Shared.Data;
 using System.Windows;
 using System.Windows.Controls;
 

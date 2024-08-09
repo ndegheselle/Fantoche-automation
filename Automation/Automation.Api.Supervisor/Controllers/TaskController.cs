@@ -1,5 +1,7 @@
-using Automation.Shared.Contracts;
+using Automation.Dal.Repositories;
+using Automation.Shared.Data;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Driver;
 
 namespace Automation.Api.Supervisor.Controllers
 {
@@ -7,7 +9,10 @@ namespace Automation.Api.Supervisor.Controllers
     [Route("tasks")]
     public class TaskController : ControllerBase
     {
-        public TaskController()
-        {}
+        private readonly TaskRepository _taskRepo;
+        public TaskController(MongoClient client)
+        {
+            _taskRepo = new TaskRepository(client);
+        }
     }
 }

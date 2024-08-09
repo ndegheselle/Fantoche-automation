@@ -1,5 +1,5 @@
 ﻿using Automation.Shared;
-using Automation.Shared.Contracts;
+using Automation.Shared.Data;
 using MongoDB.Driver;
 
 namespace Automation.Dal.Repositories

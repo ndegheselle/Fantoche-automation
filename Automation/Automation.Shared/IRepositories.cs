@@ -1,5 +1,5 @@
 ﻿using Automation.Shared.Base;
-using Automation.Shared.Contracts;
+using Automation.Shared.Data;
 using System.Dynamic;
 
 namespace Automation.Shared

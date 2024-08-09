@@ -2,7 +2,7 @@
 using Automation.App.ViewModels.Tasks;
 using Automation.App.Views.TasksPages.TaskUI;
 using Automation.App.Views.TasksPages.WorkflowUI;
-using Automation.Shared.Contracts;
+using Automation.Shared.Data;
 using Automation.Supervisor.Client;
 using Joufflu.Shared;
 using Microsoft.Extensions.DependencyInjection;
