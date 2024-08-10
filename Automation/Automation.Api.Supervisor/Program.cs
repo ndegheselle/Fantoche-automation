@@ -14,7 +14,7 @@ builder.Services.AddSwaggerGen();
 
 #region Services
 
-builder.Services.AddSingleton((services) =>
+builder.Services.AddSingleton<IMongoDatabase>((services) =>
 {
     string? connectionString = Environment.GetEnvironmentVariable("MONGODB_URI") ??
         throw new ArgumentException("Missing MONGODB_URI in .env file");

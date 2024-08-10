@@ -31,9 +31,9 @@ namespace Automation.Dal.Repositories
             await _collection.InsertOneAsync(element);
         }
 
-        public virtual async Task UpdateAsync(T element)
+        public virtual async Task UpdateAsync(Guid id, T element)
         {
-            await _collection.ReplaceOneAsync(e => e.Id == element.Id, element);
+            await _collection.ReplaceOneAsync(e => e.Id == id, element);
         }
 
         public virtual async Task DeleteAsync(Guid id)
