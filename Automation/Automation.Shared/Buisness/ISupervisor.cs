@@ -2,5 +2,6 @@
 {
     public interface ISupervisor
     {
+        public void Execute();
     }
 }
