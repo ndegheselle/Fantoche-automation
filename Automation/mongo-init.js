@@ -14,3 +14,11 @@ db.createCollection("TaskHistories");
 db.createCollection("Scopes");
 db.createCollection("Tasks");
 db.createCollection("Workflows");
+
+// Root scope
+db.scopes.insertOne({
+    _id: UUID("00000000-0000-0000-0000-000000000001"),
+    parentId: null,
+    name: "Root",
+    context: {}
+});

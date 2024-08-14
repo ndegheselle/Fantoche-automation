@@ -32,8 +32,9 @@ namespace Automation.App
         private IServiceProvider ConfigureServices(ServiceCollection services)
         {
             services.AddTransient<MainWindow>();
-            services.AddTransient<IModalContainer>((provider) => GetActiveWindow()?.Modal);
-            services.AddTransient<IAlert>((provider) => GetActiveWindow()?.Alert);
+            services.AddTransient<IModalContainer>((provider) => GetActiveWindow().Modal);
+            services.AddTransient<IAlert>((provider) => GetActiveWindow().Alert);
+
             services.AddSingleton<ParametersViewModel>();
 
             services.AddSingleton<ITaskClient>((provider) => new TestTaskClient());
@@ -42,9 +43,10 @@ namespace Automation.App
             return services.BuildServiceProvider();
         }
 
-        private IWindowContainer? GetActiveWindow()
+        // XXX : should improve this if multiple windows are used
+        private IWindowContainer GetActiveWindow()
         {
-            return Current.Windows.OfType<Window>().SingleOrDefault(x => x.IsActive) as IWindowContainer;
+            return (IWindowContainer)Current.Windows.OfType<Window>().Single(x => x.IsActive);
         }
     }
 }
