@@ -1,8 +1,10 @@
 ﻿using Automation.App.Base;
+using Automation.App.Shared.ApiClients;
+using Automation.App.Shared.ViewModels;
 using Automation.App.ViewModels;
-using Automation.Supervisor.Client;
-using Automation.Supervisor.Client.Test;
+using Automation.Shared;
 using Microsoft.Extensions.DependencyInjection;
+using System.Net.Http;
 using System.Windows;
 
 namespace Automation.App
@@ -36,17 +38,26 @@ namespace Automation.App
             services.AddTransient<IAlert>((provider) => GetActiveWindow().Alert);
 
             services.AddSingleton<ParametersViewModel>();
+            services.AddSingleton<HttpClient>(
+                (provider) =>
+                {
+                    HttpClient client = new HttpClient();
+                    client.BaseAddress = new Uri("https://localhost:50568/");
+                    return client;
+                });
 
-            services.AddSingleton<ITaskClient>((provider) => new TestTaskClient());
-            services.AddSingleton<IScopeClient>((provider) => new TestScopeClient());
+            services.AddTransient<IScopeRepository<Scope>>(
+                (provider) => new ScopeClient(provider.GetRequiredService<HttpClient>()));
+            services.AddTransient<ITaskRepository<TaskNode>>(
+                (provider) => new TaskClient(provider.GetRequiredService<HttpClient>()));
+            services.AddTransient<IWorkflowRepository<WorkflowNode>>(
+                (provider) => new WorkflowClient(provider.GetRequiredService<HttpClient>()));
 
             return services.BuildServiceProvider();
         }
 
         // XXX : should improve this if multiple windows are used
         private IWindowContainer GetActiveWindow()
-        {
-            return (IWindowContainer)Current.Windows.OfType<Window>().Single(x => x.IsActive);
-        }
+        { return (IWindowContainer)Current.Windows.OfType<Window>().Single(x => x.IsActive); }
     }
 }
