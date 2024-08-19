@@ -4,7 +4,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Data;
 
-namespace Automation.App.ViewModels.Tasks
+namespace Automation.App.ViewModels.Tasks.BAK
 {
     public enum EnumScopedType
     {

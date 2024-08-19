@@ -1,4 +1,4 @@
-﻿using Automation.App.Shared.ViewModels;
+﻿using Automation.App.Shared.ViewModels.Tasks;
 using Automation.Shared;
 
 namespace Automation.App.Shared.ApiClients

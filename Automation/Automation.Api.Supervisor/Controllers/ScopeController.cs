@@ -1,6 +1,7 @@
 using Automation.Dal.Models;
 using Automation.Dal.Repositories;
 using Automation.Shared;
+using Automation.Shared.Data;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 
@@ -8,16 +9,47 @@ namespace Automation.Api.Supervisor.Controllers
 {
     [ApiController]
     [Route("scopes")]
-    public class ScopeController : BaseCrudController<ScopeRepository, Scope>, IScopeRepository<Scope>
+    public class ScopeController
     {
-        public ScopeController(IMongoDatabase database) : base(new ScopeRepository(database))
-        {}
+        protected readonly ScopeRepository _repository;
+        public ScopeController(IMongoDatabase database)
+        {
+            _repository = new ScopeRepository(database);
+        }
+
+        [HttpPost]
+        [Route("")]
+        public Task CreateAsync(Scope element)
+        {
+            return _repository.CreateAsync(element);
+        }
+
+        [HttpDelete]
+        [Route("{id}")]
+        public Task DeleteAsync([FromRoute] Guid id)
+        {
+            return _repository.DeleteAsync(id);
+        }
+
+        [HttpGet]
+        [Route("{id}")]
+        public async Task<IScope?> GetByIdAsync([FromRoute] Guid id)
+        {
+            return await _repository.GetByIdAsync(id);
+        }
 
         [HttpGet]
         [Route("root")]
-        public Task<Scope> GetRootAsync()
+        public async Task<IScope> GetRootAsync()
         {
-            return _repository.GetRootAsync();
+            return await _repository.GetRootAsync();
+        }
+
+        [HttpPut]
+        [Route("{id}")]
+        public Task UpdateAsync([FromRoute] Guid id, Scope element)
+        {
+            return _repository.UpdateAsync(id, element);
         }
     }
 }

@@ -1,12 +1,13 @@
-﻿using Automation.Shared;
-using Automation.Shared.Data;
-using Automation.Supervisor.Client;
+﻿using Automation.App.Shared;
+using Automation.App.Shared.ViewModels.Tasks;
+using Automation.App.ViewModels.Tasks;
+using Automation.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Input;
 
-namespace Automation.App.ViewModels.Tasks
+namespace Automation.App.ViewModels
 {
     public class EditorViewModel : INotifyPropertyChanged
     {
@@ -18,15 +19,15 @@ namespace Automation.App.ViewModels.Tasks
         public List<INode> SelectedNodes { get; set; } = [];
         public ICommand DisconnectConnectorCommand { get; }
         public NodifyPendingConnection? PendingConnection { get; }
-        public WorkflowWrapper Workflow { get; }
+        public WorkflowNode Workflow { get; }
 
-        private readonly App _app = (App)App.Current;
-        private readonly ITaskClient _nodeClient;
+        private readonly App _app = (App)System.Windows.Application.Current;
+        private readonly ITaskRepository<TaskNode> _nodeClient;
 
         public EditorViewModel(WorkflowNode workflow)
         {
-            _nodeClient = _app.ServiceProvider.GetRequiredService<ITaskClient>();
-            Workflow = new WorkflowWrapper(workflow);
+            _nodeClient = _app.ServiceProvider.GetRequiredService<ITaskRepository<TaskNode>>();
+            Workflow = workflow;
 
             PendingConnection = new NodifyPendingConnection(this);
             DisconnectConnectorCommand = new DelegateCommand<NodifyConnector>(connector =>

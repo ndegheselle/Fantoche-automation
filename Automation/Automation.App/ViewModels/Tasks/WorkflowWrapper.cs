@@ -7,7 +7,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 
-namespace Automation.App.ViewModels.Tasks
+namespace Automation.App.ViewModels.Tasks.BAK
 {
     public class NodifyConnector : INotifyPropertyChanged
     {

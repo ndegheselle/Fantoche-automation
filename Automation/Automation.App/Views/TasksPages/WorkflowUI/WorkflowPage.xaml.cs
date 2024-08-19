@@ -1,4 +1,5 @@
 ﻿using Automation.App.Base;
+using Automation.App.ViewModels;
 using Automation.App.ViewModels.Tasks;
 using Automation.App.Views.TasksPages.TaskUI;
 using Automation.Shared.Data;

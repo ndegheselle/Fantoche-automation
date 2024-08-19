@@ -1,17 +1,41 @@
 ﻿using Automation.Shared.Data;
 using MongoDB.Bson.Serialization.Attributes;
+using System.Drawing;
 
 namespace Automation.Dal.Models
 {
-    public class WorkflowNode : IWorkflowNode
+    public class WorkflowNode : TaskNode, IWorkflowNode
     {
-        [BsonId]
+        public List<NodeGroup> Groups { get; set;} = new List<NodeGroup>();
+        public Dictionary<Guid, WorkflowRelation> WorkflowsChildrens { get; set; } = new Dictionary<Guid, WorkflowRelation>();
+        public Dictionary<Guid, WorkflowRelation> TaskNodeChildrens { get; set; } = new Dictionary<Guid, WorkflowRelation>();
+
+        public IEnumerable<ITaskConnection> Connections { get; set; } = new List<TaskConnection>();
+
+        [BsonIgnore]
+        public IEnumerable<ILinkedNode> Nodes { get; set; } = new List<ILinkedNode>();
+    }
+
+    public class RelatedTaskNode : ILinkedNode
+    {
+        public Guid Id => Node.Id;
+        public string Name => Node.Name;
+        public WorkflowRelation WorkflowContext {get;set;}
+        public TaskNode Node { get; set; }
+    }
+
+    public class NodeGroup : INodeGroup
+    {
         public Guid Id { get; set; }
-        [BsonId]
-        public Guid ScopeId { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public IList<ITaskConnector> Connectors { get; private set; } = new List<ITaskConnector>();
-        public IList<ITaskConnection> Connections { get; private set; } = new List<ITaskConnection>();
-        public IList<ILinkedNode> Nodes { get; private set; } = new List<ILinkedNode>();
+        public string Name { get; set; }
+        public Size Size { get; set; }
+        public WorkflowRelation WorkflowContext { get; set; }
+    }
+
+    public class TaskConnection : ITaskConnection
+    {
+        public Guid ParentId {get;set;}
+        public Guid SourceId {get;set;}
+        public Guid TargetId {get;set;}
     }
 }

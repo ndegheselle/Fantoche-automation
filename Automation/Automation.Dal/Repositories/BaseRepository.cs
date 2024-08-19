@@ -1,4 +1,5 @@
-﻿using Automation.Shared;
+﻿using Automation.Dal.Models;
+using Automation.Shared;
 using Automation.Shared.Data;
 using MongoDB.Driver;
 
@@ -24,6 +25,11 @@ namespace Automation.Dal.Repositories
         public virtual async Task<T?> GetByIdAsync(Guid id)
         {
             return await _collection.Find(e => e.Id == id).FirstOrDefaultAsync();
+        }
+
+        public virtual async Task<IEnumerable<T>> GetByIdsAsync(IEnumerable<Guid> ids)
+        {
+            return await _collection.Find(x => ids.Contains(x.Id)).ToListAsync();
         }
 
         public virtual async Task CreateAsync(T element)

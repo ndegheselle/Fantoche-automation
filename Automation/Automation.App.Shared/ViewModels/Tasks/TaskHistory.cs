@@ -1,6 +1,6 @@
 ﻿using Automation.Shared.Data;
 
-namespace Automation.App.Shared.ViewModels
+namespace Automation.App.Shared.ViewModels.Tasks
 {
     public class TaskHistory : ITaskHistory
     {

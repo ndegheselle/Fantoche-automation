@@ -4,24 +4,25 @@ namespace Automation.Shared.Data
 {
     public interface IWorkflowNode : ITaskNode
     {
-        IList<ITaskConnection> Connections { get; }
-        IList<ILinkedNode> Nodes { get; }
+        IEnumerable<ITaskConnection> Connections { get; }
+        IEnumerable<ILinkedNode> Nodes { get; }
     }
 
-    public interface INodeGroup : ILinkedNode
+    public struct WorkflowRelation
     {
-        Size Size { get; set; }
-        Point Location { get; set; }
+        Point Position { get; set; }
     }
 
     // Represent a node that is linked to a workflow
     public interface ILinkedNode : INamed
     {
-        Point Position { get; set; }
+        WorkflowRelation WorkflowContext { get; set; }
     }
 
-    public interface IRelatedTaskNode : ITaskNode, ILinkedNode { }
-    public interface IRelatedWorkflowNode : IWorkflowNode, ILinkedNode { }
+    public interface INodeGroup : ILinkedNode
+    {
+        Size Size { get; set; }
+    }
 
     public interface ITaskConnection
     {
