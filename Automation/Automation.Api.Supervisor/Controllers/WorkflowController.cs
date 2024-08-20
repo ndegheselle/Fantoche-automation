@@ -11,38 +11,8 @@ namespace Automation.Api.Supervisor.Controllers
     [Route("workflows")]
     public class WorkflowController
     {
-        protected readonly WorkflowRepository _repository;
         public WorkflowController(IMongoDatabase database)
         {
-            _repository = new WorkflowRepository(database);
-        }
-
-        [HttpPost]
-        [Route("")]
-        public Task CreateAsync(WorkflowNode element)
-        {
-            return _repository.CreateAsync(element);
-        }
-
-        [HttpDelete]
-        [Route("{id}")]
-        public Task DeleteAsync([FromRoute] Guid id)
-        {
-            return _repository.DeleteAsync(id);
-        }
-
-        [HttpGet]
-        [Route("{id}")]
-        public async Task<IWorkflowNode?> GetByIdAsync([FromRoute] Guid id)
-        {
-            return await _repository.GetByIdAsync(id);
-        }
-
-        [HttpPut]
-        [Route("{id}")]
-        public Task UpdateAsync([FromRoute] Guid id, WorkflowNode element)
-        {
-            return _repository.UpdateAsync(id, element);
         }
     }
 }

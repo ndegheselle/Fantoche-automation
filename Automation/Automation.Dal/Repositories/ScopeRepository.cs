@@ -21,17 +21,14 @@ namespace Automation.Dal.Repositories
             var scope = await _collection.Find(e => e.Id == id).FirstAsync();
 
             var taskRepo = new TaskRepository(_database);
-            var workflowRepo = new WorkflowRepository(_database);
 
             var scopeChildrenTask = GetByScopeAsync(scope.Id);
-            var workflowChildrenTask = workflowRepo.GetByScopeAsync(scope.Id);
             var taskChildrenTask = taskRepo.GetByScopeAsync(scope.Id);
 
-            await Task.WhenAll(scopeChildrenTask, workflowChildrenTask, taskChildrenTask);
+            await Task.WhenAll(scopeChildrenTask, taskChildrenTask);
 
             scope.Childrens = [
                 ..await scopeChildrenTask,
-                ..await workflowChildrenTask,
                 ..await taskChildrenTask
             ];
             return scope;
@@ -39,6 +36,7 @@ namespace Automation.Dal.Repositories
 
         public async Task<Scope> GetRootAsync()
         {
+            // Root scope have a fixed Id
             const string rootIdString = "00000000-0000-0000-0000-000000000001";
             var rootId = new Guid(rootIdString);
             var rootScope = await GetByIdAsync(rootId);

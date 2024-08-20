@@ -13,7 +13,6 @@ db.createUser(
 db.createCollection("TaskHistories");
 db.createCollection("Scopes");
 db.createCollection("Tasks");
-db.createCollection("Workflows");
 
 // Root scope
 db.scopes.insertOne({

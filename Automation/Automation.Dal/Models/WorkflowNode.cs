@@ -7,7 +7,6 @@ namespace Automation.Dal.Models
     public class WorkflowNode : TaskNode, IWorkflowNode
     {
         public List<NodeGroup> Groups { get; set;} = new List<NodeGroup>();
-        public Dictionary<Guid, WorkflowRelation> WorkflowsChildrens { get; set; } = new Dictionary<Guid, WorkflowRelation>();
         public Dictionary<Guid, WorkflowRelation> TaskNodeChildrens { get; set; } = new Dictionary<Guid, WorkflowRelation>();
 
         public IEnumerable<ITaskConnection> Connections { get; set; } = new List<TaskConnection>();

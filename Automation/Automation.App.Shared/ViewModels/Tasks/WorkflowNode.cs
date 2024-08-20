@@ -17,25 +17,6 @@ namespace Automation.App.Shared.ViewModels.Tasks
         public IEnumerable<ILinkedNode> Nodes { get; private set; } = new ObservableCollection<ILinkedNode>();
     }
 
-    public class TaskConnector : ITaskConnector
-    {
-        public EnumTaskConnectorType Type { get; set; }
-
-        public EnumTaskConnectorDirection Direction { get; set; }
-
-        public Guid Id { get; set; }
-
-        public string Name { get; set; }
-
-        public Guid ParentId { get; set; }
-
-        // Ui specifics
-
-        public ITaskNode Parent { get; set; }
-        public bool IsConnected { get; set; }
-        public Point Anchor { get; set; }
-    }
-
     public class TaskConnection : ITaskConnection
     {
         public Guid ParentId { get; set; }
