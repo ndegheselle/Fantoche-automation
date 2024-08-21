@@ -1,10 +1,10 @@
 ﻿using Automation.App.Base;
 using Automation.App.Components.Display;
+using Automation.App.Shared.ApiClients;
+using Automation.App.Shared.ViewModels.Tasks;
 using Automation.App.ViewModels;
-using Automation.App.ViewModels.Tasks;
 using Automation.App.Views.TasksPages.Components;
-using Automation.Shared.Data;
-using Automation.Supervisor.Client;
+using Automation.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using Nodify;
 using System.Drawing;
@@ -43,13 +43,13 @@ namespace Automation.App.Views.TasksPages.WorkflowUI
         private readonly App _app = (App)App.Current;
         private readonly IModalContainer _modal;
         private readonly IAlert _alert;
-        private readonly ITaskClient _nodeClient;
-        private readonly IScopeClient _scopeClient;
+        private readonly ITaskRepository<TaskNode> _nodeClient;
+        private readonly IScopeRepository<Scope> _scopeClient;
 
         public WorkflowGraph()
         {
-            _nodeClient = _app.ServiceProvider.GetRequiredService<ITaskClient>();
-            _scopeClient = _app.ServiceProvider.GetRequiredService<IScopeClient>();
+            _nodeClient = _app.ServiceProvider.GetRequiredService<ITaskRepository<TaskNode>>();
+            _scopeClient = _app.ServiceProvider.GetRequiredService<IScopeRepository<Scope>>();
             _modal = _app.ServiceProvider.GetRequiredService<IModalContainer>();
             _alert = _app.ServiceProvider.GetRequiredService<IAlert>();
             InitializeComponent();
@@ -60,14 +60,14 @@ namespace Automation.App.Views.TasksPages.WorkflowUI
         {
             ScopedSelectorModal nodeSelector = new ScopedSelectorModal()
             {
-                RootScope = new ScopeItem(await _scopeClient.GetRootScopeAsync()),
+                RootScope = await _scopeClient.GetRootAsync(),
                 AllowedSelectedNodes = EnumScopedType.Workflow | EnumScopedType.Task
             };
 
             if (await _modal.Show(nodeSelector) && nodeSelector.Selected != null)
             {
                 ScopedTaskItem taskScopedItem = (ScopedTaskItem)nodeSelector.Selected;
-                EditorData.AddNode(taskScopedItem);
+                EditorData.AddNode(Editor.ViewportLocation, taskScopedItem);
             }
         }
 

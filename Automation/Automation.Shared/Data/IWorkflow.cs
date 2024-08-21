@@ -8,15 +8,15 @@ namespace Automation.Shared.Data
         IEnumerable<ILinkedNode> Nodes { get; }
     }
 
-    public struct WorkflowRelation
+    public interface ILinkedNode : INamed
     {
         Point Position { get; set; }
     }
 
     // Represent a node that is linked to a workflow
-    public interface ILinkedNode : INamed
+    public interface IRelatedTaskNode : ILinkedNode
     {
-        WorkflowRelation WorkflowContext { get; set; }
+        ITaskNode Node { get; }
     }
 
     public interface INodeGroup : ILinkedNode

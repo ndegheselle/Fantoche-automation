@@ -1,7 +1,7 @@
 ﻿using Automation.App.Shared;
 using Automation.App.Shared.ViewModels.Tasks;
-using Automation.App.ViewModels.Tasks;
 using Automation.Shared;
+using Automation.Shared.Data;
 using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;
 using System.Drawing;
@@ -16,7 +16,7 @@ namespace Automation.App.ViewModels
         public event PropertyChangedEventHandler? PropertyChanged;
         public event Action<string>? InvalidConnection;
 
-        public List<INode> SelectedNodes { get; set; } = [];
+        public List<IViewModelLinkedNode> SelectedNodes { get; set; } = [];
         public ICommand DisconnectConnectorCommand { get; }
         public NodifyPendingConnection? PendingConnection { get; }
         public WorkflowNode Workflow { get; }
@@ -30,7 +30,7 @@ namespace Automation.App.ViewModels
             Workflow = workflow;
 
             PendingConnection = new NodifyPendingConnection(this);
-            DisconnectConnectorCommand = new DelegateCommand<NodifyConnector>(connector =>
+            DisconnectConnectorCommand = new DelegateCommand<TaskConnector>(connector =>
             {
                 connector.IsConnected = false;
                 var connections = Workflow.Connections.Where(x => x.Source == connector || x.Target == connector);
@@ -38,7 +38,7 @@ namespace Automation.App.ViewModels
                 {
                     var connection = connections.ElementAt(i);
                     // Get opposite connector
-                    NodifyConnector oppositeConnector = connection.Source == connector ? connection.Target : connection.Source;
+                    TaskConnector oppositeConnector = connection.Source == connector ? connection.Target : connection.Source;
                     // Check if opposite connector is connected to another connector and if not, set IsConnected to false
                     var oppositeConnections = Workflow.Connections.Where(x => x.Source == oppositeConnector || x.Target == oppositeConnector);
                     if (oppositeConnections.Count() == 1)
@@ -49,13 +49,13 @@ namespace Automation.App.ViewModels
             });
         }
 
-        public void Connect(NodifyConnector source, NodifyConnector target)
+        public void Connect(TaskConnector source, TaskConnector target)
         {
-            NodifyConnection connection = new NodifyConnection(source, target);
+            TaskConnection connection = new TaskConnection(source, target);
             Workflow.Connections.Add(connection);
         }
 
-        public void Disconnect(NodifyConnection connection)
+        public void Disconnect(TaskConnection connection)
         {
             Workflow.Connections.Remove(connection);
             connection.Source.IsConnected = false;
@@ -67,7 +67,7 @@ namespace Automation.App.ViewModels
             InvalidConnection?.Invoke(message);
         }
 
-        public void RemoveNodes(IList<INode> nodes)
+        public void RemoveNodes(IList<IViewModelLinkedNode> nodes)
         {
             for (int j = nodes.Count - 1; j >= 0; j--)
             {
@@ -82,25 +82,82 @@ namespace Automation.App.ViewModels
             }
         }
 
-        public async void AddNode(ScopedTaskItem taskScopedItem)
+        public async void AddNode(Point position, TaskNode task)
         {
-            // TODO : Create the relation through the API and get the task from the API
             // TODO : Add the node to the center of the view
-            TaskNode? addedTask = await _nodeClient.GetTaskAsync(taskScopedItem.TargetId);
+            TaskNode? addedTask = await _nodeClient.GetTaskAsync(task.Id);
             if (addedTask == null)
                 return;
-            Workflow.Nodes.Add(new NodifyNode(new Shared.Data.WorkflowRelation(), addedTask));
+
+            Workflow.Nodes.Add(new RelatedTaskNode() { Position = new System.Windows.Point() { X = position.X, Y = position.Y }, Node = addedTask });
         }
 
         public void CreateGroup(Rectangle boundingBox)
         {
             // TODO : Create the group through the API
-            NodifyGroup group = new NodifyGroup(new NodeGroup()
+            NodeGroup group = new NodeGroup()
             {
-                Location = boundingBox.Location,
-                Size = boundingBox.Size
-            });
+                Position = new System.Windows.Point() { X =  boundingBox.Location.X, Y =  boundingBox.Location.Y },
+                Size = new System.Windows.Size() { Width = boundingBox.Size.Width, Height = boundingBox.Size.Height }
+            };
             Workflow.Nodes.Add(group);
         }
+    }
+
+
+    public class NodifyPendingConnection
+    {
+        private readonly EditorViewModel _editor;
+        private TaskConnector? _source;
+
+        public NodifyPendingConnection(EditorViewModel editor)
+        {
+            _editor = editor;
+            StartCommand = new DelegateCommand<TaskConnector>(source => _source = source);
+            FinishCommand = new DelegateCommand<TaskConnector>(target =>
+            {
+                if (target == null || _source == null)
+                    return;
+
+                if (_source == target)
+                {
+                    _editor.TriggerInvalidConnection("Can't connect a connector to itself.");
+                    return;
+                }
+
+                if (_source.Type != target.Type)
+                {
+                    _editor.TriggerInvalidConnection("Can't connect two connectors of different types.");
+                    return;
+                }
+
+                if (_source.Direction == target.Direction)
+                {
+                    _editor.TriggerInvalidConnection("Can't connect two output or input connectors.");
+                    return;
+                }
+
+                // If target is output, swap source and target
+                if (target.Direction == EnumTaskConnectorDirection.Out)
+                {
+                    var temp = _source;
+                    _source = target;
+                    target = temp;
+                }
+
+                // If already exists delete the connection
+                var existingConnection = _editor.Workflow.Connections.FirstOrDefault(x => x.Source == _source && x.Target == target);
+                if (existingConnection != null)
+                {
+                    _editor.Disconnect(existingConnection);
+                    return;
+                }
+
+                _editor.Connect(_source, target);
+            });
+        }
+
+        public ICommand StartCommand { get; }
+        public ICommand FinishCommand { get; }
     }
 }

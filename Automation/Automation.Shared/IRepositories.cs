@@ -12,13 +12,13 @@ namespace Automation.Shared
         public Task DeleteAsync(Guid id);
     }
 
-    public interface ITaskRepository<T> : ICrudRepository<T> where T : ITaskNode
+    public interface ITaskRepository<T> : ICrudRepository<T>
     { }
 
-    public interface IWorkflowRepository<T> : ICrudRepository<T> where T : IWorkflowNode
+    public interface IWorkflowRepository<T> : ICrudRepository<T>
     { }
 
-    public interface IScopeRepository<T> : ICrudRepository<T> where T : IScope
+    public interface IScopeRepository<T> : ICrudRepository<T>
     {
         public Task<T> GetRootAsync();
     }

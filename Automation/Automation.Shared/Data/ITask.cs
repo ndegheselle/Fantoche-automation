@@ -28,7 +28,8 @@ namespace Automation.Shared.Data
     public interface ITaskNode : INamed
     {
         Guid ScopeId { get; set; }
-        IEnumerable<ITaskConnector> Connectors { get; }
+        IEnumerable<ITaskConnector> Inputs { get; }
+        IEnumerable<ITaskConnector> Outputs { get; }
     }
 
     public interface ITaskConnector

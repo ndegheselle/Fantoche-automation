@@ -22,7 +22,7 @@ namespace Automation.Dal.Repositories
             var relatedTasks = await GetByIdsAsync(workflow.TaskNodeChildrens.Keys);
             workflow.Nodes = [
                 .. workflow.Groups,
-                .. relatedTasks.Select(x => new RelatedTaskNode() { Node = x, WorkflowContext = workflow.TaskNodeChildrens[x.Id] })
+                .. relatedTasks.Select(x => new RelatedTaskNode() { Node = x, Context = workflow.TaskNodeChildrens[x.Id] })
             ];
 
             return workflow;

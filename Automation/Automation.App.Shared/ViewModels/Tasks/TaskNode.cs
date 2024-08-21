@@ -3,29 +3,28 @@ using System.Windows;
 
 namespace Automation.App.Shared.ViewModels.Tasks
 {
-    public class TaskNode : ITaskNode
+    public class TaskNode : ScopedElement
     {
-        public Guid Id { get; set; }
         public Guid ScopeId { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public IEnumerable<ITaskConnector> Connectors { get; private set; } = new List<TaskConnector>();
+        public List<TaskConnector> Inputs { get; set; }
+        public List<TaskConnector> Outputs { get; set; }
+
+        public TaskNode()
+        {
+            Type = EnumScopedType.Task;
+        }
     }
 
-    public class TaskConnector : ITaskConnector
+    public class TaskConnector
     {
+        public Guid Id { get; set; }
+        public string Name { get; set; }
+        public Guid ParentId { get; set; }
         public EnumTaskConnectorType Type { get; set; }
-
         public EnumTaskConnectorDirection Direction { get; set; }
 
-        public Guid Id { get; set; }
-
-        public string Name { get; set; }
-
-        public Guid ParentId { get; set; }
-
         // Ui specifics
-
-        public ITaskNode Parent { get; set; }
+        public TaskNode Parent { get; set; }
         public bool IsConnected { get; set; }
         public Point Anchor { get; set; }
     }

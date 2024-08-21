@@ -15,12 +15,12 @@ namespace Automation.Dal.Models
         public IEnumerable<ILinkedNode> Nodes { get; set; } = new List<ILinkedNode>();
     }
 
-    public class RelatedTaskNode : ILinkedNode
+    public class RelatedTaskNode : IRelatedTaskNode
     {
         public Guid Id => Node.Id;
         public string Name => Node.Name;
-        public WorkflowRelation WorkflowContext {get;set;}
-        public TaskNode Node { get; set; }
+        public WorkflowRelation Context {get;set;}
+        public ITaskNode Node { get; set; }
     }
 
     public class NodeGroup : INodeGroup
@@ -28,7 +28,7 @@ namespace Automation.Dal.Models
         public Guid Id { get; set; }
         public string Name { get; set; }
         public Size Size { get; set; }
-        public WorkflowRelation WorkflowContext { get; set; }
+        public WorkflowRelation Context { get; set; }
     }
 
     public class TaskConnection : ITaskConnection

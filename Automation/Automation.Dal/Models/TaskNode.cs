@@ -10,7 +10,8 @@ namespace Automation.Dal.Models
         [BsonId]
         public Guid ScopeId { get; set; }
         public string Name { get; set; } = string.Empty;
-        public IEnumerable<ITaskConnector> Connectors { get; set; } = new List<TaskConnectors>();
+        public IEnumerable<ITaskConnector> Inputs { get; set; } = new List<TaskConnectors>();
+        public IEnumerable<ITaskConnector> Outputs { get; set; } = new List<TaskConnectors>();
     }
 
     public class TaskConnectors : ITaskConnector
