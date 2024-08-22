@@ -7,7 +7,7 @@ namespace Automation.Shared
     public interface ICrudRepository<T>
     {
         public Task<T?> GetByIdAsync(Guid id);
-        public Task CreateAsync(T element);
+        public Task<Guid> CreateAsync(T element);
         public Task UpdateAsync(Guid id, T element);
         public Task DeleteAsync(Guid id);
     }

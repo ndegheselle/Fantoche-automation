@@ -1,13 +1,10 @@
 ﻿using Automation.App.Base;
-using Automation.App.ViewModels.Tasks;
-using Automation.App.Views.TasksPages.ScopeUI;
-using Automation.Shared.Data;
-using Automation.Supervisor.Client;
+using Automation.App.Shared.ViewModels.Tasks;
+using Automation.Shared;
 using Joufflu.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 using System.Windows.Controls;
-using static System.Formats.Asn1.AsnWriter;
 
 namespace Automation.App.Views.TasksPages.TaskUI
 {
@@ -17,25 +14,24 @@ namespace Automation.App.Views.TasksPages.TaskUI
     public partial class TaskPage : UserControl, IPage
     {
         public INavigationLayout? Layout { get; set; }
-        public ScopedTaskItem Scoped { get; set; }
-        public TaskNode? Task { get; set; }
+        public TaskNode Task { get; set; }
 
         private readonly App _app = (App)App.Current;
-        private readonly ITaskClient _client;
+        private readonly ITaskRepository<TaskNode> _client;
         private readonly IModalContainer _modal;
 
-        public TaskPage(ScopedTaskItem task)
+        public TaskPage(TaskNode task)
         {
             _modal = _app.ServiceProvider.GetRequiredService<IModalContainer>();
-            _client = _app.ServiceProvider.GetRequiredService<ITaskClient>();
-            Scoped = task;
+            _client = _app.ServiceProvider.GetRequiredService<ITaskRepository<TaskNode>>();
+            Task = task;
             InitializeComponent();
             LoadTask(task);
         }
 
-        public async void LoadTask(ScopedTaskItem task)
+        public async void LoadTask(TaskNode task)
         {
-            TaskNode? fullTask = await _client.GetTaskAsync(task.TargetId);
+            TaskNode? fullTask = await _client.GetByIdAsync(task.Id);
 
             if (fullTask == null)
                 throw new ArgumentException("Task not found");
@@ -48,7 +44,7 @@ namespace Automation.App.Views.TasksPages.TaskUI
             if (Task == null)
                 return;
             if (await _modal.Show(new TaskEditModal(Task)))
-                Task = await _client.UpdateTaskAsync(Task);
+                await _client.UpdateAsync(Task.Id, Task);
         }
         #endregion
     }

@@ -1,6 +1,7 @@
 ﻿using Automation.Shared.Data;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Windows.Data;
 
 namespace Automation.App.Shared.ViewModels.Tasks
 {
@@ -70,10 +71,14 @@ namespace Automation.App.Shared.ViewModels.Tasks
         public Guid? ParentId { get; set; }
         public Dictionary<string, string> Context { get; private set; } = new Dictionary<string, string>();
         public List<ScopedElement> Childrens { get; set; } = new List<ScopedElement>();
+        public ListCollectionView SortedChildrens { get; set; }
 
         public Scope()
         {
             Type = EnumScopedType.Scope;
+            SortedChildrens = (ListCollectionView)CollectionViewSource.GetDefaultView(Childrens);
+            SortedChildrens.SortDescriptions.Add(new SortDescription(nameof(Type), ListSortDirection.Ascending));
+            SortedChildrens.SortDescriptions.Add(new SortDescription(nameof(Name), ListSortDirection.Ascending));
         }
     }
 }

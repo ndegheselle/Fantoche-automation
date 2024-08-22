@@ -1,9 +1,8 @@
 ﻿using Automation.App.Base;
-using Automation.App.ViewModels.Tasks;
+using Automation.App.Shared.ViewModels.Tasks;
 using Automation.App.Views.TasksPages.TaskUI;
 using Automation.App.Views.TasksPages.WorkflowUI;
-using Automation.Shared.Data;
-using Automation.Supervisor.Client;
+using Automation.Shared;
 using Joufflu.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
@@ -17,29 +16,28 @@ namespace Automation.App.Views.TasksPages.ScopeUI
     public partial class ScopePage : UserControl, IPage
     {
         public INavigationLayout? Layout { get; set; }
-        public ScopeItem Scoped { get; set; }
-        public Scope? Scope { get; set; }
+        public Scope Scope { get; set; }
 
         private readonly IModalContainer _modal;
 
         private readonly App _app = (App)App.Current;
-        private readonly IScopeClient _scopeClient;
-        private readonly ITaskClient _taskClient;
+        private readonly IScopeRepository<Scope> _scopeClient;
+        private readonly ITaskRepository<TaskNode> _taskClient;
 
-        public ScopePage(IModalContainer modal, ScopeItem scope)
+        public ScopePage(IModalContainer modal, Scope scope)
         {
-            _scopeClient = _app.ServiceProvider.GetRequiredService<IScopeClient>();
-            _taskClient = _app.ServiceProvider.GetRequiredService<ITaskClient>();
+            _scopeClient = _app.ServiceProvider.GetRequiredService<IScopeRepository<Scope>>();
+            _taskClient = _app.ServiceProvider.GetRequiredService<ITaskRepository<TaskNode>>();
             _modal = modal;
+            Scope = scope;
 
-            Scoped = scope;
             InitializeComponent();
-            LoadScope(scope);
+            LoadFullScope(scope);
         }
 
-        public async void LoadScope(ScopeItem scope)
+        public async void LoadFullScope(Scope scope)
         {
-            Scope? fullScope = await _scopeClient.GetScopeAsync(scope.TargetId, new ScopeLoadOptions() { WithChildrens = false});
+            Scope? fullScope = await _scopeClient.GetByIdAsync(scope.Id);
 
             if (fullScope == null)
                 throw new ArgumentException("Scope not found");
@@ -60,8 +58,8 @@ namespace Automation.App.Views.TasksPages.ScopeUI
             Scope newScope = new Scope();
             if (await _modal.Show(new ScopeEditModal(newScope)))
             {
-                newScope = await _scopeClient.CreateScopeAsync(newScope);
-                Scoped.Childrens.Add(new ScopeItem(newScope));
+                newScope.Id = await _scopeClient.CreateAsync(newScope);
+                Scope.Childrens.Add(newScope);
             }
         }
 
@@ -70,8 +68,8 @@ namespace Automation.App.Views.TasksPages.ScopeUI
             var task = new TaskNode();
             if (await _modal.Show(new TaskEditModal(task)))
             {
-                task= await _taskClient.CreateTaskAsync(task);
-                Scoped.Childrens.Add(new ScopedTaskItem(task));
+                task.Id = await _taskClient.CreateAsync(task);
+                Scope.Childrens.Add(task);
             }
         }
 
@@ -80,8 +78,8 @@ namespace Automation.App.Views.TasksPages.ScopeUI
             WorkflowNode workflow = new WorkflowNode();
             if (await _modal.Show(new WorkflowEditModal(workflow)))
             {
-                workflow = await _taskClient.CreateWorkflowAsync(workflow);
-                Scoped.Childrens.Add(new ScopedTaskItem(workflow));
+                workflow.Id = await _taskClient.CreateAsync(workflow);
+                Scope.Childrens.Add(workflow);
             }
         }
 
@@ -90,7 +88,7 @@ namespace Automation.App.Views.TasksPages.ScopeUI
             if (Scope == null)
                 return;
             if (await _modal.Show(new ScopeEditModal(Scope)))
-                Scope = await _scopeClient.UpdateScopeAsync(Scope);
+                await _scopeClient.UpdateAsync(Scope.Id, Scope);
         }
 
         #endregion
@@ -98,7 +96,7 @@ namespace Automation.App.Views.TasksPages.ScopeUI
         private void ListBox_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             ListBox listBox = (ListBox)sender;
-            ScopedItem? selectedElement = listBox.SelectedItem as ScopedItem;
+            ScopedElement? selectedElement = listBox.SelectedItem as ScopedElement;
 
             if (selectedElement == null)
                 return;
