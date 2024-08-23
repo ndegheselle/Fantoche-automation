@@ -32,8 +32,9 @@ namespace Automation.Dal.Repositories
             return await _collection.Find(x => ids.Contains(x.Id)).ToListAsync();
         }
 
-        public virtual async Task CreateAsync(T element)
+        public virtual async Task<Guid> CreateAsync(T element)
         {
+            element.Id = Guid.NewGuid();
             await _collection.InsertOneAsync(element);
         }
 

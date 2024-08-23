@@ -46,11 +46,11 @@ namespace Automation.App
                     return client;
                 });
 
-            services.AddTransient<IScopeRepository<Scope>>(
+            services.AddTransient<ScopeClient>(
                 (provider) => new ScopeClient(provider.GetRequiredService<HttpClient>()));
-            services.AddTransient<ITaskRepository<TaskNode>>(
+            services.AddTransient<TaskClient>(
                 (provider) => new TaskClient(provider.GetRequiredService<HttpClient>()));
-            services.AddTransient<IWorkflowRepository<WorkflowNode>>(
+            services.AddTransient<WorkflowClient>(
                 (provider) => new WorkflowClient(provider.GetRequiredService<HttpClient>()));
 
             return services.BuildServiceProvider();

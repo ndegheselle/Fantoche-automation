@@ -14,7 +14,7 @@
                 <local:TaskSchedules />
             </TabItem>
             <TabItem Header="History">
-                <components:ScopedHistory Scoped="{Binding Scoped}" />
+                <components:ScopedHistory TargetId="{Binding Scoped}" />
             </TabItem>
         </TabControl>
         <Button

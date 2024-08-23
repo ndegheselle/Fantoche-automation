@@ -17,13 +17,13 @@ namespace Automation.App.Views.TasksPages.TaskUI
         public TaskNode Task { get; set; }
 
         private readonly App _app = (App)App.Current;
-        private readonly ITaskRepository<TaskNode> _client;
+        private readonly TaskClient _client;
         private readonly IModalContainer _modal;
 
         public TaskPage(TaskNode task)
         {
             _modal = _app.ServiceProvider.GetRequiredService<IModalContainer>();
-            _client = _app.ServiceProvider.GetRequiredService<ITaskRepository<TaskNode>>();
+            _client = _app.ServiceProvider.GetRequiredService<TaskClient>();
             Task = task;
             InitializeComponent();
             LoadTask(task);

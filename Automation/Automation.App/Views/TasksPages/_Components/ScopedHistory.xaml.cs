@@ -1,7 +1,10 @@
-﻿using Automation.App.ViewModels.Tasks;
-using Automation.Supervisor.Client;
+﻿using Automation.App.Shared.ApiClients;
+using Automation.App.Shared.ViewModels.Tasks;
+using Automation.Shared;
+using Automation.Shared.Base;
 using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;
+using System.Security.Policy;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -13,13 +16,15 @@ namespace Automation.App.Views.TasksPages.Components
     public partial class ScopedHistory : UserControl, INotifyPropertyChanged
     {
         // Dependency property for the task id
-        public static readonly DependencyProperty ScopedProperty = DependencyProperty.Register(
-            nameof(Scoped),
-            typeof(ScopedItem),
+        public static readonly DependencyProperty TargetIdProperty = DependencyProperty.Register(
+            nameof(TargetId),
+            typeof(Guid),
             typeof(ScopedHistory),
-            new PropertyMetadata(default(ScopedItem), (o, e) => ((ScopedHistory)o).OnScopedChange()));
+            new PropertyMetadata(default(Guid), (o, e) => ((ScopedHistory)o).OnScopedChange()));
 
-        public ScopedItem Scoped { get { return (ScopedItem)GetValue(ScopedProperty); } set { SetValue(ScopedProperty, value); } }
+        public ScopedElement TargetId { get { return (ScopedElement)GetValue(TargetIdProperty); } set { SetValue(TargetIdProperty, value); } }
+
+        public EnumScopedType? Type { get; set; }
 
         private void OnScopedChange()
         {
@@ -27,14 +32,12 @@ namespace Automation.App.Views.TasksPages.Components
         }
 
         private readonly App _app = (App)App.Current;
-        private readonly IScopeClient _scopeClient;
-        private readonly ITaskClient _taskClient;
+        private readonly HistoryClient _historyClient;
 
-        public TaskHistories History { get; set; } = new TaskHistories() { PageSize = 50, Page = 1 };
+        public PageWrapper<TaskHistory> History { get; set; } = new PageWrapper<TaskHistory>() { PageSize = 50, Page = 1 };
 
         public ScopedHistory() {
-            _scopeClient = _app.ServiceProvider.GetRequiredService<IScopeClient>();
-            _taskClient = _app.ServiceProvider.GetRequiredService<ITaskClient>();
+            _historyClient = _app.ServiceProvider.GetRequiredService<HistoryClient>();
             this.Loaded += ScopedHistory_Loaded;
             InitializeComponent();
         }
@@ -51,16 +54,16 @@ namespace Automation.App.Views.TasksPages.Components
 
         private async void RefreshHistory(int pageNumber, int capacity)
         {
-            if (Scoped == null || IsLoaded == false)
+            if (TargetId == null || IsLoaded == false)
                 return;
 
-            if (Scoped is ScopedTaskItem taskScoped)
+            if (Type == EnumScopedType.Task || Type == EnumScopedType.Workflow)
             {
-                History = await _taskClient.GetHistoryAsync(taskScoped.TargetId, pageNumber, capacity);
+                History = await _historyClient.GetByTaskAsync(TargetId, pageNumber, capacity);
             }
-            else if (Scoped is ScopeItem scopeScoped)
+            else if (Type == EnumScopedType.Scope)
             {
-                History = await _scopeClient.GetHistoryAsync(scopeScoped.TargetId, pageNumber, capacity);
+                History = await _historyClient.GetByScopeAsync(TargetId, pageNumber, capacity);
             }
         }
     }

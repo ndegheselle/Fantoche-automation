@@ -43,13 +43,13 @@ namespace Automation.App.Views.TasksPages.WorkflowUI
         private readonly App _app = (App)App.Current;
         private readonly IModalContainer _modal;
         private readonly IAlert _alert;
-        private readonly ITaskRepository<TaskNode> _nodeClient;
-        private readonly IScopeRepository<Scope> _scopeClient;
+        private readonly TaskClient _nodeClient;
+        private readonly ScopeClient _scopeClient;
 
         public WorkflowGraph()
         {
-            _nodeClient = _app.ServiceProvider.GetRequiredService<ITaskRepository<TaskNode>>();
-            _scopeClient = _app.ServiceProvider.GetRequiredService<IScopeRepository<Scope>>();
+            _nodeClient = _app.ServiceProvider.GetRequiredService<TaskClient>();
+            _scopeClient = _app.ServiceProvider.GetRequiredService<ScopeClient>();
             _modal = _app.ServiceProvider.GetRequiredService<IModalContainer>();
             _alert = _app.ServiceProvider.GetRequiredService<IAlert>();
             InitializeComponent();
