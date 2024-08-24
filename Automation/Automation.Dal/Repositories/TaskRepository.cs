@@ -4,7 +4,7 @@ using MongoDB.Driver;
 
 namespace Automation.Dal.Repositories
 {
-    public class TaskRepository : BaseCrudRepository<TaskNode>, ITaskRepository<TaskNode>
+    public class TaskRepository : BaseCrudRepository<TaskNode>, ITaskClient<TaskNode>
     {
         public TaskRepository(IMongoDatabase database) : base(database, "Tasks")
         {}

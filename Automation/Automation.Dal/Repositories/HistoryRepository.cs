@@ -5,7 +5,7 @@ using MongoDB.Driver;
 
 namespace Automation.Dal.Repositories
 {
-    public class HistoryRepository : BaseRepository<TaskHistory>, IHistoryRepository<TaskHistory>
+    public class HistoryRepository : BaseRepository<TaskHistory>, IHistoryClient<TaskHistory>
     {
         public HistoryRepository(IMongoDatabase database) : base(database, "TaskHistories")
         {}

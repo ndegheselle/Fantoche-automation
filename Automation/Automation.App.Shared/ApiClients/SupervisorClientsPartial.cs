@@ -3,12 +3,12 @@ using Automation.Shared;
 
 namespace Automation.App.Shared.ApiClients
 {
-    public partial class ScopeClient : IScopeRepository<Scope>
+    public partial class ScopeClient : IScopeClient<Scope>
     { }
 
-    public partial class TaskClient : ITaskRepository<TaskNode>
+    public partial class TaskClient : ITaskClient<TaskNode>
     { }
 
-    public partial class WorkflowClient : IWorkflowRepository<WorkflowNode>
+    public partial class WorkflowClient : IWorkflowClient<WorkflowNode>
     { }
 }

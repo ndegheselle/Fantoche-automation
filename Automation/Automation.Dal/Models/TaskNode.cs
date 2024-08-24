@@ -12,6 +12,16 @@ namespace Automation.Dal.Models
         public string Name { get; set; } = string.Empty;
         public IEnumerable<ITaskConnector> Inputs { get; set; } = new List<TaskConnectors>();
         public IEnumerable<ITaskConnector> Outputs { get; set; } = new List<TaskConnectors>();
+
+        public TaskNode() { }
+        public TaskNode(ITaskNode taskNode)
+        {
+            Id = taskNode.Id;
+            Name = taskNode.Name;
+            ScopeId = taskNode.ScopeId;
+            Inputs = taskNode.Inputs;
+            Outputs = taskNode.Outputs;
+        }
     }
 
     public class TaskConnectors : ITaskConnector

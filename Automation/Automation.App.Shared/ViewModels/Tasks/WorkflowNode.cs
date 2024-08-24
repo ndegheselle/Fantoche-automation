@@ -1,5 +1,6 @@
 ﻿using Automation.Shared.Data;
 using System.Collections.ObjectModel;
+using System.Text.Json.Serialization;
 using System.Windows;
 
 namespace Automation.App.Shared.ViewModels.Tasks
@@ -7,7 +8,7 @@ namespace Automation.App.Shared.ViewModels.Tasks
     public class WorkflowNode : TaskNode
     {
         public ObservableCollection<TaskConnection> Connections { get; set; } = new ObservableCollection<TaskConnection>();
-        public ObservableCollection<IViewModelLinkedNode> Nodes { get; private set; } = new ObservableCollection<IViewModelLinkedNode>();
+        public ObservableCollection<LinkedNode> Nodes { get; private set; } = new ObservableCollection<LinkedNode>();
 
         public WorkflowNode()
         {
@@ -38,25 +39,27 @@ namespace Automation.App.Shared.ViewModels.Tasks
         }
     }
 
-    public interface IViewModelLinkedNode : INamed
-    {
-        Point Position { get; set; }
-    }
-
-    public class NodeGroup : IViewModelLinkedNode
+    // TODO : Derived json types
+    public class LinkedNode : ILinkedNode
     {
         public Guid Id { get; set; }
         public string Name { get; set; }
-        public Size Size { get; set; }
         public Point Position { get; set; }
-
+        System.Drawing.Point ILinkedNode.Position
+        {
+            get => new System.Drawing.Point((int)Position.X, (int)Position.Y);
+            set => Position = new Point(value.X, value.Y);
+        }
     }
 
-    public class RelatedTaskNode : IViewModelLinkedNode
+    public class NodeGroup : LinkedNode
     {
-        public Guid Id => Node.Id;
-        public string Name => Node.Name;
-        public Point Position { get; set; }
+        public Size Size { get; set; }
+    }
+
+    public class RelatedTaskNode : LinkedNode
+    {
+        public new string Name => Node.Name;
         public TaskNode Node { get; set; }
     }
 

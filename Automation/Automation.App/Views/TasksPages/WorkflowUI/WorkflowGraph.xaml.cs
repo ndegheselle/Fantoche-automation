@@ -4,7 +4,6 @@ using Automation.App.Shared.ApiClients;
 using Automation.App.Shared.ViewModels.Tasks;
 using Automation.App.ViewModels;
 using Automation.App.Views.TasksPages.Components;
-using Automation.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using Nodify;
 using System.Drawing;
@@ -66,7 +65,7 @@ namespace Automation.App.Views.TasksPages.WorkflowUI
 
             if (await _modal.Show(nodeSelector) && nodeSelector.Selected != null)
             {
-                ScopedTaskItem taskScopedItem = (ScopedTaskItem)nodeSelector.Selected;
+                TaskNode taskScopedItem = (TaskNode)nodeSelector.Selected;
                 EditorData.AddNode(Editor.ViewportLocation, taskScopedItem);
             }
         }

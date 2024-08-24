@@ -21,7 +21,7 @@ namespace Automation.Shared.Data
 
     public interface INamed
     {
-        Guid Id { get; }
+        Guid Id { get; set; }
         string Name { get; }
     }
 

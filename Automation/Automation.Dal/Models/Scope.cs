@@ -1,5 +1,6 @@
 ﻿using Automation.Shared.Data;
 using MongoDB.Bson.Serialization.Attributes;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Automation.Dal.Models
 {
@@ -15,5 +16,17 @@ namespace Automation.Dal.Models
         
         [BsonIgnore]
         public IList<INamed> Childrens { get; set; } = new List<INamed>();
+        public Scope()
+        {
+
+        }
+
+        public Scope(IScope scope)
+        {
+            Id = scope.Id;
+            ParentId = scope.ParentId;
+            Name = scope.Name;
+            Context = scope.Context;
+        }
     }
 }

@@ -6,20 +6,24 @@ namespace Automation.Dal.Models
 {
     public class WorkflowNode : TaskNode, IWorkflowNode
     {
-        public List<NodeGroup> Groups { get; set;} = new List<NodeGroup>();
-        public Dictionary<Guid, WorkflowRelation> TaskNodeChildrens { get; set; } = new Dictionary<Guid, WorkflowRelation>();
-
         public IEnumerable<ITaskConnection> Connections { get; set; } = new List<TaskConnection>();
-
-        [BsonIgnore]
         public IEnumerable<ILinkedNode> Nodes { get; set; } = new List<ILinkedNode>();
+
+        public WorkflowNode() { }
+
+        public WorkflowNode(IWorkflowNode workflowNode) : base(workflowNode) {
+            Connections = workflowNode.Connections;
+            Nodes = workflowNode.Nodes;
+        }
     }
 
     public class RelatedTaskNode : IRelatedTaskNode
     {
-        public Guid Id => Node.Id;
+        public Guid Id { get; set; }
+        public Point Position {  get; set; }
+        [BsonIgnore]
         public string Name => Node.Name;
-        public WorkflowRelation Context {get;set;}
+        [BsonIgnore]
         public ITaskNode Node { get; set; }
     }
 
@@ -28,7 +32,7 @@ namespace Automation.Dal.Models
         public Guid Id { get; set; }
         public string Name { get; set; }
         public Size Size { get; set; }
-        public WorkflowRelation Context { get; set; }
+        public Point Position { get; set; }
     }
 
     public class TaskConnection : ITaskConnection

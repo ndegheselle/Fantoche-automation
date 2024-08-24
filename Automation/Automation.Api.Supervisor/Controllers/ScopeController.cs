@@ -9,7 +9,7 @@ namespace Automation.Api.Supervisor.Controllers
 {
     [ApiController]
     [Route("scopes")]
-    public class ScopeController : IScopeRepository<IScope>
+    public class ScopeController : IScopeClient<IScope>
     {
         protected readonly ScopeRepository _repository;
         public ScopeController(IMongoDatabase database)
@@ -19,7 +19,7 @@ namespace Automation.Api.Supervisor.Controllers
 
         [HttpPost]
         [Route("")]
-        public Task CreateAsync(Scope element)
+        public Task<Guid> CreateAsync(IScope element)
         {
             return _repository.CreateAsync(element);
         }

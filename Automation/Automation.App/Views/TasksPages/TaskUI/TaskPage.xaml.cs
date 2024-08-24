@@ -1,4 +1,5 @@
 ﻿using Automation.App.Base;
+using Automation.App.Shared.ApiClients;
 using Automation.App.Shared.ViewModels.Tasks;
 using Automation.Shared;
 using Joufflu.Shared;
@@ -26,10 +27,10 @@ namespace Automation.App.Views.TasksPages.TaskUI
             _client = _app.ServiceProvider.GetRequiredService<TaskClient>();
             Task = task;
             InitializeComponent();
-            LoadTask(task);
+            LoadFullTask(task);
         }
 
-        public async void LoadTask(TaskNode task)
+        public async void LoadFullTask(TaskNode task)
         {
             TaskNode? fullTask = await _client.GetByIdAsync(task.Id);
 
