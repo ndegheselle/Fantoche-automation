@@ -36,6 +36,7 @@ namespace Automation.Dal.Repositories
         {
             element.Id = Guid.NewGuid();
             await _collection.InsertOneAsync(element);
+            return element.Id;
         }
 
         public virtual async Task UpdateAsync(Guid id, T element)

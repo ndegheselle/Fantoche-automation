@@ -11,4 +11,8 @@ namespace Automation.App.Shared.ApiClients
 
     public partial class WorkflowClient : IWorkflowClient<WorkflowNode>
     { }
+
+
+    public partial class HistoryClient : IHistoryClient<TaskHistory>
+    { }
 }
