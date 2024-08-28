@@ -4,6 +4,7 @@ using Automation.App.Shared.ViewModels.Tasks;
 using Automation.App.ViewModels;
 using Automation.Shared;
 using Microsoft.Extensions.DependencyInjection;
+using RestSharp;
 using System.Net.Http;
 using System.Windows;
 
@@ -38,20 +39,14 @@ namespace Automation.App
             services.AddTransient<IAlert>((provider) => GetActiveWindow().Alert);
 
             services.AddSingleton<ParametersViewModel>();
-            services.AddSingleton<HttpClient>(
-                (provider) =>
-                {
-                    HttpClient client = new HttpClient();
-                    client.BaseAddress = new Uri("https://localhost:50568/");
-                    return client;
-                });
+            services.AddSingleton<RestClient>(new RestClient("https://localhost:50568/"));
 
             services.AddTransient<ScopeClient>(
-                (provider) => new ScopeClient(provider.GetRequiredService<HttpClient>()));
+                (provider) => new ScopeClient(provider.GetRequiredService<RestClient>()));
             services.AddTransient<TaskClient>(
-                (provider) => new TaskClient(provider.GetRequiredService<HttpClient>()));
+                (provider) => new TaskClient(provider.GetRequiredService<RestClient>()));
             services.AddTransient<WorkflowClient>(
-                (provider) => new WorkflowClient(provider.GetRequiredService<HttpClient>()));
+                (provider) => new WorkflowClient(provider.GetRequiredService<RestClient>()));
 
             return services.BuildServiceProvider();
         }

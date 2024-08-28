@@ -9,7 +9,7 @@ namespace Automation.Api.Supervisor.Controllers
 {
     [ApiController]
     [Route("tasks")]
-    public class TaskController : ITaskClient<ITaskNode>
+    public class TaskController : ITaskClient<TaskNode>
     {
         protected readonly TaskRepository _repository;
         public TaskController(IMongoDatabase database)
@@ -19,9 +19,9 @@ namespace Automation.Api.Supervisor.Controllers
 
         [HttpPost]
         [Route("")]
-        public Task<Guid> CreateAsync(ITaskNode element)
+        public Task<Guid> CreateAsync(TaskNode element)
         {
-            return _repository.CreateAsync(new TaskNode(element));
+            return _repository.CreateAsync(element);
         }
 
         [HttpDelete]
@@ -33,16 +33,16 @@ namespace Automation.Api.Supervisor.Controllers
 
         [HttpGet]
         [Route("{id}")]
-        public async Task<ITaskNode?> GetByIdAsync([FromRoute] Guid id)
+        public async Task<TaskNode?> GetByIdAsync([FromRoute] Guid id)
         {
             return await _repository.GetByIdAsync(id);
         }
 
         [HttpPut]
         [Route("{id}")]
-        public Task UpdateAsync([FromRoute] Guid id, ITaskNode element)
+        public Task UpdateAsync([FromRoute] Guid id, TaskNode element)
         {
-            return _repository.UpdateAsync(id, new TaskNode(element));
+            return _repository.UpdateAsync(id, element);
         }
     }
 }

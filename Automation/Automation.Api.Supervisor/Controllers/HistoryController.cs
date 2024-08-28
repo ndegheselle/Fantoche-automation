@@ -21,14 +21,14 @@ namespace Automation.Api.Supervisor.Controllers
 
         [HttpGet]
         [Route("scopes/{scopeId}")]
-        public async Task<IPageWrapper<TaskHistory>> GetByScopeAsync([FromRoute]Guid scopeId, [FromQuery] int page, [FromQuery] int pageSize)
+        public async Task<ListPageWrapper<TaskHistory>> GetByScopeAsync([FromRoute]Guid scopeId, [FromQuery] int page, [FromQuery] int pageSize)
         {
             return await _repository.GetByScopeAsync(scopeId, page, pageSize);
         }
 
         [HttpGet]
         [Route("tasks/{taskId}")]
-        public async Task<IPageWrapper<TaskHistory>> GetByTaskAsync([FromRoute] Guid taskId, [FromQuery] int page, [FromQuery] int pageSize)
+        public async Task<ListPageWrapper<TaskHistory>> GetByTaskAsync([FromRoute] Guid taskId, [FromQuery] int page, [FromQuery] int pageSize)
         {
             return await _repository.GetByTaskAsync(taskId, page, pageSize);
         }

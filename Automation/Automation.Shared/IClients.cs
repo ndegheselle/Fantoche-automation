@@ -24,7 +24,7 @@ namespace Automation.Shared
 
     public interface IHistoryClient<T> where T : ITaskHistory
     {
-        public Task<IPageWrapper<T>> GetByTaskAsync(Guid taskId, int page, int pageSize);
-        public Task<IPageWrapper<T>> GetByScopeAsync(Guid scopeId, int page, int pageSize);
+        public Task<ListPageWrapper<T>> GetByTaskAsync(Guid taskId, int page, int pageSize);
+        public Task<ListPageWrapper<T>> GetByScopeAsync(Guid scopeId, int page, int pageSize);
     }
 }

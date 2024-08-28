@@ -12,7 +12,7 @@ namespace Automation.Dal.Repositories
         {
         }
 
-        public async Task<IPageWrapper<TaskHistory>> GetByScopeAsync(Guid scopeId, int page, int pageSize)
+        public async Task<ListPageWrapper<TaskHistory>> GetByScopeAsync(Guid scopeId, int page, int pageSize)
         {
             var histories = await _collection.Find(e => e.ScopeId == scopeId)
                 .Skip((page - 1) * pageSize)
@@ -26,7 +26,7 @@ namespace Automation.Dal.Repositories
             return pageWrapper;
         }
 
-        public async Task<IPageWrapper<TaskHistory>> GetByTaskAsync(Guid taskId, int page, int pageSize)
+        public async Task<ListPageWrapper<TaskHistory>> GetByTaskAsync(Guid taskId, int page, int pageSize)
         {
             var histories = await _collection.Find(e => e.TaskId == taskId)
                 .Skip((page - 1) * pageSize)
