@@ -10,8 +10,6 @@ namespace Automation.App.Views.Menus
     /// </summary>
     public partial class TopMenu : UserControl
     {
-        private readonly App _app = (App)App.Current;
-
         public TopMenu()
         {
             InitializeComponent();
@@ -26,7 +24,7 @@ namespace Automation.App.Views.Menus
 
         private void Parameters_Click(object sender, RoutedEventArgs e)
         {
-            IModalContainer modal = _app.ServiceProvider.GetRequiredService<IModalContainer>();
+            IModalContainer modal = this.GetCurrentModal();
             modal.Show(new ParametersUI());
         }
 

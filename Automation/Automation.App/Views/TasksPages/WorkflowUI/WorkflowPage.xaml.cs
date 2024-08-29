@@ -20,11 +20,10 @@ namespace Automation.App.Views.TasksPages.WorkflowUI
 
         private readonly App _app = (App)App.Current;
         private readonly WorkflowClient _client;
-        private readonly IModalContainer _modal;
+        private IModalContainer _modal => this.GetCurrentModal();
 
         public WorkflowPage(Guid workflowId)
         {
-            _modal = _app.ServiceProvider.GetRequiredService<IModalContainer>();
             _client = _app.ServiceProvider.GetRequiredService<WorkflowClient>();
             Workflow = new WorkflowNode() { Id = workflowId };
             InitializeComponent();

@@ -40,8 +40,8 @@ namespace Automation.App.Views.TasksPages.WorkflowUI
         #endregion
 
         private readonly App _app = (App)App.Current;
-        private readonly IModalContainer _modal;
-        private readonly IAlert _alert;
+        private IModalContainer _modal => this.GetCurrentModal();
+        private IAlert _alert => this.GetCurrentAlert();
         private readonly TaskClient _nodeClient;
         private readonly ScopeClient _scopeClient;
 
@@ -49,8 +49,6 @@ namespace Automation.App.Views.TasksPages.WorkflowUI
         {
             _nodeClient = _app.ServiceProvider.GetRequiredService<TaskClient>();
             _scopeClient = _app.ServiceProvider.GetRequiredService<ScopeClient>();
-            _modal = _app.ServiceProvider.GetRequiredService<IModalContainer>();
-            _alert = _app.ServiceProvider.GetRequiredService<IAlert>();
             InitializeComponent();
         }
 

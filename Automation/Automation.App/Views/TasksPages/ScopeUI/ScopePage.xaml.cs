@@ -19,17 +19,16 @@ namespace Automation.App.Views.TasksPages.ScopeUI
         public INavigationLayout? Layout { get; set; }
         public Scope Scope { get; set; }
 
-        private readonly IModalContainer _modal;
+        private IModalContainer _modal => this.GetCurrentModal();
 
         private readonly App _app = (App)App.Current;
         private readonly ScopeClient _scopeClient;
         private readonly TaskClient _taskClient;
 
-        public ScopePage(IModalContainer modal, Guid scopeId)
+        public ScopePage(Guid scopeId)
         {
             _scopeClient = _app.ServiceProvider.GetRequiredService<ScopeClient>();
             _taskClient = _app.ServiceProvider.GetRequiredService<TaskClient>();
-            _modal = modal;
             Scope = new Scope() { Id = scopeId };
 
             InitializeComponent();

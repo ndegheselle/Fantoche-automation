@@ -40,9 +40,7 @@ namespace Automation.App.Views.TasksPages
             switch (selected.Type)
             {
                 case EnumScopedType.Scope:
-                    Show(new ScopePage(
-                        _app.ServiceProvider.GetRequiredService<IModalContainer>(),
-                        selected.Id));
+                    Show(new ScopePage(selected.Id));
                     break;
                 case EnumScopedType.Workflow:
                     Show(new WorkflowPage(selected.Id));

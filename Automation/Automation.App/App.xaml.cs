@@ -1,15 +1,27 @@
 ﻿using Automation.App.Base;
+using Automation.App.Components.Display;
 using Automation.App.Shared.ApiClients;
-using Automation.App.Shared.ViewModels.Tasks;
 using Automation.App.ViewModels;
-using Automation.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using RestSharp;
-using System.Net.Http;
 using System.Windows;
+using System.Windows.Threading;
 
 namespace Automation.App
 {
+    public static class DependencyObjectExtension
+    {
+        public static IModalContainer GetCurrentModal(this DependencyObject d)
+        {
+            return (IModalContainer)Window.GetWindow(d);
+        }
+
+        public static IAlert GetCurrentAlert(this DependencyObject d)
+        {
+            return (IAlert)Window.GetWindow(d);
+        }
+    }
+
     /// <summary>
     /// Interaction logic for App.xaml
     /// </summary>
@@ -19,6 +31,11 @@ namespace Automation.App
 
         protected override void OnStartup(StartupEventArgs e)
         {
+            // Handle exceptions from the UI thread
+            this.DispatcherUnhandledException += App_DispatcherUnhandledException;
+            // Handle exceptions from background threads
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+
             ServiceCollection services = new ServiceCollection();
             ServiceProvider = ConfigureServices(services);
 
@@ -35,9 +52,6 @@ namespace Automation.App
         private IServiceProvider ConfigureServices(ServiceCollection services)
         {
             services.AddTransient<MainWindow>();
-            services.AddTransient<IModalContainer>((provider) => GetActiveWindow().Modal);
-            services.AddTransient<IAlert>((provider) => GetActiveWindow().Alert);
-
             services.AddSingleton<ParametersViewModel>();
             services.AddSingleton<RestClient>(new RestClient("https://localhost:50568/"));
 
@@ -51,8 +65,30 @@ namespace Automation.App
             return services.BuildServiceProvider();
         }
 
-        // XXX : should improve this if multiple windows are used
-        private IWindowContainer GetActiveWindow()
-        { return (IWindowContainer)Current.Windows.OfType<Window>().Single(x => x.IsActive); }
+        #region Exception handling
+
+        private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+        {
+            // FIXME : Should get the current window where the exception happend
+            var alert = ((IWindowContainer)Current.MainWindow).Alert;
+            alert.Error(e.Exception.Message);
+            // Prevent the application from crashing
+            e.Handled = true;
+        }
+
+        private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            Exception? exception = e.ExceptionObject as Exception;
+
+            if (ServiceProvider == null)
+                return;
+
+            var modal = ServiceProvider.GetRequiredService<IModalContainer>();
+            modal.Show(new ConfirmationModal("An unexpected error occurred")).Wait();
+
+            // The application will still terminate after this event is handled
+        }
+
+        #endregion
     }
 }

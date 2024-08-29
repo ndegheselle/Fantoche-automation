@@ -11,13 +11,10 @@ namespace Automation.App.Components.Data
     /// </summary>
     public partial class DataVisualizer : UserControl
     {
-        private readonly App _app = (App)App.Current;
-        private readonly IModalContainer _modal;
         public DataTree DataTree { get; set; }
 
         public DataVisualizer()
         {
-            _modal = _app.ServiceProvider.GetRequiredService<IModalContainer>();
             Dictionary<string, object> dico = new Dictionary<string, object>()
             {
                 { "key", "val" },
