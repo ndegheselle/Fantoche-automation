@@ -22,18 +22,18 @@ namespace Automation.App.Views.TasksPages.WorkflowUI
         private readonly WorkflowClient _client;
         private readonly IModalContainer _modal;
 
-        public WorkflowPage(WorkflowNode workflow)
+        public WorkflowPage(Guid workflowId)
         {
             _modal = _app.ServiceProvider.GetRequiredService<IModalContainer>();
             _client = _app.ServiceProvider.GetRequiredService<WorkflowClient>();
-            Workflow = workflow;
+            Workflow = new WorkflowNode() { Id = workflowId };
             InitializeComponent();
-            LoadFullWokflow(Workflow);
+            LoadFullWokflow(workflowId);
         }
 
-        public async void LoadFullWokflow(WorkflowNode workflow)
+        public async void LoadFullWokflow(Guid workflowId)
         {
-            WorkflowNode? fullWorkflow = await _client.GetByIdAsync(workflow.Id);
+            WorkflowNode? fullWorkflow = await _client.GetByIdAsync(workflowId);
 
             if (fullWorkflow == null)
                 throw new ArgumentException("Workflow not found");

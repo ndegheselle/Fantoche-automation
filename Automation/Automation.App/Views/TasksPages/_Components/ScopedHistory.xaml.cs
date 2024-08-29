@@ -18,11 +18,11 @@ namespace Automation.App.Views.TasksPages.Components
         // Dependency property for the task id
         public static readonly DependencyProperty TargetIdProperty = DependencyProperty.Register(
             nameof(TargetId),
-            typeof(Guid),
+            typeof(Guid?),
             typeof(ScopedHistory),
             new PropertyMetadata(default(Guid), (o, e) => ((ScopedHistory)o).OnScopedChange()));
 
-        public ScopedElement TargetId { get { return (ScopedElement)GetValue(TargetIdProperty); } set { SetValue(TargetIdProperty, value); } }
+        public Guid? TargetId { get { return (Guid?)GetValue(TargetIdProperty); } set { SetValue(TargetIdProperty, value); } }
 
         public EnumScopedType? Type { get; set; }
 
@@ -34,7 +34,7 @@ namespace Automation.App.Views.TasksPages.Components
         private readonly App _app = (App)App.Current;
         private readonly HistoryClient _historyClient;
 
-        public PageWrapper<TaskHistory> History { get; set; } = new PageWrapper<TaskHistory>() { PageSize = 50, Page = 1 };
+        public ListPageWrapper<TaskHistory> History { get; set; } = new ListPageWrapper<TaskHistory>() { PageSize = 50, Page = 1 };
 
         public ScopedHistory() {
             _historyClient = _app.ServiceProvider.GetRequiredService<HistoryClient>();
@@ -59,11 +59,11 @@ namespace Automation.App.Views.TasksPages.Components
 
             if (Type == EnumScopedType.Task || Type == EnumScopedType.Workflow)
             {
-                History = await _historyClient.GetByTaskAsync(TargetId, pageNumber, capacity);
+                History = await _historyClient.GetByTaskAsync(TargetId.Value, pageNumber, capacity);
             }
             else if (Type == EnumScopedType.Scope)
             {
-                History = await _historyClient.GetByScopeAsync(TargetId, pageNumber, capacity);
+                History = await _historyClient.GetByScopeAsync(TargetId.Value, pageNumber, capacity);
             }
         }
     }

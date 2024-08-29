@@ -16,7 +16,7 @@ namespace Automation.App.Shared.ApiClients
 
         public async Task<Scope> GetRootAsync()
         {
-            return await this.GetAsync<Scope>($"{_routeBase}/root") ??
+            return await _client.GetAsync<Scope>($"{_routeBase}/root") ??
                 throw new ApiException("Could not get the root scope element.");
         }
     }

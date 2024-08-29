@@ -6,7 +6,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:nodify="clr-namespace:Nodify;assembly=Nodify"
     xmlns:local="clr-namespace:Automation.App.Views.TasksPages.WorkflowUI"
-    xmlns:viewmodels="clr-namespace:Automation.App.ViewModels.Tasks"
+    xmlns:viewmodels="clr-namespace:Automation.App.Shared.ViewModels.Tasks;assembly=Automation.App.Shared"
+    xmlns:appViewmodels="clr-namespace:Automation.App.ViewModels"
     xmlns:data="clr-namespace:Automation.Shared.Data;assembly=Automation.Shared"
     xmlns:converters="clr-namespace:Automation.App.Converters"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
@@ -65,20 +66,20 @@
             PendingConnection="{Binding PendingConnection}"
             DisconnectConnectorCommand="{Binding DisconnectConnectorCommand}">
             <nodify:NodifyEditor.Resources>
-                <DataTemplate DataType="{x:Type viewmodels:NodifyGroup}">
+                <DataTemplate DataType="{x:Type viewmodels:NodeGroup}">
                     <nodify:GroupingNode
                         ActualSize="{Binding Size}"
                         Header="{Binding Name}"
                         MovementMode="Group" />
                 </DataTemplate>
 
-                <DataTemplate DataType="{x:Type viewmodels:NodifyNode}">
+                <DataTemplate DataType="{x:Type viewmodels:RelatedTaskNode}">
                     <nodify:Node
-                        Input="{Binding Inputs}"
-                        Output="{Binding Outputs}"
+                        Input="{Binding Node.Inputs}"
+                        Output="{Binding Node.Outputs}"
                         Header="{Binding Name}">
                         <nodify:Node.InputConnectorTemplate>
-                            <DataTemplate DataType="{x:Type viewmodels:NodifyConnector}">
+                            <DataTemplate DataType="{x:Type viewmodels:TaskConnector}">
                                 <nodify:NodeInput
                                     Header="{Binding Name}"
                                     IsConnected="{Binding IsConnected}"
@@ -97,7 +98,7 @@
                             </DataTemplate>
                         </nodify:Node.InputConnectorTemplate>
                         <nodify:Node.OutputConnectorTemplate>
-                            <DataTemplate DataType="{x:Type viewmodels:NodifyConnector}">
+                            <DataTemplate DataType="{x:Type viewmodels:TaskConnector}">
                                 <nodify:NodeOutput
                                     Header="{Binding Name}"
                                     IsConnected="{Binding IsConnected}"
@@ -124,7 +125,7 @@
                 </Style>
             </nodify:NodifyEditor.ItemContainerStyle>
             <nodify:NodifyEditor.ConnectionTemplate>
-                <DataTemplate DataType="{x:Type viewmodels:NodifyConnection}">
+                <DataTemplate DataType="{x:Type viewmodels:TaskConnection}">
                     <nodify:Connection Source="{Binding Source.Anchor}" Target="{Binding Target.Anchor}">
                         <nodify:Connection.Style>
                             <Style TargetType="{x:Type nodify:Connection}" BasedOn="{StaticResource {x:Type nodify:Connection}}">
@@ -142,7 +143,7 @@
                 </DataTemplate>
             </nodify:NodifyEditor.ConnectionTemplate>
             <nodify:NodifyEditor.PendingConnectionTemplate>
-                <DataTemplate DataType="{x:Type viewmodels:NodifyPendingConnection}">
+                <DataTemplate DataType="{x:Type appViewmodels:TaskPendingConnection}">
                     <nodify:PendingConnection
                         StartedCommand="{Binding StartCommand}"
                         CompletedCommand="{Binding FinishCommand}"

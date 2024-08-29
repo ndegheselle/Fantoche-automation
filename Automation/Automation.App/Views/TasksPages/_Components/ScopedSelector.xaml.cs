@@ -1,6 +1,6 @@
 ﻿using Automation.App.Base;
+using Automation.App.Shared.ApiClients;
 using Automation.App.Shared.ViewModels.Tasks;
-using Automation.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 using System.Windows.Controls;

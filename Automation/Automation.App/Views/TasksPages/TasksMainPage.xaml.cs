@@ -1,5 +1,6 @@
 ﻿using Automation.App.Base;
 using Automation.App.Shared.ApiClients;
+using Automation.App.Shared.ViewModels.Tasks;
 using Automation.App.Views.TasksPages.ScopeUI;
 using Automation.App.Views.TasksPages.TaskUI;
 using Automation.App.Views.TasksPages.WorkflowUI;
@@ -30,7 +31,7 @@ namespace Automation.App.Views.TasksPages
             SideMenu.RootScope = await _client.GetRootAsync();
         }
 
-        private void ScopedSelector_SelectedChanged(ScopedItem? selected)
+        private void ScopedSelector_SelectedChanged(ScopedElement? selected)
         {
 
             if (selected == null)
@@ -41,13 +42,13 @@ namespace Automation.App.Views.TasksPages
                 case EnumScopedType.Scope:
                     Show(new ScopePage(
                         _app.ServiceProvider.GetRequiredService<IModalContainer>(),
-                        (ScopeItem)selected));
+                        selected.Id));
                     break;
                 case EnumScopedType.Workflow:
-                    Show(new WorkflowPage((ScopedTaskItem)selected));
+                    Show(new WorkflowPage(selected.Id));
                     break;
                 case EnumScopedType.Task:
-                    Show(new TaskPage((ScopedTaskItem)selected));
+                    Show(new TaskPage(selected.Id));
                     break;
             }
         }

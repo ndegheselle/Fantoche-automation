@@ -1,12 +1,7 @@
-﻿using Automation.Shared;
-using System;
-using System.Collections.Generic;
+﻿using Automation.App.Shared;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Data;
 
 namespace Automation.App.Components.Data

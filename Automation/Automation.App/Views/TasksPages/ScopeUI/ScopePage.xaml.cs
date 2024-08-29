@@ -1,4 +1,5 @@
 ﻿using Automation.App.Base;
+using Automation.App.Shared.ApiClients;
 using Automation.App.Shared.ViewModels.Tasks;
 using Automation.App.Views.TasksPages.TaskUI;
 using Automation.App.Views.TasksPages.WorkflowUI;
@@ -24,20 +25,20 @@ namespace Automation.App.Views.TasksPages.ScopeUI
         private readonly ScopeClient _scopeClient;
         private readonly TaskClient _taskClient;
 
-        public ScopePage(IModalContainer modal, Scope scope)
+        public ScopePage(IModalContainer modal, Guid scopeId)
         {
             _scopeClient = _app.ServiceProvider.GetRequiredService<ScopeClient>();
             _taskClient = _app.ServiceProvider.GetRequiredService<TaskClient>();
             _modal = modal;
-            Scope = scope;
+            Scope = new Scope() { Id = scopeId };
 
             InitializeComponent();
-            LoadFullScope(scope);
+            LoadFullScope(scopeId);
         }
 
-        public async void LoadFullScope(Scope scope)
+        public async void LoadFullScope(Guid scopeId)
         {
-            Scope? fullScope = await _scopeClient.GetByIdAsync(scope.Id);
+            Scope? fullScope = await _scopeClient.GetByIdAsync(scopeId);
 
             if (fullScope == null)
                 throw new ArgumentException("Scope not found");

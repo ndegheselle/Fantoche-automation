@@ -21,18 +21,18 @@ namespace Automation.App.Views.TasksPages.TaskUI
         private readonly TaskClient _client;
         private readonly IModalContainer _modal;
 
-        public TaskPage(TaskNode task)
+        public TaskPage(Guid taskId)
         {
             _modal = _app.ServiceProvider.GetRequiredService<IModalContainer>();
             _client = _app.ServiceProvider.GetRequiredService<TaskClient>();
-            Task = task;
+            Task = new TaskNode() { Id = taskId };
             InitializeComponent();
-            LoadFullTask(task);
+            LoadFullTask(taskId);
         }
 
-        public async void LoadFullTask(TaskNode task)
+        public async void LoadFullTask(Guid taskId)
         {
-            TaskNode? fullTask = await _client.GetByIdAsync(task.Id);
+            TaskNode? fullTask = await _client.GetByIdAsync(taskId);
 
             if (fullTask == null)
                 throw new ArgumentException("Task not found");

@@ -1,6 +1,6 @@
 ﻿using Automation.App.Shared;
+using Automation.App.Shared.ApiClients;
 using Automation.App.Shared.ViewModels.Tasks;
-using Automation.Shared;
 using Automation.Shared.Data;
 using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;
@@ -16,9 +16,9 @@ namespace Automation.App.ViewModels
         public event PropertyChangedEventHandler? PropertyChanged;
         public event Action<string>? InvalidConnection;
 
-        public List<IViewModelLinkedNode> SelectedNodes { get; set; } = [];
+        public List<LinkedNode> SelectedNodes { get; set; } = [];
         public ICommand DisconnectConnectorCommand { get; }
-        public NodifyPendingConnection? PendingConnection { get; }
+        public TaskPendingConnection? PendingConnection { get; }
         public WorkflowNode Workflow { get; }
 
         private readonly App _app = (App)System.Windows.Application.Current;
@@ -29,7 +29,7 @@ namespace Automation.App.ViewModels
             _nodeClient = _app.ServiceProvider.GetRequiredService<TaskClient>();
             Workflow = workflow;
 
-            PendingConnection = new NodifyPendingConnection(this);
+            PendingConnection = new TaskPendingConnection(this);
             DisconnectConnectorCommand = new DelegateCommand<TaskConnector>(connector =>
             {
                 connector.IsConnected = false;
@@ -67,13 +67,13 @@ namespace Automation.App.ViewModels
             InvalidConnection?.Invoke(message);
         }
 
-        public void RemoveNodes(IList<IViewModelLinkedNode> nodes)
+        public void RemoveNodes(IList<LinkedNode> nodes)
         {
             for (int j = nodes.Count - 1; j >= 0; j--)
             {
                 var node = nodes[j];
                 Workflow.Nodes.Remove(node);
-                var connections = Workflow.Connections.Where(x => x.Source.Parent == node || x.Target.Parent == node);
+                var connections = Workflow.Connections.Where(x => x.Source.Parent.Id == node.Id || x.Target.Parent.Id == node.Id);
                 for (int i = connections.Count() - 1; i >= 0; i--)
                 {
                     var connection = connections.ElementAt(i);
@@ -82,14 +82,14 @@ namespace Automation.App.ViewModels
             }
         }
 
-        public async void AddNode(Point position, TaskNode task)
+        public async void AddNode(System.Windows.Point position, TaskNode task)
         {
             // TODO : Add the node to the center of the view
-            TaskNode? addedTask = await _nodeClient.GetTaskAsync(task.Id);
+            TaskNode? addedTask = await _nodeClient.GetByIdAsync(task.Id);
             if (addedTask == null)
                 return;
 
-            Workflow.Nodes.Add(new RelatedTaskNode() { Position = new System.Windows.Point() { X = position.X, Y = position.Y }, Node = addedTask });
+            Workflow.Nodes.Add(new RelatedTaskNode() { Position = position, Node = addedTask });
         }
 
         public void CreateGroup(Rectangle boundingBox)
@@ -105,12 +105,12 @@ namespace Automation.App.ViewModels
     }
 
 
-    public class NodifyPendingConnection
+    public class TaskPendingConnection
     {
         private readonly EditorViewModel _editor;
         private TaskConnector? _source;
 
-        public NodifyPendingConnection(EditorViewModel editor)
+        public TaskPendingConnection(EditorViewModel editor)
         {
             _editor = editor;
             StartCommand = new DelegateCommand<TaskConnector>(source => _source = source);
