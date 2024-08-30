@@ -42,11 +42,27 @@
         <Grid>
             <ProgressBar
                 adonisExtensions:ProgressBarExtension.IsProgressAnimationEnabled="False"
-                Foreground="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}"
                 x:Name="ProgressBarTimer"
                 VerticalAlignment="Top"
                 Height="4"
-                BorderThickness="0" />
+                BorderThickness="0">
+                <ProgressBar.Style>
+                    <Style TargetType="ProgressBar">
+                        <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Type}" Value="Warning">
+                                <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.AlertBrush}}" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Type}" Value="Error">
+                                <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.ErrorBrush}}" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Type}" Value="Success">
+                                <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.SuccessBrush}}" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </ProgressBar.Style>
+            </ProgressBar>
 
             <Grid Margin="8">
                 <Grid.ColumnDefinitions>

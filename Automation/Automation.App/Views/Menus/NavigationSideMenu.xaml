@@ -23,7 +23,17 @@
                     </Style.Triggers>
                 </Style>
             </Button.Style>
-            <fonts:Icon FontSize="24" Text="{x:Static fonts:IconFont.Cubes}" />
+            <fonts:Icon FontSize="24" Text="{x:Static fonts:IconFont.Cubes}">
+                <fonts:Icon.Style>
+                    <Style TargetType="{x:Type fonts:Icon}" BasedOn="{StaticResource {x:Type fonts:Icon}}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding CurrentPage}" Value="Tasks">
+                                <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </fonts:Icon.Style>
+            </fonts:Icon>
         </Button>
         <Button
             Padding="10"
@@ -38,7 +48,17 @@
                     </Style.Triggers>
                 </Style>
             </Button.Style>
-            <fonts:Icon FontSize="24" Text="{x:Static fonts:IconFont.Server}" />
+            <fonts:Icon FontSize="24" Text="{x:Static fonts:IconFont.Server}">
+                <fonts:Icon.Style>
+                    <Style TargetType="{x:Type fonts:Icon}" BasedOn="{StaticResource {x:Type fonts:Icon}}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding CurrentPage}" Value="Workers">
+                                <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </fonts:Icon.Style>
+            </fonts:Icon>
         </Button>
     </StackPanel>
 </UserControl>
