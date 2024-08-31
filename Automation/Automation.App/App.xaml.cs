@@ -53,7 +53,7 @@ namespace Automation.App
         {
             services.AddTransient<MainWindow>();
             services.AddSingleton<ParametersViewModel>();
-            services.AddSingleton<RestClient>(new RestClient("https://localhost:50568/"));
+            services.AddSingleton<RestClient>(new RestClient("https://localhost:8080/"));
 
             services.AddTransient<ScopeClient>(
                 (provider) => new ScopeClient(provider.GetRequiredService<RestClient>()));

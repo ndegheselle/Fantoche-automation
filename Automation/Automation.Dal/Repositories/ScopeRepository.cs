@@ -7,7 +7,7 @@ namespace Automation.Dal.Repositories
 {
     public class ScopeRepository : BaseCrudRepository<Scope>, IScopeClient<Scope>
     {
-        public ScopeRepository(IMongoDatabase database) : base(database, "Scopes")
+        public ScopeRepository(IMongoDatabase database) : base(database, "scopes")
         {}
 
         public async Task<IEnumerable<Scope>> GetByScopeAsync(Guid scopeId)
@@ -18,7 +18,10 @@ namespace Automation.Dal.Repositories
 
         public async override Task<Scope?> GetByIdAsync(Guid id)
         {
-            var scope = await _collection.Find(e => e.Id == id).FirstAsync();
+            var scope = await _collection.Find(e => e.Id == id).FirstOrDefaultAsync();
+
+            if (scope == null)
+                return null;
 
             var taskRepo = new TaskRepository(_database);
 

@@ -6,7 +6,7 @@ namespace Automation.Dal.Repositories
 {
     public class WorkflowRepository : BaseCrudRepository<WorkflowNode>
     {
-        public WorkflowRepository(IMongoDatabase database) : base(database, "Tasks")
+        public WorkflowRepository(IMongoDatabase database) : base(database, "tasks")
         {}
 
         public async override Task<WorkflowNode?> GetByIdAsync(Guid id)

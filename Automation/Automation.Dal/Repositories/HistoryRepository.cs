@@ -8,7 +8,7 @@ namespace Automation.Dal.Repositories
 {
     public class HistoryRepository : BaseRepository<TaskHistory>, IHistoryClient<TaskHistory>
     {
-        public HistoryRepository(IMongoDatabase database) : base(database, "TaskHistories")
+        public HistoryRepository(IMongoDatabase database) : base(database, "task_histories")
         {
         }
 

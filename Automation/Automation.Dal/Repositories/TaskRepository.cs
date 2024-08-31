@@ -6,7 +6,7 @@ namespace Automation.Dal.Repositories
 {
     public class TaskRepository : BaseCrudRepository<TaskNode>
     {
-        public TaskRepository(IMongoDatabase database) : base(database, "Tasks")
+        public TaskRepository(IMongoDatabase database) : base(database, "tasks")
         {}
 
         public async Task<IEnumerable<TaskNode>> GetByScopeAsync(Guid scopeId)

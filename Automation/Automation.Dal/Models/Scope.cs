@@ -1,6 +1,5 @@
 ﻿using Automation.Shared.Data;
 using MongoDB.Bson.Serialization.Attributes;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Automation.Dal.Models
 {
@@ -8,7 +7,6 @@ namespace Automation.Dal.Models
     {
         [BsonId]
         public Guid Id { get; set; }
-        [BsonId]
         public Guid? ParentId { get; set; }
         public string Name { get; set; } = string.Empty;
         public IScope? Parent { get; set; }

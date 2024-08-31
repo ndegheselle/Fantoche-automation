@@ -10,9 +10,9 @@ db.createUser(
         ]
     }
 );
-db.createCollection("TaskHistories");
-db.createCollection("Scopes");
-db.createCollection("Tasks");
+db.createCollection("task_histories");
+db.createCollection("scopes");
+db.createCollection("tasks");
 
 // Root scope
 db.scopes.insertOne({
