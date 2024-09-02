@@ -7,11 +7,8 @@ namespace Automation.Dal.Models
     {
         [BsonId]
         public Guid Id { get; set; }
-        [BsonId]
         public Guid? ParentTaskId { get; set; }
-        [BsonId]
         public Guid ScopeId { get; set; }
-        [BsonId]
         public Guid TaskId { get; set; }
 
         public DateTime StartDate { get; set; }

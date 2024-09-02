@@ -46,7 +46,7 @@
                             </Button.ContextMenu>
                             <StackPanel Orientation="Horizontal">
                                 <fonts:Icon Text="{x:Static fonts:IconFont.Plus}" />
-                                <TextBlock Margin="10,0,0,0">New task</TextBlock>
+                                <TextBlock Margin="10,0,0,0">New element</TextBlock>
                             </StackPanel>
                         </Button>
                         <Button Margin="2,0,0,0">
@@ -58,9 +58,8 @@
                     </StackPanel>
                     <ListBox
                         SelectionMode="Multiple"
-                        Background="{StaticResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}"
                         Grid.Row="1"
-                        ItemsSource="{Binding Scoped.SortedChildrens}"
+                        ItemsSource="{Binding Scope.SortedChildrens}"
                         MouseDoubleClick="ListBox_MouseDoubleClick">
                         <ListBox.ItemTemplate>
                             <DataTemplate>

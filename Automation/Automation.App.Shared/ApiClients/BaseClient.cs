@@ -1,6 +1,5 @@
 ﻿using Automation.Shared;
 using RestSharp;
-using System.Net.Http;
 
 namespace Automation.App.Shared.ApiClients
 {
@@ -21,17 +20,17 @@ namespace Automation.App.Shared.ApiClients
         }
     }
 
-    public class BaseCrudClient<T> : BaseClient, ICrudClient<T>
+    public class BaseCrudClient<TIn, TOut> : BaseClient, ICrudClient<TIn, TOut>
     {
         public BaseCrudClient(RestClient client, string routeBase) : base(client, routeBase)
         {
         }
 
-        public Task<Guid> CreateAsync(T element)
+        public async Task<Guid> CreateAsync(TIn element)
         {
             if (element == null)
                 throw new ArgumentNullException(nameof(element));
-            return _client.PostAsync<Guid>(new RestRequest($"{_routeBase}").AddBody(element));
+            return await _client.PostAsync<Guid>(new RestRequest($"{_routeBase}").AddBody(element));
         }
 
         public async Task DeleteAsync(Guid id)
@@ -39,12 +38,12 @@ namespace Automation.App.Shared.ApiClients
             await _client.DeleteAsync($"{_routeBase}/{id}");
         }
 
-        public Task<T?> GetByIdAsync(Guid id)
+        public Task<TOut?> GetByIdAsync(Guid id)
         {
-            return _client.GetAsync<T>($"{_routeBase}/{id}");
+            return _client.GetAsync<TOut>($"{_routeBase}/{id}");
         }
 
-        public async Task UpdateAsync(Guid id, T element)
+        public async Task UpdateAsync(Guid id, TIn element)
         {
             if (element == null)
                 throw new ArgumentNullException(nameof(element));

@@ -1,6 +1,5 @@
 using Automation.Dal.Models;
 using Automation.Dal.Repositories;
-using Automation.Shared;
 using Automation.Shared.Data;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
@@ -9,7 +8,7 @@ namespace Automation.Api.Supervisor.Controllers
 {
     [ApiController]
     [Route("tasks")]
-    public class TaskController : ITaskClient<TaskNode>
+    public class TaskController
     {
         protected readonly TaskRepository _repository;
         public TaskController(IMongoDatabase database)
@@ -33,7 +32,7 @@ namespace Automation.Api.Supervisor.Controllers
 
         [HttpGet]
         [Route("{id}")]
-        public async Task<TaskNode?> GetByIdAsync([FromRoute] Guid id)
+        public async Task<ITaskNode?> GetByIdAsync([FromRoute] Guid id)
         {
             return await _repository.GetByIdAsync(id);
         }

@@ -3,11 +3,14 @@ using System.Windows;
 
 namespace Automation.App.Shared.ViewModels.Tasks
 {
-    public class TaskNode : ScopedElement
+    public class TaskNode : ScopedElement, ITaskNode
     {
         public Guid ScopeId { get; set; }
         public List<TaskConnector> Inputs { get; set; }
         public List<TaskConnector> Outputs { get; set; }
+
+        IEnumerable<ITaskConnector> ITaskNode.Inputs => Inputs;
+        IEnumerable<ITaskConnector> ITaskNode.Outputs => Outputs;
 
         public TaskNode()
         {
@@ -15,7 +18,7 @@ namespace Automation.App.Shared.ViewModels.Tasks
         }
     }
 
-    public class TaskConnector
+    public class TaskConnector : ITaskConnector
     {
         public Guid Id { get; set; }
         public string Name { get; set; }

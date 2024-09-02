@@ -1,16 +1,12 @@
 ﻿using Automation.Shared.Data;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Text.Json.Serialization;
 using System.Windows.Data;
 
 namespace Automation.App.Shared.ViewModels.Tasks
 {
-    public interface IViewModelNamed
-    {
-        Guid Id { get; }
-        string Name { get; }
-    }
-
     [Flags]
     public enum EnumScopedType
     {
@@ -19,7 +15,7 @@ namespace Automation.App.Shared.ViewModels.Tasks
         Task
     }
 
-    public class ScopedElement : IViewModelNamed, INotifyPropertyChanged
+    public class ScopedElement : INamed, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
@@ -66,19 +62,32 @@ namespace Automation.App.Shared.ViewModels.Tasks
         #endregion
     }
 
-    public class Scope : ScopedElement
+    public class Scope : ScopedElement, IScope
     {
         public Guid? ParentId { get; set; }
         public Dictionary<string, string> Context { get; private set; } = new Dictionary<string, string>();
-        public List<ScopedElement> Childrens { get; set; } = new List<ScopedElement>();
+
+        private ObservableCollection<ScopedElement> _childrens;
+        public ObservableCollection<ScopedElement> Childrens
+        {
+            get { return _childrens; }
+            set
+            {
+                _childrens = value;
+                SortedChildrens = (ListCollectionView)CollectionViewSource.GetDefaultView(Childrens);
+                SortedChildrens.SortDescriptions.Add(new SortDescription(nameof(Type), ListSortDirection.Ascending));
+                SortedChildrens.SortDescriptions.Add(new SortDescription(nameof(Name), ListSortDirection.Ascending));
+            }
+        }
+        IList<INamed> IScope.Childrens => Childrens.Cast<INamed>().ToList();
+
+        [JsonIgnore]
         public ListCollectionView SortedChildrens { get; set; }
+
 
         public Scope()
         {
             Type = EnumScopedType.Scope;
-            SortedChildrens = (ListCollectionView)CollectionViewSource.GetDefaultView(Childrens);
-            SortedChildrens.SortDescriptions.Add(new SortDescription(nameof(Type), ListSortDirection.Ascending));
-            SortedChildrens.SortDescriptions.Add(new SortDescription(nameof(Name), ListSortDirection.Ascending));
         }
     }
 }

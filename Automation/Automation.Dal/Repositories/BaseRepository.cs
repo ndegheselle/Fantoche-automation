@@ -17,7 +17,7 @@ namespace Automation.Dal.Repositories
         }
     }
 
-    public class BaseCrudRepository<T> : BaseRepository<T>, ICrudClient<T> where T : INamed
+    public class BaseCrudRepository<T> : BaseRepository<T> where T : INamed
     {
         public BaseCrudRepository(IMongoDatabase database, string collectionName) : base(database, collectionName)
         { }

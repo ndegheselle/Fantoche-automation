@@ -44,7 +44,10 @@ namespace Automation.App.Views.TasksPages.Components
         public ScopedElement? Selected
         {
             get { return (ScopedElement?)GetValue(SelectedProperty); }
-            set { SetValue(SelectedProperty, value); }
+            set { 
+                SetValue(SelectedProperty, value);
+                SelectedChanged?.Invoke(Selected);
+            }
         }
 
         #endregion
@@ -84,7 +87,6 @@ namespace Automation.App.Views.TasksPages.Components
                 return;
             }
             Selected = selected;
-            SelectedChanged?.Invoke(Selected);
         }
     }
 }

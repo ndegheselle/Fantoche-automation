@@ -5,7 +5,7 @@ using MongoDB.Driver;
 
 namespace Automation.Dal.Repositories
 {
-    public class ScopeRepository : BaseCrudRepository<Scope>, IScopeClient<Scope>
+    public class ScopeRepository : BaseCrudRepository<Scope>
     {
         public ScopeRepository(IMongoDatabase database) : base(database, "scopes")
         {}

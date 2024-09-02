@@ -1,12 +1,10 @@
 ﻿using Automation.Dal.Models;
-using Automation.Shared;
 using Automation.Shared.Base;
 using MongoDB.Driver;
-using static System.Formats.Asn1.AsnWriter;
 
 namespace Automation.Dal.Repositories
 {
-    public class HistoryRepository : BaseRepository<TaskHistory>, IHistoryClient<TaskHistory>
+    public class HistoryRepository : BaseRepository<TaskHistory>
     {
         public HistoryRepository(IMongoDatabase database) : base(database, "task_histories")
         {

@@ -6,6 +6,7 @@ using Automation.App.Views.TasksPages.WorkflowUI;
 using Automation.Shared;
 using Joufflu.Shared;
 using Microsoft.Extensions.DependencyInjection;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -56,6 +57,7 @@ namespace Automation.App.Views.TasksPages.ScopeUI
         private async void MenuAddScope_Click(object sender, RoutedEventArgs e)
         {
             Scope newScope = new Scope();
+            newScope.ParentId = Scope.Id;
             if (await _modal.Show(new ScopeEditModal(newScope)))
             {
                 newScope.Id = await _scopeClient.CreateAsync(newScope);
@@ -66,6 +68,7 @@ namespace Automation.App.Views.TasksPages.ScopeUI
         private async void MenuAddTask_Click(object sender, RoutedEventArgs e)
         {
             var task = new TaskNode();
+            task.ScopeId = Scope.Id;
             if (await _modal.Show(new TaskEditModal(task)))
             {
                 task.Id = await _taskClient.CreateAsync(task);
@@ -76,6 +79,7 @@ namespace Automation.App.Views.TasksPages.ScopeUI
         private async void MenuAddWorkflow_Click(object sender, RoutedEventArgs e)
         {
             WorkflowNode workflow = new WorkflowNode();
+            workflow.ScopeId = Scope.Id;
             if (await _modal.Show(new WorkflowEditModal(workflow)))
             {
                 workflow.Id = await _taskClient.CreateAsync(workflow);
@@ -91,8 +95,6 @@ namespace Automation.App.Views.TasksPages.ScopeUI
                 await _scopeClient.UpdateAsync(Scope.Id, Scope);
         }
 
-        #endregion
-
         private void ListBox_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             ListBox listBox = (ListBox)sender;
@@ -103,5 +105,6 @@ namespace Automation.App.Views.TasksPages.ScopeUI
 
             selectedElement.IsSelected = true;
         }
+        #endregion
     }
 }

@@ -13,12 +13,12 @@ namespace Automation.App
     {
         public static IModalContainer GetCurrentModal(this DependencyObject d)
         {
-            return (IModalContainer)Window.GetWindow(d);
+            return ((IWindowContainer)Window.GetWindow(d)).Modal;
         }
 
         public static IAlert GetCurrentAlert(this DependencyObject d)
         {
-            return (IAlert)Window.GetWindow(d);
+            return ((IWindowContainer)Window.GetWindow(d)).Alert;
         }
     }
 
@@ -53,7 +53,7 @@ namespace Automation.App
         {
             services.AddTransient<MainWindow>();
             services.AddSingleton<ParametersViewModel>();
-            services.AddSingleton<RestClient>(new RestClient("https://localhost:8080/"));
+            services.AddSingleton<RestClient>(new RestClient("https://localhost:8081/"));
 
             services.AddTransient<ScopeClient>(
                 (provider) => new ScopeClient(provider.GetRequiredService<RestClient>()));
@@ -61,7 +61,8 @@ namespace Automation.App
                 (provider) => new TaskClient(provider.GetRequiredService<RestClient>()));
             services.AddTransient<WorkflowClient>(
                 (provider) => new WorkflowClient(provider.GetRequiredService<RestClient>()));
-
+            services.AddTransient<HistoryClient>(
+                (provider) => new HistoryClient(provider.GetRequiredService<RestClient>()));
             return services.BuildServiceProvider();
         }
 

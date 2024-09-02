@@ -1,10 +1,11 @@
 ﻿using Automation.App.Shared.ViewModels.Tasks;
 using Automation.Shared;
+using Automation.Shared.Data;
 using RestSharp;
 
 namespace Automation.App.Shared.ApiClients
 {
-    public class ScopeClient : BaseCrudClient<Scope>, IScopeClient<Scope>
+    public class ScopeClient : BaseCrudClient<IScope, Scope>, IScopeClient<Scope>
     {
         public ScopeClient(RestClient restClient) : base(restClient, "scopes")
         { }
