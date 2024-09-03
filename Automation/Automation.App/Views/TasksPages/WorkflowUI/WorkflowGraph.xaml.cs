@@ -40,8 +40,8 @@ namespace Automation.App.Views.TasksPages.WorkflowUI
         #endregion
 
         private readonly App _app = (App)App.Current;
-        private IModalContainer _modal => this.GetCurrentModal();
-        private IAlert _alert => this.GetCurrentAlert();
+        private IModalContainer _modal => this.GetCurrentModalContainer();
+        private IAlert _alert => this.GetCurrentAlertContainer();
         private readonly TaskClient _nodeClient;
         private readonly ScopeClient _scopeClient;
 

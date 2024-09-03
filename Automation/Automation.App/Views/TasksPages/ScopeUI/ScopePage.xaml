@@ -11,69 +11,9 @@
     xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI">
     <Grid>
-        <TabControl DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:ScopePage}}">
-            <TabItem Header="Tasks">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="auto" />
-                        <RowDefinition />
-                    </Grid.RowDefinitions>
-
-                    <StackPanel
-                        Grid.Column="1"
-                        Orientation="Horizontal"
-                        Margin="2"
-                        HorizontalAlignment="Right">
-                        <Button Click="ButtonAdd_Click">
-                            <Button.ContextMenu>
-                                <ContextMenu Placement="Bottom">
-                                    <MenuItem Header="Add scope" Click="MenuAddScope_Click">
-                                        <MenuItem.Icon>
-                                            <components:NodeIcon Type="Scope" Margin="0,0,4,0" />
-                                        </MenuItem.Icon>
-                                    </MenuItem>
-                                    <MenuItem Header="Add workflow" Click="MenuAddWorkflow_Click">
-                                        <MenuItem.Icon>
-                                            <components:NodeIcon Type="Workflow" Margin="0,0,4,0" />
-                                        </MenuItem.Icon>
-                                    </MenuItem>
-                                    <MenuItem Header="Add task" Click="MenuAddTask_Click">
-                                        <MenuItem.Icon>
-                                            <components:NodeIcon Type="Task" Margin="0,0,4,0" />
-                                        </MenuItem.Icon>
-                                    </MenuItem>
-                                </ContextMenu>
-                            </Button.ContextMenu>
-                            <StackPanel Orientation="Horizontal">
-                                <fonts:Icon Text="{x:Static fonts:IconFont.Plus}" />
-                                <TextBlock Margin="10,0,0,0">New element</TextBlock>
-                            </StackPanel>
-                        </Button>
-                        <Button Margin="2,0,0,0">
-                            <StackPanel Orientation="Horizontal">
-                                <fonts:Icon Text="{x:Static fonts:IconFont.Trash}" />
-                                <TextBlock Margin="10,0,0,0">Remove selection</TextBlock>
-                            </StackPanel>
-                        </Button>
-                    </StackPanel>
-                    <ListBox
-                        SelectionMode="Multiple"
-                        Grid.Row="1"
-                        ItemsSource="{Binding Scope.SortedChildrens}"
-                        MouseDoubleClick="ListBox_MouseDoubleClick">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Horizontal">
-                                    <components:NodeIcon Type="{Binding Type}" Margin="0,0,4,0" />
-                                    <TextBlock Text="{Binding Name}" />
-                                </StackPanel>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
-                </Grid>
-            </TabItem>
+        <TabControl Margin="0,3,0,0" DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:ScopePage}}">
             <TabItem Header="History">
-                <components:ScopedHistory TargetId="{Binding Scoped}" />
+                <components:ScopedHistory TargetId="{Binding Scope}" />
             </TabItem>
         </TabControl>
         <Button

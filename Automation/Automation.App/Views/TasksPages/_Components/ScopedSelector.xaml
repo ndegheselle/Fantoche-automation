@@ -7,39 +7,103 @@
     xmlns:local="clr-namespace:Automation.App.Views.TasksPages.Components"
     xmlns:viewmodels="clr-namespace:Automation.App.Shared.ViewModels.Tasks;assembly=Automation.App.Shared"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
+    xmlns:components="clr-namespace:Automation.App.Views.TasksPages.Components"
+    xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     mc:Ignorable="d">
-    <TreeView
-        DataContext="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:ScopedSelector}}}"
-        Background="{DynamicResource {x:Static adonisUi:Brushes.Layer1BackgroundBrush}}"
-        MinWidth="200"
-        ItemsSource="{Binding RootScope.SortedChildrens}"
-        SelectedItemChanged="TreeView_SelectedItemChanged">
-        <TreeView.ItemContainerStyle>
-            <Style TargetType="{x:Type TreeViewItem}" BasedOn="{StaticResource TreeViewItemStyle}">
-                <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
-                <Setter Property="IsExpanded">
-                    <Setter.Value>
-                        <!--  Avoids warnings for nodes that do not have the "IsExpanded" property  -->
-                        <PriorityBinding>
-                            <Binding Path="IsExpanded" Mode="TwoWay" />
-                        </PriorityBinding>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-        </TreeView.ItemContainerStyle>
-        <TreeView.Resources>
-            <HierarchicalDataTemplate DataType="{x:Type viewmodels:Scope}" ItemsSource="{Binding SortedChildrens}">
-                <StackPanel Orientation="Horizontal">
-                    <local:NodeIcon Type="Scope" Margin="0,0,4,0" />
-                    <TextBlock Text="{Binding Name}" />
-                </StackPanel>
-            </HierarchicalDataTemplate>
-            <DataTemplate DataType="{x:Type viewmodels:ScopedElement}">
-                <StackPanel Orientation="Horizontal">
-                    <local:NodeIcon Type="{Binding Type}" Margin="0,0,4,0" />
-                    <TextBlock Text="{Binding Name}" />
-                </StackPanel>
-            </DataTemplate>
-        </TreeView.Resources>
-    </TreeView>
+    <UserControl.Resources>
+        <ContextMenu x:Key="ContextMenuScope">
+            <MenuItem Header="Add">
+                <MenuItem.Icon>
+                    <fonts:Icon Text="{x:Static fonts:IconFont.Plus}" />
+                </MenuItem.Icon>
+
+                <MenuItem Header="Add scope" Command="{Binding AddScopeCommand, RelativeSource={RelativeSource AncestorType=local:ScopedSelector}}">
+                    <MenuItem.Icon>
+                        <components:NodeIcon Type="Scope" Margin="0,0,4,0" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Add workflow" Command="{Binding AddWorkflowCommand, RelativeSource={RelativeSource AncestorType=local:ScopedSelector}}">
+                    <MenuItem.Icon>
+                        <components:NodeIcon Type="Workflow" Margin="0,0,4,0" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Add task" Command="{Binding AddTaskCommand, RelativeSource={RelativeSource AncestorType=local:ScopedSelector}}">
+                    <MenuItem.Icon>
+                        <components:NodeIcon Type="Task" Margin="0,0,4,0" />
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+            <MenuItem Header="Remove">
+                <MenuItem.Icon>
+                    <fonts:Icon Text="{x:Static fonts:IconFont.Trash}" Foreground="{DynamicResource {x:Static adonisUi:Brushes.ErrorBrush}}" />
+                </MenuItem.Icon>
+            </MenuItem>
+        </ContextMenu>
+        <ContextMenu x:Key="ContextMenuElement">
+            <MenuItem Header="Remove" Command="{Binding RemoveSelectedCommand, RelativeSource={RelativeSource AncestorType=local:ScopedSelector}}">
+                <MenuItem.Icon>
+                    <fonts:Icon Text="{x:Static fonts:IconFont.Trash}" Foreground="{DynamicResource {x:Static adonisUi:Brushes.ErrorBrush}}" />
+                </MenuItem.Icon>
+            </MenuItem>
+        </ContextMenu>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+
+        <Grid Margin="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition Width="auto" />
+            </Grid.ColumnDefinitions>
+            <TextBox />
+            <Button
+                Grid.Column="1"
+                Style="{StaticResource IconButton}"
+                ToolTip="Zoom out">
+                <fonts:Icon Text="{x:Static fonts:IconFont.MagnifyingGlass}" />
+            </Button>
+        </Grid>
+
+        <TreeView
+            Grid.Row="1"
+            DataContext="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:ScopedSelector}}}"
+            Background="{DynamicResource {x:Static adonisUi:Brushes.Layer1BackgroundBrush}}"
+            MinWidth="200"
+            ItemsSource="{Binding RootScope.SortedChildrens}"
+            PreviewMouseRightButtonDown="TreeView_PreviewMouseRightButtonDown"
+            SelectedItemChanged="TreeView_SelectedItemChanged"
+            ContextMenuOpening="TreeView_ContextMenuOpening">
+            <TreeView.ItemContainerStyle>
+                <Style TargetType="{x:Type TreeViewItem}" BasedOn="{StaticResource TreeViewItemStyle}">
+                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+                    <Setter Property="IsExpanded">
+                        <Setter.Value>
+                            <!--  Avoids warnings for nodes that do not have the "IsExpanded" property  -->
+                            <PriorityBinding>
+                                <Binding Path="IsExpanded" Mode="TwoWay" />
+                            </PriorityBinding>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </TreeView.ItemContainerStyle>
+            <TreeView.Resources>
+                <HierarchicalDataTemplate DataType="{x:Type viewmodels:Scope}" ItemsSource="{Binding SortedChildrens}">
+                    <StackPanel Orientation="Horizontal">
+                        <local:NodeIcon Type="Scope" Margin="0,0,4,0" />
+                        <TextBlock Text="{Binding Name}" />
+                    </StackPanel>
+                </HierarchicalDataTemplate>
+                <DataTemplate DataType="{x:Type viewmodels:ScopedElement}">
+                    <StackPanel Orientation="Horizontal">
+                        <local:NodeIcon Type="{Binding Type}" Margin="0,0,4,0" />
+                        <TextBlock Text="{Binding Name}" />
+                    </StackPanel>
+                </DataTemplate>
+            </TreeView.Resources>
+        </TreeView>
+
+    </Grid>
 </UserControl>

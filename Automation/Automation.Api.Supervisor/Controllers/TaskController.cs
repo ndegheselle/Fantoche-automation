@@ -32,7 +32,7 @@ namespace Automation.Api.Supervisor.Controllers
 
         [HttpGet]
         [Route("{id}")]
-        public async Task<ITaskNode?> GetByIdAsync([FromRoute] Guid id)
+        public async Task<TaskNode?> GetByIdAsync([FromRoute] Guid id)
         {
             return await _repository.GetByIdAsync(id);
         }

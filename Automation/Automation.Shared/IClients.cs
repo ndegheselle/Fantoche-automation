@@ -3,21 +3,21 @@ using Automation.Shared.Data;
 
 namespace Automation.Shared
 {
-    public interface ICrudClient<TIn, TOut>
+    public interface ICrudClient<T>
     {
-        public Task<TOut?> GetByIdAsync(Guid id);
-        public Task<Guid> CreateAsync(TIn element);
-        public Task UpdateAsync(Guid id, TIn element);
+        public Task<T?> GetByIdAsync(Guid id);
+        public Task<Guid> CreateAsync(T element);
+        public Task UpdateAsync(Guid id, T element);
         public Task DeleteAsync(Guid id);
     }
 
-    public interface ITaskClient<T> : ICrudClient<ITaskNode, T> where T : ITaskNode
+    public interface ITaskClient<T> : ICrudClient<T> where T : ITaskNode
     { }
 
-    public interface IWorkflowClient<T> : ICrudClient<IWorkflowNode, T> where T : IWorkflowNode
+    public interface IWorkflowClient<T> : ICrudClient<T> where T : IWorkflowNode
     { }
 
-    public interface IScopeClient<T> : ICrudClient<IScope, T> where T : IScope
+    public interface IScopeClient<T> : ICrudClient<T> where T : IScope
     {
         public Task<T> GetRootAsync();
     }

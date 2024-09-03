@@ -11,12 +11,12 @@ namespace Automation.App
 {
     public static class DependencyObjectExtension
     {
-        public static IModalContainer GetCurrentModal(this DependencyObject d)
+        public static IModalContainer GetCurrentModalContainer(this DependencyObject d)
         {
             return ((IWindowContainer)Window.GetWindow(d)).Modal;
         }
 
-        public static IAlert GetCurrentAlert(this DependencyObject d)
+        public static IAlert GetCurrentAlertContainer(this DependencyObject d)
         {
             return ((IWindowContainer)Window.GetWindow(d)).Alert;
         }
@@ -83,8 +83,7 @@ namespace Automation.App
 
             if (ServiceProvider == null)
                 return;
-
-            var modal = ServiceProvider.GetRequiredService<IModalContainer>();
+            var modal = ((IWindowContainer)Current.MainWindow).Modal;
             modal.Show(new ConfirmationModal("An unexpected error occurred")).Wait();
 
             // The application will still terminate after this event is handled

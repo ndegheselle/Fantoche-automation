@@ -20,7 +20,7 @@ namespace Automation.App.Views.TasksPages.ScopeUI
         public INavigationLayout? Layout { get; set; }
         public Scope Scope { get; set; }
 
-        private IModalContainer _modal => this.GetCurrentModal();
+        private IModalContainer _modal => this.GetCurrentModalContainer();
 
         private readonly App _app = (App)App.Current;
         private readonly ScopeClient _scopeClient;
@@ -52,39 +52,6 @@ namespace Automation.App.Views.TasksPages.ScopeUI
             ContextMenu contextMenu = element.ContextMenu;
             contextMenu.PlacementTarget = element;
             contextMenu.IsOpen = true;
-        }
-
-        private async void MenuAddScope_Click(object sender, RoutedEventArgs e)
-        {
-            Scope newScope = new Scope();
-            newScope.ParentId = Scope.Id;
-            if (await _modal.Show(new ScopeEditModal(newScope)))
-            {
-                newScope.Id = await _scopeClient.CreateAsync(newScope);
-                Scope.Childrens.Add(newScope);
-            }
-        }
-
-        private async void MenuAddTask_Click(object sender, RoutedEventArgs e)
-        {
-            var task = new TaskNode();
-            task.ScopeId = Scope.Id;
-            if (await _modal.Show(new TaskEditModal(task)))
-            {
-                task.Id = await _taskClient.CreateAsync(task);
-                Scope.Childrens.Add(task);
-            }
-        }
-
-        private async void MenuAddWorkflow_Click(object sender, RoutedEventArgs e)
-        {
-            WorkflowNode workflow = new WorkflowNode();
-            workflow.ScopeId = Scope.Id;
-            if (await _modal.Show(new WorkflowEditModal(workflow)))
-            {
-                workflow.Id = await _taskClient.CreateAsync(workflow);
-                Scope.Childrens.Add(workflow);
-            }
         }
 
         private async void ButtonParameters_Click(object sender, RoutedEventArgs e)

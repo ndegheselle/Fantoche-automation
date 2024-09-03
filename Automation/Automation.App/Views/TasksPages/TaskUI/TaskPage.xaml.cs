@@ -19,7 +19,7 @@ namespace Automation.App.Views.TasksPages.TaskUI
 
         private readonly App _app = (App)App.Current;
         private readonly TaskClient _client;
-        private IModalContainer _modal => this.GetCurrentModal();
+        private IModalContainer _modal => this.GetCurrentModalContainer();
 
         public TaskPage(Guid taskId)
         {

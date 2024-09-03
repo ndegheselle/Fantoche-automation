@@ -18,3 +18,13 @@ Worker :
 - Can resolve a task based on it's type and select the correct way to execute it
 
 Worker start
+
+# Data contract and separation of concern
+
+- Having coherant data between the database, api and app
+- Keep a clear separation of concern but keeping the properties that should be shared, can be achieve with :
+    - Interfaces : having extra properties for the properties that need a specific implementation
+        - Viable on big classes with a lot of properties ?
+    - DTO : using clonning / properties
+        - Not a fan since it double everything + no clear way to ensure the DTO is compatible with the model
+- Better serparation between ViewModel and Model, some other solution than using wrapper ?

@@ -32,7 +32,7 @@ namespace Automation.Api.Supervisor.Controllers
 
         [HttpGet]
         [Route("{id}")]
-        public async Task<IScope?> GetByIdAsync([FromRoute] Guid id)
+        public async Task<Scope?> GetByIdAsync([FromRoute] Guid id)
         {
             return await _repository.GetByIdAsync(id);
         }
@@ -46,7 +46,7 @@ namespace Automation.Api.Supervisor.Controllers
 
         [HttpGet]
         [Route("root")]
-        public async Task<IScope> GetRootAsync()
+        public async Task<Scope> GetRootAsync()
         {
             return await _repository.GetRootAsync();
         }

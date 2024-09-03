@@ -10,12 +10,19 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="auto" />
             <ColumnDefinition />
         </Grid.ColumnDefinitions>
         <components:ScopedSelector
             x:Name="SideMenu"
             Grid.Column="0"
             SelectedChanged="ScopedSelector_SelectedChanged" />
-        <ContentPresenter Grid.Column="1" x:Name="NavigationContent" />
+        <GridSplitter
+            Grid.Column="1"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Stretch"
+            ShowsPreview="True"
+            Width="2" />
+        <ContentPresenter Grid.Column="2" x:Name="NavigationContent" />
     </Grid>
 </UserControl>

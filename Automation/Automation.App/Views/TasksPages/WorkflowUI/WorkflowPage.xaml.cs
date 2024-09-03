@@ -20,7 +20,7 @@ namespace Automation.App.Views.TasksPages.WorkflowUI
 
         private readonly App _app = (App)App.Current;
         private readonly WorkflowClient _client;
-        private IModalContainer _modal => this.GetCurrentModal();
+        private IModalContainer _modal => this.GetCurrentModalContainer();
 
         public WorkflowPage(Guid workflowId)
         {
