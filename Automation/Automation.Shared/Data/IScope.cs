@@ -1,5 +1,13 @@
 ﻿namespace Automation.Shared.Data
 {
+    [Flags]
+    public enum EnumScopedType
+    {
+        Scope,
+        Workflow,
+        Task
+    }
+
     public interface IScope : INamed
     {
         Guid? ParentId { get; set; }

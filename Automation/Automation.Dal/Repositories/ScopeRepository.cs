@@ -10,6 +10,23 @@ namespace Automation.Dal.Repositories
         public ScopeRepository(IMongoDatabase database) : base(database, "scopes")
         {}
 
+        public override Task DeleteAsync(Guid id)
+        {
+            return DeleteRecursivelyAsync(id);
+        }
+
+        private async Task DeleteRecursivelyAsync(Guid id)
+        {
+            // Remove subscope
+            foreach (Scope scope in await GetByScopeAsync(id))
+            {
+                await DeleteRecursivelyAsync(scope.Id);
+            }
+            TaskRepository taskRepository = new TaskRepository(_database);
+            await taskRepository.DeletebyScopeAsync(id);
+            await base.DeleteAsync(id);
+        }
+
         public async Task<IEnumerable<Scope>> GetByScopeAsync(Guid scopeId)
         {
             var projection = Builders<Scope>.Projection.Include(s => s.Id).Include(s => s.Name);
@@ -32,7 +49,7 @@ namespace Automation.Dal.Repositories
 
             scope.Childrens = [
                 ..await scopeChildrenTask,
-                ..await taskChildrenTask
+                ..(await taskChildrenTask).Select(x => new ScopedElement() {Id = x.Id, Name = x.Name, Type = EnumScopedType.Task})
             ];
             return scope;
         }

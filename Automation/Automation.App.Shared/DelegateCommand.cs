@@ -2,7 +2,12 @@
 
 namespace Automation.App.Shared
 {
-    public class DelegateCommand : ICommand
+    public interface ICustomCommand : ICommand
+    {
+        void RaiseCanExecuteChanged();
+    }
+
+    public class DelegateCommand : ICustomCommand
     {
         private readonly Action _action;
         private readonly Func<bool>? _condition;
@@ -25,7 +30,7 @@ namespace Automation.App.Shared
             => CanExecuteChanged?.Invoke(this, new EventArgs());
     }
 
-    public class DelegateCommand<T> : ICommand
+    public class DelegateCommand<T> : ICustomCommand
     {
         private readonly Action<T> _action;
         private readonly Func<T, bool>? _condition;

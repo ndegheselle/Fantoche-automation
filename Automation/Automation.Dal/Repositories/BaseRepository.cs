@@ -17,6 +17,7 @@ namespace Automation.Dal.Repositories
         }
     }
 
+    // TODO : use soft deletion and history (userId, createdAt, updatedAt, deletedAt)
     public class BaseCrudRepository<T> : BaseRepository<T> where T : INamed
     {
         public BaseCrudRepository(IMongoDatabase database, string collectionName) : base(database, collectionName)

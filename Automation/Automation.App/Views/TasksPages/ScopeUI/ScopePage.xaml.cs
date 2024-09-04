@@ -26,14 +26,14 @@ namespace Automation.App.Views.TasksPages.ScopeUI
         private readonly ScopeClient _scopeClient;
         private readonly TaskClient _taskClient;
 
-        public ScopePage(Guid scopeId)
+        public ScopePage(Scope scope)
         {
             _scopeClient = _app.ServiceProvider.GetRequiredService<ScopeClient>();
             _taskClient = _app.ServiceProvider.GetRequiredService<TaskClient>();
-            Scope = new Scope() { Id = scopeId };
+            Scope = scope;
 
             InitializeComponent();
-            LoadFullScope(scopeId);
+            LoadFullScope(Scope.Id);
         }
 
         public async void LoadFullScope(Guid scopeId)
@@ -42,7 +42,10 @@ namespace Automation.App.Views.TasksPages.ScopeUI
 
             if (fullScope == null)
                 throw new ArgumentException("Scope not found");
-            Scope = fullScope;
+
+            Scope.Childrens = fullScope.Childrens;
+            Scope.Context = fullScope.Context;
+            Scope.RefreshChildrens();
         }
 
         #region UI Events

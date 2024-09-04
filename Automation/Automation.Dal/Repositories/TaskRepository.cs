@@ -14,5 +14,10 @@ namespace Automation.Dal.Repositories
             var projection = Builders<TaskNode>.Projection.Include(s => s.Id).Include(s => s.Name);
             return await _collection.Find(e => e.ScopeId == scopeId).Project<TaskNode>(projection).ToListAsync();
         }
+
+        public async Task DeletebyScopeAsync(Guid scopeId)
+        {
+            await _collection.DeleteManyAsync(e => e.ScopeId == scopeId);
+        }
     }
 }

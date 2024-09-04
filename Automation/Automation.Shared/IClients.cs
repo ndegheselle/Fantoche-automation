@@ -17,7 +17,7 @@ namespace Automation.Shared
     public interface IWorkflowClient<T> : ICrudClient<T> where T : IWorkflowNode
     { }
 
-    public interface IScopeClient<T> : ICrudClient<T> where T : IScope
+    public interface IScopeClient<T> : ICrudClient<T>
     {
         public Task<T> GetRootAsync();
     }

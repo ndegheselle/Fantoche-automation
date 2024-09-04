@@ -4,6 +4,7 @@ using Automation.App.Shared.ApiClients;
 using Automation.App.Shared.ViewModels.Tasks;
 using Automation.App.ViewModels;
 using Automation.App.Views.TasksPages.Components;
+using Automation.Shared.Data;
 using Microsoft.Extensions.DependencyInjection;
 using Nodify;
 using System.Drawing;

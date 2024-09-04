@@ -2,6 +2,7 @@
 using Automation.App.Shared.ViewModels.Tasks;
 using Automation.Shared;
 using Automation.Shared.Base;
+using Automation.Shared.Data;
 using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;
 using System.Security.Policy;

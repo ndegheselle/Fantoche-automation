@@ -7,6 +7,7 @@
     xmlns:local="clr-namespace:Automation.App.Views"
     xmlns:base="clr-namespace:Automation.App.Base"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
+    xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     mc:Ignorable="d"
     Visibility="Collapsed"
     d:DataContext="{d:DesignInstance base:ModalOptions}">
@@ -50,6 +51,7 @@
                         Height="23"
                         Click="ButtonClose" />
                 </Grid>
+
                 <ContentPresenter x:Name="ContentContainer" Grid.Row="1" />
 
                 <StackPanel
@@ -70,12 +72,17 @@
                         Grid.Column="0"
                         Margin="2,0"
                         Click="ButtonClose">
-                        Cancel
+                        <StackPanel Orientation="Horizontal">
+                            <fonts:Icon Text="{x:Static fonts:IconFont.Xmark}" />
+                            <TextBlock Margin="4,0,0,0">Cancel</TextBlock>
+                        </StackPanel>
                     </Button>
-                    <Button
-                        Grid.Column="1"
-                        Click="ButtonValidate_Click"
-                        Content="{Binding ValidButtonText}" />
+                    <Button Grid.Column="1" Click="ButtonValidate_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <fonts:Icon Text="{x:Static fonts:IconFont.Check}" />
+                            <TextBlock Margin="4,0,0,0" Text="{Binding ValidButtonText}" />
+                        </StackPanel>
+                    </Button>
                 </StackPanel>
             </Grid>
         </Border>

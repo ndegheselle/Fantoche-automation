@@ -3,26 +3,22 @@ using Automation.App.Components.Display;
 using Automation.App.Shared;
 using Automation.App.Shared.ApiClients;
 using Automation.App.Shared.ViewModels.Tasks;
+using Automation.App.Views.TasksPages.ScopeUI;
+using Automation.App.Views.TasksPages.TaskUI;
+using Automation.App.Views.TasksPages.WorkflowUI;
+using Automation.Shared.Data;
 using Microsoft.Extensions.DependencyInjection;
-using System.IO.Packaging;
-using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using Automation.App;
-using Automation.App.Views.TasksPages.ScopeUI;
-using Automation.App.Views.TasksPages.TaskUI;
-using Automation.App.Views.TasksPages.WorkflowUI;
-using AdonisUI.Converters;
-using System.Threading.Tasks;
 
 namespace Automation.App.Views.TasksPages.Components
 {
     public class ScopedSelectorModal : ScopedSelector, IModalContent
     {
         public IModalContainer? ModalParent { get; set; }
-        public ModalOptions? Options => new ModalOptions() { Title = "Add node", ValidButtonText = "Add" };
+        public ModalOptions Options => new ModalOptions() { Title = "Add node", ValidButtonText = "Add" };
     }
 
     /// <summary>
@@ -74,13 +70,12 @@ namespace Automation.App.Views.TasksPages.Components
         private readonly WorkflowClient _workflowClient;
         private readonly TaskClient _taskClient;
 
-        private readonly IModalContainer _modal;
+        private IModalContainer _modal => this.GetCurrentModalContainer();
         #endregion
 
 
 
         public ScopedSelector() {
-            _modal = this.GetCurrentModalContainer();
             _scopeClient = _app.ServiceProvider.GetRequiredService<ScopeClient>();
             _taskClient = _app.ServiceProvider.GetRequiredService<TaskClient>();
             _workflowClient = _app.ServiceProvider.GetRequiredService<WorkflowClient>();
@@ -88,7 +83,9 @@ namespace Automation.App.Views.TasksPages.Components
 
             RemoveSelectedCommand = new DelegateCommand(OnRemoveSelected,
             // Not the root element
-            () => SelectedOrDefault.Parent != null);
+            () => 
+            SelectedOrDefault.Parent != null
+            );
             AddScopeCommand = new DelegateCommand(OnAddScope);
             AddTaskCommand = new DelegateCommand(OnAddTask);
             AddWorkflowCommand = new DelegateCommand(OnAddWorkflow);
@@ -98,7 +95,7 @@ namespace Automation.App.Views.TasksPages.Components
         // XXX : move to viewmodels ?
         #region Commands
 
-        public ICommand RemoveSelectedCommand { get; set; }
+        public ICustomCommand RemoveSelectedCommand { get; set; }
         public ICommand AddScopeCommand { get; set; }
         public ICommand AddTaskCommand { get; set; }
         public ICommand AddWorkflowCommand { get; set; }
@@ -133,7 +130,7 @@ namespace Automation.App.Views.TasksPages.Components
             if (await _modal.Show(new ScopeEditModal(newScope)))
             {
                 newScope.Id = await _scopeClient.CreateAsync(newScope);
-                await Application.Current.Dispatcher.BeginInvoke(() =>
+                Dispatcher.Invoke(() =>
                 {
                     parentScope.AddChild(newScope);
                 });
@@ -150,10 +147,7 @@ namespace Automation.App.Views.TasksPages.Components
             if (await _modal.Show(new TaskEditModal(task)))
             {
                 task.Id = await _taskClient.CreateAsync(task);
-                await Application.Current.Dispatcher.BeginInvoke(() =>
-                {
-                    parentScope.AddChild(task);
-                });
+                parentScope.AddChild(task);
             }
         }
 
@@ -167,10 +161,7 @@ namespace Automation.App.Views.TasksPages.Components
             if (await _modal.Show(new WorkflowEditModal(workflow)))
             {
                 workflow.Id = await _taskClient.CreateAsync(workflow);
-                await Application.Current.Dispatcher.BeginInvoke(() =>
-                {
-                    parentScope.AddChild(workflow);
-                });
+                parentScope.AddChild(workflow);
             }
         }
 
@@ -182,41 +173,12 @@ namespace Automation.App.Views.TasksPages.Components
         {
             TreeView treeView = (TreeView)sender;
             ScopedElement? selected = treeView.SelectedItem as ScopedElement;
-
-            // Load childrens if the selected element is a scope and its childrens are not loaded
-            if (selected != null && selected is Scope scope && scope.Childrens.Count == 0)
-            {
-                Scope? fullScope = await _scopeClient.GetByIdAsync(scope.Id);
-
-                if (fullScope == null)
-                    return;
-                scope.Childrens = fullScope.Childrens;
-            }
-
             if (selected != null && !AllowedSelectedNodes.HasFlag(selected.Type))
             {
                 selected.IsSelected = false;
                 return;
             }
             Selected = selected;
-        }
-
-        private void TreeView_ContextMenuOpening(object sender, ContextMenuEventArgs e)
-        {
-            var source = (FrameworkElement)e.Source;
-            bool forceOpenning = source.ContextMenu == null;
-
-            if (SelectedOrDefault.Type == EnumScopedType.Scope)
-                source.ContextMenu = (ContextMenu)FindResource("ContextMenuScope");
-            else
-                source.ContextMenu = (ContextMenu)FindResource("ContextMenuElement");
-
-            // During the first opening we force the opening (otherwise the ContextMenu is not ready at the time of display)
-            if (forceOpenning)
-            {
-                source.ContextMenu.IsOpen = true;
-                e.Handled = true;
-            }
         }
 
         // Allow selection on right click
@@ -229,6 +191,11 @@ namespace Automation.App.Views.TasksPages.Components
                 treeViewItem.Focus();
                 e.Handled = true;
             }
+            // Unselect the current if not null
+            else if (Selected != null)
+            {
+                Selected.IsSelected = false;
+            }
         }
 
         #endregion
@@ -239,6 +206,11 @@ namespace Automation.App.Views.TasksPages.Components
                 source = VisualTreeHelper.GetParent(source);
 
             return source as TreeViewItem;
+        }
+
+        private void LoadFullScope()
+        {
+
         }
     }
 }

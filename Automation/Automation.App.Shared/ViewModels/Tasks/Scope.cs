@@ -7,14 +7,8 @@ using System.Windows.Data;
 
 namespace Automation.App.Shared.ViewModels.Tasks
 {
-    [Flags]
-    public enum EnumScopedType
-    {
-        Scope,
-        Workflow,
-        Task
-    }
 
+    [JsonDerivedType(typeof(Scope), "scope")]
     public class ScopedElement : INamed, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -23,11 +17,11 @@ namespace Automation.App.Shared.ViewModels.Tasks
 
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
+        public EnumScopedType Type { get; set; }
 
         #region UI specific
         [JsonIgnore]
         public Scope? Parent { get; set; }
-        public EnumScopedType Type { get; set; }
         [JsonIgnore]
         public bool IsExpanded { get; set; }
 
@@ -64,27 +58,11 @@ namespace Automation.App.Shared.ViewModels.Tasks
         #endregion
     }
 
-    public class Scope : ScopedElement, IScope
+    public class Scope : ScopedElement
     {
         public Guid? ParentId { get; set; }
-        public Dictionary<string, string> Context { get; private set; } = new Dictionary<string, string>();
-
-        private ObservableCollection<ScopedElement> _childrens = [];
-        public ObservableCollection<ScopedElement> Childrens
-        {
-            get { return _childrens; }
-            set
-            {
-                _childrens = value;
-                SortedChildrens = (ListCollectionView)CollectionViewSource.GetDefaultView(Childrens);
-                SortedChildrens.SortDescriptions.Add(new SortDescription(nameof(Type), ListSortDirection.Ascending));
-                SortedChildrens.SortDescriptions.Add(new SortDescription(nameof(Name), ListSortDirection.Ascending));
-
-                RefreshChildrens();
-            }
-        }
-        [JsonIgnore]
-        IList<INamed> IScope.Childrens => Childrens.Cast<INamed>().ToList();
+        public Dictionary<string, string> Context { get; set; } = new Dictionary<string, string>();
+        public ObservableCollection<ScopedElement> Childrens { get; set; }
 
         [JsonIgnore]
         public ListCollectionView? SortedChildrens { get; set; }
@@ -99,6 +77,9 @@ namespace Automation.App.Shared.ViewModels.Tasks
         {
             foreach (var child in Childrens)
                 child.Parent = this;
+            SortedChildrens = (ListCollectionView)CollectionViewSource.GetDefaultView(Childrens);
+            SortedChildrens.SortDescriptions.Add(new SortDescription(nameof(Type), ListSortDirection.Ascending));
+            SortedChildrens.SortDescriptions.Add(new SortDescription(nameof(Name), ListSortDirection.Ascending));
         }
 
         public void AddChild(ScopedElement element)

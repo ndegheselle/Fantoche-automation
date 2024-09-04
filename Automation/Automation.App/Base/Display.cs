@@ -2,6 +2,14 @@
 
 namespace Automation.App.Base
 {
+    public enum EnumDialogType
+    {
+        Info,
+        Warning,
+        Error,
+        Success
+    }
+
     public interface IWindowContainer
     {
         public IModalContainer Modal { get; }
@@ -11,6 +19,7 @@ namespace Automation.App.Base
     #region Modal
     public class ModalOptions
     {
+        public EnumDialogType Type { get; set; } = EnumDialogType.Info;
         public string Title { get; set; }
         public string ValidButtonText { get; set; }
         public bool ShowFooter { get; set; }
@@ -44,25 +53,17 @@ namespace Automation.App.Base
 
     #region Alert
 
-    public enum EnumAlertType
-    {
-        Info,
-        Warning,
-        Error,
-        Success
-    }
-
     public class AlertOptions : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public EnumAlertType Type { get; set; }
+        public EnumDialogType Type { get; set; }
         public string Message { get; set; }
     }
 
     public interface IAlert
     {
-        public void Show(EnumAlertType type, string message);
+        public void Show(EnumDialogType type, string message);
         public void Hide();
 
         public void Info(string message);

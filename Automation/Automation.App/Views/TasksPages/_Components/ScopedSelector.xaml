@@ -10,43 +10,6 @@
     xmlns:components="clr-namespace:Automation.App.Views.TasksPages.Components"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     mc:Ignorable="d">
-    <UserControl.Resources>
-        <ContextMenu x:Key="ContextMenuScope">
-            <MenuItem Header="Add">
-                <MenuItem.Icon>
-                    <fonts:Icon Text="{x:Static fonts:IconFont.Plus}" />
-                </MenuItem.Icon>
-
-                <MenuItem Header="Add scope" Command="{Binding AddScopeCommand, RelativeSource={RelativeSource AncestorType=local:ScopedSelector}}">
-                    <MenuItem.Icon>
-                        <components:NodeIcon Type="Scope" Margin="0,0,4,0" />
-                    </MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Header="Add workflow" Command="{Binding AddWorkflowCommand, RelativeSource={RelativeSource AncestorType=local:ScopedSelector}}">
-                    <MenuItem.Icon>
-                        <components:NodeIcon Type="Workflow" Margin="0,0,4,0" />
-                    </MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Header="Add task" Command="{Binding AddTaskCommand, RelativeSource={RelativeSource AncestorType=local:ScopedSelector}}">
-                    <MenuItem.Icon>
-                        <components:NodeIcon Type="Task" Margin="0,0,4,0" />
-                    </MenuItem.Icon>
-                </MenuItem>
-            </MenuItem>
-            <MenuItem Header="Remove">
-                <MenuItem.Icon>
-                    <fonts:Icon Text="{x:Static fonts:IconFont.Trash}" Foreground="{DynamicResource {x:Static adonisUi:Brushes.ErrorBrush}}" />
-                </MenuItem.Icon>
-            </MenuItem>
-        </ContextMenu>
-        <ContextMenu x:Key="ContextMenuElement">
-            <MenuItem Header="Remove" Command="{Binding RemoveSelectedCommand, RelativeSource={RelativeSource AncestorType=local:ScopedSelector}}">
-                <MenuItem.Icon>
-                    <fonts:Icon Text="{x:Static fonts:IconFont.Trash}" Foreground="{DynamicResource {x:Static adonisUi:Brushes.ErrorBrush}}" />
-                </MenuItem.Icon>
-            </MenuItem>
-        </ContextMenu>
-    </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
@@ -75,7 +38,47 @@
             ItemsSource="{Binding RootScope.SortedChildrens}"
             PreviewMouseRightButtonDown="TreeView_PreviewMouseRightButtonDown"
             SelectedItemChanged="TreeView_SelectedItemChanged"
-            ContextMenuOpening="TreeView_ContextMenuOpening">
+            Tag="{Binding RelativeSource={RelativeSource AncestorType=local:ScopedSelector}}">
+            <TreeView.ContextMenu>
+                <ContextMenu DataContext="{Binding PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">
+                    <MenuItem Header="Add">
+                        <MenuItem.Style>
+                            <Style TargetType="MenuItem">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding SelectedOrDefault.Type}" Value="Scope">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </MenuItem.Style>
+                        <MenuItem.Icon>
+                            <fonts:Icon Text="{x:Static fonts:IconFont.Plus}" />
+                        </MenuItem.Icon>
+
+                        <MenuItem Header="Add scope" Command="{Binding AddScopeCommand}">
+                            <MenuItem.Icon>
+                                <components:NodeIcon Type="Scope" Margin="0,0,4,0" />
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Header="Add workflow" Command="{Binding AddWorkflowCommand}">
+                            <MenuItem.Icon>
+                                <components:NodeIcon Type="Workflow" Margin="0,0,4,0" />
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Header="Add task" Command="{Binding AddTaskCommand}">
+                            <MenuItem.Icon>
+                                <components:NodeIcon Type="Task" Margin="0,0,4,0" />
+                            </MenuItem.Icon>
+                        </MenuItem>
+                    </MenuItem>
+                    <MenuItem Header="Remove" Command="{Binding RemoveSelectedCommand}">
+                        <MenuItem.Icon>
+                            <fonts:Icon Text="{x:Static fonts:IconFont.Trash}" Foreground="{DynamicResource {x:Static adonisUi:Brushes.ErrorBrush}}" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </ContextMenu>
+            </TreeView.ContextMenu>
             <TreeView.ItemContainerStyle>
                 <Style TargetType="{x:Type TreeViewItem}" BasedOn="{StaticResource TreeViewItemStyle}">
                     <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />

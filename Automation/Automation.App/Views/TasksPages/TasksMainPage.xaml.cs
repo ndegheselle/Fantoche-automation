@@ -4,6 +4,7 @@ using Automation.App.Shared.ViewModels.Tasks;
 using Automation.App.Views.TasksPages.ScopeUI;
 using Automation.App.Views.TasksPages.TaskUI;
 using Automation.App.Views.TasksPages.WorkflowUI;
+using Automation.Shared.Data;
 using Joufflu.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows.Controls;
@@ -29,6 +30,7 @@ namespace Automation.App.Views.TasksPages
         protected async void OnLoaded()
         {
             SideMenu.RootScope = await _client.GetRootAsync();
+            SideMenu.RootScope.RefreshChildrens();
             SideMenu.Selected = SideMenu.RootScope;
         }
 
@@ -41,7 +43,7 @@ namespace Automation.App.Views.TasksPages
             switch (selected.Type)
             {
                 case EnumScopedType.Scope:
-                    Show(new ScopePage(selected.Id));
+                    Show(new ScopePage((Scope)selected));
                     break;
                 case EnumScopedType.Workflow:
                     Show(new WorkflowPage(selected.Id));

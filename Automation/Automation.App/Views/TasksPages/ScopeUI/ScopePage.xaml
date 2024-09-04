@@ -13,7 +13,7 @@
     <Grid>
         <TabControl Margin="0,3,0,0" DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:ScopePage}}">
             <TabItem Header="History">
-                <components:ScopedHistory TargetId="{Binding Scope}" />
+                <components:ScopedHistory TargetId="{Binding Scope.Id}" Type="Scope" />
             </TabItem>
         </TabControl>
         <Button

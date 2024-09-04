@@ -26,7 +26,7 @@ namespace Automation.App.Views
 
         #region IAlert
 
-        public void Show(EnumAlertType type, string message)
+        public void Show(EnumDialogType type, string message)
         {
             _options.Message = message;
             _options.Type = type;
@@ -41,22 +41,22 @@ namespace Automation.App.Views
 
         public void Error(string message)
         {
-            Show(EnumAlertType.Error, message);
+            Show(EnumDialogType.Error, message);
         }
 
         public void Info(string message)
         {
-            Show(EnumAlertType.Info, message);
+            Show(EnumDialogType.Info, message);
         }
 
         public void Success(string message)
         {
-            Show(EnumAlertType.Success, message);
+            Show(EnumDialogType.Success, message);
         }
 
         public void Warning(string message)
         {
-            Show(EnumAlertType.Warning, message);
+            Show(EnumDialogType.Warning, message);
         }
 
         #endregion
