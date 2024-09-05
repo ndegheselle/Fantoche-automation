@@ -1,6 +1,6 @@
 using Automation.Dal.Models;
+using Automation.Shared.Base;
 using Automation.Dal.Repositories;
-using Automation.Shared.Data;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 
@@ -8,7 +8,7 @@ namespace Automation.Api.Supervisor.Controllers
 {
     [ApiController]
     [Route("scopes")]
-    public class ScopeController
+    public class ScopeController : Controller
     {
         protected readonly ScopeRepository _repository;
         public ScopeController(IMongoDatabase database)
@@ -18,9 +18,20 @@ namespace Automation.Api.Supervisor.Controllers
 
         [HttpPost]
         [Route("")]
-        public Task<Guid> CreateAsync(Scope element)
+        public async Task<ActionResult<Guid>> CreateAsync(Scope element)
         {
-            return _repository.CreateAsync(element);
+            var existingChild = await _repository.GetChildByNameAsync(element.ParentId, element.Name);
+
+            if (existingChild != null)
+            {
+                // XXX : if need more info can also use return ValidationProblem(new ValidationProblemDetails());
+                return BadRequest(new Dictionary<string, string[]>()
+                {
+                    {nameof(Scope.Name), [$"The name {element.Name} is already used in this scope."] }
+                });
+            }
+
+            return await _repository.CreateAsync(element);
         }
 
         [HttpDelete]

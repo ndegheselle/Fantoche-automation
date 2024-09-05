@@ -7,6 +7,9 @@ namespace Automation.Dal.Repositories
 {
     public class ScopeRepository : BaseCrudRepository<Scope>
     {
+        // Root scope have a fixed Id
+        public readonly Guid ROOT_SCOPE_ID = new Guid("00000000-0000-0000-0000-000000000001");
+
         public ScopeRepository(IMongoDatabase database) : base(database, "scopes")
         {}
 
@@ -49,22 +52,32 @@ namespace Automation.Dal.Repositories
 
             scope.Childrens = [
                 ..await scopeChildrenTask,
-                ..(await taskChildrenTask).Select(x => new ScopedElement() {Id = x.Id, Name = x.Name, Type = EnumScopedType.Task})
+                ..(await taskChildrenTask).Select(x => new ScopedElement(x))
             ];
             return scope;
         }
 
         public async Task<Scope> GetRootAsync()
         {
-            // Root scope have a fixed Id
-            const string rootIdString = "00000000-0000-0000-0000-000000000001";
-            var rootId = new Guid(rootIdString);
-            var rootScope = await GetByIdAsync(rootId);
+            var rootScope = await GetByIdAsync(ROOT_SCOPE_ID);
 
             if (rootScope == null)
                 throw new Exception("Root scope doesn't exist.");
 
             return rootScope;
+        }
+
+        public async Task<ScopedElement?> GetChildByNameAsync(Guid? scopeId, string name)
+        {
+            var scope = await _collection.Find(e => e.Name == name && e.ParentId == scopeId).FirstOrDefaultAsync();
+            if (scope != null)
+                return scope;
+
+            var taskRepo = new TaskRepository(_database);
+            var task = await taskRepo.GetByScopeAndNameAsync(scopeId ?? ROOT_SCOPE_ID, name);
+            if (task != null)
+                return new ScopedElement(task);
+            return null;
         }
     }
 }

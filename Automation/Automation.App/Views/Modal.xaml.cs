@@ -24,9 +24,6 @@ namespace Automation.App.Views
             if (_taskCompletionSource == null)
                 return;
 
-            if (_content is IModalContentCallback callback)
-                callback.OnModalClose(result);
-
             OnClose?.Invoke(result);
             _taskCompletionSource.SetResult(result);
             _taskCompletionSource = null;
@@ -54,8 +51,11 @@ namespace Automation.App.Views
             Close();
         }
 
-        private void ButtonValidate_Click(object sender, RoutedEventArgs e)
+        private async void ButtonValidate_Click(object sender, RoutedEventArgs e)
         {
+            if (_content is IModalContentValidate callback && 
+                !await callback.OnValidate())
+                return;
             Close(true);
         }
     }

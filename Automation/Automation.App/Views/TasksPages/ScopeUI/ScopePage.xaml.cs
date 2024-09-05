@@ -61,8 +61,7 @@ namespace Automation.App.Views.TasksPages.ScopeUI
         {
             if (Scope == null)
                 return;
-            if (await _modal.Show(new ScopeEditModal(Scope)))
-                await _scopeClient.UpdateAsync(Scope.Id, Scope);
+            await _modal.Show(new ScopeEditModal(Scope));
         }
 
         private void ListBox_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)

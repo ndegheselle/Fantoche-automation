@@ -1,4 +1,5 @@
-﻿using Automation.Shared.Data;
+﻿using Automation.App.Shared.Base;
+using Automation.Shared.Data;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -9,7 +10,7 @@ namespace Automation.App.Shared.ViewModels.Tasks
 {
 
     [JsonDerivedType(typeof(Scope), "scope")]
-    public class ScopedElement : INamed, INotifyPropertyChanged
+    public class ScopedElement : ErrorValidationModel, INamed, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
@@ -56,6 +57,18 @@ namespace Automation.App.Shared.ViewModels.Tasks
         }
 
         #endregion
+
+        public ScopedElement()
+        {
+            Type = EnumScopedType.Task;
+        }
+
+        public ScopedElement(TaskNode task)
+        {
+            Id = task.Id;
+            Name = task.Name;
+            Type = task is WorkflowNode ? EnumScopedType.Workflow : EnumScopedType.Task;
+        }
     }
 
     public class Scope : ScopedElement

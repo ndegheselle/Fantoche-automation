@@ -13,6 +13,16 @@ namespace Automation.Dal.Models
 
         [BsonIgnore]
         public EnumScopedType Type { get; set; }
+
+        public ScopedElement() 
+        {}
+
+        public ScopedElement(TaskNode task)
+        {
+            Id = task.Id;
+            Name = task.Name;
+            Type = task is WorkflowNode ? EnumScopedType.Workflow : EnumScopedType.Task;
+        }
     }
 
     public class Scope : ScopedElement

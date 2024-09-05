@@ -17,8 +17,6 @@ Worker :
 - List of "allowed"  and last instance state
 - Can resolve a task based on it's type and select the correct way to execute it
 
-Worker start
-
 # Data contract and separation of concern
 
 - Having coherant data between the database, api and app

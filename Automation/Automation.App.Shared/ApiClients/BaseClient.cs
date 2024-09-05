@@ -1,4 +1,6 @@
 ﻿using Automation.Shared;
+using Automation.Shared.Base;
+using Newtonsoft.Json;
 using RestSharp;
 
 namespace Automation.App.Shared.ApiClients
@@ -30,7 +32,15 @@ namespace Automation.App.Shared.ApiClients
         {
             if (element == null)
                 throw new ArgumentNullException(nameof(element));
-            return await _client.PostAsync<Guid>(new RestRequest($"{_routeBase}").AddBody(element));
+
+            var result = await _client.ExecutePostAsync<Guid>(new RestRequest($"{_routeBase}").AddBody(element));
+            if (result.StatusCode == System.Net.HttpStatusCode.BadRequest)
+            {
+                var validationResult = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(result.Content);
+                throw new ValidationException(validationResult);
+            }
+
+            return result.Data;
         }
 
         public virtual async Task DeleteAsync(Guid id)

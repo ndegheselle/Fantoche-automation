@@ -1,5 +1,4 @@
 ﻿using Automation.Dal.Models;
-using Automation.Shared;
 using MongoDB.Driver;
 
 namespace Automation.Dal.Repositories
@@ -15,7 +14,7 @@ namespace Automation.Dal.Repositories
 
             if (task is not WorkflowNode workflow)
             {
-                throw new Exception($"{id} does not correspond to a workflow.");
+                throw new Exception($"'{id}' is not a workflow.");
             }
 
             // If workflow get all related tasks and fill nodes list

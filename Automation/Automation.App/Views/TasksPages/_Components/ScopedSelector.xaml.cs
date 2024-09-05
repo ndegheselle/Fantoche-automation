@@ -129,7 +129,6 @@ namespace Automation.App.Views.TasksPages.Components
             newScope.ParentId = parentScope.Id;
             if (await _modal.Show(new ScopeEditModal(newScope)))
             {
-                newScope.Id = await _scopeClient.CreateAsync(newScope);
                 Dispatcher.Invoke(() =>
                 {
                     parentScope.AddChild(newScope);
@@ -147,7 +146,7 @@ namespace Automation.App.Views.TasksPages.Components
             if (await _modal.Show(new TaskEditModal(task)))
             {
                 task.Id = await _taskClient.CreateAsync(task);
-                parentScope.AddChild(task);
+                parentScope.AddChild(new ScopedElement(task));
             }
         }
 
@@ -160,8 +159,8 @@ namespace Automation.App.Views.TasksPages.Components
             workflow.ScopeId = parentScope.Id;
             if (await _modal.Show(new WorkflowEditModal(workflow)))
             {
-                workflow.Id = await _taskClient.CreateAsync(workflow);
-                parentScope.AddChild(workflow);
+                workflow.Id = await _workflowClient.CreateAsync(workflow);
+                parentScope.AddChild(new ScopedElement(workflow));
             }
         }
 

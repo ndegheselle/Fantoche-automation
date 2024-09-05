@@ -44,9 +44,13 @@ namespace Automation.App.Base
         public IModalContainer? ModalParent { get; set; }
     }
 
-    public interface IModalContentCallback : IModalContent
+    public interface IModalContentValidate : IModalContent
     {
-        public void OnModalClose(bool result);
+        /// <summary>
+        /// Handle modal validation
+        /// </summary>
+        /// <returns>If the modal content is valid, if false will prevent closing successfully the modal</returns>
+        public Task<bool> OnValidate();
     }
 
     #endregion
