@@ -8,6 +8,11 @@ using System.Windows.Data;
 
 namespace Automation.App.Shared.ViewModels.Tasks
 {
+    public enum EnumScopedTabs
+    {
+        History,
+        Settings
+    }
 
     [JsonDerivedType(typeof(Scope), "scope")]
     public class ScopedElement : ErrorValidationModel, INamed, INotifyPropertyChanged
@@ -19,6 +24,7 @@ namespace Automation.App.Shared.ViewModels.Tasks
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public EnumScopedType Type { get; set; }
+        public EnumScopedTabs FocusOn { get; set; } = EnumScopedTabs.History;
 
         #region UI specific
         [JsonIgnore]

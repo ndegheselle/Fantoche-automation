@@ -8,7 +8,7 @@
     mc:Ignorable="d"
     MinWidth="200">
     <TextBlock
-        Margin="4,10"
+        Margin="10"
         TextWrapping="Wrap"
         Text="{Binding Message, RelativeSource={RelativeSource AncestorType={x:Type local:ConfirmationModal}}}" />
 </UserControl>

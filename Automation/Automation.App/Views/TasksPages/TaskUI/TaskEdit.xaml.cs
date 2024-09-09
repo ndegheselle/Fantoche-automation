@@ -7,7 +7,7 @@ namespace Automation.App.Views.TasksPages.TaskUI
 {
     public class TaskEditModal : TaskEdit, IModalContent
     {
-        public IModalContainer? ModalParent { get; set; }
+        public IModalContainer? ModalContainer { get; set; }
         public ModalOptions Options => new ModalOptions() { Title = "Edit task", ValidButtonText = "Save" };
 
         public TaskEditModal(TaskNode task) : base(task)

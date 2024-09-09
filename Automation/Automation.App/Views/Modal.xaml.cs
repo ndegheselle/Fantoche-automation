@@ -36,7 +36,7 @@ namespace Automation.App.Views
         public Task<bool> Show(IModalContent content, ModalOptions? options = null)
         {
             _content = content;
-            _content.ModalParent = this;
+            _content.ModalContainer = this;
             ContentContainer.Content = _content;
             Options = options ?? _content.Options;
             this.DataContext = Options;

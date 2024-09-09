@@ -1,12 +1,8 @@
 ﻿using Automation.App.Base;
 using Automation.App.Shared.ApiClients;
 using Automation.App.Shared.ViewModels.Tasks;
-using Automation.App.Views.TasksPages.TaskUI;
-using Automation.App.Views.TasksPages.WorkflowUI;
-using Automation.Shared;
 using Joufflu.Shared;
 using Microsoft.Extensions.DependencyInjection;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -34,9 +30,10 @@ namespace Automation.App.Views.TasksPages.ScopeUI
 
             InitializeComponent();
             LoadFullScope(Scope.Id);
+            HandleFocus(Scope.FocusOn);
         }
 
-        public async void LoadFullScope(Guid scopeId)
+        private async void LoadFullScope(Guid scopeId)
         {
             Scope? fullScope = await _scopeClient.GetByIdAsync(scopeId);
 
@@ -48,6 +45,16 @@ namespace Automation.App.Views.TasksPages.ScopeUI
             Scope.RefreshChildrens();
         }
 
+        private void HandleFocus(EnumScopedTabs focusOn)
+        {
+            switch (focusOn)
+            {
+                case EnumScopedTabs.Settings:
+                    ScopeTabControl.SelectedIndex = 1;
+                    break;
+            }
+        }
+
         #region UI Events
         private void ButtonAdd_Click(object sender, RoutedEventArgs e)
         {
@@ -55,13 +62,6 @@ namespace Automation.App.Views.TasksPages.ScopeUI
             ContextMenu contextMenu = element.ContextMenu;
             contextMenu.PlacementTarget = element;
             contextMenu.IsOpen = true;
-        }
-
-        private async void ButtonParameters_Click(object sender, RoutedEventArgs e)
-        {
-            if (Scope == null)
-                return;
-            await _modal.Show(new ScopeEditModal(Scope));
         }
 
         private void ListBox_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)

@@ -15,11 +15,21 @@
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
             <RowDefinition />
+            <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
         <TextBlock Margin="0,0,0,4">Name</TextBlock>
         <TextBox Grid.Row="1" Text="{Binding Name}" />
         <TextBlock Grid.Row="2" Margin="0,4,0,2">Context</TextBlock>
         <components:ContextVisualizer Grid.Row="3" Context="{Binding Context}" />
+        <Button
+            Grid.Row="4"
+            HorizontalAlignment="Right"
+            Click="Save_Click">
+            <StackPanel Orientation="Horizontal">
+                <fonts:Icon Text="{x:Static fonts:IconFont.FloppyDisk}" />
+                <TextBlock Margin="4,0,0,0">Save changes</TextBlock>
+            </StackPanel>
+        </Button>
     </Grid>
 </UserControl>

@@ -7,7 +7,7 @@ namespace Automation.App.Views.TasksPages.WorkflowUI
 {
     public class WorkflowEditModal : WorkflowEdit, IModalContent
     {
-        public IModalContainer? ModalParent { get; set; }
+        public IModalContainer? ModalContainer { get; set; }
         public ModalOptions Options => new ModalOptions() { Title = "Edit workflow", ValidButtonText = "Save" };
 
         public WorkflowEditModal(WorkflowNode workflow) : base(workflow)

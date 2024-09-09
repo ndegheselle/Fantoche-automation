@@ -1,3 +1,4 @@
+using Automation.Shared.Base;
 using DotNetEnv;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
@@ -18,32 +19,33 @@ builder.Services.AddOpenApiDocument();
 
 #region Services
 
-builder.Services.AddSingleton<IMongoDatabase>((services) =>
-{
-    string? connectionString = Environment.GetEnvironmentVariable("MONGODB_URI") ??
-        throw new ArgumentException("Missing MONGODB_URI in .env file");
-    string? databaseName = Environment.GetEnvironmentVariable("MONGO_INITDB_DATABASE") ??
-        throw new ArgumentException("Missing MONGO_INITDB_DATABASE in .env file");
+builder.Services.AddSingleton<PackageManagement>(new PackageManagement("/app/data/nuget"));
+builder.Services
+    .AddSingleton<IMongoDatabase>(
+        (services) =>
+        {
+            string? connectionString = Environment.GetEnvironmentVariable("MONGODB_URI") ??
+                throw new ArgumentException("Missing MONGODB_URI in .env file");
+            string? databaseName = Environment.GetEnvironmentVariable("MONGO_INITDB_DATABASE") ??
+                throw new ArgumentException("Missing MONGO_INITDB_DATABASE in .env file");
 
-    MongoClient client = new MongoClient(connectionString);
+            MongoClient client = new MongoClient(connectionString);
 
-    // Allow find request on guid
+            // Allow find request on guid
 #pragma warning disable 618
-    BsonDefaults.GuidRepresentationMode = GuidRepresentationMode.V3;
-    BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
+            BsonDefaults.GuidRepresentationMode = GuidRepresentationMode.V3;
+            BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
 #pragma warning restore
 
-    // Using camelCase for property names
-    ConventionRegistry.Register("camelCase", new ConventionPack
-    {
-        new CamelCaseElementNameConvention()
-    }, t => true);
+            // Using camelCase for property names
+            ConventionRegistry.Register(
+                "camelCase",
+                new ConventionPack { new CamelCaseElementNameConvention() },
+                t => true);
 
-    return client.GetDatabase(databaseName);
-});
-
+            return client.GetDatabase(databaseName);
+        });
 #endregion
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

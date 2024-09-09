@@ -10,21 +10,27 @@
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI">
-    <Grid>
-        <TabControl Margin="0,3,0,0" DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:ScopePage}}">
-            <TabItem Header="History">
-                <components:ScopedHistory TargetId="{Binding Scope.Id}" Type="Scope" />
-            </TabItem>
-        </TabControl>
-        <Button
-            HorizontalAlignment="Right"
-            VerticalAlignment="Top"
-            Margin="1"
-            Click="ButtonParameters_Click">
-            <StackPanel Orientation="Horizontal">
-                <fonts:Icon Text="{x:Static fonts:IconFont.Gear}" />
-                <TextBlock Margin="4,0,0,0">Settings</TextBlock>
-            </StackPanel>
-        </Button>
-    </Grid>
+    <TabControl
+        x:Name="ScopeTabControl"
+        Margin="0,3,0,0"
+        DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:ScopePage}}">
+        <TabItem>
+            <TabItem.Header>
+                <StackPanel Orientation="Horizontal">
+                    <fonts:Icon Text="{x:Static fonts:IconFont.Clock}" />
+                    <TextBlock Margin="4,0,0,0">History</TextBlock>
+                </StackPanel>
+            </TabItem.Header>
+            <components:ScopedHistory TargetId="{Binding Scope.Id}" Type="Scope" />
+        </TabItem>
+        <TabItem>
+            <TabItem.Header>
+                <StackPanel Orientation="Horizontal">
+                    <fonts:Icon Text="{x:Static fonts:IconFont.Gear}" />
+                    <TextBlock Margin="4,0,0,0">Settings</TextBlock>
+                </StackPanel>
+            </TabItem.Header>
+            <local:ScopeEdit Scope="{Binding Scope}" />
+        </TabItem>
+    </TabControl>
 </UserControl>

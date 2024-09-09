@@ -17,7 +17,7 @@ namespace Automation.App.Views.TasksPages.Components
 {
     public class ScopedSelectorModal : ScopedSelector, IModalContent
     {
-        public IModalContainer? ModalParent { get; set; }
+        public IModalContainer? ModalContainer { get; set; }
         public ModalOptions Options => new ModalOptions() { Title = "Add node", ValidButtonText = "Add" };
     }
 
@@ -127,11 +127,13 @@ namespace Automation.App.Views.TasksPages.Components
 
             Scope newScope = new Scope();
             newScope.ParentId = parentScope.Id;
-            if (await _modal.Show(new ScopeEditModal(newScope)))
+            if (await _modal.Show(new ScopeCreateModal(newScope)))
             {
                 Dispatcher.Invoke(() =>
                 {
                     parentScope.AddChild(newScope);
+                    newScope.FocusOn = EnumScopedTabs.Settings;
+                    newScope.IsSelected = true;
                 });
             }
         }

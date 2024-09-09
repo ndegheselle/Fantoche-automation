@@ -10,7 +10,7 @@ namespace Automation.App.Views.Menus
     /// </summary>
     public partial class ParametersUI : UserControl, IModalContent
     {
-        public IModalContainer? ModalParent { get; set; }
+        public IModalContainer? ModalContainer { get; set; }
 
         public ModalOptions Options => new ModalOptions() { Title = "Parameters", ShowFooter = false };
 

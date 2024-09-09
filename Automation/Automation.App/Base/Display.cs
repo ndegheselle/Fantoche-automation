@@ -41,7 +41,7 @@ namespace Automation.App.Base
     public interface IModalContent
     {
         public ModalOptions Options { get; }
-        public IModalContainer? ModalParent { get; set; }
+        public IModalContainer? ModalContainer { get; set; }
     }
 
     public interface IModalContentValidate : IModalContent

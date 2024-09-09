@@ -1,0 +1,18 @@
+﻿<UserControl
+    x:Class="Automation.App.Components.Inputs.TextBoxModal"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Automation.App.Components.Inputs"
+    mc:Ignorable="d"
+    MinWidth="200">
+
+    <StackPanel Margin="4,10">
+        <TextBlock
+            FontWeight="Bold"
+            TextWrapping="Wrap"
+            Text="{Binding SubTitle, RelativeSource={RelativeSource AncestorType={x:Type local:TextBoxModal}}}" />
+        <TextBox x:Name="TextBoxValue" />
+    </StackPanel>
+</UserControl>
