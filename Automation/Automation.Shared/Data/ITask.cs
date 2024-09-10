@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Automation.Shared.Base;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -27,6 +28,7 @@ namespace Automation.Shared.Data
 
     public interface ITaskNode : INamed
     {
+        Package? Package { get; set; }
         Guid ScopeId { get; set; }
         IEnumerable<ITaskConnector> Inputs { get; }
         IEnumerable<ITaskConnector> Outputs { get; }

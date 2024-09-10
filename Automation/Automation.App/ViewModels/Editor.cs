@@ -22,11 +22,11 @@ namespace Automation.App.ViewModels
         public WorkflowNode Workflow { get; }
 
         private readonly App _app = (App)System.Windows.Application.Current;
-        private readonly TaskClient _nodeClient;
+        private readonly TasksClient _nodeClient;
 
         public EditorViewModel(WorkflowNode workflow)
         {
-            _nodeClient = _app.ServiceProvider.GetRequiredService<TaskClient>();
+            _nodeClient = _app.ServiceProvider.GetRequiredService<TasksClient>();
             Workflow = workflow;
 
             PendingConnection = new TaskPendingConnection(this);

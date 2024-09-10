@@ -2,7 +2,6 @@
 using Automation.App.Components.Inputs;
 using Automation.App.Shared.ApiClients;
 using Automation.App.Shared.ViewModels.Tasks;
-using Automation.Shared;
 using Automation.Shared.Base;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
@@ -13,12 +12,12 @@ namespace Automation.App.Views.TasksPages.ScopeUI
     public class ScopeCreateModal : TextBoxModal, IModalContentValidate
     {
         private readonly App _app = (App)App.Current;
-        private readonly ScopeClient _scopeClient;
+        private readonly ScopesClient _scopeClient;
         public Scope NewScope { get; set; }
 
         public ScopeCreateModal(Scope scope) : base("Create new scope")
         {
-            _scopeClient = _app.ServiceProvider.GetRequiredService<ScopeClient>();
+            _scopeClient = _app.ServiceProvider.GetRequiredService<ScopesClient>();
             Options.ValidButtonText = "Create";
             NewScope = scope;
             BindValue(nameof(Scope.Name), NewScope);
@@ -47,7 +46,9 @@ namespace Automation.App.Views.TasksPages.ScopeUI
     public partial class ScopeEdit : UserControl
     {
         private readonly App _app = (App)App.Current;
-        private readonly ScopeClient _scopeClient;
+        private readonly ScopesClient _scopeClient;
+        private IAlert _alert => this.GetCurrentAlertContainer();
+
         public static readonly DependencyProperty ScopedProperty =
             DependencyProperty.Register(
             nameof(Scope),
@@ -62,7 +63,7 @@ namespace Automation.App.Views.TasksPages.ScopeUI
         }
 
         public ScopeEdit() {
-            _scopeClient = _app.ServiceProvider.GetRequiredService<ScopeClient>();
+            _scopeClient = _app.ServiceProvider.GetRequiredService<ScopesClient>();
             InitializeComponent(); 
         }
 
@@ -72,6 +73,7 @@ namespace Automation.App.Views.TasksPages.ScopeUI
             try
             {
                 await _scopeClient.UpdateAsync(Scope.Id, Scope);
+                _alert.Success("Scope updated !");
             }
             catch (ValidationException ex)
             {

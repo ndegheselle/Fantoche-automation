@@ -18,11 +18,11 @@ namespace Automation.App.Views.TasksPages
     {
         public INavigationLayout? Layout { get; set; }
         private readonly App _app = (App)App.Current;
-        private readonly ScopeClient _client;
+        private readonly ScopesClient _client;
 
         public TasksMainPage()
         {
-            _client = _app.ServiceProvider.GetRequiredService<ScopeClient>();
+            _client = _app.ServiceProvider.GetRequiredService<ScopesClient>();
             InitializeComponent();
             OnLoaded();
         }

@@ -1,23 +1,24 @@
 using Automation.Dal.Models;
 using Automation.Dal.Repositories;
+using Automation.Shared.Data;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 
 namespace Automation.Api.Supervisor.Controllers
 {
     [ApiController]
-    [Route("workflows")]
-    public class WorkflowController
+    [Route("tasks")]
+    public class TasksController
     {
-        protected readonly WorkflowRepository _repository;
-        public WorkflowController(IMongoDatabase database)
+        protected readonly TaskRepository _repository;
+        public TasksController(IMongoDatabase database)
         {
-            _repository = new WorkflowRepository(database);
+            _repository = new TaskRepository(database);
         }
 
         [HttpPost]
         [Route("")]
-        public Task<Guid> CreateAsync(WorkflowNode element)
+        public Task<Guid> CreateAsync(TaskNode element)
         {
             return _repository.CreateAsync(element);
         }
@@ -31,14 +32,14 @@ namespace Automation.Api.Supervisor.Controllers
 
         [HttpGet]
         [Route("{id}")]
-        public async Task<WorkflowNode?> GetByIdAsync([FromRoute] Guid id)
+        public async Task<TaskNode?> GetByIdAsync([FromRoute] Guid id)
         {
             return await _repository.GetByIdAsync(id);
         }
 
         [HttpPut]
         [Route("{id}")]
-        public Task UpdateAsync([FromRoute] Guid id, WorkflowNode element)
+        public Task UpdateAsync([FromRoute] Guid id, TaskNode element)
         {
             return _repository.UpdateAsync(id, element);
         }

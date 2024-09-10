@@ -8,24 +8,33 @@
     xmlns:components="clr-namespace:Automation.App.Views.TasksPages.Components"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     mc:Ignorable="d">
-    <Grid>
-        <TabControl DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:TaskPage}}">
-            <TabItem Header="Scheduler">
-                <local:TaskSchedules />
-            </TabItem>
-            <TabItem Header="History">
-                <components:ScopedHistory TargetId="{Binding Scoped}" />
-            </TabItem>
-        </TabControl>
-        <Button
-            HorizontalAlignment="Right"
-            VerticalAlignment="Top"
-            Margin="1"
-            Click="ButtonParameters_Click">
-            <StackPanel Orientation="Horizontal">
-                <fonts:Icon Text="{x:Static fonts:IconFont.Gear}" />
-                <TextBlock Margin="4,0,0,0">Settings</TextBlock>
-            </StackPanel>
-        </Button>
-    </Grid>
+    <TabControl x:Name="TaskTabControl" DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:TaskPage}}">
+        <TabItem>
+            <TabItem.Header>
+                <StackPanel Orientation="Horizontal">
+                    <fonts:Icon Text="{x:Static fonts:IconFont.Calendar}" />
+                    <TextBlock Margin="4,0,0,0">Scheduler</TextBlock>
+                </StackPanel>
+            </TabItem.Header>
+            <local:TaskSchedules />
+        </TabItem>
+        <TabItem>
+            <TabItem.Header>
+                <StackPanel Orientation="Horizontal">
+                    <fonts:Icon Text="{x:Static fonts:IconFont.Clock}" />
+                    <TextBlock Margin="4,0,0,0">History</TextBlock>
+                </StackPanel>
+            </TabItem.Header>
+            <components:ScopedHistory TargetId="{Binding Scoped}" />
+        </TabItem>
+        <TabItem>
+            <TabItem.Header>
+                <StackPanel Orientation="Horizontal">
+                    <fonts:Icon Text="{x:Static fonts:IconFont.Gear}" />
+                    <TextBlock Margin="4,0,0,0">Settings</TextBlock>
+                </StackPanel>
+            </TabItem.Header>
+            <local:TaskEdit Task="{Binding}" />
+        </TabItem>
+    </TabControl>
 </UserControl>

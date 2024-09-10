@@ -1,19 +1,43 @@
 ﻿using Automation.App.Base;
+using Automation.App.Components.Inputs;
+using Automation.App.Shared.ApiClients;
 using Automation.App.Shared.ViewModels.Tasks;
+using Automation.Shared.Base;
+using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 using System.Windows.Controls;
+using Automation.App;
 
 namespace Automation.App.Views.TasksPages.TaskUI
 {
-    public class TaskEditModal : TaskEdit, IModalContent
+    public class TaskCreateModal : TextBoxModal, IModalContentValidate
     {
-        public IModalContainer? ModalContainer { get; set; }
-        public ModalOptions Options => new ModalOptions() { Title = "Edit task", ValidButtonText = "Save" };
+        private readonly App _app = (App)App.Current;
+        private readonly TasksClient _taskClient;
+        public TaskNode NewTask { get; set; }
 
-        public TaskEditModal(TaskNode task) : base(task)
+        public TaskCreateModal(TaskNode task) : base("Create new task")
         {
-            if (Task.Id == Guid.Empty)
-                Options.Title = "New task";
+            _taskClient = _app.ServiceProvider.GetRequiredService<TasksClient>();
+            Options.ValidButtonText = "Create";
+            NewTask = task;
+            BindValue(nameof(Scope.Name), NewTask);
+        }
+
+        public async Task<bool> OnValidate()
+        {
+            NewTask.ClearErrors();
+            try
+            {
+                NewTask.Id = await _taskClient.CreateAsync(NewTask);
+            }
+            catch (ValidationException ex)
+            {
+                if (ex.Errors != null)
+                    NewTask.AddErrors(ex.Errors);
+                return false;
+            }
+            return true;
         }
     }
 
@@ -22,6 +46,10 @@ namespace Automation.App.Views.TasksPages.TaskUI
     /// </summary>
     public partial class TaskEdit : UserControl
     {
+        private readonly App _app = (App)App.Current;
+        private readonly TasksClient _taskClient;
+        private IAlert _alert => this.GetCurrentAlertContainer();
+
         public static readonly DependencyProperty TaskProperty =
             DependencyProperty.Register(nameof(Task), typeof(TaskNode), typeof(TaskEdit), new PropertyMetadata(null));
 
@@ -33,13 +61,23 @@ namespace Automation.App.Views.TasksPages.TaskUI
 
         public TaskEdit()
         {
+            _taskClient = _app.ServiceProvider.GetRequiredService<TasksClient>();
             InitializeComponent();
         }
 
-        public TaskEdit(TaskNode task)
+        private async void Save_Click(object sender, RoutedEventArgs e)
         {
-            Task = task;
-            InitializeComponent();
+            Task.ClearErrors();
+            try
+            {
+                await _taskClient.UpdateAsync(Task.Id, Task);
+                _alert.Success("Task updated !");
+            }
+            catch (ValidationException ex)
+            {
+                if (ex.Errors != null)
+                    Task.AddErrors(ex.Errors);
+            }
         }
     }
 }

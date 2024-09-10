@@ -19,12 +19,12 @@ namespace Automation.App.Views.TasksPages.WorkflowUI
         public WorkflowNode Workflow { get; set; }
 
         private readonly App _app = (App)App.Current;
-        private readonly WorkflowClient _client;
+        private readonly WorkflowsClient _client;
         private IModalContainer _modal => this.GetCurrentModalContainer();
 
         public WorkflowPage(Guid workflowId)
         {
-            _client = _app.ServiceProvider.GetRequiredService<WorkflowClient>();
+            _client = _app.ServiceProvider.GetRequiredService<WorkflowsClient>();
             Workflow = new WorkflowNode() { Id = workflowId };
             InitializeComponent();
             LoadFullWokflow(workflowId);

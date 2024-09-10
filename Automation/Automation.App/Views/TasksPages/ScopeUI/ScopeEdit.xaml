@@ -11,19 +11,19 @@
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared">
     <Grid Margin="4" DataContext="{Binding Scope, RelativeSource={RelativeSource AncestorType={x:Type local:ScopeEdit}}}">
         <Grid.RowDefinitions>
-            <RowDefinition Height="auto" />
-            <RowDefinition Height="auto" />
-            <RowDefinition Height="auto" />
             <RowDefinition />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
-        <TextBlock Margin="0,0,0,4">Name</TextBlock>
-        <TextBox Grid.Row="1" Text="{Binding Name}" />
-        <TextBlock Grid.Row="2" Margin="0,4,0,2">Context</TextBlock>
-        <components:ContextVisualizer Grid.Row="3" Context="{Binding Context}" />
+        <StackPanel>
+            <TextBlock Margin="0,0,0,4">Name</TextBlock>
+            <TextBox Text="{Binding Name}" />
+            <TextBlock Margin="0,4,0,2">Context</TextBlock>
+            <components:ContextVisualizer Context="{Binding Context}" />
+        </StackPanel>
+
         <Button
-            Grid.Row="4"
+            Grid.Row="1"
             HorizontalAlignment="Right"
             Click="Save_Click">
             <StackPanel Orientation="Horizontal">

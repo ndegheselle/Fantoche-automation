@@ -55,12 +55,12 @@ namespace Automation.App
             services.AddSingleton<ParametersViewModel>();
             services.AddSingleton<RestClient>(new RestClient("https://localhost:8081/"));
 
-            services.AddTransient<ScopeClient>(
-                (provider) => new ScopeClient(provider.GetRequiredService<RestClient>()));
-            services.AddTransient<TaskClient>(
-                (provider) => new TaskClient(provider.GetRequiredService<RestClient>()));
-            services.AddTransient<WorkflowClient>(
-                (provider) => new WorkflowClient(provider.GetRequiredService<RestClient>()));
+            services.AddTransient<ScopesClient>(
+                (provider) => new ScopesClient(provider.GetRequiredService<RestClient>()));
+            services.AddTransient<TasksClient>(
+                (provider) => new TasksClient(provider.GetRequiredService<RestClient>()));
+            services.AddTransient<WorkflowsClient>(
+                (provider) => new WorkflowsClient(provider.GetRequiredService<RestClient>()));
             services.AddTransient<HistoryClient>(
                 (provider) => new HistoryClient(provider.GetRequiredService<RestClient>()));
             return services.BuildServiceProvider();

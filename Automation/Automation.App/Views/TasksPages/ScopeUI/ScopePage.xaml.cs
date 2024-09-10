@@ -19,13 +19,13 @@ namespace Automation.App.Views.TasksPages.ScopeUI
         private IModalContainer _modal => this.GetCurrentModalContainer();
 
         private readonly App _app = (App)App.Current;
-        private readonly ScopeClient _scopeClient;
-        private readonly TaskClient _taskClient;
+        private readonly ScopesClient _scopeClient;
+        private readonly TasksClient _taskClient;
 
         public ScopePage(Scope scope)
         {
-            _scopeClient = _app.ServiceProvider.GetRequiredService<ScopeClient>();
-            _taskClient = _app.ServiceProvider.GetRequiredService<TaskClient>();
+            _scopeClient = _app.ServiceProvider.GetRequiredService<ScopesClient>();
+            _taskClient = _app.ServiceProvider.GetRequiredService<TasksClient>();
             Scope = scope;
 
             InitializeComponent();

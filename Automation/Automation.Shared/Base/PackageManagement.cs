@@ -34,7 +34,7 @@ namespace Automation.Shared.Base
             _source = new SourceRepository(packageSource, providers);
         }
 
-        public async Task<IEnumerable<Package>> GetAll(string name = "", int page = 0, int pageSize = 50)
+        public async Task<IEnumerable<Package>> SearchAsync(string name = "", int page = 0, int pageSize = 50)
         {
             PackageSearchResource resource = await _source.GetResourceAsync<PackageSearchResource>();
             var results = await resource.SearchAsync(

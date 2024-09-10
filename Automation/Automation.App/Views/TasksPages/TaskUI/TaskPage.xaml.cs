@@ -18,15 +18,16 @@ namespace Automation.App.Views.TasksPages.TaskUI
         public TaskNode Task { get; set; }
 
         private readonly App _app = (App)App.Current;
-        private readonly TaskClient _client;
+        private readonly TasksClient _client;
         private IModalContainer _modal => this.GetCurrentModalContainer();
 
-        public TaskPage(Guid taskId)
+        public TaskPage(TaskNode task)
         {
-            _client = _app.ServiceProvider.GetRequiredService<TaskClient>();
-            Task = new TaskNode() { Id = taskId };
+            _client = _app.ServiceProvider.GetRequiredService<TasksClient>();
+            Task = task;
             InitializeComponent();
-            LoadFullTask(taskId);
+            LoadFullTask(Task.Id);
+            HandleFocus(Task.FocusOn);
         }
 
         public async void LoadFullTask(Guid taskId)
@@ -36,6 +37,16 @@ namespace Automation.App.Views.TasksPages.TaskUI
             if (fullTask == null)
                 throw new ArgumentException("Task not found");
             Task = fullTask;
+        }
+
+        private void HandleFocus(EnumScopedTabs focusOn)
+        {
+            switch (focusOn)
+            {
+                case EnumScopedTabs.Settings:
+                    TaskTabControl.SelectedIndex = 2;
+                    break;
+            }
         }
 
         #region UI Events

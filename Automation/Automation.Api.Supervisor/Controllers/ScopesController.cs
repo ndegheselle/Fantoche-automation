@@ -3,15 +3,16 @@ using Automation.Shared.Base;
 using Automation.Dal.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
+using Automation.Shared;
 
 namespace Automation.Api.Supervisor.Controllers
 {
     [ApiController]
     [Route("scopes")]
-    public class ScopeController : Controller
+    public class ScopesController : Controller
     {
         protected readonly ScopeRepository _repository;
-        public ScopeController(IMongoDatabase database)
+        public ScopesController(IMongoDatabase database)
         {
             _repository = new ScopeRepository(database);
         }

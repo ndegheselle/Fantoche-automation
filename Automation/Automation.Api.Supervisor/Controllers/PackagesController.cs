@@ -5,18 +5,18 @@ namespace Automation.Api.Supervisor.Controllers
 {
     [ApiController]
     [Route("packages")]
-    public class PackageController
+    public class PackagesController
     {
         protected readonly PackageManagement _packages;
-        public PackageController(PackageManagement packages)
+        public PackagesController(PackageManagement packages)
         {
             _packages = packages;
         }
 
         [HttpGet]
-        public Task<IEnumerable<Package>> GetAll()
+        public Task<IEnumerable<Package>> SearchAsync([FromQuery]string searchValue, [FromQuery] int page, [FromQuery] int pageSize)
         {
-            return _packages.GetAll();
+            return _packages.SearchAsync(searchValue, page, pageSize);
         }
     }
 }

@@ -7,14 +7,29 @@
     xmlns:local="clr-namespace:Automation.App.Views.TasksPages.TaskUI"
     xmlns:components="clr-namespace:Automation.App.Views.TasksPages.Components"
     xmlns:inputs="clr-namespace:Automation.App.Components.Inputs"
-    mc:Ignorable="d"
-    MinHeight="100"
-    MinWidth="250"
-    Padding="2">
-    <StackPanel Orientation="Vertical" DataContext="{Binding Task, RelativeSource={RelativeSource AncestorType=local:TaskEdit}}">
-        <TextBlock Margin="0,0,0,4">Name</TextBlock>
-        <TextBox Text="{Binding Name}" />
-        <TextBlock Margin="0,0,0,4">Source DLL</TextBlock>
-        <inputs:FilePicker />
-    </StackPanel>
+    xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
+    mc:Ignorable="d">
+    <Grid Margin="4">
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Orientation="Vertical" DataContext="{Binding Task, RelativeSource={RelativeSource AncestorType=local:TaskEdit}}">
+            <TextBlock Margin="0,0,0,4">Name</TextBlock>
+            <TextBox Text="{Binding Name}" />
+            <TextBlock Margin="0,0,0,4">Package</TextBlock>
+            <inputs:FilePicker />
+        </StackPanel>
+
+        <Button
+            Grid.Row="1"
+            HorizontalAlignment="Right"
+            Click="Save_Click">
+            <StackPanel Orientation="Horizontal">
+                <fonts:Icon Text="{x:Static fonts:IconFont.FloppyDisk}" />
+                <TextBlock Margin="4,0,0,0">Save changes</TextBlock>
+            </StackPanel>
+        </Button>
+    </Grid>
 </UserControl>

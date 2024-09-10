@@ -1,16 +1,15 @@
-﻿using Automation.Shared.Data;
+﻿using Automation.Shared.Base;
+using Automation.Shared.Data;
 using System.Windows;
 
 namespace Automation.App.Shared.ViewModels.Tasks
 {
-    public class TaskNode : ScopedElement, ITaskNode
+    public class TaskNode : ScopedElement
     {
+        public Package? Package { get; set; }
         public Guid ScopeId { get; set; }
         public List<TaskConnector> Inputs { get; set; }
         public List<TaskConnector> Outputs { get; set; }
-
-        IEnumerable<ITaskConnector> ITaskNode.Inputs => Inputs;
-        IEnumerable<ITaskConnector> ITaskNode.Outputs => Outputs;
 
         public TaskNode()
         {

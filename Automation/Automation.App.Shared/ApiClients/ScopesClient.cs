@@ -4,9 +4,9 @@ using RestSharp;
 
 namespace Automation.App.Shared.ApiClients
 {
-    public class ScopeClient : BaseCrudClient<Scope>, IScopeClient<Scope>
+    public class ScopesClient : BaseCrudClient<Scope>, IScopesClient<Scope>
     {
-        public ScopeClient(RestClient restClient) : base(restClient, "scopes")
+        public ScopesClient(RestClient restClient) : base(restClient, "scopes")
         { }
 
         public async Task<Scope> GetRootAsync()

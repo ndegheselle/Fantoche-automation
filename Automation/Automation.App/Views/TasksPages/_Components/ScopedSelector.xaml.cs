@@ -66,19 +66,17 @@ namespace Automation.App.Views.TasksPages.Components
         public ScopedElement SelectedOrDefault => Selected ?? RootScope;
 
         private readonly App _app = (App)App.Current;
-        private readonly ScopeClient _scopeClient;
-        private readonly WorkflowClient _workflowClient;
-        private readonly TaskClient _taskClient;
+        private readonly ScopesClient _scopeClient;
+        private readonly WorkflowsClient _workflowClient;
+        private readonly TasksClient _taskClient;
 
         private IModalContainer _modal => this.GetCurrentModalContainer();
         #endregion
 
-
-
         public ScopedSelector() {
-            _scopeClient = _app.ServiceProvider.GetRequiredService<ScopeClient>();
-            _taskClient = _app.ServiceProvider.GetRequiredService<TaskClient>();
-            _workflowClient = _app.ServiceProvider.GetRequiredService<WorkflowClient>();
+            _scopeClient = _app.ServiceProvider.GetRequiredService<ScopesClient>();
+            _taskClient = _app.ServiceProvider.GetRequiredService<TasksClient>();
+            _workflowClient = _app.ServiceProvider.GetRequiredService<WorkflowsClient>();
             InitializeComponent();
 
             RemoveSelectedCommand = new DelegateCommand(OnRemoveSelected,
