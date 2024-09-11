@@ -143,10 +143,11 @@ namespace Automation.App.Views.TasksPages.Components
 
             var task = new TaskNode();
             task.ScopeId = parentScope.Id;
-            if (await _modal.Show(new TaskEditModal(task)))
+            if (await _modal.Show(new TaskCreateModal(task)))
             {
-                task.Id = await _taskClient.CreateAsync(task);
-                parentScope.AddChild(new ScopedElement(task));
+                parentScope.AddChild(task);
+                task.FocusOn = EnumScopedTabs.Settings;
+                task.IsSelected = true;
             }
         }
 
@@ -160,7 +161,7 @@ namespace Automation.App.Views.TasksPages.Components
             if (await _modal.Show(new WorkflowEditModal(workflow)))
             {
                 workflow.Id = await _workflowClient.CreateAsync(workflow);
-                parentScope.AddChild(new ScopedElement(workflow));
+                parentScope.AddChild(workflow);
             }
         }
 
@@ -168,7 +169,7 @@ namespace Automation.App.Views.TasksPages.Components
 
         #region UI Events
 
-        private async void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             TreeView treeView = (TreeView)sender;
             ScopedElement? selected = treeView.SelectedItem as ScopedElement;
@@ -207,9 +208,12 @@ namespace Automation.App.Views.TasksPages.Components
             return source as TreeViewItem;
         }
 
-        private void LoadFullScope()
+        private void Add_Click(object sender, RoutedEventArgs e)
         {
-
+            FrameworkElement frameworkElement = (FrameworkElement)sender;
+            frameworkElement.ContextMenu.PlacementTarget = frameworkElement;
+            frameworkElement.ContextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+            frameworkElement.ContextMenu.IsOpen = true;
         }
     }
 }

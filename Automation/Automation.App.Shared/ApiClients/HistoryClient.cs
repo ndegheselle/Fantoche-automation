@@ -13,7 +13,7 @@ namespace Automation.App.Shared.ApiClients
         public async Task<ListPageWrapper<TaskHistory>> GetByScopeAsync(Guid scopeId, int page, int pageSize)
         {
             return await _client.GetAsync<ListPageWrapper<TaskHistory>>(
-                new RestRequest($"{_routeBase}/scope/{scopeId}")
+                new RestRequest($"{_routeBase}/scopes/{scopeId}")
                 .AddParameter("page", page)
                 .AddParameter("pageSize", pageSize)) 
                 ?? new ListPageWrapper<TaskHistory>();

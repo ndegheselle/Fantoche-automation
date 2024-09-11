@@ -27,7 +27,7 @@ namespace Automation.App.Views.TasksPages.TaskUI
             Task = task;
             InitializeComponent();
             LoadFullTask(Task.Id);
-            HandleFocus(Task.FocusOn);
+            HandleFocus();
         }
 
         public async void LoadFullTask(Guid taskId)
@@ -39,24 +39,15 @@ namespace Automation.App.Views.TasksPages.TaskUI
             Task = fullTask;
         }
 
-        private void HandleFocus(EnumScopedTabs focusOn)
+        private void HandleFocus()
         {
-            switch (focusOn)
+            switch (Task.FocusOn)
             {
                 case EnumScopedTabs.Settings:
                     TaskTabControl.SelectedIndex = 2;
                     break;
             }
+            Task.FocusOn = EnumScopedTabs.Default;
         }
-
-        #region UI Events
-        private async void ButtonParameters_Click(object sender, RoutedEventArgs e)
-        {
-            if (Task == null)
-                return;
-            if (await _modal.Show(new TaskEditModal(Task)))
-                await _client.UpdateAsync(Task.Id, Task);
-        }
-        #endregion
     }
 }

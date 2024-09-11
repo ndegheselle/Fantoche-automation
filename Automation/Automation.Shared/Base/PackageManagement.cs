@@ -6,6 +6,8 @@ namespace Automation.Shared.Base
 {
     public class Package
     {
+        public Package() { }
+
         public Package(IPackageSearchMetadata metadata)
         {
             Id = metadata.Identity.Id;
@@ -34,17 +36,22 @@ namespace Automation.Shared.Base
             _source = new SourceRepository(packageSource, providers);
         }
 
-        public async Task<IEnumerable<Package>> SearchAsync(string name = "", int page = 0, int pageSize = 50)
+        public async Task<ListPageWrapper<Package>> SearchAsync(string name = "", int page = 1, int pageSize = 50)
         {
             PackageSearchResource resource = await _source.GetResourceAsync<PackageSearchResource>();
             var results = await resource.SearchAsync(
                 name,
                 new SearchFilter(includePrerelease: false),
-                page,
+                page - 1,
                 pageSize,
                 NullLogger.Instance,
                 CancellationToken.None);
-            return results.Select(x => new Package(x));
+            return new ListPageWrapper<Package>()
+            {
+                Page = page,
+                PageSize = pageSize,
+                Data = results.Select(x => new Package(x)).ToList()
+            };
         }
     }
 }

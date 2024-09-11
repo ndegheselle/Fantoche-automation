@@ -14,9 +14,9 @@ namespace Automation.Api.Supervisor.Controllers
         }
 
         [HttpGet]
-        public Task<IEnumerable<Package>> SearchAsync([FromQuery]string searchValue, [FromQuery] int page, [FromQuery] int pageSize)
+        public Task<ListPageWrapper<Package>> SearchAsync([FromQuery]string? searchValue, [FromQuery] int page, [FromQuery] int pageSize)
         {
-            return _packages.SearchAsync(searchValue, page, pageSize);
+            return _packages.SearchAsync(searchValue ?? "", page, pageSize);
         }
     }
 }

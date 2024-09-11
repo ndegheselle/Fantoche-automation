@@ -5,6 +5,8 @@ using System.Text.Json.Serialization;
 namespace Automation.Dal.Models
 {
     [JsonDerivedType(typeof(Scope), "scope")]
+    [JsonDerivedType(typeof(TaskNode), "task")]
+    [JsonDerivedType(typeof(WorkflowNode), "workflow")]
     public class ScopedElement : INamed
     {
         [BsonId]
@@ -16,13 +18,6 @@ namespace Automation.Dal.Models
 
         public ScopedElement() 
         {}
-
-        public ScopedElement(TaskNode task)
-        {
-            Id = task.Id;
-            Name = task.Name;
-            Type = task is WorkflowNode ? EnumScopedType.Workflow : EnumScopedType.Task;
-        }
     }
 
     public class Scope : ScopedElement

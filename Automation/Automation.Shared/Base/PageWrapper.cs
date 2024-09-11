@@ -1,27 +1,11 @@
 ﻿namespace Automation.Shared.Base
 {
-    public interface IPageWrapper<out T> : IEnumerable<T>
+    public class ListPageWrapper<T>
     {
-        public long Total { get; set; }
-        public int Page { get; set; }
-        public int PageSize { get; set; }
-    }
+        public List<T> Data { get; set;} = new List<T>();
 
-    public class ListPageWrapper<T> : List<T>, IPageWrapper<T>
-    {
-        public long Total { get; set; }
-        public int Page { get; set; }
-        public int PageSize { get; set; }
-
-        public ListPageWrapper()
-        { 
-        }
-
-        public ListPageWrapper(int page, int pageSize, long total)
-        {
-            Total = total;
-            Page = page;
-            PageSize = pageSize;
-        }
+        public long Total { get; set; } = -1;
+        public int Page { get; set; } = 1;
+        public int PageSize { get; set; } = 50;
     }
 }

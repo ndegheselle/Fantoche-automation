@@ -52,7 +52,7 @@ namespace Automation.Dal.Repositories
 
             scope.Childrens = [
                 ..await scopeChildrenTask,
-                ..(await taskChildrenTask).Select(x => new ScopedElement(x))
+                ..await taskChildrenTask
             ];
             return scope;
         }
@@ -76,7 +76,7 @@ namespace Automation.Dal.Repositories
             var taskRepo = new TaskRepository(_database);
             var task = await taskRepo.GetByScopeAndNameAsync(scopeId ?? ROOT_SCOPE_ID, name);
             if (task != null)
-                return new ScopedElement(task);
+                return task;
             return null;
         }
     }

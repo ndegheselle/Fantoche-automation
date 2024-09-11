@@ -10,10 +10,13 @@ namespace Automation.App.Shared.ViewModels.Tasks
 {
     public enum EnumScopedTabs
     {
+        Default,
         History,
         Settings
     }
 
+    [JsonDerivedType(typeof(TaskNode), "task")]
+    [JsonDerivedType(typeof(WorkflowNode), "workflow")]
     [JsonDerivedType(typeof(Scope), "scope")]
     public class ScopedElement : ErrorValidationModel, INamed, INotifyPropertyChanged
     {
@@ -63,18 +66,6 @@ namespace Automation.App.Shared.ViewModels.Tasks
         }
 
         #endregion
-
-        public ScopedElement()
-        {
-            Type = EnumScopedType.Task;
-        }
-
-        public ScopedElement(TaskNode task)
-        {
-            Id = task.Id;
-            Name = task.Name;
-            Type = task is WorkflowNode ? EnumScopedType.Workflow : EnumScopedType.Task;
-        }
     }
 
     public class Scope : ScopedElement

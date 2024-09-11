@@ -11,10 +11,10 @@ namespace Automation.Shared
         public Task DeleteAsync(Guid id);
     }
 
-    public interface ITasksClient<T> : ICrudClient<T> where T : ITaskNode
+    public interface ITasksClient<T> : ICrudClient<T>
     { }
 
-    public interface IWorkflowsClient<T> : ICrudClient<T> where T : IWorkflowNode
+    public interface IWorkflowsClient<T> : ICrudClient<T>
     { }
 
     public interface IScopesClient<T> : ICrudClient<T>
@@ -30,6 +30,6 @@ namespace Automation.Shared
 
     public interface IPackagesClient
     {
-        public Task<IEnumerable<Package>> SearchAsync(string searchValue, int page, int pageSize);
+        public Task<ListPageWrapper<Package>> SearchAsync(string searchValue, int page, int pageSize);
     }
 }

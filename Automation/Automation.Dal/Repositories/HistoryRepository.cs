@@ -1,6 +1,8 @@
 ﻿using Automation.Dal.Models;
 using Automation.Shared.Base;
 using MongoDB.Driver;
+using System.Threading.Tasks;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace Automation.Dal.Repositories
 {
@@ -13,29 +15,33 @@ namespace Automation.Dal.Repositories
         public async Task<ListPageWrapper<TaskHistory>> GetByScopeAsync(Guid scopeId, int page, int pageSize)
         {
             var histories = await _collection.Find(e => e.ScopeId == scopeId)
-                .Skip((page - 1) * pageSize)
+                .Skip(page * pageSize)
                 .Limit(pageSize)
                 .ToListAsync();
 
-            ListPageWrapper<TaskHistory> pageWrapper = new ListPageWrapper<TaskHistory>(
-                page,
-                pageSize,
-                _collection.CountDocuments(x => x.ScopeId == scopeId));
-            return pageWrapper;
+            return new ListPageWrapper<TaskHistory>()
+            {
+                Data = histories,
+                Page = page,
+                PageSize = pageSize,
+                Total = _collection.CountDocuments(x => x.ScopeId == scopeId)
+            };
         }
 
         public async Task<ListPageWrapper<TaskHistory>> GetByTaskAsync(Guid taskId, int page, int pageSize)
         {
             var histories = await _collection.Find(e => e.TaskId == taskId)
-                .Skip((page - 1) * pageSize)
+                .Skip(page * pageSize)
                 .Limit(pageSize)
                 .ToListAsync();
 
-            ListPageWrapper<TaskHistory> pageWrapper = new ListPageWrapper<TaskHistory>(
-            page,
-            pageSize,
-                _collection.CountDocuments(x => x.TaskId == taskId));
-            return pageWrapper;
+            return new ListPageWrapper<TaskHistory>()
+            {
+                Data = histories,
+                Page = page,
+                PageSize = pageSize,
+                Total = _collection.CountDocuments(x => x.TaskId == taskId)
+            };
         }
     }
 }

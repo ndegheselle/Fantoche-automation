@@ -25,7 +25,7 @@
                     <TextBlock Margin="4,0,0,0">History</TextBlock>
                 </StackPanel>
             </TabItem.Header>
-            <components:ScopedHistory TargetId="{Binding Scoped}" />
+            <components:ScopedHistory TargetId="{Binding Task.Id}" Type="Task" />
         </TabItem>
         <TabItem>
             <TabItem.Header>
@@ -34,7 +34,7 @@
                     <TextBlock Margin="4,0,0,0">Settings</TextBlock>
                 </StackPanel>
             </TabItem.Header>
-            <local:TaskEdit Task="{Binding}" />
+            <local:TaskEdit Task="{Binding Task}" />
         </TabItem>
     </TabControl>
 </UserControl>

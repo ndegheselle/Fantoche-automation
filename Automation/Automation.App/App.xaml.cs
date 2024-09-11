@@ -63,6 +63,8 @@ namespace Automation.App
                 (provider) => new WorkflowsClient(provider.GetRequiredService<RestClient>()));
             services.AddTransient<HistoryClient>(
                 (provider) => new HistoryClient(provider.GetRequiredService<RestClient>()));
+            services.AddTransient<PackagesClient>(
+                (provider) => new PackagesClient(provider.GetRequiredService<RestClient>()));
             return services.BuildServiceProvider();
         }
 

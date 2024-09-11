@@ -8,6 +8,11 @@ namespace Automation.Dal.Models
     {
         public IEnumerable<ITaskConnection> Connections { get; set; } = new List<TaskConnection>();
         public IEnumerable<ILinkedNode> Nodes { get; set; } = new List<ILinkedNode>();
+
+        public WorkflowNode()
+        {
+            Type = EnumScopedType.Workflow;
+        }
     }
 
     public class RelatedTaskNode : IRelatedTaskNode

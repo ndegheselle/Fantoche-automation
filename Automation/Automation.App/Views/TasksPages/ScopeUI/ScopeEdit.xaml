@@ -16,9 +16,9 @@
         </Grid.RowDefinitions>
 
         <StackPanel>
-            <TextBlock Margin="0,0,0,4">Name</TextBlock>
+            <TextBlock Margin="0,8,0,4" FontWeight="Bold">Name</TextBlock>
             <TextBox Text="{Binding Name}" />
-            <TextBlock Margin="0,4,0,2">Context</TextBlock>
+            <TextBlock Margin="0,8,0,4" FontWeight="Bold">Context</TextBlock>
             <components:ContextVisualizer Context="{Binding Context}" />
         </StackPanel>
 

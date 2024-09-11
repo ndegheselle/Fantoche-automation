@@ -8,19 +8,33 @@ namespace Automation.Api.Supervisor.Controllers
 {
     [ApiController]
     [Route("tasks")]
-    public class TasksController
+    public class TasksController : Controller
     {
         protected readonly TaskRepository _repository;
+        protected readonly IMongoDatabase _database;
+
         public TasksController(IMongoDatabase database)
         {
+            _database = database;
             _repository = new TaskRepository(database);
         }
 
         [HttpPost]
         [Route("")]
-        public Task<Guid> CreateAsync(TaskNode element)
+        public async Task<ActionResult<Guid>> CreateAsync(TaskNode element)
         {
-            return _repository.CreateAsync(element);
+            var scopeRepository = new ScopeRepository(_database);
+            var existingChild = await scopeRepository.GetChildByNameAsync(element.ScopeId, element.Name);
+
+            if (existingChild != null)
+            {
+                return BadRequest(new Dictionary<string, string[]>()
+                {
+                    {nameof(TaskNode.Name), [$"The name {element.Name} is already used in this scope."] }
+                });
+            }
+
+            return await _repository.CreateAsync(element);
         }
 
         [HttpDelete]

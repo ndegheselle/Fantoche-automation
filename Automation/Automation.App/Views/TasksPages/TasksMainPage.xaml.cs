@@ -49,7 +49,7 @@ namespace Automation.App.Views.TasksPages
                     Show(new WorkflowPage(selected.Id));
                     break;
                 case EnumScopedType.Task:
-                    Show(new TaskPage(selected.Id));
+                    Show(new TaskPage((TaskNode)selected));
                     break;
             }
         }

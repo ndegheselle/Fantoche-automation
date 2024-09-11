@@ -1,16 +1,18 @@
-﻿using Automation.Shared.Data;
-using MongoDB.Bson.Serialization.Attributes;
+﻿using Automation.Shared.Base;
+using Automation.Shared.Data;
 
 namespace Automation.Dal.Models
 {
-    public class TaskNode : ITaskNode
+    public class TaskNode : ScopedElement, ITaskNode
     {
-        [BsonId]
-        public Guid Id { get; set; }
         public Guid ScopeId { get; set; }
-        public string Name { get; set; } = string.Empty;
         public IEnumerable<ITaskConnector> Inputs { get; set; } = new List<TaskConnectors>();
         public IEnumerable<ITaskConnector> Outputs { get; set; } = new List<TaskConnectors>();
+        public Package? Package { get; set; }
+
+        public TaskNode() {
+            Type = EnumScopedType.Task;
+        }
     }
 
     public class TaskConnectors : ITaskConnector

@@ -5,13 +5,10 @@ using System.Windows;
 
 namespace Automation.App.Shared.ViewModels.Tasks
 {
-    public class WorkflowNode : TaskNode, IWorkflowNode
+    public class WorkflowNode : TaskNode
     {
         public ObservableCollection<TaskConnection> Connections { get; set; } = new ObservableCollection<TaskConnection>();
         public ObservableCollection<LinkedNode> Nodes { get; private set; } = new ObservableCollection<LinkedNode>();
-
-        IEnumerable<ITaskConnection> IWorkflowNode.Connections => Connections;
-        IEnumerable<ILinkedNode> IWorkflowNode.Nodes => Nodes;
 
         public WorkflowNode()
         {

@@ -30,7 +30,7 @@ namespace Automation.App.Views.TasksPages.ScopeUI
 
             InitializeComponent();
             LoadFullScope(Scope.Id);
-            HandleFocus(Scope.FocusOn);
+            HandleFocus();
         }
 
         private async void LoadFullScope(Guid scopeId)
@@ -45,14 +45,15 @@ namespace Automation.App.Views.TasksPages.ScopeUI
             Scope.RefreshChildrens();
         }
 
-        private void HandleFocus(EnumScopedTabs focusOn)
+        private void HandleFocus()
         {
-            switch (focusOn)
+            switch (Scope.FocusOn)
             {
                 case EnumScopedTabs.Settings:
                     ScopeTabControl.SelectedIndex = 1;
                     break;
             }
+            Scope.FocusOn = EnumScopedTabs.Default;
         }
 
         #region UI Events
