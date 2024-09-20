@@ -32,6 +32,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\wpf-components\Joufflu.Data\Joufflu.Data.csproj" />
+    <ProjectReference Include="..\..\..\wpf-components\Joufflu.Popups\Joufflu.Popups.csproj" />
     <ProjectReference Include="..\..\..\wpf-components\Joufflu.Shared\Joufflu.Shared.csproj" />
     <ProjectReference Include="..\Automation.App.Shared\Automation.App.Shared.csproj" />
     <ProjectReference Include="..\Automation.Plugins\Automation.Plugins.csproj" />

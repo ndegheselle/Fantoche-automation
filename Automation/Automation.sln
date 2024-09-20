@@ -37,6 +37,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Automation.App.Shared", "Au
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{52EB3A24-36F7-448B-A1CB-6FCC6ABF790A}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Joufflu.Popups", "..\..\wpf-components\Joufflu.Popups\Joufflu.Popups.csproj", "{31B4DD73-CCAB-492E-BA92-947EF3E70ADE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -95,6 +97,10 @@ Global
 		{52EB3A24-36F7-448B-A1CB-6FCC6ABF790A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{52EB3A24-36F7-448B-A1CB-6FCC6ABF790A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{52EB3A24-36F7-448B-A1CB-6FCC6ABF790A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{31B4DD73-CCAB-492E-BA92-947EF3E70ADE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31B4DD73-CCAB-492E-BA92-947EF3E70ADE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31B4DD73-CCAB-492E-BA92-947EF3E70ADE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31B4DD73-CCAB-492E-BA92-947EF3E70ADE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -113,6 +119,7 @@ Global
 		{4FC7104C-48F6-4A16-8FB0-5A3C35329156} = {5A3373EB-AB17-4713-85EF-071F9AB50EFA}
 		{F455C5BD-19BF-4D15-B53E-4C1A51B3D50A} = {3D73906E-1336-48AD-B5FA-34B251926611}
 		{52EB3A24-36F7-448B-A1CB-6FCC6ABF790A} = {128D718D-1656-4F30-98A5-3764D87E87C4}
+		{31B4DD73-CCAB-492E-BA92-947EF3E70ADE} = {3D73906E-1336-48AD-B5FA-34B251926611}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AFEC477D-0D28-4C5A-9622-5F97F806819C}

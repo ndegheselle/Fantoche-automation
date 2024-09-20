@@ -7,7 +7,7 @@
     xmlns:adonisExtensions="clr-namespace:AdonisUI.Extensions;assembly=AdonisUI"
     xmlns:inputs="clr-namespace:Automation.App.Components.Inputs"
     xmlns:local="clr-namespace:Automation.App"
-    xmlns:views="clr-namespace:Automation.App.Views"
+    xmlns:popups="clr-namespace:Joufflu.Popups;assembly=Joufflu.Popups"
     xmlns:menus="clr-namespace:Automation.App.Views.Menus"
     Title="Automation - test"
     Width="1600"
@@ -33,7 +33,7 @@
             </Grid>
             <menus:Footer Grid.Row="2" />
         </Grid>
-        <views:Modal x:Name="ModalContainer" />
-        <views:Alert x:Name="AlertContainer" />
+        <popups:Modal x:Name="ModalElement" />
+        <popups:Alert x:Name="AlertElement" />
     </Grid>
 </adonisControls:AdonisWindow>

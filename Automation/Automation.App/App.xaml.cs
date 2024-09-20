@@ -1,27 +1,14 @@
-﻿using Automation.App.Base;
-using Automation.App.Components.Display;
-using Automation.App.Shared.ApiClients;
+﻿using Automation.App.Shared.ApiClients;
 using Automation.App.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using RestSharp;
 using System.Windows;
 using System.Windows.Threading;
+using AdonisUI.Controls;
+using MessageBox = AdonisUI.Controls.MessageBox;
 
 namespace Automation.App
 {
-    public static class DependencyObjectExtension
-    {
-        public static IModalContainer GetCurrentModalContainer(this DependencyObject d)
-        {
-            return ((IWindowContainer)Window.GetWindow(d)).Modal;
-        }
-
-        public static IAlert GetCurrentAlertContainer(this DependencyObject d)
-        {
-            return ((IWindowContainer)Window.GetWindow(d)).Alert;
-        }
-    }
-
     /// <summary>
     /// Interaction logic for App.xaml
     /// </summary>
@@ -57,8 +44,7 @@ namespace Automation.App
 
             services.AddTransient<ScopesClient>(
                 (provider) => new ScopesClient(provider.GetRequiredService<RestClient>()));
-            services.AddTransient<TasksClient>(
-                (provider) => new TasksClient(provider.GetRequiredService<RestClient>()));
+            services.AddTransient<TasksClient>((provider) => new TasksClient(provider.GetRequiredService<RestClient>()));
             services.AddTransient<WorkflowsClient>(
                 (provider) => new WorkflowsClient(provider.GetRequiredService<RestClient>()));
             services.AddTransient<HistoryClient>(
@@ -69,7 +55,6 @@ namespace Automation.App
         }
 
         #region Exception handling
-
         private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
         {
             // FIXME : Should get the current window where the exception happend
@@ -85,12 +70,14 @@ namespace Automation.App
 
             if (ServiceProvider == null)
                 return;
-            var modal = ((IWindowContainer)Current.MainWindow).Modal;
-            modal.Show(new ConfirmationModal("An unexpected error occurred")).Wait();
 
+            MessageBox.Show(
+                "An unexpected error occurred",
+                "Error",
+                AdonisUI.Controls.MessageBoxButton.OK,
+                AdonisUI.Controls.MessageBoxImage.Warning);
             // The application will still terminate after this event is handled
         }
-
         #endregion
     }
 }

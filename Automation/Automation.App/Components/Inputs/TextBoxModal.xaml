@@ -7,7 +7,6 @@
     xmlns:local="clr-namespace:Automation.App.Components.Inputs"
     mc:Ignorable="d"
     MinWidth="200">
-
     <StackPanel Margin="4,10">
         <TextBlock
             FontWeight="Bold"

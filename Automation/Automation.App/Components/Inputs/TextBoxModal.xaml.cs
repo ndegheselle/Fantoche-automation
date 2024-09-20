@@ -1,19 +1,17 @@
-﻿using Automation.App.Base;
+﻿using Joufflu.Popups;
 using System.Windows.Controls;
 using System.Windows.Data;
 
 namespace Automation.App.Components.Inputs
 {
-    public partial class TextBoxModal : UserControl, IModalContent
+    public partial class TextBoxModal : UserControl, IModalValidationContent
     {
-        public ModalOptions Options { get; private set; } = new ModalOptions()
+        public ModalValidationOptions Options { get; private set; } = new ModalValidationOptions()
         {
             Title = "Input data",
             ValidButtonText = "Ok",
-            ShowFooter = true
         };
-        public IModalContainer? ModalContainer { get; set; }
-        public string SubTitle { get; set; }
+        public string SubTitle { get; set; } = string.Empty;
 
         public TextBoxModal(string titre)
         {
@@ -24,11 +22,15 @@ namespace Automation.App.Components.Inputs
         protected void BindValue(string propertyName, object source)
         {
             SubTitle = propertyName;
-
             Binding valueBinding = new Binding(propertyName);
             valueBinding.Source = source;
             valueBinding.Mode = BindingMode.TwoWay;
             TextBoxValue.SetBinding(TextBox.TextProperty, valueBinding);
+        }
+
+        public Task<bool> OnValidation()
+        {
+            return Task.FromResult(true);
         }
     }
 }
