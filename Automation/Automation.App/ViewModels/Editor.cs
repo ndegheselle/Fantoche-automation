@@ -2,6 +2,7 @@
 using Automation.App.Shared.ApiClients;
 using Automation.App.Shared.ViewModels.Tasks;
 using Automation.Shared.Data;
+using Joufflu.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;
 using System.Drawing;

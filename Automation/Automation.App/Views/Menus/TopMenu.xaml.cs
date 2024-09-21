@@ -1,5 +1,4 @@
-﻿using Automation.App.Base;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Joufflu.Shared.Layouts;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -24,7 +23,7 @@ namespace Automation.App.Views.Menus
 
         private void Parameters_Click(object sender, RoutedEventArgs e)
         {
-            IModalContainer modal = this.GetCurrentModalContainer();
+            IDialogLayout modal = this.GetCurrentModalContainer();
             modal.Show(new ParametersUI());
         }
 

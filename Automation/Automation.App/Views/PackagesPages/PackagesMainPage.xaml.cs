@@ -1,4 +1,5 @@
 ﻿using Joufflu.Shared;
+using Joufflu.Shared.Layouts;
 using System.Windows.Controls;
 
 namespace Automation.App.Views.PackagesPages
@@ -8,7 +9,7 @@ namespace Automation.App.Views.PackagesPages
     /// </summary>
     public partial class PackagesMainPage : UserControl, IPage
     {
-        public INavigationLayout? Layout { get; set; }
+        public ILayout? ParentLayout { get; set; }
         public PackagesMainPage()
         {
             InitializeComponent();

@@ -1,9 +1,7 @@
 using Automation.Dal.Models;
-using Automation.Shared.Base;
 using Automation.Dal.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
-using Automation.Shared;
 
 namespace Automation.Api.Supervisor.Controllers
 {

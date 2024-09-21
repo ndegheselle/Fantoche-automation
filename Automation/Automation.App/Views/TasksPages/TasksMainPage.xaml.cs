@@ -1,11 +1,10 @@
-﻿using Automation.App.Base;
-using Automation.App.Shared.ApiClients;
+﻿using Automation.App.Shared.ApiClients;
 using Automation.App.Shared.ViewModels.Tasks;
 using Automation.App.Views.TasksPages.ScopeUI;
 using Automation.App.Views.TasksPages.TaskUI;
 using Automation.App.Views.TasksPages.WorkflowUI;
 using Automation.Shared.Data;
-using Joufflu.Shared;
+using Joufflu.Shared.Layouts;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows.Controls;
 
@@ -14,10 +13,11 @@ namespace Automation.App.Views.TasksPages
     /// <summary>
     /// Experimenting a system without a navigation service Change content based on the selected item in the side menu
     /// </summary>
-    public partial class TasksMainPage : UserControl, INavigationLayout
+    public partial class TasksMainPage : UserControl, ILayout
     {
-        public INavigationLayout? Layout { get; set; }
-        private readonly App _app = (App)App.Current;
+        public ILayout? ParentLayout { get; set; }
+
+        private readonly App _app = App.Current;
         private readonly ScopesClient _client;
 
         public TasksMainPage()
@@ -56,8 +56,13 @@ namespace Automation.App.Views.TasksPages
 
         public void Show(IPage page)
         {
-            page.Layout = this;
+            page.ParentLayout = this;
             NavigationContent.Content = page;
+        }
+
+        public void Hide()
+        {
+            NavigationContent.Content = null;
         }
     }
 }

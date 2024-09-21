@@ -1,14 +1,15 @@
-﻿using Automation.App.Base;
-using Automation.App.Shared.ViewModels.Tasks;
+﻿using Automation.App.Shared.ViewModels.Tasks;
+using Joufflu.Popups;
+using Joufflu.Shared.Layouts;
 using System.Windows;
 using System.Windows.Controls;
 
 namespace Automation.App.Views.TasksPages.WorkflowUI
 {
-    public class WorkflowEditModal : WorkflowEdit, IModalContent
+    public class WorkflowEditModal : WorkflowEdit, IModalValidationContent
     {
-        public IModalContainer? ModalContainer { get; set; }
-        public ModalOptions Options => new ModalOptions() { Title = "Edit workflow", ValidButtonText = "Save" };
+        public ILayout? ParentLayout { get; set; }
+        public ModalValidationOptions Options => new ModalValidationOptions() { Title = "Edit workflow", ValidButtonText = "Save" };
 
         public WorkflowEditModal(WorkflowNode workflow) : base(workflow)
         {

@@ -1,7 +1,6 @@
-﻿using Automation.App.Base;
-using Automation.App.Shared.ApiClients;
+﻿using Automation.App.Shared.ApiClients;
 using Automation.App.Shared.ViewModels.Tasks;
-using Joufflu.Shared;
+using Joufflu.Shared.Layouts;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 using System.Windows.Controls;
@@ -13,10 +12,9 @@ namespace Automation.App.Views.TasksPages.ScopeUI
     /// </summary>
     public partial class ScopePage : UserControl, IPage
     {
-        public INavigationLayout? Layout { get; set; }
+        public ILayout? ParentLayout { get; set; }
         public Scope Scope { get; set; }
 
-        private IModalContainer _modal => this.GetCurrentModalContainer();
 
         private readonly App _app = (App)App.Current;
         private readonly ScopesClient _scopeClient;

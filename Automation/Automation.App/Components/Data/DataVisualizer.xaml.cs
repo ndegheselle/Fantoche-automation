@@ -1,6 +1,4 @@
-﻿using Automation.App.Base;
-using Microsoft.Extensions.DependencyInjection;
-using System.Collections;
+﻿using System.Collections;
 using System.Windows.Controls;
 
 namespace Automation.App.Components.Data

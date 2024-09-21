@@ -1,4 +1,4 @@
-﻿using Automation.App.Shared;
+﻿using Joufflu.Shared;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;

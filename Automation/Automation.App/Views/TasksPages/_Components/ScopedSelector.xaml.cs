@@ -1,24 +1,27 @@
-﻿using Automation.App.Base;
-using Automation.App.Components.Display;
-using Automation.App.Shared;
+﻿using AdonisUI.Controls;
 using Automation.App.Shared.ApiClients;
 using Automation.App.Shared.ViewModels.Tasks;
 using Automation.App.Views.TasksPages.ScopeUI;
 using Automation.App.Views.TasksPages.TaskUI;
 using Automation.App.Views.TasksPages.WorkflowUI;
 using Automation.Shared.Data;
+using Joufflu.Popups;
+using Joufflu.Shared;
+using Joufflu.Shared.Layouts;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using MessageBox = AdonisUI.Controls.MessageBox;
 
 namespace Automation.App.Views.TasksPages.Components
 {
     public class ScopedSelectorModal : ScopedSelector, IModalContent
     {
-        public IModalContainer? ModalContainer { get; set; }
-        public ModalOptions Options => new ModalOptions() { Title = "Add node", ValidButtonText = "Add" };
+        public ILayout? ParentLayout { get; set; }
+
+        public ModalOptions Options => new ModalOptions() { Title = "Add node" };
     }
 
     /// <summary>
@@ -27,7 +30,6 @@ namespace Automation.App.Views.TasksPages.Components
     public partial class ScopedSelector : UserControl
     {
         public event Action<ScopedElement?>? SelectedChanged;
-
         #region Dependency Properties
         // Dependency property Scope RootScope
         public static readonly DependencyProperty RootScopeProperty = DependencyProperty.Register(
@@ -52,17 +54,21 @@ namespace Automation.App.Views.TasksPages.Components
         public ScopedElement? Selected
         {
             get { return (ScopedElement?)GetValue(SelectedProperty); }
-            set { 
+            set
+            {
                 SetValue(SelectedProperty, value);
                 SelectedChanged?.Invoke(Selected);
             }
         }
-
         #endregion
 
         #region Props
+        public EnumScopedType AllowedSelectedNodes
+        {
+            get;
+            set;
+        } = EnumScopedType.Scope | EnumScopedType.Workflow | EnumScopedType.Task;
 
-        public EnumScopedType AllowedSelectedNodes { get; set; } = EnumScopedType.Scope | EnumScopedType.Workflow | EnumScopedType.Task;
         public ScopedElement SelectedOrDefault => Selected ?? RootScope;
 
         private readonly App _app = (App)App.Current;
@@ -70,37 +76,42 @@ namespace Automation.App.Views.TasksPages.Components
         private readonly WorkflowsClient _workflowClient;
         private readonly TasksClient _taskClient;
 
-        private IModalContainer _modal => this.GetCurrentModalContainer();
+        private IDialogLayout _modal => this.GetCurrentModalContainer();
         #endregion
 
-        public ScopedSelector() {
+        public ScopedSelector()
+        {
             _scopeClient = _app.ServiceProvider.GetRequiredService<ScopesClient>();
             _taskClient = _app.ServiceProvider.GetRequiredService<TasksClient>();
             _workflowClient = _app.ServiceProvider.GetRequiredService<WorkflowsClient>();
             InitializeComponent();
 
-            RemoveSelectedCommand = new DelegateCommand(OnRemoveSelected,
-            // Not the root element
-            () => 
-            SelectedOrDefault.Parent != null
-            );
+            RemoveSelectedCommand = new DelegateCommand(
+                OnRemoveSelected,
+                // Not the root element
+                () => SelectedOrDefault.Parent != null);
             AddScopeCommand = new DelegateCommand(OnAddScope);
             AddTaskCommand = new DelegateCommand(OnAddTask);
             AddWorkflowCommand = new DelegateCommand(OnAddWorkflow);
-
         }
 
         // XXX : move to viewmodels ?
         #region Commands
-
         public ICustomCommand RemoveSelectedCommand { get; set; }
+
         public ICommand AddScopeCommand { get; set; }
+
         public ICommand AddTaskCommand { get; set; }
+
         public ICommand AddWorkflowCommand { get; set; }
 
         private async void OnRemoveSelected()
         {
-            if (!await _modal.Show(new ConfirmationModal("Are you sure you want to remove this element ?")))
+            if (MessageBox.Show(
+                    "Are you sure you want to remove this element ?",
+                    "Confirmation",
+                    AdonisUI.Controls.MessageBoxButton.YesNo) !=
+                AdonisUI.Controls.MessageBoxResult.Yes)
                 return;
 
             switch (SelectedOrDefault.Type)
@@ -125,14 +136,15 @@ namespace Automation.App.Views.TasksPages.Components
 
             Scope newScope = new Scope();
             newScope.ParentId = parentScope.Id;
-            if (await _modal.Show(new ScopeCreateModal(newScope)))
+            if (await _modal.ShowDialog(new ScopeCreateModal(newScope)))
             {
-                Dispatcher.Invoke(() =>
-                {
-                    parentScope.AddChild(newScope);
-                    newScope.FocusOn = EnumScopedTabs.Settings;
-                    newScope.IsSelected = true;
-                });
+                Dispatcher.Invoke(
+                    () =>
+                    {
+                        parentScope.AddChild(newScope);
+                        newScope.FocusOn = EnumScopedTabs.Settings;
+                        newScope.IsSelected = true;
+                    });
             }
         }
 
@@ -143,7 +155,7 @@ namespace Automation.App.Views.TasksPages.Components
 
             var task = new TaskNode();
             task.ScopeId = parentScope.Id;
-            if (await _modal.Show(new TaskCreateModal(task)))
+            if (await _modal.ShowDialog(new TaskCreateModal(task)))
             {
                 parentScope.AddChild(task);
                 task.FocusOn = EnumScopedTabs.Settings;
@@ -158,17 +170,15 @@ namespace Automation.App.Views.TasksPages.Components
 
             WorkflowNode workflow = new WorkflowNode();
             workflow.ScopeId = parentScope.Id;
-            if (await _modal.Show(new WorkflowEditModal(workflow)))
+            if (await _modal.ShowDialog(new WorkflowEditModal(workflow)))
             {
                 workflow.Id = await _workflowClient.CreateAsync(workflow);
                 parentScope.AddChild(workflow);
             }
         }
-
         #endregion
 
         #region UI Events
-
         private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             TreeView treeView = (TreeView)sender;
@@ -197,7 +207,6 @@ namespace Automation.App.Views.TasksPages.Components
                 Selected.IsSelected = false;
             }
         }
-
         #endregion
 
         private TreeViewItem? VisualUpwardSearch(DependencyObject source)

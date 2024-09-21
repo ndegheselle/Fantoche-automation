@@ -1,10 +1,10 @@
-﻿using Automation.App.Base;
-using Automation.App.Components.Display;
-using Automation.App.Shared.ApiClients;
+﻿using Automation.App.Shared.ApiClients;
 using Automation.App.Shared.ViewModels.Tasks;
 using Automation.App.ViewModels;
 using Automation.App.Views.TasksPages.Components;
 using Automation.Shared.Data;
+using Joufflu.Popups;
+using Joufflu.Shared.Layouts;
 using Microsoft.Extensions.DependencyInjection;
 using Nodify;
 using System.Drawing;
@@ -13,6 +13,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 
+using MessageBox = AdonisUI.Controls.MessageBox;
 using Point = System.Drawing.Point;
 
 namespace Automation.App.Views.TasksPages.WorkflowUI
@@ -41,7 +42,7 @@ namespace Automation.App.Views.TasksPages.WorkflowUI
         #endregion
 
         private readonly App _app = (App)App.Current;
-        private IModalContainer _modal => this.GetCurrentModalContainer();
+        private IDialogLayout _modal => this.GetCurrentModalContainer();
         private IAlert _alert => this.GetCurrentAlertContainer();
         private readonly TasksClient _nodeClient;
         private readonly ScopesClient _scopeClient;
@@ -62,7 +63,7 @@ namespace Automation.App.Views.TasksPages.WorkflowUI
                 AllowedSelectedNodes = EnumScopedType.Workflow | EnumScopedType.Task
             };
 
-            if (await _modal.Show(nodeSelector) && nodeSelector.Selected != null)
+            if (await _modal.ShowDialog(nodeSelector) && nodeSelector.Selected != null)
             {
                 TaskNode taskScopedItem = (TaskNode)nodeSelector.Selected;
                 EditorData.AddNode(Editor.ViewportLocation, taskScopedItem);
@@ -101,8 +102,8 @@ namespace Automation.App.Views.TasksPages.WorkflowUI
 
         private async void DeleteSelectedNodes()
         {
-            if (await _modal.Show(
-                new ConfirmationModal($"Are you sure you want to delete these {Editor.SelectedItems?.Count} nodes ?")) == false)
+            if (MessageBox.Show($"Are you sure you want to delete these {Editor.SelectedItems?.Count} nodes ?",
+                "Confirmation", AdonisUI.Controls.MessageBoxButton.YesNo) != AdonisUI.Controls.MessageBoxResult.Yes)
                 return;
 
             EditorData.RemoveNodes(EditorData.SelectedNodes);

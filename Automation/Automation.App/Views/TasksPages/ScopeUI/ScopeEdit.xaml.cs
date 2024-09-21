@@ -1,15 +1,15 @@
-﻿using Automation.App.Base;
-using Automation.App.Components.Inputs;
+﻿using Automation.App.Components.Inputs;
 using Automation.App.Shared.ApiClients;
 using Automation.App.Shared.ViewModels.Tasks;
 using Automation.Shared.Base;
+using Joufflu.Popups;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 using System.Windows.Controls;
 
 namespace Automation.App.Views.TasksPages.ScopeUI
 {
-    public class ScopeCreateModal : TextBoxModal, IModalContentValidate
+    public class ScopeCreateModal : TextBoxModal, IModalValidationContent
     {
         private readonly App _app = (App)App.Current;
         private readonly ScopesClient _scopeClient;
@@ -23,7 +23,7 @@ namespace Automation.App.Views.TasksPages.ScopeUI
             BindValue(nameof(Scope.Name), NewScope);
         }
 
-        public async Task<bool> OnValidate()
+        public async Task<bool> OnValidation()
         {
             NewScope.ClearErrors();
             try

@@ -1,4 +1,5 @@
 ﻿using Joufflu.Popups;
+using Joufflu.Shared.Layouts;
 using System.Windows.Controls;
 using System.Windows.Data;
 
@@ -6,6 +7,7 @@ namespace Automation.App.Components.Inputs
 {
     public partial class TextBoxModal : UserControl, IModalValidationContent
     {
+        public ILayout? ParentLayout { get; set; }
         public ModalValidationOptions Options { get; private set; } = new ModalValidationOptions()
         {
             Title = "Input data",
@@ -26,11 +28,6 @@ namespace Automation.App.Components.Inputs
             valueBinding.Source = source;
             valueBinding.Mode = BindingMode.TwoWay;
             TextBoxValue.SetBinding(TextBox.TextProperty, valueBinding);
-        }
-
-        public Task<bool> OnValidation()
-        {
-            return Task.FromResult(true);
         }
     }
 }

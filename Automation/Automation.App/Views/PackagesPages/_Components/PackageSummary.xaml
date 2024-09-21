@@ -8,22 +8,24 @@
     mc:Ignorable="d"
     d:DesignHeight="450"
     d:DesignWidth="800">
-    <Grid DataContext="{Binding Package, RelativeSource={RelativeSource AncestorType=local:PackageSummary}}">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition />
-            <ColumnDefinition Width="auto" />
-        </Grid.ColumnDefinitions>
+    <GroupBox>
+        <Grid DataContext="{Binding Package, RelativeSource={RelativeSource AncestorType=local:PackageSummary}}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition Width="auto" />
+            </Grid.ColumnDefinitions>
 
-        <Grid.RowDefinitions>
-            <RowDefinition />
-            <RowDefinition />
-        </Grid.RowDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition />
+            </Grid.RowDefinitions>
 
-        <TextBlock FontWeight="Bold" Text="{Binding Name}" />
-        <TextBlock Grid.Column="1" Text="{Binding Version}" />
-        <TextBlock
-            Grid.Row="1"
-            Grid.ColumnSpan="2"
-            Text="{Binding Description}" />
-    </Grid>
+            <TextBlock FontWeight="Bold" Text="{Binding Name}" />
+            <TextBlock Grid.Column="1" Text="{Binding Version}" />
+            <TextBlock
+                Grid.Row="1"
+                Grid.ColumnSpan="2"
+                Text="{Binding Description}" />
+        </Grid>
+    </GroupBox>
 </UserControl>

@@ -1,16 +1,17 @@
-﻿using Automation.App.Base;
-using Automation.App.Shared.ApiClients;
+﻿using Automation.App.Shared.ApiClients;
 using Automation.Shared.Base;
+using Joufflu.Popups;
+using Joufflu.Shared.Layouts;
 using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;
 using System.Windows.Controls;
 
 namespace Automation.App.Views.PackagesPages.Components
 {
-    public class PackageSelectorModal : PackageSelector, IModalContent
+    public class PackageSelectorModal : PackageSelector, IModalValidationContent
     {
-        public IModalContainer? ModalContainer { get; set; }
-        public ModalOptions Options => new ModalOptions() { Title = "Select package", ValidButtonText = "Select" };
+        public ILayout? ParentLayout { get; set; }
+        public ModalValidationOptions Options => new ModalValidationOptions() { Title = "Select package", ValidButtonText = "Select" };
     }
 
     /// <summary>

@@ -1,6 +1,5 @@
 using Automation.Dal.Models;
 using Automation.Dal.Repositories;
-using Automation.Shared.Data;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 

@@ -1,5 +1,6 @@
-﻿using Automation.App.Base;
-using Automation.App.ViewModels;
+﻿using Automation.App.ViewModels;
+using Joufflu.Popups;
+using Joufflu.Shared.Layouts;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows.Controls;
 
@@ -10,9 +11,8 @@ namespace Automation.App.Views.Menus
     /// </summary>
     public partial class ParametersUI : UserControl, IModalContent
     {
-        public IModalContainer? ModalContainer { get; set; }
-
-        public ModalOptions Options => new ModalOptions() { Title = "Parameters", ShowFooter = false };
+        public ModalOptions Options => new ModalOptions() { Title = "Parameters"};
+        public ILayout? ParentLayout { get; set; }
 
         private readonly App _app = (App)App.Current;
         private readonly ParametersViewModel _context;
