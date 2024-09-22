@@ -22,14 +22,14 @@ namespace Automation.App.Views.PackagesPages.Components
         private readonly App _app = (App)App.Current;
         private readonly PackagesClient _packageClient;
 
-        public ListPageWrapper<Package> Packages { get; private set; } = new ListPageWrapper<Package>()
+        public ListPageWrapper<Automation.Shared.Base.PackageInfos> Packages { get; private set; } = new ListPageWrapper<Automation.Shared.Base.PackageInfos>()
         {
             PageSize = 50,
             Page = 1,
             Total = -1,
         };
 
-        public Package? SelectedPackage { get; set; }
+        public Automation.Shared.Base.PackageInfos? SelectedPackage { get; set; }
         public string SearchText { get; set; } = string.Empty;
 
         public PackageSelector()

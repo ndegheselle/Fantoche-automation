@@ -1,4 +1,5 @@
 using Automation.Shared.Base;
+using Automation.Shared.Packages;
 using DotNetEnv;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
@@ -19,7 +20,7 @@ builder.Services.AddOpenApiDocument();
 
 #region Services
 
-builder.Services.AddSingleton<PackageManagement>(new PackageManagement("/app/data/nuget"));
+builder.Services.AddSingleton<IPackageManagement>(new LocalPackageManagement("/app/data/nuget"));
 builder.Services
     .AddSingleton<IMongoDatabase>(
         (services) =>

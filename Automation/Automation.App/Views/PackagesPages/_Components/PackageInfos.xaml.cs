@@ -10,11 +10,11 @@ namespace Automation.App.Views.PackagesPages.Components
     public partial class PackageInfos : UserControl
     {
         public static readonly DependencyProperty MyPropertyProperty =
-            DependencyProperty.Register(nameof(Package), typeof(Package), typeof(PackageInfos), new PropertyMetadata(null));
+            DependencyProperty.Register(nameof(Package), typeof(Automation.Shared.Base.PackageInfos), typeof(PackageInfos), new PropertyMetadata(null));
 
-        public Package Package
+        public Automation.Shared.Base.PackageInfos Package
         {
-            get { return (Package)GetValue(MyPropertyProperty); }
+            get { return (Automation.Shared.Base.PackageInfos)GetValue(MyPropertyProperty); }
             set { SetValue(MyPropertyProperty, value); }
         }
 

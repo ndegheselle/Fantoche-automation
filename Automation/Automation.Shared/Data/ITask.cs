@@ -28,7 +28,7 @@ namespace Automation.Shared.Data
 
     public interface ITaskNode : INamed
     {
-        Package? Package { get; set; }
+        PackageInfos? Package { get; set; }
         Guid ScopeId { get; set; }
         IEnumerable<ITaskConnector> Inputs { get; }
         IEnumerable<ITaskConnector> Outputs { get; }

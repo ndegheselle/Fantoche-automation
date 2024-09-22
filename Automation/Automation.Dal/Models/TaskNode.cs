@@ -8,7 +8,7 @@ namespace Automation.Dal.Models
         public Guid ScopeId { get; set; }
         public IEnumerable<ITaskConnector> Inputs { get; set; } = new List<TaskConnectors>();
         public IEnumerable<ITaskConnector> Outputs { get; set; } = new List<TaskConnectors>();
-        public Package? Package { get; set; }
+        public PackageInfos? Package { get; set; }
 
         public TaskNode() {
             Type = EnumScopedType.Task;

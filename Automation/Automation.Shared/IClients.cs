@@ -30,6 +30,6 @@ namespace Automation.Shared
 
     public interface IPackagesClient
     {
-        public Task<ListPageWrapper<Package>> SearchAsync(string searchValue, int page, int pageSize);
+        public Task<ListPageWrapper<PackageInfos>> SearchAsync(string searchValue, int page, int pageSize);
     }
 }

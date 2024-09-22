@@ -6,7 +6,7 @@ namespace Automation.App.Shared.ViewModels.Tasks
 {
     public class TaskNode : ScopedElement
     {
-        public Package? Package { get; set; }
+        public PackageInfos? Package { get; set; }
         public Guid ScopeId { get; set; }
         public List<TaskConnector> Inputs { get; set; } = new List<TaskConnector>();
         public List<TaskConnector> Outputs { get; set; } = new List<TaskConnector>();
