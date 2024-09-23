@@ -13,6 +13,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Usuel.Shared;
 using MessageBox = AdonisUI.Controls.MessageBox;
 
 namespace Automation.App.Views.TasksPages.Components

@@ -1,4 +1,3 @@
-using Automation.Shared.Base;
 using Automation.Shared.Packages;
 using DotNetEnv;
 using MongoDB.Bson;

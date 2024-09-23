@@ -1,4 +1,5 @@
 ﻿using Automation.Shared.Base;
+using Automation.Shared.Packages;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -11,13 +12,13 @@ namespace Automation.App.Views.PackagesPages.Components
     {
         public static readonly DependencyProperty MyPropertyProperty = DependencyProperty.Register(
             nameof(Package),
-            typeof(Automation.Shared.Base.PackageInfos),
+            typeof(PackageInfos),
             typeof(PackageSummary),
             new PropertyMetadata(null));
 
-        public Automation.Shared.Base.PackageInfos Package
+        public PackageInfos Package
         {
-            get { return (Automation.Shared.Base.PackageInfos)GetValue(MyPropertyProperty); }
+            get { return (PackageInfos)GetValue(MyPropertyProperty); }
             set { SetValue(MyPropertyProperty, value); }
         }
 

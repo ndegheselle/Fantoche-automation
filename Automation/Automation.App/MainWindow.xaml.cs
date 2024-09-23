@@ -1,4 +1,5 @@
 ﻿using AdonisUI.Controls;
+using Automation.App.Views.PackagesPages;
 using Automation.App.Views.TasksPages;
 using Automation.App.Views.WorkersPages;
 using Joufflu.Popups;
@@ -60,6 +61,9 @@ namespace Automation.App
                     break;
                 case Views.Menus.EnumNavigationPages.Workers:
                     Show(new WorkerMainPage());
+                    break;
+                case Views.Menus.EnumNavigationPages.Packages:
+                    Show(new PackagesMainPage());
                     break;
             }
         }

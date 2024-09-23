@@ -3,10 +3,11 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Data;
+using Usuel.Shared;
 
 namespace Automation.App.Components.Data
 {
-    public class DataNode : BaseNotifyDataError, INotifyPropertyChanged
+    public class DataNode : ErrorValidationModel, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
@@ -16,7 +17,7 @@ namespace Automation.App.Components.Data
 
         public DataTree? Parent { get; set; }
 
-        private string _key;
+        private string _key = "";
         public string Key
         {
             get => _key;

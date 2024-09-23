@@ -1,7 +1,6 @@
 using Automation.Shared.Base;
 using Automation.Shared.Packages;
 using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel;
 
 namespace Automation.Api.Supervisor.Controllers
 {

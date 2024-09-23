@@ -29,12 +29,27 @@
                 HorizontalAlignment="Right"
                 Text="{x:Static fonts:IconFont.MagnifyingGlass}"
                 Foreground="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}" />
+
+            <Button
+                Click="ButtonAdd_Click"
+                Grid.Column="1"
+                Margin="2,0"
+                Width="28"
+                ToolTip="Add new">
+                <fonts:Icon Text="{x:Static fonts:IconFont.Plus}" />
+            </Button>
         </Grid>
 
         <ListBox
             ItemsSource="{Binding Packages.Data}"
             Grid.Row="1"
+            SelectionChanged="ListBox_SelectionChanged"
             SelectedItem="{Binding SelectedPackage, Mode=TwoWay}">
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                </Style>
+            </ListBox.ItemContainerStyle>
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <local:PackageSummary Package="{Binding}" />

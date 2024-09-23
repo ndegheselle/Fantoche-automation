@@ -21,6 +21,9 @@ namespace Automation.App.Components.Inputs
             InitializeComponent();
         }
 
+        // That's a little bit gadget
+        // Used to allow inheritance of TextBoxModal and have a property bind directly on the textbox
+        // Allow for INotifyDataErrorInfo handling without too much hassle
         protected void BindValue(string propertyName, object source)
         {
             SubTitle = propertyName;

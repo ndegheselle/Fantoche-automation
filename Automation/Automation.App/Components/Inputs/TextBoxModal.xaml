@@ -8,10 +8,7 @@
     mc:Ignorable="d"
     MinWidth="200">
     <StackPanel Margin="4,10">
-        <TextBlock
-            FontWeight="Bold"
-            TextWrapping="Wrap"
-            Text="{Binding SubTitle, RelativeSource={RelativeSource AncestorType={x:Type local:TextBoxModal}}}" />
+        <TextBlock TextWrapping="Wrap" Text="{Binding SubTitle, RelativeSource={RelativeSource AncestorType={x:Type local:TextBoxModal}}}" />
         <TextBox x:Name="TextBoxValue" />
     </StackPanel>
 </UserControl>

@@ -1,0 +1,18 @@
+﻿<UserControl
+    x:Class="Automation.App.Components.Inputs.FilePickerModal"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Automation.App.Components.Inputs"
+    xmlns:inputs="clr-namespace:Joufflu.Inputs.Components;assembly=Joufflu.Inputs"
+    mc:Ignorable="d"
+    MinWidth="300">
+    <StackPanel Margin="4,10">
+        <TextBlock TextWrapping="Wrap" Text="{Binding SubTitle, RelativeSource={RelativeSource AncestorType={x:Type local:FilePickerModal}}}" />
+        <inputs:FilePicker
+            Margin="0,4,0,0"
+            FilePath="{Binding File.FilePath, RelativeSource={RelativeSource AncestorType={x:Type local:FilePickerModal}}}"
+            Options="{Binding OptionsDialog, RelativeSource={RelativeSource AncestorType={x:Type local:FilePickerModal}}}" />
+    </StackPanel>
+</UserControl>

@@ -1,5 +1,6 @@
 ﻿using Automation.Shared.Base;
 using Automation.Shared.Data;
+using Automation.Shared.Packages;
 
 namespace Automation.Shared
 {

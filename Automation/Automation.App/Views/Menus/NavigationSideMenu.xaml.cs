@@ -6,7 +6,8 @@ namespace Automation.App.Views.Menus
     public enum EnumNavigationPages
     {
         Tasks,
-        Workers
+        Workers,
+        Packages
     }
 
     /// <summary>
@@ -30,6 +31,12 @@ namespace Automation.App.Views.Menus
         private void NavigationWorkers_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             CurrentPage = EnumNavigationPages.Workers;
+            NavigationChanged?.Invoke(CurrentPage);
+        }
+
+        private void NavigationPackages_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            CurrentPage = EnumNavigationPages.Packages;
             NavigationChanged?.Invoke(CurrentPage);
         }
     }

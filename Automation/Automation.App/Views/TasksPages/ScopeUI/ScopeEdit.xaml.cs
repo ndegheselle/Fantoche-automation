@@ -11,7 +11,7 @@ namespace Automation.App.Views.TasksPages.ScopeUI
 {
     public class ScopeCreateModal : TextBoxModal, IModalValidationContent
     {
-        private readonly App _app = (App)App.Current;
+        private readonly App _app = App.Current;
         private readonly ScopesClient _scopeClient;
         public Scope NewScope { get; set; }
 

@@ -60,5 +60,30 @@
                 </fonts:Icon.Style>
             </fonts:Icon>
         </Button>
+        <Button
+            Padding="10"
+            ToolTip="Workers"
+            Click="NavigationPackages_Click">
+            <Button.Style>
+                <Style TargetType="Button" BasedOn="{StaticResource IconButton}">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding CurrentPage}" Value="Workers">
+                            <Setter Property="Background" Value="{DynamicResource {x:Static adonisUi:Brushes.AccentBrush}}" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Button.Style>
+            <fonts:Icon FontSize="24" Text="{x:Static fonts:IconFont.Box}">
+                <fonts:Icon.Style>
+                    <Style TargetType="{x:Type fonts:Icon}" BasedOn="{StaticResource {x:Type fonts:Icon}}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding CurrentPage}" Value="Workers">
+                                <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </fonts:Icon.Style>
+            </fonts:Icon>
+        </Button>
     </StackPanel>
 </UserControl>

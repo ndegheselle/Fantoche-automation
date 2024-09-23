@@ -1,5 +1,5 @@
-﻿using Automation.Shared.Base;
-using Automation.Shared.Data;
+﻿using Automation.Shared.Data;
+using Automation.Shared.Packages;
 using System.Windows;
 
 namespace Automation.App.Shared.ViewModels.Tasks

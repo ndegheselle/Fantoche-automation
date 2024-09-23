@@ -1,10 +1,10 @@
-﻿using Automation.App.Shared.Base;
-using Automation.Shared.Data;
+﻿using Automation.Shared.Data;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using System.Windows.Data;
+using Usuel.Shared;
 
 namespace Automation.App.Shared.ViewModels.Tasks
 {
