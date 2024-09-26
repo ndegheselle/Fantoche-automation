@@ -77,7 +77,7 @@ namespace Automation.App.Views.TasksPages.Components
         private readonly WorkflowsClient _workflowClient;
         private readonly TasksClient _taskClient;
 
-        private IDialogLayout _modal => this.GetCurrentModalContainer();
+        private IModal _modal => this.GetCurrentModalContainer();
         #endregion
 
         public ScopedSelector()
@@ -137,7 +137,7 @@ namespace Automation.App.Views.TasksPages.Components
 
             Scope newScope = new Scope();
             newScope.ParentId = parentScope.Id;
-            if (await _modal.ShowDialog(new ScopeCreateModal(newScope)))
+            if (await _modal.Show(new ScopeCreateModal(newScope)))
             {
                 Dispatcher.Invoke(
                     () =>
@@ -156,7 +156,7 @@ namespace Automation.App.Views.TasksPages.Components
 
             var task = new TaskNode();
             task.ScopeId = parentScope.Id;
-            if (await _modal.ShowDialog(new TaskCreateModal(task)))
+            if (await _modal.Show(new TaskCreateModal(task)))
             {
                 parentScope.AddChild(task);
                 task.FocusOn = EnumScopedTabs.Settings;
@@ -171,7 +171,7 @@ namespace Automation.App.Views.TasksPages.Components
 
             WorkflowNode workflow = new WorkflowNode();
             workflow.ScopeId = parentScope.Id;
-            if (await _modal.ShowDialog(new WorkflowEditModal(workflow)))
+            if (await _modal.Show(new WorkflowEditModal(workflow)))
             {
                 workflow.Id = await _workflowClient.CreateAsync(workflow);
                 parentScope.AddChild(workflow);

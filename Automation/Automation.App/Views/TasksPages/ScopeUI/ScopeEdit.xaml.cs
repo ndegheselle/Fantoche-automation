@@ -9,7 +9,7 @@ using System.Windows.Controls;
 
 namespace Automation.App.Views.TasksPages.ScopeUI
 {
-    public class ScopeCreateModal : TextBoxModal, IModalValidationContent
+    public class ScopeCreateModal : TextBoxModal, IModalContentValidation
     {
         private readonly App _app = App.Current;
         private readonly ScopesClient _scopeClient;

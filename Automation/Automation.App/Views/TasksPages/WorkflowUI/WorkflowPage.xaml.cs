@@ -1,6 +1,7 @@
 ﻿using Automation.App.Shared.ApiClients;
 using Automation.App.Shared.ViewModels.Tasks;
 using Automation.App.ViewModels;
+using Joufflu.Popups;
 using Joufflu.Shared.Layouts;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
@@ -19,7 +20,7 @@ namespace Automation.App.Views.TasksPages.WorkflowUI
 
         private readonly App _app = App.Current;
         private readonly WorkflowsClient _client;
-        private IDialogLayout _modal => this.GetCurrentModalContainer();
+        private IModal _modal => this.GetCurrentModalContainer();
 
         public WorkflowPage(Guid workflowId)
         {
@@ -45,7 +46,7 @@ namespace Automation.App.Views.TasksPages.WorkflowUI
         {
             if (Workflow == null)
                 return;
-            if (await _modal.ShowDialog(new WorkflowEditModal(Workflow)))
+            if (await _modal.Show(new WorkflowEditModal(Workflow)))
                 await _client.UpdateAsync(Workflow.Id, Workflow);
         }
         #endregion

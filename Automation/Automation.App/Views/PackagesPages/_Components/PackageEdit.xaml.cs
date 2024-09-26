@@ -1,6 +1,5 @@
 ﻿using Automation.App.Components.Inputs;
 using Automation.App.Shared.ApiClients;
-using Automation.Shared;
 using Automation.Shared.Base;
 using Automation.Shared.Packages;
 using Joufflu.Inputs.Components;
@@ -11,14 +10,14 @@ using System.Windows.Controls;
 
 namespace Automation.App.Views.PackagesPages.Components
 {
-    public class PackageCreateModal : FilePickerModal, IModalValidationContent
+    public class PackageCreateModal : FilePickerModal, IModalContentValidation
     {
         private readonly App _app = App.Current;
         private readonly PackagesClient _packagesClient;
 
         public PackageInfos? Package {  get; set; }
 
-        public PackageCreateModal() : base("Create a new package", "Select a .nupkg file", new FilePickerOptions()
+        public PackageCreateModal() : base("New package", "Select a .nupkg file", new FilePickerOptions()
         {
             Filter = "Nuget package (*.nupkg)|*.nupkg",
             DefaultExtension = "*.nupkg"
@@ -51,6 +50,16 @@ namespace Automation.App.Views.PackagesPages.Components
             }
             return true;
         }
+    }
+
+    public class PackageEditModal : PackageEdit, IModalContent
+    {
+        public ModalOptions? Options { get; } = new ModalOptions();
+        public PackageEditModal(PackageInfos package) : base(package)
+        {
+            Options.Title = package.Name;
+        }
+
     }
 
     /// <summary>

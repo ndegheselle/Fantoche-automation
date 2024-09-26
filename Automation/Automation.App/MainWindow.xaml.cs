@@ -4,21 +4,19 @@ using Automation.App.Views.TasksPages;
 using Automation.App.Views.WorkersPages;
 using Joufflu.Popups;
 using Joufflu.Shared.Layouts;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Windows;
 
 namespace Automation.App
 {
     public interface IWindowContainer
     {
-        IDialogLayout Modal {  get; }
+        IModal Modal {  get; }
         IAlert Alert { get; }
     }
 
     public static class DependencyObjectExtension
     {
-        public static IDialogLayout GetCurrentModalContainer(this DependencyObject d)
+        public static IModal GetCurrentModalContainer(this DependencyObject d)
         {
             return ((IWindowContainer)Window.GetWindow(d)).Modal;
         }
@@ -34,7 +32,7 @@ namespace Automation.App
     public partial class MainWindow : AdonisWindow, IWindowContainer, ILayout
     {
         // XXX : if called before InitializeComponent, the property will be null
-        public IDialogLayout Modal => this.ModalElement;
+        public IModal Modal => this.ModalElement;
         public IAlert Alert => this.AlertElement;
         public ILayout? ParentLayout { get; set; }
 
@@ -48,7 +46,6 @@ namespace Automation.App
 
         public void Show(IPage page)
         {
-            page.ParentLayout = this;
             NavigationContent.Content = page;
         }
 

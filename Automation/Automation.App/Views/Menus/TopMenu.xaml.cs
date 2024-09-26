@@ -1,4 +1,4 @@
-﻿using Joufflu.Shared.Layouts;
+﻿using Joufflu.Popups;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -23,7 +23,7 @@ namespace Automation.App.Views.Menus
 
         private void Parameters_Click(object sender, RoutedEventArgs e)
         {
-            IDialogLayout modal = this.GetCurrentModalContainer();
+            IModal modal = this.GetCurrentModalContainer();
             modal.Show(new ParametersUI());
         }
 

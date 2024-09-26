@@ -46,8 +46,10 @@
             SelectionChanged="ListBox_SelectionChanged"
             SelectedItem="{Binding SelectedPackage, Mode=TwoWay}">
             <ListBox.ItemContainerStyle>
-                <Style TargetType="ListBoxItem">
+                <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
                     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="Padding" Value="2" />
+                    <EventSetter Event="PreviewMouseLeftButtonDown" Handler="ListViewItem_PreviewMouseLeftButtonDown" />
                 </Style>
             </ListBox.ItemContainerStyle>
             <ListBox.ItemTemplate>

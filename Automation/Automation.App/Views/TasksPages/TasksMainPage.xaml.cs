@@ -56,7 +56,6 @@ namespace Automation.App.Views.TasksPages
 
         public void Show(IPage page)
         {
-            page.ParentLayout = this;
             NavigationContent.Content = page;
         }
 

@@ -1,5 +1,6 @@
 ﻿using Automation.App.Shared.ApiClients;
 using Automation.App.Shared.ViewModels.Tasks;
+using Joufflu.Popups;
 using Joufflu.Shared.Layouts;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows.Controls;
@@ -16,7 +17,7 @@ namespace Automation.App.Views.TasksPages.TaskUI
 
         private readonly App _app = App.Current;
         private readonly TasksClient _client;
-        private IDialogLayout _modal => this.GetCurrentModalContainer();
+        private IModal _modal => this.GetCurrentModalContainer();
 
 
         public TaskPage(TaskNode task)

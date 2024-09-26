@@ -1,6 +1,8 @@
 ﻿using Automation.App.Views.PackagesPages.Components;
 using Automation.Shared.Packages;
+using Joufflu.Popups;
 using Joufflu.Shared.Layouts;
+using System.IO.Packaging;
 using System.Windows.Controls;
 
 namespace Automation.App.Views.PackagesPages
@@ -10,7 +12,7 @@ namespace Automation.App.Views.PackagesPages
     /// </summary>
     public partial class PackagesMainPage : UserControl, IPage
     {
-        private IDialogLayout _modal => this.GetCurrentModalContainer();
+        private IModal _modal => this.GetCurrentModalContainer();
 
         public ILayout? ParentLayout { get; set; }
         public PackagesMainPage()
@@ -18,12 +20,9 @@ namespace Automation.App.Views.PackagesPages
             InitializeComponent();
         }
 
-        private void PackageSelector_SelectedPackageChanged(object sender, PackageInfos? package)
+        private void PackageSelector_PackageClicked(object sender, PackageInfos package)
         {
-            if (package == null)
-                return;
-
-            // _modal.Show(new PackageEdit(package.Value));
+            _modal.Show(new PackageEditModal(package));
         }
     }
 }

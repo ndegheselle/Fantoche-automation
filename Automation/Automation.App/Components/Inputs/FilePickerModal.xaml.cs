@@ -14,7 +14,7 @@ namespace Automation.App.Components.Inputs
     /// <summary>
     /// Logique d'interaction pour FilePickerModal.xaml
     /// </summary>
-    public partial class FilePickerModal : UserControl, IModalValidationContent
+    public partial class FilePickerModal : UserControl, IModalContentValidation
     {
         public ILayout? ParentLayout { get; set; }
         public ModalValidationOptions Options { get; private set; } = new ModalValidationOptions()

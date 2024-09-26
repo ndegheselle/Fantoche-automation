@@ -42,7 +42,7 @@ namespace Automation.App.Views.TasksPages.WorkflowUI
         #endregion
 
         private readonly App _app = (App)App.Current;
-        private IDialogLayout _modal => this.GetCurrentModalContainer();
+        private IModal _modal => this.GetCurrentModalContainer();
         private IAlert _alert => this.GetCurrentAlertContainer();
         private readonly TasksClient _nodeClient;
         private readonly ScopesClient _scopeClient;
@@ -63,7 +63,7 @@ namespace Automation.App.Views.TasksPages.WorkflowUI
                 AllowedSelectedNodes = EnumScopedType.Workflow | EnumScopedType.Task
             };
 
-            if (await _modal.ShowDialog(nodeSelector) && nodeSelector.Selected != null)
+            if (await _modal.Show(nodeSelector) && nodeSelector.Selected != null)
             {
                 TaskNode taskScopedItem = (TaskNode)nodeSelector.Selected;
                 EditorData.AddNode(Editor.ViewportLocation, taskScopedItem);

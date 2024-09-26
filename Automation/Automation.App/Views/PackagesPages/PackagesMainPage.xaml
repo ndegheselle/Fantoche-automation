@@ -9,11 +9,6 @@
     mc:Ignorable="d"
     d:DesignHeight="450"
     d:DesignWidth="800">
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
-        <components:PackageSelector SelectedPackageChanged="PackageSelector_SelectedPackageChanged" />
-    </Grid>
+
+    <components:PackageSelector PackageClicked="PackageSelector_PackageClicked" />
 </UserControl>

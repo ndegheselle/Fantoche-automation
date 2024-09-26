@@ -5,7 +5,7 @@ using System.Windows.Data;
 
 namespace Automation.App.Components.Inputs
 {
-    public partial class TextBoxModal : UserControl, IModalValidationContent
+    public partial class TextBoxModal : UserControl, IModalContentValidation
     {
         public ILayout? ParentLayout { get; set; }
         public ModalValidationOptions Options { get; private set; } = new ModalValidationOptions()

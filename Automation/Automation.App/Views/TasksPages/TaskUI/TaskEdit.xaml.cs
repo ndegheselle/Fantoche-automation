@@ -11,7 +11,7 @@ using System.Windows.Controls;
 
 namespace Automation.App.Views.TasksPages.TaskUI
 {
-    public class TaskCreateModal : TextBoxModal, IModalValidationContent
+    public class TaskCreateModal : TextBoxModal, IModalContentValidation
     {
         private readonly App _app = (App)App.Current;
         private readonly TasksClient _taskClient;
@@ -50,7 +50,7 @@ namespace Automation.App.Views.TasksPages.TaskUI
         private readonly App _app = (App)App.Current;
         private readonly TasksClient _taskClient;
         private IAlert _alert => this.GetCurrentAlertContainer();
-        private IDialogLayout _modal => this.GetCurrentModalContainer();
+        private IModal _modal => this.GetCurrentModalContainer();
 
         public static readonly DependencyProperty TaskProperty =
             DependencyProperty.Register(nameof(Task), typeof(TaskNode), typeof(TaskEdit), new PropertyMetadata(null));
@@ -92,7 +92,7 @@ namespace Automation.App.Views.TasksPages.TaskUI
         private async void SelectPackage_Click(object sender, RoutedEventArgs e)
         {
             PackageSelectorModal modal = new PackageSelectorModal();
-            if (await _modal.ShowDialog(modal) && modal.SelectedPackage != null)
+            if (await _modal.Show(modal) && modal.SelectedPackage != null)
             {
                 Task.Package = modal.SelectedPackage;
             }

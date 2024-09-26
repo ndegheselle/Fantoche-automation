@@ -6,7 +6,7 @@ using System.Windows.Controls;
 
 namespace Automation.App.Views.TasksPages.WorkflowUI
 {
-    public class WorkflowEditModal : WorkflowEdit, IModalValidationContent
+    public class WorkflowEditModal : WorkflowEdit, IModalContentValidation
     {
         public ILayout? ParentLayout { get; set; }
         public ModalValidationOptions Options => new ModalValidationOptions() { Title = "Edit workflow", ValidButtonText = "Save" };

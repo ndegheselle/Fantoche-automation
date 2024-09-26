@@ -4,12 +4,16 @@ using Automation.Shared.Packages;
 using Joufflu.Popups;
 using Joufflu.Shared.Layouts;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Win32;
 using System.ComponentModel;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using System.Xml.Linq;
 
 namespace Automation.App.Views.PackagesPages.Components
 {
-    public class PackageSelectorModal : PackageSelector, IModalValidationContent
+    public class PackageSelectorModal : PackageSelector, IModalContentValidation
     {
         public ILayout? ParentLayout { get; set; }
 
@@ -28,7 +32,7 @@ namespace Automation.App.Views.PackagesPages.Components
         private readonly App _app = (App)App.Current;
         private readonly PackagesClient _packageClient;
 
-        private IDialogLayout _modal => this.GetCurrentModalContainer();
+        private IModal _modal => this.GetCurrentModalContainer();
 
         public ListPageWrapper<PackageInfos> Packages
         {
@@ -37,6 +41,7 @@ namespace Automation.App.Views.PackagesPages.Components
         } = new ListPageWrapper<PackageInfos>() { PageSize = 50, Page = 1, Total = -1, };
 
         public event EventHandler<PackageInfos?>? SelectedPackageChanged;
+        public event EventHandler<PackageInfos>? PackageClicked;
 
         public PackageInfos? SelectedPackage { get; set; }
 
@@ -73,9 +78,19 @@ namespace Automation.App.Views.PackagesPages.Components
         private async void ButtonAdd_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             var createPackage = new PackageCreateModal();
-            if (await _modal.ShowDialog(createPackage))
+            if (await _modal.Show(createPackage))
             {
                 // createPackage.Package;
+                throw new NotImplementedException();
+            }
+        }
+
+        private void ListViewItem_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            var item = sender as ListBoxItem;
+            if (item != null)
+            {
+                PackageClicked?.Invoke(this, (PackageInfos)item.DataContext);
             }
         }
     }
