@@ -2,6 +2,7 @@
 using NuGet.Common;
 using NuGet.Configuration;
 using NuGet.Packaging;
+using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using System.Data;
 
@@ -26,6 +27,7 @@ namespace Automation.Shared.Packages
 
         public async Task<ListPageWrapper<PackageInfos>> SearchAsync(string name = "", int page = 1, int pageSize = 50)
         {
+            // XXX : difference with LocalPackageSearchResource ?
             PackageSearchResource resource = _source.GetResource<PackageSearchResource>();
             var results = await resource.SearchAsync(
                 name,
@@ -34,12 +36,21 @@ namespace Automation.Shared.Packages
                 pageSize,
                 NullLogger.Instance,
                 CancellationToken.None);
-            return new ListPageWrapper<PackageInfos>()
+            var searchResult = new ListPageWrapper<PackageInfos>()
             {
                 Page = page,
-                PageSize = pageSize,
-                Data = results.Select(x => new PackageInfos(x)).ToList()
+                PageSize = pageSize
             };
+
+            foreach (var result in results)
+            {
+                var versions = await result.GetVersionsAsync();
+                var package = new PackageInfos(result);
+                package.Versions = versions.Select(v => new PackageVersion(v.Version)).ToList();
+                searchResult.Data.Add(package);
+            }
+
+            return searchResult;
         }
 
         public async Task<PackageInfos?> GetInfosFromIdAsync(string packageId)
@@ -55,14 +66,14 @@ namespace Automation.Shared.Packages
                 CancellationToken.None);
 
             // TODO : get a list of versions in package
-            var latestPackage = searchMetadata
-                .OrderByDescending(p => p.Identity.Version)
-                .FirstOrDefault();
+            searchMetadata = searchMetadata.OrderByDescending(p => p.Identity.Version);
 
-            if (latestPackage == null)
+            if (searchMetadata.FirstOrDefault() == null)
                 return null;
 
-            return new PackageInfos(latestPackage);
+            var package = new PackageInfos(searchMetadata.First());
+            package.Versions = searchMetadata.Select(x => new PackageVersion(x.Identity.Version)).ToList();
+            return package;
         }
 
         public Task<PackageInfos> GetInfosFromFileAsync(string filePath)
@@ -71,18 +82,14 @@ namespace Automation.Shared.Packages
             var nuspecReader = packageReader.NuspecReader;
             string id = nuspecReader.GetId();
             var version = nuspecReader.GetVersion();
-            string name = nuspecReader.GetTitle();
-            if (string.IsNullOrEmpty(name))
-                name = id;
 
             return Task.FromResult(new PackageInfos
             {
                 Id = id,
-                Name = name,
                 Description = nuspecReader.GetDescription(),
-                Versions = new List<Version>()
+                Versions = new List<PackageVersion>()
                 {
-                    new Version(version)
+                    new PackageVersion(version)
                 }
             });
         }

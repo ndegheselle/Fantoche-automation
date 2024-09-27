@@ -15,7 +15,7 @@
                 <RowDefinition />
             </Grid.RowDefinitions>
 
-            <TextBlock FontWeight="Bold" Text="{Binding Name}" />
+            <TextBlock FontWeight="Bold" Text="{Binding Id}" />
             <TextBlock Grid.Row="1" Text="{Binding Description}" />
         </Grid>
     </GroupBox>

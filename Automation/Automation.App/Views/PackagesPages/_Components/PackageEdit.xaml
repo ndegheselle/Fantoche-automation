@@ -5,15 +5,33 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Automation.App.Views.PackagesPages.Components"
+    xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     mc:Ignorable="d"
     Margin="2"
     MinHeight="200">
     <Grid DataContext="{Binding Package, RelativeSource={RelativeSource AncestorType=local:PackageEdit}}">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
             <RowDefinition />
         </Grid.RowDefinitions>
         <local:PackageSummary Package="{Binding}" />
-        <ListView ItemsSource="{Binding Versions}" />
+
+        <Grid Grid.Row="1" Margin="0,4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition Width="auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock FontWeight="Bold" VerticalAlignment="Center">Versions</TextBlock>
+
+            <Button
+                Click="ButtonAdd_Click"
+                Grid.Column="1"
+                ToolTip="Add new version">
+                <fonts:Icon Text="{x:Static fonts:IconFont.Plus}" />
+            </Button>
+        </Grid>
+        <ListBox ItemsSource="{Binding Versions}" Grid.Row="2" />
     </Grid>
 </UserControl>

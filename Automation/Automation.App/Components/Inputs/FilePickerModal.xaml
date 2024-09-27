@@ -12,7 +12,7 @@
         <TextBlock TextWrapping="Wrap" Text="{Binding SubTitle, RelativeSource={RelativeSource AncestorType={x:Type local:FilePickerModal}}}" />
         <inputs:FilePicker
             Margin="0,4,0,0"
-            FilePath="{Binding File.FilePath, RelativeSource={RelativeSource AncestorType={x:Type local:FilePickerModal}}}"
+            FilePath="{Binding SelectedFile.FilePath, RelativeSource={RelativeSource AncestorType={x:Type local:FilePickerModal}}}"
             Options="{Binding OptionsDialog, RelativeSource={RelativeSource AncestorType={x:Type local:FilePickerModal}}}" />
     </StackPanel>
 </UserControl>

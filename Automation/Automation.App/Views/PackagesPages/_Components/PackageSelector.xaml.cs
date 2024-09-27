@@ -2,26 +2,28 @@
 using Automation.Shared.Base;
 using Automation.Shared.Packages;
 using Joufflu.Popups;
-using Joufflu.Shared.Layouts;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Win32;
 using System.ComponentModel;
-using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Xml.Linq;
 
 namespace Automation.App.Views.PackagesPages.Components
 {
     public class PackageSelectorModal : PackageSelector, IModalContentValidation
     {
-        public ILayout? ParentLayout { get; set; }
+        public Modal? ParentLayout { get; set; }
 
         public ModalValidationOptions Options => new ModalValidationOptions()
         {
             Title = "Select package",
             ValidButtonText = "Select"
         };
+
+        protected override void OnPackageCreated(PackageInfos package)
+        {
+            SelectedPackage = package;
+            ParentLayout?.Hide(true);
+        }
     }
 
     /// <summary>
@@ -78,10 +80,9 @@ namespace Automation.App.Views.PackagesPages.Components
         private async void ButtonAdd_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             var createPackage = new PackageCreateModal();
-            if (await _modal.Show(createPackage))
+            if (await _modal.Show(createPackage) && createPackage.Package != null)
             {
-                // createPackage.Package;
-                throw new NotImplementedException();
+                OnPackageCreated(createPackage.Package.Value);
             }
         }
 
@@ -93,6 +94,9 @@ namespace Automation.App.Views.PackagesPages.Components
                 PackageClicked?.Invoke(this, (PackageInfos)item.DataContext);
             }
         }
+
+        protected virtual void OnPackageCreated(PackageInfos package)
+        {}
     }
     #endregion
 }

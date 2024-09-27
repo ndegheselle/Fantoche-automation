@@ -38,5 +38,25 @@ namespace Automation.App.Shared.ApiClients
 
             return result.Data;
         }
+
+        public async Task<PackageInfos> CreatePackageVersionAsync(string id, string filePath)
+        {
+            if (!File.Exists(filePath))
+                throw new ArgumentNullException(nameof(filePath));
+
+            var request = new RestRequest($"{_routeBase}/{id}/versions", Method.Post);
+            request.AlwaysMultipartFormData = true;
+            request.AddFile("file", filePath);
+
+            var result = await _client.ExecuteAsync<PackageInfos>(request);
+
+            if (result.StatusCode == System.Net.HttpStatusCode.BadRequest)
+            {
+                var validationResult = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(result.Content);
+                throw new ValidationException(validationResult);
+            }
+            return result.Data;
+        }
+
     }
 }

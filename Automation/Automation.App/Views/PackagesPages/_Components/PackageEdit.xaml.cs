@@ -10,6 +10,9 @@ using System.Windows.Controls;
 
 namespace Automation.App.Views.PackagesPages.Components
 {
+    /// <summary>
+    /// Either create a new package or a package version if an existing package is passed
+    /// </summary>
     public class PackageCreateModal : FilePickerModal, IModalContentValidation
     {
         private readonly App _app = App.Current;
@@ -17,12 +20,13 @@ namespace Automation.App.Views.PackagesPages.Components
 
         public PackageInfos? Package {  get; set; }
 
-        public PackageCreateModal() : base("New package", "Select a .nupkg file", new FilePickerOptions()
+        public PackageCreateModal(PackageInfos? package = null) : base("New package", "Select a .nupkg file", new FilePickerOptions()
         {
             Filter = "Nuget package (*.nupkg)|*.nupkg",
             DefaultExtension = "*.nupkg"
         })
         {
+            Package = package;
             _packagesClient = _app.ServiceProvider.GetRequiredService<PackagesClient>();
             Options.ValidButtonText = "Create";
         }
@@ -40,7 +44,14 @@ namespace Automation.App.Views.PackagesPages.Components
 
             try
             {
-                Package = await _packagesClient.CreateAsync(SelectedFile.FilePath);
+                if (Package != null)
+                {
+                    Package = await _packagesClient.CreatePackageVersionAsync(Package.Value.Id, SelectedFile.FilePath);
+                }
+                else
+                {
+                    Package = await _packagesClient.CreateAsync(SelectedFile.FilePath);
+                }
             }
             catch (ValidationException ex)
             {
@@ -55,11 +66,12 @@ namespace Automation.App.Views.PackagesPages.Components
     public class PackageEditModal : PackageEdit, IModalContent
     {
         public ModalOptions? Options { get; } = new ModalOptions();
+        public Modal? ParentLayout { get; set; }
+
         public PackageEditModal(PackageInfos package) : base(package)
         {
             Options.Title = package.Name;
         }
-
     }
 
     /// <summary>
@@ -67,11 +79,21 @@ namespace Automation.App.Views.PackagesPages.Components
     /// </summary>
     public partial class PackageEdit : UserControl
     {
+        private IModal _modal => this.GetCurrentModalContainer();
         public PackageInfos Package { get; set; }
         public PackageEdit(PackageInfos package)
         {
             Package = package;
             InitializeComponent();
+        }
+
+        private async void ButtonAdd_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            var createPackage = new PackageCreateModal(Package);
+            if (await _modal.Show(createPackage) && createPackage.Package != null)
+            {
+                Package = createPackage.Package.Value;
+            }
         }
     }
 }

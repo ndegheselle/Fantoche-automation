@@ -1,13 +1,10 @@
-﻿using AdonisUI.Controls;
-using Automation.App.Shared.ApiClients;
+﻿using Automation.App.Shared.ApiClients;
 using Automation.App.Shared.ViewModels.Tasks;
 using Automation.App.Views.TasksPages.ScopeUI;
 using Automation.App.Views.TasksPages.TaskUI;
 using Automation.App.Views.TasksPages.WorkflowUI;
 using Automation.Shared.Data;
 using Joufflu.Popups;
-using Joufflu.Shared;
-using Joufflu.Shared.Layouts;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 using System.Windows.Controls;
@@ -20,8 +17,7 @@ namespace Automation.App.Views.TasksPages.Components
 {
     public class ScopedSelectorModal : ScopedSelector, IModalContent
     {
-        public ILayout? ParentLayout { get; set; }
-
+        public Modal? ParentLayout { get; set; }
         public ModalOptions Options => new ModalOptions() { Title = "Add node" };
     }
 

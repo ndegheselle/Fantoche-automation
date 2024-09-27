@@ -7,7 +7,7 @@ namespace Automation.App.Components.Inputs
 {
     public partial class TextBoxModal : UserControl, IModalContentValidation
     {
-        public ILayout? ParentLayout { get; set; }
+        public Modal? ParentLayout { get; set; }
         public ModalValidationOptions Options { get; private set; } = new ModalValidationOptions()
         {
             Title = "Input data",
