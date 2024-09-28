@@ -42,5 +42,12 @@ namespace Automation.Shared.Packages
         /// <param name="package">Infos of the package if already retrieved</param>
         /// <returns></returns>
         Task<PackageInfos> CreatePackageFromFileAsync(string filePath, PackageInfos? package = null);
+
+        /// <summary>
+        /// Remove a package version
+        /// </summary>
+        /// <param name="id">Target package id</param>
+        /// <param name="version">Target package version</param>
+        void RemoveFromIdAndVersion(string id, string version);
     }
 }

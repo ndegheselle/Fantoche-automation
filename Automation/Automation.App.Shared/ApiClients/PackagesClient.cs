@@ -3,7 +3,9 @@ using Automation.Shared.Base;
 using Automation.Shared.Packages;
 using Newtonsoft.Json;
 using RestSharp;
+using System.DirectoryServices;
 using System.IO;
+using System.Windows.Media.Animation;
 
 namespace Automation.App.Shared.ApiClients
 {
@@ -58,5 +60,10 @@ namespace Automation.App.Shared.ApiClients
             return result.Data;
         }
 
+
+        public async Task<PackageInfos?> RemoveFromVersionAsync(string id, Version version)
+        {
+            return await _client.DeleteAsync<PackageInfos?>($"{_routeBase}/{id}/versions/{version}");
+        }
     }
 }

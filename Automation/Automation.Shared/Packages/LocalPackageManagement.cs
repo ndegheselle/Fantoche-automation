@@ -4,7 +4,9 @@ using NuGet.Configuration;
 using NuGet.Packaging;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
+using System;
 using System.Data;
+using System.Linq;
 
 namespace Automation.Shared.Packages
 {
@@ -36,20 +38,17 @@ namespace Automation.Shared.Packages
                 pageSize,
                 NullLogger.Instance,
                 CancellationToken.None);
-            var searchResult = new ListPageWrapper<PackageInfos>()
-            {
-                Page = page,
-                PageSize = pageSize
-            };
+            var searchResult = new ListPageWrapper<PackageInfos>() { Page = page, PageSize = pageSize };
 
             foreach (var result in results)
             {
                 var versions = await result.GetVersionsAsync();
                 var package = new PackageInfos(result);
-                package.Versions = versions.Select(v => new PackageVersion(v.Version)).ToList();
+                package.Versions = versions.Select(
+                    version => new Version(version.Version.Major, version.Version.Minor, version.Version.Patch))
+                    .ToList();
                 searchResult.Data.Add(package);
             }
-
             return searchResult;
         }
 
@@ -65,14 +64,15 @@ namespace Automation.Shared.Packages
                 NullLogger.Instance,
                 CancellationToken.None);
 
-            // TODO : get a list of versions in package
             searchMetadata = searchMetadata.OrderByDescending(p => p.Identity.Version);
 
             if (searchMetadata.FirstOrDefault() == null)
                 return null;
 
             var package = new PackageInfos(searchMetadata.First());
-            package.Versions = searchMetadata.Select(x => new PackageVersion(x.Identity.Version)).ToList();
+            package.Versions = searchMetadata.Select(
+                x => new Version(x.Identity.Version.Major, x.Identity.Version.Minor, x.Identity.Version.Patch))
+                .ToList();
             return package;
         }
 
@@ -83,15 +83,13 @@ namespace Automation.Shared.Packages
             string id = nuspecReader.GetId();
             var version = nuspecReader.GetVersion();
 
-            return Task.FromResult(new PackageInfos
-            {
-                Id = id,
-                Description = nuspecReader.GetDescription(),
-                Versions = new List<PackageVersion>()
+            return Task.FromResult(
+                new PackageInfos
                 {
-                    new PackageVersion(version)
-                }
-            });
+                    Id = id,
+                    Description = nuspecReader.GetDescription(),
+                    Versions = new List<Version>() { new Version(version.Major, version.Minor, version.Patch) }
+                });
         }
 
         public async Task<PackageInfos> CreatePackageFromFileAsync(string sourcePath, PackageInfos? package = null)
@@ -106,6 +104,15 @@ namespace Automation.Shared.Packages
                 File.Copy(sourcePath, destinationPath);
 
             return package.Value;
+        }
+
+        public void RemoveFromIdAndVersion(string id, string version)
+        {
+            string fileName = $"{id}.{version}{PACKAGE_EXTENSION}";
+            string destinationPath = Path.Combine(_folder, fileName.ToLower());
+            // Prevent copying if the file already exist
+            if (File.Exists(destinationPath))
+                File.Delete(destinationPath);
         }
 
         public bool IsFileValidPackage(string filePath, out List<string> errors)

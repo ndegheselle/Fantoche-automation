@@ -7,7 +7,7 @@ namespace Automation.Shared.Packages
     {
         public string Id { get; set; }
         public string Description { get; set; }
-        public List<PackageVersion> Versions { get; set; } = [];
+        public List<Version> Versions { get; set; } = [];
 
         public PackageInfos() { }
 
@@ -17,35 +17,10 @@ namespace Automation.Shared.Packages
             Description = metadata.Description;
         }
     }
+
     public struct TargetedPackage
     {
         public string Id { get; set; }
-        public PackageVersion Version { get; set; }
-    }
-
-    public struct PackageVersion
-    {
-        public uint Major { get; set; }
-        public uint Minor { get; set; }
-        public uint Patch { get; set; }
-
-        public PackageVersion(uint major = 0, uint minor = 0, uint patch = 0)
-        {
-            Major = major;
-            Minor = minor;
-            Patch = patch;
-        }
-
-        public PackageVersion(NuGetVersion version)
-        {
-            Major = (uint)version.Major;
-            Minor = (uint)version.Minor;
-            Patch = (uint)version.Patch;
-        }
-
-        public override string ToString()
-        {
-            return $"{Major}.{Minor}.{Patch}";
-        }
+        public Version Version { get; set; }
     }
 }

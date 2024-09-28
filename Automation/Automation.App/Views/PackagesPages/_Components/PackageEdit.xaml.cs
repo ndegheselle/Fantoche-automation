@@ -1,10 +1,12 @@
-﻿using Automation.App.Components.Inputs;
+﻿using AdonisUI.Controls;
+using Automation.App.Components.Inputs;
 using Automation.App.Shared.ApiClients;
 using Automation.Shared.Base;
 using Automation.Shared.Packages;
 using Joufflu.Inputs.Components;
 using Joufflu.Popups;
 using Microsoft.Extensions.DependencyInjection;
+using System.ComponentModel;
 using System.IO;
 using System.Windows.Controls;
 
@@ -13,18 +15,18 @@ namespace Automation.App.Views.PackagesPages.Components
     /// <summary>
     /// Either create a new package or a package version if an existing package is passed
     /// </summary>
-    public class PackageCreateModal : FilePickerModal, IModalContentValidation
+    public class PackageCreateModal : FilePickerModal, IModalContentValidation, INotifyPropertyChanged
     {
         private readonly App _app = App.Current;
         private readonly PackagesClient _packagesClient;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
-        public PackageInfos? Package {  get; set; }
+        public PackageInfos? Package { get; set; }
 
-        public PackageCreateModal(PackageInfos? package = null) : base("New package", "Select a .nupkg file", new FilePickerOptions()
-        {
-            Filter = "Nuget package (*.nupkg)|*.nupkg",
-            DefaultExtension = "*.nupkg"
-        })
+        public PackageCreateModal(PackageInfos? package = null) : base(
+            "New package",
+            "Select a .nupkg file",
+            new FilePickerOptions() { Filter = "Nuget package (*.nupkg)|*.nupkg", DefaultExtension = "*.nupkg" })
         {
             Package = package;
             _packagesClient = _app.ServiceProvider.GetRequiredService<PackagesClient>();
@@ -52,8 +54,7 @@ namespace Automation.App.Views.PackagesPages.Components
                 {
                     Package = await _packagesClient.CreateAsync(SelectedFile.FilePath);
                 }
-            }
-            catch (ValidationException ex)
+            } catch (ValidationException ex)
             {
                 if (ex.Errors != null)
                     SelectedFile.AddErrors(ex.Errors);
@@ -66,23 +67,26 @@ namespace Automation.App.Views.PackagesPages.Components
     public class PackageEditModal : PackageEdit, IModalContent
     {
         public ModalOptions? Options { get; } = new ModalOptions();
+
         public Modal? ParentLayout { get; set; }
 
-        public PackageEditModal(PackageInfos package) : base(package)
-        {
-            Options.Title = package.Name;
-        }
+        public PackageEditModal(PackageInfos package) : base(package) { Options.Title = package.Id; }
     }
 
     /// <summary>
     /// Logique d'interaction pour PackageEdit.xaml
     /// </summary>
-    public partial class PackageEdit : UserControl
+    public partial class PackageEdit : UserControl, INotifyPropertyChanged
     {
         private IModal _modal => this.GetCurrentModalContainer();
+        private readonly App _app = App.Current;
+        private readonly PackagesClient _packagesClient;
+
         public PackageInfos Package { get; set; }
+
         public PackageEdit(PackageInfos package)
         {
+            _packagesClient = _app.ServiceProvider.GetRequiredService<PackagesClient>();
             Package = package;
             InitializeComponent();
         }
@@ -94,6 +98,29 @@ namespace Automation.App.Views.PackagesPages.Components
             {
                 Package = createPackage.Package.Value;
             }
+        }
+
+        private async void MenuItemRemove_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            var selectedVersion = ListBoxVersion.SelectedItem as Version;
+
+            if (selectedVersion == null)
+                return;
+
+            if (MessageBox.Show(
+                    "Are you sure you want to remove this version ?",
+                    "Confirmation",
+                    AdonisUI.Controls.MessageBoxButton.YesNo) !=
+                    AdonisUI.Controls.MessageBoxResult.Yes)
+                return;
+
+            var updated = await _packagesClient.RemoveFromVersionAsync(Package.Id, selectedVersion);
+            if (updated == null)
+                return;
+
+            // TODO : handle last version deletion
+
+            Package = updated.Value;
         }
     }
 }

@@ -75,7 +75,8 @@ namespace Automation.Api.Supervisor.Controllers
 
                 await _packages.CreatePackageFromFileAsync(tempFilePath, infos);
                 // Return full package infos
-                return await _packages.GetInfosFromIdAsync(infos.Id);
+                var test = await _packages.GetInfosFromIdAsync(infos.Id);
+                return test;
             }
             finally
             {
@@ -85,6 +86,14 @@ namespace Automation.Api.Supervisor.Controllers
                     System.IO.File.Delete(tempFilePath);
                 }
             }
+        }
+
+        [HttpDelete]
+        [Route("{id}/versions/{version}")]
+        public async Task<ActionResult<PackageInfos?>> DeletePackageVersion([FromRoute] string id, [FromRoute] string version)
+        {
+            _packages.RemoveFromIdAndVersion(id, version);
+            return await _packages.GetInfosFromIdAsync(id);
         }
     }
 }
