@@ -34,33 +34,14 @@
                         </Style>
                     </StackPanel.Style>
 
-                    <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
-                        <Button Click="SelectPackage_Click">
-                            <StackPanel Orientation="Horizontal">
-                                <fonts:Icon Text="{x:Static fonts:IconFont.MagnifyingGlass}" />
-                                <TextBlock Margin="4,0,0,0">
-                                    Select existing
-                                </TextBlock>
-                            </StackPanel>
-                        </Button>
-                        <TextBlock VerticalAlignment="Center" Margin="10,0">Or</TextBlock>
-                        <Button>
-                            <StackPanel Orientation="Horizontal">
-                                <fonts:Icon Text="{x:Static fonts:IconFont.Plus}" />
-                                <TextBlock Margin="4,0,0,0">
-                                    Create new
-                                </TextBlock>
-                            </StackPanel>
-                        </Button>
-                    </StackPanel>
-
-                    <TextBlock
-                        FontStyle="Italic"
-                        FontSize="10"
-                        TextAlignment="Center"
-                        Foreground="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}">
-                        To update an existing package select it first then update it.
-                    </TextBlock>
+                    <Button Click="SelectPackage_Click" HorizontalAlignment="Center">
+                        <StackPanel Orientation="Horizontal">
+                            <fonts:Icon Text="{x:Static fonts:IconFont.MagnifyingGlass}" />
+                            <TextBlock Margin="4,0,0,0">
+                                Select
+                            </TextBlock>
+                        </StackPanel>
+                    </Button>
                 </StackPanel>
 
                 <Grid>
