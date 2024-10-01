@@ -3,6 +3,7 @@ using Automation.App.Shared.ViewModels.Tasks;
 using Joufflu.Popups;
 using Joufflu.Shared.Layouts;
 using Microsoft.Extensions.DependencyInjection;
+using System.ComponentModel;
 using System.Windows.Controls;
 
 namespace Automation.App.Views.TasksPages.TaskUI
@@ -10,7 +11,7 @@ namespace Automation.App.Views.TasksPages.TaskUI
     /// <summary>
     /// Logique d'interaction pour TaskPage.xaml
     /// </summary>
-    public partial class TaskPage : UserControl, IPage
+    public partial class TaskPage : UserControl, IPage, INotifyPropertyChanged
     {
         public TaskNode Task { get; set; }
         public ILayout? ParentLayout { get; set; }

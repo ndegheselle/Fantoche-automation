@@ -1,12 +1,13 @@
 ﻿using Automation.Shared.Data;
 using Automation.Shared.Packages;
+using System.ComponentModel;
 using System.Windows;
 
 namespace Automation.App.Shared.ViewModels.Tasks
 {
-    public class TaskNode : ScopedElement
+    public class TaskNode : ScopedElement, INotifyPropertyChanged
     {
-        public PackageInfos? Package { get; set; }
+        public TargetedPackage? Package { get; set; }
         public Guid ScopeId { get; set; }
         public List<TaskConnector> Inputs { get; set; } = new List<TaskConnector>();
         public List<TaskConnector> Outputs { get; set; } = new List<TaskConnector>();

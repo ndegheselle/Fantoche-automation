@@ -17,24 +17,54 @@
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
-        <StackPanel Orientation="Vertical" DataContext="{Binding Task, RelativeSource={RelativeSource AncestorType=local:TaskEdit}}">
+        <StackPanel Orientation="Vertical" DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:TaskEdit}}">
             <TextBlock Margin="0,8,0,4" FontWeight="Bold">Name</TextBlock>
-            <TextBox Text="{Binding Name}" />
-            <TextBlock Margin="0,8,0,4" FontWeight="Bold">Package</TextBlock>
+            <TextBox Text="{Binding Task.Name}" />
+
+            <Grid Margin="0,8,0,4">
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="auto" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock FontWeight="Bold" VerticalAlignment="Center">
+                    Package
+                </TextBlock>
+                <Button Grid.Column="1" Click="RemovePackage_Click">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding PackageInfos}" Value="{x:Null}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                    <StackPanel Orientation="Horizontal">
+                        <fonts:Icon Text="{x:Static fonts:IconFont.LinkSlash}" />
+                        <TextBlock Margin="4,0,0,0">Remove</TextBlock>
+                    </StackPanel>
+                </Button>
+            </Grid>
+
             <Grid>
-                <StackPanel>
-                    <StackPanel.Style>
-                        <Style TargetType="StackPanel">
+                <GroupBox>
+                    <GroupBox.Style>
+                        <Style TargetType="GroupBox" BasedOn="{StaticResource {x:Type GroupBox}}">
                             <Setter Property="Visibility" Value="Collapsed" />
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding Package}" Value="{x:Null}">
+                                <DataTrigger Binding="{Binding PackageInfos}" Value="{x:Null}">
                                     <Setter Property="Visibility" Value="Visible" />
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
-                    </StackPanel.Style>
+                    </GroupBox.Style>
+                    <Button
+                        Click="SelectPackage_Click"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center">
 
-                    <Button Click="SelectPackage_Click" HorizontalAlignment="Center">
                         <StackPanel Orientation="Horizontal">
                             <fonts:Icon Text="{x:Static fonts:IconFont.MagnifyingGlass}" />
                             <TextBlock Margin="4,0,0,0">
@@ -42,39 +72,32 @@
                             </TextBlock>
                         </StackPanel>
                     </Button>
-                </StackPanel>
+                </GroupBox>
+
 
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition />
-                        <ColumnDefinition Width="auto" />
                     </Grid.ColumnDefinitions>
-
                     <Grid.Style>
                         <Style TargetType="Grid">
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding Package}" Value="{x:Null}">
+                                <DataTrigger Binding="{Binding PackageInfos}" Value="{x:Null}">
                                     <Setter Property="Visibility" Value="Collapsed" />
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
                     </Grid.Style>
-                    <packageComponents:PackageSummary Package="{Binding Package}" />
 
-                    <StackPanel Grid.Column="1" Margin="2,0,0,0">
-                        <Button IsEnabled="False">
-                            <StackPanel Orientation="Horizontal">
-                                <fonts:Icon Text="{x:Static fonts:IconFont.Upload}" />
-                                <TextBlock Margin="4,0,0,0">Update</TextBlock>
-                            </StackPanel>
-                        </Button>
-                        <Button Margin="0,2,0,0" Click="RemovePackage_Click">
-                            <StackPanel Orientation="Horizontal">
-                                <fonts:Icon Text="{x:Static fonts:IconFont.LinkSlash}" />
-                                <TextBlock Margin="4,0,0,0">Remove</TextBlock>
-                            </StackPanel>
-                        </Button>
-                    </StackPanel>
+                    <packageComponents:PackageSummary Package="{Binding PackageInfos}" />
+
+                    <ComboBox
+                        MinWidth="100"
+                        Margin="2"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Top"
+                        ItemsSource="{Binding PackageInfos.Versions}"
+                        SelectedItem="{Binding Task.Package.Version, Mode=TwoWay}" />
                 </Grid>
             </Grid>
         </StackPanel>

@@ -24,6 +24,12 @@ namespace Automation.App.Shared.ApiClients
             return await _client.GetAsync<ListPageWrapper<PackageInfos>>(request) ?? new ListPageWrapper<PackageInfos>();
         }
 
+        public async Task<PackageInfos?> GetById(string id)
+        {
+            RestRequest request = new RestRequest($"{_routeBase}/{id}");
+            return await _client.GetAsync<PackageInfos?>(request);
+        }
+
         public async Task<PackageInfos> CreateAsync(string filePath)
         {
             if (!File.Exists(filePath))

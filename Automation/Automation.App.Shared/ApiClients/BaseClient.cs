@@ -57,7 +57,7 @@ namespace Automation.App.Shared.ApiClients
         {
             if (element == null)
                 throw new ArgumentNullException(nameof(element));
-            await _client.PutAsync(new RestRequest($"{_routeBase}/{id}").AddBody(element));
+            var result = await _client.ExecutePutAsync(new RestRequest($"{_routeBase}/{id}").AddBody(element));
         }
     }
 }

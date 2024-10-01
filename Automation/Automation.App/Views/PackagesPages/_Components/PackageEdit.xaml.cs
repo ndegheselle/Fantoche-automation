@@ -48,7 +48,7 @@ namespace Automation.App.Views.PackagesPages.Components
             {
                 if (Package != null)
                 {
-                    Package = await _packagesClient.CreatePackageVersionAsync(Package.Value.Id, SelectedFile.FilePath);
+                    Package = await _packagesClient.CreatePackageVersionAsync(Package.Id, SelectedFile.FilePath);
                 }
                 else
                 {
@@ -96,7 +96,7 @@ namespace Automation.App.Views.PackagesPages.Components
             var createPackage = new PackageCreateModal(Package);
             if (await _modal.Show(createPackage) && createPackage.Package != null)
             {
-                Package = createPackage.Package.Value;
+                Package = createPackage.Package;
             }
         }
 
@@ -120,7 +120,7 @@ namespace Automation.App.Views.PackagesPages.Components
 
             // TODO : handle last version deletion
 
-            Package = updated.Value;
+            Package = updated;
         }
     }
 }

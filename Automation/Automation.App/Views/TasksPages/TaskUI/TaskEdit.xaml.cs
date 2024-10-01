@@ -3,9 +3,11 @@ using Automation.App.Shared.ApiClients;
 using Automation.App.Shared.ViewModels.Tasks;
 using Automation.App.Views.PackagesPages.Components;
 using Automation.Shared.Base;
+using Automation.Shared.Packages;
 using Joufflu.Popups;
 using Joufflu.Shared.Layouts;
 using Microsoft.Extensions.DependencyInjection;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -45,15 +47,24 @@ namespace Automation.App.Views.TasksPages.TaskUI
     /// <summary>
     /// Logique d'interaction pour TaskEdit.xaml
     /// </summary>
-    public partial class TaskEdit : UserControl
+    public partial class TaskEdit : UserControl, INotifyPropertyChanged
     {
         private readonly App _app = (App)App.Current;
         private readonly TasksClient _taskClient;
+        private readonly PackagesClient _pacakgeClient;
         private IAlert _alert => this.GetCurrentAlertContainer();
         private IModal _modal => this.GetCurrentModalContainer();
 
         public static readonly DependencyProperty TaskProperty =
-            DependencyProperty.Register(nameof(Task), typeof(TaskNode), typeof(TaskEdit), new PropertyMetadata(null));
+            DependencyProperty.Register(nameof(Task), typeof(TaskNode), typeof(TaskEdit), new PropertyMetadata(null, (o, p) => ((TaskEdit)o).OnTaskChanged()));
+
+        private async void OnTaskChanged()
+        {
+            if (Task?.Package == null || PackageInfos != null)
+                return;
+
+            PackageInfos = await _pacakgeClient.GetById(Task.Package.Id);
+        }
 
         public TaskNode Task
         {
@@ -61,9 +72,13 @@ namespace Automation.App.Views.TasksPages.TaskUI
             set { SetValue(TaskProperty, value); }
         }
 
+        public PackageInfos? PackageInfos { get; private set; }
+
         public TaskEdit()
         {
             _taskClient = _app.ServiceProvider.GetRequiredService<TasksClient>();
+            _pacakgeClient = _app.ServiceProvider.GetRequiredService<PackagesClient>();
+
             InitializeComponent();
         }
 
@@ -87,6 +102,7 @@ namespace Automation.App.Views.TasksPages.TaskUI
         private void RemovePackage_Click(object sender, RoutedEventArgs e)
         {
             Task.Package = null;
+            PackageInfos = null;
         }
 
         private async void SelectPackage_Click(object sender, RoutedEventArgs e)
@@ -94,7 +110,8 @@ namespace Automation.App.Views.TasksPages.TaskUI
             PackageSelectorModal modal = new PackageSelectorModal();
             if (await _modal.Show(modal) && modal.SelectedPackage != null)
             {
-                Task.Package = modal.SelectedPackage;
+                Task.Package = new TargetedPackage() { Id = modal.SelectedPackage.Id };
+                PackageInfos = modal.SelectedPackage;
             }
         }
 

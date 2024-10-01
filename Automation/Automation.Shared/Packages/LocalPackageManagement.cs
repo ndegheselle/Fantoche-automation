@@ -95,7 +95,7 @@ namespace Automation.Shared.Packages
         public async Task<PackageInfos> CreatePackageFromFileAsync(string sourcePath, PackageInfos? package = null)
         {
             package ??= await GetInfosFromFileAsync(sourcePath);
-            string fileName = $"{package.Value.Id}.{package.Value.Versions.Last()}{PACKAGE_EXTENSION}";
+            string fileName = $"{package.Id}.{package.Versions.Last()}{PACKAGE_EXTENSION}";
 
             string destinationPath = Path.Combine(_folder, fileName.ToLower());
 
@@ -103,7 +103,7 @@ namespace Automation.Shared.Packages
             if (!File.Exists(destinationPath))
                 File.Copy(sourcePath, destinationPath);
 
-            return package.Value;
+            return package;
         }
 
         public void RemoveFromIdAndVersion(string id, string version)

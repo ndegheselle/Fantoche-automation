@@ -16,9 +16,9 @@ namespace Automation.App.Views.PackagesPages.Components
             typeof(PackageSummary),
             new PropertyMetadata(null));
 
-        public PackageInfos Package
+        public PackageInfos? Package
         {
-            get { return (PackageInfos)GetValue(MyPropertyProperty); }
+            get { return (PackageInfos?)GetValue(MyPropertyProperty); }
             set { SetValue(MyPropertyProperty, value); }
         }
 

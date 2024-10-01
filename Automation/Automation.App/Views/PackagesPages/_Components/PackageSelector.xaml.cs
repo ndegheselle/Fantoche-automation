@@ -82,7 +82,7 @@ namespace Automation.App.Views.PackagesPages.Components
             var createPackage = new PackageCreateModal();
             if (await _modal.Show(createPackage) && createPackage.Package != null)
             {
-                OnPackageCreated(createPackage.Package.Value);
+                OnPackageCreated(createPackage.Package);
             }
         }
 

@@ -3,7 +3,7 @@ using NuGet.Versioning;
 
 namespace Automation.Shared.Packages
 {
-    public struct PackageInfos
+    public class PackageInfos
     {
         public string Id { get; set; }
         public string Description { get; set; }
@@ -18,9 +18,9 @@ namespace Automation.Shared.Packages
         }
     }
 
-    public struct TargetedPackage
+    public class TargetedPackage
     {
         public string Id { get; set; }
-        public Version Version { get; set; }
+        public Version? Version { get; set; }
     }
 }

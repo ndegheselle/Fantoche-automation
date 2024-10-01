@@ -52,7 +52,7 @@ namespace Automation.Api.Supervisor.Controllers
 
         [HttpPut]
         [Route("{id}")]
-        public Task UpdateAsync([FromRoute] Guid id, TaskNode element)
+        public Task UpdateAsync([FromRoute] Guid id, [FromBody]TaskNode element)
         {
             return _repository.UpdateAsync(id, element);
         }
