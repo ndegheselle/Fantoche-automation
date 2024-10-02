@@ -23,4 +23,10 @@ namespace Automation.Shared.Packages
         public string Id { get; set; }
         public Version? Version { get; set; }
     }
+
+    public class PackageClass
+    {
+        public string FileName { get; set; } = "";
+        public string ClassName { get; set; } = "";
+    }
 }

@@ -4,9 +4,12 @@ using NuGet.Configuration;
 using NuGet.Packaging;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
+using NuGet.Protocol.Plugins;
+using NuGet.Versioning;
 using System;
 using System.Data;
 using System.Linq;
+using System.Reflection;
 
 namespace Automation.Shared.Packages
 {
@@ -121,6 +124,56 @@ namespace Automation.Shared.Packages
             // TODO : check if implement proper package class startpoint
             errors = new List<string>();
             return true;
+        }
+
+        public async Task<IEnumerable<PackageClass>> GetPackageClasses(string id, string version)
+        {
+            var cache = new SourceCacheContext();
+            var resource = await _source.GetResourceAsync<FindPackageByIdResource>();
+            var packageVersion = NuGetVersion.Parse(version);
+            using var packageStream = new MemoryStream();
+
+            await resource.CopyNupkgToStreamAsync(
+                id,
+                packageVersion,
+                packageStream,
+                cache,
+                NullLogger.Instance,
+                CancellationToken.None);
+
+            packageStream.Position = 0;
+
+            // Read the package
+            using var packageReader = new PackageArchiveReader(packageStream);
+            var libItems = packageReader.GetLibItems().ToList();
+
+            // Find compatible framework
+            var compatibleItem = libItems.FirstOrDefault(x =>
+                x.TargetFramework.Framework.Equals(".NETStandard") ||
+                x.TargetFramework.Framework.Equals(".NETCoreApp"));
+
+            if (compatibleItem == null)
+            {
+                throw new Exception("No compatible framework found in package");
+            }
+
+            // Load assemblies and find plugin types
+            foreach (var file in compatibleItem.Items.Where(i => i.EndsWith(".dll")))
+            {
+                using var stream = packageReader.GetStream(file);
+                using var ms = new MemoryStream();
+                await stream.CopyToAsync(ms);
+
+                var assembly = Assembly.Load(ms.ToArray());
+
+                var types = assembly.GetTypes()
+                    .Where(t => typeof(IPlugin).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract)
+                    .ToList();
+
+                pluginTypes.AddRange(types);
+            }
+
+            return pluginTypes;
         }
     }
 }
