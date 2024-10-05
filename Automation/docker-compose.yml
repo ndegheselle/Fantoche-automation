@@ -13,7 +13,8 @@ services:
       - "8080:8080"
       - "8081:8081"
     volumes:
-      - ./nugetlocal:/app/data/nuget
+      - ./volumes/nugetlocal:/app/data/nuget
+      - ./volumes/cache:/app/data/cache
 
   automation.api.worker:
     image: ${DOCKER_REGISTRY-}automationapiworker

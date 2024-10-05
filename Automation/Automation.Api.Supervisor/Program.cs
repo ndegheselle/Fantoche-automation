@@ -1,4 +1,4 @@
-using Automation.Shared.Packages;
+using Automation.Api.Shared;
 using DotNetEnv;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;

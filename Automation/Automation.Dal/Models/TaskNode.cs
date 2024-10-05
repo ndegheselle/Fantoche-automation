@@ -1,6 +1,4 @@
-﻿using Automation.Shared.Base;
-using Automation.Shared.Data;
-using Automation.Shared.Packages;
+﻿using Automation.Shared.Data;
 
 namespace Automation.Dal.Models
 {

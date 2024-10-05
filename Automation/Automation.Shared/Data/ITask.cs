@@ -1,13 +1,4 @@
-﻿using Automation.Shared.Base;
-using Automation.Shared.Packages;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Automation.Shared.Data
+﻿namespace Automation.Shared.Data
 {
     public enum EnumTaskConnectorType
     {

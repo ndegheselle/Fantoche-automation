@@ -1,5 +1,6 @@
+using Automation.Api.Shared;
 using Automation.Shared.Base;
-using Automation.Shared.Packages;
+using Automation.Shared.Data;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Automation.Api.Supervisor.Controllers
@@ -12,11 +13,11 @@ namespace Automation.Api.Supervisor.Controllers
         public PackagesController(IPackageManagement packages) { _packages = packages; }
 
         [HttpGet("{id}")]
-        public Task<PackageInfos?> GetByIdAsync([FromRoute] string id)
-        { return _packages.GetInfosFromIdAsync(id); }
+        public Task<PackageInfos> GetById([FromRoute] string id)
+        { return _packages.GetInfosAsync(id, null); }
 
         [HttpGet]
-        public Task<ListPageWrapper<PackageInfos>> SearchAsync(
+        public Task<ListPageWrapper<PackageInfos>> Search(
             [FromQuery]string? searchValue,
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 50)
@@ -25,75 +26,56 @@ namespace Automation.Api.Supervisor.Controllers
         [HttpPost]
         public async Task<ActionResult<PackageInfos>> CreatePackage(IFormFile file)
         {
-            string extension = Path.GetExtension(file.FileName);
-            string tempFilePath = Path.GetTempFileName();
+            using var stream = file.OpenReadStream();
+            PackageInfos infos;
             try
             {
-                using (var fileStream = new FileStream(tempFilePath, FileMode.Create))
-                {
-                    await file.CopyToAsync(fileStream);
-                }
-
-                if (!_packages.IsFileValidPackage(tempFilePath, out List<string> errors))
-                {
-                    return BadRequest(new Dictionary<string, string[]>() { { nameof(file), errors.ToArray() } });
-                }
-                return await _packages.CreatePackageFromFileAsync(tempFilePath);
-            } finally
-            {
-                // Ensure the temporary file is deleted even if an exception occurs
-                if (System.IO.File.Exists(tempFilePath))
-                {
-                    System.IO.File.Delete(tempFilePath);
-                }
+                infos = _packages.GetInfosFromStream(stream);
             }
+            catch (InvalidOperationException)
+            {
+                return BadRequest(new Dictionary<string, string[]>() { { nameof(file), ["The file is not a valid nuget package."] } });
+            }
+            return await _packages.CreateFromStreamAsync(stream);
+        }
+
+        [HttpGet("{id}/versions/{version}")]
+        public Task<PackageInfos> GetByIdAndVersion([FromRoute] string id, [FromRoute] string version)
+        { return _packages.GetInfosAsync(id, new Version(version)); }
+
+        [HttpGet("{id}/versions/{version}/assemblies")]
+        public async Task<IEnumerable<TaskClass>> GetAssemblies([FromRoute] string id = "Automation.Plugins", [FromRoute] string version = "1.0.0")
+        { 
+            return await _packages.GetTaskClassesAsync(id, new Version(version));
         }
 
         [HttpPost]
         [Route("{id}/versions")]
         public async Task<ActionResult<PackageInfos>> CreatePackageVersion([FromRoute] string id, [FromForm] IFormFile file)
         {
-            string extension = Path.GetExtension(file.FileName);
-            string tempFilePath = Path.GetTempFileName();
+            using var stream = file.OpenReadStream();
+            PackageInfos infos;
             try
             {
-                using (var fileStream = new FileStream(tempFilePath, FileMode.Create))
-                {
-                    await file.CopyToAsync(fileStream);
-                }
-
-                if (!_packages.IsFileValidPackage(tempFilePath, out List<string> errors))
-                {
-                    return BadRequest(new Dictionary<string, string[]>() { { nameof(file), errors.ToArray() } });
-                }
-
-                PackageInfos infos = await _packages.GetInfosFromFileAsync(tempFilePath);
-                if (infos.Id != id)
-                {
-                    return BadRequest(new Dictionary<string, string[]>() { { nameof(id), ["The package id and the nuget package id does not correspond."] } });
-                }
-
-                await _packages.CreatePackageFromFileAsync(tempFilePath, infos);
-                // Return full package infos
-                var test = await _packages.GetInfosFromIdAsync(infos.Id);
-                return test;
+                infos = _packages.GetInfosFromStream(stream);
             }
-            finally
+            catch (InvalidOperationException)
             {
-                // Ensure the temporary file is deleted even if an exception occurs
-                if (System.IO.File.Exists(tempFilePath))
-                {
-                    System.IO.File.Delete(tempFilePath);
-                }
+                return BadRequest(new Dictionary<string, string[]>() { { nameof(file), ["The file is not a valid nuget package."] } });
             }
+
+            if (infos.Id != id)
+            {
+                return BadRequest(new Dictionary<string, string[]>() { { nameof(id), ["The package id and the nuget package id does not correspond."] } });
+            }
+            return await _packages.CreateFromStreamAsync(stream);
         }
 
         [HttpDelete]
         [Route("{id}/versions/{version}")]
-        public async Task<ActionResult<PackageInfos?>> DeletePackageVersion([FromRoute] string id, [FromRoute] string version)
+        public async Task DeletePackageVersion([FromRoute] string id, [FromRoute] string version)
         {
-            _packages.RemoveFromIdAndVersion(id, version);
-            return await _packages.GetInfosFromIdAsync(id);
+            await _packages.RemoveAsync(id, new Version(version));
         }
     }
 }
