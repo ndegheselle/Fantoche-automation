@@ -2,7 +2,7 @@
 using Automation.App.Components.Inputs;
 using Automation.App.Shared.ApiClients;
 using Automation.Shared.Base;
-using Automation.Shared.Packages;
+using Automation.Shared.Data;
 using Joufflu.Inputs.Components;
 using Joufflu.Popups;
 using Microsoft.Extensions.DependencyInjection;

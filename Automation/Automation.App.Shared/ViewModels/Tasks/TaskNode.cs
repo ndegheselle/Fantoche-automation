@@ -1,5 +1,4 @@
 ﻿using Automation.Shared.Data;
-using Automation.Shared.Packages;
 using System.ComponentModel;
 using System.Windows;
 

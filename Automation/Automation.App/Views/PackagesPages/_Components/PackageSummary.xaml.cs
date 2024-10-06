@@ -1,5 +1,4 @@
-﻿using Automation.Shared.Base;
-using Automation.Shared.Packages;
+﻿using Automation.Shared.Data;
 using System.Windows;
 using System.Windows.Controls;
 

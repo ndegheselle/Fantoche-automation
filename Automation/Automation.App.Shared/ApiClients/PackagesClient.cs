@@ -1,11 +1,9 @@
 ﻿using Automation.Shared;
 using Automation.Shared.Base;
-using Automation.Shared.Packages;
+using Automation.Shared.Data;
 using Newtonsoft.Json;
 using RestSharp;
-using System.DirectoryServices;
 using System.IO;
-using System.Windows.Media.Animation;
 
 namespace Automation.App.Shared.ApiClients
 {
