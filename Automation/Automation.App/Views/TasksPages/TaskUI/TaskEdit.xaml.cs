@@ -62,7 +62,7 @@ namespace Automation.App.Views.TasksPages.TaskUI
             if (Task?.Package == null || PackageInfos != null)
                 return;
 
-            PackageInfos = await _pacakgeClient.GetById(Task.Package.Id);
+            PackageInfos = await _pacakgeClient.GetByIdAsync(Task.Package.Id);
         }
 
         public TaskNode Task

@@ -8,6 +8,7 @@ using Joufflu.Popups;
 using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;
 using System.IO;
+using System.IO.Packaging;
 using System.Windows.Controls;
 
 namespace Automation.App.Views.PackagesPages.Components
@@ -83,13 +84,31 @@ namespace Automation.App.Views.PackagesPages.Components
         private readonly PackagesClient _packagesClient;
 
         public PackageInfos Package { get; set; }
+        public IEnumerable<Version> Versions { get; set; } = [];
+        public IEnumerable<PackageClass> PackageClasses { get; set; } = [];
+        public Version SelectedVersion { get; set; }
+        public PackageClass? SelectedClass { get; set; } = null;
 
         public PackageEdit(PackageInfos package)
         {
             _packagesClient = _app.ServiceProvider.GetRequiredService<PackagesClient>();
             Package = package;
+            SelectedVersion = Package.Version;
             InitializeComponent();
+            LoadVersions();
         }
+
+        private async Task LoadVersions()
+        {
+            Versions = await _packagesClient.GetVersionsAync(Package.Id);
+        }
+
+        private async Task LoadClasses()
+        {
+            PackageClasses = await _packagesClient.GetClassesAsync(Package.Id, SelectedVersion);
+        }
+
+        #region UI events
 
         private async void ButtonAdd_Click(object sender, System.Windows.RoutedEventArgs e)
         {
@@ -100,27 +119,27 @@ namespace Automation.App.Views.PackagesPages.Components
             }
         }
 
-        private async void MenuItemRemove_Click(object sender, System.Windows.RoutedEventArgs e)
+        private async void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var selectedVersion = ListBoxVersion.SelectedItem as Version;
+            await LoadClasses();
+        }
 
-            if (selectedVersion == null)
-                return;
-
+        private async void ButtonRemove_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
             if (MessageBox.Show(
-                    "Are you sure you want to remove this version ?",
+                    $"Are you sure you want to remove the version '{SelectedVersion}' ?",
                     "Confirmation",
                     AdonisUI.Controls.MessageBoxButton.YesNo) !=
                     AdonisUI.Controls.MessageBoxResult.Yes)
                 return;
 
-            var updated = await _packagesClient.RemoveFromVersionAsync(Package.Id, selectedVersion);
-            if (updated == null)
-                return;
+            await _packagesClient.RemoveFromVersionAsync(Package.Id, SelectedVersion);
+            await LoadVersions();
 
-            // TODO : handle last version deletion
-
-            Package = updated;
+            SelectedVersion = Versions.First();
+            Package.Version = SelectedVersion;
         }
+        #endregion
     }
+
 }

@@ -14,7 +14,7 @@ namespace Automation.App.Shared.ApiClients
 
         public async Task<ListPageWrapper<PackageInfos>> SearchAsync(string searchValue, int page, int pageSize)
         {
-            RestRequest request = new RestRequest($"{_routeBase}");
+            RestRequest request = new RestRequest($"{_routeBase}/search");
             request.AddQueryParameter("searchValue", searchValue);
             request.AddQueryParameter("page", page);
             request.AddQueryParameter("pageSize", pageSize);
@@ -22,10 +22,22 @@ namespace Automation.App.Shared.ApiClients
             return await _client.GetAsync<ListPageWrapper<PackageInfos>>(request) ?? new ListPageWrapper<PackageInfos>();
         }
 
-        public async Task<PackageInfos?> GetById(string id)
+        public async Task<PackageInfos?> GetByIdAsync(string id)
         {
             RestRequest request = new RestRequest($"{_routeBase}/{id}");
             return await _client.GetAsync<PackageInfos?>(request);
+        }
+
+        public async Task<IEnumerable<Version>> GetVersionsAync(string id)
+        {
+            RestRequest request = new RestRequest($"{_routeBase}/{id}/versions");
+            return await _client.GetAsync<IEnumerable<Version>>(request) ?? new List<Version>();
+        }
+
+        public async Task<IEnumerable<PackageClass>> GetClassesAsync(string id, Version version)
+        {
+            RestRequest request = new RestRequest($"{_routeBase}/{id}/versions/{version}/classes");
+            return await _client.GetAsync<IEnumerable<PackageClass>>(request) ?? new List<PackageClass>();
         }
 
         public async Task<PackageInfos> CreateAsync(string filePath)
@@ -65,9 +77,9 @@ namespace Automation.App.Shared.ApiClients
         }
 
 
-        public async Task<PackageInfos?> RemoveFromVersionAsync(string id, Version version)
+        public async Task RemoveFromVersionAsync(string id, Version version)
         {
-            return await _client.DeleteAsync<PackageInfos?>($"{_routeBase}/{id}/versions/{version}");
+            await _client.DeleteAsync($"{_routeBase}/{id}/versions/{version}");
         }
     }
 }

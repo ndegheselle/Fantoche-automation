@@ -16,7 +16,7 @@ namespace Automation.Api.Supervisor.Controllers
         public Task<PackageInfos> GetById([FromRoute] string id)
         { return _packages.GetInfosAsync(id, null); }
 
-        [HttpGet]
+        [HttpGet("search")]
         public Task<ListPageWrapper<PackageInfos>> Search(
             [FromQuery]string? searchValue,
             [FromQuery] int page = 1,
@@ -39,15 +39,17 @@ namespace Automation.Api.Supervisor.Controllers
             return await _packages.CreateFromStreamAsync(stream);
         }
 
+        [HttpGet("{id}/versions")]
+        public Task<IEnumerable<Version>> GetVersions([FromRoute] string id)
+        { return _packages.GetVersionsAsync(id); }
+
+        [HttpGet("{id}/versions/{version}/classes")]
+        public Task<IEnumerable<PackageClass>> GetClasses([FromRoute] string id, [FromRoute] string version)
+        { return _packages.GetTaskClassesAsync(id, new Version(version)); }
+
         [HttpGet("{id}/versions/{version}")]
         public Task<PackageInfos> GetByIdAndVersion([FromRoute] string id, [FromRoute] string version)
         { return _packages.GetInfosAsync(id, new Version(version)); }
-
-        [HttpGet("{id}/versions/{version}/assemblies")]
-        public async Task<IEnumerable<TaskClass>> GetAssemblies([FromRoute] string id = "Automation.Plugins", [FromRoute] string version = "1.0.0")
-        { 
-            return await _packages.GetTaskClassesAsync(id, new Version(version));
-        }
 
         [HttpPost]
         [Route("{id}/versions")]
