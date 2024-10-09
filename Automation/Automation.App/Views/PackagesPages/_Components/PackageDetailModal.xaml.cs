@@ -65,21 +65,17 @@ namespace Automation.App.Views.PackagesPages.Components
         }
     }
 
-    public class PackageEditModal : PackageEdit, IModalContent
-    {
-        public ModalOptions? Options { get; } = new ModalOptions();
-
-        public Modal? ParentLayout { get; set; }
-
-        public PackageEditModal(PackageInfos package) : base(package) { Options.Title = package.Id; }
-    }
-
     /// <summary>
     /// Logique d'interaction pour PackageEdit.xaml
     /// </summary>
-    public partial class PackageEdit : UserControl, INotifyPropertyChanged
+    public partial class PackageDetailModal : UserControl, INotifyPropertyChanged, IModalContent
     {
-        private IModal _modal => this.GetCurrentModalContainer();
+        public ModalOptions? Options { get; } = new ModalOptions()
+        {
+            Title = "Select class"
+        };
+        public Modal? ParentLayout { get; set; }
+
         private readonly App _app = App.Current;
         private readonly PackagesClient _packagesClient;
 
@@ -89,7 +85,7 @@ namespace Automation.App.Views.PackagesPages.Components
         public Version SelectedVersion { get; set; }
         public PackageClass? SelectedClass { get; set; } = null;
 
-        public PackageEdit(PackageInfos package)
+        public PackageDetailModal(PackageInfos package)
         {
             _packagesClient = _app.ServiceProvider.GetRequiredService<PackagesClient>();
             Package = package;
@@ -113,7 +109,7 @@ namespace Automation.App.Views.PackagesPages.Components
         private async void ButtonAdd_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             var createPackage = new PackageCreateModal(Package);
-            if (await _modal.Show(createPackage) && createPackage.Package != null)
+            if (await ParentLayout!.Show(createPackage) && createPackage.Package != null)
             {
                 Package = createPackage.Package;
             }
@@ -139,7 +135,13 @@ namespace Automation.App.Views.PackagesPages.Components
             SelectedVersion = Versions.First();
             Package.Version = SelectedVersion;
         }
+
+        private void ButtonSelect_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            ParentLayout?.Hide(true);
+        }
         #endregion
+
     }
 
 }

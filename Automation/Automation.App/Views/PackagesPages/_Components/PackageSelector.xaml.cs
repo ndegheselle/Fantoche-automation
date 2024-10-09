@@ -4,24 +4,23 @@ using Automation.Shared.Data;
 using Joufflu.Popups;
 using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;
+using System.IO.Packaging;
 using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace Automation.App.Views.PackagesPages.Components
 {
-    public class PackageSelectorModal : PackageSelector, IModalContentValidation
+    public class PackageSelectorModal : PackageSelector, IModalContent
     {
         public Modal? ParentLayout { get; set; }
-
-        public ModalValidationOptions Options => new ModalValidationOptions()
+        public ModalOptions Options => new ModalOptions()
         {
-            Title = "Select package",
-            ValidButtonText = "Select"
+            Title = "Select package"
         };
 
-        protected override void OnPackageCreated(PackageInfos package)
+        protected override void OnTargetSelected(PackageInfos package, PackageClass targetClass)
         {
-            SelectedPackage = package;
+            base.OnTargetSelected(package, targetClass);
             ParentLayout?.Hide(true);
         }
     }
@@ -42,11 +41,7 @@ namespace Automation.App.Views.PackagesPages.Components
             private set;
         } = new ListPageWrapper<PackageInfos>() { PageSize = 50, Page = 1, Total = -1, };
 
-        public event EventHandler<PackageInfos?>? SelectedPackageChanged;
-        public event EventHandler<PackageInfos>? PackageClicked;
-
-        public PackageInfos? SelectedPackage { get; set; }
-
+        public TargetedPackage? TargetPackage { get; set; }
         public string SearchText { get; set; } = string.Empty;
 
         public PackageSelector()
@@ -74,15 +69,12 @@ namespace Automation.App.Views.PackagesPages.Components
         private void InstancesPaging_PagingChange(int pageNumber, int capacity)
         { Search(SearchText.Trim(), pageNumber, capacity); }
 
-        private void ListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        { SelectedPackageChanged?.Invoke(this, SelectedPackage); }
-
         private async void ButtonAdd_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             var createPackage = new PackageCreateModal();
             if (await _modal.Show(createPackage) && createPackage.Package != null)
             {
-                OnPackageCreated(createPackage.Package);
+                DisplayDetail(createPackage.Package);
             }
         }
 
@@ -91,12 +83,28 @@ namespace Automation.App.Views.PackagesPages.Components
             var item = sender as ListBoxItem;
             if (item != null)
             {
-                PackageClicked?.Invoke(this, (PackageInfos)item.DataContext);
+                DisplayDetail((PackageInfos)item.DataContext);
             }
         }
 
-        protected virtual void OnPackageCreated(PackageInfos package)
-        {}
+        private async void DisplayDetail(PackageInfos package)
+        {
+            var modal = new PackageDetailModal(package);
+            if (await _modal.Show(modal) &&  modal.SelectedClass != null)
+            {
+                OnTargetSelected(package, modal.SelectedClass);
+            }
+        }
+
+        protected virtual void OnTargetSelected(PackageInfos package, PackageClass targetClass)
+        {
+            TargetPackage = new TargetedPackage()
+            {
+                Id = package.Id,
+                Version = package.Version,
+                Class = targetClass,
+            };
+        }
     }
     #endregion
 }

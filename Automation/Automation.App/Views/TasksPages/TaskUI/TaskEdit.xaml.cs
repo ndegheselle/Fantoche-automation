@@ -55,23 +55,13 @@ namespace Automation.App.Views.TasksPages.TaskUI
         private IModal _modal => this.GetCurrentModalContainer();
 
         public static readonly DependencyProperty TaskProperty =
-            DependencyProperty.Register(nameof(Task), typeof(TaskNode), typeof(TaskEdit), new PropertyMetadata(null, (o, p) => ((TaskEdit)o).OnTaskChanged()));
-
-        private async void OnTaskChanged()
-        {
-            if (Task?.Package == null || PackageInfos != null)
-                return;
-
-            PackageInfos = await _pacakgeClient.GetByIdAsync(Task.Package.Id);
-        }
+            DependencyProperty.Register(nameof(Task), typeof(TaskNode), typeof(TaskEdit));
 
         public TaskNode Task
         {
             get { return (TaskNode)GetValue(TaskProperty); }
             set { SetValue(TaskProperty, value); }
         }
-
-        public PackageInfos? PackageInfos { get; private set; }
 
         public TaskEdit()
         {
@@ -101,16 +91,14 @@ namespace Automation.App.Views.TasksPages.TaskUI
         private void RemovePackage_Click(object sender, RoutedEventArgs e)
         {
             Task.Package = null;
-            PackageInfos = null;
         }
 
         private async void SelectPackage_Click(object sender, RoutedEventArgs e)
         {
             PackageSelectorModal modal = new PackageSelectorModal();
-            if (await _modal.Show(modal) && modal.SelectedPackage != null)
+            if (await _modal.Show(modal) && modal.TargetPackage != null)
             {
-                Task.Package = new TargetedPackage() { Id = modal.SelectedPackage.Id };
-                PackageInfos = modal.SelectedPackage;
+                Task.Package = modal.TargetPackage;
             }
         }
 

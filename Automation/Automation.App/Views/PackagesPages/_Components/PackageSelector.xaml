@@ -40,11 +40,7 @@
             </Button>
         </Grid>
 
-        <ListBox
-            ItemsSource="{Binding Packages.Data}"
-            Grid.Row="1"
-            SelectionChanged="ListBox_SelectionChanged"
-            SelectedItem="{Binding SelectedPackage, Mode=TwoWay}">
+        <ListBox ItemsSource="{Binding Packages.Data}" Grid.Row="1">
             <ListBox.ItemContainerStyle>
                 <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
                     <Setter Property="HorizontalContentAlignment" Value="Stretch" />

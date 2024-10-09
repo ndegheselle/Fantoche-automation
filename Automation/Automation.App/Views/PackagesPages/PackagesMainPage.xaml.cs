@@ -12,16 +12,9 @@ namespace Automation.App.Views.PackagesPages
     public partial class PackagesMainPage : UserControl, IPage
     {
         private IModal _modal => this.GetCurrentModalContainer();
-
-        public ILayout? ParentLayout { get; set; }
         public PackagesMainPage()
         {
             InitializeComponent();
-        }
-
-        private void PackageSelector_PackageClicked(object sender, PackageInfos package)
-        {
-            _modal.Show(new PackageEditModal(package));
         }
     }
 }

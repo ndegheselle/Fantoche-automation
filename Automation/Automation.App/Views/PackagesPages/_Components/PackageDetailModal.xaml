@@ -1,5 +1,5 @@
 ﻿<UserControl
-    x:Class="Automation.App.Views.PackagesPages.Components.PackageEdit"
+    x:Class="Automation.App.Views.PackagesPages.Components.PackageDetailModal"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -11,7 +11,7 @@
     Margin="2"
     MinHeight="300"
     MinWidth="400">
-    <Grid DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:PackageEdit}}">
+    <Grid DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:PackageDetailModal}}">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
@@ -83,11 +83,15 @@
             </Grid>
         </GroupBox>
 
-        <StackPanel
-            Grid.Row="3"
-            Orientation="Horizontal"
-            Margin="0,2,0,0">
+        <Grid Grid.Row="3" Margin="0,2,0,0">
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition Width="auto" />
+            </Grid.ColumnDefinitions>
+
             <Button
+                HorizontalAlignment="Left"
                 Foreground="{DynamicResource {x:Static adonisUi:Brushes.ErrorBrush}}"
                 BorderBrush="{DynamicResource {x:Static adonisUi:Brushes.ErrorBrush}}"
                 Click="ButtonRemove_Click">
@@ -96,6 +100,23 @@
                     <TextBlock Text="{Binding SelectedVersion, StringFormat='Delete v{0}'}" />
                 </StackPanel>
             </Button>
-        </StackPanel>
+
+            <Button Click="ButtonSelect_Click" Grid.Column="1">
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding SelectedClass}" Value="{x:Null}">
+                                <Setter Property="IsEnabled" Value="False" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+
+                <StackPanel Orientation="Horizontal">
+                    <fonts:Icon Margin="0,0,4,0" Text="{x:Static fonts:IconFont.Check}" />
+                    <TextBlock Text="Select class" />
+                </StackPanel>
+            </Button>
+        </Grid>
     </Grid>
 </UserControl>

@@ -3,7 +3,7 @@ using Automation.Shared.Data;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace Automation.App.Views.PackagesPages._Components
+namespace Automation.App.Views.PackagesPages.Components
 {
     /// <summary>
     /// Logique d'interaction pour TargetPackageSummary.xaml

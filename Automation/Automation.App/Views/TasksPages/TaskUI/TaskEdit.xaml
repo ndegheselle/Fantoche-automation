@@ -35,7 +35,7 @@
                     <Button.Style>
                         <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding PackageInfos}" Value="{x:Null}">
+                                <DataTrigger Binding="{Binding Task.Package}" Value="{x:Null}">
                                     <Setter Property="Visibility" Value="Collapsed" />
                                 </DataTrigger>
                             </Style.Triggers>
@@ -54,7 +54,7 @@
                         <Style TargetType="GroupBox" BasedOn="{StaticResource {x:Type GroupBox}}">
                             <Setter Property="Visibility" Value="Collapsed" />
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding PackageInfos}" Value="{x:Null}">
+                                <DataTrigger Binding="{Binding Task.Package}" Value="{x:Null}">
                                     <Setter Property="Visibility" Value="Visible" />
                                 </DataTrigger>
                             </Style.Triggers>
@@ -74,30 +74,18 @@
                     </Button>
                 </GroupBox>
 
-
                 <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition />
-                    </Grid.ColumnDefinitions>
                     <Grid.Style>
                         <Style TargetType="Grid">
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding PackageInfos}" Value="{x:Null}">
+                                <DataTrigger Binding="{Binding Task.Package}" Value="{x:Null}">
                                     <Setter Property="Visibility" Value="Collapsed" />
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
                     </Grid.Style>
 
-                    <packageComponents:PackageSummary Package="{Binding PackageInfos}" />
-
-                    <ComboBox
-                        MinWidth="100"
-                        Margin="2"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Top"
-                        ItemsSource="{Binding PackageInfos.Versions}"
-                        SelectedItem="{Binding Task.Package.Version, Mode=TwoWay}" />
+                    <packageComponents:TargetPackageSummary TargetPackage="{Binding Task.Package}" />
                 </Grid>
             </Grid>
         </StackPanel>
