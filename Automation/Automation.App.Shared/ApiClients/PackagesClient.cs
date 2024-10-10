@@ -1,5 +1,5 @@
-﻿using Automation.Shared;
-using Automation.Shared.Base;
+﻿using Automation.Shared.Base;
+using Automation.Shared.Clients;
 using Automation.Shared.Data;
 using Newtonsoft.Json;
 using RestSharp;

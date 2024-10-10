@@ -16,4 +16,8 @@
     <PackageReference Include="NSwag.AspNetCore" Version="14.1.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Automation.Api.Shared\Automation.Api.Shared.csproj" />
+  </ItemGroup>
+
 </Project>

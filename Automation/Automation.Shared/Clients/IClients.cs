@@ -1,7 +1,7 @@
 ﻿using Automation.Shared.Base;
 using Automation.Shared.Data;
 
-namespace Automation.Shared
+namespace Automation.Shared.Clients
 {
     public interface ICrudClient<T>
     {

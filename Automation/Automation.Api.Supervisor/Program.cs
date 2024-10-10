@@ -1,4 +1,5 @@
 using Automation.Api.Shared;
+using Automation.Api.Supervisor.Business;
 using DotNetEnv;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
@@ -45,6 +46,9 @@ builder.Services
 
             return client.GetDatabase(databaseName);
         });
+
+builder.Services.AddSingleton<WorkersHandler>(new WorkersHandler());
+
 #endregion
 var app = builder.Build();
 

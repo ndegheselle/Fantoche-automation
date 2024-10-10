@@ -1,9 +1,8 @@
-﻿using Automation.Shared;
-using Automation.Shared.Base;
+﻿using Automation.Shared.Base;
 using Newtonsoft.Json;
 using RestSharp;
 
-namespace Automation.App.Shared.ApiClients
+namespace Automation.Shared.Clients
 {
     public class ApiException : Exception
     {
