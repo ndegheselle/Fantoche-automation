@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Automation.Api.Shared\Automation.Api.Shared.csproj" />
+    <ProjectReference Include="..\Automation.Dal\Automation.Dal.csproj" />
   </ItemGroup>
 
 </Project>

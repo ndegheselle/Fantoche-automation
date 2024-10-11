@@ -1,4 +1,5 @@
 using Automation.Api.Shared;
+using Automation.Api.Worker;
 using DotNetEnv;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
@@ -44,8 +45,11 @@ builder.Services
             return client.GetDatabase(databaseName);
         });
 #endregion
+
+
 var app = builder.Build();
 
+Initialize.RegisterWorker(app.Services);
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
