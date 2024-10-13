@@ -1,16 +1,21 @@
-﻿using Automation.Dal.Repositories;
-using MongoDB.Driver;
+﻿using Automation.Realtime;
+using Automation.Realtime.Clients;
+using RestSharp;
 
 namespace Automation.Api.Worker
 {
     public static class Initialize
     {
-        public static void RegisterWorker(IServiceProvider services)
+        public static async void RegisterWorker(IServiceProvider services)
         {
-            IMongoDatabase database = services.GetRequiredService<IMongoDatabase>();
-            WorkerRepository repository = new WorkerRepository(database);
+            RedisConnectionManager redis = services.GetRequiredService<RedisConnectionManager>();
+            WorkerRealtimeClient client = new WorkerRealtimeClient(redis);
 
-            repository.Register();
+            // TODO : load config from environement
+            await client.AddWorkerAsync(new Realtime.Models.WorkerInstance()
+            {
+                Id = Guid.NewGuid().ToString(),
+            });
         }
     }
 }

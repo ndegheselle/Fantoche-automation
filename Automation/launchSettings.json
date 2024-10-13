@@ -5,8 +5,9 @@
       "commandVersion": "1.0",
       "serviceActions": {
         "automation.api.supervisor": "StartDebugging",
-        "automation.api.worker": "DoNotStart",
-        "mongo": "StartWithoutDebugging"
+        "automation.api.worker": "StartDebugging",
+        "mongo": "StartWithoutDebugging",
+        "redis": "StartWithoutDebugging"
       }
     }
   }

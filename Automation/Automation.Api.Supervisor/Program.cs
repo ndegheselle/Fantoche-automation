@@ -1,5 +1,4 @@
 using Automation.Api.Shared;
-using Automation.Api.Supervisor.Business;
 using DotNetEnv;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
@@ -25,9 +24,9 @@ builder.Services
     .AddSingleton<IMongoDatabase>(
         (services) =>
         {
-            string? connectionString = Environment.GetEnvironmentVariable("MONGODB_URI") ??
+            string connectionString = Environment.GetEnvironmentVariable("MONGODB_URI") ??
                 throw new ArgumentException("Missing MONGODB_URI in .env file");
-            string? databaseName = Environment.GetEnvironmentVariable("MONGO_INITDB_DATABASE") ??
+            string databaseName = Environment.GetEnvironmentVariable("MONGO_INITDB_DATABASE") ??
                 throw new ArgumentException("Missing MONGO_INITDB_DATABASE in .env file");
 
             MongoClient client = new MongoClient(connectionString);
@@ -47,8 +46,6 @@ builder.Services
             return client.GetDatabase(databaseName);
         });
 
-builder.Services.AddSingleton<WorkersHandler>(new WorkersHandler());
-
 #endregion
 var app = builder.Build();
 
@@ -59,7 +56,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUi();
 }
 
-app.UseHttpsRedirection();
+// XXX
+// app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
