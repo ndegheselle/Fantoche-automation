@@ -1,4 +1,5 @@
 using Automation.Api.Shared;
+using Automation.Realtime;
 using DotNetEnv;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
@@ -19,7 +20,15 @@ builder.Services.AddOpenApiDocument();
 
 #region Services
 
+// Realtime com between supervisor and workers
+string realtimeConnectionString = Environment.GetEnvironmentVariable("REDIS_URI") ??
+    throw new ArgumentException("Missing REDIS_URI in .env file");
+builder.Services.AddSingleton<RedisConnectionManager>(new RedisConnectionManager(realtimeConnectionString));
+
+// Package management
 builder.Services.AddSingleton<IPackageManagement>(new LocalPackageManagement("/app/data/nuget"));
+
+// Database
 builder.Services
     .AddSingleton<IMongoDatabase>(
         (services) =>
@@ -45,8 +54,8 @@ builder.Services
 
             return client.GetDatabase(databaseName);
         });
-
 #endregion
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
