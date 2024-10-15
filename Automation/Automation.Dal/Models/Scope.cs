@@ -16,8 +16,8 @@ namespace Automation.Dal.Models
         [BsonIgnore]
         public EnumScopedType Type { get; set; }
 
-        public ScopedElement() 
-        {}
+        public ScopedElement()
+        { }
     }
 
     public class Scope : ScopedElement

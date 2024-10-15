@@ -10,9 +10,8 @@
         Failed
     }
 
-    public interface ITaskHistory
+    public interface ITaskHistory : IIdentifier
     {
-        Guid Id { get; set; }
         // XXX : come from the Task, there to simplify request, what about updates (change task scope)
         Guid ScopeId { get; set; }
         Guid? ParentTaskId { get; set; }
@@ -22,9 +21,8 @@
         EnumInstanceStatus Status { get; set; }
     }
 
-    public interface IScheduledTask
+    public interface IScheduledTask : IIdentifier
     {
-        Guid Id { get; set; }
         Guid TaskId { get; set; }
         int? Year { get; set; }
         int? Month { get; set; }

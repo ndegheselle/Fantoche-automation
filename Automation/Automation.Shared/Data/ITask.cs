@@ -12,12 +12,6 @@
         Out
     }
 
-    public interface INamed
-    {
-        Guid Id { get; set; }
-        string Name { get; }
-    }
-
     public interface ITaskNode : INamed
     {
         TargetedPackage? Package { get; set; }

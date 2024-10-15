@@ -1,6 +1,4 @@
-﻿using Automation.Dal.Models;
-using Automation.Shared;
-using Automation.Shared.Data;
+﻿using Automation.Shared.Data;
 using MongoDB.Driver;
 
 namespace Automation.Dal.Repositories
@@ -18,7 +16,7 @@ namespace Automation.Dal.Repositories
     }
 
     // TODO : use soft deletion and history (userId, createdAt, updatedAt, deletedAt)
-    public class BaseCrudRepository<T> : BaseRepository<T> where T : INamed
+    public class BaseCrudRepository<T> : BaseRepository<T> where T : IIdentifier
     {
         public BaseCrudRepository(IMongoDatabase database, string collectionName) : base(database, collectionName)
         { }

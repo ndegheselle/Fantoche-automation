@@ -6,7 +6,7 @@ using static System.Formats.Asn1.AsnWriter;
 
 namespace Automation.Dal.Repositories
 {
-    public class HistoryRepository : BaseRepository<TaskHistory>
+    public class HistoryRepository : BaseCrudRepository<TaskHistory>
     {
         public HistoryRepository(IMongoDatabase database) : base(database, "task_histories")
         {

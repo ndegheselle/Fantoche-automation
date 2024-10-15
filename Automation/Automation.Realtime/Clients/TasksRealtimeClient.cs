@@ -4,40 +4,29 @@ using System.Text.Json;
 
 namespace Automation.Realtime.Clients
 {
-    public class WorkerTasksRealtimeClient
+    public class TasksRealtimeClient
     {
-        private readonly string _key;
         private ConnectionMultiplexer _connection;
 
-        public WorkerTasksRealtimeClient(RedisConnectionManager manager, string workerId)
+        public TasksRealtimeClient(RedisConnectionManager manager)
         {
-            _key = $"worker:{workerId}:tasks";
             _connection = manager.Connection;
         }
 
-        public async Task AddTask(string taskData)
+        public void Notify(string workerId, Guid taskId)
         {
-            var db = _connection.GetDatabase();
-            await db.ListRightPushAsync(_key, taskData);
+            ISubscriber sub = _connection.GetSubscriber();
+            var channel = new RedisChannel($"worker:{workerId}:tasks", RedisChannel.PatternMode.Literal);
+            sub.Publish(channel, taskId.ToString());
         }
 
-        public async Task<string?> GetNextTask()
+        public void Subscribe(string workerId, Action<Guid> callback)
         {
-            var db = _connection.GetDatabase();
-            return await db.ListLeftPopAsync(_key);
-        }
-
-        public void SubscribeToTasks(string workerId, Action callback)
-        {
-            var db = _connection.GetDatabase();
-            string key = $"worker:{workerId}:tasks";
-            var channel = new RedisChannel(key, RedisChannel.PatternMode.Literal);
+            var channel = new RedisChannel($"worker:{workerId}:tasks", RedisChannel.PatternMode.Literal);
             _connection.GetSubscriber()
                 .Subscribe(channel, (channel, message) =>
                 {
-                    callback.Invoke();
-                    // Remove task
-                    db.ListRemoveAsync(key, message);
+                    callback.Invoke(Guid.Parse(message.ToString()));
                 });
         }
     }

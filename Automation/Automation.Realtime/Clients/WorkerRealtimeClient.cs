@@ -30,33 +30,5 @@ namespace Automation.Realtime.Clients
                 x => JsonSerializer.Deserialize<WorkerInstance>(x.ToString()) ??
                     throw new Exception("Unknown worker format."));
         }
-
-        public async Task AddWorkerTask(string workerId, string taskData)
-        {
-            var db = _connection.GetDatabase();
-            string key = $"worker:{workerId}:tasks";
-            await db.ListRightPushAsync(key, taskData);
-        }
-
-        public async Task<string?> GetWorkerTask(string workerId)
-        {
-            var db = _connection.GetDatabase();
-            string key = $"worker:{workerId}:tasks";
-            return await db.ListLeftPopAsync(key);
-        }
-
-        public void SubscribeToTasks(string workerId, Action callback)
-        {
-            var db = _connection.GetDatabase();
-            string key = $"worker:{workerId}:tasks";
-            var channel = new RedisChannel(key, RedisChannel.PatternMode.Literal);
-            _connection.GetSubscriber()
-                .Subscribe(channel, (channel, message) =>
-                {
-                    callback.Invoke();
-                    // Remove task
-                    db.ListRemoveAsync(key, message);
-                });
-        }
     }
 }

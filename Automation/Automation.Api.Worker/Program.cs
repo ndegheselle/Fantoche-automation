@@ -1,26 +1,25 @@
 using Automation.Api.Shared;
-using Automation.Api.Worker;
+using Automation.Api.Worker.Business;
+using Automation.Api.Worker.Services;
 using Automation.Realtime;
 using DotNetEnv;
+using Microsoft.Extensions.Hosting;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
-using RestSharp;
 
 Env.Load("../.env");
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApiDocument();
 
 #region Services
-
 // Realtime com between supervisor and workers
 string realtimeConnectionString = Environment.GetEnvironmentVariable("REDIS_URI") ??
     throw new ArgumentException("Missing REDIS_URI in .env file");
@@ -30,8 +29,7 @@ builder.Services.AddSingleton<RedisConnectionManager>(new RedisConnectionManager
 builder.Services.AddSingleton<IPackageManagement>(new LocalPackageManagement("/app/data/nuget"));
 
 // Database
-builder.Services
-    .AddSingleton<IMongoDatabase>(
+builder.Services.AddSingleton<IMongoDatabase>(
         (services) =>
         {
             string connectionString = Environment.GetEnvironmentVariable("MONGODB_URI") ??
@@ -42,10 +40,10 @@ builder.Services
             MongoClient client = new MongoClient(connectionString);
 
             // Allow find request on guid
-#pragma warning disable 618
+            #pragma warning disable 618
             BsonDefaults.GuidRepresentationMode = GuidRepresentationMode.V3;
             BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
-#pragma warning restore
+            #pragma warning restore
 
             // Using camelCase for property names
             ConventionRegistry.Register(
@@ -57,10 +55,11 @@ builder.Services
         });
 #endregion
 
+#region Hosted services
+builder.Services.AddHostedService<RealtimeService>();
+#endregion
 
 var app = builder.Build();
-
-Initialize.RegisterWorker(app.Services);
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
