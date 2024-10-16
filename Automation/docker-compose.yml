@@ -18,14 +18,14 @@ services:
     networks:
       - internal
 
-  automation.api.worker:
-    image: ${DOCKER_REGISTRY-}automationapiworker
+  automation.worker.service:
+    image: ${DOCKER_REGISTRY-}automationworkerservice
     depends_on:
       - mongo
       - redis
     build:
       context: .
-      dockerfile: Automation.Api.Worker/Dockerfile
+      dockerfile: Automation.Worker.Service/Dockerfile
     env_file:
       - .env
     environment:

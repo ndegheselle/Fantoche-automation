@@ -1,36 +1,27 @@
-﻿using Automation.Plugins.Shared;
-using System.Text.Json;
+﻿using Automation.Dal.Models;
+using Automation.Realtime;
+using Automation.Realtime.Clients;
+using Automation.Shared.Data;
 
 namespace Automation.Worker
 {
     public class TaskWorker
     {
-        private readonly Type TaskType;
-        private readonly dynamic? Context;
+        private readonly TasksRealtimeClient _tasksClient;
 
-        public TaskWorker(Type taskType, string serializedContext)
+        public TaskWorker(RedisConnectionManager redis)
         {
-            TaskType = taskType;
-            Context = LoadContext(serializedContext);
+            _tasksClient = new TasksRealtimeClient(redis);
         }
 
-        public Task<bool> ExecuteTask()
+        public async Task<EnumTaskState> ExecuteAsync(TaskInstance instance)
         {
-            ITask? task = Activator.CreateInstance(TaskType) as ITask;
-            if (task == null)
-                throw new Exception($"'{TaskType}' is not an ITask");
-
-            task.Context = Context;
-            return task.Start();
-        }
-
-        private dynamic? LoadContext(string serializedContext)
-        {
-            if (string.IsNullOrWhiteSpace(serializedContext))
-                return null;
-
-            // deserialize the context from json
-            return JsonSerializer.Deserialize<dynamic>(serializedContext);
+            // Load dlls
+            // Create instance
+            // Start
+            // Catch exception
+            await Task.Delay(5000);
+            return EnumTaskState.Success;
         }
     }
 }

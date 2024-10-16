@@ -21,6 +21,7 @@
     <ProjectReference Include="..\Automation.Dal\Automation.Dal.csproj" />
     <ProjectReference Include="..\Automation.Realtime\Automation.Realtime.csproj" />
     <ProjectReference Include="..\Automation.Shared\Automation.Shared.csproj" />
+    <ProjectReference Include="..\Automation.Supervisor\Automation.Supervisor.csproj" />
   </ItemGroup>
 
 </Project>

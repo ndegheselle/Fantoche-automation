@@ -1,6 +1,0 @@
-@Automation.Api.Worker_HostAddress = http://localhost:5101
-
-GET {{Automation.Api.Worker_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

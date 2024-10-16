@@ -15,10 +15,16 @@ namespace Automation.Realtime.Clients
             _connection = manager.Connection;
         }
 
-        public async Task AddWorkerAsync(WorkerInstance instance)
+        public async Task RegisterAsync(WorkerInstance instance)
         {
             IDatabase db = _connection.GetDatabase();
             await db.HashSetAsync(_key, instance.Id, JsonSerializer.Serialize(instance));
+        }
+
+        public async Task UnregisterAsync(WorkerInstance instance)
+        {
+            IDatabase db = _connection.GetDatabase();
+            await db.HashDeleteAsync(_key, instance.Id);
         }
 
         public async Task<IEnumerable<WorkerInstance>> GetWorkersAsync()

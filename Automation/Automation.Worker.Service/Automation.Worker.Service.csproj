@@ -1,19 +1,17 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Worker">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>60b69de6-8b3f-4d16-b4d5-625315f2b418</UserSecretsId>
+    <UserSecretsId>dotnet-Automation.Worker.Service-be546f2f-2a09-49e9-9027-afdf1ee0a0cd</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-    <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DotNetEnv" Version="3.1.0" />
+    <PackageReference Include="DotNetEnv" Version="3.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.20.1" />
-    <PackageReference Include="MongoDB.Driver" Version="2.28.0" />
-    <PackageReference Include="NSwag.AspNetCore" Version="14.1.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -22,5 +20,4 @@
     <ProjectReference Include="..\Automation.Realtime\Automation.Realtime.csproj" />
     <ProjectReference Include="..\Automation.Worker\Automation.Worker.csproj" />
   </ItemGroup>
-
 </Project>

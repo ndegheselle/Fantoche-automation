@@ -1,37 +1,46 @@
-﻿using Automation.Plugins.Shared;
+﻿using Automation.Dal.Models;
+using Automation.Dal.Repositories;
+using Automation.Realtime;
+using Automation.Realtime.Clients;
+using Automation.Realtime.Models;
+using MongoDB.Driver;
+using MongoDB.Driver.Core.Operations;
 
 namespace Automation.Supervisor
 {
-    /// <summary>
-    /// Handle DLL resolution
-    /// Handle load balancing
-    /// Execute tasks with a TaskWorker
-    /// </summary>
     public class TaskSuperviser
     {
-        public List<Type> AvailableClasses { get; private set; } = new List<Type>();
+        private readonly TaskIntanceRepository _repository;
+        private readonly WorkerRealtimeClient _workersClient;
+        private readonly TasksRealtimeClient _tasksClient;
 
-        public List<Type> RefreshClassesFromFolderDlls(string dllsFolderPaths)
+        public TaskSuperviser(IMongoDatabase database, RedisConnectionManager redis)
         {
-            // Load all DLLs from the specified folder and get all classes that implement ITask
-            AvailableClasses.Clear();
+            _repository = new TaskIntanceRepository(database);
+            _workersClient = new WorkerRealtimeClient(redis);
+            _tasksClient = new TasksRealtimeClient(redis);
+        }
 
-            // Get all DLLs from the specified folder
-            var dlls = System.IO.Directory.GetFiles(dllsFolderPaths, "*.dll");
-            foreach ( var dll in dlls)
+        public async Task<TaskInstance> AssignToWorkerAsync(Guid taskId, dynamic parameters)
+        {
+            TaskInstance task = new TaskInstance()
             {
-                var assembly = System.Reflection.Assembly.LoadFrom(dll);
-                var types = assembly.GetTypes();
-                foreach (var type in types)
-                {
-                    if (type.GetInterface(nameof(ITask)) != null)
-                    {
-                        AvailableClasses.Add(type);
-                    }
-                }
-            }
+                Parameters = parameters,
+                TaskId = taskId,
+            };
+            await _repository.CreateAsync(task);
 
-            return AvailableClasses;
+            WorkerInstance selectedWorker = await SelectWorkerAsync(task);
+            _tasksClient.Notify(selectedWorker.Id, task.Id);
+
+            return task;
+        }
+
+        private async Task<WorkerInstance> SelectWorkerAsync(TaskInstance task)
+        {
+            IEnumerable<WorkerInstance> workers = await _workersClient.GetWorkersAsync();
+            // TODO : load balancing and select a worker based on tasks params
+            return workers.First();
         }
     }
 }

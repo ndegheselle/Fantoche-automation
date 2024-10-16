@@ -1,46 +1,29 @@
 using Automation.Dal.Models;
 using Automation.Dal.Repositories;
+using Automation.Realtime.Clients;
+using Automation.Realtime.Models;
+using Automation.Realtime;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 
 namespace Automation.Api.Supervisor.Controllers
 {
     [ApiController]
-    [Route("workflows")]
-    public class WorkflowsController
+    [Route("workers")]
+    public class WorkersController
     {
-        protected readonly WorkflowRepository _repository;
-        public WorkflowsController(IMongoDatabase database)
-        {
-            _repository = new WorkflowRepository(database);
-        }
+        private readonly WorkerRealtimeClient _realtime;
 
-        [HttpPost]
-        [Route("")]
-        public Task<Guid> CreateAsync(WorkflowNode element)
+        public WorkersController(RedisConnectionManager connectionManager)
         {
-            return _repository.CreateAsync(element);
-        }
-
-        [HttpDelete]
-        [Route("{id}")]
-        public Task DeleteAsync([FromRoute] Guid id)
-        {
-            return _repository.DeleteAsync(id);
+            _realtime = new WorkerRealtimeClient(connectionManager);
         }
 
         [HttpGet]
-        [Route("{id}")]
-        public async Task<WorkflowNode?> GetByIdAsync([FromRoute] Guid id)
+        [Route("")]
+        public Task<IEnumerable<WorkerInstance>> GetAll()
         {
-            return await _repository.GetByIdAsync(id);
-        }
-
-        [HttpPut]
-        [Route("{id}")]
-        public Task UpdateAsync([FromRoute] Guid id, WorkflowNode element)
-        {
-            return _repository.UpdateAsync(id, element);
+            return _realtime.GetWorkersAsync();
         }
     }
 }

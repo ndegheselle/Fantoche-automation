@@ -1,23 +1,17 @@
-using Automation.Api.Shared;
-using Automation.Api.Worker.Business;
-using Automation.Api.Worker.Services;
 using Automation.Realtime;
-using DotNetEnv;
-using Microsoft.Extensions.Hosting;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization;
+using Automation.Worker.Service;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Bson.Serialization.Serializers;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson;
 using MongoDB.Driver;
+using Automation.Api.Shared;
+using DotNetEnv;
 
 Env.Load("../.env");
 
-var builder = WebApplication.CreateBuilder(args);
-
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddOpenApiDocument();
+var builder = Host.CreateApplicationBuilder(args);
+builder.Services.AddHostedService<Worker>();
 
 #region Services
 // Realtime com between supervisor and workers
@@ -40,10 +34,10 @@ builder.Services.AddSingleton<IMongoDatabase>(
             MongoClient client = new MongoClient(connectionString);
 
             // Allow find request on guid
-            #pragma warning disable 618
+#pragma warning disable 618
             BsonDefaults.GuidRepresentationMode = GuidRepresentationMode.V3;
             BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
-            #pragma warning restore
+#pragma warning restore
 
             // Using camelCase for property names
             ConventionRegistry.Register(
@@ -55,22 +49,5 @@ builder.Services.AddSingleton<IMongoDatabase>(
         });
 #endregion
 
-#region Hosted services
-builder.Services.AddHostedService<RealtimeService>();
-#endregion
-
-var app = builder.Build();
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseOpenApi();
-    app.UseSwaggerUi();
-}
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.Run();
+var host = builder.Build();
+host.Run();
