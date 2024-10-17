@@ -15,8 +15,6 @@ services:
       - "8081:8081"
     volumes:
       - ./volumes/nugetlocal:/app/data/nuget
-    networks:
-      - internal
 
   automation.worker.service:
     image: ${DOCKER_REGISTRY-}automationworkerservice
@@ -32,8 +30,6 @@ services:
       - SERVICE_NAME={{.Service.Name}}
     volumes:
       - ./volumes/nugetlocal:/app/data/nuget
-    networks:
-      - internal
 
   mongo:
     restart: always
@@ -56,13 +52,7 @@ services:
     ports:
       - "6379:6379"
     command: redis-server --appendonly yes
-    networks:
-      - internal
 
 volumes:
   mongodb-data:
     driver: local
-
-networks:
-    internal:
-        driver: bridge

@@ -3,6 +3,7 @@ using Automation.Dal.Repositories;
 using Automation.Realtime;
 using Automation.Supervisor;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace Automation.Api.Supervisor.Controllers

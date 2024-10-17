@@ -10,6 +10,7 @@ namespace Automation.Worker.Service
 {
     public class Worker : BackgroundService
     {
+        private readonly SemaphoreSlim _executeLock = new SemaphoreSlim(1, 1);
         private readonly TaskIntanceRepository _repository;
         private readonly RedisConnectionManager _redis;
         private readonly WorkerInstance _instance;
@@ -68,10 +69,18 @@ namespace Automation.Worker.Service
         // TODO : lock during execution
         private async Task Execute(TaskInstance instance)
         {
-            instance.State = EnumTaskState.Progress;
-            await _repository.UpdateAsync(instance.Id, instance);
-            instance.State = await _worker.ExecuteAsync(instance);
-            await _repository.UpdateAsync(instance.Id, instance);
+            try
+            {
+                await _executeLock.WaitAsync();
+                instance.State = EnumTaskState.Progress;
+                await _repository.UpdateAsync(instance.Id, instance);
+                instance.State = await _worker.ExecuteAsync(instance);
+                await _repository.UpdateAsync(instance.Id, instance);
+            }
+            finally
+            {
+                _executeLock.Release();
+            }
         }
     }
 }
