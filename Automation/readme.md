@@ -5,7 +5,7 @@
 
 Supervisor :
 - Select worker based on available, queue size and other worker parameters
-- Directly connect the client to the worker for progression 
+- Connect to the redis server to get the server update
 
 Worker :
 - Register itself on startup
