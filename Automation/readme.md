@@ -1,11 +1,12 @@
 # Apis
 
 - Handle auth with JWT and refresh tokens
-- Use openapi to allow clients
+- Use openapi for the supervisor document
+- Communicate with workers (supervisor, client) with a redis database
 
 Supervisor :
 - Select worker based on available, queue size and other worker parameters
-- Connect to the redis server to get the server update
+- Connect to the redis server to get the available workers
 
 Worker :
 - Register itself on startup
@@ -16,6 +17,7 @@ Worker :
 - Show actual / history queue with state
 - List of "allowed"  and last instance state
 - Can resolve a task based on it's type and select the correct way to execute it
+- Keep realtime data (data that make sense only if the worker is up) and all the rest in the mongodb database
 
 # Data contract and separation of concern
 
