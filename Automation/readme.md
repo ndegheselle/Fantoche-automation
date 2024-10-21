@@ -21,7 +21,7 @@ Worker :
 
 # Data contract and separation of concern
 
-- Having coherant data between the database, api and app
+- Having coherant data definition between the database, api and app
 - Keep a clear separation of concern but keeping the properties that should be shared, can be achieve with :
     - Interfaces : having extra properties for the properties that need a specific implementation
         - Viable on big classes with a lot of properties ?
