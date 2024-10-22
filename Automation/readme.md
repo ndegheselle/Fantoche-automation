@@ -1,14 +1,14 @@
-# Apis
+# Server
 
 - Handle auth with JWT and refresh tokens
 - Use openapi for the supervisor document
 - Communicate with workers (supervisor, client) with a redis database
 
-Supervisor :
+Supervisor (api) :
 - Select worker based on available, queue size and other worker parameters
 - Connect to the redis server to get the available workers
 
-Worker :
+Worker (windows service) :
 - Register itself on startup
     - Safe guard with mac or some unique hardware ID
     - Parameters : number of parallel tasks, max queue size, ...
