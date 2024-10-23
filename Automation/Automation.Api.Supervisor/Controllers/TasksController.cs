@@ -64,9 +64,15 @@ namespace Automation.Api.Supervisor.Controllers
 
         [HttpPost]
         [Route("{id}/execute")]
-        public Task<TaskInstance> Execute([FromRoute] Guid id, [FromBody] object parameters)
+        public async Task<TaskInstance> ExecuteAsync([FromRoute] Guid id)
         {
-            return _supervisor.AssignToWorkerAsync(id, parameters);
+            using var reader = new StreamReader(Request.Body);
+            var body = await reader.ReadToEndAsync();
+
+            BsonDocument? bsonDocument = null;
+            if (!string.IsNullOrWhiteSpace(body))
+                bsonDocument = BsonDocument.Parse(body);
+            return await _supervisor.AssignToWorkerAsync(id, bsonDocument);
         }
     }
 }

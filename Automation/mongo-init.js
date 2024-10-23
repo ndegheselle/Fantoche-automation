@@ -11,6 +11,7 @@ db.createUser(
     }
 );
 db.createCollection("task_histories");
+db.createCollection("task_instances");
 db.createCollection("scopes");
 db.createCollection("tasks");
 

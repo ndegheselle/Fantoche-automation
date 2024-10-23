@@ -5,7 +5,6 @@ using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using MongoDB.Driver.Core.Operations;
 
 namespace Automation.Supervisor
 {
@@ -22,16 +21,17 @@ namespace Automation.Supervisor
             _tasksClient = new TasksRealtimeClient(redis);
         }
 
-        public async Task<TaskInstance> AssignToWorkerAsync(Guid taskId, object parameters)
+        public async Task<TaskInstance> AssignToWorkerAsync(Guid taskId, BsonDocument? parameters)
         {
             TaskInstance task = new TaskInstance()
             {
-                Parameters = parameters.ToBsonDocument(),
+                Parameters = parameters,
                 TaskId = taskId,
             };
-            await _repository.CreateAsync(task);
+
             WorkerInstance selectedWorker = await SelectWorkerAsync(task);
-            _tasksClient.Notify(selectedWorker.Id, task.Id);
+            await _repository.CreateAsync(task);
+            // _tasksClient.Notify(selectedWorker.Id, task.Id);
             return task;
         }
 

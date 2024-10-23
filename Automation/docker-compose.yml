@@ -27,7 +27,7 @@ services:
     env_file:
       - .env
     environment:
-      - SERVICE_NAME={{.Service.Name}}
+      - WORKER_ID=DEFAULT_WORKER
     volumes:
       - ./volumes/nugetlocal:/app/data/nuget
 

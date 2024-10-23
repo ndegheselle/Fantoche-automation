@@ -4,6 +4,7 @@ using Automation.Realtime;
 using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
 using Automation.Shared.Data;
+using Microsoft.Extensions.Configuration;
 using MongoDB.Driver;
 
 namespace Automation.Worker.Service
@@ -14,19 +15,24 @@ namespace Automation.Worker.Service
         private readonly TaskIntanceRepository _repository;
         private readonly RedisConnectionManager _redis;
         private readonly WorkerInstance _instance;
+        private readonly IConfiguration _configuration;
 
         private readonly TaskWorker _worker;
 
-        public Worker(IMongoDatabase database, RedisConnectionManager redis)
+        public Worker(IConfiguration configuration, IMongoDatabase database, RedisConnectionManager redis)
         {
+            _configuration = configuration;
+            _redis = redis;
             _repository = new TaskIntanceRepository(database);
             _worker = new TaskWorker(redis);
-            _redis = redis;
+            _instance = LoadConfig();
+        }
 
-            // TODO : load config from environement
-            _instance = new WorkerInstance()
+        private WorkerInstance LoadConfig()
+        {
+            return new WorkerInstance()
             {
-                Id = Guid.NewGuid().ToString(),
+                Id = _configuration["WORKER_ID"] ?? Guid.NewGuid().ToString(),
             };
         }
 
@@ -66,7 +72,6 @@ namespace Automation.Worker.Service
             await Execute(instance);
         }
 
-        // TODO : lock during execution
         private async Task Execute(TaskInstance instance)
         {
             try

@@ -11,7 +11,7 @@ namespace Automation.Dal.Models
         public Guid TaskId { get; set; }
         public string WorkerId { get; set; }
 
-        public dynamic Parameters { get; set; }
+        public object? Parameters { get; set; }
         public EnumTaskState State { get; set; }
     }
 }
