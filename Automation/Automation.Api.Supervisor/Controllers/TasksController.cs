@@ -1,6 +1,7 @@
 using Automation.Dal.Models;
 using Automation.Dal.Repositories;
 using Automation.Realtime;
+using Automation.Shared.Base;
 using Automation.Supervisor;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
@@ -13,6 +14,7 @@ namespace Automation.Api.Supervisor.Controllers
     public class TasksController : Controller
     {
         private readonly TaskRepository _taskRepo;
+        private readonly TaskIntanceRepository _taskInstanceRepo;
         private readonly IMongoDatabase _database;
         private readonly TaskSuperviser _supervisor;
 
@@ -20,6 +22,7 @@ namespace Automation.Api.Supervisor.Controllers
         {
             _database = database;
             _taskRepo = new TaskRepository(database);
+            _taskInstanceRepo = new TaskIntanceRepository(database);
             _supervisor = new TaskSuperviser(database, redis);
         }
 
@@ -73,6 +76,13 @@ namespace Automation.Api.Supervisor.Controllers
             if (!string.IsNullOrWhiteSpace(body))
                 bsonDocument = BsonDocument.Parse(body);
             return await _supervisor.AssignToWorkerAsync(id, bsonDocument);
+        }
+
+        [HttpGet]
+        [Route("{id}/instances")]
+        public async Task<ListPageWrapper<TaskInstance>> GetInstancesAsync([FromRoute] Guid id, [FromQuery] int page, [FromQuery] int pageSize)
+        {
+            return await _taskInstanceRepo.GetByTaskAsync(id, page, pageSize);
         }
     }
 }

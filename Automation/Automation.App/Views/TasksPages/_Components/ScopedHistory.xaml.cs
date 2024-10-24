@@ -33,12 +33,14 @@ namespace Automation.App.Views.TasksPages.Components
         }
 
         private readonly App _app = (App)App.Current;
-        private readonly HistoryClient _historyClient;
+        private readonly TasksClient _tasksClient;
+        private readonly ScopesClient _scopesClient;
 
-        public ListPageWrapper<TaskHistory> History { get; set; } = new ListPageWrapper<TaskHistory>() { PageSize = 50, Page = 1 };
+        public ListPageWrapper<TaskInstance> History { get; set; } = new ListPageWrapper<TaskInstance>() { PageSize = 50, Page = 1 };
 
         public ScopedHistory() {
-            _historyClient = _app.ServiceProvider.GetRequiredService<HistoryClient>();
+            _tasksClient = _app.ServiceProvider.GetRequiredService<TasksClient>();
+            _scopesClient = _app.ServiceProvider.GetRequiredService<ScopesClient>();
             this.Loaded += ScopedHistory_Loaded;
             InitializeComponent();
         }
@@ -60,11 +62,11 @@ namespace Automation.App.Views.TasksPages.Components
 
             if (Type == EnumScopedType.Task || Type == EnumScopedType.Workflow)
             {
-                History = await _historyClient.GetByTaskAsync(TargetId.Value, pageNumber, capacity);
+                History = await _tasksClient.GetInstancesAsync(TargetId.Value, pageNumber, capacity);
             }
             else if (Type == EnumScopedType.Scope)
             {
-                History = await _historyClient.GetByScopeAsync(TargetId.Value, pageNumber, capacity);
+                History = await _scopesClient.GetInstancesAsync(TargetId.Value, pageNumber, capacity);
             }
         }
     }

@@ -2,7 +2,7 @@
 
 namespace Automation.App.Shared.ViewModels.Tasks
 {
-    public class TaskHistory : ITaskHistory
+    public class TaskInstance : ITaskInstance
     {
         public Guid Id { get; set; }
         public Guid? ParentTaskId { get; set; }
@@ -11,6 +11,9 @@ namespace Automation.App.Shared.ViewModels.Tasks
 
         public DateTime StartDate { get; set; }
         public DateTime? EndDate { get; set; }
-        public EnumInstanceStatus Status { get; set; }
+
+        public string WorkerId { get; set; }
+        public object? Parameters { get; set; }
+        public EnumTaskState State { get; set; }
     }
 }

@@ -48,8 +48,8 @@ namespace Automation.App
             services.AddTransient<TasksClient>((provider) => new TasksClient(provider.GetRequiredService<RestClient>()));
             services.AddTransient<WorkflowsClient>(
                 (provider) => new WorkflowsClient(provider.GetRequiredService<RestClient>()));
-            services.AddTransient<HistoryClient>(
-                (provider) => new HistoryClient(provider.GetRequiredService<RestClient>()));
+            services.AddTransient<TaskInstancesClient>(
+                (provider) => new TaskInstancesClient(provider.GetRequiredService<RestClient>()));
             services.AddTransient<PackagesClient>(
                 (provider) => new PackagesClient(provider.GetRequiredService<RestClient>()));
             return services.BuildServiceProvider();

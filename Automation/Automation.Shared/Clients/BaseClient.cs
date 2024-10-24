@@ -21,7 +21,7 @@ namespace Automation.Shared.Clients
         }
     }
 
-    public class BaseCrudClient<T> : BaseClient, ICrudClient<T>
+    public class BaseCrudClient<T> : BaseClient
     {
         public BaseCrudClient(RestClient client, string routeBase) : base(client, routeBase)
         {

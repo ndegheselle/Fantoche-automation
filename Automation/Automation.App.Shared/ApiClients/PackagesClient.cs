@@ -7,7 +7,7 @@ using System.IO;
 
 namespace Automation.App.Shared.ApiClients
 {
-    public class PackagesClient : BaseClient, IPackagesClient
+    public class PackagesClient : BaseClient
     {
         public PackagesClient(RestClient restClient) : base(restClient, "packages") 
         { }

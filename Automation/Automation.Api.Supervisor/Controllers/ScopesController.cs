@@ -1,5 +1,6 @@
 using Automation.Dal.Models;
 using Automation.Dal.Repositories;
+using Automation.Shared.Base;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 
@@ -9,10 +10,13 @@ namespace Automation.Api.Supervisor.Controllers
     [Route("scopes")]
     public class ScopesController : Controller
     {
-        protected readonly ScopeRepository _repository;
+        private readonly ScopeRepository _repository;
+        private readonly TaskIntanceRepository _taskInstanceRepo;
+
         public ScopesController(IMongoDatabase database)
         {
             _repository = new ScopeRepository(database);
+            _taskInstanceRepo = new TaskIntanceRepository(database);
         }
 
         [HttpPost]
@@ -59,6 +63,13 @@ namespace Automation.Api.Supervisor.Controllers
         public async Task<Scope> GetRootAsync()
         {
             return await _repository.GetRootAsync();
+        }
+
+        [HttpGet]
+        [Route("{id}/instances")]
+        public async Task<ListPageWrapper<TaskInstance>> GetInstancesAsync([FromRoute] Guid id, [FromQuery] int page, [FromQuery] int pageSize)
+        {
+            return await _taskInstanceRepo.GetByScopeAsync(id, page, pageSize);
         }
     }
 }
