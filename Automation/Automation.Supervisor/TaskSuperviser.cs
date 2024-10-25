@@ -30,14 +30,22 @@ namespace Automation.Supervisor
             };
 
             WorkerInstance selectedWorker = await SelectWorkerAsync(task);
+            task.WorkerId = selectedWorker.Id;
+
             await _repository.CreateAsync(task);
-            // _tasksClient.Notify(selectedWorker.Id, task.Id);
+            _tasksClient.Notify(selectedWorker.Id, task.Id);
             return task;
         }
 
         private async Task<WorkerInstance> SelectWorkerAsync(TaskInstance task)
         {
             IEnumerable<WorkerInstance> workers = await _workersClient.GetWorkersAsync();
+
+            foreach (WorkerInstance worker in workers)
+            {
+                if (await _workersClient)
+            }
+
             // TODO : load balancing and select a worker based on tasks params
             return workers.First();
         }

@@ -7,7 +7,7 @@ namespace Automation.Dal.Repositories
 {
     public class TaskIntanceRepository : BaseCrudRepository<TaskInstance>
     {
-        public TaskIntanceRepository(IMongoDatabase database) : base(database, "task_instance")
+        public TaskIntanceRepository(IMongoDatabase database) : base(database, "task_instances")
         {
         }
 

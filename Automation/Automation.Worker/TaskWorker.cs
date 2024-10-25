@@ -21,7 +21,7 @@ namespace Automation.Worker
             // Start
             // Catch exception
             await Task.Delay(5000);
-            return EnumTaskState.Success;
+            return EnumTaskState.Completed;
         }
     }
 }

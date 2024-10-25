@@ -4,19 +4,20 @@ using Automation.Realtime;
 using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
 using Automation.Shared.Data;
-using Microsoft.Extensions.Configuration;
 using MongoDB.Driver;
 
 namespace Automation.Worker.Service
 {
     public class Worker : BackgroundService
     {
+        private readonly IConfiguration _configuration;
         private readonly SemaphoreSlim _executeLock = new SemaphoreSlim(1, 1);
+        private readonly TimeSpan _heartbeatInterval = TimeSpan.FromSeconds(30);
+
         private readonly TaskIntanceRepository _repository;
         private readonly RedisConnectionManager _redis;
-        private readonly WorkerInstance _instance;
-        private readonly IConfiguration _configuration;
 
+        private readonly WorkerInstance _instance;
         private readonly TaskWorker _worker;
 
         public Worker(IConfiguration configuration, IMongoDatabase database, RedisConnectionManager redis)
@@ -44,7 +45,13 @@ namespace Automation.Worker.Service
             await HandlePendingTasks();
             ListenToNewTasks();
 
-            await Task.Delay(Timeout.InfiniteTimeSpan, stoppingToken);
+            // Update heartbeat while the service is up
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                await workerClient.UpdateHeartbeatAsync(_instance.Id);
+                await Task.Delay(_heartbeatInterval, stoppingToken);
+            }
+
             await workerClient.UnregisterAsync(_instance);
         }
 
@@ -78,8 +85,11 @@ namespace Automation.Worker.Service
             {
                 await _executeLock.WaitAsync();
                 instance.State = EnumTaskState.Progress;
+                instance.StartDate = DateTime.Now;
                 await _repository.UpdateAsync(instance.Id, instance);
+
                 instance.State = await _worker.ExecuteAsync(instance);
+                instance.EndDate = DateTime.Now;
                 await _repository.UpdateAsync(instance.Id, instance);
             }
             finally
