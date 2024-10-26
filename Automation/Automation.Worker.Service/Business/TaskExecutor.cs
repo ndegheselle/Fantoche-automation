@@ -3,13 +3,14 @@ using Automation.Realtime;
 using Automation.Realtime.Clients;
 using Automation.Shared.Data;
 
-namespace Automation.Worker
+namespace Automation.Worker.Service.Business
 {
-    public class TaskWorker
+    internal class TaskExecutor
     {
+        // To send task progress to clients
         private readonly TasksRealtimeClient _tasksClient;
 
-        public TaskWorker(RedisConnectionManager redis)
+        public TaskExecutor(RedisConnectionManager redis)
         {
             _tasksClient = new TasksRealtimeClient(redis);
         }

@@ -17,11 +17,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Automation.Api.Shared\Automation.Api.Shared.csproj" />
+    <ProjectReference Include="..\Automation.Server.Shared\Automation.Server.Shared.csproj" />
     <ProjectReference Include="..\Automation.Dal\Automation.Dal.csproj" />
     <ProjectReference Include="..\Automation.Realtime\Automation.Realtime.csproj" />
     <ProjectReference Include="..\Automation.Shared\Automation.Shared.csproj" />
-    <ProjectReference Include="..\Automation.Supervisor\Automation.Supervisor.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Services\" />
   </ItemGroup>
 
 </Project>

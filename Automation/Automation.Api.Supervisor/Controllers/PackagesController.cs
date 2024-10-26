@@ -1,4 +1,4 @@
-using Automation.Api.Shared;
+using Automation.Server.Shared.Packages;
 using Automation.Shared.Base;
 using Automation.Shared.Data;
 using Microsoft.AspNetCore.Mvc;

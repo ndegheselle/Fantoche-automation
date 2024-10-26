@@ -5,7 +5,7 @@ using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using Automation.Api.Shared;
+using Automation.Server.Shared;
 using DotNetEnv;
 
 Env.Load("../.env");

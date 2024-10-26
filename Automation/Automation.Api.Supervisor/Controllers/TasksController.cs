@@ -1,8 +1,8 @@
+using Automation.Api.Supervisor.Business;
 using Automation.Dal.Models;
 using Automation.Dal.Repositories;
 using Automation.Realtime;
 using Automation.Shared.Base;
-using Automation.Supervisor;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -16,14 +16,14 @@ namespace Automation.Api.Supervisor.Controllers
         private readonly TaskRepository _taskRepo;
         private readonly TaskIntanceRepository _taskInstanceRepo;
         private readonly IMongoDatabase _database;
-        private readonly TaskSuperviser _supervisor;
+        private readonly WorkerAssignator _assignator;
 
         public TasksController(IMongoDatabase database, RedisConnectionManager redis)
         {
             _database = database;
             _taskRepo = new TaskRepository(database);
             _taskInstanceRepo = new TaskIntanceRepository(database);
-            _supervisor = new TaskSuperviser(database, redis);
+            _assignator = new WorkerAssignator(database, redis);
         }
 
         [HttpPost]
@@ -75,7 +75,7 @@ namespace Automation.Api.Supervisor.Controllers
             BsonDocument? bsonDocument = null;
             if (!string.IsNullOrWhiteSpace(body))
                 bsonDocument = BsonDocument.Parse(body);
-            return await _supervisor.AssignToWorkerAsync(id, bsonDocument);
+            return await _assignator.AssignAsync(id, bsonDocument);
         }
 
         [HttpGet]

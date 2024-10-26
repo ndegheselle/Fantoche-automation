@@ -4,6 +4,7 @@ using Automation.Realtime;
 using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
 using Automation.Shared.Data;
+using Automation.Worker.Service.Business;
 using MongoDB.Driver;
 
 namespace Automation.Worker.Service
@@ -11,6 +12,7 @@ namespace Automation.Worker.Service
     public class Worker : BackgroundService
     {
         private readonly IConfiguration _configuration;
+        // TODO : use a proper queue
         private readonly SemaphoreSlim _executeLock = new SemaphoreSlim(1, 1);
         private readonly TimeSpan _heartbeatInterval = TimeSpan.FromSeconds(30);
 
@@ -18,14 +20,14 @@ namespace Automation.Worker.Service
         private readonly RedisConnectionManager _redis;
 
         private readonly WorkerInstance _instance;
-        private readonly TaskWorker _worker;
+        private readonly TaskExecutor _executor;
 
         public Worker(IConfiguration configuration, IMongoDatabase database, RedisConnectionManager redis)
         {
             _configuration = configuration;
             _redis = redis;
             _repository = new TaskIntanceRepository(database);
-            _worker = new TaskWorker(redis);
+            _executor = new TaskExecutor(redis);
             _instance = LoadConfig();
         }
 
@@ -42,7 +44,6 @@ namespace Automation.Worker.Service
             WorkerRealtimeClient workerClient = new WorkerRealtimeClient(_redis);
 
             await workerClient.RegisterAsync(_instance);
-            await HandlePendingTasks();
             ListenToNewTasks();
 
             // Update heartbeat while the service is up
@@ -52,16 +53,7 @@ namespace Automation.Worker.Service
                 await Task.Delay(_heartbeatInterval, stoppingToken);
             }
 
-            await workerClient.UnregisterAsync(_instance);
-        }
-
-        private async Task HandlePendingTasks()
-        {
-            IEnumerable<TaskInstance>? tasks = await _repository.GetByWorkerAndStateAsync(_instance.Id, [EnumTaskState.Pending, EnumTaskState.Progress]);
-
-            // XXX : parallel execution ?
-            foreach (var task in tasks)
-                await Execute(task);
+            await workerClient.UnregisterAsync(_instance.Id);
         }
 
         private void ListenToNewTasks()
@@ -88,7 +80,7 @@ namespace Automation.Worker.Service
                 instance.StartDate = DateTime.Now;
                 await _repository.UpdateAsync(instance.Id, instance);
 
-                instance.State = await _worker.ExecuteAsync(instance);
+                instance.State = await _executor.ExecuteAsync(instance);
                 instance.EndDate = DateTime.Now;
                 await _repository.UpdateAsync(instance.Id, instance);
             }

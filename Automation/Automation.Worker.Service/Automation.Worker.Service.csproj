@@ -15,9 +15,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Automation.Api.Shared\Automation.Api.Shared.csproj" />
+    <ProjectReference Include="..\Automation.Server.Shared\Automation.Server.Shared.csproj" />
     <ProjectReference Include="..\Automation.Dal\Automation.Dal.csproj" />
     <ProjectReference Include="..\Automation.Realtime\Automation.Realtime.csproj" />
-    <ProjectReference Include="..\Automation.Worker\Automation.Worker.csproj" />
   </ItemGroup>
 </Project>

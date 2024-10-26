@@ -35,13 +35,12 @@ namespace Automation.Realtime.Clients
         /// Unregister a worker instance
         /// </summary>
         /// <param name="instance"></param>
-        public async Task UnregisterAsync(WorkerInstance instance)
+        public async Task UnregisterAsync(string workerId)
         {
             IDatabase db = _connection.GetDatabase();
-            await db.HashDeleteAsync(_workersDbKey, instance.Id);
+            await db.HashDeleteAsync(_workersDbKey, workerId);
             // Remove the worker's heartbeat
-            await db.HashDeleteAsync(_hearthbeatDbKey, instance.Id);
-
+            await db.HashDeleteAsync(_hearthbeatDbKey, workerId);
         }
 
         /// <summary>
@@ -86,6 +85,22 @@ namespace Automation.Realtime.Clients
             var timeSinceLastHeartbeat = DateTime.UtcNow - lastHeartbeatTime;
 
             return timeSinceLastHeartbeat <= _timeout;
+        }
+
+        /// <summary>
+        /// Get all worker IDs that haven't sent a heartbeat within the timeout period
+        /// </summary>
+        /// <returns>List of worker IDs that are considered dead</returns>
+        public async Task<IEnumerable<string>> GetDeadWorkersIdsAsync()
+        {
+            var db = _connection.GetDatabase();
+            var allWorkers = await db.HashGetAllAsync(_hearthbeatDbKey);
+            var now = DateTime.UtcNow;
+
+            return allWorkers
+                .Where(worker => !worker.Value.HasValue ||
+                    (now - new DateTime(Convert.ToInt64(worker.Value))) > _timeout)
+                .Select(worker => worker.Name.ToString());
         }
     }
 }

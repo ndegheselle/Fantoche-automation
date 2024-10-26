@@ -1,7 +1,6 @@
 ﻿using Automation.Plugins.Shared;
 using Automation.Shared.Base;
 using Automation.Shared.Data;
-using NuGet;
 using NuGet.Common;
 using NuGet.Configuration;
 using NuGet.Frameworks;
@@ -13,11 +12,9 @@ using NuGet.Versioning;
 using System.Data;
 using System.Reflection;
 using System.Runtime.Versioning;
-using System.Security.Principal;
-using System.Threading;
 
 
-namespace Automation.Api.Shared
+namespace Automation.Server.Shared.Packages
 {
     public class LocalPackageManagement : IPackageManagement
     {
