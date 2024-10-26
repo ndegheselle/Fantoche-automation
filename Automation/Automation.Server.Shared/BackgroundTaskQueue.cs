@@ -2,17 +2,16 @@
 
 namespace Automation.Server.Shared
 {
-    public interface IBackgroundTaskQueue<T>
+    public interface IBackgroundQueue<T>
     {
-        ValueTask EnqueueAsync(T workItem);
+        ValueTask QueueAsync(T item);
         ValueTask<T> DequeueAsync(CancellationToken cancellationToken);
     }
 
-    public class BackgroundTaskQueue<T> : IBackgroundTaskQueue<T>
+    public class BackgroundTaskQueue<T> : IBackgroundQueue<T>
     {
         private readonly Channel<T> _queue;
-
-        public BackgroundTaskQueue(int capacity = 100)
+        public BackgroundTaskQueue(int capacity)
         {
             var options = new BoundedChannelOptions(capacity)
             {
@@ -21,9 +20,11 @@ namespace Automation.Server.Shared
             _queue = Channel.CreateBounded<T>(options);
         }
 
-        public async ValueTask EnqueueAsync(T workItem)
+        public async ValueTask QueueAsync(T item)
         {
-            await _queue.Writer.WriteAsync(workItem);
+            if (item == null)
+                throw new ArgumentNullException(nameof(item));
+            await _queue.Writer.WriteAsync(item);
         }
 
         public async ValueTask<T> DequeueAsync(CancellationToken cancellationToken)

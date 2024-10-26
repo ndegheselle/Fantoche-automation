@@ -104,7 +104,7 @@ namespace Automation.Server.Shared.Packages
             return packageReader.NuspecReader.ToPackageInfos();
         }
 
-        public async Task RemoveAsync(string id, Version version)
+        public Task RemoveAsync(string id, Version version)
         {
             var nugetVersion = new NuGetVersion(version);
             string packagePath = Path.Combine(_folder, $"{id}.{nugetVersion}.nupkg");
@@ -113,6 +113,8 @@ namespace Automation.Server.Shared.Packages
             {
                 File.Delete(packagePath);
             }
+
+            return Task.CompletedTask;
         }
 
         // XXX : should be cached since we have to load the package and dll and check types dynamically

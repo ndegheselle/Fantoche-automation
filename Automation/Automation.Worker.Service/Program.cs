@@ -1,16 +1,23 @@
 using Automation.Realtime;
+using Automation.Realtime.Models;
+using Automation.Server.Shared.Packages;
 using Automation.Worker.Service;
+using DotNetEnv;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Bson.Serialization.Serializers;
-using MongoDB.Bson.Serialization;
-using MongoDB.Bson;
 using MongoDB.Driver;
-using Automation.Server.Shared;
-using DotNetEnv;
 
 Env.Load("../.env");
 
 var builder = Host.CreateApplicationBuilder(args);
+
+builder.Services.AddSingleton<WorkerInstance>((services) => new WorkerInstance()
+{
+    Id = builder.Configuration["WORKER_ID"] ?? Guid.NewGuid().ToString(),
+});
+builder.Services.AddHostedService<Lifecycle>();
 builder.Services.AddHostedService<Worker>();
 
 #region Services

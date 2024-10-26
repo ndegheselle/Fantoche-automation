@@ -32,7 +32,6 @@ namespace Automation.Api.Supervisor.Business
         public async Task<TaskInstance> AssignAsync(Guid taskId, BsonDocument? parameters)
         {
             TaskInstance task = new TaskInstance() { Parameters = parameters, TaskId = taskId, };
-
             WorkerInstance selectedWorker = await SelectWorkerAsync(task);
             task.WorkerId = selectedWorker.Id;
             await _repository.CreateAsync(task);
@@ -59,33 +58,6 @@ namespace Automation.Api.Supervisor.Business
             IEnumerable<WorkerInstance> workers = await _workersClient.GetWorkersAsync();
             // TODO : load balancing and select a worker based on tasks params
             return workers.First();
-        }
-
-        private async Task<TaskInstance> AssignToWorkerAsync(TaskInstance task, WorkerInstance worker)
-        {
-            task.WorkerId = worker.Id;
-            await _repository.CreateAsync(task);
-            _tasksClient.Notify(worker.Id, task.Id);
-            return task;
-        }
-
-        private async void CleanDeadWorkers()
-        {
-            IEnumerable<string> workers = await _workersClient.GetDeadWorkersIdsAsync();
-            foreach (string deadWorkerId in workers)
-            {
-                // TODO : should change the state of the worker instead so that it doesn't dissapear from supervisor
-                await _workersClient.UnregisterAsync(deadWorkerId);
-
-                // Assign this worker tasks that are not finished to others workers
-                // XXX : reasign task in progress ? Atomicity of the task data (database, file, ...) ?
-                IEnumerable<TaskInstance>? tasks = await _repository.GetByWorkerAndStateAsync(
-                    deadWorkerId,
-                    [EnumTaskState.Pending, EnumTaskState.Progress]);
-
-                foreach (TaskInstance task in tasks)
-                    await AssignAsync(task);
-            }
         }
     }
 }
