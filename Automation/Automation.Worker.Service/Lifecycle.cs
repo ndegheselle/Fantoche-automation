@@ -27,13 +27,13 @@ namespace Automation.Worker.Service
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             WorkerRealtimeClient workerClient = new WorkerRealtimeClient(_redis);
-            await workerClient.RegisterAsync(_instance);
+            await workerClient.UpdateWorkerAsync(_instance);
             while (!stoppingToken.IsCancellationRequested)
             {
                 await workerClient.UpdateHeartbeatAsync(_instance.Id);
                 await Task.Delay(_heartbeatInterval, stoppingToken);
             }
-            await workerClient.UnregisterAsync(_instance.Id);
+            await workerClient.RemoveWorkerAsync(_instance.Id);
         }
     }
 }

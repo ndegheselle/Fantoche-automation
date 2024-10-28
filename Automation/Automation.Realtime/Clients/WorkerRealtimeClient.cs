@@ -1,7 +1,6 @@
 ﻿using Automation.Realtime.Models;
 using StackExchange.Redis;
 using System.Text.Json;
-using System.Threading;
 
 namespace Automation.Realtime.Clients
 {
@@ -21,10 +20,10 @@ namespace Automation.Realtime.Clients
         }
 
         /// <summary>
-        /// Register a worker instance
+        /// Update or create a worker instance.
         /// </summary>
         /// <param name="instance"></param>
-        public async Task RegisterAsync(WorkerInstance instance)
+        public async Task UpdateWorkerAsync(WorkerInstance instance)
         {
             IDatabase db = _connection.GetDatabase();
             await db.HashSetAsync(_workersDbKey, instance.Id, JsonSerializer.Serialize(instance));
@@ -32,10 +31,10 @@ namespace Automation.Realtime.Clients
         }
 
         /// <summary>
-        /// Unregister a worker instance
+        /// Remove a worker from the list.
         /// </summary>
         /// <param name="instance"></param>
-        public async Task UnregisterAsync(string workerId)
+        public async Task RemoveWorkerAsync(string workerId)
         {
             IDatabase db = _connection.GetDatabase();
             await db.HashDeleteAsync(_workersDbKey, workerId);
@@ -44,7 +43,7 @@ namespace Automation.Realtime.Clients
         }
 
         /// <summary>
-        /// Get all workers (without checking heartbeats)
+        /// Get all workers (without checking heartbeats).
         /// </summary>
         /// <returns>Liste of worker instances</returns>
         public async Task<IEnumerable<WorkerInstance>> GetWorkersAsync()
@@ -58,7 +57,7 @@ namespace Automation.Realtime.Clients
         }
 
         /// <summary>
-        /// Update the worker heartbeat to the current time
+        /// Update the worker heartbeat to the current time.
         /// </summary>
         /// <param name="workerId">Target worker id</param>
         public async Task UpdateHeartbeatAsync(string workerId)
@@ -69,7 +68,7 @@ namespace Automation.Realtime.Clients
         }
 
         /// <summary>
-        /// Check if a specific worker is still alive (last heartbeat lambda inferior to the timeout delay)
+        /// Check if a specific worker is still alive (last heartbeat lambda inferior to the timeout delay).
         /// </summary>
         /// <param name="workerId">Target worker id</param>
         /// <returns>False if the worker is dead</returns>

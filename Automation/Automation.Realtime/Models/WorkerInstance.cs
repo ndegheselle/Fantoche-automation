@@ -3,6 +3,6 @@
     public class WorkerInstance
     {
         public string Id { get; set; } = string.Empty;
-        public bool IsDefault { get; set; }
+        public int QueueSize { get; set; }
     }
 }

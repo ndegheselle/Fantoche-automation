@@ -11,6 +11,8 @@ namespace Automation.Server.Shared
     public class BackgroundTaskQueue<T> : IBackgroundQueue<T>
     {
         private readonly Channel<T> _queue;
+        public int Size => _queue.Reader.Count;
+
         public BackgroundTaskQueue(int capacity)
         {
             var options = new BoundedChannelOptions(capacity)

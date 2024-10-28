@@ -17,6 +17,7 @@ namespace Automation.Worker.Service
 
         private readonly WorkerInstance _instance;
         private readonly TaskExecutor _executor;
+        private readonly WorkerRealtimeClient _workerClient;
 
         private readonly BackgroundTaskQueue<TaskInstance> _queue;
 
@@ -25,6 +26,7 @@ namespace Automation.Worker.Service
             _redis = redis;
             _repository = new TaskIntanceRepository(database);
             _executor = new TaskExecutor(redis);
+            _workerClient = new WorkerRealtimeClient(redis);
             _instance = instance;
             _queue = new BackgroundTaskQueue<TaskInstance>(100);
         }
@@ -50,6 +52,8 @@ namespace Automation.Worker.Service
             TaskInstance? instance = await _repository.GetByIdAsync(taskId) 
                 ?? throw new ArgumentException($"Unknow task instance id '{taskId}'");
             await _queue.QueueAsync(instance);
+            _instance.QueueSize = _queue.Size;
+            await _workerClient.UpdateWorkerAsync(_instance);
         }
 
         private async Task Execute(TaskInstance instance)

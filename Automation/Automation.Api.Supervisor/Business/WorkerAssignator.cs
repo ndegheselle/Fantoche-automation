@@ -40,24 +40,28 @@ namespace Automation.Api.Supervisor.Business
         }
 
         /// <summary>
-        /// Assign a worker to an existing task (for exemple if the current worker crashed)
+        /// Reassign a task to another worker (for exemple if the current worker crashed).
+        /// The task state will be passed to failed.
         /// </summary>
         /// <param name="task"></param>
         /// <returns></returns>
-        public async Task<TaskInstance> AssignAsync(TaskInstance task)
+        public async Task<TaskInstance> ReassignAsync(TaskInstance task)
         {
-            WorkerInstance selectedWorker = await SelectWorkerAsync(task);
-            task.WorkerId = selectedWorker.Id;
+            task.State = EnumTaskState.Failed;
             await _repository.UpdateAsync(task.Id, task);
-            _tasksClient.Notify(selectedWorker.Id, task.Id);
-            return task;
+            return await AssignAsync(task.TaskId, task.Parameters.ToBsonDocument());
         }
 
+        /// <summary>
+        /// Select a worker for the task.
+        /// </summary>
+        /// <param name="task">Task to execute</param>
+        /// <returns>The selected worker instance.</returns>
+        /// <exception cref="Exception">No worker found.</exception>
         private async Task<WorkerInstance> SelectWorkerAsync(TaskInstance task)
         {
             IEnumerable<WorkerInstance> workers = await _workersClient.GetWorkersAsync();
-            // TODO : load balancing and select a worker based on tasks params
-            return workers.First();
+            return workers.MinBy(x => x.QueueSize) ?? throw new Exception("No available worker for the task.");
         }
     }
 }

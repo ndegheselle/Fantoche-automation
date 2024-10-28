@@ -42,7 +42,7 @@ namespace Automation.Api.Supervisor.Business
             // TODO : should change the state of the worker instead so that it doesn't dissapear from supervisor
             foreach (string deadWorkerId in workers)
             {
-                await _workersClient.UnregisterAsync(deadWorkerId);
+                await _workersClient.RemoveWorkerAsync(deadWorkerId);
             }
 
             // Assign the dead workers tasks that are not finished to some other workers
@@ -54,7 +54,7 @@ namespace Automation.Api.Supervisor.Business
                     [EnumTaskState.Pending, EnumTaskState.Progress]);
 
                 foreach (TaskInstance task in tasks)
-                    await _assignator.AssignAsync(task);
+                    await _assignator.ReassignAsync(task);
             }
         }
     }
