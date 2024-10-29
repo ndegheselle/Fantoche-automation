@@ -1,5 +1,6 @@
 ﻿using Automation.Dal.Models;
 using Automation.Dal.Repositories;
+using Automation.Plugins.Shared;
 using Automation.Realtime;
 using Automation.Realtime.Clients;
 using Automation.Realtime.Models;

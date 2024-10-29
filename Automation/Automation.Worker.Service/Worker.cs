@@ -1,10 +1,10 @@
 using Automation.Dal.Models;
 using Automation.Dal.Repositories;
+using Automation.Plugins.Shared;
 using Automation.Realtime;
 using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
 using Automation.Server.Shared;
-using Automation.Shared.Data;
 using Automation.Worker.Service.Business;
 using MongoDB.Driver;
 
@@ -44,7 +44,7 @@ namespace Automation.Worker.Service
         private void ListenToNewTasks()
         {
             TasksRealtimeClient client = new TasksRealtimeClient(_redis);
-            client.Subscribe(_instance.Id, OnTaskAssigned);
+            client.SubscribeNewTask(_instance.Id, OnTaskAssigned);
         }
 
         private async void OnTaskAssigned(Guid taskId)

@@ -1,13 +1,7 @@
-﻿namespace Automation.Shared.Data
-{
-    public enum EnumTaskState
-    {
-        Pending,
-        Progress,
-        Completed,
-        Failed
-    }
+﻿using Automation.Plugins.Shared;
 
+namespace Automation.Shared.Data
+{
     public interface ITaskInstance : IIdentifier
     {
         // XXX : come from the Task, there to simplify request, what about updates (change task scope)

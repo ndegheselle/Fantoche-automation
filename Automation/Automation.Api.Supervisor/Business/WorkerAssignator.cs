@@ -1,5 +1,6 @@
 ﻿using Automation.Dal.Models;
 using Automation.Dal.Repositories;
+using Automation.Plugins.Shared;
 using Automation.Realtime;
 using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
@@ -35,7 +36,7 @@ namespace Automation.Api.Supervisor.Business
             WorkerInstance selectedWorker = await SelectWorkerAsync(task);
             task.WorkerId = selectedWorker.Id;
             await _repository.CreateAsync(task);
-            _tasksClient.Notify(selectedWorker.Id, task.Id);
+            _tasksClient.NotifyNewTask(selectedWorker.Id, task.Id);
             return task;
         }
 
