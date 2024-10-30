@@ -14,7 +14,7 @@
 
     public interface ITaskNode : INamed
     {
-        TargetedPackage? Package { get; set; }
+        TargetedPackage Package { get; set; }
         Guid ScopeId { get; set; }
         IEnumerable<ITaskConnector> Inputs { get; }
         IEnumerable<ITaskConnector> Outputs { get; }

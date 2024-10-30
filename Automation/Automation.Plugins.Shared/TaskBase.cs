@@ -1,15 +1,6 @@
 ﻿namespace Automation.Plugins.Shared
 {
-    public interface ITask
-    {
-        public string Name { get; }
-        public dynamic? Context { get; set; }
-
-        public Dictionary<string, TaskEndpoint> Inputs { get; }
-        public Dictionary<string, TaskEndpoint> Outputs { get; }
-        public Task<bool> Start();
-    }
-
+    /*
     public class TaskEndpoint
     {
         public Type Type { get; set; }
@@ -57,4 +48,5 @@
             return true;
         }
     }
+    */
 }

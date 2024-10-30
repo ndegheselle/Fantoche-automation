@@ -5,6 +5,8 @@ using Automation.Realtime;
 using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
 using Automation.Server.Shared;
+using Automation.Server.Shared.Packages;
+using Automation.Shared.Data;
 using Automation.Worker.Service.Business;
 using MongoDB.Driver;
 
@@ -21,11 +23,11 @@ namespace Automation.Worker.Service
 
         private readonly BackgroundTaskQueue<TaskInstance> _queue;
 
-        public Worker(WorkerInstance instance, IMongoDatabase database, RedisConnectionManager redis)
+        public Worker(WorkerInstance instance, IMongoDatabase database, RedisConnectionManager redis, IPackageManagement packageManagement)
         {
             _redis = redis;
             _repository = new TaskIntanceRepository(database);
-            _executor = new TaskExecutor(redis);
+            _executor = new TaskExecutor(redis, packageManagement);
             _workerClient = new WorkerRealtimeClient(redis);
             _instance = instance;
             _queue = new BackgroundTaskQueue<TaskInstance>(100);
@@ -62,7 +64,7 @@ namespace Automation.Worker.Service
             instance.StartDate = DateTime.Now;
             await _repository.UpdateAsync(instance.Id, instance);
 
-            instance.State = await _executor.ExecuteAsync(instance);
+            instance = await _executor.ExecuteAsync(instance);
             instance.EndDate = DateTime.Now;
             await _repository.UpdateAsync(instance.Id, instance);
         }

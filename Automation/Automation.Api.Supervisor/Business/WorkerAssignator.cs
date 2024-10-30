@@ -30,14 +30,10 @@ namespace Automation.Api.Supervisor.Business
         /// <param name="taskId"></param>
         /// <param name="parameters"></param>
         /// <returns></returns>
-        public async Task<TaskInstance> AssignAsync(Guid taskId, BsonDocument? parameters)
+        public Task<TaskInstance> AssignAsync(TaskNode task, TaskContext context)
         {
-            TaskInstance task = new TaskInstance() { Parameters = parameters, TaskId = taskId, };
-            WorkerInstance selectedWorker = await SelectWorkerAsync(task);
-            task.WorkerId = selectedWorker.Id;
-            await _repository.CreateAsync(task);
-            _tasksClient.NotifyNewTask(selectedWorker.Id, task.Id);
-            return task;
+            TaskInstance taskInstance = new TaskInstance(task, context);
+            return AssignAsync(taskInstance);
         }
 
         /// <summary>
@@ -50,7 +46,16 @@ namespace Automation.Api.Supervisor.Business
         {
             task.State = EnumTaskState.Failed;
             await _repository.UpdateAsync(task.Id, task);
-            return await AssignAsync(task.TaskId, task.Parameters.ToBsonDocument());
+            return await AssignAsync(task);
+        }
+
+        private async Task<TaskInstance> AssignAsync(TaskInstance taskInstance)
+        {
+            WorkerInstance selectedWorker = await SelectWorkerAsync(taskInstance);
+            taskInstance.WorkerId = selectedWorker.Id;
+            await _repository.CreateAsync(taskInstance);
+            _tasksClient.NotifyNewTask(selectedWorker.Id, taskInstance.TaskId);
+            return taskInstance;
         }
 
         /// <summary>

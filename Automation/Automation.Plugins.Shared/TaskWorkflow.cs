@@ -1,6 +1,7 @@
 ﻿
 namespace Automation.Plugins.Shared
 {
+    /*
     public class TaskWorkflow : TaskBase
     {
         public List<ITask> Tasks { get; set; } = [];
@@ -47,7 +48,7 @@ namespace Automation.Plugins.Shared
 
         private async Task<bool> ExecuteNode(ITask node)
         {
-            bool result = await node.Start();
+            bool result = await node.ExecuteAsync();
 
             if (!result)
                 return false;
@@ -103,4 +104,5 @@ namespace Automation.Plugins.Shared
     public class WorkflowEnd : TaskBase
     {
     }
+    */
 }

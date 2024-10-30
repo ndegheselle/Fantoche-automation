@@ -13,7 +13,6 @@ using System.Data;
 using System.Reflection;
 using System.Runtime.Versioning;
 
-
 namespace Automation.Server.Shared.Packages
 {
     public class LocalPackageManagement : IPackageManagement
@@ -157,6 +156,49 @@ namespace Automation.Server.Shared.Packages
             }
 
             return taskClasses;
+        }
+
+        public async Task<ITask> CreateTaskInstanceAsync(TargetedPackage package)
+        {
+            // Get package by id resource
+            var findPackageByIdResource = await _repository.GetResourceAsync<FindPackageByIdResource>();
+            var nugetVersion = new NuGetVersion(package.Version);
+
+            using var packageStream = new MemoryStream();
+            await findPackageByIdResource.CopyNupkgToStreamAsync(
+                package.Id,
+                nugetVersion,
+                packageStream,
+                _cacheContext,
+                _logger,
+                CancellationToken.None);
+
+            packageStream.Position = 0;
+            using var packageReader = new PackageArchiveReader(packageStream);
+
+            // Get target framework and its DLLs
+            var nearestFramework = GetNearestFramework(packageReader);
+            var dllPath = packageReader.GetFiles()
+                .FirstOrDefault(f => f.StartsWith($"lib/{nearestFramework}/") &&
+                                    f.EndsWith(package.Class.Dll))
+                ?? throw new Exception($"Could not find main DLL for package '{package.Id}' and dll '{package.Class.Dll}'.");
+
+            // Load the assembly
+            using var dllStream = packageReader.GetStream(dllPath);
+            using var memoryStream = new MemoryStream();
+            await dllStream.CopyToAsync(memoryStream);
+
+            var assembly = Assembly.Load(memoryStream.ToArray());
+            var taskType = assembly.GetType(package.Class.Name)
+                ?? throw new Exception($"Could not find type '{package.Class.Name}'.");
+
+            if (!typeof(ITask).IsAssignableFrom(taskType))
+            {
+                throw new Exception($"Type '{package.Class.Name}' does not implement ITask interface.");
+            }
+
+            return (Activator.CreateInstance(taskType) as ITask)
+                ?? throw new Exception($"Failed to create instance of type '{package.Class.Name}'.");
         }
 
         /// <summary>

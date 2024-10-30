@@ -2,19 +2,13 @@
 
 namespace Automation.Plugins.Flow
 {
-    public class  WaitDelay : TaskBase
+    public class WaitDelay : ITask
     {
-        public override Task<bool> Start()
+        public IProgress? Progress { get; set; }
+        public async Task<dynamic?> ExecuteAsync(TaskContext context)
         {
-            throw new NotImplementedException();
-        }
-    }
-
-    public class WaitAllTasks : TaskBase
-    {
-        public override Task<bool> Start()
-        {
-            throw new NotImplementedException();
+            await Task.Delay(5000);
+            return Task.FromResult<dynamic?>(null);
         }
     }
 }

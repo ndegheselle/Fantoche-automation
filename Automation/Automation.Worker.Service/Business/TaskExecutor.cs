@@ -2,29 +2,41 @@
 using Automation.Plugins.Shared;
 using Automation.Realtime;
 using Automation.Realtime.Clients;
+using Automation.Server.Shared.Packages;
+using Automation.Shared.Data;
 
 namespace Automation.Worker.Service.Business
 {
-    public class TaskExecutor : IExecutor
+    public class TaskExecutor : IProgress
     {
         // To send task progress to clients
         private readonly TasksRealtimeClient _tasksClient;
+        private readonly IPackageManagement _packages;
         private TaskInstance? _currentInstance = null;
 
-        public TaskExecutor(RedisConnectionManager redis)
+        public TaskExecutor(RedisConnectionManager redis, IPackageManagement packageManagement)
         {
+            _packages = packageManagement;
             _tasksClient = new TasksRealtimeClient(redis);
         }
 
-        public async Task<EnumTaskState> ExecuteAsync(TaskInstance instance)
+        public async Task<TaskInstance> ExecuteAsync(TaskInstance instance)
         {
             _currentInstance = instance;
-            // Load dlls
-            // Create instance
-            // Start
-            // Catch exception
-            await Task.Delay(5000);
-            return EnumTaskState.Completed;
+            ITask task = await _packages.CreateTaskInstanceAsync(_currentInstance.Target);
+
+            try
+            {
+                task.Progress = this;
+                instance.Result = await task.ExecuteAsync(_currentInstance.Context);
+                instance.State = EnumTaskState.Completed;
+            }
+            catch
+            {
+                instance.State = EnumTaskState.Failed;
+            }
+
+            return instance;
         }
 
         public void Progress(TaskProgress progress)

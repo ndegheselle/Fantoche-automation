@@ -1,6 +1,7 @@
 using Automation.Api.Supervisor.Business;
 using Automation.Dal.Models;
 using Automation.Dal.Repositories;
+using Automation.Plugins.Shared;
 using Automation.Realtime;
 using Automation.Shared.Base;
 using Microsoft.AspNetCore.Mvc;
@@ -69,13 +70,24 @@ namespace Automation.Api.Supervisor.Controllers
         [Route("{id}/execute")]
         public async Task<TaskInstance> ExecuteAsync([FromRoute] Guid id)
         {
+            TaskNode? task = await _taskRepo.GetByIdAsync(id);
+
+            if (task == null)
+                throw new InvalidOperationException($"No task node found for the id '{id}'.");
+
             using var reader = new StreamReader(Request.Body);
             var body = await reader.ReadToEndAsync();
 
             BsonDocument? bsonDocument = null;
             if (!string.IsNullOrWhiteSpace(body))
                 bsonDocument = BsonDocument.Parse(body);
-            return await _assignator.AssignAsync(id, bsonDocument);
+
+            // TODO : get the full task context
+            TaskContext context = new TaskContext()
+            {
+                Parameters = bsonDocument
+            };
+            return await _assignator.AssignAsync(task, context);
         }
 
         [HttpGet]

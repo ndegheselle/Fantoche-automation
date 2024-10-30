@@ -1,4 +1,5 @@
-﻿using Automation.Shared.Base;
+﻿using Automation.Plugins.Shared;
+using Automation.Shared.Base;
 using Automation.Shared.Data;
 
 namespace Automation.Server.Shared.Packages
@@ -52,5 +53,12 @@ namespace Automation.Server.Shared.Packages
         /// <param name="version">Target package version</param>
         /// <returns>Collection of assembly file paths within the package</returns>
         Task<IEnumerable<PackageClass>> GetTaskClassesAsync(string id, Version version);
+
+        /// <summary>
+        /// Create a task package instance from a class name
+        /// </summary>
+        /// <param name="package">Target package informations</param>
+        /// <returns>Instance of the class</returns>
+        Task<ITask> CreateTaskInstanceAsync(TargetedPackage package);
     }
 }
