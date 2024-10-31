@@ -1,6 +1,5 @@
 using Automation.Dal.Models;
 using Automation.Dal.Repositories;
-using Automation.Plugins.Shared;
 using Automation.Realtime;
 using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
@@ -14,6 +13,7 @@ namespace Automation.Worker.Service
 {
     public class Worker : BackgroundService
     {
+        private readonly ILogger _logger;
         private readonly TaskIntanceRepository _repository;
         private readonly RedisConnectionManager _redis;
 
@@ -22,9 +22,16 @@ namespace Automation.Worker.Service
         private readonly WorkerRealtimeClient _workerClient;
 
         private readonly BackgroundTaskQueue<TaskInstance> _queue;
+        private int _currentTasksNumber = 0;
 
-        public Worker(WorkerInstance instance, IMongoDatabase database, RedisConnectionManager redis, IPackageManagement packageManagement)
+        public Worker(
+            ILogger logger,
+            WorkerInstance instance,
+            IMongoDatabase database,
+            RedisConnectionManager redis,
+            IPackageManagement packageManagement)
         {
+            _logger = logger;
             _redis = redis;
             _repository = new TaskIntanceRepository(database);
             _executor = new TaskExecutor(redis, packageManagement);
@@ -51,15 +58,16 @@ namespace Automation.Worker.Service
 
         private async void OnTaskAssigned(Guid taskId)
         {
-            TaskInstance? instance = await _repository.GetByIdAsync(taskId) 
-                ?? throw new ArgumentException($"Unknow task instance id '{taskId}'");
+            TaskInstance? instance = await _repository.GetByIdAsync(taskId) ??
+                throw new ArgumentException($"Unknow task instance id '{taskId}'");
             await _queue.QueueAsync(instance);
-            _instance.QueueSize = _queue.Size;
+            _instance.QueueSize = _currentTasksNumber++;
             await _workerClient.UpdateWorkerAsync(_instance);
         }
 
         private async Task Execute(TaskInstance instance)
         {
+            _logger.LogDebug($"Starting instance {instance.TaskId} - {DateTime.Now}");
             instance.State = EnumTaskState.Progress;
             instance.StartDate = DateTime.Now;
             await _repository.UpdateAsync(instance.Id, instance);
@@ -67,6 +75,10 @@ namespace Automation.Worker.Service
             instance = await _executor.ExecuteAsync(instance);
             instance.EndDate = DateTime.Now;
             await _repository.UpdateAsync(instance.Id, instance);
+
+            _instance.QueueSize = _currentTasksNumber--;
+            await _workerClient.UpdateWorkerAsync(_instance);
+            _logger.LogDebug($"Ending instance {instance.TaskId} - {DateTime.Now}");
         }
     }
 }

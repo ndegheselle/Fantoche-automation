@@ -8,8 +8,8 @@ namespace Automation.App.Shared.ViewModels.Tasks
     {
         public TargetedPackage? Package { get; set; }
         public Guid ScopeId { get; set; }
-        public List<TaskConnector> Inputs { get; set; } = new List<TaskConnector>();
-        public List<TaskConnector> Outputs { get; set; } = new List<TaskConnector>();
+        public List<TaskConnector> Inputs { get; set; } = [];
+        public List<TaskConnector> Outputs { get; set; } = [];
 
         public TaskNode()
         {

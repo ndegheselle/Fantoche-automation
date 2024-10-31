@@ -176,11 +176,8 @@ namespace Automation.Server.Shared.Packages
             packageStream.Position = 0;
             using var packageReader = new PackageArchiveReader(packageStream);
 
-            // Get target framework and its DLLs
-            var nearestFramework = GetNearestFramework(packageReader);
             var dllPath = packageReader.GetFiles()
-                .FirstOrDefault(f => f.StartsWith($"lib/{nearestFramework}/") &&
-                                    f.EndsWith(package.Class.Dll))
+                .FirstOrDefault(f => f.EndsWith(package.Class.Dll))
                 ?? throw new Exception($"Could not find main DLL for package '{package.Id}' and dll '{package.Class.Dll}'.");
 
             // Load the assembly

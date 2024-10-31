@@ -7,6 +7,7 @@ using Automation.Shared.Base;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using System.Diagnostics;
 
 namespace Automation.Api.Supervisor.Controllers
 {
@@ -14,13 +15,15 @@ namespace Automation.Api.Supervisor.Controllers
     [Route("tasks")]
     public class TasksController : Controller
     {
+        private readonly ILogger _logger;
         private readonly TaskRepository _taskRepo;
         private readonly TaskIntanceRepository _taskInstanceRepo;
         private readonly IMongoDatabase _database;
         private readonly WorkerAssignator _assignator;
 
-        public TasksController(IMongoDatabase database, RedisConnectionManager redis)
+        public TasksController(ILogger logger, IMongoDatabase database, RedisConnectionManager redis)
         {
+            _logger = logger;
             _database = database;
             _taskRepo = new TaskRepository(database);
             _taskInstanceRepo = new TaskIntanceRepository(database);
@@ -87,6 +90,8 @@ namespace Automation.Api.Supervisor.Controllers
             {
                 Parameters = bsonDocument
             };
+
+            _logger.LogDebug($"Assigning task {task.Id} - {DateTime.Now}");
             return await _assignator.AssignAsync(task, context);
         }
 

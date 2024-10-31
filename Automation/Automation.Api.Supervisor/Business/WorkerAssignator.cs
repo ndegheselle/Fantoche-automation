@@ -54,7 +54,7 @@ namespace Automation.Api.Supervisor.Business
             WorkerInstance selectedWorker = await SelectWorkerAsync(taskInstance);
             taskInstance.WorkerId = selectedWorker.Id;
             await _repository.CreateAsync(taskInstance);
-            _tasksClient.NotifyNewTask(selectedWorker.Id, taskInstance.TaskId);
+            _tasksClient.NotifyNewTask(selectedWorker.Id, taskInstance.Id);
             return taskInstance;
         }
 

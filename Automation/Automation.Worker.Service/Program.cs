@@ -13,6 +13,8 @@ Env.Load("../.env");
 
 var builder = Host.CreateApplicationBuilder(args);
 
+builder.Logging.AddConsole();
+
 builder.Services.AddSingleton<WorkerInstance>((services) => new WorkerInstance()
 {
     Id = builder.Configuration["WORKER_ID"] ?? Guid.NewGuid().ToString(),
