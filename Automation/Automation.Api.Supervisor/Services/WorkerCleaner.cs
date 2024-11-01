@@ -1,11 +1,9 @@
 ﻿using Automation.Dal.Models;
 using Automation.Dal.Repositories;
-using Automation.Plugins.Shared;
 using Automation.Realtime;
 using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
 using Automation.Shared.Data;
-using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace Automation.Api.Supervisor.Business
@@ -31,31 +29,19 @@ namespace Automation.Api.Supervisor.Business
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                await CleanDeadWorkers();
                 await Task.Delay(_cleaningInterval, stoppingToken);
+                await _workersClient.CleanDeadWorkers();
+                await CleanUnhandledTasks();
             }
         }
 
-        private async Task CleanDeadWorkers()
+        private async Task CleanUnhandledTasks()
         {
-            IEnumerable<string> workers = await _workersClient.GetDeadWorkersIdsAsync();
-
-            // TODO : should change the state of the worker instead so that it doesn't dissapear from supervisor
-            foreach (string deadWorkerId in workers)
-            {
-                await _workersClient.RemoveWorkerAsync(deadWorkerId);
-            }
-
+            IEnumerable<WorkerInstance> activeWorkers = await _workersClient.GetWorkersAsync();
             // Assign the dead workers tasks that are not finished to some other workers
-            foreach (string deadWorkerId in workers)
+            foreach (var task in await _repository.GetUnhandledAsync(activeWorkers.Select(x => x.Id)))
             {
-                // XXX : reassign task in progress ? Atomicity of the task data (database, file, ...) ?
-                IEnumerable<TaskInstance>? tasks = await _repository.GetByWorkerAndStateAsync(
-                    deadWorkerId,
-                    [EnumTaskState.Pending, EnumTaskState.Progress]);
-
-                foreach (TaskInstance task in tasks)
-                    await _assignator.ReassignAsync(task);
+                await _assignator.ReassignAsync(task);
             }
         }
     }

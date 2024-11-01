@@ -8,7 +8,7 @@ namespace Automation.Plugins.Flow
         public async Task<dynamic?> ExecuteAsync(TaskContext context)
         {
             await Task.Delay(5000);
-            return Task.FromResult<dynamic?>(new { Test = "Wow that should be saved." });
+            return new { Test = "Wow that should be saved." };
         }
     }
 }

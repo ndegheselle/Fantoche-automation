@@ -87,19 +87,22 @@ namespace Automation.Realtime.Clients
         }
 
         /// <summary>
-        /// Get all worker IDs that haven't sent a heartbeat within the timeout period
+        /// Remove all dead workers
         /// </summary>
-        /// <returns>List of worker IDs that are considered dead</returns>
-        public async Task<IEnumerable<string>> GetDeadWorkersIdsAsync()
+        /// <returns></returns>
+        public async Task CleanDeadWorkers()
         {
             var db = _connection.GetDatabase();
             var allWorkers = await db.HashGetAllAsync(_hearthbeatDbKey);
             var now = DateTime.UtcNow;
 
-            return allWorkers
+            var deadWorkers = allWorkers
                 .Where(worker => !worker.Value.HasValue ||
                     (now - new DateTime(Convert.ToInt64(worker.Value))) > _timeout)
                 .Select(worker => worker.Name.ToString());
+
+            var removeTask = deadWorkers.Select(RemoveWorkerAsync);
+            await Task.WhenAll(removeTask);
         }
     }
 }

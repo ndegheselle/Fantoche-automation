@@ -15,13 +15,13 @@ namespace Automation.Api.Supervisor.Controllers
     [Route("tasks")]
     public class TasksController : Controller
     {
-        private readonly ILogger _logger;
+        private readonly ILogger<TasksController> _logger;
         private readonly TaskRepository _taskRepo;
         private readonly TaskIntanceRepository _taskInstanceRepo;
         private readonly IMongoDatabase _database;
         private readonly WorkerAssignator _assignator;
 
-        public TasksController(ILogger logger, IMongoDatabase database, RedisConnectionManager redis)
+        public TasksController(ILogger<TasksController> logger, IMongoDatabase database, RedisConnectionManager redis)
         {
             _logger = logger;
             _database = database;

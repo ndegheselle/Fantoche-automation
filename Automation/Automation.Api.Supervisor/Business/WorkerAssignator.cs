@@ -5,12 +5,10 @@ using Automation.Realtime;
 using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
 using Automation.Shared.Data;
-using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace Automation.Api.Supervisor.Business
 {
-
     public class WorkerAssignator
     {
         private readonly TaskIntanceRepository _repository;
@@ -37,8 +35,8 @@ namespace Automation.Api.Supervisor.Business
         }
 
         /// <summary>
-        /// Reassign a task to another worker (for exemple if the current worker crashed).
-        /// The task state will be passed to failed.
+        /// Reassign a task to another worker (for exemple if the current worker crashed). The task state will be passed
+        /// to failed.
         /// </summary>
         /// <param name="task"></param>
         /// <returns></returns>
@@ -54,7 +52,7 @@ namespace Automation.Api.Supervisor.Business
             WorkerInstance selectedWorker = await SelectWorkerAsync(taskInstance);
             taskInstance.WorkerId = selectedWorker.Id;
             await _repository.CreateAsync(taskInstance);
-            _tasksClient.NotifyNewTask(selectedWorker.Id, taskInstance.Id);
+            _tasksClient.QueueTask(selectedWorker.Id, taskInstance.Id);
             return taskInstance;
         }
 
@@ -67,7 +65,8 @@ namespace Automation.Api.Supervisor.Business
         private async Task<WorkerInstance> SelectWorkerAsync(TaskInstance task)
         {
             IEnumerable<WorkerInstance> workers = await _workersClient.GetWorkersAsync();
-            return workers.MinBy(x => x.QueueSize) ?? throw new Exception("No available worker for the task.");
+            return workers.MinBy(async x => await _tasksClient.GetQueueTaskLengthAsync(x.Id)) 
+                ?? throw new Exception("No available worker for the task.");
         }
     }
 }

@@ -3,6 +3,7 @@ using Automation.Realtime.Models;
 using Automation.Server.Shared.Packages;
 using Automation.Worker.Service;
 using DotNetEnv;
+using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
@@ -21,7 +22,6 @@ builder.Services.AddSingleton<WorkerInstance>((services) => new WorkerInstance()
 });
 builder.Services.AddHostedService<Lifecycle>();
 builder.Services.AddHostedService<Worker>();
-
 #region Services
 // Realtime com between supervisor and workers
 string realtimeConnectionString = Environment.GetEnvironmentVariable("REDIS_URI") ??

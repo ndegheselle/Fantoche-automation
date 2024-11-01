@@ -19,7 +19,8 @@ namespace Automation.Dal.Models
 
         public EnumTaskState State { get; set; }
 
-        public DateTime StartDate { get; set; }
+        public DateTime CreateDate { get; set; } = DateTime.Now;
+        public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
 
         public TaskInstance(TaskNode taskNode, TaskContext context)

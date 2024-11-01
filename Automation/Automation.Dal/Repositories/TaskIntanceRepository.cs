@@ -12,14 +12,13 @@ namespace Automation.Dal.Repositories
         {
         }
 
-        public virtual async Task<IEnumerable<TaskInstance>> GetByWorkerAndStateAsync(
-            string workerId,
-            IEnumerable<EnumTaskState> states)
+        public virtual async Task<IEnumerable<TaskInstance>> GetUnhandledAsync(IEnumerable<string> activeWorkersId)
         {
             var filter = Builders<TaskInstance>.Filter
                 .And(
-                    Builders<TaskInstance>.Filter.Eq(x => x.WorkerId, workerId),
-                    Builders<TaskInstance>.Filter.In(x => x.State, states));
+                    Builders<TaskInstance>.Filter.Nin(x => x.WorkerId, activeWorkersId),
+                    // XXX : reassign task in progress ? Atomicity of the task data (database, file, ...) ?
+                    Builders<TaskInstance>.Filter.In(x => x.State, [EnumTaskState.Pending, EnumTaskState.Progress]));
 
             return await _collection.Find(filter).ToListAsync();
         }
