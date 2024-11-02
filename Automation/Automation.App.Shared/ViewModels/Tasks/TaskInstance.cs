@@ -9,7 +9,6 @@ namespace Automation.App.Shared.ViewModels.Tasks
 
         public Guid TaskId { get; set; }
         public TargetedPackage Target { get; set; }
-        public Guid ScopeId { get; set; }
         public string? WorkerId { get; set; }
 
         public TaskContext Context { get; set; }
@@ -17,7 +16,8 @@ namespace Automation.App.Shared.ViewModels.Tasks
 
         public EnumTaskState State { get; set; }
 
-        public DateTime StartDate { get; set; }
+        public DateTime CreateDate { get; set; }
+        public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
     }
 }

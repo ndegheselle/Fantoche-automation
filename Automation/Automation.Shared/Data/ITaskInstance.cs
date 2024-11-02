@@ -14,7 +14,6 @@ namespace Automation.Shared.Data
     {
         public Guid TaskId { get; set; }
         public TargetedPackage Target { get; set; }
-        public Guid ScopeId { get; set; }
         public string? WorkerId { get; set; }
 
         public TaskContext Context { get; set; }

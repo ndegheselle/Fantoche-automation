@@ -1,6 +1,5 @@
 ﻿using Automation.Dal.Models;
-using Automation.Shared;
-using Automation.Shared.Data;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace Automation.Dal.Repositories
@@ -36,24 +35,33 @@ namespace Automation.Dal.Repositories
             return await _collection.Find(e => e.ParentId == scopeId).Project<Scope>(projection).ToListAsync();
         }
 
-        public async override Task<Scope?> GetByIdAsync(Guid id)
+        public override Task<Scope?> GetByIdAsync(Guid id)
+        {
+            return GetByIdAsync(id, true);
+        }
+
+        public async Task<Scope?> GetByIdAsync(Guid id, bool withChildrens)
         {
             var scope = await _collection.Find(e => e.Id == id).FirstOrDefaultAsync();
 
             if (scope == null)
                 return null;
 
-            var taskRepo = new TaskRepository(_database);
+            if (withChildrens)
+            {
+                var taskRepo = new TaskRepository(_database);
 
-            var scopeChildrenTask = GetByScopeAsync(scope.Id);
-            var taskChildrenTask = taskRepo.GetByScopeAsync(scope.Id);
+                var scopeChildrenTask = GetByScopeAsync(scope.Id);
+                var taskChildrenTask = taskRepo.GetByScopeAsync(scope.Id);
 
-            await Task.WhenAll(scopeChildrenTask, taskChildrenTask);
+                await Task.WhenAll(scopeChildrenTask, taskChildrenTask);
 
-            scope.Childrens = [
-                ..await scopeChildrenTask,
+                scope.Childrens = [
+                    ..await scopeChildrenTask,
                 ..await taskChildrenTask
-            ];
+                ];
+            }
+
             return scope;
         }
 
@@ -78,6 +86,25 @@ namespace Automation.Dal.Repositories
             if (task != null)
                 return task;
             return null;
+        }
+
+        // TODO : use GraphLookup instead for a single request
+        public async Task<List<Scope>> GetParentScopesAsync(Guid scopeId)
+        {
+            var scopes = new List<Scope>();
+            var scope = await GetByIdAsync(scopeId, false);
+
+            if (scope != null)
+            {
+                scopes.Add(scope);
+
+                if (scope.ParentId.HasValue)
+                {
+                    scopes.AddRange(await GetParentScopesAsync(scope.ParentId.Value));
+                }
+            }
+
+            return scopes;
         }
     }
 }

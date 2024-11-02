@@ -66,10 +66,10 @@ namespace Automation.Api.Supervisor.Controllers
         }
 
         [HttpGet]
-        [Route("{id}/instances")]
-        public async Task<ListPageWrapper<TaskInstance>> GetInstancesAsync([FromRoute] Guid id, [FromQuery] int page, [FromQuery] int pageSize)
+        [Route("{id}/hierarchy")]
+        public async Task<List<Scope>> GetInstancesAsync([FromRoute] Guid id)
         {
-            return await _taskInstanceRepo.GetByScopeAsync(id, page, pageSize);
+            return await _repository.GetParentScopesAsync(id);
         }
     }
 }

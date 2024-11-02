@@ -30,7 +30,10 @@ namespace Automation.Api.Supervisor.Business
         /// <returns></returns>
         public Task<TaskInstance> AssignAsync(TaskNode task, TaskContext context)
         {
-            TaskInstance taskInstance = new TaskInstance(task, context);
+            if (task.Package == null)
+                throw new ArgumentNullException(nameof(task));
+
+            TaskInstance taskInstance = new TaskInstance(task.Id, task.Package, context);
             return AssignAsync(taskInstance);
         }
 

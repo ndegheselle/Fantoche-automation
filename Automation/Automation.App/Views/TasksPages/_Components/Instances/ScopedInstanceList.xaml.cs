@@ -7,19 +7,19 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace Automation.App.Views.TasksPages.Components
+namespace Automation.App.Views.TasksPages.Components.Instances
 {
     /// <summary>
     /// Logique d'interaction pour TaskInstanceTable.xaml
     /// </summary>
-    public partial class ScopedHistory : UserControl, INotifyPropertyChanged
+    public partial class ScopedInstanceList : UserControl, INotifyPropertyChanged
     {
         // Dependency property for the task id
         public static readonly DependencyProperty TargetIdProperty = DependencyProperty.Register(
             nameof(TargetId),
             typeof(Guid?),
-            typeof(ScopedHistory),
-            new PropertyMetadata(default(Guid), (o, e) => ((ScopedHistory)o).OnScopedChange()));
+            typeof(ScopedInstanceList),
+            new PropertyMetadata(default(Guid), (o, e) => ((ScopedInstanceList)o).OnScopedChange()));
 
         public Guid? TargetId { get { return (Guid?)GetValue(TargetIdProperty); } set { SetValue(TargetIdProperty, value); } }
 
@@ -36,7 +36,7 @@ namespace Automation.App.Views.TasksPages.Components
 
         public ListPageWrapper<TaskInstance> History { get; set; } = new ListPageWrapper<TaskInstance>() { PageSize = 50, Page = 1 };
 
-        public ScopedHistory() {
+        public ScopedInstanceList() {
             _tasksClient = _app.ServiceProvider.GetRequiredService<TasksClient>();
             _scopesClient = _app.ServiceProvider.GetRequiredService<ScopesClient>();
             this.Loaded += ScopedHistory_Loaded;
@@ -62,10 +62,7 @@ namespace Automation.App.Views.TasksPages.Components
             {
                 History = await _tasksClient.GetInstancesAsync(TargetId.Value, pageNumber, capacity);
             }
-            else if (Type == EnumScopedType.Scope)
-            {
-                History = await _scopesClient.GetInstancesAsync(TargetId.Value, pageNumber, capacity);
-            }
+            // TODO : scope instances
         }
     }
 }

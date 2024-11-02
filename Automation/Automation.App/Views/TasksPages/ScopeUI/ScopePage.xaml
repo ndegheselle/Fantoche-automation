@@ -17,15 +17,6 @@
         <TabItem>
             <TabItem.Header>
                 <StackPanel Orientation="Horizontal">
-                    <fonts:Icon Text="{x:Static fonts:IconFont.Clock}" />
-                    <TextBlock Margin="4,0,0,0">History</TextBlock>
-                </StackPanel>
-            </TabItem.Header>
-            <components:ScopedHistory TargetId="{Binding Scope.Id}" Type="Scope" />
-        </TabItem>
-        <TabItem>
-            <TabItem.Header>
-                <StackPanel Orientation="Horizontal">
                     <fonts:Icon Text="{x:Static fonts:IconFont.Gear}" />
                     <TextBlock Margin="4,0,0,0">Settings</TextBlock>
                 </StackPanel>

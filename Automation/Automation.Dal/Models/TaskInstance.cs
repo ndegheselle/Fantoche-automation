@@ -11,7 +11,6 @@ namespace Automation.Dal.Models
 
         public Guid TaskId { get; set; }
         public TargetedPackage Target { get; set; }
-        public Guid ScopeId { get; set; }
         public string? WorkerId { get; set; }
 
         public TaskContext Context { get; set; }
@@ -23,11 +22,10 @@ namespace Automation.Dal.Models
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
 
-        public TaskInstance(TaskNode taskNode, TaskContext context)
+        public TaskInstance(Guid taskId, TargetedPackage target, TaskContext context)
         {
-            TaskId = taskNode.Id;
-            ScopeId = taskNode.ScopeId;
-            Target = taskNode.Package;
+            TaskId = taskId;
+            Target = target;
             Context = context;
         }
     }

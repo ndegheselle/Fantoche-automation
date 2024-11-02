@@ -1,5 +1,4 @@
 ﻿using Automation.Dal.Models;
-using Automation.Plugins.Shared;
 using Automation.Shared.Base;
 using Automation.Shared.Data;
 using MongoDB.Driver;
@@ -23,26 +22,14 @@ namespace Automation.Dal.Repositories
             return await _collection.Find(filter).ToListAsync();
         }
 
-
-        public async Task<ListPageWrapper<TaskInstance>> GetByScopeAsync(Guid scopeId, int page, int pageSize)
-        {
-            var histories = await _collection.Find(e => e.ScopeId == scopeId)
-                .Skip(page * pageSize)
-                .Limit(pageSize)
-                .ToListAsync();
-
-            return new ListPageWrapper<TaskInstance>()
-            {
-                Data = histories,
-                Page = page,
-                PageSize = pageSize,
-                Total = _collection.CountDocuments(x => x.ScopeId == scopeId)
-            };
-        }
-
         public async Task<ListPageWrapper<TaskInstance>> GetByTaskAsync(Guid taskId, int page, int pageSize)
         {
+            // We don't load context and result since it may be quite extensive
+            var projection = Builders<TaskInstance>.Projection
+                .Exclude(s => s.Context)
+                .Exclude(s => s.Result);
             var histories = await _collection.Find(e => e.TaskId == taskId)
+                .Project<TaskInstance>(projection)
                 .Skip(page * pageSize)
                 .Limit(pageSize)
                 .ToListAsync();
