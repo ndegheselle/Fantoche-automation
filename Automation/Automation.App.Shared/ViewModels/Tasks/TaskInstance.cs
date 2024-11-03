@@ -1,10 +1,12 @@
 ﻿using Automation.Plugins.Shared;
 using Automation.Shared.Data;
+using System.ComponentModel;
 
 namespace Automation.App.Shared.ViewModels.Tasks
 {
-    public class TaskInstance : ITaskInstance
+    public class TaskInstance : ITaskInstance, INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler? PropertyChanged;
         public Guid Id { get; set; }
 
         public Guid TaskId { get; set; }

@@ -5,8 +5,70 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Automation.App.Views.TasksPages.Components.Instances"
-    mc:Ignorable="d"
-    d:DesignHeight="450"
-    d:DesignWidth="800">
-    <Grid />
+    xmlns:packageComponents="clr-namespace:Automation.App.Views.PackagesPages.Components"
+    MinWidth="400">
+    <Grid DataContext="{Binding Instance, RelativeSource={RelativeSource AncestorType=local:InstanceDetail}}" Margin="2">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition />
+            <RowDefinition />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel>
+            <TextBlock Margin="0,8,0,4" FontWeight="Bold">Target</TextBlock>
+            <packageComponents:TargetPackageSummary TargetPackage="{Binding Target}" />
+        </StackPanel>
+
+        <Grid Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <TextBlock Margin="0,8,0,4" FontWeight="Bold">Context</TextBlock>
+            <TextBox
+                VerticalContentAlignment="Top"
+                MinHeight="100"
+                Grid.Row="1"
+                IsReadOnly="True"
+                Text="{Binding ContextJson, Mode=OneWay, RelativeSource={RelativeSource AncestorType=local:InstanceDetail}}" />
+        </Grid>
+
+        <Grid Grid.Row="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <TextBlock Margin="0,8,0,4" FontWeight="Bold">Result</TextBlock>
+            <TextBox
+                VerticalContentAlignment="Top"
+                MinHeight="100"
+                Grid.Row="1"
+                IsReadOnly="True"
+                Text="{Binding ResultJson, Mode=OneWay, RelativeSource={RelativeSource AncestorType=local:InstanceDetail}}" />
+        </Grid>
+
+        <UniformGrid
+            Margin="0,4,0,0"
+            Grid.Row="3"
+            Columns="3"
+            Rows="2">
+            <TextBlock FontWeight="Bold">Created</TextBlock>
+            <TextBlock FontWeight="Bold">Started</TextBlock>
+            <TextBlock FontWeight="Bold">Ended</TextBlock>
+
+            <TextBlock
+                FontSize="10"
+                Margin="0,0,4,0"
+                Text="{Binding CreateDate}" />
+            <TextBlock
+                FontSize="10"
+                Margin="0,0,4,0"
+                Text="{Binding StartDate}" />
+            <TextBlock
+                FontSize="10"
+                Margin="0,0,4,0"
+                Text="{Binding EndDate}" />
+        </UniformGrid>
+    </Grid>
 </UserControl>

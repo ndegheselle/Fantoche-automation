@@ -1,6 +1,4 @@
-﻿using Automation.App.Views.PackagesPages.Components;
-using Automation.Shared.Data;
-using Joufflu.Popups;
+﻿using Joufflu.Popups;
 using Joufflu.Shared.Layouts;
 using System.Windows.Controls;
 

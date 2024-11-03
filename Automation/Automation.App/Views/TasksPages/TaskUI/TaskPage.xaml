@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Automation.App.Views.TasksPages.TaskUI"
     xmlns:components="clr-namespace:Automation.App.Views.TasksPages.Components"
+    xmlns:instances="clr-namespace:Automation.App.Views.TasksPages.Components.Instances"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     mc:Ignorable="d">
     <TabControl x:Name="TaskTabControl" DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:TaskPage}}">
@@ -25,7 +26,7 @@
                     <TextBlock Margin="4,0,0,0">History</TextBlock>
                 </StackPanel>
             </TabItem.Header>
-            <components:ScopedHistory TargetId="{Binding Task.Id}" Type="Task" />
+            <instances:ScopedInstanceList TargetId="{Binding Task.Id}" Type="Task" />
         </TabItem>
         <TabItem>
             <TabItem.Header>

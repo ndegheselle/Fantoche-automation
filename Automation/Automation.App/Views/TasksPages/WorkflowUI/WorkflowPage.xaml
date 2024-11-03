@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Automation.App.Views.TasksPages.WorkflowUI"
     xmlns:components="clr-namespace:Automation.App.Views.TasksPages.Components"
+    xmlns:instances="clr-namespace:Automation.App.Views.TasksPages.Components.Instances"
     xmlns:tasks="clr-namespace:Automation.App.Views.TasksPages.TaskUI"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     mc:Ignorable="d">
@@ -18,7 +19,7 @@
                 <tasks:TaskSchedules />
             </TabItem>
             <TabItem Header="History">
-                <components:ScopedHistory TargetId="{Binding Scoped}" />
+                <instances:ScopedInstanceList TargetId="{Binding Task.Id}" Type="Task" />
             </TabItem>
         </TabControl>
         <Button
