@@ -4,7 +4,6 @@ namespace Automation.Dal.Models
 {
     public class TaskNode : ScopedElement, ITaskNode
     {
-        public Guid ScopeId { get; set; }
         public IEnumerable<ITaskConnector> Inputs { get; set; } = [];
         public IEnumerable<ITaskConnector> Outputs { get; set; } = [];
         public TargetedPackage? Package { get; set; }
@@ -17,7 +16,7 @@ namespace Automation.Dal.Models
     public class TaskConnectors : ITaskConnector
     {
         public Guid Id { get; set; }
-        public string Name {get;set;}
+        public string Name {get;set;} = string.Empty;
         public EnumTaskConnectorType Type {get;set;}
         public EnumTaskConnectorDirection Direction {get;set;}
     }

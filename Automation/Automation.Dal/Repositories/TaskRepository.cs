@@ -7,23 +7,37 @@ namespace Automation.Dal.Repositories
     public class TaskRepository : BaseCrudRepository<TaskNode>
     {
         public TaskRepository(IMongoDatabase database) : base(database, "tasks")
-        {}
-
-        public async Task<IEnumerable<TaskNode>> GetByScopeAsync(Guid scopeId)
         {
-            var projection = Builders<TaskNode>.Projection.Include(s => s.Id).Include(s => s.Name);
-            return await _collection.Find(e => e.ScopeId == scopeId).Project<TaskNode>(projection).ToListAsync();
         }
 
-        public async Task<TaskNode?> GetByScopeAndNameAsync(Guid scopeId, string name)
+        public async Task<IEnumerable<TaskNode>> GetByAnyParentScopeAsync(Guid scopeId)
         {
             var projection = Builders<TaskNode>.Projection.Include(s => s.Id).Include(s => s.Name);
-            return await _collection.Find(e => e.ScopeId == scopeId && e.Name == name).Project<TaskNode>(projection).FirstOrDefaultAsync();
+            var filter = Builders<TaskNode>.Filter.AnyEq(x => x.ParentTree, scopeId);
+            return await _collection.Find(filter).Project<TaskNode>(projection).ToListAsync();
         }
 
-        public async Task DeletebyScopeAsync(Guid scopeId)
+        public async Task<IEnumerable<TaskNode>> GetByParentScopeAsync(Guid scopeId)
         {
-            await _collection.DeleteManyAsync(e => e.ScopeId == scopeId);
+            var projection = Builders<TaskNode>.Projection.Include(s => s.Id).Include(s => s.Name);
+            return await _collection.Find(e => e.ParentId == scopeId).Project<TaskNode>(projection).ToListAsync();
+        }
+
+        public async Task<TaskNode?> GetByParentScopeAndNameAsync(Guid scopeId, string name)
+        {
+            var projection = Builders<TaskNode>.Projection.Include(s => s.Id).Include(s => s.Name);
+            return await _collection.Find(e => e.ParentId == scopeId && e.Name == name).Project<TaskNode>(projection).FirstOrDefaultAsync();
+        }
+
+        /// <summary>
+        /// Delete all tasks related child of a scope, whatever how deep they are.
+        /// </summary>
+        /// <param name="scopeId"></param>
+        /// <returns></returns>
+        public async Task DeleteByScopeAsync(Guid scopeId)
+        {
+            var filter = Builders<TaskNode>.Filter.AnyEq(x => x.ParentTree, scopeId);
+            await _collection.DeleteManyAsync(filter); 
         }
     }
 }

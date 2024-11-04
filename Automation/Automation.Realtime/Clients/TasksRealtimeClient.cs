@@ -10,6 +10,10 @@ namespace Automation.Realtime.Clients
     public class TasksRealtimeClient
     {
         private ConnectionMultiplexer _connection;
+        private string _workerNewChannel = "workers:{0}:tasks:new";
+        private string _workerQueueChannel = "workers:{0}:tasks";
+        private string _instanceProgressChannel = "task:instance:{0}:progress";
+        private string _instanceLifecyleChannel = "task:instance:{0}:lifecycle";
 
         public TasksRealtimeClient(RedisConnectionManager manager) { _connection = manager.Connection; }
 
@@ -17,15 +21,15 @@ namespace Automation.Realtime.Clients
         {
             IDatabase db = _connection.GetDatabase();
             ISubscriber sub = _connection.GetSubscriber();
-            await db.ListLeftPushAsync($"worker:{workerId}:tasks", taskId.ToString(), flags: CommandFlags.FireAndForget);
-            var channel = new RedisChannel($"worker:{workerId}:tasks:update", RedisChannel.PatternMode.Literal);
+            await db.ListLeftPushAsync(string.Format(_workerQueueChannel, workerId), taskId.ToString(), flags: CommandFlags.FireAndForget);
+            var channel = new RedisChannel(string.Format(_workerNewChannel, workerId), RedisChannel.PatternMode.Literal);
             sub.Publish(channel, string.Empty);
         }
 
         public async Task<Guid?> DequeueTaskAsync(string workerId)
         {
             IDatabase db = _connection.GetDatabase();
-            var value = await db.ListRightPopAsync($"worker:{workerId}:tasks");
+            var value = await db.ListRightPopAsync(string.Format(_workerQueueChannel, workerId));
 
             if (!value.HasValue)
                 return null;
@@ -35,7 +39,7 @@ namespace Automation.Realtime.Clients
 
         public void SubscribeQueue(string workerId, Action callback)
         {
-            var channel = new RedisChannel($"worker:{workerId}:tasks:update", RedisChannel.PatternMode.Literal);
+            var channel = new RedisChannel(string.Format(_workerNewChannel, workerId), RedisChannel.PatternMode.Literal);
             _connection.GetSubscriber()
                 .Subscribe(
                     channel,
@@ -49,25 +53,25 @@ namespace Automation.Realtime.Clients
         public async Task<long> GetQueueTaskLengthAsync(string workerId)
         {
             IDatabase db = _connection.GetDatabase();
-            return await db.ListLengthAsync($"worker:{workerId}:tasks");
+            return await db.ListLengthAsync(string.Format(_workerQueueChannel, workerId));
         }
 
         public async Task DeleteQueueAsync(string workerId)
         {
             IDatabase db = _connection.GetDatabase();
-            await db.KeyDeleteAsync($"worker:{workerId}:tasks");
+            await db.KeyDeleteAsync(string.Format(_workerQueueChannel, workerId));
         }
 
-        public void Progress(Guid taskId, TaskProgress progress)
+        public void Progress(Guid instanceId, TaskProgress progress)
         {
             ISubscriber sub = _connection.GetSubscriber();
-            var channel = new RedisChannel($"task:{taskId}", RedisChannel.PatternMode.Literal);
+            var channel = new RedisChannel(string.Format(_instanceProgressChannel, instanceId), RedisChannel.PatternMode.Literal);
             sub.Publish(channel, JsonSerializer.Serialize(progress));
         }
 
-        public void SubscribeProgress(Guid taskId, Action<TaskProgress?> callback)
+        public void SubscribeProgress(Guid instanceId, Action<TaskProgress?> callback)
         {
-            var channel = new RedisChannel($"task:{taskId}", RedisChannel.PatternMode.Literal);
+            var channel = new RedisChannel(string.Format(_taskInstanceChannel, instanceId), RedisChannel.PatternMode.Literal);
             _connection.GetSubscriber()
                 .Subscribe(
                     channel,

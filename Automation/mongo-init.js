@@ -15,10 +15,19 @@ db.createCollection("task_instances");
 db.createCollection("scopes");
 db.createCollection("tasks");
 
+db.scopes.createIndex(
+    { parentIds: 1 },
+    { background: true }
+);
+db.tasks.createIndex(
+    { parentIds: 1 },
+    { background: true }
+);
+
 // Root scope
 db.scopes.insertOne({
     _id: UUID("00000000-0000-0000-0000-000000000001"),
-    parentId: null,
+    parentIds: [],
     name: "Root",
     context: {}
 });

@@ -12,10 +12,9 @@
         Out
     }
 
-    public interface ITaskNode : INamed
+    public interface ITaskNode : IScopedElement
     {
         TargetedPackage? Package { get; set; }
-        Guid ScopeId { get; set; }
         IEnumerable<ITaskConnector> Inputs { get; }
         IEnumerable<ITaskConnector> Outputs { get; }
     }

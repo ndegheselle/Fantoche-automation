@@ -7,26 +7,33 @@ namespace Automation.Dal.Repositories
     public class ScopeRepository : BaseCrudRepository<Scope>
     {
         // Root scope have a fixed Id
-        public readonly Guid ROOT_SCOPE_ID = new Guid("00000000-0000-0000-0000-000000000001");
+        public static readonly Guid ROOT_SCOPE_ID = new Guid("00000000-0000-0000-0000-000000000001");
 
         public ScopeRepository(IMongoDatabase database) : base(database, "scopes")
-        {}
-
-        public override Task DeleteAsync(Guid id)
         {
-            return DeleteRecursivelyAsync(id);
         }
 
-        private async Task DeleteRecursivelyAsync(Guid id)
+        /// <summary>
+        /// Delete all tasks and scopes child of a scope, whatever how deep they are.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public override async Task DeleteAsync(Guid id)
         {
-            // Remove subscope
-            foreach (Scope scope in await GetByScopeAsync(id))
-            {
-                await DeleteRecursivelyAsync(scope.Id);
-            }
             TaskRepository taskRepository = new TaskRepository(_database);
-            await taskRepository.DeletebyScopeAsync(id);
-            await base.DeleteAsync(id);
+            await taskRepository.DeleteByScopeAsync(id);
+            await DeleteByScopeAsync(id);
+        }
+
+        /// <summary>
+        /// Delete all scopes child of a scope, whatever how deep they are.
+        /// </summary>
+        /// <param name="scopeId"></param>
+        /// <returns></returns>
+        private async Task DeleteByScopeAsync(Guid scopeId)
+        {
+            var filter = Builders<Scope>.Filter.AnyEq(x => x.ParentTree, scopeId);
+            await _collection.DeleteManyAsync(filter);
         }
 
         public async Task<IEnumerable<Scope>> GetByScopeAsync(Guid scopeId)
@@ -35,10 +42,7 @@ namespace Automation.Dal.Repositories
             return await _collection.Find(e => e.ParentId == scopeId).Project<Scope>(projection).ToListAsync();
         }
 
-        public override Task<Scope?> GetByIdAsync(Guid id)
-        {
-            return GetByIdAsync(id, true);
-        }
+        public override Task<Scope?> GetByIdAsync(Guid id) { return GetByIdAsync(id, true); }
 
         public async Task<Scope?> GetByIdAsync(Guid id, bool withChildrens)
         {
@@ -52,7 +56,7 @@ namespace Automation.Dal.Repositories
                 var taskRepo = new TaskRepository(_database);
 
                 var scopeChildrenTask = GetByScopeAsync(scope.Id);
-                var taskChildrenTask = taskRepo.GetByScopeAsync(scope.Id);
+                var taskChildrenTask = taskRepo.GetByParentScopeAsync(scope.Id);
 
                 await Task.WhenAll(scopeChildrenTask, taskChildrenTask);
 
@@ -75,36 +79,17 @@ namespace Automation.Dal.Repositories
             return rootScope;
         }
 
-        public async Task<ScopedElement?> GetChildByNameAsync(Guid? scopeId, string name)
+        public async Task<ScopedElement?> GetDirectChildByNameAsync(Guid? scopeId, string name)
         {
             var scope = await _collection.Find(e => e.Name == name && e.ParentId == scopeId).FirstOrDefaultAsync();
             if (scope != null)
                 return scope;
 
             var taskRepo = new TaskRepository(_database);
-            var task = await taskRepo.GetByScopeAndNameAsync(scopeId ?? ROOT_SCOPE_ID, name);
+            var task = await taskRepo.GetByParentScopeAndNameAsync(scopeId ?? ROOT_SCOPE_ID, name);
             if (task != null)
                 return task;
             return null;
-        }
-
-        // TODO : use GraphLookup instead for a single request
-        public async Task<List<Scope>> GetParentScopesAsync(Guid scopeId)
-        {
-            var scopes = new List<Scope>();
-            var scope = await GetByIdAsync(scopeId, false);
-
-            if (scope != null)
-            {
-                scopes.Add(scope);
-
-                if (scope.ParentId.HasValue)
-                {
-                    scopes.AddRange(await GetParentScopesAsync(scope.ParentId.Value));
-                }
-            }
-
-            return scopes;
         }
     }
 }

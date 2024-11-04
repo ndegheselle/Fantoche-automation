@@ -23,7 +23,7 @@ namespace Automation.Api.Supervisor.Controllers
         [Route("")]
         public async Task<ActionResult<Guid>> CreateAsync(Scope element)
         {
-            var existingChild = await _repository.GetChildByNameAsync(element.ParentId, element.Name);
+            var existingChild = await _repository.GetChildByNameAsync(element.DirectParentId, element.Name);
 
             if (existingChild != null)
             {
@@ -63,13 +63,6 @@ namespace Automation.Api.Supervisor.Controllers
         public async Task<Scope> GetRootAsync()
         {
             return await _repository.GetRootAsync();
-        }
-
-        [HttpGet]
-        [Route("{id}/hierarchy")]
-        public async Task<List<Scope>> GetInstancesAsync([FromRoute] Guid id)
-        {
-            return await _repository.GetParentScopesAsync(id);
         }
     }
 }

@@ -2,6 +2,7 @@
 using Automation.Shared.Base;
 using Automation.Shared.Data;
 using MongoDB.Driver;
+using System.Threading.Tasks;
 
 namespace Automation.Dal.Repositories
 {
@@ -25,10 +26,8 @@ namespace Automation.Dal.Repositories
         public async Task<ListPageWrapper<TaskInstance>> GetByTaskAsync(Guid taskId, int page, int pageSize)
         {
             // We don't load context and result since it may be quite extensive
-            var projection = Builders<TaskInstance>.Projection
-                .Exclude(s => s.Context)
-                .Exclude(s => s.Result);
-            var histories = await _collection.Find(e => e.TaskId == taskId)
+            var projection = Builders<TaskInstance>.Projection.Exclude(s => s.Context).Exclude(s => s.Results);
+            var instances = await _collection.Find(e => e.TaskId == taskId)
                 .Project<TaskInstance>(projection)
                 .Skip(page * pageSize)
                 .Limit(pageSize)
@@ -36,10 +35,40 @@ namespace Automation.Dal.Repositories
 
             return new ListPageWrapper<TaskInstance>()
             {
-                Data = histories,
+                Data = instances,
                 Page = page,
                 PageSize = pageSize,
                 Total = _collection.CountDocuments(x => x.TaskId == taskId)
+            };
+        }
+
+        /// <summary>
+        /// Get instances of task, whatever how deep they are in the scope.
+        /// </summary>
+        /// <param name="scopeId"></param>
+        /// <param name="page"></param>
+        /// <param name="pageSize"></param>
+        /// <returns></returns>
+        public async Task<ListPageWrapper<TaskInstance>> GetByScopeAsync(Guid scopeId, int page, int pageSize)
+        {
+            TaskRepository taskRepo = new TaskRepository(_database);
+            var tasks = await taskRepo.GetByAnyParentScopeAsync(scopeId);
+
+            var filter = Builders<TaskInstance>.Filter.In(x => x.Id, tasks.Select(x => x.Id));
+            // We don't load context and result since it may be quite extensive
+            var projection = Builders<TaskInstance>.Projection.Exclude(s => s.Context).Exclude(s => s.Results);
+            var instances = await _collection.Find(filter)
+                .Project<TaskInstance>(projection)
+                .Skip(page * pageSize)
+                .Limit(pageSize)
+                .ToListAsync();
+
+            return new ListPageWrapper<TaskInstance>()
+            {
+                Data = instances,
+                Page = page,
+                PageSize = pageSize,
+                Total = _collection.CountDocuments(filter)
             };
         }
     }

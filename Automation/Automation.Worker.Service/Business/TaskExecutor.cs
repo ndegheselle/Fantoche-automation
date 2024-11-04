@@ -28,7 +28,7 @@ namespace Automation.Worker.Service.Business
             try
             {
                 task.Progress = this;
-                instance.Result = await task.ExecuteAsync(_currentInstance.Context);
+                instance.Results = await task.ExecuteAsync(_currentInstance.Context);
                 instance.State = EnumTaskState.Completed;
             }
             catch

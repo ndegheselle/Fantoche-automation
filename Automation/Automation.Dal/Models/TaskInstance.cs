@@ -14,7 +14,7 @@ namespace Automation.Dal.Models
         public string? WorkerId { get; set; }
 
         public TaskContext Context { get; set; }
-        public dynamic? Result { get; set; }
+        public Dictionary<string, object>? Results { get; set; }
 
         public EnumTaskState State { get; set; }
 

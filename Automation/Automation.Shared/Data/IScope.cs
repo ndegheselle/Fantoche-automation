@@ -8,9 +8,14 @@
         Task
     }
 
-    public interface IScope : INamed
+    public interface IScopedElement : INamed
     {
-        Guid? ParentId { get; set; }
+        IEnumerable<Guid> ParentTree { get; set; }
+        EnumScopedType Type { get; set; }
+    }
+
+    public interface IScope : IScopedElement
+    {
         Dictionary<string, string> Context { get; }
         public IList<INamed> Childrens { get; }
     }

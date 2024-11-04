@@ -7,7 +7,6 @@ using Automation.Shared.Base;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using System.Diagnostics;
 
 namespace Automation.Api.Supervisor.Controllers
 {
@@ -33,7 +32,7 @@ namespace Automation.Api.Supervisor.Controllers
         public async Task<ActionResult<Guid>> CreateAsync(TaskNode element)
         {
             var scopeRepository = new ScopeRepository(_database);
-            var existingChild = await scopeRepository.GetChildByNameAsync(element.ScopeId, element.Name);
+            var existingChild = await scopeRepository.GetChildByNameAsync(element.DirectParentId, element.Name);
 
             if (existingChild != null)
             {
@@ -79,14 +78,10 @@ namespace Automation.Api.Supervisor.Controllers
             using var reader = new StreamReader(Request.Body);
             var body = await reader.ReadToEndAsync();
 
-            BsonDocument? bsonDocument = null;
-            if (!string.IsNullOrWhiteSpace(body))
-                bsonDocument = BsonDocument.Parse(body);
-
-            // TODO : get the full task context
+            // TODO : get the full task context from the body
             TaskContext context = new TaskContext()
             {
-                Parameters = bsonDocument
+                Parameters = []
             };
 
             return await _assignator.AssignAsync(task, context);
