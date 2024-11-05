@@ -26,7 +26,7 @@ namespace Automation.Worker.Service
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            WorkerRealtimeClient workerClient = new WorkerRealtimeClient(_redis);
+            WorkersRealtimeClient workerClient = new WorkersRealtimeClient(_redis);
             await workerClient.UpdateWorkerAsync(_instance);
             while (!stoppingToken.IsCancellationRequested)
             {

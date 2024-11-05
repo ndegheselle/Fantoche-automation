@@ -15,13 +15,13 @@ namespace Automation.Api.Supervisor.Business
     {
         private readonly TimeSpan _cleaningInterval = TimeSpan.FromSeconds(30);
         private readonly TaskIntanceRepository _repository;
-        private readonly WorkerRealtimeClient _workersClient;
+        private readonly WorkersRealtimeClient _workersClient;
         private readonly WorkerAssignator _assignator;
 
         public WorkerCleaner(IMongoDatabase database, RedisConnectionManager redis)
         {
             _repository = new TaskIntanceRepository(database);
-            _workersClient = new WorkerRealtimeClient(redis);
+            _workersClient = new WorkersRealtimeClient(redis);
             _assignator = new WorkerAssignator(database, redis);
         }
 

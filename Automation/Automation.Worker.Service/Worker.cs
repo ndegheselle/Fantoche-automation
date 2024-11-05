@@ -16,7 +16,7 @@ namespace Automation.Worker.Service
 
         private readonly WorkerInstance _instance;
         private readonly TaskExecutor _executor;
-        private readonly WorkerRealtimeClient _workerClient;
+        private readonly WorkersRealtimeClient _workerClient;
         private readonly TasksRealtimeClient _taskClient;
 
         private TaskCompletionSource? _waitingForTask;
@@ -30,7 +30,7 @@ namespace Automation.Worker.Service
         {
             _repository = new TaskIntanceRepository(database);
             _executor = new TaskExecutor(redis, packageManagement);
-            _workerClient = new WorkerRealtimeClient(redis);
+            _workerClient = new WorkersRealtimeClient(redis);
             _taskClient = new TasksRealtimeClient(redis);
             _instance = instance;
         }

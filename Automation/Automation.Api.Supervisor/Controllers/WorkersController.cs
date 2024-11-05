@@ -12,11 +12,11 @@ namespace Automation.Api.Supervisor.Controllers
     [Route("workers")]
     public class WorkersController
     {
-        private readonly WorkerRealtimeClient _realtime;
+        private readonly WorkersRealtimeClient _realtime;
 
         public WorkersController(RedisConnectionManager connectionManager)
         {
-            _realtime = new WorkerRealtimeClient(connectionManager);
+            _realtime = new WorkersRealtimeClient(connectionManager);
         }
 
         [HttpGet]

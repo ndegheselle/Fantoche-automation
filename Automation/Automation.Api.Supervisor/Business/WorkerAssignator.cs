@@ -12,13 +12,13 @@ namespace Automation.Api.Supervisor.Business
     public class WorkerAssignator
     {
         private readonly TaskIntanceRepository _repository;
-        private readonly WorkerRealtimeClient _workersClient;
+        private readonly WorkersRealtimeClient _workersClient;
         private readonly TasksRealtimeClient _tasksClient;
 
         public WorkerAssignator(IMongoDatabase database, RedisConnectionManager redis)
         {
             _repository = new TaskIntanceRepository(database);
-            _workersClient = new WorkerRealtimeClient(redis);
+            _workersClient = new WorkersRealtimeClient(redis);
             _tasksClient = new TasksRealtimeClient(redis);
         }
 
