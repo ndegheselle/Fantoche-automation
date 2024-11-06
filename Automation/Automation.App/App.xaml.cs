@@ -46,8 +46,6 @@ namespace Automation.App
             services.AddTransient<ScopesClient>(
                 (provider) => new ScopesClient(provider.GetRequiredService<RestClient>()));
             services.AddTransient<TasksClient>((provider) => new TasksClient(provider.GetRequiredService<RestClient>()));
-            services.AddTransient<WorkflowsClient>(
-                (provider) => new WorkflowsClient(provider.GetRequiredService<RestClient>()));
             services.AddTransient<TaskInstancesClient>(
                 (provider) => new TaskInstancesClient(provider.GetRequiredService<RestClient>()));
             services.AddTransient<PackagesClient>(

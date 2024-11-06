@@ -18,7 +18,7 @@ namespace Automation.App.Shared.ViewModels.Tasks
     [JsonDerivedType(typeof(TaskNode), "task")]
     [JsonDerivedType(typeof(WorkflowNode), "workflow")]
     [JsonDerivedType(typeof(Scope), "scope")]
-    public class ScopedElement : ErrorValidationModel, INamed, INotifyPropertyChanged
+    public class ScopedElement : ErrorValidationModel, IScopedElement, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
@@ -26,6 +26,9 @@ namespace Automation.App.Shared.ViewModels.Tasks
 
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
+        public List<Guid> ParentTree { get; set; } = [];
+        public Guid? ParentId { get; set; }
+
         public EnumScopedType Type { get; set; }
         public EnumScopedTabs FocusOn { get; set; } = EnumScopedTabs.History;
 
@@ -65,12 +68,17 @@ namespace Automation.App.Shared.ViewModels.Tasks
             Parent.IsExpanded = true;
         }
 
+        public void ChangeParent(Scope scope)
+        {
+            Parent = scope;
+            ParentTree = [..scope.ParentTree, scope.Id];
+            ParentId = scope.Id;
+        }
         #endregion
     }
 
     public class Scope : ScopedElement
     {
-        public Guid? ParentId { get; set; }
         public Dictionary<string, string> Context { get; set; } = new Dictionary<string, string>();
         public ObservableCollection<ScopedElement> Childrens { get; set; }
 

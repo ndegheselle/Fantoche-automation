@@ -70,7 +70,6 @@ namespace Automation.App.Views.TasksPages.Components
 
         private readonly App _app = (App)App.Current;
         private readonly ScopesClient _scopeClient;
-        private readonly WorkflowsClient _workflowClient;
         private readonly TasksClient _taskClient;
 
         private IModal _modal => this.GetCurrentModalContainer();
@@ -80,7 +79,6 @@ namespace Automation.App.Views.TasksPages.Components
         {
             _scopeClient = _app.ServiceProvider.GetRequiredService<ScopesClient>();
             _taskClient = _app.ServiceProvider.GetRequiredService<TasksClient>();
-            _workflowClient = _app.ServiceProvider.GetRequiredService<WorkflowsClient>();
             InitializeComponent();
 
             RemoveSelectedCommand = new DelegateCommand(
@@ -114,8 +112,6 @@ namespace Automation.App.Views.TasksPages.Components
             switch (SelectedOrDefault.Type)
             {
                 case EnumScopedType.Workflow:
-                    await _workflowClient.DeleteAsync(SelectedOrDefault.Id);
-                    break;
                 case EnumScopedType.Task:
                     await _taskClient.DeleteAsync(SelectedOrDefault.Id);
                     break;
@@ -132,7 +128,7 @@ namespace Automation.App.Views.TasksPages.Components
                 return;
 
             Scope newScope = new Scope();
-            newScope.ParentId = parentScope.Id;
+            newScope.ChangeParent(parentScope);
             if (await _modal.Show(new ScopeCreateModal(newScope)))
             {
                 Dispatcher.Invoke(
@@ -151,7 +147,7 @@ namespace Automation.App.Views.TasksPages.Components
                 return;
 
             var task = new TaskNode();
-            task.ScopeId = parentScope.Id;
+            task.ChangeParent(parentScope);
             if (await _modal.Show(new TaskCreateModal(task)))
             {
                 parentScope.AddChild(task);
@@ -166,10 +162,10 @@ namespace Automation.App.Views.TasksPages.Components
                 return;
 
             WorkflowNode workflow = new WorkflowNode();
-            workflow.ScopeId = parentScope.Id;
+            workflow.ChangeParent(parentScope);
             if (await _modal.Show(new WorkflowEditModal(workflow)))
             {
-                workflow.Id = await _workflowClient.CreateAsync(workflow);
+                workflow.Id = await _taskClient.CreateAsync(workflow);
                 parentScope.AddChild(workflow);
             }
         }

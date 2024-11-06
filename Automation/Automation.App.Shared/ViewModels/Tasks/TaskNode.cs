@@ -7,7 +7,6 @@ namespace Automation.App.Shared.ViewModels.Tasks
     public class TaskNode : ScopedElement, INotifyPropertyChanged
     {
         public TargetedPackage? Package { get; set; }
-        public Guid ScopeId { get; set; }
         public List<TaskConnector> Inputs { get; set; } = [];
         public List<TaskConnector> Outputs { get; set; } = [];
 

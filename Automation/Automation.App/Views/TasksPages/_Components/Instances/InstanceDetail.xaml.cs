@@ -17,8 +17,8 @@ namespace Automation.App.Views.TasksPages.Components.Instances
         public ModalOptions? Options => new ModalOptions() { Title = "Instance detail" };
         public TaskInstance Instance { get; private set; }
 
-        public string ContextJson { get; set; }
-        public string ResultJson { get; set; }
+        public string ContextJson { get; set; } = "";
+        public string ResultJson { get; set; } = "";
 
         private readonly App _app = (App)App.Current;
         private readonly TaskInstancesClient _instanceClient;
@@ -35,7 +35,7 @@ namespace Automation.App.Views.TasksPages.Components.Instances
         {
             Instance = await _instanceClient.GetByIdAsync(instanceId) ?? throw new ArgumentException("Instance not found");
             ContextJson = JsonSerializer.Serialize(Instance.Context, new JsonSerializerOptions() { WriteIndented = true });
-            ResultJson = JsonSerializer.Serialize(Instance.Result, new JsonSerializerOptions() { WriteIndented = true });
+            ResultJson = JsonSerializer.Serialize(Instance.Results, new JsonSerializerOptions() { WriteIndented = true });
         }
     }
 }
