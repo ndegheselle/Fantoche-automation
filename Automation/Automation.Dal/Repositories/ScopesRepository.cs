@@ -1,15 +1,14 @@
 ﻿using Automation.Dal.Models;
-using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace Automation.Dal.Repositories
 {
-    public class ScopeRepository : BaseCrudRepository<Scope>
+    public class ScopesRepository : BaseCrudRepository<Scope>
     {
         // Root scope have a fixed Id
         public static readonly Guid ROOT_SCOPE_ID = new Guid("00000000-0000-0000-0000-000000000001");
 
-        public ScopeRepository(IMongoDatabase database) : base(database, "scopes")
+        public ScopesRepository(IMongoDatabase database) : base(database, "scopes")
         {
         }
 
@@ -20,9 +19,10 @@ namespace Automation.Dal.Repositories
         /// <returns></returns>
         public override async Task DeleteAsync(Guid id)
         {
-            TaskRepository taskRepository = new TaskRepository(_database);
+            TasksRepository taskRepository = new TasksRepository(_database);
             await taskRepository.DeleteByScopeAsync(id);
             await DeleteByScopeAsync(id);
+            await _collection.DeleteOneAsync(e => e.Id == id);
         }
 
         /// <summary>
@@ -53,7 +53,7 @@ namespace Automation.Dal.Repositories
 
             if (withChildrens)
             {
-                var taskRepo = new TaskRepository(_database);
+                var taskRepo = new TasksRepository(_database);
 
                 var scopeChildrenTask = GetByScopeAsync(scope.Id);
                 var taskChildrenTask = taskRepo.GetByParentScopeAsync(scope.Id);
@@ -85,7 +85,7 @@ namespace Automation.Dal.Repositories
             if (scope != null)
                 return scope;
 
-            var taskRepo = new TaskRepository(_database);
+            var taskRepo = new TasksRepository(_database);
             var task = await taskRepo.GetByParentScopeAndNameAsync(scopeId ?? ROOT_SCOPE_ID, name);
             if (task != null)
                 return task;

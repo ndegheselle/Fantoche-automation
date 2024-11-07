@@ -14,9 +14,9 @@ namespace Automation.Api.Supervisor.Controllers
     {
         private readonly WorkersRealtimeClient _realtime;
 
-        public WorkersController(RedisConnectionManager connectionManager)
+        public WorkersController(RedisConnectionManager redis)
         {
-            _realtime = new WorkersRealtimeClient(connectionManager);
+            _realtime = new WorkersRealtimeClient(redis.Connection);
         }
 
         [HttpGet]

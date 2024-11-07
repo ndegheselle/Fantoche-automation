@@ -5,7 +5,6 @@ using Automation.Plugins.Shared;
 using Automation.Realtime;
 using Automation.Shared.Base;
 using Microsoft.AspNetCore.Mvc;
-using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace Automation.Api.Supervisor.Controllers
@@ -14,16 +13,16 @@ namespace Automation.Api.Supervisor.Controllers
     [Route("tasks")]
     public class TasksController : Controller
     {
-        private readonly TaskRepository _taskRepo;
-        private readonly TaskIntanceRepository _taskInstanceRepo;
+        private readonly TasksRepository _taskRepo;
+        private readonly TaskIntancesRepository _taskInstanceRepo;
         private readonly IMongoDatabase _database;
         private readonly WorkerAssignator _assignator;
 
         public TasksController(IMongoDatabase database, RedisConnectionManager redis)
         {
             _database = database;
-            _taskRepo = new TaskRepository(database);
-            _taskInstanceRepo = new TaskIntanceRepository(database);
+            _taskRepo = new TasksRepository(database);
+            _taskInstanceRepo = new TaskIntancesRepository(database);
             _assignator = new WorkerAssignator(database, redis);
         }
 
@@ -31,9 +30,17 @@ namespace Automation.Api.Supervisor.Controllers
         [Route("")]
         public async Task<ActionResult<Guid>> CreateAsync(TaskNode element)
         {
-            var scopeRepository = new ScopeRepository(_database);
-            var existingChild = await scopeRepository.GetChildByNameAsync(element.DirectParentId, element.Name);
+            if (element.ParentId == null)
+            {
+                return BadRequest(new Dictionary<string, string[]>()
+                {
+                    {nameof(TaskNode.Name), [$"A task cannot be created without a parent."] }
+                });
+            }
 
+            var scopeRepository = new ScopesRepository(_database);
+            var existingChild = await scopeRepository.GetDirectChildByNameAsync(element.ParentId, element.Name);
+            
             if (existingChild != null)
             {
                 return BadRequest(new Dictionary<string, string[]>()
@@ -42,6 +49,16 @@ namespace Automation.Api.Supervisor.Controllers
                 });
             }
 
+            var scope = await scopeRepository.GetByIdAsync(element.ParentId.Value);
+            if (scope == null)
+            {
+                return BadRequest(new Dictionary<string, string[]>()
+                {
+                    {nameof(TaskNode.Name), [$"The parent id {element.ParentId} is invalid."] }
+                });
+            }
+
+            element.ParentTree = [.. scope.ParentTree, scope.Id];
             return await _taskRepo.CreateAsync(element);
         }
 

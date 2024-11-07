@@ -19,12 +19,10 @@ namespace Automation.Realtime.Clients
         /// </summary>
         /// <param name="id"></param>
         /// <param name="data"></param>
-        public void Notify(Guid id, T data)
+        public void Notify(T data)
         {
             ISubscriber sub = _connection.GetSubscriber();
-            var channel = new RedisChannel(
-                string.Format(_publishChannel, id),
-                RedisChannel.PatternMode.Literal);
+            var channel = new RedisChannel(_publishChannel, RedisChannel.PatternMode.Literal);
             sub.Publish(channel, JsonSerializer.Serialize(data));
         }
 
@@ -33,11 +31,9 @@ namespace Automation.Realtime.Clients
         /// </summary>
         /// <param name="id"></param>
         /// <param name="callback"></param>
-        public void Subscribe(Guid id, Action<T?> callback)
+        public void Subscribe(Action<T?> callback)
         {
-            var channel = new RedisChannel(
-                string.Format(_publishChannel, id),
-                RedisChannel.PatternMode.Literal);
+            var channel = new RedisChannel(_publishChannel, RedisChannel.PatternMode.Literal);
             _connection.GetSubscriber()
                 .Subscribe(
                     channel,

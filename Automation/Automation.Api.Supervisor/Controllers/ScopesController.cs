@@ -10,21 +10,28 @@ namespace Automation.Api.Supervisor.Controllers
     [Route("scopes")]
     public class ScopesController : Controller
     {
-        private readonly ScopeRepository _repository;
-        private readonly TaskIntanceRepository _taskInstanceRepo;
+        private readonly ScopesRepository _repository;
+        private readonly TaskIntancesRepository _taskInstanceRepo;
 
         public ScopesController(IMongoDatabase database)
         {
-            _repository = new ScopeRepository(database);
-            _taskInstanceRepo = new TaskIntanceRepository(database);
+            _repository = new ScopesRepository(database);
+            _taskInstanceRepo = new TaskIntancesRepository(database);
         }
 
         [HttpPost]
         [Route("")]
         public async Task<ActionResult<Guid>> CreateAsync(Scope element)
         {
-            var existingChild = await _repository.GetChildByNameAsync(element.DirectParentId, element.Name);
+            if (element.ParentId == null)
+            {
+                return BadRequest(new Dictionary<string, string[]>()
+                {
+                    {nameof(TaskNode.Name), [$"A scope cannot be created without a parent."] }
+                });
+            }
 
+            var existingChild = await _repository.GetDirectChildByNameAsync(element.ParentId, element.Name);
             if (existingChild != null)
             {
                 // XXX : if need more info can also use return ValidationProblem(new ValidationProblemDetails());
@@ -34,6 +41,16 @@ namespace Automation.Api.Supervisor.Controllers
                 });
             }
 
+            var scope = await _repository.GetByIdAsync(element.ParentId.Value);
+            if (scope == null)
+            {
+                return BadRequest(new Dictionary<string, string[]>()
+                {
+                    {nameof(TaskNode.Name), [$"The parent id {element.ParentId} is invalid."] }
+                });
+            }
+
+            element.ParentTree = [..scope.ParentTree, scope.Id];
             return await _repository.CreateAsync(element);
         }
 

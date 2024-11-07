@@ -15,11 +15,11 @@ namespace Automation.Api.Supervisor.Controllers
     [Route("instances")]
     public class TasksInstancesController : Controller
     {
-        private readonly TaskIntanceRepository _taskInstanceRepo;
+        private readonly TaskIntancesRepository _taskInstanceRepo;
 
         public TasksInstancesController(IMongoDatabase database)
         {
-            _taskInstanceRepo = new TaskIntanceRepository(database);
+            _taskInstanceRepo = new TaskIntancesRepository(database);
         }
 
         [HttpGet]

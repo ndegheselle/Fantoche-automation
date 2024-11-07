@@ -13,7 +13,7 @@ namespace Automation.Dal.Models
         [BsonId]
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
-        public IEnumerable<Guid> ParentTree { get; set; } = [];
+        public List<Guid> ParentTree { get; set; } = [];
         public Guid? ParentId { get; set; }
 
         [BsonIgnore]

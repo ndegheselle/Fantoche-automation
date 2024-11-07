@@ -65,9 +65,9 @@ namespace Automation.Realtime.Clients
     {
         private readonly WorkerClientOptions _options;
 
-        public WorkersRealtimeClient(RedisConnectionManager manager)
+        public WorkersRealtimeClient(ConnectionMultiplexer connection)
         {
-            _options = new WorkerClientOptions(manager.Connection);
+            _options = new WorkerClientOptions(connection);
         }
 
         public WorkerRealtimeClient ByWorker(string workerId) => new WorkerRealtimeClient(_options, workerId);

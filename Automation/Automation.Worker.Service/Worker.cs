@@ -12,12 +12,11 @@ namespace Automation.Worker.Service
 {
     public class Worker : BackgroundService
     {
-        private readonly TaskIntanceRepository _repository;
+        private readonly TaskIntancesRepository _repository;
 
         private readonly WorkerInstance _instance;
         private readonly TaskExecutor _executor;
-        private readonly WorkersRealtimeClient _workerClient;
-        private readonly TasksRealtimeClient _taskClient;
+        private readonly WorkerRealtimeClient _workerClient;
 
         private TaskCompletionSource? _waitingForTask;
 
@@ -28,16 +27,15 @@ namespace Automation.Worker.Service
             RedisConnectionManager redis,
             IPackageManagement packageManagement)
         {
-            _repository = new TaskIntanceRepository(database);
-            _executor = new TaskExecutor(redis, packageManagement);
-            _workerClient = new WorkersRealtimeClient(redis);
-            _taskClient = new TasksRealtimeClient(redis);
             _instance = instance;
+            _repository = new TaskIntancesRepository(database);
+            _executor = new TaskExecutor(redis.Connection, packageManagement);
+            _workerClient = new WorkersRealtimeClient(redis.Connection).ByWorker(_instance.Id);
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _taskClient.SubscribeQueue(_instance.Id, () => 
+            _workerClient.Tasks.SubscribeQueue(() => 
                 _waitingForTask?.SetResult()
             );
             while (!stoppingToken.IsCancellationRequested)
@@ -46,7 +44,7 @@ namespace Automation.Worker.Service
                 Guid? taskId;
                 do
                 {
-                    taskId = await _taskClient.DequeueTaskAsync(_instance.Id);
+                    taskId = await _workerClient.Tasks.DequeueAsync();
                     if (taskId != null)
                     {
                         await Execute(taskId.Value);

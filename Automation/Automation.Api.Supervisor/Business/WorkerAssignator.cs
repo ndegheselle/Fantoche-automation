@@ -11,15 +11,13 @@ namespace Automation.Api.Supervisor.Business
 {
     public class WorkerAssignator
     {
-        private readonly TaskIntanceRepository _repository;
+        private readonly TaskIntancesRepository _repository;
         private readonly WorkersRealtimeClient _workersClient;
-        private readonly TasksRealtimeClient _tasksClient;
 
         public WorkerAssignator(IMongoDatabase database, RedisConnectionManager redis)
         {
-            _repository = new TaskIntanceRepository(database);
-            _workersClient = new WorkersRealtimeClient(redis);
-            _tasksClient = new TasksRealtimeClient(redis);
+            _repository = new TaskIntancesRepository(database);
+            _workersClient = new WorkersRealtimeClient(redis.Connection);
         }
 
         /// <summary>
@@ -55,7 +53,7 @@ namespace Automation.Api.Supervisor.Business
             WorkerInstance selectedWorker = await SelectWorkerAsync(taskInstance);
             taskInstance.WorkerId = selectedWorker.Id;
             await _repository.CreateAsync(taskInstance);
-            _tasksClient.QueueTask(selectedWorker.Id, taskInstance.Id);
+            _workersClient.ByWorker(selectedWorker.Id).Tasks.QueueAsync(taskInstance.Id);
             return taskInstance;
         }
 
@@ -68,7 +66,7 @@ namespace Automation.Api.Supervisor.Business
         private async Task<WorkerInstance> SelectWorkerAsync(TaskInstance task)
         {
             IEnumerable<WorkerInstance> workers = await _workersClient.GetWorkersAsync();
-            return workers.MinBy(async x => await _tasksClient.GetQueueTaskLengthAsync(x.Id)) 
+            return workers.MinBy(async x => await _workersClient.ByWorker(x.Id).Tasks.GetQueueLengthAsync()) 
                 ?? throw new Exception("No available worker for the task.");
         }
     }

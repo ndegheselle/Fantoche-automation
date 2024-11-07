@@ -1,11 +1,6 @@
-using Automation.Dal.Models;
-using Automation.Dal.Repositories;
 using Automation.Realtime;
 using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
-using Automation.Shared.Data;
-using Automation.Worker.Service.Business;
-using MongoDB.Driver;
 
 namespace Automation.Worker.Service
 {
@@ -26,14 +21,14 @@ namespace Automation.Worker.Service
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            WorkersRealtimeClient workerClient = new WorkersRealtimeClient(_redis);
-            await workerClient.UpdateWorkerAsync(_instance);
+            WorkersRealtimeClient workersClient = new WorkersRealtimeClient(_redis.Connection);
+            await workersClient.UpdateWorkerAsync(_instance);
             while (!stoppingToken.IsCancellationRequested)
             {
-                await workerClient.UpdateHeartbeatAsync(_instance.Id);
+                await workersClient.ByWorker(_instance.Id).UpdateHeartbeatAsync();
                 await Task.Delay(_heartbeatInterval, stoppingToken);
             }
-            await workerClient.RemoveWorkerAsync(_instance.Id);
+            await workersClient.RemoveWorkerAsync(_instance.Id);
         }
     }
 }

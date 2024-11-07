@@ -1,12 +1,11 @@
 ﻿using Automation.Dal.Models;
-using Automation.Shared;
 using MongoDB.Driver;
 
 namespace Automation.Dal.Repositories
 {
-    public class TaskRepository : BaseCrudRepository<TaskNode>
+    public class TasksRepository : BaseCrudRepository<TaskNode>
     {
-        public TaskRepository(IMongoDatabase database) : base(database, "tasks")
+        public TasksRepository(IMongoDatabase database) : base(database, "tasks")
         {
         }
 

@@ -10,7 +10,8 @@
 
     public interface IScopedElement : INamed
     {
-        IEnumerable<Guid> ParentTree { get; set; }
+        List<Guid> ParentTree { get; set; }
+        Guid? ParentId { get; set; }
         EnumScopedType Type { get; set; }
     }
 

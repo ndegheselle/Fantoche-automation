@@ -2,13 +2,12 @@
 using Automation.Shared.Base;
 using Automation.Shared.Data;
 using MongoDB.Driver;
-using System.Threading.Tasks;
 
 namespace Automation.Dal.Repositories
 {
-    public class TaskIntanceRepository : BaseCrudRepository<TaskInstance>
+    public class TaskIntancesRepository : BaseCrudRepository<TaskInstance>
     {
-        public TaskIntanceRepository(IMongoDatabase database) : base(database, "task_instances")
+        public TaskIntancesRepository(IMongoDatabase database) : base(database, "task_instances")
         {
         }
 
@@ -51,7 +50,7 @@ namespace Automation.Dal.Repositories
         /// <returns></returns>
         public async Task<ListPageWrapper<TaskInstance>> GetByScopeAsync(Guid scopeId, int page, int pageSize)
         {
-            TaskRepository taskRepo = new TaskRepository(_database);
+            TasksRepository taskRepo = new TasksRepository(_database);
             var tasks = await taskRepo.GetByAnyParentScopeAsync(scopeId);
 
             var filter = Builders<TaskInstance>.Filter.In(x => x.Id, tasks.Select(x => x.Id));
