@@ -50,11 +50,14 @@ namespace Automation.App.Shared.ApiClients
 
             if (result.StatusCode == System.Net.HttpStatusCode.BadRequest)
             {
+                if (string.IsNullOrEmpty(result.Content))
+                    throw new ValidationException(null);
+
                 var validationResult = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(result.Content);
                 throw new ValidationException(validationResult);
             }
 
-            return result.Data;
+            return result.Data ?? throw new Exception("Unknow API result format.");
         }
 
         public async Task<PackageInfos> CreatePackageVersionAsync(string id, string filePath)
@@ -70,10 +73,13 @@ namespace Automation.App.Shared.ApiClients
 
             if (result.StatusCode == System.Net.HttpStatusCode.BadRequest)
             {
+                if (string.IsNullOrEmpty(result.Content))
+                    throw new ValidationException(null);
+
                 var validationResult = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(result.Content);
                 throw new ValidationException(validationResult);
             }
-            return result.Data;
+            return result.Data ?? throw new Exception("Unknow API result format.");
         }
 
 

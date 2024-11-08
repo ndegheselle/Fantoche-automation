@@ -15,7 +15,16 @@ namespace Automation.App
     public partial class App : Application
     {
         public static new App Current => (App)Application.Current;
-        public IServiceProvider ServiceProvider { get; private set; }
+
+        private IServiceProvider? _serviceProvider;
+        public IServiceProvider ServiceProvider
+        {
+            get {
+                if (_serviceProvider == null)
+                    _serviceProvider = ConfigureServices(new ServiceCollection());
+                return _serviceProvider;
+            }
+        }
 
         protected override void OnStartup(StartupEventArgs e)
         {
@@ -23,9 +32,6 @@ namespace Automation.App
             this.DispatcherUnhandledException += App_DispatcherUnhandledException;
             // Handle exceptions from background threads
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-
-            ServiceCollection services = new ServiceCollection();
-            ServiceProvider = ConfigureServices(services);
 
             // Starting main window
             MainWindow mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
@@ -37,7 +43,7 @@ namespace Automation.App
         /// </summary>
         /// <param name="services"></param>
         /// <returns></returns>
-        private IServiceProvider ConfigureServices(ServiceCollection services)
+        private static IServiceProvider ConfigureServices(ServiceCollection services)
         {
             services.AddTransient<MainWindow>();
             services.AddSingleton<ParametersViewModel>();

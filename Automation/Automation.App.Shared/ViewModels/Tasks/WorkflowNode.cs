@@ -43,7 +43,7 @@ namespace Automation.App.Shared.ViewModels.Tasks
     public class LinkedNode : ILinkedNode
     {
         public Guid Id { get; set; }
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
         public Point Position { get; set; }
         System.Drawing.Point ILinkedNode.Position
         {
@@ -60,19 +60,17 @@ namespace Automation.App.Shared.ViewModels.Tasks
     public class RelatedTaskNode : LinkedNode
     {
         public new string Name => Node.Name;
-        public TaskNode Node { get; set; }
+        public TaskNode Node { get; set; } = new TaskNode();
     }
 
     public class TaskConnection : ITaskConnection
     {
         public Guid ParentId { get; set; }
-
         public Guid SourceId { get; set; }
-
         public Guid TargetId { get; set; }
 
-        public TaskConnector Source { get; set; }
-        public TaskConnector Target { get; set; }
+        public TaskConnector Source { get; set; } = new TaskConnector();
+        public TaskConnector Target { get; set; } = new TaskConnector();
 
         public TaskConnection()
         {}

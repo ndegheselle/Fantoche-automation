@@ -8,7 +8,7 @@ using Joufflu.Popups;
 using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;
 using System.IO;
-using System.IO.Packaging;
+using System.Runtime.CompilerServices;
 using System.Windows.Controls;
 
 namespace Automation.App.Views.PackagesPages.Components
@@ -18,9 +18,14 @@ namespace Automation.App.Views.PackagesPages.Components
     /// </summary>
     public class PackageCreateModal : FilePickerModal, IModalContentValidation, INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler? PropertyChanged;
+        private void NotifyPropertyChanged([CallerMemberName] string? propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
         private readonly App _app = App.Current;
         private readonly PackagesClient _packagesClient;
-        public event PropertyChangedEventHandler? PropertyChanged;
 
         public PackageInfos? Package { get; set; }
 
@@ -94,12 +99,14 @@ namespace Automation.App.Views.PackagesPages.Components
             LoadVersions();
         }
 
-        private async Task LoadVersions()
+        private async void LoadVersions()
         {
             Versions = await _packagesClient.GetVersionsAync(Package.Id);
+            SelectedVersion = Versions.First();
+            Package.Version = SelectedVersion;
         }
 
-        private async Task LoadClasses()
+        private async void LoadClasses()
         {
             PackageClasses = await _packagesClient.GetClassesAsync(Package.Id, SelectedVersion);
         }
@@ -115,9 +122,9 @@ namespace Automation.App.Views.PackagesPages.Components
             }
         }
 
-        private async void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            await LoadClasses();
+            LoadClasses();
         }
 
         private async void ButtonRemove_Click(object sender, System.Windows.RoutedEventArgs e)
@@ -130,10 +137,7 @@ namespace Automation.App.Views.PackagesPages.Components
                 return;
 
             await _packagesClient.RemoveFromVersionAsync(Package.Id, SelectedVersion);
-            await LoadVersions();
-
-            SelectedVersion = Versions.First();
-            Package.Version = SelectedVersion;
+            LoadVersions();
         }
 
         private void ButtonSelect_Click(object sender, System.Windows.RoutedEventArgs e)

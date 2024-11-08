@@ -4,6 +4,7 @@ using Automation.Shared.Data;
 using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;
 using System.Drawing;
+using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using Usuel.Shared;
 
@@ -14,6 +15,11 @@ namespace Automation.App.ViewModels
         public const uint GRID_DEFAULT_SIZE = 20;
 
         public event PropertyChangedEventHandler? PropertyChanged;
+        private void NotifyPropertyChanged([CallerMemberName] string? propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
         public event Action<string>? InvalidConnection;
 
         public List<LinkedNode> SelectedNodes { get; set; } = [];

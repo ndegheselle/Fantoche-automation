@@ -100,7 +100,7 @@ namespace Automation.App.Views.TasksPages.WorkflowUI
         }
         #endregion
 
-        private async void DeleteSelectedNodes()
+        private void DeleteSelectedNodes()
         {
             if (MessageBox.Show($"Are you sure you want to delete these {Editor.SelectedItems?.Count} nodes ?",
                 "Confirmation", AdonisUI.Controls.MessageBoxButton.YesNo) != AdonisUI.Controls.MessageBoxResult.Yes)

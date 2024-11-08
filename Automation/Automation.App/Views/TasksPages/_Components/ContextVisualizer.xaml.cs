@@ -6,9 +6,9 @@ using System.Windows.Controls;
 namespace Automation.App.Views.TasksPages.Components
 {
     public class ContextValue
-    { 
-        public Dictionary<string, string> OriginContext { get; set; }
-        public string DictionaryKey { get; set; }
+    {
+        public Dictionary<string, string> OriginContext { get; set; } = [];
+        public string DictionaryKey { get; set; } = string.Empty;
         public string Key
         {
             get => DictionaryKey;
@@ -59,7 +59,7 @@ namespace Automation.App.Views.TasksPages.Components
 
             ContextList.CollectionChanged += (o, e) =>
             {
-                if (e.Action == NotifyCollectionChangedAction.Remove)
+                if (e.Action == NotifyCollectionChangedAction.Remove && e.OldItems != null)
                 {
                     foreach (ContextValue item in e.OldItems)
                     {

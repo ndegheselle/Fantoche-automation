@@ -19,13 +19,13 @@ namespace Automation.App.Shared.ViewModels.Tasks
     public class TaskConnector : ITaskConnector
     {
         public Guid Id { get; set; }
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
         public Guid ParentId { get; set; }
         public EnumTaskConnectorType Type { get; set; }
         public EnumTaskConnectorDirection Direction { get; set; }
 
         // Ui specifics
-        public TaskNode Parent { get; set; }
+        public TaskNode Parent { get; set; } = new TaskNode();
         public bool IsConnected { get; set; }
         public Point Anchor { get; set; }
     }

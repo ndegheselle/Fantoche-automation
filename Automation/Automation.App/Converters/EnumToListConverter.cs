@@ -7,7 +7,7 @@ namespace Automation.App.Converters
     /// </summary>
     public class EnumToListConverter : IValueConverter
     {
-        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        public object? Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
             if (value == null)
                 return null;
@@ -16,18 +16,20 @@ namespace Automation.App.Converters
             if (!enumType.IsEnum)
                 throw new ArgumentException("value must be an enumerated type");
 
-            var values = Enum.GetValues(enumType);
+            Array values = Enum.GetValues(enumType);
             var list = new List<EnumItem>();
 
             foreach (var item in values)
             {
-                var name = Enum.GetName(enumType, item);
-                var description = name;
-                var field = enumType.GetField(name);
-                var attr = (System.ComponentModel.DescriptionAttribute)Attribute.GetCustomAttribute(field, typeof(System.ComponentModel.DescriptionAttribute));
-                if (attr != null)
-                    description = attr.Description;
-                list.Add(new EnumItem() { Value = (Enum)item, Name = description ?? name });
+                string? name = Enum.GetName(enumType, item);
+                if (item == null || name == null)
+                    break;
+
+                System.Reflection.FieldInfo? field = enumType.GetField(name);
+                System.ComponentModel.DescriptionAttribute? attr = null;
+                if (field != null)
+                    attr = Attribute.GetCustomAttribute(field, typeof(System.ComponentModel.DescriptionAttribute)) as System.ComponentModel.DescriptionAttribute;
+                list.Add(new EnumItem() { Value = (Enum)item, Name = attr?.Description ?? name });
             }
 
             return list;
@@ -39,7 +41,7 @@ namespace Automation.App.Converters
         }
     }
 
-    public class EnumItem
+    public struct EnumItem
     {
         public Enum Value { get; set; }
         public string Name { get; set; }

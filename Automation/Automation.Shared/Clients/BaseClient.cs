@@ -35,6 +35,8 @@ namespace Automation.Shared.Clients
             var result = await _client.ExecutePostAsync<Guid>(new RestRequest($"{_routeBase}").AddBody(element));
             if (result.StatusCode == System.Net.HttpStatusCode.BadRequest)
             {
+                if (string.IsNullOrEmpty(result.Content))
+                    throw new ValidationException(null);
                 var validationResult = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(result.Content);
                 throw new ValidationException(validationResult);
             }

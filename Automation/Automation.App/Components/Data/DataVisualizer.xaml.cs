@@ -59,7 +59,7 @@ namespace Automation.App.Components.Data
             }
             else
             {
-                DataValue value = new DataValue(key, item.ToString());
+                DataValue value = new DataValue(key, item?.ToString());
                 return value;
             }
         }
