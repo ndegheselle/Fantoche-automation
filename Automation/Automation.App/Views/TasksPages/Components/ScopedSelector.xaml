@@ -13,16 +13,6 @@
     <UserControl.Resources>
         <ContextMenu x:Key="AddContextMenu" DataContext="{Binding PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">
             <MenuItem Header="Add">
-                <MenuItem.Style>
-                    <Style TargetType="MenuItem">
-                        <Setter Property="Visibility" Value="Collapsed" />
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding SelectedOrDefault.Type}" Value="Scope">
-                                <Setter Property="Visibility" Value="Visible" />
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </MenuItem.Style>
                 <MenuItem.Icon>
                     <fonts:Icon Text="{x:Static fonts:IconFont.Plus}" />
                 </MenuItem.Icon>

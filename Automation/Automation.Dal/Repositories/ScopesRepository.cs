@@ -36,10 +36,30 @@ namespace Automation.Dal.Repositories
             await _collection.DeleteManyAsync(filter);
         }
 
-        public async Task<IEnumerable<Scope>> GetByScopeAsync(Guid scopeId)
+        public async Task<IEnumerable<Scope>> GetByScopeAsync(Guid scopeId, bool withChildrens = true)
         {
             var projection = Builders<Scope>.Projection.Include(s => s.Id).Include(s => s.Name);
-            return await _collection.Find(e => e.ParentId == scopeId).Project<Scope>(projection).ToListAsync();
+            var scopes = await _collection.Find(e => e.ParentId == scopeId).Project<Scope>(projection).ToListAsync();
+
+            if (!withChildrens)
+                return scopes;
+
+            // Load childrens of the scopes
+            var taskRepo = new TasksRepository(_database);
+            foreach (var scope in scopes)
+            {
+                var scopeChildrenTask = GetByScopeAsync(scope.Id, false);
+                var taskChildrenTask = taskRepo.GetByParentScopeAsync(scope.Id);
+
+                await Task.WhenAll(scopeChildrenTask, taskChildrenTask);
+
+                scope.Childrens = [
+                    ..await scopeChildrenTask,
+                    ..await taskChildrenTask
+                ];
+            }
+
+            return scopes;
         }
 
         public override Task<Scope?> GetByIdAsync(Guid id) { return GetByIdAsync(id, true); }
@@ -55,14 +75,14 @@ namespace Automation.Dal.Repositories
             {
                 var taskRepo = new TasksRepository(_database);
 
-                var scopeChildrenTask = GetByScopeAsync(scope.Id);
+                var scopeChildrenTask = GetByScopeAsync(scope.Id, false);
                 var taskChildrenTask = taskRepo.GetByParentScopeAsync(scope.Id);
 
                 await Task.WhenAll(scopeChildrenTask, taskChildrenTask);
 
                 scope.Childrens = [
                     ..await scopeChildrenTask,
-                ..await taskChildrenTask
+                    ..await taskChildrenTask
                 ];
             }
 

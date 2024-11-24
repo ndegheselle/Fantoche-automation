@@ -5,32 +5,40 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Automation.App.Views.TasksPages.TaskUI"
-    xmlns:instances="clr-namespace:Automation.App.Views.TasksPages.Components.Instances"
+    xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     mc:Ignorable="d"
     d:DesignHeight="450"
     d:DesignWidth="800">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition />
-            <RowDefinition Height="100" />
-            <RowDefinition />
+            <RowDefinition Height="120" />
         </Grid.RowDefinitions>
-        <GroupBox Header="Schedules">
-            <TextBlock>All scheduled execution</TextBlock>
+
+        <GroupBox Padding="2">
+            <GroupBox.Header>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition />
+                        <ColumnDefinition Width="auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock VerticalAlignment="Center" Margin="4,0,0,0">Schedules</TextBlock>
+                    <StackPanel Orientation="Horizontal" Grid.Column="1">
+                        <Button Padding="8,6" Click="ButtonExecute_Click">
+                            <fonts:Icon Text="{x:Static fonts:IconFont.Play}" VerticalAlignment="Center" />
+                        </Button>
+                        <Button Padding="8,6">
+                            <fonts:Icon Text="{x:Static fonts:IconFont.Plus}" VerticalAlignment="Center" />
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </GroupBox.Header>
         </GroupBox>
 
         <GroupBox
-            Grid.Row="1"
             Header="Timeline"
-            Margin="0,4,0,0">
-            <TextBlock>Graph to display the execution of the task with oxyplot</TextBlock>
-        </GroupBox>
-
-        <GroupBox
-            Header="History"
-            Grid.Row="2"
-            Margin="0,4,0,0">
-            <instances:ScopedInstanceList TargetId="{Binding Task.Id}" Type="Task" />
-        </GroupBox>
+            Grid.Row="1"
+            Margin="0,4,0,0" />
     </Grid>
 </UserControl>

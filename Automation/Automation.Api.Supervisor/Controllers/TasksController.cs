@@ -96,10 +96,7 @@ namespace Automation.Api.Supervisor.Controllers
             var body = await reader.ReadToEndAsync();
 
             // TODO : get the full task context from the body
-            TaskContext context = new TaskContext()
-            {
-                Parameters = []
-            };
+            TaskContext context = new TaskContext();
 
             return await _assignator.AssignAsync(task, context);
         }

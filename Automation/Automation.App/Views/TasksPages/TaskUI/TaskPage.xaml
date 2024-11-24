@@ -14,10 +14,10 @@
             <TabItem.Header>
                 <StackPanel Orientation="Horizontal">
                     <fonts:Icon Text="{x:Static fonts:IconFont.Calendar}" />
-                    <TextBlock Margin="4,0,0,0">Scheduler</TextBlock>
+                    <TextBlock Margin="4,0,0,0">Executions</TextBlock>
                 </StackPanel>
             </TabItem.Header>
-            <local:TaskSchedules />
+            <local:TaskSchedules Task="{Binding Task}" />
         </TabItem>
         <TabItem>
             <TabItem.Header>

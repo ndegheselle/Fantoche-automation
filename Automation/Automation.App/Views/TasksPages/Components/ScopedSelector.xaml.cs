@@ -66,7 +66,7 @@ namespace Automation.App.Views.TasksPages.Components
             set;
         } = EnumScopedType.Scope | EnumScopedType.Workflow | EnumScopedType.Task;
 
-        public ScopedElement SelectedOrDefault => Selected ?? RootScope;
+        public Scope CurrentScope => Selected is Scope scope ? scope : Selected?.Parent ?? RootScope;
 
         private readonly App _app = (App)App.Current;
         private readonly ScopesClient _scopeClient;
@@ -84,7 +84,7 @@ namespace Automation.App.Views.TasksPages.Components
             RemoveSelectedCommand = new DelegateCommand(
                 OnRemoveSelected,
                 // Not the root element
-                () => SelectedOrDefault.Parent != null);
+                () => CurrentScope.Parent != null);
             AddScopeCommand = new DelegateCommand(OnAddScope);
             AddTaskCommand = new DelegateCommand(OnAddTask);
             AddWorkflowCommand = new DelegateCommand(OnAddWorkflow);
@@ -102,6 +102,9 @@ namespace Automation.App.Views.TasksPages.Components
 
         private async void OnRemoveSelected()
         {
+            if (Selected == null)
+                return;
+
             if (MessageBox.Show(
                     "Are you sure you want to remove this element ?",
                     "Confirmation",
@@ -109,32 +112,29 @@ namespace Automation.App.Views.TasksPages.Components
                 AdonisUI.Controls.MessageBoxResult.Yes)
                 return;
 
-            switch (SelectedOrDefault.Type)
+            switch (Selected.Type)
             {
                 case EnumScopedType.Workflow:
                 case EnumScopedType.Task:
-                    await _taskClient.DeleteAsync(SelectedOrDefault.Id);
+                    await _taskClient.DeleteAsync(Selected.Id);
                     break;
                 case EnumScopedType.Scope:
-                    await _scopeClient.DeleteAsync(SelectedOrDefault.Id);
+                    await _scopeClient.DeleteAsync(Selected.Id);
                     break;
             }
-            SelectedOrDefault.Parent!.Childrens.Remove(SelectedOrDefault);
+            Selected.Parent!.Childrens.Remove(Selected);
         }
 
         private async void OnAddScope()
         {
-            if (SelectedOrDefault is not Scope parentScope)
-                return;
-
             Scope newScope = new Scope();
-            newScope.ChangeParent(parentScope);
+            newScope.ChangeParent(CurrentScope);
             if (await _modal.Show(new ScopeCreateModal(newScope)))
             {
                 Dispatcher.Invoke(
                     () =>
                     {
-                        parentScope.AddChild(newScope);
+                        CurrentScope.AddChild(newScope);
                         newScope.FocusOn = EnumScopedTabs.Settings;
                         newScope.IsSelected = true;
                     });
@@ -143,14 +143,11 @@ namespace Automation.App.Views.TasksPages.Components
 
         private async void OnAddTask()
         {
-            if (SelectedOrDefault is not Scope parentScope)
-                return;
-
             var task = new TaskNode();
-            task.ChangeParent(parentScope);
+            task.ChangeParent(CurrentScope);
             if (await _modal.Show(new TaskCreateModal(task)))
             {
-                parentScope.AddChild(task);
+                CurrentScope.AddChild(task);
                 task.FocusOn = EnumScopedTabs.Settings;
                 task.IsSelected = true;
             }
@@ -158,15 +155,12 @@ namespace Automation.App.Views.TasksPages.Components
 
         private async void OnAddWorkflow()
         {
-            if (SelectedOrDefault is not Scope parentScope)
-                return;
-
             WorkflowNode workflow = new WorkflowNode();
-            workflow.ChangeParent(parentScope);
+            workflow.ChangeParent(CurrentScope);
             if (await _modal.Show(new WorkflowEditModal(workflow)))
             {
                 workflow.Id = await _taskClient.CreateAsync(workflow);
-                parentScope.AddChild(workflow);
+                CurrentScope.AddChild(workflow);
             }
         }
         #endregion

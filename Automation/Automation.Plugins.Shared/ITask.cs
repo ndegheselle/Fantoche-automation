@@ -14,9 +14,6 @@
         public TaskProgressType Type { get; set; }
     }
 
-    // Task progress for infos
-    // Task lifecycle
-
     public interface IProgress
     {
         public void Progress(TaskProgress progress);
@@ -25,8 +22,7 @@
     public class TaskContext
     {
         public List<Dictionary<string, object>> Scopes { get; set; } = [];
-        public Dictionary<string, object>? Shared { get; set; } = null;
-        public Dictionary<string, object>? Parameters { get; set; } = null;
+        public object? Settings { get; set; }
     }
 
     public interface ITask

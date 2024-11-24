@@ -16,7 +16,7 @@
                 <local:WorkflowGraph EditorData="{Binding Editor}" />
             </TabItem>
             <TabItem Header="Scheduler">
-                <tasks:TaskSchedules />
+                <tasks:TaskSchedules Task="{Binding Task}" />
             </TabItem>
             <TabItem Header="History">
                 <instances:ScopedInstanceList TargetId="{Binding Task.Id}" Type="Task" />

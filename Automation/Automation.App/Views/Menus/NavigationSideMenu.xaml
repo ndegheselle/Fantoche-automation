@@ -77,7 +77,7 @@
                 <fonts:Icon.Style>
                     <Style TargetType="{x:Type fonts:Icon}" BasedOn="{StaticResource {x:Type fonts:Icon}}">
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding CurrentPage}" Value="Workers">
+                            <DataTrigger Binding="{Binding CurrentPage}" Value="Packages">
                                 <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}" />
                             </DataTrigger>
                         </Style.Triggers>
