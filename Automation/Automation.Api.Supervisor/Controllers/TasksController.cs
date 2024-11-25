@@ -5,6 +5,7 @@ using Automation.Plugins.Shared;
 using Automation.Realtime;
 using Automation.Shared.Base;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace Automation.Api.Supervisor.Controllers
@@ -85,19 +86,13 @@ namespace Automation.Api.Supervisor.Controllers
 
         [HttpPost]
         [Route("{id}/execute")]
-        public async Task<TaskInstance> ExecuteAsync([FromRoute] Guid id)
+        public async Task<TaskInstance> ExecuteAsync([FromRoute] Guid id, [FromBody] TaskContext context)
         {
             TaskNode? task = await _taskRepo.GetByIdAsync(id);
-
             if (task == null)
                 throw new InvalidOperationException($"No task node found for the id '{id}'.");
-
-            using var reader = new StreamReader(Request.Body);
-            var body = await reader.ReadToEndAsync();
-
-            // TODO : get the full task context from the body
-            TaskContext context = new TaskContext();
-
+            if (task.Package == null)
+                throw new InvalidOperationException($"The task '{id}' doesn't have an assigned package.");
             return await _assignator.AssignAsync(task, context);
         }
 

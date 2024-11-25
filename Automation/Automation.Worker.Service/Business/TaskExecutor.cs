@@ -32,7 +32,9 @@ namespace Automation.Worker.Service.Business
             try
             {
                 task.Progress = this;
-                instance.Results = await task.ExecuteAsync(_currentInstance.Context);
+                await task.ExecuteAsync(_currentInstance.Context);
+                if (task is IResultsTask resultTask)
+                    instance.Results = resultTask.Results;
                 instance.State = EnumTaskState.Completed;
             }
             catch

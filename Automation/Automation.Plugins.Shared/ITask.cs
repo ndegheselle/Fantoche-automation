@@ -22,12 +22,17 @@
     public class TaskContext
     {
         public List<Dictionary<string, object>> Scopes { get; set; } = [];
-        public object? Settings { get; set; }
+        public string? SettingsJson { get; set; }
     }
 
     public interface ITask
     {
         public IProgress? Progress { get; set; }
-        public Task<Dictionary<string, object>?> ExecuteAsync(TaskContext context);
+        public Task ExecuteAsync(TaskContext context);
+    }
+
+    public interface IResultsTask : ITask
+    {
+        public Dictionary<string, object> Results { get; }
     }
 }
