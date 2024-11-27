@@ -4,6 +4,7 @@ using Automation.Realtime;
 using Automation.Realtime.Clients;
 using Automation.Server.Shared.Packages;
 using Automation.Shared.Data;
+using MongoDB.Bson;
 using StackExchange.Redis;
 
 namespace Automation.Worker.Service.Business
@@ -32,12 +33,11 @@ namespace Automation.Worker.Service.Business
             try
             {
                 task.Progress = this;
-                await task.ExecuteAsync(_currentInstance.Context);
+                await task.ExecuteAsync(new TaskContext() { SettingsJson = _currentInstance.Context.Settings.ToJson() });
                 if (task is IResultsTask resultTask)
                     instance.Results = resultTask.Results;
                 instance.State = EnumTaskState.Completed;
-            }
-            catch
+            } catch
             {
                 instance.State = EnumTaskState.Failed;
             }

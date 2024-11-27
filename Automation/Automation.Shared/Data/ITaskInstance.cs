@@ -1,4 +1,5 @@
 ﻿using Automation.Plugins.Shared;
+using System.Text.Json;
 
 namespace Automation.Shared.Data
 {
@@ -10,14 +11,12 @@ namespace Automation.Shared.Data
         Failed
     }
 
+
     public interface ITaskInstance : IIdentifier
     {
         public Guid TaskId { get; set; }
         public TargetedPackage Target { get; set; }
         public string? WorkerId { get; set; }
-
-        public TaskContext Context { get; set; }
-        public Dictionary<string, object>? Results { get; set; }
 
         public EnumTaskState State { get; set; }
 

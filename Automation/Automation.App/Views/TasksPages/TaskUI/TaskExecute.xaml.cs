@@ -17,7 +17,6 @@ namespace Automation.App.Views.TasksPages.TaskUI
 
         public ModalValidationOptions? Options => new ModalValidationOptions()
         {
-            Title = "Crap",
             ValidButtonText = "Execute"
         };
 

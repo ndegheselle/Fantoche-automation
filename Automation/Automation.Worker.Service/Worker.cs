@@ -6,6 +6,7 @@ using Automation.Realtime.Models;
 using Automation.Server.Shared.Packages;
 using Automation.Shared.Data;
 using Automation.Worker.Service.Business;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace Automation.Worker.Service

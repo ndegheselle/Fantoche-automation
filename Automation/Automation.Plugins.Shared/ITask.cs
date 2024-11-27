@@ -1,4 +1,6 @@
-﻿namespace Automation.Plugins.Shared
+﻿using System.Runtime.InteropServices;
+
+namespace Automation.Plugins.Shared
 {
     public enum TaskProgressType
     {
@@ -21,7 +23,6 @@
 
     public class TaskContext
     {
-        public List<Dictionary<string, object>> Scopes { get; set; } = [];
         public string? SettingsJson { get; set; }
     }
 

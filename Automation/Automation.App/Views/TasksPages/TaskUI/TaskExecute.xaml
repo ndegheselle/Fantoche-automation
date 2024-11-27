@@ -19,6 +19,5 @@
             TextWrapping="Wrap"
             AcceptsReturn="True"
             VerticalContentAlignment="Top" />
-
     </Grid>
 </UserControl>

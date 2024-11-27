@@ -5,6 +5,7 @@ using Automation.Realtime;
 using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
 using Automation.Shared.Data;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace Automation.Api.Supervisor.Business
@@ -26,12 +27,12 @@ namespace Automation.Api.Supervisor.Business
         /// <param name="taskId"></param>
         /// <param name="parameters"></param>
         /// <returns></returns>
-        public Task<TaskInstance> AssignAsync(TaskNode task, TaskContext context)
+        public Task<TaskInstance> AssignAsync(TaskNode task, BsonDocument? settings)
         {
             if (task.Package == null)
                 throw new ArgumentNullException(nameof(task));
 
-            TaskInstance taskInstance = new TaskInstance(task.Id, task.Package, context);
+            TaskInstance taskInstance = new TaskInstance(task.Id, task.Package, new InstanceContext() { Settings = settings });
             return AssignAsync(taskInstance);
         }
 
