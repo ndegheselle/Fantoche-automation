@@ -18,7 +18,6 @@ namespace Automation.App.Views.TasksPages.ScopeUI
         public ScopeCreateModal(Scope scope) : base("Create new scope")
         {
             _scopeClient = _app.ServiceProvider.GetRequiredService<ScopesClient>();
-            Options.ValidButtonText = "Create";
             NewScope = scope;
             BindValue(nameof(Scope.Name), NewScope);
         }

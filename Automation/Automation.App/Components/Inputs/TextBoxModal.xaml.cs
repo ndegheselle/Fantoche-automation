@@ -1,17 +1,15 @@
 ﻿using Joufflu.Popups;
-using Joufflu.Shared.Layouts;
 using System.Windows.Controls;
 using System.Windows.Data;
 
 namespace Automation.App.Components.Inputs
 {
-    public partial class TextBoxModal : UserControl, IModalContentValidation
+    public partial class TextBoxModal : UserControl, IModalContent
     {
         public Modal? ParentLayout { get; set; }
-        public ModalValidationOptions Options { get; private set; } = new ModalValidationOptions()
+        public ModalOptions Options => new ModalOptions()
         {
-            Title = "Input data",
-            ValidButtonText = "Ok",
+            Title = "Input data"
         };
         public string SubTitle { get; set; } = string.Empty;
 

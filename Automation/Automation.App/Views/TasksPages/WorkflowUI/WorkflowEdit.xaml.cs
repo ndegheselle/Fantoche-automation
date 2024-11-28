@@ -5,10 +5,10 @@ using System.Windows.Controls;
 
 namespace Automation.App.Views.TasksPages.WorkflowUI
 {
-    public class WorkflowEditModal : WorkflowEdit, IModalContentValidation
+    public class WorkflowEditModal : WorkflowEdit, IModalContent
     {
         public Modal? ParentLayout { get; set; }
-        public ModalValidationOptions Options => new ModalValidationOptions() { Title = "Edit workflow", ValidButtonText = "Save" };
+        public ModalOptions Options => new ModalOptions() { Title = "Edit workflow" };
 
         public WorkflowEditModal(WorkflowNode workflow) : base(workflow)
         {

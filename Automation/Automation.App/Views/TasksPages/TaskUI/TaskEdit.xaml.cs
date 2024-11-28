@@ -11,7 +11,7 @@ using System.Windows.Controls;
 
 namespace Automation.App.Views.TasksPages.TaskUI
 {
-    public class TaskCreateModal : TextBoxModal, IModalContentValidation
+    public class TaskCreateModal : TextBoxModal, IModalContent
     {
         private readonly App _app = (App)App.Current;
         private readonly TasksClient _taskClient;
@@ -20,7 +20,6 @@ namespace Automation.App.Views.TasksPages.TaskUI
         public TaskCreateModal(TaskNode task) : base("Create new task")
         {
             _taskClient = _app.ServiceProvider.GetRequiredService<TasksClient>();
-            Options.ValidButtonText = "Create";
             NewTask = task;
             BindValue(nameof(Scope.Name), NewTask);
         }

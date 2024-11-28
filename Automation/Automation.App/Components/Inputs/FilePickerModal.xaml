@@ -6,13 +6,40 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Automation.App.Components.Inputs"
     xmlns:inputs="clr-namespace:Joufflu.Inputs.Components;assembly=Joufflu.Inputs"
+    xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     mc:Ignorable="d"
     MinWidth="300">
-    <StackPanel Margin="4,10">
-        <TextBlock TextWrapping="Wrap" Text="{Binding SubTitle, RelativeSource={RelativeSource AncestorType={x:Type local:FilePickerModal}}}" />
-        <inputs:FilePicker
-            Margin="0,4,0,0"
-            FilePath="{Binding SelectedFile.FilePath, RelativeSource={RelativeSource AncestorType={x:Type local:FilePickerModal}}}"
-            Options="{Binding OptionsDialog, RelativeSource={RelativeSource AncestorType={x:Type local:FilePickerModal}}}" />
-    </StackPanel>
+    <Grid DataContext="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:FilePickerModal}}}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Margin="4,10">
+            <TextBlock TextWrapping="Wrap" Text="{Binding SubTitle}" />
+            <inputs:FilePicker
+                Margin="0,4,0,0"
+                FilePath="{Binding SelectedFile.FilePath}"
+                Options="{Binding OptionsDialog}" />
+        </StackPanel>
+
+        <StackPanel
+            Orientation="Horizontal"
+            Grid.Row="1"
+            Margin="2"
+            HorizontalAlignment="Right">
+            <Button Margin="2,0" Command="{Binding ParentLayout.CloseCommand}">
+                <StackPanel Orientation="Horizontal">
+                    <fonts:Icon Text="{x:Static fonts:IconFont.Xmark}" />
+                    <TextBlock Margin="4,0,0,0">Cancel</TextBlock>
+                </StackPanel>
+            </Button>
+            <Button Command="{Binding ParentLayout.ValidateCommand}">
+                <StackPanel Orientation="Horizontal">
+                    <fonts:Icon Text="{x:Static fonts:IconFont.Check}" />
+                    <TextBlock Margin="4,0,0,0" Text="Ok" />
+                </StackPanel>
+            </Button>
+        </StackPanel>
+    </Grid>
 </UserControl>

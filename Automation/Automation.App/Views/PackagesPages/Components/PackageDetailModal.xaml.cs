@@ -36,7 +36,6 @@ namespace Automation.App.Views.PackagesPages.Components
         {
             Package = package;
             _packagesClient = _app.ServiceProvider.GetRequiredService<PackagesClient>();
-            Options.ValidButtonText = "Create";
         }
 
         public async Task<bool> OnValidation()
