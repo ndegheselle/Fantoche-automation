@@ -35,26 +35,31 @@ namespace Automation.App.Shared.ViewModels.Tasks
         #region UI specific
         [JsonIgnore]
         public Scope? Parent { get; set; }
-        [JsonIgnore]
-        public bool IsExpanded { get; set; }
 
-        private bool _isSelected;
+        private bool _isExpanded = false;
+        [JsonIgnore]
+        public bool IsExpanded
+        {
+            get => _isExpanded;
+            set
+            {
+                _isExpanded = value;
+                if (value && !IsSelected)
+                {
+                    IsSelected = true;
+                }
+                OnPropertyChanged();
+            }
+        }
+
+        private bool _isSelected = false;
         [JsonIgnore]
         public bool IsSelected
         {
-            get { return _isSelected; }
+            get => _isSelected;
             set
             {
                 _isSelected = value;
-
-                // Since we are using a treeview, we need to expand the parent when
-                // a child is selected (otherwise the selection will not go through)
-                if (value)
-                {
-                    ExpandParent();
-                    IsExpanded = true;
-                }
-
                 OnPropertyChanged();
             }
         }
@@ -94,7 +99,11 @@ namespace Automation.App.Shared.ViewModels.Tasks
         public void RefreshChildrens()
         {
             foreach (var child in Childrens)
+            {
                 child.Parent = this;
+                if (child is Scope subScope)
+                    subScope.RefreshChildrens();
+            }
             SortedChildrens = (ListCollectionView)CollectionViewSource.GetDefaultView(Childrens);
             SortedChildrens.SortDescriptions.Add(new SortDescription(nameof(Type), ListSortDirection.Ascending));
             SortedChildrens.SortDescriptions.Add(new SortDescription(nameof(Name), ListSortDirection.Ascending));

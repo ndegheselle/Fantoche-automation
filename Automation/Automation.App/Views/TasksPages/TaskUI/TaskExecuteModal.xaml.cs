@@ -28,9 +28,10 @@ namespace Automation.App.Views.TasksPages.TaskUI
             InitializeComponent(); 
         }
 
-        public async Task OnValidation()
+        public async Task<bool> OnValidation()
         {
             await _taskClient.ExecuteAsync(Task.Id, JsonSerializer.Deserialize<object>(JsonSettings));
+            return true;
         }
     }
 }

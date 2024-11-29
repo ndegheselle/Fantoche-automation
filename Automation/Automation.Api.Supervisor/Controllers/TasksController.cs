@@ -1,16 +1,13 @@
 using Automation.Api.Supervisor.Business;
 using Automation.Dal.Models;
 using Automation.Dal.Repositories;
-using Automation.Plugins.Shared;
 using Automation.Realtime;
 using Automation.Shared.Base;
-using Automation.Shared.Data;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using System.Globalization;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 
 namespace Automation.Api.Supervisor.Controllers
 {

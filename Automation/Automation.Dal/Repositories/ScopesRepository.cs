@@ -75,7 +75,7 @@ namespace Automation.Dal.Repositories
             {
                 var taskRepo = new TasksRepository(_database);
 
-                var scopeChildrenTask = GetByScopeAsync(scope.Id, false);
+                var scopeChildrenTask = GetByScopeAsync(scope.Id, true);
                 var taskChildrenTask = taskRepo.GetByParentScopeAsync(scope.Id);
 
                 await Task.WhenAll(scopeChildrenTask, taskChildrenTask);

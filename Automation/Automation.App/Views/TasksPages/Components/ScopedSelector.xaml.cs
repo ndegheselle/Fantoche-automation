@@ -27,6 +27,7 @@ namespace Automation.App.Views.TasksPages.Components
     public partial class ScopedSelector : UserControl
     {
         public event Action<ScopedElement?>? SelectedChanged;
+
         #region Dependency Properties
         // Dependency property Scope RootScope
         public static readonly DependencyProperty RootScopeProperty = DependencyProperty.Register(
@@ -35,19 +36,20 @@ namespace Automation.App.Views.TasksPages.Components
             typeof(ScopedSelector),
             new PropertyMetadata(null));
 
-        public Scope RootScope
-        {
-            get { return (Scope)GetValue(RootScopeProperty); }
-            set { SetValue(RootScopeProperty, value); }
-        }
-
         // Dependency property ScopedElement Selected
         public static readonly DependencyProperty SelectedProperty = DependencyProperty.Register(
             nameof(Selected),
             typeof(ScopedElement),
             typeof(ScopedSelector),
             new PropertyMetadata(null));
+        #endregion
 
+        #region Props
+        public Scope RootScope
+        {
+            get { return (Scope)GetValue(RootScopeProperty); }
+            set { SetValue(RootScopeProperty, value); }
+        }
         public ScopedElement? Selected
         {
             get { return (ScopedElement?)GetValue(SelectedProperty); }
@@ -57,9 +59,7 @@ namespace Automation.App.Views.TasksPages.Components
                 SelectedChanged?.Invoke(Selected);
             }
         }
-        #endregion
 
-        #region Props
         public EnumScopedType AllowedSelectedNodes
         {
             get;

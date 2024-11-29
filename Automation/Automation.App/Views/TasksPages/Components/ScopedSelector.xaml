@@ -106,6 +106,5 @@
                 </DataTemplate>
             </TreeView.Resources>
         </TreeView>
-
     </Grid>
 </UserControl>
