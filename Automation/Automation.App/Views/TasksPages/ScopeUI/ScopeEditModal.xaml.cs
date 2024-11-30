@@ -4,7 +4,6 @@ using Automation.App.Shared.ViewModels.Tasks;
 using Automation.Shared.Base;
 using Joufflu.Popups;
 using Microsoft.Extensions.DependencyInjection;
-using System.Windows;
 using System.Windows.Controls;
 
 namespace Automation.App.Views.TasksPages.ScopeUI
@@ -42,31 +41,24 @@ namespace Automation.App.Views.TasksPages.ScopeUI
     /// <summary>
     /// Logique d'interaction pour ScopedParameters.xaml
     /// </summary>
-    public partial class ScopeEdit : UserControl
+    public partial class ScopeEditModal : UserControl, IModalContentValidation
     {
+        public Modal? ParentLayout { get; set; }
+        public ModalOptions Options => new ModalOptions() { Title = "Scope settings" };
+
         private readonly App _app = (App)App.Current;
         private readonly ScopesClient _scopeClient;
         private IAlert _alert => this.GetCurrentAlertContainer();
 
-        public static readonly DependencyProperty ScopedProperty =
-            DependencyProperty.Register(
-            nameof(Scope),
-            typeof(Scope),
-            typeof(ScopeEdit),
-            new PropertyMetadata(null));
+        public Scope Scope { get; set; }
 
-        public Scope Scope
-        {
-            get { return (Scope)GetValue(ScopedProperty); }
-            set { SetValue(ScopedProperty, value); }
-        }
-
-        public ScopeEdit() {
+        public ScopeEditModal(Scope scope) {
+            Scope = scope;
             _scopeClient = _app.ServiceProvider.GetRequiredService<ScopesClient>();
             InitializeComponent(); 
         }
 
-        private async void Save_Click(object sender, RoutedEventArgs e)
+        public async Task<bool> OnValidation()
         {
             Scope.ClearErrors();
             try
@@ -78,7 +70,9 @@ namespace Automation.App.Views.TasksPages.ScopeUI
             {
                 if (ex.Errors != null)
                     Scope.AddErrors(ex.Errors);
+                return false;
             }
+            return true;
         }
     }
 }

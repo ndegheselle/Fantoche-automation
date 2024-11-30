@@ -11,7 +11,7 @@ using System.Windows.Controls;
 
 namespace Automation.App.Views.TasksPages.TaskUI
 {
-    public class TaskCreateModal : TextBoxModal, IModalContent
+    public class TaskCreateModal : TextBoxModal, IModalContentValidation
     {
         private readonly App _app = (App)App.Current;
         private readonly TasksClient _taskClient;
@@ -44,7 +44,7 @@ namespace Automation.App.Views.TasksPages.TaskUI
     /// <summary>
     /// Logique d'interaction pour TaskEdit.xaml
     /// </summary>
-    public partial class TaskEdit : UserControl, INotifyPropertyChanged
+    public partial class TaskEditModal : UserControl, INotifyPropertyChanged, IModalContentValidation
     {
         private readonly App _app = (App)App.Current;
         private readonly TasksClient _taskClient;
@@ -52,17 +52,15 @@ namespace Automation.App.Views.TasksPages.TaskUI
         private IAlert _alert => this.GetCurrentAlertContainer();
         private IModal _modal => this.GetCurrentModalContainer();
 
-        public static readonly DependencyProperty TaskProperty =
-            DependencyProperty.Register(nameof(Task), typeof(TaskNode), typeof(TaskEdit));
+        public Modal? ParentLayout { get; set; }
+        public ModalOptions Options => new ModalOptions();
 
-        public TaskNode Task
-        {
-            get { return (TaskNode)GetValue(TaskProperty); }
-            set { SetValue(TaskProperty, value); }
-        }
+        public TaskNode Task { get; set; }
 
-        public TaskEdit()
+        public TaskEditModal(TaskNode task)
         {
+            Task = task;
+            Options.Title = $"Edit task {task.Name}";
             _taskClient = _app.ServiceProvider.GetRequiredService<TasksClient>();
             _pacakgeClient = _app.ServiceProvider.GetRequiredService<PackagesClient>();
 
@@ -70,22 +68,6 @@ namespace Automation.App.Views.TasksPages.TaskUI
         }
 
         #region UI events
-
-        private async void Save_Click(object sender, RoutedEventArgs e)
-        {
-            Task.ClearErrors();
-            try
-            {
-                await _taskClient.UpdateAsync(Task.Id, Task);
-                _alert.Success("Task updated !");
-            }
-            catch (ValidationException ex)
-            {
-                if (ex.Errors != null)
-                    Task.AddErrors(ex.Errors);
-            }
-        }
-
         private void RemovePackage_Click(object sender, RoutedEventArgs e)
         {
             Task.Package = null;
@@ -99,7 +81,23 @@ namespace Automation.App.Views.TasksPages.TaskUI
                 Task.Package = modal.TargetPackage;
             }
         }
-
         #endregion
+
+        public async Task<bool> OnValidation()
+        {
+            Task.ClearErrors();
+            try
+            {
+                await _taskClient.UpdateAsync(Task.Id, Task);
+                _alert.Success("Task updated !");
+            }
+            catch (ValidationException ex)
+            {
+                if (ex.Errors != null)
+                    Task.AddErrors(ex.Errors);
+                return false;
+            }
+            return true;
+        }
     }
 }

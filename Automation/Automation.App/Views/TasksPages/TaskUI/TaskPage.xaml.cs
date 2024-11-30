@@ -20,7 +20,6 @@ namespace Automation.App.Views.TasksPages.TaskUI
         private readonly TasksClient _client;
         private IModal _modal => this.GetCurrentModalContainer();
 
-
         public TaskPage(TaskNode task)
         {
             _client = _app.ServiceProvider.GetRequiredService<TasksClient>();
@@ -48,6 +47,11 @@ namespace Automation.App.Views.TasksPages.TaskUI
                     break;
             }
             Task.FocusOn = EnumScopedTabs.Default;
+        }
+
+        private void ButtonSettings_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            _modal.Show(new TaskEditModal(Task));
         }
     }
 }

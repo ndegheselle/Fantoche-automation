@@ -9,33 +9,34 @@
     xmlns:instances="clr-namespace:Automation.App.Views.TasksPages.Components.Instances"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     mc:Ignorable="d">
-    <TabControl x:Name="TaskTabControl" DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:TaskPage}}">
-        <TabItem>
-            <TabItem.Header>
-                <StackPanel Orientation="Horizontal">
-                    <fonts:Icon Text="{x:Static fonts:IconFont.Calendar}" />
-                    <TextBlock Margin="4,0,0,0">Executions</TextBlock>
-                </StackPanel>
-            </TabItem.Header>
-            <local:TaskSchedules Task="{Binding Task}" />
-        </TabItem>
-        <TabItem>
-            <TabItem.Header>
-                <StackPanel Orientation="Horizontal">
-                    <fonts:Icon Text="{x:Static fonts:IconFont.Clock}" />
-                    <TextBlock Margin="4,0,0,0">History</TextBlock>
-                </StackPanel>
-            </TabItem.Header>
-            <instances:ScopedInstanceList TargetId="{Binding Task.Id}" Type="Task" />
-        </TabItem>
-        <TabItem>
-            <TabItem.Header>
-                <StackPanel Orientation="Horizontal">
-                    <fonts:Icon Text="{x:Static fonts:IconFont.Gear}" />
-                    <TextBlock Margin="4,0,0,0">Settings</TextBlock>
-                </StackPanel>
-            </TabItem.Header>
-            <local:TaskEdit Task="{Binding Task}" />
-        </TabItem>
-    </TabControl>
+    <Grid>
+        <TabControl x:Name="TaskTabControl" DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:TaskPage}}">
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <fonts:Icon Text="{x:Static fonts:IconFont.Calendar}" />
+                        <TextBlock Margin="4,0,0,0">Executions</TextBlock>
+                    </StackPanel>
+                </TabItem.Header>
+                <local:TaskSchedules Task="{Binding Task}" />
+            </TabItem>
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <fonts:Icon Text="{x:Static fonts:IconFont.Clock}" />
+                        <TextBlock Margin="4,0,0,0">History</TextBlock>
+                    </StackPanel>
+                </TabItem.Header>
+                <instances:ScopedInstanceList TargetId="{Binding Task.Id}" Type="Task" />
+            </TabItem>
+        </TabControl>
+        <Button
+            Height="22"
+            Click="ButtonSettings_Click"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Top"
+            Margin="0,2">
+            <fonts:Icon Text="{x:Static fonts:IconFont.Gear}" />
+        </Button>
+    </Grid>
 </UserControl>

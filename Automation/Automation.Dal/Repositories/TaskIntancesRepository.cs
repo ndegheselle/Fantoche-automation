@@ -52,9 +52,10 @@ namespace Automation.Dal.Repositories
         {
             TasksRepository taskRepo = new TasksRepository(_database);
             var tasks = await taskRepo.GetByAnyParentScopeAsync(scopeId);
+            var test = tasks.ToList();
 
-            var filter = Builders<TaskInstance>.Filter.In(x => x.Id, tasks.Select(x => x.Id));
-            // We don't load context and result since it may be quite extensive
+            var filter = Builders<TaskInstance>.Filter.In(x => x.TaskId, tasks.Select(x => x.Id));
+            // We don't load context and result since it may be quite expensive
             var projection = Builders<TaskInstance>.Projection.Exclude(s => s.Context).Exclude(s => s.Results);
             var instances = await _collection.Find(filter)
                 .Project<TaskInstance>(projection)

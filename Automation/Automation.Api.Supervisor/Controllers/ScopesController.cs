@@ -81,5 +81,12 @@ namespace Automation.Api.Supervisor.Controllers
         {
             return await _repository.GetRootAsync();
         }
+
+        [HttpGet]
+        [Route("{id}/instances")]
+        public async Task<ListPageWrapper<TaskInstance>> GetInstancesAsync([FromRoute] Guid id, [FromQuery] int page, [FromQuery] int pageSize)
+        {
+            return await _taskInstanceRepo.GetByScopeAsync(id, page, pageSize);
+        }
     }
 }

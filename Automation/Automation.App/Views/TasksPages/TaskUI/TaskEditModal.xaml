@@ -1,5 +1,5 @@
 ﻿<UserControl
-    x:Class="Automation.App.Views.TasksPages.TaskUI.TaskEdit"
+    x:Class="Automation.App.Views.TasksPages.TaskUI.TaskEditModal"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -10,14 +10,16 @@
     xmlns:inputs="clr-namespace:Automation.App.Components.Inputs"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
-    mc:Ignorable="d">
-    <Grid Margin="4">
+    mc:Ignorable="d"
+    MinWidth="300"
+    MinHeight="180">
+    <Grid Margin="2" DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:TaskEditModal}}">
         <Grid.RowDefinitions>
             <RowDefinition />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
-        <StackPanel Orientation="Vertical" DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:TaskEdit}}">
+        <StackPanel Orientation="Vertical">
             <TextBlock Margin="0,8,0,4" FontWeight="Bold">Name</TextBlock>
             <TextBox Text="{Binding Task.Name}" />
 
@@ -90,14 +92,23 @@
             </Grid>
         </StackPanel>
 
-        <Button
+        <StackPanel
+            Orientation="Horizontal"
             Grid.Row="1"
             HorizontalAlignment="Right"
-            Click="Save_Click">
-            <StackPanel Orientation="Horizontal">
-                <fonts:Icon Text="{x:Static fonts:IconFont.FloppyDisk}" />
-                <TextBlock Margin="4,0,0,0">Save changes</TextBlock>
-            </StackPanel>
-        </Button>
+            Margin="0,2,0,0">
+            <Button Margin="2,0" Command="{Binding ParentLayout.CloseCommand}">
+                <StackPanel Orientation="Horizontal">
+                    <fonts:Icon Text="{x:Static fonts:IconFont.Xmark}" />
+                    <TextBlock Margin="4,0,0,0">Cancel</TextBlock>
+                </StackPanel>
+            </Button>
+            <Button Command="{Binding ParentLayout.ValidateCommand}">
+                <StackPanel Orientation="Horizontal">
+                    <fonts:Icon Text="{x:Static fonts:IconFont.FloppyDisk}" />
+                    <TextBlock Margin="4,0,0,0">Save changes</TextBlock>
+                </StackPanel>
+            </Button>
+        </StackPanel>
     </Grid>
 </UserControl>

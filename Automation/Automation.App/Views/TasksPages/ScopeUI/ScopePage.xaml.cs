@@ -1,5 +1,6 @@
 ﻿using Automation.App.Shared.ApiClients;
 using Automation.App.Shared.ViewModels.Tasks;
+using Joufflu.Popups;
 using Joufflu.Shared.Layouts;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
@@ -15,7 +16,7 @@ namespace Automation.App.Views.TasksPages.ScopeUI
         public ILayout? ParentLayout { get; set; }
         public Scope Scope { get; set; }
 
-
+        private IModal _modal => this.GetCurrentModalContainer();
         private readonly App _app = (App)App.Current;
         private readonly ScopesClient _scopeClient;
         private readonly TasksClient _taskClient;
@@ -73,6 +74,12 @@ namespace Automation.App.Views.TasksPages.ScopeUI
 
             selectedElement.IsSelected = true;
         }
+
+        private void ButtonSettings_Click(object sender, RoutedEventArgs e)
+        {
+            _modal.Show(new ScopeEditModal(Scope));
+        }
         #endregion
+
     }
 }

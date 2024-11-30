@@ -52,7 +52,10 @@ namespace Automation.App.Views.TasksPages.Components.Instances
             {
                 Instances = await _tasksClient.GetInstancesAsync(TargetId.Value, pageNumber-1, capacity);
             }
-            // TODO : scope instances
+            else if (Type == EnumScopedType.Scope)
+            {
+                Instances = await _scopesClient.GetInstancesAsync(TargetId.Value, pageNumber-1, capacity);
+            }
         }
 
         #region UI events
