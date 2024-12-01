@@ -59,6 +59,7 @@ namespace Automation.App.Views.TasksPages.Components
                 SelectedChanged?.Invoke(Selected);
             }
         }
+        public Scope CurrentScope => Selected is Scope scope ? scope : Selected?.Parent ?? RootScope;
 
         public EnumScopedType AllowedSelectedNodes
         {
@@ -66,7 +67,6 @@ namespace Automation.App.Views.TasksPages.Components
             set;
         } = EnumScopedType.Scope | EnumScopedType.Workflow | EnumScopedType.Task;
 
-        public Scope CurrentScope => Selected is Scope scope ? scope : Selected?.Parent ?? RootScope;
 
         private readonly App _app = (App)App.Current;
         private readonly ScopesClient _scopeClient;
@@ -80,89 +80,11 @@ namespace Automation.App.Views.TasksPages.Components
             _scopeClient = _app.ServiceProvider.GetRequiredService<ScopesClient>();
             _taskClient = _app.ServiceProvider.GetRequiredService<TasksClient>();
             InitializeComponent();
-
-            RemoveSelectedCommand = new DelegateCommand(
-                OnRemoveSelected,
-                // Not the root element
-                () => CurrentScope.Parent != null);
-            AddScopeCommand = new DelegateCommand(OnAddScope);
-            AddTaskCommand = new DelegateCommand(OnAddTask);
-            AddWorkflowCommand = new DelegateCommand(OnAddWorkflow);
         }
 
         // XXX : move to viewmodels ?
         #region Commands
-        public ICustomCommand RemoveSelectedCommand { get; set; }
-
-        public ICommand AddScopeCommand { get; set; }
-
-        public ICommand AddTaskCommand { get; set; }
-
-        public ICommand AddWorkflowCommand { get; set; }
-
-        private async void OnRemoveSelected()
-        {
-            if (Selected == null)
-                return;
-
-            if (MessageBox.Show(
-                    "Are you sure you want to remove this element ?",
-                    "Confirmation",
-                    AdonisUI.Controls.MessageBoxButton.YesNo) !=
-                AdonisUI.Controls.MessageBoxResult.Yes)
-                return;
-
-            switch (Selected.Type)
-            {
-                case EnumScopedType.Workflow:
-                case EnumScopedType.Task:
-                    await _taskClient.DeleteAsync(Selected.Id);
-                    break;
-                case EnumScopedType.Scope:
-                    await _scopeClient.DeleteAsync(Selected.Id);
-                    break;
-            }
-            Selected.Parent!.Childrens.Remove(Selected);
-        }
-
-        private async void OnAddScope()
-        {
-            Scope newScope = new Scope();
-            newScope.ChangeParent(CurrentScope);
-            if (await _modal.Show(new ScopeCreateModal(newScope)))
-            {
-                Dispatcher.Invoke(
-                    () =>
-                    {
-                        CurrentScope.AddChild(newScope);
-                        newScope.FocusOn = EnumScopedTabs.Settings;
-                        newScope.IsSelected = true;
-                    });
-            }
-        }
-
-        private async void OnAddTask()
-        {
-            var task = new TaskNode();
-            task.ChangeParent(CurrentScope);
-            if (await _modal.Show(new TaskCreateModal(task)))
-            {
-                CurrentScope.AddChild(task);
-                task.FocusOn = EnumScopedTabs.Settings;
-                task.IsSelected = true;
-            }
-        }
-
-        private async void OnAddWorkflow()
-        {
-            WorkflowNode workflow = new WorkflowNode();
-            workflow.ChangeParent(CurrentScope);
-            if (await _modal.Show(new WorkflowEditModal(workflow)))
-            {
-                workflow.Id = await _taskClient.CreateAsync(workflow);
-                CurrentScope.AddChild(workflow);
-            }
-        }
+        
         #endregion
 
         #region UI Events
@@ -194,6 +116,14 @@ namespace Automation.App.Views.TasksPages.Components
                 Selected.IsSelected = false;
             }
         }
+
+        private void Add_Click(object sender, RoutedEventArgs e)
+        {
+            FrameworkElement frameworkElement = (FrameworkElement)sender;
+            frameworkElement.ContextMenu.PlacementTarget = frameworkElement;
+            frameworkElement.ContextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+            frameworkElement.ContextMenu.IsOpen = true;
+        }
         #endregion
 
         private TreeViewItem? VisualUpwardSearch(DependencyObject source)
@@ -202,14 +132,6 @@ namespace Automation.App.Views.TasksPages.Components
                 source = VisualTreeHelper.GetParent(source);
 
             return source as TreeViewItem;
-        }
-
-        private void Add_Click(object sender, RoutedEventArgs e)
-        {
-            FrameworkElement frameworkElement = (FrameworkElement)sender;
-            frameworkElement.ContextMenu.PlacementTarget = frameworkElement;
-            frameworkElement.ContextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
-            frameworkElement.ContextMenu.IsOpen = true;
         }
     }
 }
