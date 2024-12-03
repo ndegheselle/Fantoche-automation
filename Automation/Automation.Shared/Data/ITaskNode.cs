@@ -12,11 +12,18 @@
         Out
     }
 
+    public class Schedule
+    {
+        public string CronExpression { get; set; } = "";
+        public string JsonSettings { get; set; } = "";
+    }
+
     public interface ITaskNode : IScopedElement
     {
         TargetedPackage? Package { get; set; }
         IEnumerable<ITaskConnector> Inputs { get; }
         IEnumerable<ITaskConnector> Outputs { get; }
+        IEnumerable<Schedule> Schedules { get; }
     }
 
     public interface ITaskConnector

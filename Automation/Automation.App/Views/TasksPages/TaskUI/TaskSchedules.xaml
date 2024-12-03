@@ -5,11 +5,12 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Automation.App.Views.TasksPages.TaskUI"
+    xmlns:inputs="clr-namespace:Joufflu.Inputs.Components;assembly=Joufflu.Inputs"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     mc:Ignorable="d"
     d:DesignHeight="450"
     d:DesignWidth="800">
-    <Grid>
+    <Grid DataContext="{Binding Task, RelativeSource={RelativeSource AncestorType=local:TaskSchedules}}">
         <Grid.RowDefinitions>
             <RowDefinition />
             <RowDefinition Height="120" />
@@ -33,6 +34,40 @@
                         </Button>
                     </StackPanel>
                 </Grid>
+
+                <DataGrid ItemsSource="{Binding Schedules}" IsReadOnly="True">
+                    <DataGrid.Columns>
+                        <DataGridTemplateColumn Header="Year">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <inputs:NumericUpDown Value="{Binding Year}" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Month">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <inputs:NumericUpDown Value="{Binding Month}" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Week">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <inputs:NumericUpDown Value="{Binding Year}" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Year">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <inputs:NumericUpDown Value="{Binding Year}" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridCheckBoxColumn Header="Repeat" Binding="{Binding IsRepeating}" />
+                    </DataGrid.Columns>
+                </DataGrid>
             </GroupBox.Header>
         </GroupBox>
 

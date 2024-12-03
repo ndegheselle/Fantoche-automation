@@ -1,12 +1,9 @@
-using Automation.Dal.Models;
-using Automation.Dal.Repositories;
+using Automation.Realtime;
 using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
-using Automation.Realtime;
 using Microsoft.AspNetCore.Mvc;
-using MongoDB.Driver;
 
-namespace Automation.Api.Supervisor.Controllers
+namespace Automation.Supervisor.Api.Controllers
 {
     [ApiController]
     [Route("workers")]

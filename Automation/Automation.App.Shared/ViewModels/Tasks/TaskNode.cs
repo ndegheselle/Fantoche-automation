@@ -4,11 +4,16 @@ using System.Windows;
 
 namespace Automation.App.Shared.ViewModels.Tasks
 {
-    public class TaskNode : ScopedElement, INotifyPropertyChanged
+    public class TaskNode : ScopedElement, ITaskNode, INotifyPropertyChanged
     {
         public TargetedPackage? Package { get; set; }
         public List<TaskConnector> Inputs { get; set; } = [];
         public List<TaskConnector> Outputs { get; set; } = [];
+        public List<Schedule> Schedules { get; set; } = [];
+
+        IEnumerable<ITaskConnector> ITaskNode.Inputs => Inputs;
+        IEnumerable<ITaskConnector> ITaskNode.Outputs => Outputs;
+        IEnumerable<Schedule> ITaskNode.Schedules => Schedules;
 
         public TaskNode()
         {

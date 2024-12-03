@@ -7,7 +7,7 @@
     <ProjectGuid>52eb3a24-36f7-448b-a1cb-6fcc6abf790a</ProjectGuid>
     <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
     <DockerServiceUrl>{Scheme}://localhost:{ServicePort}/swagger</DockerServiceUrl>
-    <DockerServiceName>automation.api.supervisor</DockerServiceName>
+    <DockerServiceName>Automation.Supervisor.Api</DockerServiceName>
   </PropertyGroup>
   <ItemGroup>
     <None Include=".env" />

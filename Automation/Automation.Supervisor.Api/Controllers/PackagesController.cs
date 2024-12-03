@@ -3,7 +3,7 @@ using Automation.Shared.Base;
 using Automation.Shared.Data;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Automation.Api.Supervisor.Controllers
+namespace Automation.Supervisor.Api.Controllers
 {
     [ApiController]
     [Route("packages")]

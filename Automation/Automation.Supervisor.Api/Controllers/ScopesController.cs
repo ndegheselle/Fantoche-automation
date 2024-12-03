@@ -4,7 +4,7 @@ using Automation.Shared.Base;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 
-namespace Automation.Api.Supervisor.Controllers
+namespace Automation.Supervisor.Api.Controllers
 {
     [ApiController]
     [Route("scopes")]

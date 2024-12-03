@@ -1,4 +1,4 @@
-using Automation.Api.Supervisor.Business;
+using Automation.Supervisor.Api.Business;
 using Automation.Dal.Models;
 using Automation.Dal.Repositories;
 using Automation.Plugins.Shared;
@@ -9,7 +9,7 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 using System.Diagnostics;
 
-namespace Automation.Api.Supervisor.Controllers
+namespace Automation.Supervisor.Api.Controllers
 {
     [ApiController]
     [Route("instances")]

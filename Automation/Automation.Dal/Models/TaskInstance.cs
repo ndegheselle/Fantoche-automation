@@ -6,6 +6,9 @@ using System.Text.Json.Serialization;
 
 namespace Automation.Dal.Models
 {
+    /// <summary>
+    /// This class is used only on the DB side
+    /// </summary>
     public class InstanceContext
     {
         public BsonDocument? Settings { get; set; }

@@ -1,7 +1,7 @@
-using Automation.Api.Supervisor.Business;
 using Automation.Dal.Models;
 using Automation.Dal.Repositories;
 using Automation.Realtime;
+using Automation.Server.Shared;
 using Automation.Shared.Base;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
@@ -9,7 +9,7 @@ using MongoDB.Driver;
 using System.Globalization;
 using System.Text.Json;
 
-namespace Automation.Api.Supervisor.Controllers
+namespace Automation.Supervisor.Api.Controllers
 {
     [ApiController]
     [Route("tasks")]

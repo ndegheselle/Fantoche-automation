@@ -6,6 +6,7 @@ namespace Automation.Dal.Models
     {
         public IEnumerable<ITaskConnector> Inputs { get; set; } = [];
         public IEnumerable<ITaskConnector> Outputs { get; set; } = [];
+        public IEnumerable<Schedule> Schedules { get; set; } = [];
         public TargetedPackage? Package { get; set; }
 
         public TaskNode() {

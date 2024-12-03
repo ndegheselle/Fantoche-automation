@@ -1,13 +1,13 @@
 version: '3.4'
 services:
-  automation.api.supervisor:
+  Automation.Supervisor.Api:
     image: ${DOCKER_REGISTRY-}automationapisupervisor
     depends_on:
       - mongo
       - redis
     build:
       context: .
-      dockerfile: Automation.Api.Supervisor/Dockerfile
+      dockerfile: Automation.Supervisor.Api/Dockerfile
     env_file:
       - .env
     ports:

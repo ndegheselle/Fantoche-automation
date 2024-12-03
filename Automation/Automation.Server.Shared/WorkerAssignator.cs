@@ -1,6 +1,5 @@
 ﻿using Automation.Dal.Models;
 using Automation.Dal.Repositories;
-using Automation.Plugins.Shared;
 using Automation.Realtime;
 using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
@@ -8,7 +7,7 @@ using Automation.Shared.Data;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
-namespace Automation.Api.Supervisor.Business
+namespace Automation.Server.Shared
 {
     public class WorkerAssignator
     {
@@ -67,7 +66,7 @@ namespace Automation.Api.Supervisor.Business
         private async Task<WorkerInstance> SelectWorkerAsync(TaskInstance task)
         {
             IEnumerable<WorkerInstance> workers = await _workersClient.GetWorkersAsync();
-            return workers.MinBy(async x => await _workersClient.ByWorker(x.Id).Tasks.GetQueueLengthAsync()) 
+            return workers.MinBy(async x => await _workersClient.ByWorker(x.Id).Tasks.GetQueueLengthAsync())
                 ?? throw new Exception("No available worker for the task.");
         }
     }

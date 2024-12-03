@@ -12,7 +12,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Automation.Dal\Automation.Dal.csproj" />
     <ProjectReference Include="..\Automation.Plugins.Shared\Automation.Plugins.Shared.csproj" />
+    <ProjectReference Include="..\Automation.Realtime\Automation.Realtime.csproj" />
     <ProjectReference Include="..\Automation.Shared\Automation.Shared.csproj" />
   </ItemGroup>
 

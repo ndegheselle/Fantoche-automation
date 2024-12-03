@@ -6,7 +6,7 @@ using Automation.Realtime.Models;
 using Automation.Shared.Data;
 using MongoDB.Driver;
 
-namespace Automation.Api.Supervisor.Business
+namespace Automation.Supervisor.Api.Business
 {
     /// <summary>
     /// Clean the dead workers once in a while, ensure that a task is never hanged if a server crashed.

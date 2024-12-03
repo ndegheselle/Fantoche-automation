@@ -4,7 +4,7 @@
       "commandName": "DockerCompose",
       "commandVersion": "1.0",
       "serviceActions": {
-        "automation.api.supervisor": "StartDebugging",
+        "Automation.Supervisor.Api": "StartDebugging",
         "automation.worker.service": "StartDebugging",
         "mongo": "StartWithoutDebugging",
         "redis": "StartWithoutDebugging"
