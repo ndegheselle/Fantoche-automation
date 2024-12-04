@@ -1,9 +1,8 @@
-﻿using Automation.Dal.Models;
-using Automation.Dal.Repositories;
+﻿using Automation.Dal.Repositories;
 using Automation.Realtime;
 using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
-using Automation.Shared.Data;
+using Automation.Server.Shared;
 using MongoDB.Driver;
 
 namespace Automation.Supervisor.Api.Business
@@ -35,10 +34,13 @@ namespace Automation.Supervisor.Api.Business
             }
         }
 
+        /// <summary>
+        /// Assign the dead workers tasks that are not finished to some other workers.
+        /// </summary>
+        /// <returns></returns>
         private async Task CleanUnhandledTasks()
         {
             IEnumerable<WorkerInstance> activeWorkers = await _workersClient.GetWorkersAsync();
-            // Assign the dead workers tasks that are not finished to some other workers
             foreach (var task in await _repository.GetUnhandledAsync(activeWorkers.Select(x => x.Id)))
             {
                 await _assignator.ReassignAsync(task);
