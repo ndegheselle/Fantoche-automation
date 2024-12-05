@@ -1,4 +1,6 @@
 ﻿using Automation.Dal.Models;
+using Automation.Shared.Data;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace Automation.Dal.Repositories
@@ -37,6 +39,19 @@ namespace Automation.Dal.Repositories
         {
             var filter = Builders<TaskNode>.Filter.AnyEq(x => x.ParentTree, scopeId);
             await _collection.DeleteManyAsync(filter); 
+        }
+
+        public async Task<IEnumerable<TaskSchedule>> GetScheduled()
+        {
+            var projection = Builders<TaskNode>.Projection.Include(s => s.Id).Include(s => s.Schedules);
+
+            var filter = Builders<TaskNode>.Filter
+               .And(
+                   Builders<TaskNode>.Filter.Ne(x => x.Schedules, null),
+                   Builders<TaskNode>.Filter.Not(Builders<TaskNode>.Filter.Size(nameof(TaskNode.Schedules), 0)));
+
+            var scheduledTasks = await _collection.Find(filter).Project<TaskNode>(projection).ToListAsync();
+            return scheduledTasks.SelectMany(t => t.Schedules.Select(s => new TaskSchedule(t.Id, s)));
         }
     }
 }
