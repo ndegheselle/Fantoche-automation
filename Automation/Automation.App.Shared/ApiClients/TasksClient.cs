@@ -1,4 +1,4 @@
-﻿using Automation.App.Shared.ViewModels.Tasks;
+﻿using Automation.App.Shared.ViewModels.Work;
 using Automation.Shared.Base;
 using Automation.Shared.Clients;
 using RestSharp;
@@ -23,8 +23,12 @@ namespace Automation.App.Shared.ApiClients
 
         public async Task<TaskInstance> ExecuteAsync(Guid taskId, object? settings)
         {
-            return await _client.PostAsync<TaskInstance>(
-                    new RestRequest($"{_routeBase}/{taskId}/execute").AddBody(settings)) ??
+            var request = new RestRequest($"{_routeBase}/{taskId}/execute");
+
+            if (settings != null)
+                request.AddBody(settings);
+
+            return await _client.PostAsync<TaskInstance>(request) ??
                 throw new Exception("Could not get the task instance from the server.");
         }
     }

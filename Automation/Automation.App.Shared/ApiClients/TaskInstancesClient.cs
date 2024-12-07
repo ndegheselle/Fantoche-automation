@@ -1,4 +1,4 @@
-﻿using Automation.App.Shared.ViewModels.Tasks;
+﻿using Automation.App.Shared.ViewModels.Work;
 using Automation.Shared.Clients;
 using RestSharp;
 

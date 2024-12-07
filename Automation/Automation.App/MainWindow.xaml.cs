@@ -1,6 +1,6 @@
 ﻿using AdonisUI.Controls;
 using Automation.App.Views.PackagesPages;
-using Automation.App.Views.TasksPages;
+using Automation.App.Views.WorkPages;
 using Automation.App.Views.WorkersPages;
 using Joufflu.Popups;
 using Joufflu.Shared.Layouts;
@@ -53,10 +53,10 @@ namespace Automation.App
         {
             switch(page)
             {
-                case Views.Menus.EnumNavigationPages.Tasks:
+                case Views.Menus.EnumNavigationPages.Work:
                     Show(new TasksMainPage());
                     break;
-                case Views.Menus.EnumNavigationPages.Workers:
+                case Views.Menus.EnumNavigationPages.Servers:
                     Show(new WorkerMainPage());
                     break;
                 case Views.Menus.EnumNavigationPages.Packages:

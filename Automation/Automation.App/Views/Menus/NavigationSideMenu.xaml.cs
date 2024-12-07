@@ -5,8 +5,8 @@ namespace Automation.App.Views.Menus
 {
     public enum EnumNavigationPages
     {
-        Tasks,
-        Workers,
+        Work,
+        Servers,
         Packages
     }
 
@@ -15,7 +15,7 @@ namespace Automation.App.Views.Menus
     /// </summary>
     public partial class NavigationSideMenu : UserControl, INotifyPropertyChanged
     {
-        public EnumNavigationPages CurrentPage { get; set; } = EnumNavigationPages.Tasks;
+        public EnumNavigationPages CurrentPage { get; set; } = EnumNavigationPages.Work;
         public event Action<EnumNavigationPages>? NavigationChanged;
         public NavigationSideMenu()
         {
@@ -24,13 +24,13 @@ namespace Automation.App.Views.Menus
 
         private void NavigationTasks_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            CurrentPage = EnumNavigationPages.Tasks;
+            CurrentPage = EnumNavigationPages.Work;
             NavigationChanged?.Invoke(CurrentPage);
         }
 
         private void NavigationWorkers_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            CurrentPage = EnumNavigationPages.Workers;
+            CurrentPage = EnumNavigationPages.Servers;
             NavigationChanged?.Invoke(CurrentPage);
         }
 
