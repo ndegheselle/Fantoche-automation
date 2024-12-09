@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json;
 using System.Windows.Controls;
 
-namespace Automation.App.Views.WorkPages.Tasks
+namespace Automation.App.Views.WorkPages.Tasks.Execute
 {
     /// <summary>
     /// Logique d'interaction pour TaskExecute.xaml
@@ -16,7 +16,7 @@ namespace Automation.App.Views.WorkPages.Tasks
         private readonly TasksClient _taskClient;
 
         public Modal? ParentLayout { get; set; }
-        public ModalOptions Options => new ModalOptions() { Title = "Execute task" };
+        public ModalOptions Options { get; private set; } = new ModalOptions() { Title = "Execute task" };
 
         public string JsonSettings { get; set; } = "";
         public TaskNode Task { get; set; }

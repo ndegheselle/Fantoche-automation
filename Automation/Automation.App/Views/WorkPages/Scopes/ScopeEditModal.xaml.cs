@@ -12,13 +12,13 @@ namespace Automation.App.Views.WorkPages.Scopes
     {
         private readonly App _app = App.Current;
         private readonly ScopesClient _scopeClient;
-        public Shared.ViewModels.Work.Scope NewScope { get; set; }
+        public Scope NewScope { get; set; }
 
-        public ScopeCreateModal(Shared.ViewModels.Work.Scope scope) : base("Create new scope")
+        public ScopeCreateModal(Scope scope) : base("Create new scope")
         {
             _scopeClient = _app.ServiceProvider.GetRequiredService<ScopesClient>();
             NewScope = scope;
-            BindValue(nameof(Shared.ViewModels.Work.Scope.Name), NewScope);
+            BindValue(nameof(Scope.Name), NewScope);
         }
 
         public async Task<bool> OnValidation()
@@ -50,9 +50,9 @@ namespace Automation.App.Views.WorkPages.Scopes
         private readonly ScopesClient _scopeClient;
         private IAlert _alert => this.GetCurrentAlertContainer();
 
-        public Shared.ViewModels.Work.Scope Scope { get; set; }
+        public Scope Scope { get; set; }
 
-        public ScopeEditModal(Shared.ViewModels.Work.Scope scope) {
+        public ScopeEditModal(Scope scope) {
             Scope = scope;
             _scopeClient = _app.ServiceProvider.GetRequiredService<ScopesClient>();
             InitializeComponent(); 
