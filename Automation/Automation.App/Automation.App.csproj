@@ -59,4 +59,8 @@
     </Compile>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Views\WorkPages\Tasks\Execute\" />
+  </ItemGroup>
+
 </Project>
