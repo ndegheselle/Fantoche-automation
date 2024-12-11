@@ -74,7 +74,7 @@ namespace Automation.App.Views.PackagesPages.Components
     /// </summary>
     public partial class PackageDetailModal : UserControl, INotifyPropertyChanged, IModalContent
     {
-        public ModalOptions? Options { get; } = new ModalOptions()
+        public ModalOptions Options { get; } = new ModalOptions()
         {
             Title = "Select class"
         };

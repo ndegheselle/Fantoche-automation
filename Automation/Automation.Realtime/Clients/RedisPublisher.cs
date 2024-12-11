@@ -42,5 +42,12 @@ namespace Automation.Realtime.Clients
                         callback.Invoke(JsonSerializer.Deserialize<T>(message.ToString()));
                     });
         }
+
+        public void Unsubscribe()
+        {
+            var channel = new RedisChannel(_publishChannel, RedisChannel.PatternMode.Literal);
+            var subscriber = _connection.GetSubscriber();
+            subscriber.Unsubscribe(channel);
+        }
     }
 }
