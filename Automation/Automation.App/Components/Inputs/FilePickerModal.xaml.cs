@@ -1,4 +1,4 @@
-﻿using Joufflu.Inputs.Components;
+﻿using Joufflu.Inputs;
 using Joufflu.Popups;
 using Joufflu.Shared.Layouts;
 using System.Windows.Controls;

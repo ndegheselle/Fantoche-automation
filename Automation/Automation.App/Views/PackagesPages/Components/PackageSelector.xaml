@@ -7,7 +7,7 @@
     xmlns:local="clr-namespace:Automation.App.Views.PackagesPages.Components"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
-    xmlns:jouffluData="clr-namespace:Joufflu.Data.Components;assembly=Joufflu.Data"
+    xmlns:jouffluData="clr-namespace:Joufflu.Data;assembly=Joufflu.Data"
     mc:Ignorable="d"
     MinWidth="400"
     MinHeight="400">

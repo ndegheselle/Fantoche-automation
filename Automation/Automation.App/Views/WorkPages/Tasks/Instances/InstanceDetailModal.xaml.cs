@@ -11,7 +11,7 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
     /// <summary>
     /// Logique d'interaction pour InstanceDetail.xaml
     /// </summary>
-    public partial class InstanceDetail : UserControl, IModalContent, INotifyPropertyChanged
+    public partial class InstanceDetailModal : UserControl, IModalContent, INotifyPropertyChanged
     {
         public Modal? ParentLayout { get; set; }
         public ModalOptions Options { get; } = new ModalOptions() { Title = "Instance detail" };
@@ -23,7 +23,7 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
         private readonly App _app = (App)App.Current;
         private readonly TaskInstancesClient _instanceClient;
 
-        public InstanceDetail(TaskInstance instance)
+        public InstanceDetailModal(TaskInstance instance)
         {
             _instanceClient = _app.ServiceProvider.GetRequiredService<TaskInstancesClient>();
             Instance = instance;

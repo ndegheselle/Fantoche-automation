@@ -31,7 +31,6 @@
                         <TextBlock Margin="4,0,0,0">History</TextBlock>
                     </StackPanel>
                 </TabItem.Header>
-                <instances:ScopedInstanceList TargetId="{Binding Scope.Id}" Type="Scope" />
             </TabItem>
         </TabControl>
 
