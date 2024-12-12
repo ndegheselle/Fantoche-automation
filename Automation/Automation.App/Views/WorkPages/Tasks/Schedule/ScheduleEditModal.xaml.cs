@@ -4,7 +4,7 @@ using Joufflu.Popups;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows.Controls;
 
-namespace Automation.App.Views.WorkPages.Tasks.Execute
+namespace Automation.App.Views.WorkPages.Tasks.Schedule
 {
     /// <summary>
     /// Logique d'interaction pour ScheduleEditModal.xaml
@@ -17,9 +17,9 @@ namespace Automation.App.Views.WorkPages.Tasks.Execute
         public Modal? ParentLayout { get; set; }
         public ModalOptions Options { get; private set; } = new ModalOptions() { Title = "Edit schedule" };
 
-        public Schedule Schedule { get; set; }
+        public Automation.Shared.Data.Schedule Schedule { get; set; }
 
-        public ScheduleEditModal(Schedule schedule)
+        public ScheduleEditModal(Automation.Shared.Data.Schedule schedule)
         {
             Schedule = schedule;
             _taskClient = _app.ServiceProvider.GetRequiredService<TasksClient>();

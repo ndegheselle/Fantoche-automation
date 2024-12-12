@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json;
 using System.Windows.Controls;
 
-namespace Automation.App.Views.WorkPages.Tasks.Execute
+namespace Automation.App.Views.WorkPages.Tasks.Instances
 {
     /// <summary>
     /// Logique d'interaction pour TaskExecute.xaml

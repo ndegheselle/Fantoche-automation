@@ -1,31 +1,33 @@
 ﻿<UserControl
-    x:Class="Automation.App.Views.WorkPages.Tasks.Execute.TaskExecuteModal"
+    x:Class="Automation.App.Views.WorkPages.Tasks.Schedule.ScheduleEditModal"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Tasks.Execute"
+    xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Tasks.Schedule"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
-    MinHeight="400"
-    MinWidth="400">
-    <Grid DataContext="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:TaskExecuteModal}}}">
+    mc:Ignorable="d"
+    d:DesignHeight="450"
+    d:DesignWidth="800">
+    <Grid DataContext="{Binding Schedule, RelativeSource={RelativeSource AncestorType={x:Type local:ScheduleEditModal}}}">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
         <Grid Margin="2,0">
+
             <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
                 <RowDefinition Height="auto" />
                 <RowDefinition />
             </Grid.RowDefinitions>
-            <TextBlock Margin="0,8,0,4" FontWeight="Bold">Settings JSON</TextBlock>
-            <TextBox
-                Text="{Binding JsonSettings, Mode=TwoWay}"
-                Grid.Row="1"
-                TextWrapping="Wrap"
-                AcceptsReturn="True"
-                VerticalContentAlignment="Top" />
+
+            <StackPanel>
+                <TextBlock Margin="0,8,0,4" FontWeight="Bold">Cron</TextBlock>
+                <TextBox Text="{Binding CronExpression}" />
+            </StackPanel>
+            <TextBlock Margin="0,8,0,4" FontWeight="Bold" Grid.Row="1">Settings</TextBlock>
         </Grid>
         <StackPanel
             Orientation="Horizontal"
@@ -40,8 +42,8 @@
             </Button>
             <Button Command="{Binding ParentLayout.ValidateCommand}">
                 <StackPanel Orientation="Horizontal">
-                    <fonts:Icon Text="{x:Static fonts:IconFont.Play}" />
-                    <TextBlock Margin="4,0,0,0" Text="Execute" />
+                    <fonts:Icon Text="{x:Static fonts:IconFont.FloppyDisk}" />
+                    <TextBlock Margin="4,0,0,0">Save</TextBlock>
                 </StackPanel>
             </Button>
         </StackPanel>

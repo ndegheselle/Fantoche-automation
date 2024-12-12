@@ -13,6 +13,8 @@
             <RowDefinition />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
+
+
         <instances:TaskInstanceList Grid.Row="1" Instances="{Binding Data}" />
         <data:Paging
             x:Name="InstancesPaging"

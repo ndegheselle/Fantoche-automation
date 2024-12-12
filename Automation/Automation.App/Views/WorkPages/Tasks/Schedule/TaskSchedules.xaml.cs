@@ -3,7 +3,7 @@ using Joufflu.Popups;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace Automation.App.Views.WorkPages.Tasks.Execute
+namespace Automation.App.Views.WorkPages.Tasks.Schedule
 {
     /// <summary>
     /// Logique d'interaction pour TaskSchedule.xaml
