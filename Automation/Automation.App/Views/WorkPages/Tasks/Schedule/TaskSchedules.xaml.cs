@@ -1,4 +1,5 @@
 ﻿using Automation.App.Shared.ViewModels.Work;
+using Automation.App.Views.WorkPages.Tasks.Instances;
 using Joufflu.Popups;
 using System.Windows;
 using System.Windows.Controls;

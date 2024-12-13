@@ -12,12 +12,12 @@
     <StackPanel Orientation="Vertical" DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:NavigationSideMenu}}">
         <Button
             Padding="10"
-            ToolTip="Tasks"
+            ToolTip="Work"
             Click="NavigationTasks_Click">
             <Button.Style>
                 <Style TargetType="Button" BasedOn="{StaticResource IconButton}">
                     <Style.Triggers>
-                        <DataTrigger Binding="{Binding CurrentPage}" Value="Tasks">
+                        <DataTrigger Binding="{Binding CurrentPage}" Value="Work">
                             <Setter Property="Background" Value="{DynamicResource {x:Static adonisUi:Brushes.AccentBrush}}" />
                         </DataTrigger>
                     </Style.Triggers>
@@ -27,7 +27,7 @@
                 <fonts:Icon.Style>
                     <Style TargetType="{x:Type fonts:Icon}" BasedOn="{StaticResource {x:Type fonts:Icon}}">
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding CurrentPage}" Value="Tasks">
+                            <DataTrigger Binding="{Binding CurrentPage}" Value="Work">
                                 <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}" />
                             </DataTrigger>
                         </Style.Triggers>
@@ -37,12 +37,12 @@
         </Button>
         <Button
             Padding="10"
-            ToolTip="Workers"
+            ToolTip="Servers"
             Click="NavigationWorkers_Click">
             <Button.Style>
                 <Style TargetType="Button" BasedOn="{StaticResource IconButton}">
                     <Style.Triggers>
-                        <DataTrigger Binding="{Binding CurrentPage}" Value="Workers">
+                        <DataTrigger Binding="{Binding CurrentPage}" Value="Servers">
                             <Setter Property="Background" Value="{DynamicResource {x:Static adonisUi:Brushes.AccentBrush}}" />
                         </DataTrigger>
                     </Style.Triggers>
@@ -52,7 +52,7 @@
                 <fonts:Icon.Style>
                     <Style TargetType="{x:Type fonts:Icon}" BasedOn="{StaticResource {x:Type fonts:Icon}}">
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding CurrentPage}" Value="Workers">
+                            <DataTrigger Binding="{Binding CurrentPage}" Value="Servers">
                                 <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}" />
                             </DataTrigger>
                         </Style.Triggers>
@@ -62,12 +62,12 @@
         </Button>
         <Button
             Padding="10"
-            ToolTip="Workers"
+            ToolTip="Packages"
             Click="NavigationPackages_Click">
             <Button.Style>
                 <Style TargetType="Button" BasedOn="{StaticResource IconButton}">
                     <Style.Triggers>
-                        <DataTrigger Binding="{Binding CurrentPage}" Value="Workers">
+                        <DataTrigger Binding="{Binding CurrentPage}" Value="Packages">
                             <Setter Property="Background" Value="{DynamicResource {x:Static adonisUi:Brushes.AccentBrush}}" />
                         </DataTrigger>
                     </Style.Triggers>
