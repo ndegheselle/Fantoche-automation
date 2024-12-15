@@ -13,7 +13,7 @@
     <Grid>
         <TabControl
             x:Name="ScopeTabControl"
-            Margin="0,3,0,0"
+            Margin="0,2,0,0"
             DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:ScopePage}}">
             <TabItem>
                 <TabItem.Header>

@@ -11,7 +11,10 @@
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     mc:Ignorable="d">
     <Grid>
-        <TabControl x:Name="TaskTabControl" DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:TaskPage}}">
+        <TabControl
+            Margin="0,2,0,0"
+            x:Name="TaskTabControl"
+            DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:TaskPage}}">
             <TabItem>
                 <TabItem.Header>
                     <StackPanel Orientation="Horizontal">

@@ -39,12 +39,7 @@ builder.Services.AddSingleton<IMongoDatabase>(
                 throw new ArgumentException("Missing MONGO_INITDB_DATABASE in .env file");
 
             MongoClient client = new MongoClient(connectionString);
-
-            // Allow find request on guid
-            #pragma warning disable 618
-            BsonDefaults.GuidRepresentationMode = GuidRepresentationMode.V3;
             BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
-            #pragma warning restore
 
             // Using camelCase for property names
             ConventionRegistry.Register(

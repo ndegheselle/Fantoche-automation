@@ -1,5 +1,4 @@
 ﻿using Automation.App.Shared.ViewModels.Work;
-using Automation.App.Views.WorkPages.Tasks.Instances;
 using Joufflu.Popups;
 using System.Windows;
 using System.Windows.Controls;
@@ -26,12 +25,5 @@ namespace Automation.App.Views.WorkPages.Tasks.Schedule
         {
             // TODO load task schedule
         }
-
-        #region UI events
-        private void ButtonExecute_Click(object sender, RoutedEventArgs e)
-        {
-            _modal.Show(new TaskExecuteModal(Task));
-        }
-        #endregion
     }
 }

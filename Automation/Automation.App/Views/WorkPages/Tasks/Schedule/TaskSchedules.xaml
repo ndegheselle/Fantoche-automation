@@ -26,9 +26,6 @@
 
                     <TextBlock VerticalAlignment="Center" Margin="4,0,0,0">Schedules</TextBlock>
                     <StackPanel Orientation="Horizontal" Grid.Column="1">
-                        <Button Padding="8,6" Click="ButtonExecute_Click">
-                            <fonts:Icon Text="{x:Static fonts:IconFont.Play}" VerticalAlignment="Center" />
-                        </Button>
                         <Button Padding="8,6">
                             <fonts:Icon Text="{x:Static fonts:IconFont.Plus}" VerticalAlignment="Center" />
                         </Button>

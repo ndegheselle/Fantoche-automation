@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Tasks.Instances"
     xmlns:instances="clr-namespace:Automation.App.Views.WorkPages.Tasks.Instances"
+    xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     xmlns:data="clr-namespace:Joufflu.Data;assembly=Joufflu.Data">
     <Grid DataContext="{Binding Instances, RelativeSource={RelativeSource AncestorType=local:TaskHistory}}">
         <Grid.RowDefinitions>
@@ -14,8 +15,19 @@
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
+        <Grid HorizontalAlignment="Right">
+            <Button Click="ButtonExecute_Click">
+                <StackPanel Orientation="Horizontal">
+                    <fonts:Icon Text="{x:Static fonts:IconFont.Play}" VerticalAlignment="Center" />
+                    <TextBlock Margin="4,0,0,0">Execute new</TextBlock>
+                </StackPanel>
+            </Button>
+        </Grid>
 
-        <instances:TaskInstanceList Grid.Row="1" Instances="{Binding Data}" />
+        <instances:TaskInstanceList
+            Margin="0,2,0,0"
+            Grid.Row="1"
+            Instances="{Binding Data}" />
         <data:Paging
             x:Name="InstancesPaging"
             PagingChange="InstancesPaging_PagingChange"
