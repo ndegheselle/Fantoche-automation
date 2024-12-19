@@ -5,8 +5,34 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Tasks.Schedule"
+    xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     mc:Ignorable="d"
     d:DesignHeight="450"
     d:DesignWidth="800">
-    <Grid />
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+            <StackPanel Orientation="Horizontal">
+                <ContentControl
+                    ContentTemplate="{DynamicResource {x:Static adonisUi:Templates.LoadingBars}}"
+                    Foreground="{DynamicResource {x:Static adonisUi:Brushes.ForegroundBrush}}"
+                    Width="24"
+                    Height="24"
+                    Focusable="False" />
+                <TextBlock VerticalAlignment="Center">Task running ...</TextBlock>
+            </StackPanel>
+        </StackPanel>
+
+        <DataGrid Grid.Row="1">
+            <DataGrid.Columns>
+                <DataGridTemplateColumn Header="Type" />
+                <DataGridTextColumn Header="Message" Width="*" />
+                <DataGridTextColumn Header="Time" />
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
 </UserControl>
