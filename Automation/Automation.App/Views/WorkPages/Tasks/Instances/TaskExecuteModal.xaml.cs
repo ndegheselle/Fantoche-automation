@@ -30,7 +30,9 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
 
         public async Task<bool> OnValidation()
         {
-            await _taskClient.ExecuteAsync(Task.Id, JsonSerializer.Deserialize<object>(JsonSettings));
+            TaskInstance instance = await _taskClient.ExecuteAsync(Task.Id, JsonSerializer.Deserialize<object>(JsonSettings));
+            ParentLayout?.Show(new TaskProgressionModal(instance));
+
             return true;
         }
     }

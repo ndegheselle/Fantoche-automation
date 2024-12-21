@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Threading;
 using AdonisUI.Controls;
 using MessageBox = AdonisUI.Controls.MessageBox;
+using System.Configuration;
 
 namespace Automation.App
 {
@@ -32,6 +33,10 @@ namespace Automation.App
             this.DispatcherUnhandledException += App_DispatcherUnhandledException;
             // Handle exceptions from background threads
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(AppContext.BaseDirectory)
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 
             // Starting main window
             MainWindow mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
