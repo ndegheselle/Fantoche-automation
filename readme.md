@@ -5,5 +5,7 @@
 Todo :
 - Display task progression (state changes) and progression messages
 - Fix workflow creation and save
-    - Select task with versions
-- Setup workflow execution
+    - Select task with no versions (last by default) or with specific version
+- Setup workflow execution (on the backend
+- Display workflow progression with each task state
+
