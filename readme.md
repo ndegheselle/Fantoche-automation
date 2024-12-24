@@ -8,4 +8,4 @@ Todo :
     - Select task with no versions (last by default) or with specific version
 - Setup workflow execution (on the backend
 - Display workflow progression with each task state
-
+- Save scheduled tasks and execute them 
