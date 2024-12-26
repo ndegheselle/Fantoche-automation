@@ -9,5 +9,5 @@ Todo :
     - Select task with no versions (last by default) or with specific version
 - Setup workflow execution (on the backend
 - Display workflow progression with each task state
-    - Send progression to tasks
+    - Send progression from tasks
 - Save scheduled tasks and execute them
