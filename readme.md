@@ -10,4 +10,5 @@ Todo :
 - Setup workflow execution (on the backend
 - Display workflow progression with each task state
     - Send progression from tasks
+    - Display individual tasks on the workflow
 - Save scheduled tasks and execute them
