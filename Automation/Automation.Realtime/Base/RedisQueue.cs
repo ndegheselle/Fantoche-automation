@@ -1,7 +1,7 @@
 ﻿using StackExchange.Redis;
 using System.Text.Json;
 
-namespace Automation.Realtime.Clients
+namespace Automation.Realtime.Base
 {
     public class RedisQueue<T> where T : struct
     {

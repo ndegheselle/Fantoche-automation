@@ -1,4 +1,5 @@
-﻿using Automation.Realtime.Models;
+﻿using Automation.Realtime.Base;
+using Automation.Realtime.Models;
 using StackExchange.Redis;
 using System.Text.Json;
 

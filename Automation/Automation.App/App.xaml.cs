@@ -34,10 +34,6 @@ namespace Automation.App
             // Handle exceptions from background threads
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(AppContext.BaseDirectory)
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-
             // Starting main window
             MainWindow mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
             mainWindow.Show();

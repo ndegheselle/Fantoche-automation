@@ -1,6 +1,6 @@
 version: '3.4'
 services:
-  Automation.Supervisor.Api:
+  automation.supervisor.api:
     image: ${DOCKER_REGISTRY-}automationapisupervisor
     depends_on:
       - mongo
@@ -51,7 +51,9 @@ services:
     image: redis:latest
     ports:
       - "6379:6379"
-    command: redis-server --appendonly yes
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf", "--appendonly", "yes"]
 
 volumes:
   mongodb-data:
