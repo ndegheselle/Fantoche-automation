@@ -24,7 +24,7 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
         {
             // Subscribe to realtime client
 
-            return true;
+            return Task.FromResult(true);
         }
     }
 }

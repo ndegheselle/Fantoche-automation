@@ -38,6 +38,7 @@
     <ProjectReference Include="..\..\..\wpf-components\Usuel.Shared\Usuel.Shared.csproj" />
     <ProjectReference Include="..\Automation.App.Shared\Automation.App.Shared.csproj" />
     <ProjectReference Include="..\Automation.Plugins\Automation.Plugins.csproj" />
+    <ProjectReference Include="..\Automation.Realtime\Automation.Realtime.csproj" />
     <ProjectReference Include="..\Automation.Shared\Automation.Shared.csproj" />
   </ItemGroup>
 
@@ -57,6 +58,14 @@
     <Compile Update="Components\Inputs\TextBoxModal.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EditorConfigFiles Remove="D:\Perso\Informatique\_git\MeApollo-automation\Automation\Automation.App\.editorconfig" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="D:\Perso\Informatique\_git\MeApollo-automation\Automation\Automation.App\.editorconfig" />
   </ItemGroup>
 
 </Project>

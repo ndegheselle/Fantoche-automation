@@ -1,5 +1,6 @@
 using Automation.Realtime;
 using Automation.Server.Shared.Packages;
+using Automation.Supervisor.Api.Business;
 using DotNetEnv;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
@@ -19,6 +20,9 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApiDocument();
+
+
+builder.Services.AddHostedService<WorkerCleaner>();
 
 #region Services
 // Realtime com between supervisor and workers

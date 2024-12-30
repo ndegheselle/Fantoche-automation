@@ -7,6 +7,8 @@ using System.Windows.Threading;
 using AdonisUI.Controls;
 using MessageBox = AdonisUI.Controls.MessageBox;
 using System.Configuration;
+using Automation.Realtime.Clients;
+using Automation.Realtime;
 
 namespace Automation.App
 {
@@ -46,9 +48,13 @@ namespace Automation.App
         /// <returns></returns>
         private static IServiceProvider ConfigureServices(ServiceCollection services)
         {
+            string apiUrl = ConfigurationManager.AppSettings["ApiUrl"] ?? throw new Exception("Missing 'ApiUrl' in App.Config");
+            string redisUrl = ConfigurationManager.AppSettings["RedisUrl"] ?? throw new Exception("Missing 'RedisUrl' in App.Config");
+
             services.AddTransient<MainWindow>();
             services.AddSingleton<ParametersViewModel>();
-            services.AddSingleton<RestClient>(new RestClient("https://localhost:8081/"));
+            services.AddSingleton<RestClient>(new RestClient(apiUrl));
+            services.AddSingleton<Lazy<RedisConnectionManager>>(new Lazy<RedisConnectionManager>(() => new RedisConnectionManager(redisUrl)));
 
             services.AddTransient<ScopesClient>(
                 (provider) => new ScopesClient(provider.GetRequiredService<RestClient>()));
@@ -63,6 +69,9 @@ namespace Automation.App
         #region Exception handling
         private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
         {
+            if (Current.MainWindow  == null)
+                return;
+
             // FIXME : Should get the current window where the exception happend
             var alert = ((IWindowContainer)Current.MainWindow).Alert;
             alert.Error(e.Exception.Message);
@@ -82,6 +91,7 @@ namespace Automation.App
                 "Error",
                 AdonisUI.Controls.MessageBoxButton.OK,
                 AdonisUI.Controls.MessageBoxImage.Warning);
+
             // The application will still terminate after this event is handled
         }
         #endregion
