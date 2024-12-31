@@ -43,6 +43,7 @@ namespace Automation.Realtime.Base
                     });
         }
 
+        // XXX : unsuscribe a specific suscriber ?
         public void Unsubscribe()
         {
             var channel = new RedisChannel(_publishChannel, RedisChannel.PatternMode.Literal);

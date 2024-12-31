@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Tasks.Schedule"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
+    xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     mc:Ignorable="d"
     d:DesignHeight="450"
     d:DesignWidth="800">
@@ -16,7 +17,7 @@
         </Grid.RowDefinitions>
 
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-            <StackPanel Orientation="Horizontal">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                 <ContentControl
                     ContentTemplate="{DynamicResource {x:Static adonisUi:Templates.LoadingBars}}"
                     Foreground="{DynamicResource {x:Static adonisUi:Brushes.ForegroundBrush}}"
@@ -24,6 +25,15 @@
                     Height="24"
                     Focusable="False" />
                 <TextBlock VerticalAlignment="Center">Task running ...</TextBlock>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <fonts:Icon Text="{x:Static fonts:IconFont.CircleExclamation}" />
+                <TextBlock
+                    VerticalAlignment="Center"
+                    Margin="4,0,0,0"
+                    FontSize="10">
+                    Task prgoress
+                </TextBlock>
             </StackPanel>
         </StackPanel>
 
