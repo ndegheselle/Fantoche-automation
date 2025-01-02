@@ -19,7 +19,11 @@
                 </MenuItem.Icon>
             </MenuItem>
             <Separator />
-            <MenuItem Header="Exit" Click="Exit_Click" />
+            <MenuItem Header="Exit" Click="Exit_Click">
+                <MenuItem.Icon>
+                    <fonts:Icon Text="{x:Static fonts:IconFont.ArrowRightFromBracket}" />
+                </MenuItem.Icon>
+            </MenuItem>
         </MenuItem>
     </Menu>
 </UserControl>
