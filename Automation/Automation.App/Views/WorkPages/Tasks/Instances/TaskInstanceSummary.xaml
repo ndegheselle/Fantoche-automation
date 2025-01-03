@@ -1,0 +1,55 @@
+﻿<UserControl
+    x:Class="Automation.App.Views.WorkPages.Tasks.Instances.TaskInstanceSummary"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Tasks.Instances"
+    xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
+    xmlns:packagesComponents="clr-namespace:Automation.App.Views.PackagesPages.Components"
+    mc:Ignorable="d"
+    x:Name="ParentContainer">
+    <Grid DataContext="{Binding Instance, ElementName=ParentContainer}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Orientation="Vertical">
+            <packagesComponents:TargetPackageSummary TargetPackage="{Binding Target}" />
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="120" />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+
+                <TextBlock FontWeight="Bold">Assigned worker</TextBlock>
+                <TextBlock Grid.Column="1" Text="{Binding WorkerId}" />
+
+                <TextBlock FontWeight="Bold" Grid.Row="1">Created at</TextBlock>
+                <TextBlock
+                    Grid.Column="1"
+                    Grid.Row="1"
+                    Text="{Binding CreateDate}" />
+
+            </Grid>
+        </StackPanel>
+        <StackPanel
+            Orientation="Horizontal"
+            HorizontalAlignment="Center"
+            Grid.Column="1">
+            <ContentControl
+                ContentTemplate="{DynamicResource {x:Static adonisUi:Templates.LoadingBars}}"
+                Foreground="{DynamicResource {x:Static adonisUi:Brushes.ForegroundBrush}}"
+                Width="24"
+                Height="24"
+                Focusable="False" />
+            <TextBlock VerticalAlignment="Center">Running ...</TextBlock>
+        </StackPanel>
+    </Grid>
+</UserControl>

@@ -1,5 +1,4 @@
-﻿using Automation.App.Shared.ApiClients;
-using Automation.App.Shared.ViewModels.Work;
+﻿using Automation.App.Shared.ViewModels.Work;
 using Automation.Plugins.Shared;
 using Automation.Realtime;
 using Automation.Realtime.Clients;
@@ -16,8 +15,9 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
     public partial class TaskProgressionModal : UserControl, IModalContent
     {
         private readonly App _app = (App)App.Current;
-        private readonly TaskInstance _instance;
         private readonly TasksRealtimeClient _taskRealtimeClient;
+
+        public TaskInstance Instance { get; private set; }
 
         public Modal? ParentLayout { get; set; }
         public ModalOptions Options { get; private set; } = new ModalOptions() { Title = "Task progression" };
@@ -26,8 +26,8 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
         {
             RedisConnectionManager redis = _app.ServiceProvider.GetRequiredService<Lazy<RedisConnectionManager>>().Value;
 
-            _instance = instance;
-            _taskRealtimeClient = new TasksRealtimeClient(redis.Connection, _instance.Id);
+            Instance = instance;
+            _taskRealtimeClient = new TasksRealtimeClient(redis.Connection, Instance.Id);
             InitializeComponent();
 
             _taskRealtimeClient.Progress.Subscribe(OnInstanceMessage);

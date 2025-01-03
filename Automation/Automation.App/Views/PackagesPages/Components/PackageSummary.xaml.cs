@@ -9,7 +9,7 @@ namespace Automation.App.Views.PackagesPages.Components
     /// </summary>
     public partial class PackageSummary : UserControl
     {
-        public static readonly DependencyProperty MyPropertyProperty = DependencyProperty.Register(
+        public static readonly DependencyProperty PackageProperty = DependencyProperty.Register(
             nameof(Package),
             typeof(PackageInfos),
             typeof(PackageSummary),
@@ -17,8 +17,8 @@ namespace Automation.App.Views.PackagesPages.Components
 
         public PackageInfos? Package
         {
-            get { return (PackageInfos?)GetValue(MyPropertyProperty); }
-            set { SetValue(MyPropertyProperty, value); }
+            get { return (PackageInfos?)GetValue(PackageProperty); }
+            set { SetValue(PackageProperty, value); }
         }
 
         public PackageSummary() { InitializeComponent(); }
