@@ -87,7 +87,7 @@ namespace Automation.Supervisor.Api.Controllers
 
         [HttpPost]
         [Route("{id}/execute")]
-        public async Task<TaskInstance> ExecuteAsync([FromRoute] Guid id, [FromBody] object? settings)
+        public async Task<TaskInstance> ExecuteAsync([FromRoute] Guid id, [FromBody] string? settings)
         {
             TaskNode? task = await _taskRepo.GetByIdAsync(id);
             if (task == null)
@@ -95,11 +95,7 @@ namespace Automation.Supervisor.Api.Controllers
             if (task.Package == null)
                 throw new InvalidOperationException($"The task '{id}' doesn't have an assigned package.");
 
-            BsonDocument? bson = null;
-            if (settings != null)
-                bson = ((JsonElement)settings).ToBsonDocument();
-
-            return await _assignator.AssignAsync(task, bson);
+            return await _assignator.AssignAsync(task, settings);
         }
 
         [HttpGet]

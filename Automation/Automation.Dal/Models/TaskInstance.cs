@@ -1,6 +1,4 @@
-﻿using Automation.Plugins.Shared;
-using Automation.Shared.Data;
-using MongoDB.Bson;
+﻿using Automation.Shared.Data;
 using MongoDB.Bson.Serialization.Attributes;
 using System.Text.Json.Serialization;
 
@@ -11,7 +9,7 @@ namespace Automation.Dal.Models
     /// </summary>
     public class InstanceContext
     {
-        public BsonDocument? Settings { get; set; }
+        public string? Settings { get; set; }
     }
 
     public class TaskInstance : ITaskInstance

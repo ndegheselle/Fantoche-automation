@@ -5,6 +5,7 @@ using Automation.Realtime.Clients;
 using Automation.Shared.Data;
 using Joufflu.Popups;
 using Microsoft.Extensions.DependencyInjection;
+using System.Collections.ObjectModel;
 using System.Windows.Controls;
 
 namespace Automation.App.Views.WorkPages.Tasks.Instances
@@ -18,6 +19,7 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
         private readonly TasksRealtimeClient _taskRealtimeClient;
 
         public TaskInstance Instance { get; private set; }
+        public ObservableCollection<TaskProgress> ProgressMessages { get; private set; } = [];
 
         public Modal? ParentLayout { get; set; }
         public ModalOptions Options { get; private set; } = new ModalOptions() { Title = "Task progression" };
@@ -45,6 +47,7 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
         /// <param name="state"></param>
         private void OnInstanceLifecycleChange(EnumTaskState state)
         {
+            Instance.State = state;
         }
 
         /// <summary>
@@ -53,6 +56,8 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
         /// <param name="progress"></param>
         private void OnInstanceMessage(TaskProgress? progress)
         {
+            if (progress != null)
+                ProgressMessages.Add(progress);
         }
     }
 }

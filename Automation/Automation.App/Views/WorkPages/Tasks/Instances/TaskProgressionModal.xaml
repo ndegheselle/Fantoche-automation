@@ -19,11 +19,43 @@
 
         <local:TaskInstanceSummary Instance="{Binding Instance}" Margin="2" />
 
-        <DataGrid Grid.Row="1">
+        <DataGrid Grid.Row="1" ItemsSource="{Binding ProgressMessages}">
             <DataGrid.Columns>
-                <DataGridTemplateColumn Header="Type" />
-                <DataGridTextColumn Header="Message" Width="*" />
-                <DataGridTextColumn Header="Time" />
+                <DataGridTemplateColumn Header="Type">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <fonts:Icon>
+                                <fonts:Icon.Style>
+                                    <Style TargetType="{x:Type fonts:Icon}" BasedOn="{StaticResource {x:Type fonts:Icon}}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Type}" Value="Info">
+                                                <Setter Property="Text" Value="{x:Static fonts:IconFont.CircleInfo}" />
+                                                <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.AccentBrush}}" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Type}" Value="Warning">
+                                                <Setter Property="Text" Value="{x:Static fonts:IconFont.CircleExclamation}" />
+                                                <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.AlertBrush}}" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Type}" Value="Error">
+                                                <Setter Property="Text" Value="{x:Static fonts:IconFont.CircleExclamation}" />
+                                                <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.ErrorBrush}}" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Type}" Value="Sucess">
+                                                <Setter Property="Text" Value="{x:Static fonts:IconFont.CircleCheck}" />
+                                                <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.SuccessBrush}}" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </fonts:Icon.Style>
+                            </fonts:Icon>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn
+                    Header="Message"
+                    Width="*"
+                    Binding="{Binding Message}" />
+                <DataGridTextColumn Header="Time" Binding="{Binding Date}" />
             </DataGrid.Columns>
         </DataGrid>
     </Grid>

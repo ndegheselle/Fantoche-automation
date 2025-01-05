@@ -1,7 +1,4 @@
-﻿using Automation.Plugins.Shared;
-using System.Text.Json;
-
-namespace Automation.Shared.Data
+﻿namespace Automation.Shared.Data
 {
     public enum EnumTaskState
     {
@@ -10,7 +7,6 @@ namespace Automation.Shared.Data
         Completed,
         Failed
     }
-
 
     public interface ITaskInstance : IIdentifier
     {

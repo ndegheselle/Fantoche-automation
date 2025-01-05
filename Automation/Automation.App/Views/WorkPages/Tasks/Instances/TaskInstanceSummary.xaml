@@ -7,6 +7,7 @@
     xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Tasks.Instances"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     xmlns:packagesComponents="clr-namespace:Automation.App.Views.PackagesPages.Components"
+    xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     mc:Ignorable="d"
     x:Name="ParentContainer">
     <Grid DataContext="{Binding Instance, ElementName=ParentContainer}">
@@ -48,8 +49,59 @@
                 Foreground="{DynamicResource {x:Static adonisUi:Brushes.ForegroundBrush}}"
                 Width="24"
                 Height="24"
-                Focusable="False" />
-            <TextBlock VerticalAlignment="Center">Running ...</TextBlock>
+                Focusable="False">
+                <ContentControl.Style>
+                    <Style TargetType="ContentControl">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding State}" Value="Pending">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding State}" Value="Progress">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </ContentControl.Style>
+            </ContentControl>
+
+            <fonts:Icon>
+                <fonts:Icon.Style>
+                    <Style TargetType="{x:Type fonts:Icon}" BasedOn="{StaticResource {x:Type fonts:Icon}}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding State}" Value="Completed">
+                                <Setter Property="Text" Value="{x:Static fonts:IconFont.CircleCheck}" />
+                                <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.SuccessBrush}}" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding State}" Value="Failed">
+                                <Setter Property="Text" Value="{x:Static fonts:IconFont.CircleExclamation}" />
+                                <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.AlertBrush}}" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </fonts:Icon.Style>
+            </fonts:Icon>
+
+            <TextBlock VerticalAlignment="Center">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding State}" Value="Pending">
+                                <Setter Property="Text" Value="Pending ..." />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding State}" Value="Progress">
+                                <Setter Property="Text" Value="Progressing ..." />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding State}" Value="Completed">
+                                <Setter Property="Text" Value="Completed" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding State}" Value="Failed">
+                                <Setter Property="Text" Value="Failed" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
         </StackPanel>
     </Grid>
 </UserControl>

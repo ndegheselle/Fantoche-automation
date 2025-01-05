@@ -14,6 +14,7 @@ namespace Automation.Plugins.Shared
     {
         public string Message { get; set; } = string.Empty;
         public TaskProgressType Type { get; set; }
+        public DateTime Date { get; set; } = DateTime.Now;
     }
 
     public interface IProgress

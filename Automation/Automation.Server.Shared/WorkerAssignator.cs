@@ -26,7 +26,7 @@ namespace Automation.Server.Shared
         /// <param name="taskId"></param>
         /// <param name="parameters"></param>
         /// <returns></returns>
-        public Task<TaskInstance> AssignAsync(TaskNode task, BsonDocument? settings)
+        public Task<TaskInstance> AssignAsync(TaskNode task, string? settings)
         {
             if (task.Package == null)
                 throw new ArgumentNullException(nameof(task));
