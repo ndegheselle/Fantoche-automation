@@ -17,18 +17,18 @@ db.createCollection("tasks");
 db.createCollection("schedules");
 
 db.scopes.createIndex(
-    { parentIds: 1 },
+    { parentTree: 1 },
     { background: true }
 );
 db.tasks.createIndex(
-    { parentIds: 1 },
+    { parentTree: 1 },
     { background: true }
 );
 
 // Root scope
 db.scopes.insertOne({
     _id: UUID("00000000-0000-0000-0000-000000000001"),
-    parentIds: [],
+    parentTree: [],
     name: "Root",
     context: {}
 });

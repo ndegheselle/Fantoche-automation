@@ -53,7 +53,7 @@ namespace Automation.App.Views.WorkPages.Tasks
         private IModal _modal => this.GetCurrentModalContainer();
 
         public Modal? ParentLayout { get; set; }
-        public ModalOptions Options => new ModalOptions();
+        public ModalOptions Options { get; private set; } = new ModalOptions();
 
         public TaskNode Task { get; set; }
 

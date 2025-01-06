@@ -8,31 +8,59 @@
     xmlns:components="clr-namespace:Automation.App.Views.WorkPages.Components"
     xmlns:instances="clr-namespace:Automation.App.Views.WorkPages.Tasks.Instances"
     xmlns:data="clr-namespace:Joufflu.Data;assembly=Joufflu.Data"
+    xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     mc:Ignorable="d">
-    <Grid>
-        <TabControl
-            Margin="0,2,0,0"
-            x:Name="TaskTabControl"
-            DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:TaskPage}}">
-            <TabItem>
-                <TabItem.Header>
+    <Grid DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:TaskPage}}">
+        <Grid>
+            <TabControl Margin="0,2,0,0" x:Name="TaskTabControl">
+                <TabItem>
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal">
+                            <fonts:Icon Text="{x:Static fonts:IconFont.Calendar}" />
+                            <TextBlock Margin="4,0,0,0">Schedules</TextBlock>
+                        </StackPanel>
+                    </TabItem.Header>
+                </TabItem>
+                <TabItem>
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal">
+                            <fonts:Icon Text="{x:Static fonts:IconFont.Clock}" />
+                            <TextBlock Margin="4,0,0,0">Executions history</TextBlock>
+                        </StackPanel>
+                    </TabItem.Header>
+                    <instances:TaskHistory Task="{Binding Task}" />
+                </TabItem>
+            </TabControl>
+
+            <Grid>
+                <Grid.Style>
+                    <Style TargetType="Grid">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Task.Package}" Value="{x:Null}">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Grid.Style>
+
+                <Border Background="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}" Opacity="0.8" />
+                <Border
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Center"
+                    BorderThickness="1"
+                    Padding="6"
+                    Background="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}"
+                    CornerRadius="{StaticResource {x:Static adonisUi:Dimensions.CornerRadius}}"
+                    BorderBrush="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}">
                     <StackPanel Orientation="Horizontal">
-                        <fonts:Icon Text="{x:Static fonts:IconFont.Calendar}" />
-                        <TextBlock Margin="4,0,0,0">Schedules</TextBlock>
+                        <fonts:Icon Text="{x:Static fonts:IconFont.CircleExclamation}" />
+                        <TextBlock Margin="4,0,0,0">The task is not fully configured yet.</TextBlock>
                     </StackPanel>
-                </TabItem.Header>
-            </TabItem>
-            <TabItem>
-                <TabItem.Header>
-                    <StackPanel Orientation="Horizontal">
-                        <fonts:Icon Text="{x:Static fonts:IconFont.Clock}" />
-                        <TextBlock Margin="4,0,0,0">Executions history</TextBlock>
-                    </StackPanel>
-                </TabItem.Header>
-                <instances:TaskHistory Task="{Binding Task}" />
-            </TabItem>
-        </TabControl>
+                </Border>
+            </Grid>
+        </Grid>
         <Button
             Height="22"
             Click="ButtonSettings_Click"

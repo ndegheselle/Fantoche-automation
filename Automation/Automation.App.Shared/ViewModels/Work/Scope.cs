@@ -21,7 +21,7 @@ namespace Automation.App.Shared.ViewModels.Work
     public class ScopedElement : ErrorValidationModel, IScopedElement, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        public void NotifyPropertyChanged([CallerMemberName] string? propertyName = null)
         { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
 
         public Guid Id { get; set; }
@@ -48,7 +48,7 @@ namespace Automation.App.Shared.ViewModels.Work
                 {
                     IsSelected = true;
                 }
-                OnPropertyChanged();
+                NotifyPropertyChanged();
             }
         }
 
@@ -60,7 +60,7 @@ namespace Automation.App.Shared.ViewModels.Work
             set
             {
                 _isSelected = value;
-                OnPropertyChanged();
+                NotifyPropertyChanged();
             }
         }
 
