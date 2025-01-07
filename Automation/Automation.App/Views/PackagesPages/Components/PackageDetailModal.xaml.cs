@@ -10,13 +10,14 @@ using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows.Controls;
+using Usuel.Shared;
 
 namespace Automation.App.Views.PackagesPages.Components
 {
     /// <summary>
     /// Either create a new package or a package version if an existing package is passed
     /// </summary>
-    public class PackageCreateModal : FilePickerModal, IModalContentValidation, INotifyPropertyChanged
+    public class PackageCreateModal : FilePickerModal, IModalContent, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
         private void NotifyPropertyChanged([CallerMemberName] string? propertyName = "")
@@ -36,18 +37,25 @@ namespace Automation.App.Views.PackagesPages.Components
         {
             Package = package;
             _packagesClient = _app.ServiceProvider.GetRequiredService<PackagesClient>();
+            ValidateCommand = new DelegateCommand(Validate, () => SelectedFile.HasErrors);
         }
 
-        public async Task<bool> OnValidation()
+        public bool IsInvalid()
         {
             SelectedFile.ClearErrors();
-
             // TODO : show error
             if (string.IsNullOrWhiteSpace(SelectedFile.FilePath) || !File.Exists(SelectedFile.FilePath))
             {
                 SelectedFile.AddError("The selected file is invalid.", nameof(FilePickerFile.FilePath));
-                return false;
+                return true;
             }
+            return false;
+        }
+
+        public async void Validate()
+        {
+            if (IsInvalid())
+                return;
 
             try
             {
@@ -63,9 +71,9 @@ namespace Automation.App.Views.PackagesPages.Components
             {
                 if (ex.Errors != null)
                     SelectedFile.AddErrors(ex.Errors);
-                return false;
+                return;
             }
-            return true;
+            ParentLayout?.Hide(true);
         }
     }
 

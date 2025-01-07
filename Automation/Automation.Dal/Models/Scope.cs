@@ -1,5 +1,4 @@
-﻿using Automation.Dal.Repositories;
-using Automation.Shared.Data;
+﻿using Automation.Shared.Data;
 using MongoDB.Bson.Serialization.Attributes;
 using System.Text.Json.Serialization;
 

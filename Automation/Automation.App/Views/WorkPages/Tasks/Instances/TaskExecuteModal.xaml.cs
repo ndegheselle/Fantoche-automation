@@ -2,7 +2,6 @@
 using Automation.App.Shared.ViewModels.Work;
 using Joufflu.Popups;
 using Microsoft.Extensions.DependencyInjection;
-using System.Text.Json;
 using System.Windows.Controls;
 
 namespace Automation.App.Views.WorkPages.Tasks.Instances
@@ -10,7 +9,7 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
     /// <summary>
     /// Logique d'interaction pour TaskExecute.xaml
     /// </summary>
-    public partial class TaskExecuteModal : UserControl, IModalContentValidation
+    public partial class TaskExecuteModal : UserControl, IModalContent
     {
         private readonly App _app = (App)App.Current;
         private readonly TasksClient _taskClient;
@@ -25,15 +24,14 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
             _taskClient = _app.ServiceProvider.GetRequiredService<TasksClient>();
             Task = task;
             Options.Title = $"Execute task - {task.Name}";
+
             InitializeComponent(); 
         }
 
-        public async Task<bool> OnValidation()
+        private async void ButtonExecute_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             TaskInstance instance = await _taskClient.ExecuteAsync(Task.Id, JsonSettings);
             ParentLayout?.Show(new TaskProgressionModal(instance));
-
-            return true;
         }
     }
 }

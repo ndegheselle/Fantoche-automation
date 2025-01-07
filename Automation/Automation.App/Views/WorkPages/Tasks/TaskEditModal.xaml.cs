@@ -21,7 +21,7 @@ namespace Automation.App.Views.WorkPages.Tasks
         {
             _taskClient = _app.ServiceProvider.GetRequiredService<TasksClient>();
             NewTask = task;
-            BindValue(nameof(Shared.ViewModels.Work.Scope.Name), NewTask);
+            BindValue(nameof(Scope.Name), NewTask);
         }
 
         public async Task<bool> OnValidation()

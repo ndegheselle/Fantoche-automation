@@ -25,12 +25,14 @@ namespace Automation.App.Components.Inputs
 
         public FilePickerFile SelectedFile { get; set; } = new FilePickerFile();
         public FilePickerOptions OptionsDialog { get; set; }
+        public ICustomCommand ValidateCommand { get; set; }
 
         public FilePickerModal(string titre, string subTitle, FilePickerOptions options)
         {
             SubTitle = subTitle;
             OptionsDialog = options;
             Options.Title = titre;
+            ValidateCommand = new DelegateCommand(() => ParentLayout?.Hide(true));
             InitializeComponent();
         }
     }

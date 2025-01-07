@@ -49,7 +49,7 @@ namespace Automation.App
         private static IServiceProvider ConfigureServices(ServiceCollection services)
         {
             string apiUrl = ConfigurationManager.AppSettings["ApiUrl"] ?? throw new Exception("Missing 'ApiUrl' in App.Config");
-            string redisUrl = ConfigurationManager.AppSettings["RedisUrl"] ?? throw new Exception("Missing 'RedisUrl' in App.Config");
+            string redisUrl = ConfigurationManager.AppSettings["RedisConnectionString"] ?? throw new Exception("Missing 'RedisConnectionString' in App.Config");
 
             services.AddTransient<MainWindow>();
             services.AddSingleton<ParametersViewModel>();
