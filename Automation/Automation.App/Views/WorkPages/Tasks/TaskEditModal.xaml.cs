@@ -8,54 +8,62 @@ using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
+using Usuel.Shared;
 
 namespace Automation.App.Views.WorkPages.Tasks
 {
-    public class TaskCreateModal : TextBoxModal, IModalContentValidation
+    public class TaskCreateModal : TextBoxModal, IModalContent
     {
         private readonly App _app = (App)App.Current;
         private readonly TasksClient _taskClient;
+
         public TaskNode NewTask { get; set; }
+
+        public ICustomCommand ValidateCommand { get; private set; }
 
         public TaskCreateModal(TaskNode task) : base("Create new task")
         {
             _taskClient = _app.ServiceProvider.GetRequiredService<TasksClient>();
             NewTask = task;
+            ValidateCommand = new DelegateCommand(Validate);
             BindValue(nameof(Scope.Name), NewTask);
         }
 
-        public async Task<bool> OnValidation()
+        public async void Validate()
         {
             NewTask.ClearErrors();
             try
             {
                 NewTask.Id = await _taskClient.CreateAsync(NewTask);
-            }
-            catch (ValidationException ex)
+            } catch (ValidationException ex)
             {
                 if (ex.Errors != null)
                     NewTask.AddErrors(ex.Errors);
-                return false;
+                return;
             }
-            return true;
         }
     }
 
     /// <summary>
     /// Logique d'interaction pour TaskEdit.xaml
     /// </summary>
-    public partial class TaskEditModal : UserControl, INotifyPropertyChanged, IModalContentValidation
+    public partial class TaskEditModal : UserControl, INotifyPropertyChanged, IModalContent
     {
         private readonly App _app = (App)App.Current;
         private readonly TasksClient _taskClient;
         private readonly PackagesClient _pacakgeClient;
+
         private IAlert _alert => this.GetCurrentAlertContainer();
+
         private IModal _modal => this.GetCurrentModalContainer();
 
         public Modal? ParentLayout { get; set; }
+
         public ModalOptions Options { get; private set; } = new ModalOptions();
 
         public TaskNode Task { get; set; }
+
+        public ICustomCommand ValidateCommand { get; private set; }
 
         public TaskEditModal(TaskNode task)
         {
@@ -63,15 +71,12 @@ namespace Automation.App.Views.WorkPages.Tasks
             Options.Title = $"Edit task {task.Name}";
             _taskClient = _app.ServiceProvider.GetRequiredService<TasksClient>();
             _pacakgeClient = _app.ServiceProvider.GetRequiredService<PackagesClient>();
-
+            ValidateCommand = new DelegateCommand(Validate);
             InitializeComponent();
         }
 
         #region UI events
-        private void RemovePackage_Click(object sender, RoutedEventArgs e)
-        {
-            Task.Package = null;
-        }
+        private void RemovePackage_Click(object sender, RoutedEventArgs e) { Task.Package = null; }
 
         private async void SelectPackage_Click(object sender, RoutedEventArgs e)
         {
@@ -83,21 +88,19 @@ namespace Automation.App.Views.WorkPages.Tasks
         }
         #endregion
 
-        public async Task<bool> OnValidation()
+        public async void Validate()
         {
             Task.ClearErrors();
             try
             {
                 await _taskClient.UpdateAsync(Task.Id, Task);
                 _alert.Success("Task updated !");
-            }
-            catch (ValidationException ex)
+            } catch (ValidationException ex)
             {
                 if (ex.Errors != null)
                     Task.AddErrors(ex.Errors);
-                return false;
+                return;
             }
-            return true;
         }
     }
 }

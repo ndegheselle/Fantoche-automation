@@ -9,7 +9,7 @@
     mc:Ignorable="d"
     d:DesignHeight="450"
     d:DesignWidth="800">
-    <Grid DataContext="{Binding Schedule, RelativeSource={RelativeSource AncestorType={x:Type local:ScheduleEditModal}}}">
+    <Grid DataContext="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:ScheduleEditModal}}}">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="auto" />
@@ -25,22 +25,27 @@
 
             <StackPanel>
                 <TextBlock Margin="0,8,0,4" FontWeight="Bold">Cron</TextBlock>
-                <TextBox Text="{Binding CronExpression}" />
+                <TextBox Text="{Binding Schedule.CronExpression}" />
             </StackPanel>
-            <TextBlock Margin="0,8,0,4" FontWeight="Bold" Grid.Row="1">Settings</TextBlock>
+            <TextBlock
+                Margin="0,8,0,4"
+                FontWeight="Bold"
+                Grid.Row="1">
+                Settings
+            </TextBlock>
         </Grid>
         <StackPanel
             Orientation="Horizontal"
             Grid.Row="1"
             Margin="2"
             HorizontalAlignment="Right">
-            <Button Margin="2,0" Command="{Binding ParentLayout.CloseCommand}">
+            <Button Margin="2,0" Command="{Binding ParentLayout.HideCommand}">
                 <StackPanel Orientation="Horizontal">
                     <fonts:Icon Text="{x:Static fonts:IconFont.Xmark}" />
                     <TextBlock Margin="4,0,0,0">Cancel</TextBlock>
                 </StackPanel>
             </Button>
-            <Button Command="{Binding ParentLayout.ValidateCommand}">
+            <Button Command="{Binding ValidateCommand}">
                 <StackPanel Orientation="Horizontal">
                     <fonts:Icon Text="{x:Static fonts:IconFont.FloppyDisk}" />
                     <TextBlock Margin="4,0,0,0">Save</TextBlock>
