@@ -19,7 +19,7 @@ namespace Automation.Plugins.Shared
 
     public interface IProgress
     {
-        public void Progress(TaskProgress progress);
+        public void Send(TaskProgress progress);
     }
 
     public class TaskContext

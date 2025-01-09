@@ -23,7 +23,12 @@ namespace Automation.Plugins.Flow
             {
                 { "TotalDelay", $"Delay {settings.DelayMs}" }
             };
-            await Task.Delay(settings.DelayMs);
+
+            for(int i = 0;  i < 5; i++)
+            {
+                Progress?.Send(new TaskProgress() { Type = TaskProgressType.Info, Message = $"Progression {i} ..." });
+                await Task.Delay(settings.DelayMs);
+            }
         }
     }
 }

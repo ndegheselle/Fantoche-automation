@@ -44,7 +44,7 @@ namespace Automation.Worker.Service.Business
             return instance;
         }
 
-        public void Progress(TaskProgress progress)
+        public void Send(TaskProgress progress)
         {
             if (_currentInstance == null)
                 return;

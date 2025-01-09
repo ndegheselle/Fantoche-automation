@@ -6,8 +6,8 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Tasks.Instances"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
-    MinHeight="400"
-    MinWidth="400">
+    Height="400"
+    Width="400">
     <Grid DataContext="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:TaskExecuteModal}}}">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
