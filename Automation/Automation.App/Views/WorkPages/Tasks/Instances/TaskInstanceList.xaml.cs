@@ -14,11 +14,11 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
         // Dependency property for the task id
         public static readonly DependencyProperty InstancesProperty = DependencyProperty.Register(
             nameof(Instances),
-            typeof(List<TaskInstance>),
+            typeof(IEnumerable<TaskInstance>),
             typeof(TaskInstanceList),
             new PropertyMetadata(null));
 
-        public List<TaskInstance>? Instances { get { return (List<TaskInstance>?)GetValue(InstancesProperty); } set { SetValue(InstancesProperty, value); } }
+        public IEnumerable<TaskInstance>? Instances { get { return (IEnumerable<TaskInstance>?)GetValue(InstancesProperty); } set { SetValue(InstancesProperty, value); } }
         private IModal _modal => this.GetCurrentModalContainer();
 
         public TaskInstanceList() {

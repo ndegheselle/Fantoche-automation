@@ -6,6 +6,7 @@ using Automation.Shared.Data;
 using Joufflu.Popups;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.ObjectModel;
+using System.Windows;
 using System.Windows.Controls;
 
 namespace Automation.App.Views.WorkPages.Tasks.Instances
@@ -57,7 +58,12 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
         private void OnInstanceMessage(TaskProgress? progress)
         {
             if (progress != null)
-                ProgressMessages.Add(progress);
+            {
+                Application.Current.Dispatcher.BeginInvoke(() =>
+                {
+                    ProgressMessages.Add(progress);
+                });
+            }
         }
     }
 }

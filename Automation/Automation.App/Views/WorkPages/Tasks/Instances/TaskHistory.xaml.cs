@@ -3,6 +3,7 @@ using Automation.App.Shared.ViewModels.Work;
 using Automation.Shared.Base;
 using Joufflu.Popups;
 using Microsoft.Extensions.DependencyInjection;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -11,7 +12,7 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
     /// <summary>
     /// Logique d'interaction pour TaskHistory.xaml
     /// </summary>
-    public partial class TaskHistory : UserControl
+    public partial class TaskHistory : UserControl, INotifyPropertyChanged
     {
         public static readonly DependencyProperty TaskProperty =
             DependencyProperty.Register(
