@@ -1,5 +1,6 @@
 ﻿using Automation.App.Shared.ApiClients;
 using Automation.App.Shared.ViewModels.Work;
+using Automation.App.Views.WorkPages.Tasks.Instances;
 using Automation.Shared.Base;
 using Joufflu.Popups;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,7 +8,7 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace Automation.App.Views.WorkPages.Tasks.Instances
+namespace Automation.App.Views.WorkPages.Tasks
 {
     /// <summary>
     /// Logique d'interaction pour TaskHistory.xaml
@@ -19,7 +20,7 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
             nameof(Task),
             typeof(TaskNode),
             typeof(TaskHistory),
-            new PropertyMetadata(null, (o, e) => ((TaskHistory)o).OnTaskChange()));
+            new PropertyMetadata(null));
 
         public TaskNode Task { get { return (TaskNode)GetValue(TaskProperty); } set { SetValue(TaskProperty, value); } }
 
@@ -29,6 +30,7 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
             set;
         } = new ListPageWrapper<TaskInstance>() { PageSize = 50, Page = 1 };
 
+        private bool _isAlreadyRefreshed = false;
         private readonly App _app = (App)App.Current;
         private readonly TasksClient _tasksClient;
         private IModal _modal => this.GetCurrentModalContainer();
@@ -37,15 +39,23 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
         {
             _tasksClient = _app.ServiceProvider.GetRequiredService<TasksClient>();
             InitializeComponent();
+            IsVisibleChanged += TaskHistory_IsVisibleChanged;
         }
 
-        private void OnTaskChange() { RefreshHistory(Instances.Page, Instances.PageSize); }
+        private void TaskHistory_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (this.IsVisible && _isAlreadyRefreshed == false)
+            {
+                RefreshHistory(Instances.Page, Instances.PageSize);
+            }
+        }
 
         private async void RefreshHistory(int pageNumber, int capacity)
         {
             if (Task == null)
                 return;
             Instances = await _tasksClient.GetInstancesAsync(Task.Id, pageNumber - 1, capacity);
+            _isAlreadyRefreshed = true;
         }
 
         private void InstancesPaging_PagingChange(int pageNumber, int capacity)

@@ -35,6 +35,10 @@
             </Style>
         </DataGrid.Resources>
         <DataGrid.Columns>
+            <DataGridTextColumn
+                Header="Task"
+                Binding="{Binding TaskId}"
+                MaxWidth="100" />
             <DataGridTextColumn Header="Worker" Binding="{Binding WorkerId}" />
             <DataGridTextColumn Header="Created" Binding="{Binding CreateDate}" />
             <DataGridTextColumn Header="Started" Binding="{Binding StartDate}" />

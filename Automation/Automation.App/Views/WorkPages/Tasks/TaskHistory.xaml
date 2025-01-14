@@ -1,0 +1,42 @@
+﻿<UserControl
+    x:Class="Automation.App.Views.WorkPages.Tasks.TaskHistory"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Tasks"
+    xmlns:instances="clr-namespace:Automation.App.Views.WorkPages.Tasks.Instances"
+    xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
+    xmlns:data="clr-namespace:Joufflu.Data;assembly=Joufflu.Data">
+    <Grid DataContext="{Binding Instances, RelativeSource={RelativeSource AncestorType=local:TaskHistory}}">
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+        <instances:TaskInstanceList
+            Margin="0,2,0,0"
+            Grid.Row="0"
+            Instances="{Binding Data}" />
+        <Grid Grid.Row="1" Margin="0,2,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <Button Click="ButtonExecute_Click">
+                <StackPanel Orientation="Horizontal">
+                    <fonts:Icon Text="{x:Static fonts:IconFont.Play}" VerticalAlignment="Center" />
+                    <TextBlock Margin="4,0,0,0">Execute new</TextBlock>
+                </StackPanel>
+            </Button>
+
+            <data:Paging
+                Grid.Column="1"
+                x:Name="InstancesPaging"
+                PagingChange="InstancesPaging_PagingChange"
+                Margin="10,0,0,0"
+                PageNumber="{Binding Page}"
+                Capacity="{Binding PageSize}"
+                Total="{Binding Total}" />
+        </Grid>
+    </Grid>
+</UserControl>
