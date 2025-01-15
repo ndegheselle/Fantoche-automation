@@ -19,8 +19,6 @@ namespace Automation.App.Views.WorkPages.Tasks
 
         public TaskNode NewTask { get; set; }
 
-        public ICustomCommand ValidateCommand { get; private set; }
-
         public TaskCreateModal(TaskNode task) : base("Create new task")
         {
             _taskClient = _app.ServiceProvider.GetRequiredService<TasksClient>();
@@ -35,6 +33,7 @@ namespace Automation.App.Views.WorkPages.Tasks
             try
             {
                 NewTask.Id = await _taskClient.CreateAsync(NewTask);
+                ParentLayout?.Hide(true);
             } catch (ValidationException ex)
             {
                 if (ex.Errors != null)

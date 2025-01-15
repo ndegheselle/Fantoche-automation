@@ -5,6 +5,7 @@ using Automation.App.Views.WorkPages.Workflows;
 using Automation.Shared.Data;
 using Joufflu.Popups;
 using Microsoft.Extensions.DependencyInjection;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -24,9 +25,9 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
         private readonly TasksClient _taskClient;
         #region Dependency Properties
         // Dependency property Scope RootScope
-        public static readonly DependencyProperty RootScopeProperty = DependencyProperty.Register(
-            nameof(RootScope),
-            typeof(Shared.ViewModels.Work.Scope),
+        public static readonly DependencyProperty CurrentScopeProperty = DependencyProperty.Register(
+            nameof(CurrentScope),
+            typeof(Scope),
             typeof(ScopedContextMenu),
             new PropertyMetadata(null));
 
@@ -38,10 +39,10 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
             new PropertyMetadata(null, (o, d) => ((ScopedContextMenu)o).OnSelectedChanged()));
         #endregion
 
-        public Shared.ViewModels.Work.Scope RootScope
+        public Scope CurrentScope
         {
-            get { return (Shared.ViewModels.Work.Scope)GetValue(RootScopeProperty); }
-            set { SetValue(RootScopeProperty, value); }
+            get { return (Scope)GetValue(CurrentScopeProperty); }
+            set { SetValue(CurrentScopeProperty, value); }
         }
 
         public ScopedElement? Selected
@@ -49,8 +50,6 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
             get { return (ScopedElement?)GetValue(SelectedProperty); }
             set { SetValue(SelectedProperty, value); }
         }
-
-        public Shared.ViewModels.Work.Scope CurrentScope => Selected is Shared.ViewModels.Work.Scope scope ? scope : Selected?.Parent ?? RootScope;
 
         public ICustomCommand RemoveSelectedCommand { get; set; }
 
@@ -108,17 +107,17 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
 
         private async void OnAddScope()
         {
-            Shared.ViewModels.Work.Scope newScope = new Shared.ViewModels.Work.Scope();
+            Scope newScope = new Scope();
             newScope.ChangeParent(CurrentScope);
             if (await _modal.Show(new ScopeCreateModal(newScope)))
             {
                 Dispatcher.Invoke(
-                    () =>
+                    (Action)(() =>
                     {
-                        CurrentScope.AddChild(newScope);
+                        this.CurrentScope.AddChild((ScopedElement)newScope);
                         newScope.FocusOn = EnumScopedTabs.Settings;
                         newScope.IsSelected = true;
-                    });
+                    }));
             }
         }
 
@@ -138,10 +137,11 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
         {
             WorkflowNode workflow = new WorkflowNode();
             workflow.ChangeParent(CurrentScope);
-            if (await _modal.Show(new WorkflowEditModal(workflow)))
+            if (await _modal.Show(new WorkflowCreateModal(workflow)))
             {
-                workflow.Id = await _taskClient.CreateAsync(workflow);
                 CurrentScope.AddChild(workflow);
+                workflow.FocusOn = EnumScopedTabs.Settings;
+                workflow.IsSelected = true;
             }
         }
     }

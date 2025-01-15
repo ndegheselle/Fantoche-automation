@@ -3,6 +3,7 @@ using Automation.App.Shared.ViewModels.Work;
 using Automation.Shared.Data;
 using Joufflu.Popups;
 using Microsoft.Extensions.DependencyInjection;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -19,7 +20,7 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
     /// <summary>
     /// Logique d'interaction pour ScopedElementSelector.xaml
     /// </summary>
-    public partial class ScopedSelector : UserControl
+    public partial class ScopedSelector : UserControl, INotifyPropertyChanged
     {
         public event Action<ScopedElement?>? SelectedChanged;
 
@@ -40,9 +41,9 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
         #endregion
 
         #region Props
-        public Shared.ViewModels.Work.Scope RootScope
+        public Scope RootScope
         {
-            get { return (Shared.ViewModels.Work.Scope)GetValue(RootScopeProperty); }
+            get { return (Scope)GetValue(RootScopeProperty); }
             set { SetValue(RootScopeProperty, value); }
         }
         public ScopedElement? Selected
@@ -54,7 +55,7 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
                 SelectedChanged?.Invoke(Selected);
             }
         }
-        public Shared.ViewModels.Work.Scope CurrentScope => Selected is Shared.ViewModels.Work.Scope scope ? scope : Selected?.Parent ?? RootScope;
+        public Scope CurrentScope => Selected is Scope scope ? scope : Selected?.Parent ?? RootScope;
 
         public EnumScopedType AllowedSelectedNodes
         {

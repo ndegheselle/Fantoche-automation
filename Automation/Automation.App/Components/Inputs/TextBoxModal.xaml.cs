@@ -1,21 +1,24 @@
 ﻿using Joufflu.Popups;
 using System.Windows.Controls;
 using System.Windows.Data;
+using Usuel.Shared;
 
 namespace Automation.App.Components.Inputs
 {
     public partial class TextBoxModal : UserControl, IModalContent
     {
         public Modal? ParentLayout { get; set; }
-        public ModalOptions Options => new ModalOptions()
+        public ModalOptions Options { get; private set; } = new ModalOptions()
         {
             Title = "Input data"
         };
         public string SubTitle { get; set; } = string.Empty;
+        public ICustomCommand ValidateCommand { get; protected set; }
 
         public TextBoxModal(string titre)
         {
             Options.Title = titre;
+            ValidateCommand = new DelegateCommand(() => ParentLayout?.Hide(true));
             InitializeComponent();
         }
 

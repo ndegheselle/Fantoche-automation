@@ -16,7 +16,7 @@
         ItemsSource="{Binding Scope.SortedChildrens}"
         SelectedItem="{Binding Selected, Mode=TwoWay}">
         <ListBox.ContextMenu>
-            <scopes:ScopedContextMenu RootScope="{Binding Scope}" Selected="{Binding Selected}" />
+            <scopes:ScopedContextMenu CurrentScope="{Binding Scope}" Selected="{Binding Selected}" />
         </ListBox.ContextMenu>
         <ListBox.ItemTemplate>
             <DataTemplate>

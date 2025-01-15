@@ -2,7 +2,6 @@
 using Automation.Shared.Base;
 using Automation.Shared.Clients;
 using RestSharp;
-using System.Threading.Tasks;
 
 namespace Automation.App.Shared.ApiClients
 {

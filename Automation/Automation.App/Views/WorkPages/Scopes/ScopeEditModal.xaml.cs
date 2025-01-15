@@ -13,8 +13,8 @@ namespace Automation.App.Views.WorkPages.Scopes
     {
         private readonly App _app = App.Current;
         private readonly ScopesClient _scopeClient;
+
         public Scope NewScope { get; set; }
-        public ICustomCommand ValidateCommand { get; private set; }
 
         public ScopeCreateModal(Scope scope) : base("Create new scope")
         {
@@ -30,8 +30,8 @@ namespace Automation.App.Views.WorkPages.Scopes
             try
             {
                 NewScope.Id = await _scopeClient.CreateAsync(NewScope);
-            }
-            catch (ValidationException ex)
+                ParentLayout?.Hide(true);
+            } catch (ValidationException ex)
             {
                 if (ex.Errors != null)
                     NewScope.AddErrors(ex.Errors);
@@ -47,20 +47,24 @@ namespace Automation.App.Views.WorkPages.Scopes
     public partial class ScopeEditModal : UserControl, IModalContent
     {
         public Modal? ParentLayout { get; set; }
+
         public ModalOptions Options => new ModalOptions() { Title = "Scope settings" };
 
         private readonly App _app = (App)App.Current;
         private readonly ScopesClient _scopeClient;
+
         private IAlert _alert => this.GetCurrentAlertContainer();
 
         public Scope Scope { get; set; }
+
         public ICustomCommand ValidateCommand { get; private set; }
 
-        public ScopeEditModal(Scope scope) {
+        public ScopeEditModal(Scope scope)
+        {
             Scope = scope;
             _scopeClient = _app.ServiceProvider.GetRequiredService<ScopesClient>();
             ValidateCommand = new DelegateCommand(Validate);
-            InitializeComponent(); 
+            InitializeComponent();
         }
 
         public async void Validate()
@@ -70,8 +74,7 @@ namespace Automation.App.Views.WorkPages.Scopes
             {
                 await _scopeClient.UpdateAsync(Scope.Id, Scope);
                 _alert.Success("Scope updated !");
-            }
-            catch (ValidationException ex)
+            } catch (ValidationException ex)
             {
                 if (ex.Errors != null)
                     Scope.AddErrors(ex.Errors);

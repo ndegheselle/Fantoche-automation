@@ -16,16 +16,18 @@
         </Grid.RowDefinitions>
 
         <StackPanel>
-            <TextBlock Margin="0,8,0,4" FontWeight="Bold">Target</TextBlock>
+            <TextBlock FontWeight="Bold">Task</TextBlock>
+            <TextBox IsReadOnly="True" Text="{Binding TaskId}" />
+            <TextBlock FontWeight="Bold" Margin="0,4,0,0">Target</TextBlock>
             <packageComponents:TargetPackageSummary TargetPackage="{Binding Target}" />
         </StackPanel>
 
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="1" Margin="0,4,0,0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <TextBlock Margin="0,8,0,4" FontWeight="Bold">Context</TextBlock>
+            <TextBlock FontWeight="Bold">Context</TextBlock>
             <TextBox
                 VerticalContentAlignment="Top"
                 MinHeight="100"
@@ -34,12 +36,12 @@
                 Text="{Binding ContextJson, Mode=OneWay, RelativeSource={RelativeSource AncestorType=local:InstanceDetailModal}}" />
         </Grid>
 
-        <Grid Grid.Row="2">
+        <Grid Grid.Row="2" Margin="0,4,0,0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <TextBlock Margin="0,8,0,4" FontWeight="Bold">Result</TextBlock>
+            <TextBlock FontWeight="Bold">Result</TextBlock>
             <TextBox
                 VerticalContentAlignment="Top"
                 MinHeight="100"
