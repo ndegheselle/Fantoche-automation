@@ -1,9 +1,11 @@
 ﻿using Automation.Shared.Data;
 using System.ComponentModel;
+using System.Text.Json.Serialization;
 using System.Windows;
 
 namespace Automation.App.Shared.ViewModels.Work
 {
+    [JsonDerivedType(typeof(WorkflowNode), "workflow")]
     public class TaskNode : ScopedElement, ITaskNode, INotifyPropertyChanged
     {
         public TargetedPackage? Package { get; set; }

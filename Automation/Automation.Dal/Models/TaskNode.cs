@@ -1,7 +1,9 @@
 ﻿using Automation.Shared.Data;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace Automation.Dal.Models
 {
+    [BsonKnownTypes(typeof(WorkflowNode))]
     public class TaskNode : ScopedElement, ITaskNode
     {
         public IEnumerable<ITaskConnector> Inputs { get; set; } = [];
