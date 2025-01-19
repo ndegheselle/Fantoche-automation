@@ -5,7 +5,6 @@ using Automation.App.Views.WorkPages.Workflows;
 using Automation.Shared.Data;
 using Joufflu.Popups;
 using Microsoft.Extensions.DependencyInjection;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -67,7 +66,7 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
             RemoveSelectedCommand = new DelegateCommand(
                 OnRemoveSelected,
                 // Not the root element
-                () => CurrentScope?.Parent != null);
+                () => Selected?.Parent != null);
             AddScopeCommand = new DelegateCommand(OnAddScope);
             AddTaskCommand = new DelegateCommand(OnAddTask);
             AddWorkflowCommand = new DelegateCommand(OnAddWorkflow);

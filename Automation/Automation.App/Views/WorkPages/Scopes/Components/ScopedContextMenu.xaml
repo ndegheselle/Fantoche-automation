@@ -12,6 +12,16 @@
     d:DesignHeight="450"
     d:DesignWidth="800">
     <MenuItem Header="Add">
+        <MenuItem.Style>
+            <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+                <Setter Property="Visibility" Value="Collapsed" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding Selected.Type, RelativeSource={RelativeSource AncestorType=local:ScopedContextMenu}}" Value="Scope">
+                        <Setter Property="Visibility" Value="Visible" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </MenuItem.Style>
         <MenuItem.Icon>
             <fonts:Icon Text="{x:Static fonts:IconFont.Plus}" />
         </MenuItem.Icon>

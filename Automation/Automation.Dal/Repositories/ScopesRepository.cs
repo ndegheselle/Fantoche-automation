@@ -49,7 +49,7 @@ namespace Automation.Dal.Repositories
             foreach (var scope in scopes)
             {
                 var scopeChildrenTask = GetByScopeAsync(scope.Id, false);
-                var taskChildrenTask = taskRepo.GetByParentScopeAsync(scope.Id);
+                var taskChildrenTask = taskRepo.GetByDirectParentScopeAsync(scope.Id);
 
                 await Task.WhenAll(scopeChildrenTask, taskChildrenTask);
 
@@ -76,7 +76,7 @@ namespace Automation.Dal.Repositories
                 var taskRepo = new TasksRepository(_database);
 
                 var scopeChildrenTask = GetByScopeAsync(scope.Id, true);
-                var taskChildrenTask = taskRepo.GetByParentScopeAsync(scope.Id);
+                var taskChildrenTask = taskRepo.GetByDirectParentScopeAsync(scope.Id);
 
                 await Task.WhenAll(scopeChildrenTask, taskChildrenTask);
 

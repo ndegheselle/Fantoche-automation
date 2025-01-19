@@ -1,6 +1,5 @@
 ﻿using Automation.Dal.Models;
 using Automation.Shared.Data;
-using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace Automation.Dal.Repositories
@@ -13,20 +12,21 @@ namespace Automation.Dal.Repositories
 
         public async Task<IEnumerable<TaskNode>> GetByAnyParentScopeAsync(Guid scopeId)
         {
-            var projection = Builders<TaskNode>.Projection.Include(s => s.Id).Include(s => s.Name);
+            // Include the discriminator field so that derived types are kept
+            var projection = Builders<TaskNode>.Projection.Include(s => s.Id).Include(s => s.Name).Include("_t");
             var filter = Builders<TaskNode>.Filter.AnyEq(x => x.ParentTree, scopeId);
             return await _collection.Find(filter).Project<TaskNode>(projection).ToListAsync();
         }
 
-        public async Task<IEnumerable<TaskNode>> GetByParentScopeAsync(Guid scopeId)
+        public async Task<IEnumerable<TaskNode>> GetByDirectParentScopeAsync(Guid scopeId)
         {
-            var projection = Builders<TaskNode>.Projection.Include(s => s.Id).Include(s => s.Name);
+            var projection = Builders<TaskNode>.Projection.Include(s => s.Id).Include(s => s.Name).Include("_t");
             return await _collection.Find(e => e.ParentId == scopeId).Project<TaskNode>(projection).ToListAsync();
         }
 
         public async Task<TaskNode?> GetByParentScopeAndNameAsync(Guid scopeId, string name)
         {
-            var projection = Builders<TaskNode>.Projection.Include(s => s.Id).Include(s => s.Name);
+            var projection = Builders<TaskNode>.Projection.Include(s => s.Id).Include(s => s.Name).Include("_t");
             return await _collection.Find(e => e.ParentId == scopeId && e.Name == name).Project<TaskNode>(projection).FirstOrDefaultAsync();
         }
 
@@ -43,7 +43,7 @@ namespace Automation.Dal.Repositories
 
         public async Task<IEnumerable<TaskSchedule>> GetScheduled()
         {
-            var projection = Builders<TaskNode>.Projection.Include(s => s.Id).Include(s => s.Schedules);
+            var projection = Builders<TaskNode>.Projection.Include(s => s.Id).Include(s => s.Schedules).Include("_t");
 
             var filter = Builders<TaskNode>.Filter
                .And(

@@ -1,8 +1,10 @@
 ﻿using Automation.Shared.Data;
 using MongoDB.Bson.Serialization.Attributes;
+using System.Text.Json.Serialization;
 
 namespace Automation.Dal.Models
 {
+    [JsonDerivedType(typeof(WorkflowNode), "workflow")]
     [BsonKnownTypes(typeof(WorkflowNode))]
     public class TaskNode : ScopedElement, ITaskNode
     {
