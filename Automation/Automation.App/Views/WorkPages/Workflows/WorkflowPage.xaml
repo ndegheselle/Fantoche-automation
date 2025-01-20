@@ -12,11 +12,31 @@
     mc:Ignorable="d">
     <Grid>
         <TabControl DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:WorkflowPage}}">
-            <TabItem Header="Graph">
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <fonts:Icon Text="{x:Static fonts:IconFont.DiagramProject}" />
+                        <TextBlock Margin="4,0,0,0">Graph</TextBlock>
+                    </StackPanel>
+                </TabItem.Header>
                 <local:WorkflowGraph EditorData="{Binding Editor}" />
             </TabItem>
-            <TabItem Header="Scheduler" />
-            <TabItem Header="History" />
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <fonts:Icon Text="{x:Static fonts:IconFont.Calendar}" />
+                        <TextBlock Margin="4,0,0,0">Schedules</TextBlock>
+                    </StackPanel>
+                </TabItem.Header>
+            </TabItem>
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <fonts:Icon Text="{x:Static fonts:IconFont.Clock}" />
+                        <TextBlock Margin="4,0,0,0">Executions history</TextBlock>
+                    </StackPanel>
+                </TabItem.Header>
+            </TabItem>
         </TabControl>
         <Button
             HorizontalAlignment="Right"
