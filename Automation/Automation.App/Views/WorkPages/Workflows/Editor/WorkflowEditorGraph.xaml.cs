@@ -15,12 +15,12 @@ using System.Windows.Input;
 using MessageBox = AdonisUI.Controls.MessageBox;
 using Point = System.Drawing.Point;
 
-namespace Automation.App.Views.WorkPages.Workflows
+namespace Automation.App.Views.WorkPages.Workflows.Editor
 {
     /// <summary>
     /// Logique d'interaction pour WorkflowGraph.xaml
     /// </summary>
-    public partial class WorkflowGraph : UserControl
+    public partial class WorkflowEditorGraph : UserControl
     {
         #region Dependency Properties
 
@@ -28,8 +28,8 @@ namespace Automation.App.Views.WorkPages.Workflows
         public static readonly DependencyProperty EditorDataProperty = DependencyProperty.Register(
             "EditorData",
             typeof(EditorViewModel),
-            typeof(WorkflowGraph),
-            new PropertyMetadata(null, (o, e) => ((WorkflowGraph)o).OnEditorDataChange()));
+            typeof(WorkflowEditorGraph),
+            new PropertyMetadata(null, (o, e) => ((WorkflowEditorGraph)o).OnEditorDataChange()));
 
         public EditorViewModel EditorData
         {
@@ -46,7 +46,7 @@ namespace Automation.App.Views.WorkPages.Workflows
         private readonly TasksClient _nodeClient;
         private readonly ScopesClient _scopeClient;
 
-        public WorkflowGraph()
+        public WorkflowEditorGraph()
         {
             _nodeClient = _app.ServiceProvider.GetRequiredService<TasksClient>();
             _scopeClient = _app.ServiceProvider.GetRequiredService<ScopesClient>();
