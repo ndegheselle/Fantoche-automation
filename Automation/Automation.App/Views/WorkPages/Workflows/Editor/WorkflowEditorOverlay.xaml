@@ -11,70 +11,103 @@
     d:DesignHeight="450"
     d:DesignWidth="800">
     <Grid>
-        <Border
-            VerticalAlignment="Bottom"
-            HorizontalAlignment="Left"
-            Margin="2"
-            CornerRadius="{StaticResource {x:Static adonisUi:Dimensions.CornerRadius}}"
-            BorderThickness="{StaticResource {x:Static adonisUi:Dimensions.BorderThickness}}"
-            Background="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}"
-            BorderBrush="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}">
-            <StackPanel>
-                <Button
-                    Style="{StaticResource IconButton}"
-                    Click="ButtonZoomIn_Click"
-                    ToolTip="Zoom in">
-                    <fonts:Icon Text="{x:Static fonts:IconFont.Plus}" />
-                </Button>
-                <Button
-                    Style="{StaticResource IconButton}"
-                    Click="ButtonZoomOut_Click"
-                    ToolTip="Zoom out">
-                    <fonts:Icon Text="{x:Static fonts:IconFont.Minus}" />
-                </Button>
-                <Button
-                    Style="{StaticResource IconButton}"
-                    Click="ButtonZoomFit_Click"
-                    ToolTip="Fit nodes to screen">
-                    <fonts:Icon Text="{x:Static fonts:IconFont.Expand}" />
-                </Button>
-                <ToggleButton
-                    Style="{StaticResource IconToggleButton}"
-                    ToolTip="Allow snaping"
-                    Click="ToggleButtonSnapping_Click">
-                    <fonts:Icon Text="{x:Static fonts:IconFont.TableCells}" />
-                </ToggleButton>
-            </StackPanel>
-        </Border>
-
-        <Border
-            VerticalAlignment="Bottom"
+        <StackPanel
+            VerticalAlignment="Top"
             HorizontalAlignment="Right"
-            Margin="2"
-            CornerRadius="{StaticResource {x:Static adonisUi:Dimensions.CornerRadius}}"
-            BorderThickness="{StaticResource {x:Static adonisUi:Dimensions.BorderThickness}}"
-            Background="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}"
-            BorderBrush="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}">
-            <StackPanel Orientation="Horizontal">
-                <Button
-                    Style="{StaticResource IconButton}"
-                    Click="ButtonAdd_Click"
-                    ToolTip="Add node">
-                    <fonts:Icon Text="{x:Static fonts:IconFont.Plus}" />
+            Margin="2">
+            <Border
+                CornerRadius="{StaticResource {x:Static adonisUi:Dimensions.CornerRadius}}"
+                BorderThickness="{StaticResource {x:Static adonisUi:Dimensions.BorderThickness}}"
+                Background="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}"
+                BorderBrush="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}">
+                <StackPanel>
+                    <Button Style="{StaticResource IconButton}" ToolTip="Zoom in">
+                        <fonts:Icon Text="{x:Static fonts:IconFont.Plus}" />
+                    </Button>
+                    <Button Style="{StaticResource IconButton}" ToolTip="Fit nodes to screen">
+                        <fonts:Icon Text="{x:Static fonts:IconFont.Expand}" />
+                    </Button>
+                    <Button Style="{StaticResource IconButton}" ToolTip="Zoom out">
+                        <fonts:Icon Text="{x:Static fonts:IconFont.Minus}" />
+                    </Button>
+                </StackPanel>
+            </Border>
+            <Border
+                Margin="0,4,0,0"
+                CornerRadius="{StaticResource {x:Static adonisUi:Dimensions.CornerRadius}}"
+                BorderThickness="{StaticResource {x:Static adonisUi:Dimensions.BorderThickness}}"
+                Background="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}"
+                BorderBrush="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}">
+                <StackPanel>
+                    <ToggleButton Style="{StaticResource IconToggleButton}" ToolTip="Allow snaping">
+                        <fonts:Icon Text="{x:Static fonts:IconFont.TableCells}" />
+                    </ToggleButton>
+                    <ToggleButton Style="{StaticResource IconToggleButton}" ToolTip="Read only">
+                        <fonts:Icon Text="{x:Static fonts:IconFont.Lock}" />
+                    </ToggleButton>
+                </StackPanel>
+            </Border>
+            <Border
+                Margin="0,4,0,0"
+                CornerRadius="{StaticResource {x:Static adonisUi:Dimensions.CornerRadius}}"
+                BorderThickness="{StaticResource {x:Static adonisUi:Dimensions.BorderThickness}}"
+                Background="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}"
+                BorderBrush="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}">
+
+                <Button Style="{StaticResource IconButton}" ToolTip="Help">
+                    <fonts:Icon Text="{x:Static fonts:IconFont.CircleQuestion}" />
                 </Button>
-                <Button
-                    Style="{StaticResource IconButton}"
-                    Click="ButtonGroup_Click"
-                    ToolTip="Group selected nodes">
-                    <fonts:Icon Text="{x:Static fonts:IconFont.ObjectGroup}" />
+            </Border>
+        </StackPanel>
+
+
+        <StackPanel
+            Orientation="Horizontal"
+            VerticalAlignment="Bottom"
+            HorizontalAlignment="Center"
+            Margin="2">
+            <Border
+                CornerRadius="{StaticResource {x:Static adonisUi:Dimensions.CornerRadius}}"
+                BorderThickness="{StaticResource {x:Static adonisUi:Dimensions.BorderThickness}}"
+                Background="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}"
+                BorderBrush="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}">
+                <StackPanel Orientation="Horizontal">
+                    <Button Style="{StaticResource IconButton}" ToolTip="Add node">
+                        <fonts:Icon Text="{x:Static fonts:IconFont.SquarePlus}" />
+                    </Button>
+                    <Button Style="{StaticResource IconButton}" ToolTip="Delete selection">
+                        <fonts:Icon Text="{x:Static fonts:IconFont.Trash}" />
+                    </Button>
+                    <Button Style="{StaticResource IconButton}" ToolTip="Group selected nodes">
+                        <fonts:Icon Text="{x:Static fonts:IconFont.ObjectGroup}" />
+                    </Button>
+                </StackPanel>
+            </Border>
+            <Border
+                Margin="4,0,0,0"
+                CornerRadius="{StaticResource {x:Static adonisUi:Dimensions.CornerRadius}}"
+                BorderThickness="{StaticResource {x:Static adonisUi:Dimensions.BorderThickness}}"
+                Background="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}"
+                BorderBrush="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}">
+                <StackPanel Orientation="Horizontal">
+                    <Button Style="{StaticResource IconButton}" ToolTip="Go back">
+                        <fonts:Icon Text="{x:Static fonts:IconFont.ArrowRotateLeft}" />
+                    </Button>
+                    <Button Style="{StaticResource IconButton}" ToolTip="Go forward">
+                        <fonts:Icon Text="{x:Static fonts:IconFont.ArrowRotateRight}" />
+                    </Button>
+                </StackPanel>
+            </Border>
+            <Border
+                Margin="4,0,0,0"
+                CornerRadius="{StaticResource {x:Static adonisUi:Dimensions.CornerRadius}}"
+                BorderThickness="{StaticResource {x:Static adonisUi:Dimensions.BorderThickness}}"
+                Background="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}"
+                BorderBrush="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}">
+                <Button Style="{StaticResource IconButton}" ToolTip="Save">
+                    <fonts:Icon Text="{x:Static fonts:IconFont.FloppyDisk}" />
                 </Button>
-                <Button
-                    Style="{StaticResource IconButton}"
-                    Click="ButtonDelete_Click"
-                    ToolTip="Delete selection">
-                    <fonts:Icon Text="{x:Static fonts:IconFont.Trash}" />
-                </Button>
-            </StackPanel>
-        </Border>
+            </Border>
+        </StackPanel>
     </Grid>
 </UserControl>

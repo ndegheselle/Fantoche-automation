@@ -152,6 +152,5 @@
             </nodify:NodifyEditor.PendingConnectionTemplate>
         </nodify:NodifyEditor>
         <Grid Background="{StaticResource LargeGridLinesDrawingBrush}" Panel.ZIndex="-2" />
-
     </Grid>
 </UserControl>

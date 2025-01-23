@@ -5,6 +5,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Workflows"
+    xmlns:editor="clr-namespace:Automation.App.Views.WorkPages.Workflows.Editor"
     xmlns:components="clr-namespace:Automation.App.Views.WorkPages.Components"
     xmlns:instances="clr-namespace:Automation.App.Views.WorkPages.Tasks.Instances"
     xmlns:tasks="clr-namespace:Automation.App.Views.WorkPages.Tasks"
@@ -19,7 +20,7 @@
                         <TextBlock Margin="4,0,0,0">Graph</TextBlock>
                     </StackPanel>
                 </TabItem.Header>
-                <local:WorkflowGraph EditorData="{Binding Editor}" />
+                <editor:WorkflowEditor EditorData="{Binding Editor}" />
             </TabItem>
             <TabItem>
                 <TabItem.Header>

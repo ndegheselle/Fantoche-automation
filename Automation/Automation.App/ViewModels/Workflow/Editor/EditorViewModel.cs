@@ -8,7 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using Usuel.Shared;
 
-namespace Automation.App.ViewModels
+namespace Automation.App.ViewModels.Workflow.Editor
 {
     public class EditorViewModel : INotifyPropertyChanged
     {
