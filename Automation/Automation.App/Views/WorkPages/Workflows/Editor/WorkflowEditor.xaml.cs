@@ -1,5 +1,5 @@
 ﻿using Automation.App.Shared.ViewModels.Work;
-using Automation.App.ViewModels;
+using Automation.App.ViewModels.Workflow.Editor;
 using System.Windows;
 using System.Windows.Controls;
 
