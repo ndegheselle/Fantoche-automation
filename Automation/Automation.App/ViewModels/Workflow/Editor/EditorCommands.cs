@@ -3,13 +3,15 @@ using System.Windows.Input;
 
 namespace Automation.App.ViewModels.Workflow.Editor
 {
-    public class EditorState : INotifyPropertyChanged
+    public class EditorSettings : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
 
         public bool IsGridActivated { get; set; }
         public bool IsReadOnly { get; set; }
     }
+
+
 
     public class EditorCommands
     {
