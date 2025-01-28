@@ -27,13 +27,13 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
         // Dependency property Editor of type EditorViewModel
         public static readonly DependencyProperty EditorDataProperty = DependencyProperty.Register(
             "EditorData",
-            typeof(EditorViewModel),
+            typeof(WorkflowEditorViewModel),
             typeof(WorkflowEditorGraph),
             new PropertyMetadata(null, (o, e) => ((WorkflowEditorGraph)o).OnEditorDataChange()));
 
-        public EditorViewModel EditorData
+        public WorkflowEditorViewModel EditorData
         {
-            get => (EditorViewModel)GetValue(EditorDataProperty);
+            get => (WorkflowEditorViewModel)GetValue(EditorDataProperty);
             set => SetValue(EditorDataProperty, value);
         }
 

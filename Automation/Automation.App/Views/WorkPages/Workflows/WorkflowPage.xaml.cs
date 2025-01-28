@@ -1,6 +1,6 @@
 ﻿using Automation.App.Shared.ApiClients;
 using Automation.App.Shared.ViewModels.Work;
-using Automation.App.ViewModels;
+using Automation.App.ViewModels.Workflow.Editor;
 using Joufflu.Popups;
 using Joufflu.Shared.Layouts;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,7 +15,7 @@ namespace Automation.App.Views.WorkPages.Workflows
     public partial class WorkflowPage : UserControl, IPage
     {
         public ILayout? ParentLayout { get; set; }
-        public EditorViewModel? Editor { get; set; } = null;
+        public WorkflowEditorViewModel? Editor { get; set; } = null;
         public WorkflowNode Workflow { get; set; }
 
         private readonly App _app = App.Current;
@@ -38,7 +38,7 @@ namespace Automation.App.Views.WorkPages.Workflows
                 throw new ArgumentException("Workflow not found");
 
             Workflow = fullWorkflow;
-            Editor = new EditorViewModel(Workflow);
+            Editor = new WorkflowEditorViewModel(Workflow, new WorkflowEditorSettings());
         }
 
         #region UI Events

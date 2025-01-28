@@ -9,8 +9,9 @@
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     mc:Ignorable="d"
     d:DesignHeight="450"
-    d:DesignWidth="800">
-    <Grid>
+    d:DesignWidth="800"
+    x:Name="ContainerElement">
+    <Grid DataContext="{Binding ElementName=ContainerElement}">
         <StackPanel
             VerticalAlignment="Top"
             HorizontalAlignment="Right"
@@ -21,13 +22,22 @@
                 Background="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}"
                 BorderBrush="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}">
                 <StackPanel>
-                    <Button Style="{StaticResource IconButton}" ToolTip="Zoom in">
+                    <Button
+                        Style="{StaticResource IconButton}"
+                        ToolTip="Zoom in"
+                        Command="{Binding Editor.Commands.ZoomIn}">
                         <fonts:Icon Text="{x:Static fonts:IconFont.Plus}" />
                     </Button>
-                    <Button Style="{StaticResource IconButton}" ToolTip="Fit nodes to screen">
+                    <Button
+                        Style="{StaticResource IconButton}"
+                        ToolTip="Fit nodes to screen"
+                        Command="{Binding Editor.Commands.ZoomFit}">
                         <fonts:Icon Text="{x:Static fonts:IconFont.Expand}" />
                     </Button>
-                    <Button Style="{StaticResource IconButton}" ToolTip="Zoom out">
+                    <Button
+                        Style="{StaticResource IconButton}"
+                        ToolTip="Zoom out"
+                        Command="{Binding Editor.Commands.ZoomOut}">
                         <fonts:Icon Text="{x:Static fonts:IconFont.Minus}" />
                     </Button>
                 </StackPanel>
@@ -39,10 +49,16 @@
                 Background="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}"
                 BorderBrush="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}">
                 <StackPanel>
-                    <ToggleButton Style="{StaticResource IconToggleButton}" ToolTip="Allow snaping">
+                    <ToggleButton
+                        Style="{StaticResource IconToggleButton}"
+                        ToolTip="Allow snaping"
+                        IsChecked="{Binding Editor.Settings.IsGridActivated}">
                         <fonts:Icon Text="{x:Static fonts:IconFont.TableCells}" />
                     </ToggleButton>
-                    <ToggleButton Style="{StaticResource IconToggleButton}" ToolTip="Read only">
+                    <ToggleButton
+                        Style="{StaticResource IconToggleButton}"
+                        ToolTip="Read only"
+                        IsChecked="{Binding Editor.Settings.IsReadOnly}">
                         <fonts:Icon Text="{x:Static fonts:IconFont.Lock}" />
                     </ToggleButton>
                 </StackPanel>
@@ -54,7 +70,10 @@
                 Background="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}"
                 BorderBrush="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}">
 
-                <Button Style="{StaticResource IconButton}" ToolTip="Help">
+                <Button
+                    Style="{StaticResource IconButton}"
+                    ToolTip="Help"
+                    Click="OpenHelp_Click">
                     <fonts:Icon Text="{x:Static fonts:IconFont.CircleQuestion}" />
                 </Button>
             </Border>
@@ -75,10 +94,16 @@
                     <Button Style="{StaticResource IconButton}" ToolTip="Add node">
                         <fonts:Icon Text="{x:Static fonts:IconFont.SquarePlus}" />
                     </Button>
-                    <Button Style="{StaticResource IconButton}" ToolTip="Delete selection">
+                    <Button
+                        Style="{StaticResource IconButton}"
+                        ToolTip="Delete selection"
+                        Command="{Binding Editor.Commands.DeleteSelection}">
                         <fonts:Icon Text="{x:Static fonts:IconFont.Trash}" />
                     </Button>
-                    <Button Style="{StaticResource IconButton}" ToolTip="Group selected nodes">
+                    <Button
+                        Style="{StaticResource IconButton}"
+                        ToolTip="Group selected nodes"
+                        Command="{Binding Editor.Commands.GroupSelection}">
                         <fonts:Icon Text="{x:Static fonts:IconFont.ObjectGroup}" />
                     </Button>
                 </StackPanel>
@@ -90,10 +115,16 @@
                 Background="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}"
                 BorderBrush="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}">
                 <StackPanel Orientation="Horizontal">
-                    <Button Style="{StaticResource IconButton}" ToolTip="Go back">
+                    <Button
+                        Style="{StaticResource IconButton}"
+                        ToolTip="Go back"
+                        Command="{Binding Editor.Commands.HistoryPrevious}">
                         <fonts:Icon Text="{x:Static fonts:IconFont.ArrowRotateLeft}" />
                     </Button>
-                    <Button Style="{StaticResource IconButton}" ToolTip="Go forward">
+                    <Button
+                        Style="{StaticResource IconButton}"
+                        ToolTip="Go forward"
+                        Command="{Binding Editor.Commands.HistoryNext}">
                         <fonts:Icon Text="{x:Static fonts:IconFont.ArrowRotateRight}" />
                     </Button>
                 </StackPanel>
@@ -104,7 +135,10 @@
                 BorderThickness="{StaticResource {x:Static adonisUi:Dimensions.BorderThickness}}"
                 Background="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}"
                 BorderBrush="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}">
-                <Button Style="{StaticResource IconButton}" ToolTip="Save">
+                <Button
+                    Style="{StaticResource IconButton}"
+                    ToolTip="Save"
+                    Command="{Binding Editor.Commands.Save}">
                     <fonts:Icon Text="{x:Static fonts:IconFont.FloppyDisk}" />
                 </Button>
             </Border>

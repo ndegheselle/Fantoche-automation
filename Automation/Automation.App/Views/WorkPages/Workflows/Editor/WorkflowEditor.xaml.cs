@@ -24,15 +24,17 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
             set { SetValue(WorkflowProperty, value); }
         }
 
-        public EditorViewModel? Editor { get; private set; }
+        public WorkflowEditorViewModel? Editor { get; private set; }
 
-        public WorkflowEditor() { InitializeComponent(); }
+        public WorkflowEditor() { 
+            InitializeComponent();
+        }
 
         private void OnWorkflowChanged()
         {
             if (Workflow == null)
                 return;
-            Editor = new EditorViewModel(Workflow);
+            Editor = new WorkflowEditorViewModel(Workflow, new WorkflowEditorSettings());
         }
     }
 }

@@ -3,6 +3,7 @@ using Automation.App.Shared.ViewModels.Work;
 using Automation.Shared.Data;
 using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;
+using System.ComponentModel.Design;
 using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
@@ -10,7 +11,7 @@ using Usuel.Shared;
 
 namespace Automation.App.ViewModels.Workflow.Editor
 {
-    public class EditorViewModel : INotifyPropertyChanged
+    public class WorkflowEditorViewModel : INotifyPropertyChanged
     {
         public const uint GRID_DEFAULT_SIZE = 20;
 
@@ -26,14 +27,18 @@ namespace Automation.App.ViewModels.Workflow.Editor
         public ICommand DisconnectConnectorCommand { get; }
         public TaskPendingConnection? PendingConnection { get; }
         public WorkflowNode Workflow { get; }
+        public WorkflowEditorSettings Settings { get; }
+        public WorkflowEditorCommands Commands { get; }
 
         private readonly App _app = (App)System.Windows.Application.Current;
         private readonly TasksClient _nodeClient;
 
-        public EditorViewModel(WorkflowNode workflow)
+        public WorkflowEditorViewModel(WorkflowNode workflow, WorkflowEditorSettings settings)
         {
             _nodeClient = _app.ServiceProvider.GetRequiredService<TasksClient>();
             Workflow = workflow;
+            Settings = settings;
+            Commands = new WorkflowEditorCommands(this);
 
             PendingConnection = new TaskPendingConnection(this);
             DisconnectConnectorCommand = new DelegateCommand<TaskConnector>(connector =>
@@ -113,10 +118,10 @@ namespace Automation.App.ViewModels.Workflow.Editor
 
     public class TaskPendingConnection
     {
-        private readonly EditorViewModel _editor;
+        private readonly WorkflowEditorViewModel _editor;
         private TaskConnector? _source;
 
-        public TaskPendingConnection(EditorViewModel editor)
+        public TaskPendingConnection(WorkflowEditorViewModel editor)
         {
             _editor = editor;
             StartCommand = new DelegateCommand<TaskConnector>(source => _source = source);
