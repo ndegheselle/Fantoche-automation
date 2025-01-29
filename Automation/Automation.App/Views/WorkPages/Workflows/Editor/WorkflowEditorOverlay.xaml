@@ -52,13 +52,13 @@
                     <ToggleButton
                         Style="{StaticResource IconToggleButton}"
                         ToolTip="Allow snaping"
-                        IsChecked="{Binding Editor.Settings.IsGridActivated}">
+                        IsChecked="{Binding Editor.Settings.IsGridActivated, Mode=TwoWay}">
                         <fonts:Icon Text="{x:Static fonts:IconFont.TableCells}" />
                     </ToggleButton>
                     <ToggleButton
                         Style="{StaticResource IconToggleButton}"
                         ToolTip="Read only"
-                        IsChecked="{Binding Editor.Settings.IsReadOnly}">
+                        IsChecked="{Binding Editor.Settings.IsReadOnly, Mode=TwoWay}">
                         <fonts:Icon Text="{x:Static fonts:IconFont.Lock}" />
                     </ToggleButton>
                 </StackPanel>

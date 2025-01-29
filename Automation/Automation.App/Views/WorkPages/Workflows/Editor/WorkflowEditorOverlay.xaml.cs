@@ -31,9 +31,11 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
             InitializeComponent();
         }
 
+        #region UI events
         private void OpenHelp_Click(object sender, RoutedEventArgs e)
         {
             _modal.Show(new WorkflowEditorHelp());
         }
+        #endregion
     }
 }
