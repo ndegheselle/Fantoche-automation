@@ -5,8 +5,28 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Workflows.Editor"
+    xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     mc:Ignorable="d"
     d:DesignHeight="450"
     d:DesignWidth="800">
-    <Grid />
+    <UserControl.Resources>
+        <Style TargetType="Border" x:Key="KeyShortcutBorder">
+            <Setter Property="CornerRadius" Value="{StaticResource {x:Static adonisUi:Dimensions.CornerRadius}}" />
+            <Setter Property="Background" Value="{StaticResource {x:Static adonisUi:Brushes.Layer1BackgroundBrush}}" />
+            <Setter Property="Padding" Value="4,2" />
+            <Setter Property="HorizontalAlignment" Value="Right" />
+            <Setter Property="Margin" Value="0,2,0,0" />
+        </Style>
+    </UserControl.Resources>
+
+    <UniformGrid Columns="2" VerticalAlignment="Top">
+        <TextBlock VerticalAlignment="Center">Revert changes</TextBlock>
+        <Border Style="{StaticResource KeyShortcutBorder}">
+            <TextBlock>Ctrl+Z</TextBlock>
+        </Border>
+        <TextBlock VerticalAlignment="Center">Reapply changes</TextBlock>
+        <Border Style="{StaticResource KeyShortcutBorder}">
+            <TextBlock>Ctrl+Y</TextBlock>
+        </Border>
+    </UniformGrid>
 </UserControl>
