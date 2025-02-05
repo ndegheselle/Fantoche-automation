@@ -22,11 +22,11 @@
     <UniformGrid Columns="2" VerticalAlignment="Top">
         <TextBlock VerticalAlignment="Center">Revert changes</TextBlock>
         <Border Style="{StaticResource KeyShortcutBorder}">
-            <TextBlock>Ctrl+Z</TextBlock>
+            <TextBlock FontFamily="Courier New">Ctrl+Z</TextBlock>
         </Border>
         <TextBlock VerticalAlignment="Center">Reapply changes</TextBlock>
         <Border Style="{StaticResource KeyShortcutBorder}">
-            <TextBlock>Ctrl+Y</TextBlock>
+            <TextBlock FontFamily="Courier New">Ctrl+Y</TextBlock>
         </Border>
     </UniformGrid>
 </UserControl>

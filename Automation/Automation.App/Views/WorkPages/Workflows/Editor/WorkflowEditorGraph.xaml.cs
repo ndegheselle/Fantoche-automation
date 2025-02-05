@@ -1,16 +1,11 @@
 ﻿using Automation.App.Shared.ApiClients;
-using Automation.App.Shared.ViewModels.Work;
 using Automation.App.ViewModels.Workflow.Editor;
-using Automation.App.Views.WorkPages.Scopes.Components;
-using Automation.Shared.Data;
 using Joufflu.Popups;
 using Microsoft.Extensions.DependencyInjection;
 using Nodify;
 using System.Drawing;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
-using System.Windows.Input;
 
 using MessageBox = AdonisUI.Controls.MessageBox;
 using Point = System.Drawing.Point;
@@ -51,15 +46,6 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
             _nodeClient = _app.ServiceProvider.GetRequiredService<TasksClient>();
             _scopeClient = _app.ServiceProvider.GetRequiredService<ScopesClient>();
             InitializeComponent();
-        }
-
-        private void DeleteSelectedNodes()
-        {
-            if (MessageBox.Show($"Are you sure you want to delete these {EditorData.SelectedItems?.Count} nodes ?",
-                "Confirmation", AdonisUI.Controls.MessageBoxButton.YesNo) != AdonisUI.Controls.MessageBoxResult.Yes)
-                return;
-
-            EditorData.RemoveNodes(EditorData.SelectedNodes);
         }
 
         private Rectangle GetSelectedBoundingBox(int padding)
