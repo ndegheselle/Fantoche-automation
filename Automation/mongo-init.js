@@ -14,6 +14,7 @@ db.createUser(
 db.createCollection("task_instances");
 db.createCollection("scopes");
 db.createCollection("tasks");
+db.createCollection("graphs");
 db.createCollection("schedules");
 
 db.scopes.createIndex(

@@ -30,6 +30,14 @@
         public string JsonSettings { get; set; } = "";
     }
 
+    public interface ITaskConnector
+    {
+        Guid Id { get; }
+        string Name { get; set; }
+        EnumTaskConnectorType Type { get; set; }
+        EnumTaskConnectorDirection Direction { get; set; }
+    }
+
     public interface ITaskNode : IScopedElement
     {
         TargetedPackage? Package { get; set; }
@@ -38,11 +46,7 @@
         IEnumerable<Schedule> Schedules { get; }
     }
 
-    public interface ITaskConnector
+    public interface IWorkflowNode : ITaskNode
     {
-        Guid Id { get; }
-        string Name { get; set; }
-        EnumTaskConnectorType Type { get; set; }
-        EnumTaskConnectorDirection Direction { get; set; }
     }
 }
