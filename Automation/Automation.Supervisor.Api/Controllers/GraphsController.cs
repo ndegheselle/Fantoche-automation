@@ -20,7 +20,7 @@ namespace Automation.Supervisor.Api.Controllers
         }
 
         [HttpGet]
-        [Route("{id}")]
+        [Route("workflows/{workflowId}")]
         public async Task<Graph?> GetByIdAsync([FromRoute] Guid workflowId)
         {
             return await _graphRepo.GetByWorkflowId(workflowId);

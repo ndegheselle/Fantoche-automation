@@ -1,5 +1,4 @@
 ﻿using Automation.App.Shared.ViewModels.Work;
-using Automation.Shared.Base;
 using Automation.Shared.Clients;
 using RestSharp;
 
@@ -11,13 +10,10 @@ namespace Automation.App.Shared.ApiClients
         {
         }
 
-        public async Task<ListPageWrapper<TaskInstance>> GetInstancesAsync(Guid taskId, int page, int pageSize)
+        public async Task<Graph?> GetByWorkflowId(Guid graphId)
         {
-            return await _client.GetAsync<ListPageWrapper<TaskInstance>>(
-                    new RestRequest($"{_routeBase}/{taskId}/instances")
-                .AddParameter("page", page)
-                .AddParameter("pageSize", pageSize)) ??
-                new ListPageWrapper<TaskInstance>();
+            return await _client.GetAsync<Graph>(
+                    new RestRequest($"{_routeBase}/workflows/{graphId}");
         }
     }
 }
