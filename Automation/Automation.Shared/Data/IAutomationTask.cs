@@ -38,7 +38,7 @@
         EnumTaskConnectorDirection Direction { get; set; }
     }
 
-    public interface ITaskNode : IScopedElement
+    public interface IAutomationTask : IScopedElement
     {
         TargetedPackage? Package { get; set; }
         IEnumerable<ITaskConnector> Inputs { get; }
@@ -46,7 +46,7 @@
         IEnumerable<Schedule> Schedules { get; }
     }
 
-    public interface IWorkflowNode : ITaskNode
+    public interface IAutomationWorkflow : IAutomationTask
     {
     }
 }

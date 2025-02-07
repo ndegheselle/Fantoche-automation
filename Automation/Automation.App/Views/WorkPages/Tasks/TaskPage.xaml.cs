@@ -13,14 +13,14 @@ namespace Automation.App.Views.WorkPages.Tasks
     /// </summary>
     public partial class TaskPage : UserControl, IPage, INotifyPropertyChanged
     {
-        public TaskNode Task { get; set; }
+        public AutomationTask Task { get; set; }
         public ILayout? ParentLayout { get; set; }
 
         private readonly App _app = App.Current;
         private readonly TasksClient _client;
         private IModal _modal => this.GetCurrentModalContainer();
 
-        public TaskPage(TaskNode task)
+        public TaskPage(AutomationTask task)
         {
             _client = _app.ServiceProvider.GetRequiredService<TasksClient>();
             Task = task;
@@ -31,7 +31,7 @@ namespace Automation.App.Views.WorkPages.Tasks
 
         public async void LoadFullTask(Guid taskId)
         {
-            TaskNode? fullTask = await _client.GetByIdAsync(taskId);
+            AutomationTask? fullTask = await _client.GetByIdAsync(taskId);
 
             if (fullTask == null)
                 throw new ArgumentException("Task not found");

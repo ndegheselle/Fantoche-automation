@@ -122,7 +122,7 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
 
         private async void OnAddTask()
         {
-            var task = new TaskNode();
+            var task = new AutomationTask();
             task.ChangeParent(CurrentScope);
             if (await _modal.Show(new TaskCreateModal(task)))
             {
@@ -134,7 +134,7 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
 
         private async void OnAddWorkflow()
         {
-            WorkflowNode workflow = new WorkflowNode();
+            AutomationWorkflow workflow = new AutomationWorkflow();
             workflow.ChangeParent(CurrentScope);
             if (await _modal.Show(new WorkflowCreateModal(workflow)))
             {

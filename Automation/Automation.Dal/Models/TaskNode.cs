@@ -4,17 +4,9 @@ using System.Text.Json.Serialization;
 
 namespace Automation.Dal.Models
 {
-    public class TaskConnectors : ITaskConnector
-    {
-        public Guid Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public EnumTaskConnectorType Type { get; set; }
-        public EnumTaskConnectorDirection Direction { get; set; }
-    }
-
     [JsonDerivedType(typeof(WorkflowNode), "workflow")]
     [BsonKnownTypes(typeof(WorkflowNode))]
-    public class TaskNode : ScopedElement, ITaskNode
+    public class TaskNode : ScopedElement, IAutomationTask
     {
         public IEnumerable<ITaskConnector> Inputs { get; set; } = [];
         public IEnumerable<ITaskConnector> Outputs { get; set; } = [];
@@ -26,12 +18,11 @@ namespace Automation.Dal.Models
         }
     }
 
-    // XXX: workflow node is not even necessary
-    public class WorkflowNode : TaskNode, IWorkflowNode
+    public class TaskConnectors : ITaskConnector
     {
-        public WorkflowNode()
-        {
-            Type = EnumScopedType.Workflow;
-        }
+        public Guid Id { get; set; }
+        public string Name {get;set;} = string.Empty;
+        public EnumTaskConnectorType Type {get;set;}
+        public EnumTaskConnectorDirection Direction {get;set;}
     }
 }

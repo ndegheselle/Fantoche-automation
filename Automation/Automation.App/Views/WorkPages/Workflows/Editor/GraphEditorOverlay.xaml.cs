@@ -6,27 +6,27 @@ using System.Windows.Controls;
 namespace Automation.App.Views.WorkPages.Workflows.Editor
 {
     /// <summary>
-    /// Logique d'interaction pour WorkflowEditorOverlay.xaml
+    /// Logique d'interaction pour GraphEditorOverlay.xaml
     /// </summary>
-    public partial class WorkflowEditorOverlay : UserControl
+    public partial class GraphEditorOverlay : UserControl
     {
         #region Dependency properties
         public static readonly DependencyProperty EditorProperty = DependencyProperty.Register(
             nameof(Editor),
-            typeof(WorkflowEditorCommands),
-            typeof(WorkflowEditorOverlay),
+            typeof(GraphEditorCommands),
+            typeof(GraphEditorOverlay),
             new PropertyMetadata(null));
         #endregion
 
-        public WorkflowEditorViewModel Editor
+        public GraphEditorViewModel Editor
         {
-            get { return (WorkflowEditorViewModel)GetValue(EditorProperty); }
+            get { return (GraphEditorViewModel)GetValue(EditorProperty); }
             set { SetValue(EditorProperty, value); }
         }
 
         private IModal _modal => this.GetCurrentModalContainer();
 
-        public WorkflowEditorOverlay()
+        public GraphEditorOverlay()
         {
             InitializeComponent();
         }
@@ -34,7 +34,7 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
         #region UI events
         private void OpenHelp_Click(object sender, RoutedEventArgs e)
         {
-            _modal.Show(new WorkflowEditorHelp());
+            _modal.Show(new GraphEditorHelp());
         }
         #endregion
     }

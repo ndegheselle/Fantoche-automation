@@ -2,17 +2,17 @@
 
 namespace Automation.Shared.Data
 {
-    public interface ILinkedNode : INamed
+    public interface IGraphNode : INamed
     {
         Point Position { get; set; }
     }
 
-    public interface INodeGroup : ILinkedNode
+    public interface IGraphGroup : IGraphNode
     {
         Size Size { get; set; }
     }
 
-    public interface ITaskConnection
+    public interface IGraphConnection
     {
         Guid SourceId { get; set; }
         Guid TargetId { get; set; }
@@ -20,8 +20,8 @@ namespace Automation.Shared.Data
 
     public interface IGraph
     {
-        IEnumerable<ITaskConnection> Connections { get; }
-        IEnumerable<ILinkedNode> Nodes { get; }
-        IEnumerable<INodeGroup> Groups { get; }
+        IEnumerable<IGraphConnection> Connections { get; }
+        IEnumerable<IGraphNode> Nodes { get; }
+        IEnumerable<IGraphGroup> Groups { get; }
     }
 }

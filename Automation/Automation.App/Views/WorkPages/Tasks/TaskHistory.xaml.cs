@@ -18,11 +18,11 @@ namespace Automation.App.Views.WorkPages.Tasks
         public static readonly DependencyProperty TaskProperty =
             DependencyProperty.Register(
             nameof(Task),
-            typeof(TaskNode),
+            typeof(AutomationTask),
             typeof(TaskHistory),
             new PropertyMetadata(null));
 
-        public TaskNode Task { get { return (TaskNode)GetValue(TaskProperty); } set { SetValue(TaskProperty, value); } }
+        public AutomationTask Task { get { return (AutomationTask)GetValue(TaskProperty); } set { SetValue(TaskProperty, value); } }
 
         public ListPageWrapper<TaskInstance> Instances
         {
@@ -30,7 +30,7 @@ namespace Automation.App.Views.WorkPages.Tasks
             set;
         } = new ListPageWrapper<TaskInstance>() { PageSize = 50, Page = 1 };
 
-        private bool _isAlreadyRefreshed = false;
+        private bool _isAlreadyLoaded = false;
         private readonly App _app = (App)App.Current;
         private readonly TasksClient _tasksClient;
         private IModal _modal => this.GetCurrentModalContainer();
@@ -44,7 +44,7 @@ namespace Automation.App.Views.WorkPages.Tasks
 
         private void TaskHistory_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            if (this.IsVisible && _isAlreadyRefreshed == false)
+            if (this.IsVisible && _isAlreadyLoaded == false)
             {
                 RefreshHistory(Instances.Page, Instances.PageSize);
             }
@@ -55,7 +55,7 @@ namespace Automation.App.Views.WorkPages.Tasks
             if (Task == null)
                 return;
             Instances = await _tasksClient.GetInstancesAsync(Task.Id, pageNumber - 1, capacity);
-            _isAlreadyRefreshed = true;
+            _isAlreadyLoaded = true;
         }
 
         private void InstancesPaging_PagingChange(int pageNumber, int capacity)

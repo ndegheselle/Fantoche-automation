@@ -15,9 +15,9 @@ namespace Automation.App.Views.WorkPages.Workflows
         private readonly App _app = (App)App.Current;
         private readonly TasksClient _taskClient;
 
-        public WorkflowNode NewWorkflow { get; set; }
+        public AutomationWorkflow NewWorkflow { get; set; }
 
-        public WorkflowCreateModal(WorkflowNode newWorkflow) : base("Create new workflow")
+        public WorkflowCreateModal(AutomationWorkflow newWorkflow) : base("Create new workflow")
         {
             _taskClient = _app.ServiceProvider.GetRequiredService<TasksClient>();
             NewWorkflow = newWorkflow;
@@ -47,13 +47,13 @@ namespace Automation.App.Views.WorkPages.Workflows
     /// </summary>
     public partial class WorkflowEditModal : UserControl, IModalContent
     {
-        public WorkflowNode Workflow { get; set; }
+        public AutomationWorkflow Workflow { get; set; }
 
         public Modal? ParentLayout { get; set; }
 
         public ModalOptions Options { get; private set; } = new ModalOptions() { Title = "Edit workflow" };
 
-        public WorkflowEditModal(WorkflowNode workflow)
+        public WorkflowEditModal(AutomationWorkflow workflow)
         {
             Workflow = workflow;
             InitializeComponent();

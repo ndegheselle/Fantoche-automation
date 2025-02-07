@@ -20,7 +20,7 @@
                         <TextBlock Margin="4,0,0,0">Graph</TextBlock>
                     </StackPanel>
                 </TabItem.Header>
-                <editor:WorkflowEditor EditorData="{Binding Editor}" />
+                <editor:GraphEditor Workflow="{Binding Workflow}" />
             </TabItem>
             <TabItem>
                 <TabItem.Header>

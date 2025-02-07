@@ -34,7 +34,7 @@ namespace Automation.Supervisor.Api.Controllers
             var existingChild = await _repository.GetDirectChildByNameAsync(element.ParentId, element.Name);
             if (existingChild != null)
             {
-                // XXX : if need more info can also use return ValidationProblem(new ValidationProblemDetails());
+                // XXX : if more info needed use return ValidationProblem(new ValidationProblemDetails());
                 return BadRequest(new Dictionary<string, string[]>()
                 {
                     {nameof(Scope.Name), [$"The name {element.Name} is already used in this scope."] }

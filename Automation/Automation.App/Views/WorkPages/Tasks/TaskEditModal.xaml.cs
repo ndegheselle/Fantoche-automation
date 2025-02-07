@@ -17,9 +17,9 @@ namespace Automation.App.Views.WorkPages.Tasks
         private readonly App _app = (App)App.Current;
         private readonly TasksClient _taskClient;
 
-        public TaskNode NewTask { get; set; }
+        public AutomationTask NewTask { get; set; }
 
-        public TaskCreateModal(TaskNode task) : base("Create new task")
+        public TaskCreateModal(AutomationTask task) : base("Create new task")
         {
             _taskClient = _app.ServiceProvider.GetRequiredService<TasksClient>();
             NewTask = task;
@@ -60,11 +60,11 @@ namespace Automation.App.Views.WorkPages.Tasks
 
         public ModalOptions Options { get; private set; } = new ModalOptions();
 
-        public TaskNode Task { get; set; }
+        public AutomationTask Task { get; set; }
 
         public ICustomCommand ValidateCommand { get; private set; }
 
-        public TaskEditModal(TaskNode task)
+        public TaskEditModal(AutomationTask task)
         {
             Task = task;
             Options.Title = $"Edit task {task.Name}";

@@ -15,36 +15,30 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
     /// <summary>
     /// Logique d'interaction pour WorkflowGraph.xaml
     /// </summary>
-    public partial class WorkflowEditorGraph : UserControl
+    public partial class GraphEditorCanvas : UserControl
     {
         #region Dependency Properties
 
         // Dependency property Editor of type EditorViewModel
         public static readonly DependencyProperty EditorDataProperty = DependencyProperty.Register(
             "EditorData",
-            typeof(WorkflowEditorViewModel),
-            typeof(WorkflowEditorGraph),
-            new PropertyMetadata(null, (o, e) => ((WorkflowEditorGraph)o).OnEditorDataChange()));
+            typeof(GraphEditorViewModel),
+            typeof(GraphEditorCanvas),
+            new PropertyMetadata(null));
 
-        public WorkflowEditorViewModel EditorData
+        public GraphEditorViewModel Editor
         {
-            get => (WorkflowEditorViewModel)GetValue(EditorDataProperty);
+            get => (GraphEditorViewModel)GetValue(EditorDataProperty);
             set => SetValue(EditorDataProperty, value);
         }
 
-        private void OnEditorDataChange() { EditorData.InvalidConnection += _alert.Warning; }
         #endregion
 
         private readonly App _app = (App)App.Current;
-        private IModal _modal => this.GetCurrentModalContainer();
         private IAlert _alert => this.GetCurrentAlertContainer();
-        private readonly TasksClient _nodeClient;
-        private readonly ScopesClient _scopeClient;
 
-        public WorkflowEditorGraph()
+        public GraphEditorCanvas()
         {
-            _nodeClient = _app.ServiceProvider.GetRequiredService<TasksClient>();
-            _scopeClient = _app.ServiceProvider.GetRequiredService<ScopesClient>();
             InitializeComponent();
         }
 
@@ -53,12 +47,12 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
             Point min = new Point(int.MaxValue, int.MaxValue);
             Point max = new Point(int.MinValue, int.MinValue);
 
-            if (Editor.SelectedItems == null || Editor.SelectedItems.Count == 0)
+            if (Editor.SelectedNodes == null || Editor.SelectedNodes.Count == 0)
                 return Rectangle.Empty;
 
-            foreach (var node in Editor.SelectedItems)
+            foreach (var node in Editor.SelectedNodes)
             {
-                var container = Editor.ItemContainerGenerator.ContainerFromItem(node) as ItemContainer;
+                var container = NodifyEditorElement.ItemContainerGenerator.ContainerFromItem(node) as ItemContainer;
                 if (container == null)
                     continue;
 

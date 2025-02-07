@@ -18,9 +18,9 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
         public ModalOptions Options { get; private set; } = new ModalOptions() { Title = "Execute task" };
 
         public string JsonSettings { get; set; } = "";
-        public TaskNode Task { get; set; }
+        public AutomationTask Task { get; set; }
 
-        public TaskExecuteModal(TaskNode task) {
+        public TaskExecuteModal(AutomationTask task) {
             _taskClient = _app.ServiceProvider.GetRequiredService<TasksClient>();
             Task = task;
             Options.Title = $"Execute task - {task.Name}";

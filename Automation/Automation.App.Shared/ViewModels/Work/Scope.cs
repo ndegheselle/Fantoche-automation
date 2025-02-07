@@ -15,8 +15,8 @@ namespace Automation.App.Shared.ViewModels.Work
         Settings
     }
 
-    [JsonDerivedType(typeof(TaskNode), "task")]
-    [JsonDerivedType(typeof(WorkflowNode), "workflow")]
+    [JsonDerivedType(typeof(AutomationTask), "task")]
+    [JsonDerivedType(typeof(AutomationWorkflow), "workflow")]
     [JsonDerivedType(typeof(Scope), "scope")]
     public class ScopedElement : ErrorValidationModel, IScopedElement, INotifyPropertyChanged
     {

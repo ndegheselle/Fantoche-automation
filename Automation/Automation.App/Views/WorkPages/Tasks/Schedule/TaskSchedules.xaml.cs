@@ -12,11 +12,11 @@ namespace Automation.App.Views.WorkPages.Tasks.Schedule
     {
         public static readonly DependencyProperty TaskProperty = DependencyProperty.Register(
             nameof(Task),
-            typeof(TaskNode),
+            typeof(AutomationTask),
             typeof(TaskSchedules),
-            new PropertyMetadata(default(TaskNode), (o, e) => ((TaskSchedules)o).OnTargetChange()));
+            new PropertyMetadata(default(AutomationTask), (o, e) => ((TaskSchedules)o).OnTargetChange()));
 
-        public TaskNode Task { get { return (TaskNode)GetValue(TaskProperty); } set { SetValue(TaskProperty, value); } }
+        public AutomationTask Task { get { return (AutomationTask)GetValue(TaskProperty); } set { SetValue(TaskProperty, value); } }
         private IModal _modal => this.GetCurrentModalContainer();
 
         public TaskSchedules() { InitializeComponent(); }

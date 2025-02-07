@@ -3,7 +3,7 @@ using System.Drawing;
 
 namespace Automation.Dal.Models
 {
-    public class NodeGroup : INodeGroup
+    public class NodeGroup : IGraphGroup
     {
         public Guid Id { get; set; }
         public string Name { get; set; }
@@ -11,7 +11,7 @@ namespace Automation.Dal.Models
         public Point Position { get; set; }
     }
 
-    public class TaskConnection : ITaskConnection
+    public class TaskConnection : IGraphConnection
     {
         public Guid ParentId {get;set;}
         public Guid SourceId {get;set;}
@@ -22,8 +22,8 @@ namespace Automation.Dal.Models
     {
         public Guid Id { get; set; }
         public Guid WorkflowId { get; set; }
-        public IEnumerable<ITaskConnection> Connections { get; set; } = new List<TaskConnection>();
-        public IEnumerable<ILinkedNode> Nodes { get; set; } = new List<ILinkedNode>();
-        public IEnumerable<INodeGroup> Groups { get; set; } = new List<INodeGroup>();
+        public IEnumerable<IGraphConnection> Connections { get; set; } = new List<TaskConnection>();
+        public IEnumerable<IGraphNode> Nodes { get; set; } = new List<IGraphNode>();
+        public IEnumerable<IGraphGroup> Groups { get; set; } = new List<IGraphGroup>();
     }
 }

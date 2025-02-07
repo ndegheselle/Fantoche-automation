@@ -20,9 +20,11 @@ namespace Automation.App
         public static new App Current => (App)Application.Current;
 
         private IServiceProvider? _serviceProvider;
+
         public IServiceProvider ServiceProvider
         {
-            get {
+            get
+            {
                 if (_serviceProvider == null)
                     _serviceProvider = ConfigureServices(new ServiceCollection());
                 return _serviceProvider;
@@ -48,13 +50,16 @@ namespace Automation.App
         /// <returns></returns>
         private static IServiceProvider ConfigureServices(ServiceCollection services)
         {
-            string apiUrl = ConfigurationManager.AppSettings["ApiUrl"] ?? throw new Exception("Missing 'ApiUrl' in App.Config");
-            string redisUrl = ConfigurationManager.AppSettings["RedisConnectionString"] ?? throw new Exception("Missing 'RedisConnectionString' in App.Config");
+            string apiUrl = ConfigurationManager.AppSettings["ApiUrl"] ??
+                throw new Exception("Missing 'ApiUrl' in App.Config");
+            string redisUrl = ConfigurationManager.AppSettings["RedisConnectionString"] ??
+                throw new Exception("Missing 'RedisConnectionString' in App.Config");
 
             services.AddTransient<MainWindow>();
             services.AddSingleton<ParametersViewModel>();
             services.AddSingleton<RestClient>(new RestClient(apiUrl));
-            services.AddSingleton<Lazy<RedisConnectionManager>>(new Lazy<RedisConnectionManager>(() => new RedisConnectionManager(redisUrl)));
+            services.AddSingleton<Lazy<RedisConnectionManager>>(
+                new Lazy<RedisConnectionManager>(() => new RedisConnectionManager(redisUrl)));
 
             services.AddTransient<ScopesClient>(
                 (provider) => new ScopesClient(provider.GetRequiredService<RestClient>()));
@@ -63,13 +68,15 @@ namespace Automation.App
                 (provider) => new TaskInstancesClient(provider.GetRequiredService<RestClient>()));
             services.AddTransient<PackagesClient>(
                 (provider) => new PackagesClient(provider.GetRequiredService<RestClient>()));
+            services.AddTransient<GraphsClient>(
+                (provider) => new GraphsClient(provider.GetRequiredService<RestClient>()));
             return services.BuildServiceProvider();
         }
 
         #region Exception handling
         private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
         {
-            if (Current.MainWindow  == null)
+            if (Current.MainWindow == null)
                 return;
 
             // FIXME : Should get the current window where the exception happend
