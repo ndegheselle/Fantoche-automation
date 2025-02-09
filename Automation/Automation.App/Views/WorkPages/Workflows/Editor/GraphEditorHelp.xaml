@@ -7,8 +7,8 @@
     xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Workflows.Editor"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     mc:Ignorable="d"
-    d:DesignHeight="450"
-    d:DesignWidth="800">
+    MinHeight="100"
+    MinWidth="300">
     <UserControl.Resources>
         <Style TargetType="Border" x:Key="KeyShortcutBorder">
             <Setter Property="CornerRadius" Value="{StaticResource {x:Static adonisUi:Dimensions.CornerRadius}}" />
@@ -19,7 +19,10 @@
         </Style>
     </UserControl.Resources>
 
-    <UniformGrid Columns="2" VerticalAlignment="Top">
+    <UniformGrid
+        Columns="2"
+        VerticalAlignment="Top"
+        Margin="2">
         <TextBlock VerticalAlignment="Center">Revert changes</TextBlock>
         <Border Style="{StaticResource KeyShortcutBorder}">
             <TextBlock FontFamily="Courier New">Ctrl+Z</TextBlock>

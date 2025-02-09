@@ -92,7 +92,7 @@
                 BorderBrush="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}">
                 <StackPanel Orientation="Horizontal">
                     <Button Style="{StaticResource IconButton}" ToolTip="Add node">
-                        <fonts:Icon Text="{x:Static fonts:IconFont.SquarePlus}" />
+                        <fonts:Icon Text="{x:Static fonts:IconFont.Plus}" />
                     </Button>
                     <Button
                         Style="{StaticResource IconButton}"

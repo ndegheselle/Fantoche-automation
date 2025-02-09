@@ -11,7 +11,7 @@ namespace Automation.Dal.Models
         public Point Position { get; set; }
     }
 
-    public class TaskConnection : IGraphConnection
+    public class GraphConnection : IGraphConnection
     {
         public Guid ParentId {get;set;}
         public Guid SourceId {get;set;}
@@ -22,7 +22,7 @@ namespace Automation.Dal.Models
     {
         public Guid Id { get; set; }
         public Guid WorkflowId { get; set; }
-        public IEnumerable<IGraphConnection> Connections { get; set; } = new List<TaskConnection>();
+        public IEnumerable<IGraphConnection> Connections { get; set; } = new List<GraphConnection>();
         public IEnumerable<IGraphNode> Nodes { get; set; } = new List<IGraphNode>();
         public IEnumerable<IGraphGroup> Groups { get; set; } = new List<IGraphGroup>();
     }

@@ -49,7 +49,7 @@
             SelectedItemChanged="TreeView_SelectedItemChanged"
             Tag="{Binding RelativeSource={RelativeSource AncestorType=local:ScopedSelector}}">
             <TreeView.ContextMenu>
-                <local:ScopedContextMenu CurrentScope="{Binding RootScope}" Selected="{Binding Selected}" />
+                <local:ScopedContextMenu CurrentScope="{Binding CurrentScope}" Selected="{Binding Selected}" />
             </TreeView.ContextMenu>
             <TreeView.ItemContainerStyle>
                 <Style TargetType="{x:Type TreeViewItem}" BasedOn="{StaticResource TreeViewItemStyle}">

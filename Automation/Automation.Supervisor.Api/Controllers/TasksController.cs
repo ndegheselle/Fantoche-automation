@@ -30,13 +30,13 @@ namespace Automation.Supervisor.Api.Controllers
 
         [HttpPost]
         [Route("")]
-        public async Task<ActionResult<Guid>> CreateAsync(TaskNode element)
+        public async Task<ActionResult<Guid>> CreateAsync(AutomationTask element)
         {
             if (element.ParentId == null)
             {
                 return BadRequest(new Dictionary<string, string[]>()
                 {
-                    {nameof(TaskNode.Name), [$"A task cannot be created without a parent."] }
+                    {nameof(AutomationTask.Name), [$"A task cannot be created without a parent."] }
                 });
             }
 
@@ -47,7 +47,7 @@ namespace Automation.Supervisor.Api.Controllers
             {
                 return BadRequest(new Dictionary<string, string[]>()
                 {
-                    {nameof(TaskNode.Name), [$"The name {element.Name} is already used in this scope."] }
+                    {nameof(AutomationTask.Name), [$"The name {element.Name} is already used in this scope."] }
                 });
             }
 
@@ -56,7 +56,7 @@ namespace Automation.Supervisor.Api.Controllers
             {
                 return BadRequest(new Dictionary<string, string[]>()
                 {
-                    {nameof(TaskNode.Name), [$"The parent id {element.ParentId} is invalid."] }
+                    {nameof(AutomationTask.Name), [$"The parent id {element.ParentId} is invalid."] }
                 });
             }
 
@@ -73,14 +73,14 @@ namespace Automation.Supervisor.Api.Controllers
 
         [HttpGet]
         [Route("{id}")]
-        public async Task<TaskNode?> GetByIdAsync([FromRoute] Guid id)
+        public async Task<AutomationTask?> GetByIdAsync([FromRoute] Guid id)
         {
             return await _taskRepo.GetByIdAsync(id);
         }
 
         [HttpPut]
         [Route("{id}")]
-        public Task UpdateAsync([FromRoute] Guid id, [FromBody]TaskNode element)
+        public Task UpdateAsync([FromRoute] Guid id, [FromBody]AutomationTask element)
         {
             return _taskRepo.UpdateAsync(id, element);
         }
@@ -89,7 +89,7 @@ namespace Automation.Supervisor.Api.Controllers
         [Route("{id}/execute")]
         public async Task<TaskInstance> ExecuteAsync([FromRoute] Guid id, [FromBody] string? settings)
         {
-            TaskNode? task = await _taskRepo.GetByIdAsync(id);
+            AutomationTask? task = await _taskRepo.GetByIdAsync(id);
             if (task == null)
                 throw new InvalidOperationException($"No task node found for the id '{id}'.");
             if (task.Package == null)

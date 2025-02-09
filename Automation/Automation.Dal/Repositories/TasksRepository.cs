@@ -4,30 +4,30 @@ using MongoDB.Driver;
 
 namespace Automation.Dal.Repositories
 {
-    public class TasksRepository : BaseCrudRepository<TaskNode>
+    public class TasksRepository : BaseCrudRepository<AutomationTask>
     {
         public TasksRepository(IMongoDatabase database) : base(database, "tasks")
         {
         }
 
-        public async Task<IEnumerable<TaskNode>> GetByAnyParentScopeAsync(Guid scopeId)
+        public async Task<IEnumerable<AutomationTask>> GetByAnyParentScopeAsync(Guid scopeId)
         {
             // Include the discriminator field so that derived types are kept
-            var projection = Builders<TaskNode>.Projection.Include(s => s.Id).Include(s => s.Name).Include("_t");
-            var filter = Builders<TaskNode>.Filter.AnyEq(x => x.ParentTree, scopeId);
-            return await _collection.Find(filter).Project<TaskNode>(projection).ToListAsync();
+            var projection = Builders<AutomationTask>.Projection.Include(s => s.Id).Include(s => s.Name).Include("_t");
+            var filter = Builders<AutomationTask>.Filter.AnyEq(x => x.ParentTree, scopeId);
+            return await _collection.Find(filter).Project<AutomationTask>(projection).ToListAsync();
         }
 
-        public async Task<IEnumerable<TaskNode>> GetByDirectParentScopeAsync(Guid scopeId)
+        public async Task<IEnumerable<AutomationTask>> GetByDirectParentScopeAsync(Guid scopeId)
         {
-            var projection = Builders<TaskNode>.Projection.Include(s => s.Id).Include(s => s.Name).Include("_t");
-            return await _collection.Find(e => e.ParentId == scopeId).Project<TaskNode>(projection).ToListAsync();
+            var projection = Builders<AutomationTask>.Projection.Include(s => s.Id).Include(s => s.Name).Include("_t");
+            return await _collection.Find(e => e.ParentId == scopeId).Project<AutomationTask>(projection).ToListAsync();
         }
 
-        public async Task<TaskNode?> GetByParentScopeAndNameAsync(Guid scopeId, string name)
+        public async Task<AutomationTask?> GetByParentScopeAndNameAsync(Guid scopeId, string name)
         {
-            var projection = Builders<TaskNode>.Projection.Include(s => s.Id).Include(s => s.Name).Include("_t");
-            return await _collection.Find(e => e.ParentId == scopeId && e.Name == name).Project<TaskNode>(projection).FirstOrDefaultAsync();
+            var projection = Builders<AutomationTask>.Projection.Include(s => s.Id).Include(s => s.Name).Include("_t");
+            return await _collection.Find(e => e.ParentId == scopeId && e.Name == name).Project<AutomationTask>(projection).FirstOrDefaultAsync();
         }
 
         /// <summary>
@@ -37,20 +37,20 @@ namespace Automation.Dal.Repositories
         /// <returns></returns>
         public async Task DeleteByScopeAsync(Guid scopeId)
         {
-            var filter = Builders<TaskNode>.Filter.AnyEq(x => x.ParentTree, scopeId);
+            var filter = Builders<AutomationTask>.Filter.AnyEq(x => x.ParentTree, scopeId);
             await _collection.DeleteManyAsync(filter); 
         }
 
         public async Task<IEnumerable<TaskSchedule>> GetScheduled()
         {
-            var projection = Builders<TaskNode>.Projection.Include(s => s.Id).Include(s => s.Schedules).Include("_t");
+            var projection = Builders<AutomationTask>.Projection.Include(s => s.Id).Include(s => s.Schedules).Include("_t");
 
-            var filter = Builders<TaskNode>.Filter
+            var filter = Builders<AutomationTask>.Filter
                .And(
-                   Builders<TaskNode>.Filter.Ne(x => x.Schedules, null),
-                   Builders<TaskNode>.Filter.Not(Builders<TaskNode>.Filter.Size(nameof(TaskNode.Schedules), 0)));
+                   Builders<AutomationTask>.Filter.Ne(x => x.Schedules, null),
+                   Builders<AutomationTask>.Filter.Not(Builders<AutomationTask>.Filter.Size(nameof(AutomationTask.Schedules), 0)));
 
-            var scheduledTasks = await _collection.Find(filter).Project<TaskNode>(projection).ToListAsync();
+            var scheduledTasks = await _collection.Find(filter).Project<AutomationTask>(projection).ToListAsync();
             return scheduledTasks.SelectMany(t => t.Schedules.Select(s => new TaskSchedule(t.Id, s)));
         }
     }

@@ -107,13 +107,15 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
         private async void OnAddScope()
         {
             Scope newScope = new Scope();
-            newScope.ChangeParent(CurrentScope);
+            Scope currentScope = CurrentScope;
+            newScope.ChangeParent(currentScope);
             if (await _modal.Show(new ScopeCreateModal(newScope)))
             {
                 Dispatcher.Invoke(
                     (Action)(() =>
                     {
-                        this.CurrentScope.AddChild((ScopedElement)newScope);
+                        // XXX : why does CurrentScope become null there (context menu become invisible so bindings are reseted ?) ?
+                        currentScope.AddChild((ScopedElement)newScope);
                         newScope.FocusOn = EnumScopedTabs.Settings;
                         newScope.IsSelected = true;
                     }));
@@ -122,11 +124,12 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
 
         private async void OnAddTask()
         {
-            var task = new AutomationTask();
-            task.ChangeParent(CurrentScope);
+            AutomationTask task = new AutomationTask();
+            Scope currentScope = CurrentScope;
+            task.ChangeParent(currentScope);
             if (await _modal.Show(new TaskCreateModal(task)))
             {
-                CurrentScope.AddChild(task);
+                currentScope.AddChild(task);
                 task.FocusOn = EnumScopedTabs.Settings;
                 task.IsSelected = true;
             }
@@ -135,10 +138,11 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
         private async void OnAddWorkflow()
         {
             AutomationWorkflow workflow = new AutomationWorkflow();
-            workflow.ChangeParent(CurrentScope);
+            Scope currentScope = CurrentScope;
+            workflow.ChangeParent(currentScope);
             if (await _modal.Show(new WorkflowCreateModal(workflow)))
             {
-                CurrentScope.AddChild(workflow);
+                currentScope.AddChild(workflow);
                 workflow.FocusOn = EnumScopedTabs.Settings;
                 workflow.IsSelected = true;
             }

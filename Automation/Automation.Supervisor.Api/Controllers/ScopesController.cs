@@ -27,14 +27,14 @@ namespace Automation.Supervisor.Api.Controllers
             {
                 return BadRequest(new Dictionary<string, string[]>()
                 {
-                    {nameof(TaskNode.Name), [$"A scope cannot be created without a parent."] }
+                    {nameof(AutomationTask.Name), [$"A scope cannot be created without a parent."] }
                 });
             }
 
             var existingChild = await _repository.GetDirectChildByNameAsync(element.ParentId, element.Name);
             if (existingChild != null)
             {
-                // XXX : if more info needed use return ValidationProblem(new ValidationProblemDetails());
+                // XXX : if need more info can also use return ValidationProblem(new ValidationProblemDetails());
                 return BadRequest(new Dictionary<string, string[]>()
                 {
                     {nameof(Scope.Name), [$"The name {element.Name} is already used in this scope."] }
@@ -46,7 +46,7 @@ namespace Automation.Supervisor.Api.Controllers
             {
                 return BadRequest(new Dictionary<string, string[]>()
                 {
-                    {nameof(TaskNode.Name), [$"The parent id {element.ParentId} is invalid."] }
+                    {nameof(AutomationTask.Name), [$"The parent id {element.ParentId} is invalid."] }
                 });
             }
 
