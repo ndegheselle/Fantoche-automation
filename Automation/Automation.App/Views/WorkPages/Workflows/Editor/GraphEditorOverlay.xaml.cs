@@ -13,7 +13,7 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
         #region Dependency properties
         public static readonly DependencyProperty EditorProperty = DependencyProperty.Register(
             nameof(Editor),
-            typeof(GraphEditorCommands),
+            typeof(GraphEditorViewModel),
             typeof(GraphEditorOverlay),
             new PropertyMetadata(null));
         #endregion

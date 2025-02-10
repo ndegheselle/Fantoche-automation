@@ -1,4 +1,5 @@
 ﻿using Automation.App.Shared.ViewModels.Work;
+using Automation.App.Views.WorkPages.Workflows.Editor;
 using Automation.Shared.Data;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -76,11 +77,11 @@ namespace Automation.App.ViewModels.Workflow.Editor
         public GraphEditorSettings Settings { get; }
         public GraphEditorCommands Commands { get; }
 
-        public GraphEditorViewModel(Graph graph, GraphEditorSettings settings)
+        public GraphEditorViewModel(Graph graph, GraphEditorCanvas canvas, GraphEditorSettings settings)
         {
             Graph = graph;
             Settings = settings;
-            Commands = new GraphEditorCommands(Graph);
+            Commands = new GraphEditorCommands(Graph, canvas);
 
             PendingConnection = new GraphPendingConnection(this);
         }

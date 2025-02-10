@@ -3,6 +3,7 @@ using Automation.App.Shared.ViewModels.Work;
 using Automation.App.ViewModels;
 using Automation.App.ViewModels.Workflow.Editor;
 using Microsoft.Extensions.DependencyInjection;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -11,7 +12,7 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
     /// <summary>
     /// Logique d'interaction pour GraphEditor.xaml
     /// </summary>
-    public partial class GraphEditor : UserControl
+    public partial class GraphEditor : UserControl, INotifyPropertyChanged
     {
         #region Dependency properties
         public static readonly DependencyProperty WorkflowProperty = DependencyProperty.Register(
@@ -51,7 +52,7 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
                 await _graphsClient.CreateAsync(graph);
             }
 
-            Editor = new GraphEditorViewModel(graph, new GraphEditorSettings());
+            Editor = new GraphEditorViewModel(graph, Canvas, new GraphEditorSettings());
         }
     }
 }

@@ -1,5 +1,9 @@
 ﻿using Automation.App.Shared.ViewModels.Work;
+using Automation.App.Views.WorkPages.Workflows.Editor;
+using Nodify;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Windows.Controls;
 using System.Windows.Input;
 using Usuel.Shared;
 
@@ -8,6 +12,7 @@ namespace Automation.App.ViewModels.Workflow.Editor
     public class GraphEditorCommands
     {
         private readonly Graph _graph;
+        private readonly GraphEditorCanvas _canvas;
 
         public ICommand ZoomIn { get; private set; }
         public ICommand ZoomOut { get; private set; }
@@ -22,9 +27,15 @@ namespace Automation.App.ViewModels.Workflow.Editor
 
         public ICommand DisconnectConnectorCommand { get; private set; }
 
-        public GraphEditorCommands(Graph graph)
+        public GraphEditorCommands(Graph graph, GraphEditorCanvas canvas)
         {
             _graph = graph;
+            _canvas = canvas;
+
+            // XXX : use EditorCommands.ZoomIn ?
+            ZoomIn = new DelegateCommand(_canvas.NodifyEditorElement.ZoomIn);
+            ZoomOut = new DelegateCommand(_canvas.NodifyEditorElement.ZoomOut);
+            ZoomFit = new DelegateCommand(() => _canvas.NodifyEditorElement.FitToScreen());
 
             DisconnectConnectorCommand = new DelegateCommand<TaskConnector>(DisconnectConnector);
         }

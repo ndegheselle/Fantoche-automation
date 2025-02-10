@@ -26,7 +26,7 @@
                         Style="{StaticResource IconButton}"
                         ToolTip="Zoom in"
                         Command="{Binding Editor.Commands.ZoomIn}">
-                        <fonts:Icon Text="{x:Static fonts:IconFont.Plus}" />
+                        <fonts:Icon Text="{x:Static fonts:IconFont.MagnifyingGlassPlus}" />
                     </Button>
                     <Button
                         Style="{StaticResource IconButton}"
@@ -38,7 +38,7 @@
                         Style="{StaticResource IconButton}"
                         ToolTip="Zoom out"
                         Command="{Binding Editor.Commands.ZoomOut}">
-                        <fonts:Icon Text="{x:Static fonts:IconFont.Minus}" />
+                        <fonts:Icon Text="{x:Static fonts:IconFont.MagnifyingGlassMinus}" />
                     </Button>
                 </StackPanel>
             </Border>

@@ -7,9 +7,10 @@
     xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Workflows.Editor"
     mc:Ignorable="d"
     d:DesignHeight="450"
-    d:DesignWidth="800">
-    <Grid>
-        <local:GraphEditorCanvas />
-        <local:GraphEditorOverlay />
+    d:DesignWidth="800"
+    x:Name="ContainerElement">
+    <Grid DataContext="{Binding ElementName=ContainerElement}">
+        <local:GraphEditorCanvas x:Name="Canvas" />
+        <local:GraphEditorOverlay Editor="{Binding Editor}" />
     </Grid>
 </UserControl>
