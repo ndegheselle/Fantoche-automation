@@ -8,20 +8,19 @@ namespace Automation.Supervisor.Api.Controllers
 {
     [ApiController]
     [Route("scopes")]
-    public class ScopesController : Controller
+    public class ScopesController : BaseCrudController<Scope>
     {
-        private readonly ScopesRepository _repository;
+        private ScopesRepository _repository => (ScopesRepository)_repository;
         private readonly TaskIntancesRepository _taskInstanceRepo;
 
-        public ScopesController(IMongoDatabase database)
+        public ScopesController(IMongoDatabase database) : base(new ScopesRepository(database))
         {
-            _repository = new ScopesRepository(database);
             _taskInstanceRepo = new TaskIntancesRepository(database);
         }
 
         [HttpPost]
         [Route("")]
-        public async Task<ActionResult<Guid>> CreateAsync(Scope element)
+        public override async Task<ActionResult<Guid>> CreateAsync(Scope element)
         {
             if (element.ParentId == null)
             {
@@ -52,27 +51,6 @@ namespace Automation.Supervisor.Api.Controllers
 
             element.ParentTree = [..scope.ParentTree, scope.Id];
             return await _repository.CreateAsync(element);
-        }
-
-        [HttpDelete]
-        [Route("{id}")]
-        public Task DeleteAsync([FromRoute] Guid id)
-        {
-            return _repository.DeleteAsync(id);
-        }
-
-        [HttpGet]
-        [Route("{id}")]
-        public async Task<Scope?> GetByIdAsync([FromRoute] Guid id)
-        {
-            return await _repository.GetByIdAsync(id);
-        }
-
-        [HttpPut]
-        [Route("{id}")]
-        public Task UpdateAsync([FromRoute] Guid id, Scope element)
-        {
-            return _repository.UpdateAsync(id, element);
         }
 
         [HttpGet]

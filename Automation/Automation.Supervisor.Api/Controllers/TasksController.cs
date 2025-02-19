@@ -13,17 +13,16 @@ namespace Automation.Supervisor.Api.Controllers
 {
     [ApiController]
     [Route("tasks")]
-    public class TasksController : Controller
+    public class TasksController : BaseCrudController<AutomationTask>
     {
-        private readonly TasksRepository _taskRepo;
+        private TasksRepository _taskRepo => (TasksRepository)_crudRepository;
         private readonly TaskIntancesRepository _taskInstanceRepo;
         private readonly IMongoDatabase _database;
         private readonly WorkerAssignator _assignator;
 
-        public TasksController(IMongoDatabase database, RedisConnectionManager redis)
+        public TasksController(IMongoDatabase database, RedisConnectionManager redis) : base(new TasksRepository(database))
         {
             _database = database;
-            _taskRepo = new TasksRepository(database);
             _taskInstanceRepo = new TaskIntancesRepository(database);
             _assignator = new WorkerAssignator(database, redis);
         }
@@ -62,27 +61,6 @@ namespace Automation.Supervisor.Api.Controllers
 
             element.ParentTree = [.. scope.ParentTree, scope.Id];
             return await _taskRepo.CreateAsync(element);
-        }
-
-        [HttpDelete]
-        [Route("{id}")]
-        public Task DeleteAsync([FromRoute] Guid id)
-        {
-            return _taskRepo.DeleteAsync(id);
-        }
-
-        [HttpGet]
-        [Route("{id}")]
-        public async Task<AutomationTask?> GetByIdAsync([FromRoute] Guid id)
-        {
-            return await _taskRepo.GetByIdAsync(id);
-        }
-
-        [HttpPut]
-        [Route("{id}")]
-        public Task UpdateAsync([FromRoute] Guid id, [FromBody]AutomationTask element)
-        {
-            return _taskRepo.UpdateAsync(id, element);
         }
 
         [HttpPost]

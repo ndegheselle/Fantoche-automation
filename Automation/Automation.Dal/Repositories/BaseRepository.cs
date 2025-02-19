@@ -13,6 +13,11 @@ namespace Automation.Dal.Repositories
             _database = database;
             _collection = _database.GetCollection<T>(collectionName);
         }
+
+        public virtual async Task<List<T>> GetAllAsync()
+        {
+            return await _collection.Find(_ => true).ToListAsync();
+        }
     }
 
     // TODO : use soft deletion and history (userId, createdAt, updatedAt, deletedAt)
