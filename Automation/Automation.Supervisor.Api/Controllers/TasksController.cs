@@ -29,7 +29,7 @@ namespace Automation.Supervisor.Api.Controllers
 
         [HttpPost]
         [Route("")]
-        public async Task<ActionResult<Guid>> CreateAsync(AutomationTask element)
+        public override async Task<ActionResult<Guid>> CreateAsync(AutomationTask element)
         {
             if (element.ParentId == null)
             {

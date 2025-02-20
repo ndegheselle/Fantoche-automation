@@ -77,8 +77,8 @@
                 <DataTemplate DataType="{x:Type viewmodels:GraphTask}">
                     <nodify:Node
                         Header="{Binding Name}"
-                        Input="{Binding Node.Inputs}"
-                        Output="{Binding Node.Outputs}">
+                        Input="{Binding Inputs}"
+                        Output="{Binding Outputs}">
                         <nodify:Node.InputConnectorTemplate>
                             <DataTemplate DataType="{x:Type viewmodels:TaskConnector}">
                                 <nodify:NodeInput

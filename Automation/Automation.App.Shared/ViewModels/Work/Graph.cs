@@ -1,6 +1,7 @@
 ﻿using Automation.Shared.Data;
 using System.Collections.ObjectModel;
 using System.Windows;
+using System.Windows.Input;
 
 namespace Automation.App.Shared.ViewModels.Work
 {
@@ -31,6 +32,9 @@ namespace Automation.App.Shared.ViewModels.Work
     {
         public new string Name => Task.Name;
         public AutomationTask Task { get; set; } = new AutomationTask();
+
+        public List<TaskConnector> Inputs { get; set; } = [];
+        public List<TaskConnector> Outputs { get; set; } = [];
     }
 
     public class GraphConnection : IGraphConnection

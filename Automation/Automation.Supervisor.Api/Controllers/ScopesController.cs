@@ -10,7 +10,7 @@ namespace Automation.Supervisor.Api.Controllers
     [Route("scopes")]
     public class ScopesController : BaseCrudController<Scope>
     {
-        private ScopesRepository _repository => (ScopesRepository)_repository;
+        private ScopesRepository _repository => (ScopesRepository)_crudRepository;
         private readonly TaskIntancesRepository _taskInstanceRepo;
 
         public ScopesController(IMongoDatabase database) : base(new ScopesRepository(database))
