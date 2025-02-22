@@ -91,7 +91,10 @@
                 Background="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}"
                 BorderBrush="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}">
                 <StackPanel Orientation="Horizontal">
-                    <Button Style="{StaticResource IconButton}" ToolTip="Add node">
+                    <Button
+                        Style="{StaticResource IconButton}"
+                        ToolTip="Add node"
+                        Click="OpenAddNode_Click">
                         <fonts:Icon Text="{x:Static fonts:IconFont.Plus}" />
                     </Button>
                     <Button

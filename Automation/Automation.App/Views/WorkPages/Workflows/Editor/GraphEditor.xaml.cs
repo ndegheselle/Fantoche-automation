@@ -1,6 +1,5 @@
 ﻿using Automation.App.Shared.ApiClients;
 using Automation.App.Shared.ViewModels.Work;
-using Automation.App.ViewModels;
 using Automation.App.ViewModels.Workflow.Editor;
 using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;

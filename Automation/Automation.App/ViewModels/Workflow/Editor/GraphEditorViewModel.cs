@@ -10,62 +10,6 @@ using Usuel.Shared;
 
 namespace Automation.App.ViewModels.Workflow.Editor
 {
-    public class GraphPendingConnection
-    {
-        private readonly GraphEditorViewModel _editor;
-        private TaskConnector? _source;
-
-        public GraphPendingConnection(GraphEditorViewModel editor)
-        {
-            _editor = editor;
-            StartCommand = new DelegateCommand<TaskConnector>(source => _source = source);
-            FinishCommand = new DelegateCommand<TaskConnector>(target =>
-            {
-                if (target == null || _source == null)
-                    return;
-
-                if (_source == target)
-                {
-                    _editor.RaiseAlert("Can't connect a connector to itself.");
-                    return;
-                }
-
-                if (_source.Type != target.Type)
-                {
-                    _editor.RaiseAlert("Can't connect two connectors of different types.");
-                    return;
-                }
-
-                if (_source.Direction == target.Direction)
-                {
-                    _editor.RaiseAlert("Can't connect two output or input connectors.");
-                    return;
-                }
-
-                // If target is output, swap source and target
-                if (target.Direction == EnumTaskConnectorDirection.Out)
-                {
-                    var temp = _source;
-                    _source = target;
-                    target = temp;
-                }
-
-                // If already exists delete the connection
-                var existingConnection = _editor.Graph.Connections.FirstOrDefault(x => x.Source == _source && x.Target == target);
-                if (existingConnection != null)
-                {
-                    _editor.Disconnect(existingConnection);
-                    return;
-                }
-
-                _editor.Connect(_source, target);
-            });
-        }
-
-        public ICommand StartCommand { get; }
-        public ICommand FinishCommand { get; }
-    }
-
     public class GraphEditorViewModel
     {
         public event Action<string>? AlertRaised;
@@ -74,16 +18,23 @@ namespace Automation.App.ViewModels.Workflow.Editor
         public ObservableCollection<GraphNode> SelectedNodes { get; set; } = [];
 
         public Graph Graph { get; }
+        public GraphEditorCanvas Canvas { get; }
         public GraphEditorSettings Settings { get; }
         public GraphEditorCommands Commands { get; }
 
         public GraphEditorViewModel(Graph graph, GraphEditorCanvas canvas, GraphEditorSettings settings)
         {
             Graph = graph;
+            Canvas = canvas;
             Settings = settings;
-            Commands = new GraphEditorCommands(Graph, canvas);
+            Commands = new GraphEditorCommands(this);
 
             PendingConnection = new GraphPendingConnection(this);
+        }
+
+        public void RaiseAlert(string message)
+        {
+            AlertRaised?.Invoke(message);
         }
 
         public void Connect(TaskConnector source, TaskConnector target)
@@ -99,9 +50,28 @@ namespace Automation.App.ViewModels.Workflow.Editor
             connection.Target.IsConnected = false;
         }
 
-        public void RaiseAlert(string message)
+        private void DisconnectConnector(TaskConnector connector)
         {
-            AlertRaised?.Invoke(message);
+            connector.IsConnected = false;
+            var connections = Graph.Connections.Where(x => x.Source == connector || x.Target == connector);
+            for (int i = connections.Count() - 1; i >= 0; i--)
+            {
+                var connection = connections.ElementAt(i);
+                // Get opposite connector
+                TaskConnector oppositeConnector = connection.Source == connector ? connection.Target : connection.Source;
+                // Check if opposite connector is connected to another connector and if not, set IsConnected to false
+                var oppositeConnections = Graph.Connections.Where(x => x.Source == oppositeConnector || x.Target == oppositeConnector);
+                if (oppositeConnections.Count() == 1)
+                    oppositeConnector.IsConnected = false;
+
+                Graph.Connections.Remove(connection);
+            }
+        }
+
+        public void AddNode(GraphNode node)
+        {
+            // Add new action to history
+            Graph.Nodes.Add(node);
         }
     }
 }

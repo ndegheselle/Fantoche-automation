@@ -15,6 +15,11 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
     {
         public Modal? ParentLayout { get; set; }
         public ModalOptions Options => new ModalOptions() { Title = "Add node" };
+
+        public ScopedSelectorModal(EnumScopedType allowed) 
+        {
+            AllowedSelectedNodes = allowed;
+        }
     }
 
     /// <summary>

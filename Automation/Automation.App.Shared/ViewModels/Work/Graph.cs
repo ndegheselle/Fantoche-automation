@@ -31,10 +31,15 @@ namespace Automation.App.Shared.ViewModels.Work
     public class GraphTask : GraphNode
     {
         public new string Name => Task.Name;
+        public List<TaskConnector> Inputs => Task.Inputs;
+        public List<TaskConnector> Outputs => Task.Outputs;
+
         public AutomationTask Task { get; set; } = new AutomationTask();
 
-        public List<TaskConnector> Inputs { get; set; } = [];
-        public List<TaskConnector> Outputs { get; set; } = [];
+        public GraphTask(AutomationTask task)
+        {
+            Task = task;
+        }
     }
 
     public class GraphConnection : IGraphConnection

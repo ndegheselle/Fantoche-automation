@@ -1,4 +1,7 @@
-﻿using Automation.App.ViewModels.Workflow.Editor;
+﻿using Automation.App.Shared.ViewModels.Work;
+using Automation.App.ViewModels.Workflow.Editor;
+using Automation.App.Views.WorkPages.Scopes.Components;
+using Automation.Shared.Data;
 using Joufflu.Popups;
 using System.Windows;
 using System.Windows.Controls;
@@ -36,6 +39,16 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
         {
             _modal.Show(new GraphEditorHelp());
         }
+
+        private async void OpenAddNode_Click(object sender, RoutedEventArgs e)
+        {
+            var selector = new ScopedSelectorModal(EnumScopedType.Workflow | EnumScopedType.Task);
+            if (await _modal.Show(selector) && selector.Selected is AutomationTask task)
+            {
+                Editor.AddNode(new GraphTask(task));
+            }
+        }
         #endregion
+
     }
 }
