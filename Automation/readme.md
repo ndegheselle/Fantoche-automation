@@ -29,4 +29,4 @@ Worker (windows service) :
         - Not a fan since it double everything + no clear way to ensure the DTO is compatible with the model
 - Better serparation between ViewModel and Model, some other solution than using wrapper ?
 
-Add common nameof for serialization attributes
+Add common nameof for serialization attributes.
