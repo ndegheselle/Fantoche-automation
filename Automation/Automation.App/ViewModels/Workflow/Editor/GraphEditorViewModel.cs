@@ -50,7 +50,7 @@ namespace Automation.App.ViewModels.Workflow.Editor
             connection.Target.IsConnected = false;
         }
 
-        private void DisconnectConnector(TaskConnector connector)
+        public void DisconnectConnector(TaskConnector connector)
         {
             connector.IsConnected = false;
             var connections = Graph.Connections.Where(x => x.Source == connector || x.Target == connector);

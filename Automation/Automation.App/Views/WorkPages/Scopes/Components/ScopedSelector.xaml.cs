@@ -11,17 +11,6 @@ using System.Windows.Media;
 
 namespace Automation.App.Views.WorkPages.Scopes.Components
 {
-    public class ScopedSelectorModal : ScopedSelector, IModalContent
-    {
-        public Modal? ParentLayout { get; set; }
-        public ModalOptions Options => new ModalOptions() { Title = "Add node" };
-
-        public ScopedSelectorModal(EnumScopedType allowed) 
-        {
-            AllowedSelectedNodes = allowed;
-        }
-    }
-
     /// <summary>
     /// Logique d'interaction pour ScopedElementSelector.xaml
     /// </summary>
@@ -62,13 +51,6 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
         }
         public Scope CurrentScope => Selected is Scope scope ? scope : Selected?.Parent ?? RootScope;
 
-        public EnumScopedType AllowedSelectedNodes
-        {
-            get;
-            set;
-        } = EnumScopedType.Scope | EnumScopedType.Workflow | EnumScopedType.Task;
-
-
         private readonly App _app = (App)App.Current;
         private readonly ScopesClient _scopeClient;
         private readonly TasksClient _taskClient;
@@ -83,17 +65,12 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
             InitializeComponent();
         }
 
-        // XXX : move to viewmodels ?
-        #region Commands
-        
-        #endregion
-
         #region UI Events
         private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             TreeView treeView = (TreeView)sender;
             ScopedElement? selected = treeView.SelectedItem as ScopedElement;
-            if (selected != null && !AllowedSelectedNodes.HasFlag(selected.Type))
+            if (selected != null)
             {
                 selected.IsSelected = false;
                 return;

@@ -1,8 +1,10 @@
-﻿using Automation.App.Shared.ViewModels.Work;
+﻿using Automation.App.Shared.ApiClients;
+using Automation.App.Shared.ViewModels.Work;
 using Automation.App.ViewModels.Workflow.Editor;
 using Automation.App.Views.WorkPages.Scopes.Components;
 using Automation.Shared.Data;
 using Joufflu.Popups;
+using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -28,9 +30,12 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
         }
 
         private IModal _modal => this.GetCurrentModalContainer();
+        private readonly App _app = App.Current;
+        private readonly ScopesClient _client;
 
         public GraphEditorOverlay()
         {
+            _client = _app.ServiceProvider.GetRequiredService<ScopesClient>();
             InitializeComponent();
         }
 
@@ -43,6 +48,9 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
         private async void OpenAddNode_Click(object sender, RoutedEventArgs e)
         {
             var selector = new ScopedSelectorModal(EnumScopedType.Workflow | EnumScopedType.Task);
+
+
+
             if (await _modal.Show(selector) && selector.Selected is AutomationTask task)
             {
                 Editor.AddNode(new GraphTask(task));
