@@ -47,16 +47,12 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
 
         private async void OpenAddNode_Click(object sender, RoutedEventArgs e)
         {
-            var selector = new ScopedSelectorModal(EnumScopedType.Workflow | EnumScopedType.Task);
-
-
-
+            var selector = new ScopedSelectorModal();
             if (await _modal.Show(selector) && selector.Selected is AutomationTask task)
             {
                 Editor.AddNode(new GraphTask(task));
             }
         }
         #endregion
-
     }
 }

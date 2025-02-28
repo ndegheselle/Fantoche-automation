@@ -22,12 +22,15 @@ namespace Automation.App.ViewModels.Workflow.Editor
         public GraphEditorSettings Settings { get; }
         public GraphEditorCommands Commands { get; }
 
+        public HistoryHandler HistoryHandler { get; }
+
         public GraphEditorViewModel(Graph graph, GraphEditorCanvas canvas, GraphEditorSettings settings)
         {
             Graph = graph;
             Canvas = canvas;
             Settings = settings;
             Commands = new GraphEditorCommands(this);
+            HistoryHandler = new HistoryHandler();
 
             PendingConnection = new GraphPendingConnection(this);
         }
@@ -70,8 +73,14 @@ namespace Automation.App.ViewModels.Workflow.Editor
 
         public void AddNode(GraphNode node)
         {
-            // Add new action to history
             Graph.Nodes.Add(node);
+            HistoryHandler.PreviousActions.Push(() => RemoveNode(node));
+        }
+
+        public void RemoveNode(GraphNode node)
+        {
+            Graph.Nodes.Remove(node);
+            HistoryHandler.PreviousActions.Push(() => AddNode(node));
         }
     }
 }
