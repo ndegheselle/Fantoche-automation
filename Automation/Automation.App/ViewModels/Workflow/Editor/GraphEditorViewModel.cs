@@ -74,7 +74,7 @@ namespace Automation.App.ViewModels.Workflow.Editor
         public void AddNode(GraphNode node)
         {
             Graph.Nodes.Add(node);
-            HistoryHandler.PreviousActions.Push(() => RemoveNode(node));
+            HistoryHandler.Add(() => RemoveNode(node));
         }
 
         public void RemoveNode(GraphNode node)

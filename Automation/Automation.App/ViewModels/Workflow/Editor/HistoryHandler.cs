@@ -1,44 +1,44 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Usuel.Shared;
-
-namespace Automation.App.ViewModels.Workflow.Editor
+﻿namespace Automation.App.ViewModels.Workflow.Editor
 {
     public class HistoryHandler
     {
-        private Stack<Action> UndoStack = [];
-        private Stack<Action> RedoStack = [];
-
-        private bool _isCanceling = false;
+        private Stack<Action> _undoStack = [];
+        private Stack<Action> _redoStack = [];
 
         public void Add(Action action)
         {
-            if (_isCanceling)
+            if (_isUndoing)
             {
-                CanceledActions.Push(action);
+                _redoStack.Push(action);
             }
             else
             {
-                PreviousActions.Push(action);
+                _undoStack.Push(action);
                 // Can't roll back after a new action have been added
-                CanceledActions.Clear();
+                _redoStack.Clear();
             }
         }
 
-        public void Cancel()
+        public void Undo()
         {
-            var action = PreviousActions.Pop();
-            _isCanceling = true;
-            action.Invoke();
-            _isCanceling = false;
+            var action = _undoStack.Pop();
+            try
+            {
+                _isUndoing = true;
+                action.Invoke();
+            }
+            finally
+            {
+                _isUndoing = false;
+            }
         }
 
-        public void Restore()
+        public void Redo()
         {
-            var action = CanceledActions.Pop();
+            if (_redoStack.Count <= 0)
+                return;
+
+            var action = _redoStack.Pop();
             action.Invoke();
         }
     }
