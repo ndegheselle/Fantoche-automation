@@ -1,12 +1,7 @@
 ﻿using Automation.App.Shared.ViewModels.Work;
+using Automation.App.ViewModels.Workflow.Editor.Actions;
 using Automation.App.Views.WorkPages.Workflows.Editor;
-using Automation.Shared.Data;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Drawing;
-using System.Runtime.CompilerServices;
-using System.Windows.Input;
-using Usuel.Shared;
 
 namespace Automation.App.ViewModels.Workflow.Editor
 {
@@ -19,19 +14,17 @@ namespace Automation.App.ViewModels.Workflow.Editor
 
         public Graph Graph { get; }
         public GraphEditorCanvas Canvas { get; }
+        public GraphEditorActions Actions { get; }
         public GraphEditorSettings Settings { get; }
         public GraphEditorCommands Commands { get; }
-
-        public HistoryHandler HistoryHandler { get; }
 
         public GraphEditorViewModel(Graph graph, GraphEditorCanvas canvas, GraphEditorSettings settings)
         {
             Graph = graph;
             Canvas = canvas;
             Settings = settings;
-            Commands = new GraphEditorCommands(this);
-            HistoryHandler = new HistoryHandler();
-
+            Actions = new GraphEditorActions(this);
+            Commands = new GraphEditorCommands(Actions, Canvas);
             PendingConnection = new GraphPendingConnection(this);
         }
 
@@ -74,13 +67,11 @@ namespace Automation.App.ViewModels.Workflow.Editor
         public void AddNode(GraphNode node)
         {
             Graph.Nodes.Add(node);
-            HistoryHandler.Add(() => RemoveNode(node));
         }
 
         public void RemoveNode(GraphNode node)
         {
             Graph.Nodes.Remove(node);
-            HistoryHandler.PreviousActions.Push(() => AddNode(node));
         }
     }
 }

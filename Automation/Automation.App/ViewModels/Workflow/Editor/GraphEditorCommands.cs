@@ -1,4 +1,5 @@
 ﻿using Automation.App.Shared.ViewModels.Work;
+using Automation.App.ViewModels.Workflow.Editor.Actions;
 using Automation.App.Views.WorkPages.Workflows.Editor;
 using Nodify;
 using System.ComponentModel;
@@ -12,7 +13,8 @@ namespace Automation.App.ViewModels.Workflow.Editor
     public class GraphEditorCommands
     {
         private readonly Graph _graph;
-        private readonly GraphEditorViewModel _editor;
+        private readonly GraphEditorActions _actions;
+        private readonly GraphEditorCanvas _canvas;
 
         public ICommand ZoomIn { get; private set; }
         public ICommand ZoomOut { get; private set; }
@@ -27,16 +29,17 @@ namespace Automation.App.ViewModels.Workflow.Editor
 
         public ICommand DisconnectConnectorCommand { get; private set; }
 
-        public GraphEditorCommands(GraphEditorViewModel editor)
+        public GraphEditorCommands(GraphEditorActions actions, GraphEditorCanvas canvas)
         {
-            _editor = editor;
-            
-            // XXX : use EditorCommands.ZoomIn ?
-            ZoomIn = new DelegateCommand(_editor.Canvas.NodifyEditorElement.ZoomIn);
-            ZoomOut = new DelegateCommand(_editor.Canvas.NodifyEditorElement.ZoomOut);
-            ZoomFit = new DelegateCommand(() => _editor.Canvas.NodifyEditorElement.FitToScreen());
+            _actions = actions;
+            _canvas = canvas;
 
-            DisconnectConnectorCommand = new DelegateCommand<TaskConnector>(_editor.DisconnectConnector);
+            // XXX : use EditorCommands.ZoomIn ?
+            ZoomIn = new DelegateCommand(_canvas.NodifyEditorElement.ZoomIn);
+            ZoomOut = new DelegateCommand(_canvas.NodifyEditorElement.ZoomOut);
+            ZoomFit = new DelegateCommand(() => _canvas.NodifyEditorElement.FitToScreen());
+
+            DisconnectConnectorCommand = new DelegateCommand<TaskConnector>(_actions.DisconnectConnector);
         }
     }
 }
