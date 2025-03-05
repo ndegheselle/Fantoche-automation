@@ -1,5 +1,11 @@
-﻿namespace Automation.App.ViewModels.Workflow.Editor.Actions
+﻿namespace Automation.App.ViewModels.Workflow.Editor
 {
+    internal abstract class SimpleTargetedAction<T>
+    {
+        protected readonly T _target;
+        public SimpleTargetedAction(T target) { _target = target; }
+    }
+
     public interface IAction
     {
         public void Execute(GraphEditorViewModel editor);

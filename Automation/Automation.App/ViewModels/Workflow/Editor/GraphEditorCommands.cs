@@ -1,5 +1,4 @@
 ﻿using Automation.App.Shared.ViewModels.Work;
-using Automation.App.ViewModels.Workflow.Editor.Actions;
 using Automation.App.Views.WorkPages.Workflows.Editor;
 using Nodify;
 using System.ComponentModel;
@@ -39,7 +38,7 @@ namespace Automation.App.ViewModels.Workflow.Editor
             ZoomOut = new DelegateCommand(_canvas.NodifyEditorElement.ZoomOut);
             ZoomFit = new DelegateCommand(() => _canvas.NodifyEditorElement.FitToScreen());
 
-            DisconnectConnectorCommand = new DelegateCommand<TaskConnector>(_actions.DisconnectConnector);
+            DisconnectConnectorCommand = new DelegateCommand<TaskConnector>(() => );
         }
     }
 }

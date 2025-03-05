@@ -2,32 +2,21 @@
 
 namespace Automation.App.ViewModels.Workflow.Editor.Actions
 {
-    internal class NodeAction : IAction
+    internal class NodeAdditionAction : SimpleTargetedAction<GraphNode>, IAction
     {
-        private readonly GraphNode _target;
-        private readonly bool _isAddition;
+        public NodeAdditionAction(GraphNode target) : base(target)
+        {}
 
-        public NodeAction(GraphNode target, bool isAddition)
-        {
-            _target = target;
-            _isAddition = isAddition;
-        }
+        public void Execute(GraphEditorViewModel editor) => editor.AddNode(_target);
+        public IAction Undo() => new NodeRemoveAction(_target);
+    }
 
-        public void Execute(GraphEditorViewModel editor)
-        {
-            if (_isAddition)
-            {
-                editor.AddNode(_target);
-            }
-            else
-            {
-                editor.RemoveNode(_target);
-            }
-        }
+    internal class NodeRemoveAction : SimpleTargetedAction<GraphNode>, IAction
+    {
+        public NodeRemoveAction(GraphNode target) : base(target)
+        {}
 
-        public IAction Undo()
-        {
-            return new NodeAction(_target, !_isAddition);
-        }
+        public void Execute(GraphEditorViewModel editor) => editor.RemoveNode(_target);
+        public IAction Undo() => new NodeAdditionAction(_target);
     }
 }
