@@ -2,31 +2,21 @@
 
 namespace Automation.App.ViewModels.Workflow.Editor.Actions
 {
-    internal class ConnectionAdditionAction : SimpleTargetedAction<GraphConnection>, IAction
+    internal class ConnectionsAdditionAction : SimpleTargetedAction<IEnumerable<GraphConnection>>, IAction
     {
-        public ConnectionAdditionAction(GraphConnection target) : base(target)
+        public ConnectionsAdditionAction(IEnumerable<GraphConnection> target) : base(target)
         {}
 
-        public void Execute(GraphEditorViewModel editor) => editor.Connect(_target.Source, _target.Target);
-        public IAction Undo() => new ConnectionRemoveAction(_target);
+        public void Execute(GraphEditorViewModel editor) => editor.Connect(_target);
+        public IAction UndoAction => new ConnectionsRemoveAction(_target);
     }
 
-    internal class ConnectionRemoveAction : SimpleTargetedAction<GraphConnection>, IAction
+    internal class ConnectionsRemoveAction : SimpleTargetedAction<IEnumerable<GraphConnection>>, IAction
     {
-        public ConnectionRemoveAction(GraphConnection target) : base(target)
+        public ConnectionsRemoveAction(IEnumerable<GraphConnection> target) : base(target)
         {}
 
         public void Execute(GraphEditorViewModel editor) => editor.Disconnect(_target);
-        public IAction Undo() => new ConnectionAdditionAction(_target);
-    }
-
-
-    internal class ConnectorDisconnectAction : SimpleTargetedAction<TaskConnector>, IAction
-    {
-        public ConnectorDisconnectAction(TaskConnector target) : base(target)
-        { }
-
-        public void Execute(GraphEditorViewModel editor) => editor.DisconnectConnector(_target);
-        public IAction Undo() => new ConnectionAdditionAction(_target);
+        public IAction UndoAction => new ConnectionsAdditionAction(_target);
     }
 }

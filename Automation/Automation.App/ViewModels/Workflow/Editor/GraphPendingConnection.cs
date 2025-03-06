@@ -1,4 +1,5 @@
 ﻿using Automation.App.Shared.ViewModels.Work;
+using Automation.App.ViewModels.Workflow.Editor.Actions;
 using Automation.Shared.Data;
 using System.Windows.Input;
 using Usuel.Shared;
@@ -49,11 +50,11 @@ namespace Automation.App.ViewModels.Workflow.Editor
                 var existingConnection = _editor.Graph.Connections.FirstOrDefault(x => x.Source == _source && x.Target == target);
                 if (existingConnection != null)
                 {
-                    _editor.Disconnect(existingConnection);
+                    _editor.Actions.Execute(new ConnectionsRemoveAction([existingConnection]));
                     return;
                 }
 
-                _editor.Connect(_source, target);
+                _editor.Actions.Execute(new ConnectionsAdditionAction([new GraphConnection(_source, target)]));
             });
         }
 

@@ -15,7 +15,7 @@
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
-        <local:ScopedSelector SelectedChanged="Selector_SelectedChanged" x:Name="Selector" AllowedSelectedNodes="Task,Workflow" />
+        <local:ScopedSelector SelectedChanged="Selector_SelectedChanged" x:Name="Selector" />
 
         <Button
             Command="{Binding SelectCommand}"

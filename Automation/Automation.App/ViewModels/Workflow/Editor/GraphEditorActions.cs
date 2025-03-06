@@ -1,4 +1,7 @@
-﻿namespace Automation.App.ViewModels.Workflow.Editor
+﻿using System.ComponentModel;
+using System.Runtime.CompilerServices;
+
+namespace Automation.App.ViewModels.Workflow.Editor
 {
     internal abstract class SimpleTargetedAction<T>
     {
@@ -9,14 +12,24 @@
     public interface IAction
     {
         public void Execute(GraphEditorViewModel editor);
-        public IAction Undo();
+        public IAction UndoAction { get; }
     }
 
-    public class GraphEditorActions
+    public class GraphEditorActions : INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        protected void NotifyPropertyChanged([CallerMemberName] string? name = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
+
         private Stack<IAction> _undoStack = [];
         private Stack<IAction> _redoStack = [];
         private readonly GraphEditorViewModel _editor;
+
+        public bool IsUndoAvailable => _undoStack.Any();
+        public bool IsRedoAvailable => _redoStack.Any();
 
         public GraphEditorActions(GraphEditorViewModel editor)
         {
@@ -24,29 +37,40 @@
         }
 
         #region History handling
-        private void Add(IAction action)
+        public void Execute(IAction action)
         {
             action.Execute(_editor);
             _undoStack.Push(action);
             _redoStack.Clear();
+            StackChanged();
         }
 
-        private void Undo()
+        public void Undo()
         {
-            var action = _undoStack.Pop();
-            var undoAction = action.Undo();
-            undoAction.Execute(_editor);
-            _redoStack.Push(undoAction);
+            if (IsUndoAvailable == false)
+                return;
+
+            var action = _undoStack.Pop().UndoAction;
+            action.Execute(_editor);
+            _redoStack.Push(action);
+            StackChanged();
         }
 
-        private void Redo()
+        public void Redo()
         {
-            var action = _redoStack.Pop();
-            var undoAction = action.Undo();
-            undoAction.Execute(_editor);
-            _undoStack.Push(undoAction);
+            if (IsUndoAvailable == false)
+                return;
+            var action = _redoStack.Pop().UndoAction;
+            action.Execute(_editor);
+            _undoStack.Push(action);
+            StackChanged();
         }
 
+        private void StackChanged()
+        {
+            NotifyPropertyChanged(nameof(IsUndoAvailable));
+            NotifyPropertyChanged(nameof(IsRedoAvailable));
+        }
         #endregion
     }
 }
