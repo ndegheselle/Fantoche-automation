@@ -19,7 +19,8 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
         public ModalOptions Options { get; } = new ModalOptions() { Title = "Add node" };
 
         public ICustomCommand SelectCommand { get; }
-        public ScopedElement? Selected => Selector.Selected;
+        public ScopedElement? Selected { get; set; }
+        public Scope? CurrentScope { get; set; }
 
         private readonly App _app = App.Current;
         private readonly ScopesClient _client;
@@ -31,20 +32,29 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
 
             SelectCommand = new DelegateCommand(
                 () => ParentLayout?.Hide(true),
-                () => Selector.Selected != null &&
-                    (Selector.Selected.Type == Automation.Shared.Data.EnumScopedType.Workflow ||
-                        Selector.Selected.Type == Automation.Shared.Data.EnumScopedType.Task));
+                () => Selected != null &&
+                    (Selected.Type == Automation.Shared.Data.EnumScopedType.Workflow ||
+                        Selected.Type == Automation.Shared.Data.EnumScopedType.Task));
 
             InitializeComponent();
         }
 
         private async void ScopedSelectorModal_Loaded(object sender, System.Windows.RoutedEventArgs e)
         {
-            Selector.RootScope = await _client.GetRootAsync();
-            Selector.RootScope.RefreshChildrens();
+            CurrentScope = await _client.GetRootAsync();
+            CurrentScope.RefreshChildrens();
         }
 
-        private void Selector_SelectedChanged(ScopedElement scoped)
+        private void ListBox_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (Selected is Scope scope)
+            {
+                CurrentScope = scope;
+                // TODO : load childrens
+            }
+        }
+
+        private void ListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             SelectCommand.RaiseCanExecuteChanged();
         }

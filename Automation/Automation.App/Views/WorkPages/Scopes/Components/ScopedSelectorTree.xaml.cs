@@ -1,6 +1,5 @@
 ﻿using Automation.App.Shared.ApiClients;
 using Automation.App.Shared.ViewModels.Work;
-using Automation.Shared.Data;
 using Joufflu.Popups;
 using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;
@@ -14,7 +13,7 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
     /// <summary>
     /// Logique d'interaction pour ScopedElementSelector.xaml
     /// </summary>
-    public partial class ScopedSelector : UserControl, INotifyPropertyChanged
+    public partial class ScopedSelectorTree : UserControl, INotifyPropertyChanged
     {
         public event Action<ScopedElement?>? SelectedChanged;
 
@@ -22,15 +21,15 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
         // Dependency property Scope RootScope
         public static readonly DependencyProperty RootScopeProperty = DependencyProperty.Register(
             nameof(RootScope),
-            typeof(Shared.ViewModels.Work.Scope),
-            typeof(ScopedSelector),
+            typeof(Scope),
+            typeof(ScopedSelectorTree),
             new PropertyMetadata(null));
 
         // Dependency property ScopedElement Selected
         public static readonly DependencyProperty SelectedProperty = DependencyProperty.Register(
             nameof(Selected),
             typeof(ScopedElement),
-            typeof(ScopedSelector),
+            typeof(ScopedSelectorTree),
             new PropertyMetadata(null));
         #endregion
 
@@ -58,7 +57,7 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
         private IModal _modal => this.GetCurrentModalContainer();
         #endregion
 
-        public ScopedSelector()
+        public ScopedSelectorTree()
         {
             _scopeClient = _app.ServiceProvider.GetRequiredService<ScopesClient>();
             _taskClient = _app.ServiceProvider.GetRequiredService<TasksClient>();
@@ -70,11 +69,6 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
         {
             TreeView treeView = (TreeView)sender;
             ScopedElement? selected = treeView.SelectedItem as ScopedElement;
-            if (selected != null)
-            {
-                selected.IsSelected = false;
-                return;
-            }
             Selected = selected;
         }
 

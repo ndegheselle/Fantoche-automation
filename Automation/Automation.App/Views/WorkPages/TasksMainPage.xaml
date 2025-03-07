@@ -14,7 +14,7 @@
             <ColumnDefinition Width="auto" />
             <ColumnDefinition />
         </Grid.ColumnDefinitions>
-        <scopes:ScopedSelector
+        <scopes:ScopedSelectorTree
             x:Name="SideMenu"
             Grid.Column="0"
             SelectedChanged="ScopedSelector_SelectedChanged" />

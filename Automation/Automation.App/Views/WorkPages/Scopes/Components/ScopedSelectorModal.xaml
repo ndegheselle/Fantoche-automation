@@ -8,14 +8,29 @@
     mc:Ignorable="d"
     d:DesignHeight="450"
     d:DesignWidth="800"
+    xmlns:viewmodels="clr-namespace:Automation.App.Shared.ViewModels.Work;assembly=Automation.App.Shared"
+    xmlns:components="clr-namespace:Automation.App.Views.WorkPages.Components"
     x:Name="ContainerElement">
-    <Grid DataContext="{Binding ElementName=ContainerElement}">
+    <Grid DataContext="{Binding ElementName=ContainerElement}" Margin="2">
         <Grid.RowDefinitions>
             <RowDefinition />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
-        <local:ScopedSelector SelectedChanged="Selector_SelectedChanged" x:Name="Selector" />
+        <ListBox
+            ItemsSource="{Binding CurrentScope.SortedChildrens}"
+            SelectedItem="{Binding Selected}"
+            MouseDoubleClick="ListBox_MouseDoubleClick"
+            SelectionChanged="ListBox_SelectionChanged">
+            <ListBox.ItemTemplate>
+                <DataTemplate DataType="{x:Type viewmodels:ScopedElement}">
+                    <StackPanel Orientation="Horizontal">
+                        <components:NodeIcon Type="{Binding Type}" Margin="0,0,4,0" />
+                        <TextBlock Text="{Binding Name}" />
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
 
         <Button
             Command="{Binding SelectCommand}"
@@ -25,6 +40,5 @@
             Padding="20,4">
             Select
         </Button>
-
     </Grid>
 </UserControl>
