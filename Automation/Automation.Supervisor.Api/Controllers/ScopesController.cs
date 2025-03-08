@@ -3,6 +3,7 @@ using Automation.Dal.Repositories;
 using Automation.Shared.Base;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
+using System.Xml.Linq;
 
 namespace Automation.Supervisor.Api.Controllers
 {
@@ -58,6 +59,21 @@ namespace Automation.Supervisor.Api.Controllers
         public async Task<Scope> GetRootAsync()
         {
             return await _repository.GetRootAsync();
+        }
+
+        [HttpGet]
+        [Route("{scopeId}/parents")]
+        public async Task<ActionResult<IEnumerable<Scope>>> GetParentScopes([FromRoute] Guid scopeId)
+        {
+            var scope = await _repository.GetByIdAsync(scopeId);
+            if (scope == null)
+            {
+                return BadRequest(new Dictionary<string, string[]>()
+                {
+                    {nameof(AutomationTask.Name), [$"The scope id {scopeId} is invalid."] }
+                });
+            }
+            return Ok(await _repository.GetByIdsAsync(scope.ParentTree));
         }
 
         [HttpGet]

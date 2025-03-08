@@ -121,13 +121,13 @@
                     <Button
                         Style="{StaticResource IconButton}"
                         ToolTip="Go back"
-                        Command="{Binding Editor.Commands.HistoryPrevious}">
+                        Command="{Binding Editor.Commands.HistoryUndo}">
                         <fonts:Icon Text="{x:Static fonts:IconFont.ArrowRotateLeft}" />
                     </Button>
                     <Button
                         Style="{StaticResource IconButton}"
                         ToolTip="Go forward"
-                        Command="{Binding Editor.Commands.HistoryNext}">
+                        Command="{Binding Editor.Commands.HistoryRedo}">
                         <fonts:Icon Text="{x:Static fonts:IconFont.ArrowRotateRight}" />
                     </Button>
                 </StackPanel>

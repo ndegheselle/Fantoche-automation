@@ -1,4 +1,5 @@
 ﻿using Automation.App.Shared.ApiClients;
+using Automation.App.Shared.ViewModels;
 using Automation.App.Shared.ViewModels.Work;
 using Automation.App.Views.WorkPages.Scopes;
 using Automation.App.Views.WorkPages.Tasks;
@@ -6,6 +7,7 @@ using Automation.App.Views.WorkPages.Workflows;
 using Automation.Shared.Data;
 using Joufflu.Shared.Layouts;
 using Microsoft.Extensions.DependencyInjection;
+using System.ComponentModel;
 using System.Windows.Controls;
 
 namespace Automation.App.Views.WorkPages
@@ -13,9 +15,10 @@ namespace Automation.App.Views.WorkPages
     /// <summary>
     /// Experimenting a system without a navigation service Change content based on the selected item in the side menu
     /// </summary>
-    public partial class TasksMainPage : UserControl, ILayout
+    public partial class TasksMainPage : UserControl, ILayout, INotifyPropertyChanged
     {
         public ILayout? ParentLayout { get; set; }
+        public Scope? CurrentScope { get; set; }
 
         private readonly App _app = App.Current;
         private readonly ScopesClient _client;
@@ -29,31 +32,12 @@ namespace Automation.App.Views.WorkPages
 
         protected async void OnLoaded()
         {
-            SideMenu.RootScope = await _client.GetRootAsync();
-            SideMenu.RootScope.RefreshChildrens();
-            SideMenu.Selected = SideMenu.RootScope;
+            CurrentScope = await _client.GetRootAsync();
+            CurrentScope.RefreshChildrens();
+            ScopedSelector_SelectedChanged(CurrentScope);
         }
 
-        private void ScopedSelector_SelectedChanged(ScopedElement? selected)
-        {
-
-            if (selected == null)
-                return;
-
-            switch (selected.Type)
-            {
-                case EnumScopedType.Scope:
-                    Show(new ScopePage((Shared.ViewModels.Work.Scope)selected));
-                    break;
-                case EnumScopedType.Workflow:
-                    Show(new WorkflowPage(selected.Id));
-                    break;
-                case EnumScopedType.Task:
-                    Show(new TaskPage((AutomationTask)selected));
-                    break;
-            }
-        }
-
+        #region ILayout
         public void Show(IPage page)
         {
             NavigationContent.Content = page;
@@ -63,5 +47,36 @@ namespace Automation.App.Views.WorkPages
         {
             NavigationContent.Content = null;
         }
+        #endregion
+
+        #region UI events
+        private void ScopedSelector_SelectedChanged(ScopedElement? selected)
+        {
+            if (selected == null)
+                return;
+
+            switch (selected.Type)
+            {
+                case EnumScopedType.Scope:
+                    Show(new ScopePage((Scope)selected));
+                    break;
+                case EnumScopedType.Workflow:
+                    Show(new WorkflowPage((AutomationWorkflow)selected));
+                    break;
+                case EnumScopedType.Task:
+                    Show(new TaskPage((AutomationTask)selected));
+                    break;
+            }
+        }
+
+        private async void ScopedBreadcrumb_ScopeSelected(Scope scope)
+        {
+            if (CurrentScope == null)
+                return;
+            CurrentScope = await _client.GetByIdAsync(scope.Id) ?? throw new Exception("Breadcrumb scope cannot be found.");
+            CurrentScope.RefreshChildrens();
+            ScopedSelector_SelectedChanged(CurrentScope);
+        }
+        #endregion
     }
 }

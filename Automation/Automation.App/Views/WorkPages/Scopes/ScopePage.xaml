@@ -11,19 +11,7 @@
     xmlns:instances="clr-namespace:Automation.App.Views.WorkPages.Tasks.Instances"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI">
     <Grid>
-        <TabControl
-            x:Name="ScopeTabControl"
-            Margin="0,2,0,0"
-            DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:ScopePage}}">
-            <TabItem>
-                <TabItem.Header>
-                    <StackPanel Orientation="Horizontal">
-                        <fonts:Icon Text="{x:Static fonts:IconFont.List}" />
-                        <TextBlock Margin="4,0,0,0">Elements</TextBlock>
-                    </StackPanel>
-                </TabItem.Header>
-                <local:ScopeElements Scope="{Binding Scope}" />
-            </TabItem>
+        <TabControl x:Name="ScopeTabControl" DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:ScopePage}}">
             <TabItem>
                 <TabItem.Header>
                     <StackPanel Orientation="Horizontal">

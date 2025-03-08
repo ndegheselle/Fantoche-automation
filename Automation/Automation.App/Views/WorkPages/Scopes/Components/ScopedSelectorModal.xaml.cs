@@ -2,6 +2,7 @@
 using Automation.App.Shared.ViewModels.Work;
 using Joufflu.Popups;
 using Microsoft.Extensions.DependencyInjection;
+using System.ComponentModel;
 using System.Transactions;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -12,7 +13,7 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
     /// <summary>
     /// Logique d'interaction pour ScopedSelectorModal.xaml
     /// </summary>
-    public partial class ScopedSelectorModal : UserControl, IModalContent
+    public partial class ScopedSelectorModal : UserControl, IModalContent, INotifyPropertyChanged
     {
         public Modal? ParentLayout { get; set; }
 
@@ -45,18 +46,23 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
             CurrentScope.RefreshChildrens();
         }
 
-        private void ListBox_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private async void ListBox_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            if (Selected is Scope scope)
-            {
-                CurrentScope = scope;
-                // TODO : load childrens
-            }
+            if (Selected is not Scope scope)
+                return;
+            CurrentScope = await _client.GetByIdAsync(scope.Id);
+            CurrentScope!.RefreshChildrens();
         }
 
         private void ListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             SelectCommand.RaiseCanExecuteChanged();
+        }
+
+        private async void BreadcrumbScopeChanged(Scope scope)
+        {
+            CurrentScope = await _client.GetByIdAsync(scope.Id);
+            CurrentScope!.RefreshChildrens();
         }
     }
 }

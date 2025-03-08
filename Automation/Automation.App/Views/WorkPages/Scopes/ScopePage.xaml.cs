@@ -39,8 +39,7 @@ namespace Automation.App.Views.WorkPages.Scopes
             if (fullScope == null)
                 throw new ArgumentException("Scope not found");
 
-            Scope.Childrens = fullScope.Childrens;
-            Scope.Context = fullScope.Context;
+            Scope = fullScope;
             Scope.RefreshChildrens();
         }
 

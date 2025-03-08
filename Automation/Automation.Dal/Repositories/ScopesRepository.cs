@@ -1,13 +1,11 @@
 ﻿using Automation.Dal.Models;
+using Automation.Shared.Data;
 using MongoDB.Driver;
 
 namespace Automation.Dal.Repositories
 {
     public class ScopesRepository : BaseCrudRepository<Scope>
     {
-        // Root scope have a fixed Id
-        public static readonly Guid ROOT_SCOPE_ID = new Guid("00000000-0000-0000-0000-000000000001");
-
         public ScopesRepository(IMongoDatabase database) : base(database, "scopes")
         {
         }
@@ -91,7 +89,7 @@ namespace Automation.Dal.Repositories
 
         public async Task<Scope> GetRootAsync()
         {
-            var rootScope = await GetByIdAsync(ROOT_SCOPE_ID);
+            var rootScope = await GetByIdAsync(IScope.ROOT_SCOPE_ID);
 
             if (rootScope == null)
                 throw new Exception("Root scope doesn't exist.");
@@ -106,7 +104,7 @@ namespace Automation.Dal.Repositories
                 return scope;
 
             var taskRepo = new TasksRepository(_database);
-            var task = await taskRepo.GetByParentScopeAndNameAsync(scopeId ?? ROOT_SCOPE_ID, name);
+            var task = await taskRepo.GetByParentScopeAndNameAsync(scopeId ?? IScope.ROOT_SCOPE_ID, name);
             if (task != null)
                 return task;
             return null;

@@ -1,6 +1,7 @@
 ﻿using Automation.App.Shared.ViewModels.Work;
 using Automation.Shared.Base;
 using Automation.Shared.Clients;
+using Newtonsoft.Json;
 using RestSharp;
 
 namespace Automation.App.Shared.ApiClients
@@ -14,6 +15,12 @@ namespace Automation.App.Shared.ApiClients
         {
             return await _client.GetAsync<Scope>($"{_routeBase}/root") ??
                 throw new ApiException("Could not get the root scope element.");
+        }
+
+        public async Task<IEnumerable<Scope>> GetParentScopes(Guid scopeId)
+        {
+            return await _client.GetAsync<IEnumerable<Scope>>($"{_routeBase}/{scopeId}/parents") ??
+                throw new ApiException("Could not get the parents scopes.");
         }
 
         public async Task<ListPageWrapper<TaskInstance>> GetInstancesAsync(Guid scopeId, int page, int pageSize)

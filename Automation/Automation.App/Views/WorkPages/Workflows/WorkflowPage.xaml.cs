@@ -21,12 +21,12 @@ namespace Automation.App.Views.WorkPages.Workflows
         private readonly TasksClient _client;
         private IModal _modal => this.GetCurrentModalContainer();
 
-        public WorkflowPage(Guid workflowId)
+        public WorkflowPage(AutomationWorkflow workflow)
         {
             _client = _app.ServiceProvider.GetRequiredService<TasksClient>();
-            Workflow = new AutomationWorkflow() { Id = workflowId };
+            Workflow = workflow;
             InitializeComponent();
-            LoadFullWokflow(workflowId);
+            LoadFullWokflow(Workflow.Id);
         }
 
         public async void LoadFullWokflow(Guid workflowId)

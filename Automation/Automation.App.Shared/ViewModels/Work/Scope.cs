@@ -26,7 +26,6 @@ namespace Automation.App.Shared.ViewModels.Work
 
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
-        public List<Guid> ParentTree { get; set; } = [];
         public Guid? ParentId { get; set; }
 
         public EnumScopedType Type { get; set; }
@@ -53,6 +52,7 @@ namespace Automation.App.Shared.ViewModels.Work
         }
 
         private bool _isSelected = false;
+        [Obsolete]
         [JsonIgnore]
         public bool IsSelected
         {
@@ -76,7 +76,6 @@ namespace Automation.App.Shared.ViewModels.Work
         public void ChangeParent(Scope scope)
         {
             Parent = scope;
-            ParentTree = [..scope.ParentTree, scope.Id];
             ParentId = scope.Id;
         }
         #endregion

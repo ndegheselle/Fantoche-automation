@@ -6,18 +6,22 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Scopes.Components"
     mc:Ignorable="d"
-    d:DesignHeight="450"
-    d:DesignWidth="800"
+    MinHeight="200"
+    MinWidth="400"
     xmlns:viewmodels="clr-namespace:Automation.App.Shared.ViewModels.Work;assembly=Automation.App.Shared"
     xmlns:components="clr-namespace:Automation.App.Views.WorkPages.Components"
     x:Name="ContainerElement">
     <Grid DataContext="{Binding ElementName=ContainerElement}" Margin="2">
         <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
             <RowDefinition />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
+        <local:ScopedBreadcrumb Scope="{Binding CurrentScope}" ScopeSelected="BreadcrumbScopeChanged" />
+
         <ListBox
+            Grid.Row="1"
             ItemsSource="{Binding CurrentScope.SortedChildrens}"
             SelectedItem="{Binding Selected}"
             MouseDoubleClick="ListBox_MouseDoubleClick"
@@ -35,7 +39,7 @@
         <Button
             Command="{Binding SelectCommand}"
             Margin="0,2,0,0"
-            Grid.Row="1"
+            Grid.Row="2"
             HorizontalAlignment="Right"
             Padding="20,4">
             Select

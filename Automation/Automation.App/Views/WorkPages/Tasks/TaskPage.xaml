@@ -13,7 +13,7 @@
     mc:Ignorable="d">
     <Grid DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:TaskPage}}">
         <Grid>
-            <TabControl Margin="0,2,0,0" x:Name="TaskTabControl">
+            <TabControl x:Name="TaskTabControl">
                 <TabItem>
                     <TabItem.Header>
                         <StackPanel Orientation="Horizontal">
