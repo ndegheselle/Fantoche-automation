@@ -63,17 +63,6 @@ namespace Automation.App.Views.WorkPages.Scopes
             contextMenu.IsOpen = true;
         }
 
-        private void ListBox_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            ListBox listBox = (ListBox)sender;
-            ScopedElement? selectedElement = listBox.SelectedItem as ScopedElement;
-
-            if (selectedElement == null)
-                return;
-
-            selectedElement.IsSelected = true;
-        }
-
         private void ButtonSettings_Click(object sender, RoutedEventArgs e)
         {
             _modal.Show(new ScopeEditModal(Scope));

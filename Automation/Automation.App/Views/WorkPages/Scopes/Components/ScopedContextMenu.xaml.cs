@@ -23,13 +23,6 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
         private readonly ScopesClient _scopeClient;
         private readonly TasksClient _taskClient;
         #region Dependency Properties
-        // Dependency property Scope RootScope
-        public static readonly DependencyProperty CurrentScopeProperty = DependencyProperty.Register(
-            nameof(CurrentScope),
-            typeof(Scope),
-            typeof(ScopedContextMenu),
-            new PropertyMetadata(null));
-
         // Dependency property ScopedElement Selected
         public static readonly DependencyProperty SelectedProperty = DependencyProperty.Register(
             nameof(Selected),
@@ -37,12 +30,6 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
             typeof(ScopedContextMenu),
             new PropertyMetadata(null, (o, d) => ((ScopedContextMenu)o).OnSelectedChanged()));
         #endregion
-
-        public Scope CurrentScope
-        {
-            get { return (Scope)GetValue(CurrentScopeProperty); }
-            set { SetValue(CurrentScopeProperty, value); }
-        }
 
         public ScopedElement? Selected
         {
@@ -106,45 +93,43 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
 
         private async void OnAddScope()
         {
+            if (Selected is not Scope parentScope)
+                return;
+
             Scope newScope = new Scope();
-            Scope currentScope = CurrentScope;
-            newScope.ChangeParent(currentScope);
+            newScope.ChangeParent(parentScope);
             if (await _modal.Show(new ScopeCreateModal(newScope)))
             {
-                Dispatcher.Invoke(
-                    (Action)(() =>
-                    {
-                        // XXX : why does CurrentScope become null there (context menu become invisible so bindings are reseted ?) ?
-                        currentScope.AddChild((ScopedElement)newScope);
-                        newScope.FocusOn = EnumScopedTabs.Settings;
-                        newScope.IsSelected = true;
-                    }));
+                parentScope.AddChild((ScopedElement)newScope);
+                newScope.FocusOn = EnumScopedTabs.Settings;
             }
         }
 
         private async void OnAddTask()
         {
+            if (Selected is not Scope parentScope)
+                return;
+
             AutomationTask task = new AutomationTask();
-            Scope currentScope = CurrentScope;
-            task.ChangeParent(currentScope);
+            task.ChangeParent(parentScope);
             if (await _modal.Show(new TaskCreateModal(task)))
             {
-                currentScope.AddChild(task);
+                parentScope.AddChild(task);
                 task.FocusOn = EnumScopedTabs.Settings;
-                task.IsSelected = true;
             }
         }
 
         private async void OnAddWorkflow()
         {
+            if (Selected is not Scope parentScope)
+                return;
+
             AutomationWorkflow workflow = new AutomationWorkflow();
-            Scope currentScope = CurrentScope;
-            workflow.ChangeParent(currentScope);
+            workflow.ChangeParent(parentScope);
             if (await _modal.Show(new WorkflowCreateModal(workflow)))
             {
-                currentScope.AddChild(workflow);
+                parentScope.AddChild(workflow);
                 workflow.FocusOn = EnumScopedTabs.Settings;
-                workflow.IsSelected = true;
             }
         }
     }

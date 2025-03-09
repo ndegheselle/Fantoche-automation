@@ -35,44 +35,6 @@ namespace Automation.App.Shared.ViewModels.Work
         [JsonIgnore]
         public Scope? Parent { get; set; }
 
-        private bool _isExpanded = false;
-        [JsonIgnore]
-        public bool IsExpanded
-        {
-            get => _isExpanded;
-            set
-            {
-                _isExpanded = value;
-                if (value && !IsSelected)
-                {
-                    IsSelected = true;
-                }
-                NotifyPropertyChanged();
-            }
-        }
-
-        private bool _isSelected = false;
-        [Obsolete]
-        [JsonIgnore]
-        public bool IsSelected
-        {
-            get => _isSelected;
-            set
-            {
-                _isSelected = value;
-                NotifyPropertyChanged();
-            }
-        }
-
-        public void ExpandParent()
-        {
-            if (Parent == null)
-                return;
-
-            Parent.ExpandParent();
-            Parent.IsExpanded = true;
-        }
-
         public void ChangeParent(Scope scope)
         {
             Parent = scope;
