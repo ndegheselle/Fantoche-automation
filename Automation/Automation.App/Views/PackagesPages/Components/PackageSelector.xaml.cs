@@ -30,7 +30,7 @@ namespace Automation.App.Views.PackagesPages.Components
     /// </summary>
     public partial class PackageSelector : UserControl, INotifyPropertyChanged
     {
-        private readonly App _app = (App)App.Current;
+        
         private readonly PackagesClient _packageClient;
 
         private IModal _modal => this.GetCurrentModalContainer();
@@ -46,7 +46,7 @@ namespace Automation.App.Views.PackagesPages.Components
 
         public PackageSelector()
         {
-            _packageClient = _app.ServiceProvider.GetRequiredService<PackagesClient>();
+            _packageClient = Services.Provider.GetRequiredService<PackagesClient>();
             this.PropertyChanged += PackageSelector_PropertyChanged;
             InitializeComponent();
 

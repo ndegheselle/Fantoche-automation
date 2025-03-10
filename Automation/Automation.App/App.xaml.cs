@@ -1,47 +1,19 @@
 ﻿using Automation.App.Shared.ApiClients;
 using Automation.App.ViewModels;
+using Automation.Realtime;
 using Microsoft.Extensions.DependencyInjection;
 using RestSharp;
+using System.Configuration;
 using System.Windows;
 using System.Windows.Threading;
-using AdonisUI.Controls;
 using MessageBox = AdonisUI.Controls.MessageBox;
-using System.Configuration;
-using Automation.Realtime.Clients;
-using Automation.Realtime;
 
 namespace Automation.App
 {
-    /// <summary>
-    /// Interaction logic for App.xaml
-    /// </summary>
-    public partial class App : Application
+    public class Services
     {
-        public static new App Current => (App)Application.Current;
-
-        private IServiceProvider? _serviceProvider;
-
-        public IServiceProvider ServiceProvider
-        {
-            get
-            {
-                if (_serviceProvider == null)
-                    _serviceProvider = ConfigureServices(new ServiceCollection());
-                return _serviceProvider;
-            }
-        }
-
-        protected override void OnStartup(StartupEventArgs e)
-        {
-            // Handle exceptions from the UI thread
-            this.DispatcherUnhandledException += App_DispatcherUnhandledException;
-            // Handle exceptions from background threads
-            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-
-            // Starting main window
-            MainWindow mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
-            mainWindow.Show();
-        }
+        private static readonly Lazy<IServiceProvider> lazy = new Lazy<IServiceProvider>(() => ConfigureServices(new ServiceCollection()));
+        public static IServiceProvider Provider { get { return lazy.Value; } }
 
         /// <summary>
         /// Register services
@@ -72,6 +44,24 @@ namespace Automation.App
                 (provider) => new GraphsClient(provider.GetRequiredService<RestClient>()));
             return services.BuildServiceProvider();
         }
+    }
+
+    /// <summary>
+    /// Interaction logic for App.xaml
+    /// </summary>
+    public partial class App : Application
+    {
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            // Handle exceptions from the UI thread
+            this.DispatcherUnhandledException += App_DispatcherUnhandledException;
+            // Handle exceptions from background threads
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+
+            // Starting main window
+            MainWindow mainWindow = Services.Provider.GetRequiredService<MainWindow>();
+            mainWindow.Show();
+        }
 
         #region Exception handling
         private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
@@ -89,9 +79,6 @@ namespace Automation.App
         private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             Exception? exception = e.ExceptionObject as Exception;
-
-            if (ServiceProvider == null)
-                return;
 
             MessageBox.Show(
                 "An unexpected error occurred",

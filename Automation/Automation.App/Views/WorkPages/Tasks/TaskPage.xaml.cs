@@ -16,13 +16,13 @@ namespace Automation.App.Views.WorkPages.Tasks
         public AutomationTask Task { get; set; }
         public ILayout? ParentLayout { get; set; }
 
-        private readonly App _app = App.Current;
+        
         private readonly TasksClient _client;
         private IModal _modal => this.GetCurrentModalContainer();
 
         public TaskPage(AutomationTask task)
         {
-            _client = _app.ServiceProvider.GetRequiredService<TasksClient>();
+            _client = Services.Provider.GetRequiredService<TasksClient>();
             Task = task;
             InitializeComponent();
             LoadFullTask(Task.Id);

@@ -30,12 +30,11 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
         }
 
         private IModal _modal => this.GetCurrentModalContainer();
-        private readonly App _app = App.Current;
         private readonly ScopesClient _client;
 
         public GraphEditorOverlay()
         {
-            _client = _app.ServiceProvider.GetRequiredService<ScopesClient>();
+            _client = Services.Provider.GetRequiredService<ScopesClient>();
             InitializeComponent();
         }
 

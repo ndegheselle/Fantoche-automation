@@ -12,6 +12,15 @@
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     mc:Ignorable="d">
     <Grid>
+        <Button
+            HorizontalAlignment="Right"
+            VerticalAlignment="Top"
+            Click="ButtonParameters_Click">
+            <StackPanel Orientation="Horizontal">
+                <fonts:Icon Text="{x:Static fonts:IconFont.Gear}" />
+                <TextBlock Margin="4,0,0,0">Settings</TextBlock>
+            </StackPanel>
+        </Button>
         <TabControl DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:WorkflowPage}}">
             <TabItem>
                 <TabItem.Header>
@@ -39,15 +48,5 @@
                 </TabItem.Header>
             </TabItem>
         </TabControl>
-        <Button
-            HorizontalAlignment="Right"
-            VerticalAlignment="Top"
-            Margin="1"
-            Click="ButtonParameters_Click">
-            <StackPanel Orientation="Horizontal">
-                <fonts:Icon Text="{x:Static fonts:IconFont.Gear}" />
-                <TextBlock Margin="4,0,0,0">Settings</TextBlock>
-            </StackPanel>
-        </Button>
     </Grid>
 </UserControl>

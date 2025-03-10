@@ -11,14 +11,14 @@ namespace Automation.App.Views.WorkPages.Scopes
 {
     public class ScopeCreateModal : TextBoxModal, IModalContent
     {
-        private readonly App _app = App.Current;
+        
         private readonly ScopesClient _scopeClient;
 
         public Scope NewScope { get; set; }
 
         public ScopeCreateModal(Scope scope) : base("Create new scope")
         {
-            _scopeClient = _app.ServiceProvider.GetRequiredService<ScopesClient>();
+            _scopeClient = Services.Provider.GetRequiredService<ScopesClient>();
             NewScope = scope;
             ValidateCommand = new DelegateCommand(Validate);
             BindValue(nameof(Scope.Name), NewScope);
@@ -50,7 +50,7 @@ namespace Automation.App.Views.WorkPages.Scopes
 
         public ModalOptions Options => new ModalOptions() { Title = "Scope settings" };
 
-        private readonly App _app = (App)App.Current;
+        
         private readonly ScopesClient _scopeClient;
 
         private IAlert _alert => this.GetCurrentAlertContainer();
@@ -62,7 +62,7 @@ namespace Automation.App.Views.WorkPages.Scopes
         public ScopeEditModal(Scope scope)
         {
             Scope = scope;
-            _scopeClient = _app.ServiceProvider.GetRequiredService<ScopesClient>();
+            _scopeClient = Services.Provider.GetRequiredService<ScopesClient>();
             ValidateCommand = new DelegateCommand(Validate);
             InitializeComponent();
         }

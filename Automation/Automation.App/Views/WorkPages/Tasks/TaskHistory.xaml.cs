@@ -31,13 +31,13 @@ namespace Automation.App.Views.WorkPages.Tasks
         } = new ListPageWrapper<TaskInstance>() { PageSize = 50, Page = 1 };
 
         private bool _isAlreadyLoaded = false;
-        private readonly App _app = (App)App.Current;
+        
         private readonly TasksClient _tasksClient;
         private IModal _modal => this.GetCurrentModalContainer();
 
         public TaskHistory()
         {
-            _tasksClient = _app.ServiceProvider.GetRequiredService<TasksClient>();
+            _tasksClient = Services.Provider.GetRequiredService<TasksClient>();
             InitializeComponent();
             IsVisibleChanged += TaskHistory_IsVisibleChanged;
         }

@@ -29,12 +29,12 @@ namespace Automation.App.Views.WorkPages.Scopes
         } = new ListPageWrapper<TaskInstance>() { PageSize = 50, Page = 1 };
 
         private bool _isAlreadyRefreshed = false;
-        private readonly App _app = (App)App.Current;
+        
         private readonly ScopesClient _scopesClient;
 
         public ScopeHistory()
         {
-            _scopesClient = _app.ServiceProvider.GetRequiredService<ScopesClient>();
+            _scopesClient = Services.Provider.GetRequiredService<ScopesClient>();
             InitializeComponent();
             IsVisibleChanged += ScopeHistory_IsVisibleChanged;
         }

@@ -28,12 +28,12 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
         }
 
         public GraphEditorViewModel? Editor { get; private set; }
-        private readonly App _app = (App)App.Current;
+        
         private readonly GraphsClient _graphsClient;
 
         public GraphEditor()
         {
-            _graphsClient = _app.ServiceProvider.GetRequiredService<GraphsClient>();
+            _graphsClient = Services.Provider.GetRequiredService<GraphsClient>();
             InitializeComponent(); 
         }
 

@@ -36,8 +36,6 @@ namespace Automation.App
         public IAlert Alert => this.AlertElement;
         public ILayout? ParentLayout { get; set; }
 
-        private readonly App _app = (App)App.Current;
-
         public MainWindow()
         {
             InitializeComponent();

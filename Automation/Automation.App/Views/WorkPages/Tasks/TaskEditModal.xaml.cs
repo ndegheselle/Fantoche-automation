@@ -14,14 +14,14 @@ namespace Automation.App.Views.WorkPages.Tasks
 {
     public class TaskCreateModal : TextBoxModal, IModalContent
     {
-        private readonly App _app = (App)App.Current;
+        
         private readonly TasksClient _taskClient;
 
         public AutomationTask NewTask { get; set; }
 
         public TaskCreateModal(AutomationTask task) : base("Create new task")
         {
-            _taskClient = _app.ServiceProvider.GetRequiredService<TasksClient>();
+            _taskClient = Services.Provider.GetRequiredService<TasksClient>();
             NewTask = task;
             ValidateCommand = new DelegateCommand(Validate);
             BindValue(nameof(Scope.Name), NewTask);
@@ -48,7 +48,7 @@ namespace Automation.App.Views.WorkPages.Tasks
     /// </summary>
     public partial class TaskEditModal : UserControl, INotifyPropertyChanged, IModalContent
     {
-        private readonly App _app = (App)App.Current;
+        
         private readonly TasksClient _taskClient;
         private readonly PackagesClient _pacakgeClient;
 
@@ -68,8 +68,8 @@ namespace Automation.App.Views.WorkPages.Tasks
         {
             Task = task;
             Options.Title = $"Edit task {task.Name}";
-            _taskClient = _app.ServiceProvider.GetRequiredService<TasksClient>();
-            _pacakgeClient = _app.ServiceProvider.GetRequiredService<PackagesClient>();
+            _taskClient = Services.Provider.GetRequiredService<TasksClient>();
+            _pacakgeClient = Services.Provider.GetRequiredService<PackagesClient>();
             ValidateCommand = new DelegateCommand(Validate);
             InitializeComponent();
         }

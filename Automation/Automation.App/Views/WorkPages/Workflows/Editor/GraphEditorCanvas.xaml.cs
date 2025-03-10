@@ -34,7 +34,7 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
 
         #endregion
 
-        private readonly App _app = (App)App.Current;
+        
         private IAlert _alert => this.GetCurrentAlertContainer();
 
         public GraphEditorCanvas()

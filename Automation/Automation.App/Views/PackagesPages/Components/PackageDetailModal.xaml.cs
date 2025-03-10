@@ -25,7 +25,6 @@ namespace Automation.App.Views.PackagesPages.Components
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        private readonly App _app = App.Current;
         private readonly PackagesClient _packagesClient;
 
         public PackageInfos? Package { get; set; }
@@ -36,7 +35,7 @@ namespace Automation.App.Views.PackagesPages.Components
             new FilePickerOptions() { Filter = "Nuget package (*.nupkg)|*.nupkg", DefaultExtension = "*.nupkg" })
         {
             Package = package;
-            _packagesClient = _app.ServiceProvider.GetRequiredService<PackagesClient>();
+            _packagesClient = Services.Provider.GetRequiredService<PackagesClient>();
             ValidateCommand = new DelegateCommand(Validate, () => SelectedFile.HasErrors);
         }
 
@@ -88,7 +87,6 @@ namespace Automation.App.Views.PackagesPages.Components
         };
         public Modal? ParentLayout { get; set; }
 
-        private readonly App _app = App.Current;
         private readonly PackagesClient _packagesClient;
 
         public PackageInfos Package { get; set; }
@@ -99,7 +97,7 @@ namespace Automation.App.Views.PackagesPages.Components
 
         public PackageDetailModal(PackageInfos package)
         {
-            _packagesClient = _app.ServiceProvider.GetRequiredService<PackagesClient>();
+            _packagesClient = Services.Provider.GetRequiredService<PackagesClient>();
             Package = package;
             SelectedVersion = Package.Version;
             InitializeComponent();

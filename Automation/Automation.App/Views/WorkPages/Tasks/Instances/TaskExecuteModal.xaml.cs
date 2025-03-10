@@ -11,7 +11,7 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
     /// </summary>
     public partial class TaskExecuteModal : UserControl, IModalContent
     {
-        private readonly App _app = (App)App.Current;
+        
         private readonly TasksClient _taskClient;
 
         public Modal? ParentLayout { get; set; }
@@ -21,7 +21,7 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
         public AutomationTask Task { get; set; }
 
         public TaskExecuteModal(AutomationTask task) {
-            _taskClient = _app.ServiceProvider.GetRequiredService<TasksClient>();
+            _taskClient = Services.Provider.GetRequiredService<TasksClient>();
             Task = task;
             Options.Title = $"Execute task - {task.Name}";
 

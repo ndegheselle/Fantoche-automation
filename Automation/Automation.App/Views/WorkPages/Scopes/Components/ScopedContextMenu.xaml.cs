@@ -19,7 +19,6 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
     {
         private IModal _modal => this.GetCurrentModalContainer();
 
-        private readonly App _app = (App)App.Current;
         private readonly ScopesClient _scopeClient;
         private readonly TasksClient _taskClient;
         #region Dependency Properties
@@ -47,8 +46,8 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
 
         public ScopedContextMenu()
         {
-            _scopeClient = _app.ServiceProvider.GetRequiredService<ScopesClient>();
-            _taskClient = _app.ServiceProvider.GetRequiredService<TasksClient>();
+            _scopeClient = Services.Provider.GetRequiredService<ScopesClient>();
+            _taskClient = Services.Provider.GetRequiredService<TasksClient>();
 
             RemoveSelectedCommand = new DelegateCommand(
                 OnRemoveSelected,
@@ -60,10 +59,7 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
             InitializeComponent();
         }
 
-        private void OnSelectedChanged()
-        {
-            RemoveSelectedCommand.RaiseCanExecuteChanged();
-        }
+        private void OnSelectedChanged() { RemoveSelectedCommand.RaiseCanExecuteChanged(); }
 
         private async void OnRemoveSelected()
         {

@@ -17,13 +17,13 @@ namespace Automation.App.Views.WorkPages.Workflows
         public ILayout? ParentLayout { get; set; }
         public AutomationWorkflow Workflow { get; set; }
 
-        private readonly App _app = App.Current;
+        
         private readonly TasksClient _client;
         private IModal _modal => this.GetCurrentModalContainer();
 
         public WorkflowPage(AutomationWorkflow workflow)
         {
-            _client = _app.ServiceProvider.GetRequiredService<TasksClient>();
+            _client = Services.Provider.GetRequiredService<TasksClient>();
             Workflow = workflow;
             InitializeComponent();
             LoadFullWokflow(Workflow.Id);

@@ -16,7 +16,7 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
     /// </summary>
     public partial class TaskProgressionModal : UserControl, IModalContent
     {
-        private readonly App _app = (App)App.Current;
+        
         private readonly TasksRealtimeClient _taskRealtimeClient;
 
         public TaskInstance Instance { get; private set; }
@@ -27,7 +27,7 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
 
         public TaskProgressionModal(TaskInstance instance)
         {
-            RedisConnectionManager redis = _app.ServiceProvider.GetRequiredService<Lazy<RedisConnectionManager>>().Value;
+            RedisConnectionManager redis = Services.Provider.GetRequiredService<Lazy<RedisConnectionManager>>().Value;
 
             Instance = instance;
             _taskRealtimeClient = new TasksRealtimeClient(redis.Connection, Instance.Id);

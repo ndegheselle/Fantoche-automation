@@ -20,12 +20,12 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
         public string ContextJson { get; set; } = "";
         public string ResultJson { get; set; } = "";
 
-        private readonly App _app = (App)App.Current;
+        
         private readonly TaskInstancesClient _instanceClient;
 
         public InstanceDetailModal(TaskInstance instance)
         {
-            _instanceClient = _app.ServiceProvider.GetRequiredService<TaskInstancesClient>();
+            _instanceClient = Services.Provider.GetRequiredService<TaskInstancesClient>();
             Instance = instance;
             InitializeComponent();
             LoadFullInstance(Instance.Id);

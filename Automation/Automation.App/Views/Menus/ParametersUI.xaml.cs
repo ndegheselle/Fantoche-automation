@@ -14,12 +14,11 @@ namespace Automation.App.Views.Menus
         public ModalOptions Options => new ModalOptions() { Title = "Parameters"};
         public Modal? ParentLayout { get; set; }
 
-        private readonly App _app = (App)App.Current;
         private readonly ParametersViewModel _context;
 
         public ParametersUI()
         {
-            _context = _app.ServiceProvider.GetRequiredService<ParametersViewModel>();
+            _context = Services.Provider.GetRequiredService<ParametersViewModel>();
             InitializeComponent();
             this.DataContext = _context;
         }

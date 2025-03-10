@@ -34,12 +34,12 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
         public event Action<Scope>? ScopeSelected;
         public ObservableCollection<Scope> Parents { get; } = [];
 
-        private readonly App _app = App.Current;
+        
         private readonly ScopesClient _client;
 
         public ScopedBreadcrumb()
         {
-            _client = _app.ServiceProvider.GetRequiredService<ScopesClient>();
+            _client = Services.Provider.GetRequiredService<ScopesClient>();
             InitializeComponent(); 
         }
 

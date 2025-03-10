@@ -17,7 +17,7 @@
         MouseDoubleClick="ListBox_MouseDoubleClick"
         PreviewMouseRightButtonDown="ListBox_PreviewMouseRightButtonDown">
         <ListBox.ContextMenu>
-            <local:ScopedContextMenu Selected="{Binding Selected ?? CurrentScope}" />
+            <local:ScopedContextMenu Selected="{Binding Current}" />
         </ListBox.ContextMenu>
         <ListBox.ItemTemplate>
             <DataTemplate DataType="{x:Type viewmodels:ScopedElement}">

@@ -7,6 +7,7 @@
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     xmlns:components="clr-namespace:Automation.App.Views.WorkPages.Components"
     xmlns:scopes="clr-namespace:Automation.App.Views.WorkPages.Scopes.Components"
+    xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     mc:Ignorable="d"
     x:Name="ContainerElement">
 
@@ -17,12 +18,19 @@
         </Grid.RowDefinitions>
 
         <StackPanel Orientation="Horizontal" Margin="2">
-            <TextBox Width="180" />
+            <Grid>
+                <TextBox Width="180" />
+                <fonts:Icon
+                    HorizontalAlignment="Right"
+                    Margin="6,0"
+                    Text="{x:Static fonts:IconFont.MagnifyingGlass}"
+                    Foreground="{DynamicResource {x:Static adonisUi:Brushes.DisabledForegroundBrush}}" />
+            </Grid>
             <scopes:ScopedBreadcrumb
                 Scope="{Binding CurrentScope}"
                 ScopeSelected="ScopedBreadcrumb_ScopeSelected"
                 Margin="4,0,0,0" />
-            <StackPanel Orientation="Horizontal" Margin="20,0,0,0">
+            <StackPanel Orientation="Horizontal">
                 <StackPanel.Style>
                     <Style TargetType="StackPanel">
                         <Setter Property="DataContext" Value="{Binding Selected, ElementName=Selector}" />
@@ -33,6 +41,11 @@
                         </Style.Triggers>
                     </Style>
                 </StackPanel.Style>
+                <fonts:Icon
+                    Text="{x:Static fonts:IconFont.ChevronRight}"
+                    FontSize="8"
+                    VerticalAlignment="Center"
+                    Margin="4,0" />
                 <components:NodeIcon Type="{Binding Type}" Margin="0,0,4,0" />
                 <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
             </StackPanel>

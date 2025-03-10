@@ -12,7 +12,7 @@ namespace Automation.App.Views.WorkPages.Tasks.Schedule
     /// </summary>
     public partial class ScheduleEditModal : UserControl, IModalContent
     {
-        private readonly App _app = (App)App.Current;
+        
         private readonly TasksClient _taskClient;
 
         public Modal? ParentLayout { get; set; }
@@ -24,7 +24,7 @@ namespace Automation.App.Views.WorkPages.Tasks.Schedule
         public ScheduleEditModal(Automation.Shared.Data.Schedule schedule)
         {
             Schedule = schedule;
-            _taskClient = _app.ServiceProvider.GetRequiredService<TasksClient>();
+            _taskClient = Services.Provider.GetRequiredService<TasksClient>();
             ValidateCommand = new DelegateCommand(Validate);
             InitializeComponent();
         }

@@ -23,12 +23,12 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
         public ScopedElement? Selected { get; set; }
         public Scope? CurrentScope { get; set; }
 
-        private readonly App _app = App.Current;
+        
         private readonly ScopesClient _client;
 
         public ScopedSelectorModal()
         {
-            _client = _app.ServiceProvider.GetRequiredService<ScopesClient>();
+            _client = Services.Provider.GetRequiredService<ScopesClient>();
             this.Loaded += ScopedSelectorModal_Loaded;
 
             SelectCommand = new DelegateCommand(

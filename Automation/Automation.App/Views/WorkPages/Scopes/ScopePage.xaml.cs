@@ -17,14 +17,14 @@ namespace Automation.App.Views.WorkPages.Scopes
         public Scope Scope { get; set; }
 
         private IModal _modal => this.GetCurrentModalContainer();
-        private readonly App _app = (App)App.Current;
+        
         private readonly ScopesClient _scopeClient;
         private readonly TasksClient _taskClient;
 
         public ScopePage(Scope scope)
         {
-            _scopeClient = _app.ServiceProvider.GetRequiredService<ScopesClient>();
-            _taskClient = _app.ServiceProvider.GetRequiredService<TasksClient>();
+            _scopeClient = Services.Provider.GetRequiredService<ScopesClient>();
+            _taskClient = Services.Provider.GetRequiredService<TasksClient>();
             Scope = scope;
 
             InitializeComponent();

@@ -12,14 +12,14 @@ namespace Automation.App.Views.WorkPages.Workflows
 {
     public class WorkflowCreateModal : TextBoxModal, IModalContent
     {
-        private readonly App _app = (App)App.Current;
+        
         private readonly TasksClient _taskClient;
 
         public AutomationWorkflow NewWorkflow { get; set; }
 
         public WorkflowCreateModal(AutomationWorkflow newWorkflow) : base("Create new workflow")
         {
-            _taskClient = _app.ServiceProvider.GetRequiredService<TasksClient>();
+            _taskClient = Services.Provider.GetRequiredService<TasksClient>();
             NewWorkflow = newWorkflow;
             ValidateCommand = new DelegateCommand(Validate);
             BindValue(nameof(Scope.Name), NewWorkflow);

@@ -11,6 +11,13 @@
     xmlns:instances="clr-namespace:Automation.App.Views.WorkPages.Tasks.Instances"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI">
     <Grid>
+        <Button
+            Height="24"
+            Click="ButtonSettings_Click"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Top">
+            <fonts:Icon Text="{x:Static fonts:IconFont.Gear}" />
+        </Button>
         <TabControl x:Name="ScopeTabControl" DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:ScopePage}}">
             <TabItem>
                 <TabItem.Header>
@@ -22,14 +29,5 @@
                 <local:ScopeHistory Scope="{Binding Scope}" />
             </TabItem>
         </TabControl>
-
-        <Button
-            Height="24"
-            Click="ButtonSettings_Click"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Top"
-            Margin="0,2,0,0">
-            <fonts:Icon Text="{x:Static fonts:IconFont.Gear}" />
-        </Button>
     </Grid>
 </UserControl>
