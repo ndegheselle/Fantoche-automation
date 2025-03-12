@@ -5,12 +5,156 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Workflows.Editor"
-    mc:Ignorable="d"
-    d:DesignHeight="450"
-    d:DesignWidth="800"
+    xmlns:appViewmodels="clr-namespace:Automation.App.ViewModels.Workflow.Editor"
+    xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
+    xmlns:converters="clr-namespace:Automation.App.Converters"
+    xmlns:data="clr-namespace:Automation.Shared.Data;assembly=Automation.Shared"
+    xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
+    xmlns:nodify="clr-namespace:Nodify;assembly=Nodify"
+    xmlns:viewmodels="clr-namespace:Automation.App.Shared.ViewModels.Work;assembly=Automation.App.Shared"
     x:Name="ContainerElement">
-    <Grid DataContext="{Binding ElementName=ContainerElement}">
-        <local:GraphEditorCanvas x:Name="Canvas" />
-        <local:GraphEditorOverlay Editor="{Binding Editor}" />
+    <UserControl.Resources>
+        <GeometryDrawing
+            x:Key="SmallGridGeometry"
+            Brush="{StaticResource NodifyEditor.SelectionRectangleBackgroundBrush}"
+            Geometry="M0,0 L0,1 0.03,1 0.03,0.03 1,0.03 1,0 Z" />
+
+        <GeometryDrawing
+            x:Key="LargeGridGeometry"
+            Brush="{StaticResource NodifyEditor.SelectionRectangleBackgroundBrush}"
+            Geometry="M0,0 L0,1 0.015,1 0.015,0.015 1,0.015 1,0 Z" />
+
+        <DrawingBrush
+            x:Key="SmallGridLinesDrawingBrush"
+            Drawing="{StaticResource SmallGridGeometry}"
+            TileMode="Tile"
+            Transform="{Binding ViewportTransform, ElementName=NodifyEditorElement}"
+            Viewport="0 0 20 20"
+            ViewportUnits="Absolute" />
+
+        <DrawingBrush
+            x:Key="LargeGridLinesDrawingBrush"
+            Drawing="{StaticResource LargeGridGeometry}"
+            Opacity="0.5"
+            TileMode="Tile"
+            Transform="{Binding ViewportTransform, ElementName=NodifyEditorElement}"
+            Viewport="0 0 100 100"
+            ViewportUnits="Absolute" />
+
+        <ControlTemplate x:Key="FlowConnector" TargetType="Control">
+            <Polygon
+                Width="12"
+                Height="14"
+                Fill="{TemplateBinding Background}"
+                Points="1,13 11,7 1,1"
+                Stroke="{TemplateBinding BorderBrush}"
+                StrokeDashCap="Round"
+                StrokeEndLineCap="Round"
+                StrokeLineJoin="Round"
+                StrokeStartLineCap="Round"
+                StrokeThickness="2" />
+        </ControlTemplate>
+
+    </UserControl.Resources>
+
+    <Grid DataContext="{Binding Editor, ElementName=ContainerElement}">
+        <Grid Background="{StaticResource NodifyEditor.BackgroundBrush}">
+            <nodify:NodifyEditor
+                x:Name="NodifyEditorElement"
+                Background="{StaticResource SmallGridLinesDrawingBrush}"
+                Connections="{Binding Graph.Connections}"
+                DisconnectConnectorCommand="{Binding Commands.DisconnectConnector}"
+                ItemsSource="{Binding Graph.Nodes}"
+                PendingConnection="{Binding PendingConnection}"
+                SelectedItems="{Binding SelectedNodes}">
+                <nodify:NodifyEditor.Resources>
+                    <DataTemplate DataType="{x:Type viewmodels:GraphGroup}">
+                        <nodify:GroupingNode
+                            ActualSize="{Binding Size}"
+                            Header="{Binding Name}"
+                            MovementMode="Group" />
+                    </DataTemplate>
+
+                    <DataTemplate DataType="{x:Type viewmodels:GraphTask}">
+                        <nodify:Node
+                            Header="{Binding Name}"
+                            Input="{Binding Inputs}"
+                            Output="{Binding Outputs}">
+                            <nodify:Node.InputConnectorTemplate>
+                                <DataTemplate DataType="{x:Type viewmodels:TaskConnector}">
+                                    <nodify:NodeInput
+                                        Anchor="{Binding Anchor, Mode=OneWayToSource}"
+                                        Header="{Binding Name}"
+                                        IsConnected="{Binding IsConnected}">
+                                        <nodify:NodeInput.Style>
+                                            <Style BasedOn="{StaticResource {x:Type nodify:NodeInput}}" TargetType="{x:Type nodify:NodeInput}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Type}" Value="{x:Static data:EnumTaskConnectorType.Flow}">
+                                                        <Setter Property="ConnectorTemplate" Value="{StaticResource FlowConnector}" />
+                                                        <Setter Property="BorderBrush" Value="{StaticResource {x:Static adonisUi:Brushes.ForegroundBrush}}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </nodify:NodeInput.Style>
+                                    </nodify:NodeInput>
+                                </DataTemplate>
+                            </nodify:Node.InputConnectorTemplate>
+                            <nodify:Node.OutputConnectorTemplate>
+                                <DataTemplate DataType="{x:Type viewmodels:TaskConnector}">
+                                    <nodify:NodeOutput
+                                        Anchor="{Binding Anchor, Mode=OneWayToSource}"
+                                        Header="{Binding Name}"
+                                        IsConnected="{Binding IsConnected}">
+                                        <nodify:NodeOutput.Style>
+                                            <Style BasedOn="{StaticResource {x:Type nodify:NodeOutput}}" TargetType="{x:Type nodify:NodeOutput}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Type}" Value="{x:Static data:EnumTaskConnectorType.Flow}">
+                                                        <Setter Property="ConnectorTemplate" Value="{StaticResource FlowConnector}" />
+                                                        <Setter Property="BorderBrush" Value="{StaticResource {x:Static adonisUi:Brushes.ForegroundBrush}}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </nodify:NodeOutput.Style>
+                                    </nodify:NodeOutput>
+                                </DataTemplate>
+                            </nodify:Node.OutputConnectorTemplate>
+                        </nodify:Node>
+                    </DataTemplate>
+                </nodify:NodifyEditor.Resources>
+                <nodify:NodifyEditor.ItemContainerStyle>
+                    <Style TargetType="{x:Type nodify:ItemContainer}">
+                        <Setter Property="Location" Value="{Binding Location}" />
+                    </Style>
+                </nodify:NodifyEditor.ItemContainerStyle>
+                <nodify:NodifyEditor.ConnectionTemplate>
+                    <DataTemplate DataType="{x:Type viewmodels:GraphConnection}">
+                        <nodify:Connection Source="{Binding Source.Anchor}" Target="{Binding Target.Anchor}">
+                            <nodify:Connection.Style>
+                                <Style BasedOn="{StaticResource {x:Type nodify:Connection}}" TargetType="{x:Type nodify:Connection}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Source.Type}" Value="{x:Static data:EnumTaskConnectorType.Data}">
+                                            <Setter Property="ArrowEnds" Value="None" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Source.Type}" Value="{x:Static data:EnumTaskConnectorType.Flow}">
+                                            <Setter Property="Stroke" Value="{StaticResource {x:Static adonisUi:Brushes.ForegroundBrush}}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </nodify:Connection.Style>
+                        </nodify:Connection>
+                    </DataTemplate>
+                </nodify:NodifyEditor.ConnectionTemplate>
+                <nodify:NodifyEditor.PendingConnectionTemplate>
+                    <DataTemplate DataType="{x:Type appViewmodels:GraphPendingConnection}">
+                        <nodify:PendingConnection
+                            AllowOnlyConnectors="True"
+                            CompletedCommand="{Binding FinishCommand}"
+                            StartedCommand="{Binding StartCommand}" />
+                    </DataTemplate>
+                </nodify:NodifyEditor.PendingConnectionTemplate>
+            </nodify:NodifyEditor>
+            <Grid Panel.ZIndex="-2" Background="{StaticResource LargeGridLinesDrawingBrush}" />
+        </Grid>
+        <local:GraphEditorOverlay Editor="{Binding}" />
     </Grid>
 </UserControl>

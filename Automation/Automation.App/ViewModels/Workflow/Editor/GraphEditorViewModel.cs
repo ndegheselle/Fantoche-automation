@@ -12,15 +12,15 @@ namespace Automation.App.ViewModels.Workflow.Editor
         public ObservableCollection<GraphNode> SelectedNodes { get; set; } = [];
 
         public Graph Graph { get; }
-        public GraphEditorCanvas Canvas { get; }
+        public GraphEditor Editor { get; }
         public GraphEditorActions Actions { get; }
         public GraphEditorSettings Settings { get; }
         public GraphEditorCommands Commands { get; }
 
-        public GraphEditorViewModel(Graph graph, GraphEditorCanvas canvas, GraphEditorSettings settings)
+        public GraphEditorViewModel(GraphEditor editor, Graph graph, GraphEditorSettings settings)
         {
             Graph = graph;
-            Canvas = canvas;
+            Editor = editor;
             Settings = settings;
             Actions = new GraphEditorActions(this);
             Commands = new GraphEditorCommands(this);

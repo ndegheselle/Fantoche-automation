@@ -18,8 +18,8 @@ namespace Automation.App.ViewModels.Workflow.Editor
 
         public ICommand ZoomFit { get; private set; }
 
+        public ICommand AddNode { get; private set; }
         public ICommand DeleteSelection { get; private set; }
-
         public ICommand GroupSelection { get; private set; }
 
         public ICustomCommand HistoryUndo { get; private set; }
@@ -28,7 +28,7 @@ namespace Automation.App.ViewModels.Workflow.Editor
 
         public ICommand Save { get; private set; }
 
-        public ICommand DisconnectConnectorCommand { get; private set; }
+        public ICommand DisconnectConnector { get; private set; }
 
         public GraphEditorCommands(GraphEditorViewModel editor)
         {
@@ -36,17 +36,18 @@ namespace Automation.App.ViewModels.Workflow.Editor
             _actions = _editor.Actions;
 
             // XXX : use EditorCommands.ZoomIn ?
-            ZoomIn = new DelegateCommand(_editor.Canvas.NodifyEditorElement.ZoomIn);
-            ZoomOut = new DelegateCommand(_editor.Canvas.NodifyEditorElement.ZoomOut);
-            ZoomFit = new DelegateCommand(() => _editor.Canvas.NodifyEditorElement.FitToScreen());
+            ZoomIn = new DelegateCommand(_editor.Editor.NodifyEditorElement.ZoomIn);
+            ZoomOut = new DelegateCommand(_editor.Editor.NodifyEditorElement.ZoomOut);
+            ZoomFit = new DelegateCommand(() => _editor.Editor.NodifyEditorElement.FitToScreen());
 
             _actions.PropertyChanged += Actions_PropertyChanged;
 
             HistoryUndo = new DelegateCommand(_actions.Undo, () => _actions.IsUndoAvailable);
             HistoryRedo = new DelegateCommand(_actions.Redo, () => _actions.IsRedoAvailable);
 
-            DisconnectConnectorCommand = new DelegateCommand<TaskConnector>(
+            DisconnectConnector = new DelegateCommand<TaskConnector>(
                 (connector) => _actions.Execute(new ConnectionsRemoveAction(_editor.GetLinkedConnections(connector))));
+            AddNode = new DelegateCommand<GraphNode>((node) => _actions.Execute(new NodeAdditionAction(node)));
         }
 
         private void Actions_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)

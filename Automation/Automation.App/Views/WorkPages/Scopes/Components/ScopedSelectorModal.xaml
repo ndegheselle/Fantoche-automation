@@ -5,22 +5,28 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Scopes.Components"
+    xmlns:adonisExtensions="clr-namespace:AdonisUI.Extensions;assembly=AdonisUI"
     mc:Ignorable="d"
     MinHeight="200"
     MinWidth="400"
+    xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     xmlns:viewmodels="clr-namespace:Automation.App.Shared.ViewModels.Work;assembly=Automation.App.Shared"
     xmlns:components="clr-namespace:Automation.App.Views.WorkPages.Components"
     x:Name="ContainerElement">
-    <Grid DataContext="{Binding ElementName=ContainerElement}" Margin="2">
+    <Grid DataContext="{Binding ElementName=ContainerElement}">
         <Grid.RowDefinitions>
-            <RowDefinition Height="auto" />
+            <RowDefinition Height="20" />
             <RowDefinition />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
-        <local:ScopedBreadcrumb Scope="{Binding CurrentScope}" ScopeSelected="BreadcrumbScopeChanged" />
+        <local:ScopedBreadcrumb
+            Margin="2,0"
+            Scope="{Binding CurrentScope}"
+            ScopeSelected="BreadcrumbScopeChanged" />
 
         <ListBox
+            Margin="2,0"
             Grid.Row="1"
             ItemsSource="{Binding CurrentScope.SortedChildrens}"
             SelectedItem="{Binding Selected}"
@@ -36,13 +42,18 @@
             </ListBox.ItemTemplate>
         </ListBox>
 
-        <Button
-            Command="{Binding SelectCommand}"
+        <Border
             Margin="0,2,0,0"
+            Padding="2"
             Grid.Row="2"
-            HorizontalAlignment="Right"
-            Padding="20,4">
-            Select
-        </Button>
+            Background="{DynamicResource {x:Static adonisUi:Brushes.Layer1BackgroundBrush}}">
+            <Button
+                adonisExtensions:LayerExtension.Layer="2"
+                Command="{Binding SelectCommand}"
+                HorizontalAlignment="Right"
+                Padding="20,4">
+                Select
+            </Button>
+        </Border>
     </Grid>
 </UserControl>
