@@ -12,7 +12,10 @@
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     xmlns:nodify="clr-namespace:Nodify;assembly=Nodify"
     xmlns:viewmodels="clr-namespace:Automation.App.Shared.ViewModels.Work;assembly=Automation.App.Shared"
-    x:Name="ContainerElement">
+    x:Name="ContainerElement"
+    mc:Ignorable="d"
+    d:DesignHeight="450"
+    d:DesignWidth="800">
     <UserControl.Resources>
         <GeometryDrawing
             x:Key="SmallGridGeometry"
@@ -56,7 +59,6 @@
         </ControlTemplate>
 
     </UserControl.Resources>
-
     <Grid DataContext="{Binding Editor, ElementName=ContainerElement}">
         <Grid Background="{StaticResource NodifyEditor.BackgroundBrush}">
             <nodify:NodifyEditor

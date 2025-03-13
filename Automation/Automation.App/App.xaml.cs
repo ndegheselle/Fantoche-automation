@@ -22,9 +22,15 @@ namespace Automation.App
         /// <returns></returns>
         private static IServiceProvider ConfigureServices(ServiceCollection services)
         {
-            string apiUrl = ConfigurationManager.AppSettings["ApiUrl"] ??
+            // Check if running in design mode
+            bool isInDesignMode = System.ComponentModel.DesignerProperties.GetIsInDesignMode(new DependencyObject());
+
+            string apiUrl = isInDesignMode ? "http://design-time-placeholder" :
+                ConfigurationManager.AppSettings["ApiUrl"] ??
                 throw new Exception("Missing 'ApiUrl' in App.Config");
-            string redisUrl = ConfigurationManager.AppSettings["RedisConnectionString"] ??
+
+            string redisUrl = isInDesignMode ? "design-time-placeholder" :
+                ConfigurationManager.AppSettings["RedisConnectionString"] ??
                 throw new Exception("Missing 'RedisConnectionString' in App.Config");
 
             services.AddTransient<MainWindow>();
