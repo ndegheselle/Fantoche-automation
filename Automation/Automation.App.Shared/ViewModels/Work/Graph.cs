@@ -31,8 +31,8 @@ namespace Automation.App.Shared.ViewModels.Work
     public class GraphTask : GraphNode
     {
         public new string Name => Task.Name;
-        public List<TaskConnector> Inputs => Task.Inputs;
-        public List<TaskConnector> Outputs => Task.Outputs;
+        public List<AutomationConnector> Inputs => Task.Inputs;
+        public List<AutomationConnector> Outputs => Task.Outputs;
 
         public AutomationTask Task { get; set; } = new AutomationTask();
 
@@ -47,18 +47,18 @@ namespace Automation.App.Shared.ViewModels.Work
         public Guid SourceId { get; set; }
         public Guid TargetId { get; set; }
 
-        public TaskConnector Source { get; set; } = new TaskConnector();
-        public TaskConnector Target { get; set; } = new TaskConnector();
+        public AutomationConnector Source { get; set; } = new AutomationConnector();
+        public AutomationConnector Target { get; set; } = new AutomationConnector();
 
         public GraphConnection()
         {}
 
-        public GraphConnection(TaskConnector source, TaskConnector target)
+        public GraphConnection(AutomationConnector source, AutomationConnector target)
         {
             Connect(source, target);
         }
 
-        public void Connect(TaskConnector source, TaskConnector target)
+        public void Connect(AutomationConnector source, AutomationConnector target)
         {
             TargetId = source.Id;
             SourceId = source.Id;
@@ -84,7 +84,7 @@ namespace Automation.App.Shared.ViewModels.Work
 
         public void RefreshConnections()
         {
-            Dictionary<Guid, TaskConnector> connectors = new Dictionary<Guid, TaskConnector>();
+            Dictionary<Guid, AutomationConnector> connectors = new Dictionary<Guid, AutomationConnector>();
             foreach (var node in Nodes)
             {
                 if (node is GraphTask related)

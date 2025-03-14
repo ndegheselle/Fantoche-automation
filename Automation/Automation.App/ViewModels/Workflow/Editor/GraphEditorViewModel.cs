@@ -61,7 +61,7 @@ namespace Automation.App.ViewModels.Workflow.Editor
             Graph.Nodes.Remove(node);
         }
 
-        public IEnumerable<GraphConnection> GetLinkedConnections(TaskConnector connector)
+        public IEnumerable<GraphConnection> GetLinkedConnections(AutomationConnector connector)
         {
             return Graph.Connections.Where(x => x.SourceId == connector.Id || x.TargetId == connector.Id);
         }

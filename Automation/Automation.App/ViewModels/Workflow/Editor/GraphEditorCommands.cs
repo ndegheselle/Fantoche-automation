@@ -45,7 +45,7 @@ namespace Automation.App.ViewModels.Workflow.Editor
             HistoryUndo = new DelegateCommand(_actions.Undo, () => _actions.IsUndoAvailable);
             HistoryRedo = new DelegateCommand(_actions.Redo, () => _actions.IsRedoAvailable);
 
-            DisconnectConnector = new DelegateCommand<TaskConnector>(
+            DisconnectConnector = new DelegateCommand<AutomationConnector>(
                 (connector) => _actions.Execute(new ConnectionsRemoveAction(_editor.GetLinkedConnections(connector))));
             AddNode = new DelegateCommand<GraphNode>((node) => _actions.Execute(new NodeAdditionAction(node)));
         }

@@ -83,7 +83,7 @@
                             Input="{Binding Inputs}"
                             Output="{Binding Outputs}">
                             <nodify:Node.InputConnectorTemplate>
-                                <DataTemplate DataType="{x:Type viewmodels:TaskConnector}">
+                                <DataTemplate DataType="{x:Type viewmodels:AutomationConnector}">
                                     <nodify:NodeInput
                                         Anchor="{Binding Anchor, Mode=OneWayToSource}"
                                         Header="{Binding Name}"
@@ -102,7 +102,7 @@
                                 </DataTemplate>
                             </nodify:Node.InputConnectorTemplate>
                             <nodify:Node.OutputConnectorTemplate>
-                                <DataTemplate DataType="{x:Type viewmodels:TaskConnector}">
+                                <DataTemplate DataType="{x:Type viewmodels:AutomationConnector}">
                                     <nodify:NodeOutput
                                         Anchor="{Binding Anchor, Mode=OneWayToSource}"
                                         Header="{Binding Name}"
@@ -125,7 +125,7 @@
                 </nodify:NodifyEditor.Resources>
                 <nodify:NodifyEditor.ItemContainerStyle>
                     <Style TargetType="{x:Type nodify:ItemContainer}">
-                        <Setter Property="Location" Value="{Binding Location}" />
+                        <Setter Property="Location" Value="{Binding Position}" />
                     </Style>
                 </nodify:NodifyEditor.ItemContainerStyle>
                 <nodify:NodifyEditor.ConnectionTemplate>

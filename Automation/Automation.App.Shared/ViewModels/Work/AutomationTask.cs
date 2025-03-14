@@ -1,12 +1,11 @@
 ﻿using Automation.Shared.Data;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Text.Json.Serialization;
 using System.Windows;
 
 namespace Automation.App.Shared.ViewModels.Work
 {
-    public class TaskConnector : ITaskConnector
+    public class AutomationConnector : IAutomationConnector
     {
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
@@ -24,12 +23,12 @@ namespace Automation.App.Shared.ViewModels.Work
     public class AutomationTask : ScopedElement, IAutomationTask, INotifyPropertyChanged
     {
         public TargetedPackage? Package { get; set; }
-        public List<TaskConnector> Inputs { get; set; } = [];
-        public List<TaskConnector> Outputs { get; set; } = [];
+        public List<AutomationConnector> Inputs { get; set; } = [];
+        public List<AutomationConnector> Outputs { get; set; } = [];
         public List<Schedule> Schedules { get; set; } = [];
 
-        IEnumerable<ITaskConnector> IAutomationTask.Inputs => Inputs;
-        IEnumerable<ITaskConnector> IAutomationTask.Outputs => Outputs;
+        IEnumerable<IAutomationConnector> IAutomationTask.Inputs => Inputs;
+        IEnumerable<IAutomationConnector> IAutomationTask.Outputs => Outputs;
         IEnumerable<Schedule> IAutomationTask.Schedules => Schedules;
 
         public AutomationTask()
