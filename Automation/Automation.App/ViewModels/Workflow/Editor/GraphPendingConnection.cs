@@ -9,13 +9,13 @@ namespace Automation.App.ViewModels.Workflow.Editor
     public class GraphPendingConnection
     {
         private readonly GraphEditorViewModel _editor;
-        private AutomationConnector? _source;
+        private AutomationTaskConnector? _source;
 
         public GraphPendingConnection(GraphEditorViewModel editor)
         {
             _editor = editor;
-            StartCommand = new DelegateCommand<AutomationConnector>(source => _source = source);
-            FinishCommand = new DelegateCommand<AutomationConnector>(target =>
+            StartCommand = new DelegateCommand<AutomationTaskConnector>(source => _source = source);
+            FinishCommand = new DelegateCommand<AutomationTaskConnector>(target =>
             {
                 if (target == null || _source == null)
                     return;

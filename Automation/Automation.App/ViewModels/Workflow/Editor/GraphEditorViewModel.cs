@@ -11,15 +11,13 @@ namespace Automation.App.ViewModels.Workflow.Editor
         public GraphPendingConnection? PendingConnection { get; }
         public ObservableCollection<GraphNode> SelectedNodes { get; set; } = [];
 
-        public Graph Graph { get; }
         public GraphEditor Editor { get; }
         public GraphEditorActions Actions { get; }
         public GraphEditorSettings Settings { get; }
         public GraphEditorCommands Commands { get; }
 
-        public GraphEditorViewModel(GraphEditor editor, Graph graph, GraphEditorSettings settings)
+        public GraphEditorViewModel(GraphEditor editor, GraphEditorSettings settings)
         {
-            Graph = graph;
             Editor = editor;
             Settings = settings;
             Actions = new GraphEditorActions(this);
@@ -61,7 +59,7 @@ namespace Automation.App.ViewModels.Workflow.Editor
             Graph.Nodes.Remove(node);
         }
 
-        public IEnumerable<GraphConnection> GetLinkedConnections(AutomationConnector connector)
+        public IEnumerable<GraphConnection> GetLinkedConnections(AutomationTaskConnector connector)
         {
             return Graph.Connections.Where(x => x.SourceId == connector.Id || x.TargetId == connector.Id);
         }

@@ -83,7 +83,7 @@
                             Input="{Binding Inputs}"
                             Output="{Binding Outputs}">
                             <nodify:Node.InputConnectorTemplate>
-                                <DataTemplate DataType="{x:Type viewmodels:AutomationConnector}">
+                                <DataTemplate DataType="{x:Type viewmodels:GraphConnector}">
                                     <nodify:NodeInput
                                         Anchor="{Binding Anchor, Mode=OneWayToSource}"
                                         Header="{Binding Name}"
@@ -102,7 +102,7 @@
                                 </DataTemplate>
                             </nodify:Node.InputConnectorTemplate>
                             <nodify:Node.OutputConnectorTemplate>
-                                <DataTemplate DataType="{x:Type viewmodels:AutomationConnector}">
+                                <DataTemplate DataType="{x:Type viewmodels:AutomationTaskConnector}">
                                     <nodify:NodeOutput
                                         Anchor="{Binding Anchor, Mode=OneWayToSource}"
                                         Header="{Binding Name}"

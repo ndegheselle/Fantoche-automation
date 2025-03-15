@@ -30,7 +30,7 @@
         public string JsonSettings { get; set; } = "";
     }
 
-    public interface IAutomationConnector
+    public interface IAutomationTaskConnector
     {
         Guid Id { get; }
         string Name { get; set; }
@@ -38,11 +38,17 @@
         EnumTaskConnectorDirection Direction { get; set; }
     }
 
+    public interface IAutomationTaskConnection
+    {
+        Guid SourceId { get; set; }
+        Guid TargetId { get; set; }
+    }
+
     public interface IAutomationTask : IScopedElement
     {
         TargetedPackage? Package { get; set; }
-        IEnumerable<IAutomationConnector> Inputs { get; }
-        IEnumerable<IAutomationConnector> Outputs { get; }
+        IEnumerable<IAutomationTaskConnector> Inputs { get; }
+        IEnumerable<IAutomationTaskConnector> Outputs { get; }
         IEnumerable<Schedule> Schedules { get; }
     }
 

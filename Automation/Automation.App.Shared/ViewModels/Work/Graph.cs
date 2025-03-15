@@ -1,67 +1,51 @@
-﻿using Automation.Shared.Data;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Windows;
-using System.Windows.Input;
 
 namespace Automation.App.Shared.ViewModels.Work
 {
-    // TODO : Derived json types
-    public class GraphNode : IGraphNode
+    public class GraphNode
     {
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public Point Position { get; set; }
-        System.Drawing.Point IGraphNode.Position
-        {
-            get => new System.Drawing.Point((int)Position.X, (int)Position.Y);
-            set => Position = new Point(value.X, value.Y);
-        }
     }
 
-    public class GraphGroup : GraphNode, IGraphGroup
+    public class GraphGroup : GraphNode
     {
         public Size Size { get; set; }
-        System.Drawing.Size IGraphGroup.Size
-        {
-            get => new System.Drawing.Size((int)Size.Width, (int)Size.Height);
-            set => Size = new Size(value.Width, value.Height);
-        }
     }
 
     public class GraphTask : GraphNode
     {
-        public new string Name => Task.Name;
-        public List<AutomationConnector> Inputs => Task.Inputs;
-        public List<AutomationConnector> Outputs => Task.Outputs;
-
-        public AutomationTask Task { get; set; } = new AutomationTask();
-
-        public GraphTask(AutomationTask task)
-        {
-            Task = task;
-        }
+        public List<GraphConnector> Inputs { get; set; } = [];
+        public List<GraphConnector> Outputs { get; set; } = [];
     }
 
-    public class GraphConnection : IGraphConnection
+    public class GraphConnector
+    {
+        public Guid Id { get; set; }
+        public bool IsConnected { get; set; }
+        public Point Anchor { get; set; }
+    }
+
+    public class GraphConnection
     {
         public Guid SourceId { get; set; }
         public Guid TargetId { get; set; }
 
-        public AutomationConnector Source { get; set; } = new AutomationConnector();
-        public AutomationConnector Target { get; set; } = new AutomationConnector();
+        public GraphConnector Source { get; set; } = new GraphConnector();
+        public GraphConnector Target { get; set; } = new GraphConnector();
 
         public GraphConnection()
         {}
 
-        public GraphConnection(AutomationConnector source, AutomationConnector target)
+        public GraphConnection(GraphConnector source, GraphConnector target)
         {
             Connect(source, target);
         }
 
-        public void Connect(AutomationConnector source, AutomationConnector target)
+        public void Connect(GraphConnector source, GraphConnector target)
         {
-            TargetId = source.Id;
-            SourceId = source.Id;
             Source = source;
             Target = target;
 
@@ -70,28 +54,21 @@ namespace Automation.App.Shared.ViewModels.Work
         }
     }
 
-    public class Graph : IGraph
+    public class Graph
     {
-        public Guid WorkflowId { get; set; }
-
         public ObservableCollection<GraphConnection> Connections { get; set; } = [];
         public ObservableCollection<GraphNode> Nodes { get; private set; } = [];
-        public ObservableCollection<GraphGroup> Groups { get; private set; } = [];
-
-        IEnumerable<IGraphConnection> IGraph.Connections => Connections;
-        IEnumerable<IGraphNode> IGraph.Nodes => Nodes;
-        IEnumerable<IGraphGroup> IGraph.Groups => Groups;
 
         public void RefreshConnections()
         {
-            Dictionary<Guid, AutomationConnector> connectors = new Dictionary<Guid, AutomationConnector>();
+            Dictionary<Guid, GraphConnector> connectors = new Dictionary<Guid, GraphConnector>();
             foreach (var node in Nodes)
             {
                 if (node is GraphTask related)
                 {
-                    foreach (var connector in related.Task.Inputs)
+                    foreach (var connector in related.Inputs)
                         connectors.Add(connector.Id, connector);
-                    foreach (var connector in related.Task.Outputs)
+                    foreach (var connector in related.Outputs)
                         connectors.Add(connector.Id, connector);
                 }
             }

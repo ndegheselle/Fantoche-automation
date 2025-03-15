@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace Automation.Dal.Models
 {
-    public class TaskConnectors : IAutomationConnector
+    public class TaskConnectors : IAutomationTaskConnector
     {
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
@@ -16,8 +16,8 @@ namespace Automation.Dal.Models
     [BsonKnownTypes(typeof(AutomationWorkflow))]
     public class AutomationTask : ScopedElement, IAutomationTask
     {
-        public IEnumerable<IAutomationConnector> Inputs { get; set; } = [];
-        public IEnumerable<IAutomationConnector> Outputs { get; set; } = [];
+        public IEnumerable<IAutomationTaskConnector> Inputs { get; set; } = [];
+        public IEnumerable<IAutomationTaskConnector> Outputs { get; set; } = [];
         public IEnumerable<Schedule> Schedules { get; set; } = [];
         public TargetedPackage? Package { get; set; }
 
