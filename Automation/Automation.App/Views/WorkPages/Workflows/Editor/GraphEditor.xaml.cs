@@ -50,14 +50,12 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
             if (graph == null)
             {
                 // Create graph associed with workflow if doesn't exist
-                graph = new Graph() { WorkflowId = Workflow.Id };
+                graph = new Graph();
                 await _graphsClient.CreateAsync(graph);
             }
 
             Editor = new GraphEditorViewModel(this, graph, new GraphEditorSettings());
         }
-
-
 
         private Rectangle GetSelectedBoundingBox(int padding)
         {

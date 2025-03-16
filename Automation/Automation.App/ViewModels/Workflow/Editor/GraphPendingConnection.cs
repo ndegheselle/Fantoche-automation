@@ -9,13 +9,13 @@ namespace Automation.App.ViewModels.Workflow.Editor
     public class GraphPendingConnection
     {
         private readonly GraphEditorViewModel _editor;
-        private AutomationTaskConnector? _source;
+        private GraphConnector? _source;
 
         public GraphPendingConnection(GraphEditorViewModel editor)
         {
             _editor = editor;
-            StartCommand = new DelegateCommand<AutomationTaskConnector>(source => _source = source);
-            FinishCommand = new DelegateCommand<AutomationTaskConnector>(target =>
+            StartCommand = new DelegateCommand<GraphConnector>(source => _source = source);
+            FinishCommand = new DelegateCommand<GraphConnector>(target =>
             {
                 if (target == null || _source == null)
                     return;
@@ -25,7 +25,7 @@ namespace Automation.App.ViewModels.Workflow.Editor
                     _editor.RaiseAlert("Can't connect a connector to itself.");
                     return;
                 }
-
+                /* TODO : add back type and direction
                 if (_source.Type != target.Type)
                 {
                     _editor.RaiseAlert("Can't connect two connectors of different types.");
@@ -45,7 +45,7 @@ namespace Automation.App.ViewModels.Workflow.Editor
                     _source = target;
                     target = temp;
                 }
-
+                */
                 // If already exists delete the connection
                 var existingConnection = _editor.Graph.Connections.FirstOrDefault(x => x.Source == _source && x.Target == target);
                 if (existingConnection != null)
