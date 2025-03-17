@@ -57,7 +57,11 @@ namespace Automation.App.Shared.ViewModels.Work
     public class Graph
     {
         public ObservableCollection<GraphConnection> Connections { get; set; } = [];
-        public ObservableCollection<GraphNode> Nodes { get; private set; } = [];
+        public ObservableCollection<GraphNode> Nodes { get; private set; } = [
+                new GraphTask() {
+                    Name = "Tata"
+                }
+            ];
 
         public void RefreshConnections()
         {
