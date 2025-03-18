@@ -7,6 +7,7 @@ using Joufflu.Popups;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 using System.Windows.Controls;
+using System.Xaml;
 
 namespace Automation.App.Views.WorkPages.Workflows.Editor
 {
@@ -49,7 +50,7 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
             var selector = new ScopedSelectorModal();
             if (await _modal.Show(selector) && selector.Selected is AutomationTask task)
             {
-                Editor.Commands.AddNode.Execute(new GraphTask(task));
+                Editor.Commands.AddNode.Execute(new GraphTask(IXamlIndexingReader co));
             }
         }
         #endregion
