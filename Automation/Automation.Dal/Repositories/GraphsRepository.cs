@@ -1,5 +1,4 @@
 ﻿using Automation.Dal.Models;
-using Automation.Shared.Data;
 using MongoDB.Driver;
 
 namespace Automation.Dal.Repositories
@@ -10,7 +9,12 @@ namespace Automation.Dal.Repositories
         {
         }
 
-        public async Task<Graph?> GetByWorkflowId(Guid workflowId)
+        /// <summary>
+        /// Get a graph by workflow id
+        /// </summary>
+        /// <param name="workflowId">Target workflow id</param>
+        /// <returns></returns>
+        public async Task<Graph?> GetByWorkflowIdAsync(Guid workflowId)
         {
             return await _collection.Find(e => e.WorkflowId == workflowId).FirstOrDefaultAsync();
         }

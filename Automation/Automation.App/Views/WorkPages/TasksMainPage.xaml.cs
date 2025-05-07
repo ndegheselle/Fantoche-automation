@@ -1,11 +1,10 @@
 ﻿using Automation.App.Shared.ApiClients;
-using Automation.App.Shared.ViewModels;
 using Automation.App.Shared.ViewModels.Work;
 using Automation.App.Views.WorkPages.Scopes;
 using Automation.App.Views.WorkPages.Tasks;
 using Automation.App.Views.WorkPages.Workflows;
 using Automation.Shared.Data;
-using Joufflu.Shared.Layouts;
+using Joufflu.Shared.Navigation;
 using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;
 using System.Windows.Controls;

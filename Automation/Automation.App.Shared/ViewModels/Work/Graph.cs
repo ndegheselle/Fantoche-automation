@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using Automation.Shared.Data;
+using System.Collections.ObjectModel;
 using System.Windows;
 
 namespace Automation.App.Shared.ViewModels.Work
@@ -19,6 +20,19 @@ namespace Automation.App.Shared.ViewModels.Work
     {
         public List<GraphConnector> Inputs { get; set; } = [];
         public List<GraphConnector> Outputs { get; set; } = [];
+
+        public GraphTask()
+        {
+            Name = "Test";
+            Inputs.Add(new GraphConnector()
+            {
+                Type = EnumTaskConnectorType.Flow,
+            });
+            Outputs.Add(new GraphConnector()
+            {
+                Type = EnumTaskConnectorType.Flow,
+            });
+        }
     }
 
     public class GraphConnector
@@ -26,6 +40,7 @@ namespace Automation.App.Shared.ViewModels.Work
         public Guid Id { get; set; }
         public bool IsConnected { get; set; }
         public Point Anchor { get; set; }
+        public EnumTaskConnectorType Type { get; set; }
     }
 
     public class GraphConnection
@@ -57,11 +72,7 @@ namespace Automation.App.Shared.ViewModels.Work
     public class Graph
     {
         public ObservableCollection<GraphConnection> Connections { get; set; } = [];
-        public ObservableCollection<GraphNode> Nodes { get; private set; } = [
-                new GraphTask() {
-                    Name = "Tata"
-                }
-            ];
+        public ObservableCollection<GraphNode> Nodes { get; private set; } = [];
 
         public void RefreshConnections()
         {

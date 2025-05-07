@@ -1,7 +1,7 @@
 ﻿using Automation.App.Shared.ApiClients;
 using Automation.App.Shared.ViewModels.Work;
 using Joufflu.Popups;
-using Joufflu.Shared.Layouts;
+using Joufflu.Shared.Navigation;
 using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;
 using System.Windows.Controls;

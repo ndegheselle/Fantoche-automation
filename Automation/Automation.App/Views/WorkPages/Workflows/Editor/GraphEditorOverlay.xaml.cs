@@ -50,7 +50,7 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
             var selector = new ScopedSelectorModal();
             if (await _modal.Show(selector) && selector.Selected is AutomationTask task)
             {
-                Editor.Commands.AddNode.Execute(new GraphTask(IXamlIndexingReader co));
+                Editor.Commands.AddNode.Execute(new GraphTask());
             }
         }
         #endregion

@@ -62,7 +62,7 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
             Point min = new Point(int.MaxValue, int.MaxValue);
             Point max = new Point(int.MinValue, int.MinValue);
 
-            if (Editor.SelectedNodes == null || Editor.SelectedNodes.Count == 0)
+            if (Editor!.SelectedNodes == null || Editor.SelectedNodes.Count == 0)
                 return Rectangle.Empty;
 
             foreach (var node in Editor.SelectedNodes)

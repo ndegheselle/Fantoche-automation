@@ -1,5 +1,5 @@
 ﻿using Joufflu.Popups;
-using Joufflu.Shared.Layouts;
+using Joufflu.Shared.Navigation;
 using System.Windows.Controls;
 
 namespace Automation.App.Views.PackagesPages

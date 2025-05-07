@@ -1,9 +1,9 @@
 ﻿using AdonisUI.Controls;
 using Automation.App.Views.PackagesPages;
-using Automation.App.Views.WorkPages;
 using Automation.App.Views.WorkersPages;
+using Automation.App.Views.WorkPages;
 using Joufflu.Popups;
-using Joufflu.Shared.Layouts;
+using Joufflu.Shared.Navigation;
 using System.Windows;
 
 namespace Automation.App

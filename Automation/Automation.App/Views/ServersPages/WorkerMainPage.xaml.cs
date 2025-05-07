@@ -1,5 +1,4 @@
-﻿using Joufflu.Shared;
-using Joufflu.Shared.Layouts;
+﻿using Joufflu.Shared.Navigation;
 using System.Windows.Controls;
 
 namespace Automation.App.Views.WorkersPages
