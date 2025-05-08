@@ -7,6 +7,7 @@
     xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Workflows.Editor"
     mc:Ignorable="d"
     xmlns:nodify="clr-namespace:Nodify;assembly=Nodify"
+    xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     xmlns:data="clr-namespace:Automation.Shared.Data;assembly=Automation.Shared"
     xmlns:viewmodels="clr-namespace:Automation.App.Shared.ViewModels.Work;assembly=Automation.App.Shared"
@@ -14,10 +15,10 @@
     <UserControl.Resources>
         <ControlTemplate x:Key="FlowConnector" TargetType="Control">
             <Polygon
-                Width="12"
+                Width="10"
                 Height="14"
                 Fill="{TemplateBinding Background}"
-                Points="1,13 11,7 1,1"
+                Points="1,13 9,7 1,1"
                 Stroke="{TemplateBinding BorderBrush}"
                 StrokeDashCap="Round"
                 StrokeEndLineCap="Round"
@@ -25,12 +26,26 @@
                 StrokeStartLineCap="Round"
                 StrokeThickness="2" />
         </ControlTemplate>
+        <Style x:Key="DefaultHeaderContainerStyle" TargetType="Border">
+            <Setter Property="CornerRadius" Value="0" />
+            <Setter Property="Padding" Value="0" />
+        </Style>
+        <Style x:Key="DefaultContentContainerStyle" TargetType="Border">
+            <Setter Property="CornerRadius" Value="3" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="0" />
+        </Style>
+        <Style x:Key="DefaultFooterContainerStyle" TargetType="Border">
+            <Setter Property="CornerRadius" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+        </Style>
     </UserControl.Resources>
     <nodify:Node
         DataContext="{Binding Task, ElementName=ContainerElement}"
-        Header="{Binding Name}"
         Input="{Binding Inputs}"
-        Output="{Binding Outputs}">
+        Output="{Binding Outputs}"
+        Footer="{Binding Name}">
         <nodify:Node.InputConnectorTemplate>
             <DataTemplate DataType="{x:Type viewmodels:GraphConnector}">
                 <nodify:NodeInput Anchor="{Binding Anchor, Mode=OneWayToSource}" IsConnected="{Binding IsConnected}">
@@ -42,6 +57,27 @@
                                     <Setter Property="BorderBrush" Value="{StaticResource {x:Static adonisUi:Brushes.ForegroundBrush}}" />
                                 </DataTrigger>
                             </Style.Triggers>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="{x:Type nodify:NodeInput}">
+                                        <Control
+                                            x:Name="PART_Connector"
+                                            Focusable="False"
+                                            VerticalAlignment="Center"
+                                            Background="Transparent"
+                                            BorderBrush="{TemplateBinding BorderBrush}"
+                                            Template="{TemplateBinding ConnectorTemplate}" />
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsConnected" Value="True">
+                                                <Setter TargetName="PART_Connector" Property="Background" Value="{Binding BorderBrush, RelativeSource={RelativeSource TemplatedParent}}" />
+                                            </Trigger>
+                                            <Trigger Property="nodify:PendingConnection.IsOverElement" Value="True">
+                                                <Setter TargetName="PART_Connector" Property="Background" Value="{Binding BorderBrush, RelativeSource={RelativeSource TemplatedParent}}" />
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
                         </Style>
                     </nodify:NodeInput.Style>
                 </nodify:NodeInput>
@@ -49,7 +85,10 @@
         </nodify:Node.InputConnectorTemplate>
         <nodify:Node.OutputConnectorTemplate>
             <DataTemplate DataType="{x:Type viewmodels:AutomationTaskConnector}">
-                <nodify:NodeOutput Anchor="{Binding Anchor, Mode=OneWayToSource}" IsConnected="{Binding IsConnected}">
+                <nodify:NodeOutput
+                    Padding="0"
+                    Anchor="{Binding Anchor, Mode=OneWayToSource}"
+                    IsConnected="{Binding IsConnected}">
                     <nodify:NodeOutput.Style>
                         <Style BasedOn="{StaticResource {x:Type nodify:NodeOutput}}" TargetType="{x:Type nodify:NodeOutput}">
                             <Style.Triggers>
@@ -58,10 +97,107 @@
                                     <Setter Property="BorderBrush" Value="{StaticResource {x:Static adonisUi:Brushes.ForegroundBrush}}" />
                                 </DataTrigger>
                             </Style.Triggers>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="{x:Type nodify:NodeOutput}">
+                                        <Control
+                                            x:Name="PART_Connector"
+                                            Focusable="False"
+                                            VerticalAlignment="Center"
+                                            Background="Transparent"
+                                            BorderBrush="{TemplateBinding BorderBrush}"
+                                            Template="{TemplateBinding ConnectorTemplate}" />
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsConnected" Value="True">
+                                                <Setter TargetName="PART_Connector" Property="Background" Value="{Binding BorderBrush, RelativeSource={RelativeSource TemplatedParent}}" />
+                                            </Trigger>
+                                            <Trigger Property="nodify:PendingConnection.IsOverElement" Value="True">
+                                                <Setter TargetName="PART_Connector" Property="Background" Value="{Binding BorderBrush, RelativeSource={RelativeSource TemplatedParent}}" />
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
                         </Style>
                     </nodify:NodeOutput.Style>
                 </nodify:NodeOutput>
             </DataTemplate>
         </nodify:Node.OutputConnectorTemplate>
+
+        <nodify:Node.Style>
+            <Style TargetType="{x:Type nodify:Node}" BasedOn="{StaticResource {x:Type nodify:Node}}">
+                <Setter Property="HeaderBrush" Value="Transparent" />
+                <Setter Property="FooterBrush" Value="Transparent" />
+                <Setter Property="HeaderContainerStyle" Value="{StaticResource DefaultHeaderContainerStyle}" />
+                <Setter Property="ContentContainerStyle" Value="{StaticResource DefaultContentContainerStyle}" />
+                <Setter Property="FooterContainerStyle" Value="{StaticResource DefaultFooterContainerStyle}" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type nodify:Node}">
+                            <Grid Grid.Column="1">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="19" />
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition MinHeight="19" Height="auto" />
+                                </Grid.RowDefinitions>
+
+                                <!--  Header  -->
+                                <Border Background="{TemplateBinding HeaderBrush}" Style="{TemplateBinding HeaderContainerStyle}">
+                                    <ContentPresenter ContentSource="Header" />
+                                </Border>
+                                <Grid Grid.Row="1">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <!--  Data IN  -->
+                                    <ItemsControl
+                                        Margin="0,0,2,0"
+                                        VerticalAlignment="Center"
+                                        Focusable="False"
+                                        ItemTemplate="{TemplateBinding InputConnectorTemplate}"
+                                        ItemsSource="{TemplateBinding Input}" />
+
+                                    <!--  Body  -->
+                                    <Border
+                                        Grid.Column="1"
+                                        Width="68"
+                                        Height="62"
+                                        Margin="0"
+                                        Background="{TemplateBinding ContentBrush}"
+                                        Style="{TemplateBinding ContentContainerStyle}">
+                                        <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                                    </Border>
+                                    <!--  Data OUT  -->
+                                    <ItemsControl
+                                        Margin="2,0,0,0"
+                                        Grid.Column="2"
+                                        VerticalAlignment="Center"
+                                        HorizontalContentAlignment="Right"
+                                        Focusable="False"
+                                        ItemTemplate="{TemplateBinding OutputConnectorTemplate}"
+                                        ItemsSource="{TemplateBinding Output}" />
+                                </Grid>
+
+                                <!--  Footer  -->
+                                <Border
+                                    Grid.Row="2"
+                                    Background="{TemplateBinding FooterBrush}"
+                                    Style="{TemplateBinding FooterContainerStyle}">
+                                    <ContentPresenter ContentSource="Footer" />
+                                </Border>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+
+            </Style>
+        </nodify:Node.Style>
+
+        <Grid>
+            <fonts:Icon Text="{Binding Icon}" FontSize="24" />
+        </Grid>
+
     </nodify:Node>
 </UserControl>

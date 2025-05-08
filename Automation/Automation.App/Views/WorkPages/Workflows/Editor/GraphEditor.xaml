@@ -69,8 +69,18 @@
                 <nodify:NodifyEditor.ItemContainerStyle>
                     <Style TargetType="{x:Type nodify:ItemContainer}">
                         <Setter Property="Location" Value="{Binding Position}" />
+                        <Setter Property="BorderBrush" Value="Transparent" />
+                        <Style.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="BorderBrush" Value="{DynamicResource {x:Static adonisUi:Brushes.AccentIntenseHighlightBorderBrush}}" />
+                            </Trigger>
+                            <Trigger Property="IsPreviewingSelection" Value="True">
+                                <Setter Property="BorderBrush" Value="{DynamicResource {x:Static adonisUi:Brushes.AccentIntenseHighlightBorderBrush}}" />
+                            </Trigger>
+                        </Style.Triggers>
                     </Style>
                 </nodify:NodifyEditor.ItemContainerStyle>
+
                 <nodify:NodifyEditor.ConnectionTemplate>
                     <DataTemplate DataType="{x:Type viewmodels:GraphConnection}">
                         <nodify:Connection Source="{Binding Source.Anchor}" Target="{Binding Target.Anchor}">

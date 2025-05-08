@@ -1,5 +1,7 @@
 ﻿using Automation.Shared.Data;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Windows;
 
 namespace Automation.App.Shared.ViewModels.Work
@@ -18,6 +20,7 @@ namespace Automation.App.Shared.ViewModels.Work
 
     public class GraphTask : GraphNode
     {
+        public string Icon { get; set; } = "\uf596";
         public List<GraphConnector> Inputs { get; set; } = [];
         public List<GraphConnector> Outputs { get; set; } = [];
 
@@ -35,8 +38,14 @@ namespace Automation.App.Shared.ViewModels.Work
         }
     }
 
-    public class GraphConnector
+    public class GraphConnector : INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler? PropertyChanged;
+        public void RaisePropertyChanged([CallerMemberName] string? propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
         public Guid Id { get; set; }
         public bool IsConnected { get; set; }
         public Point Anchor { get; set; }
