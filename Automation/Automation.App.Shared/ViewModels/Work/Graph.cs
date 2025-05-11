@@ -8,7 +8,6 @@ namespace Automation.App.Shared.ViewModels.Work
 {
     public class GraphNode
     {
-        public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public Point Position { get; set; }
     }
@@ -24,17 +23,14 @@ namespace Automation.App.Shared.ViewModels.Work
         public List<GraphConnector> Inputs { get; set; } = [];
         public List<GraphConnector> Outputs { get; set; } = [];
 
-        public GraphTask()
+        public GraphTask(AutomationTask task)
         {
-            Name = "Test";
-            Inputs.Add(new GraphConnector()
-            {
-                Type = EnumTaskConnectorType.Flow,
-            });
-            Outputs.Add(new GraphConnector()
-            {
-                Type = EnumTaskConnectorType.Flow,
-            });
+            Name = task.Name;
+            Icon = task.Icon;
+            Inputs.Add(new GraphConnector());
+            Outputs.Add(new GraphConnector());
+
+            // TODO : get task inputs/outputs
         }
     }
 
@@ -50,6 +46,11 @@ namespace Automation.App.Shared.ViewModels.Work
         public bool IsConnected { get; set; }
         public Point Anchor { get; set; }
         public EnumTaskConnectorType Type { get; set; }
+
+        public GraphConnector(EnumTaskConnectorType type = EnumTaskConnectorType.Flow)
+        {
+            Type = type;
+        }
     }
 
     public class GraphConnection

@@ -5,7 +5,15 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Title>Base automation plugins</Title>
+    <PackageIcon>fa</PackageIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="fa">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Automation.Plugins.Shared\Automation.Plugins.Shared.csproj" />

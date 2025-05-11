@@ -60,7 +60,7 @@ namespace Automation.App.Views.PackagesPages.Components
             {
                 if (Package != null)
                 {
-                    Package = await _packagesClient.CreatePackageVersionAsync(Package.Id, SelectedFile.FilePath);
+                    Package = await _packagesClient.CreatePackageVersionAsync(Package.Identifier.Id, SelectedFile.FilePath);
                 }
                 else
                 {
@@ -99,21 +99,21 @@ namespace Automation.App.Views.PackagesPages.Components
         {
             _packagesClient = Services.Provider.GetRequiredService<PackagesClient>();
             Package = package;
-            SelectedVersion = Package.Version;
+            SelectedVersion = Package.Identifier.Version;
             InitializeComponent();
             LoadVersions();
         }
 
         private async void LoadVersions()
         {
-            Versions = await _packagesClient.GetVersionsAync(Package.Id);
+            Versions = await _packagesClient.GetVersionsAync(Package.Identifier.Id);
             SelectedVersion = Versions.First();
-            Package.Version = SelectedVersion;
+            Package.Identifier.Version = SelectedVersion;
         }
 
         private async void LoadClasses()
         {
-            PackageClasses = await _packagesClient.GetClassesAsync(Package.Id, SelectedVersion);
+            PackageClasses = await _packagesClient.GetClassesAsync(Package.Identifier.Id, SelectedVersion);
         }
 
         #region UI events
@@ -141,7 +141,7 @@ namespace Automation.App.Views.PackagesPages.Components
                     AdonisUI.Controls.MessageBoxResult.Yes)
                 return;
 
-            await _packagesClient.RemoveFromVersionAsync(Package.Id, SelectedVersion);
+            await _packagesClient.RemoveFromVersionAsync(Package.Identifier.Id, SelectedVersion);
             LoadVersions();
         }
 

@@ -66,7 +66,7 @@ namespace Automation.Supervisor.Api.Controllers
                 return BadRequest(new Dictionary<string, string[]>() { { nameof(file), ["The file is not a valid nuget package."] } });
             }
 
-            if (infos.Id != id)
+            if (infos.Identifier.Id != id)
             {
                 return BadRequest(new Dictionary<string, string[]>() { { nameof(id), ["The package id and the nuget package id does not correspond."] } });
             }

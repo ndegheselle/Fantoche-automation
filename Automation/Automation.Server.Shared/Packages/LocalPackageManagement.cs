@@ -162,11 +162,11 @@ namespace Automation.Server.Shared.Packages
         {
             // Get package by id resource
             var findPackageByIdResource = await _repository.GetResourceAsync<FindPackageByIdResource>();
-            var nugetVersion = new NuGetVersion(package.Version);
+            var nugetVersion = new NuGetVersion(package.Identifier.Version);
 
             using var packageStream = new MemoryStream();
             await findPackageByIdResource.CopyNupkgToStreamAsync(
-                package.Id,
+                package.Identifier.Id,
                 nugetVersion,
                 packageStream,
                 _cacheContext,
@@ -178,7 +178,7 @@ namespace Automation.Server.Shared.Packages
 
             var dllPath = packageReader.GetFiles()
                 .FirstOrDefault(f => f.EndsWith(package.Class.Dll))
-                ?? throw new Exception($"Could not find main DLL for package '{package.Id}' and dll '{package.Class.Dll}'.");
+                ?? throw new Exception($"Could not find main DLL for package '{package.Identifier.Id}' and dll '{package.Class.Dll}'.");
 
             // Load the assembly
             using var dllStream = packageReader.GetStream(dllPath);
@@ -222,25 +222,33 @@ namespace Automation.Server.Shared.Packages
         }
     }
 
-    // Extension method to convert to PackageInfos (you'll need to implement this based on your PackageInfos class)
+    /// <summary>
+    /// Extension method to convert to PackageInfos (you'll need to implement this based on your PackageInfos class)
+    /// </summary>
     public static class PackageExtensions
     {
         public static PackageInfos ToPackageInfos(this IPackageSearchMetadata package)
         {
             return new PackageInfos()
             {
-                Id = package.Identity.Id,
-                Description = package.Description,
-                Version = package.Identity.Version.Version
+                Identifier = new PackageIdentifier()
+                {
+                    Id = package.Identity.Id,
+                    Version = package.Identity.Version.Version
+                },
+                Description = package.Description
             };
         }
         public static PackageInfos ToPackageInfos(this NuspecReader reader)
         {
             return new PackageInfos()
             {
-                Id = reader.GetId(),
-                Description = reader.GetDescription(),
-                Version = reader.GetVersion().Version
+                Identifier = new PackageIdentifier()
+                {
+                    Id = reader.GetId(),
+                    Version = reader.GetVersion().Version
+                },
+                Description = reader.GetDescription()
             };
         }
     }

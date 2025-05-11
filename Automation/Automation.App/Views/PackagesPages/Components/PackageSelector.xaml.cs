@@ -4,7 +4,6 @@ using Automation.Shared.Data;
 using Joufflu.Popups;
 using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;
-using System.IO.Packaging;
 using System.Windows.Controls;
 using System.Windows.Input;
 
@@ -30,7 +29,6 @@ namespace Automation.App.Views.PackagesPages.Components
     /// </summary>
     public partial class PackageSelector : UserControl, INotifyPropertyChanged
     {
-        
         private readonly PackagesClient _packageClient;
 
         private IModal _modal => this.GetCurrentModalContainer();
@@ -41,7 +39,8 @@ namespace Automation.App.Views.PackagesPages.Components
             private set;
         } = new ListPageWrapper<PackageInfos>() { PageSize = 50, Page = 1, Total = -1, };
 
-        public TargetedPackage? TargetPackage { get; set; }
+        public PackageInfos? SelectedInfos { get; set; }
+        public TargetedPackage? SelectedTarget { get; set; }
         public string SearchText { get; set; } = string.Empty;
 
         public PackageSelector()
@@ -98,12 +97,8 @@ namespace Automation.App.Views.PackagesPages.Components
 
         protected virtual void OnTargetSelected(PackageInfos package, PackageClass targetClass)
         {
-            TargetPackage = new TargetedPackage()
-            {
-                Id = package.Id,
-                Version = package.Version,
-                Class = targetClass,
-            };
+            SelectedInfos = package;
+            SelectedTarget = new TargetedPackage(SelectedInfos.Identifier, targetClass);
         }
     }
     #endregion

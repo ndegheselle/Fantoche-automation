@@ -46,6 +46,7 @@
 
     public interface IAutomationTask : IScopedElement
     {
+        string Icon { get; set; }
         TargetedPackage? Package { get; set; }
         IEnumerable<IAutomationTaskConnector> Inputs { get; }
         IEnumerable<IAutomationTaskConnector> Outputs { get; }

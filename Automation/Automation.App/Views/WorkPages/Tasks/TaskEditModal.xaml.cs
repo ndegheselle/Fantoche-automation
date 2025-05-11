@@ -1,4 +1,5 @@
-﻿using Automation.App.Components.Inputs;
+﻿using Automation.App.Components.Display;
+using Automation.App.Components.Inputs;
 using Automation.App.Shared.ApiClients;
 using Automation.App.Shared.ViewModels.Work;
 using Automation.App.Views.PackagesPages.Components;
@@ -8,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using Usuel.Shared;
 
 namespace Automation.App.Views.WorkPages.Tasks
@@ -80,9 +82,18 @@ namespace Automation.App.Views.WorkPages.Tasks
         private async void SelectPackage_Click(object sender, RoutedEventArgs e)
         {
             PackageSelectorModal modal = new PackageSelectorModal();
-            if (await _modal.Show(modal) && modal.TargetPackage != null)
+            if (await _modal.Show(modal) && modal.SelectedTarget != null && modal.SelectedInfos != null)
             {
-                Task.Package = modal.TargetPackage;
+                Task.Package = modal.SelectedTarget;
+            }
+        }
+
+        private async void ButtonEditIcon_Click(object sender, RoutedEventArgs e)
+        {
+            SelectIconModal modal = new SelectIconModal();
+            if (await _modal.Show(modal) && modal.Selected != null)
+            {
+                Task.Icon = modal.Selected.Icon;
             }
         }
         #endregion

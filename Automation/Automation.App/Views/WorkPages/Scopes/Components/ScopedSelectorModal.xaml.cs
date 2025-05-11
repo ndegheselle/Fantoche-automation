@@ -23,7 +23,6 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
         public ScopedElement? Selected { get; set; }
         public Scope? CurrentScope { get; set; }
 
-        
         private readonly ScopesClient _client;
 
         public ScopedSelectorModal()

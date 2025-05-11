@@ -33,6 +33,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\wpf-components\Joufflu.Data\Joufflu.Data.csproj" />
     <ProjectReference Include="..\..\..\wpf-components\Joufflu.Inputs\Joufflu.Inputs.csproj" />
+    <ProjectReference Include="..\..\..\wpf-components\Joufflu.Layouts\Joufflu.Layouts.csproj" />
     <ProjectReference Include="..\..\..\wpf-components\Joufflu.Popups\Joufflu.Popups.csproj" />
     <ProjectReference Include="..\..\..\wpf-components\Joufflu.Shared\Joufflu.Shared.csproj" />
     <ProjectReference Include="..\..\..\wpf-components\Usuel.Shared\Usuel.Shared.csproj" />

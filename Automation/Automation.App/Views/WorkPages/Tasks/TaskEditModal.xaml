@@ -10,6 +10,7 @@
     xmlns:inputs="clr-namespace:Automation.App.Components.Inputs"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
+    xmlns:layouts="clr-namespace:Joufflu.Layouts;assembly=Joufflu.Layouts"
     mc:Ignorable="d"
     MinWidth="300"
     MinHeight="180">
@@ -20,8 +21,33 @@
         </Grid.RowDefinitions>
 
         <StackPanel Orientation="Vertical">
-            <TextBlock Margin="0,8,0,4" FontWeight="Bold">Name</TextBlock>
-            <TextBox Text="{Binding Task.Name}" />
+
+            <layouts:FlexibleGrid
+                Columns="2"
+                ColumnsWidth="*,64"
+                Gap="2">
+
+                <TextBlock Margin="0,8,0,4" FontWeight="Bold">Name</TextBlock>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition />
+                        <ColumnDefinition Width="auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Margin="0,8,0,4" FontWeight="Bold">Icon</TextBlock>
+                    <Button
+                        Click="ButtonEditIcon_Click"
+                        Grid.Column="1"
+                        Style="{StaticResource IconButtonSmall}">
+                        <fonts:Icon Text="{x:Static fonts:IconFont.Pen}" />
+                    </Button>
+                </Grid>
+
+                <TextBox Text="{Binding Task.Name}" />
+                <fonts:Icon
+                    Text="{Binding Task.Icon}"
+                    VerticalAlignment="Center"
+                    Background="Red" />
+            </layouts:FlexibleGrid>
 
             <Grid Margin="0,8,0,4">
 
