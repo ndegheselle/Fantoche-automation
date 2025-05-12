@@ -62,18 +62,23 @@ namespace Automation.App.Components.Display
             List<IconItem> icons = new List<IconItem>();
 
             Type type = typeof(IconFont);
-            PropertyInfo[] properties = type.GetProperties(BindingFlags.Public | BindingFlags.Static);
+            FieldInfo[] fields = type.GetFields(BindingFlags.Public | BindingFlags.Static);
 
-            foreach (PropertyInfo property in properties)
+            foreach (FieldInfo field in fields)
             {
-                string propertyName = property.Name;
-                string? propertyValue = property.GetConstantValue() as string; // null for static properties
+                string propertyName = field.Name;
+                string? propertyValue = field.GetValue(null) as string; // null for static properties
 
                 if (string.IsNullOrEmpty(propertyValue))
                     continue;
                 icons.Add(new IconItem() { Name = propertyName, Icon = propertyValue });
             }
             return icons;
+        }
+
+        private void ListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            SelectCommand.RaiseCanExecuteChanged();
         }
     }
 }
