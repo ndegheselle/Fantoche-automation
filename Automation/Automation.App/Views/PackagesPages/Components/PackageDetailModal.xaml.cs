@@ -25,9 +25,9 @@ namespace Automation.App.Views.PackagesPages.Components
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        private readonly PackagesClient _packagesClient;
-
         public PackageInfos? Package { get; set; }
+
+        private readonly PackagesClient _packagesClient;
 
         public PackageCreateModal(PackageInfos? package = null) : base(
             "New package",
@@ -85,15 +85,15 @@ namespace Automation.App.Views.PackagesPages.Components
         {
             Title = "Select class"
         };
-        public Modal? ParentLayout { get; set; }
-
-        private readonly PackagesClient _packagesClient;
+        public IModal? ParentLayout { get; set; }
 
         public PackageInfos Package { get; set; }
         public IEnumerable<Version> Versions { get; set; } = [];
         public IEnumerable<PackageClass> PackageClasses { get; set; } = [];
         public Version SelectedVersion { get; set; }
         public PackageClass? SelectedClass { get; set; } = null;
+
+        private readonly PackagesClient _packagesClient;
 
         public PackageDetailModal(PackageInfos package)
         {

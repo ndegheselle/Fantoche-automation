@@ -46,7 +46,7 @@
                     FontSize="8"
                     VerticalAlignment="Center"
                     Margin="4,0" />
-                <components:NodeIcon Type="{Binding Type}" Margin="0,0,4,0" />
+                <components:ScopedIcon Scoped="{Binding}" Margin="0,0,4,0" />
                 <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
             </StackPanel>
         </StackPanel>

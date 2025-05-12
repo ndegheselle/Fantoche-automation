@@ -49,7 +49,7 @@ namespace Automation.App.Views.WorkPages.Workflows
     {
         public AutomationWorkflow Workflow { get; set; }
 
-        public Modal? ParentLayout { get; set; }
+        public IModal? ParentLayout { get; set; }
 
         public ModalOptions Options { get; private set; } = new ModalOptions() { Title = "Edit workflow" };
 

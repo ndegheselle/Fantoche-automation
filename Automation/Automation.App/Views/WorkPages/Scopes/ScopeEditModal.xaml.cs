@@ -46,14 +46,13 @@ namespace Automation.App.Views.WorkPages.Scopes
     /// </summary>
     public partial class ScopeEditModal : UserControl, IModalContent
     {
-        public Modal? ParentLayout { get; set; }
-
-        public ModalOptions Options => new ModalOptions() { Title = "Scope settings" };
-
-        
         private readonly ScopesClient _scopeClient;
 
         private IAlert _alert => this.GetCurrentAlertContainer();
+
+        public IModal? ParentLayout { get; set; }
+
+        public ModalOptions Options => new ModalOptions() { Title = "Scope settings" };
 
         public Scope Scope { get; set; }
 

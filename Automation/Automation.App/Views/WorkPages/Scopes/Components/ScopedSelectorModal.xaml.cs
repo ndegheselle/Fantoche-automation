@@ -3,9 +3,7 @@ using Automation.App.Shared.ViewModels.Work;
 using Joufflu.Popups;
 using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;
-using System.Transactions;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using Usuel.Shared;
 
 namespace Automation.App.Views.WorkPages.Scopes.Components
@@ -15,7 +13,7 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
     /// </summary>
     public partial class ScopedSelectorModal : UserControl, IModalContent, INotifyPropertyChanged
     {
-        public Modal? ParentLayout { get; set; }
+        public IModal? ParentLayout { get; set; }
 
         public ModalOptions Options { get; } = new ModalOptions() { Title = "Add node" };
 

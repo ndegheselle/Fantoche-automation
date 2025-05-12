@@ -22,7 +22,7 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
         public TaskInstance Instance { get; private set; }
         public ObservableCollection<TaskProgress> ProgressMessages { get; private set; } = [];
 
-        public Modal? ParentLayout { get; set; }
+        public IModal? ParentLayout { get; set; }
         public ModalOptions Options { get; private set; } = new ModalOptions() { Title = "Task progression" };
 
         public TaskProgressionModal(TaskInstance instance)

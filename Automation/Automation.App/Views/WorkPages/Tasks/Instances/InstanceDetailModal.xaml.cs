@@ -13,14 +13,13 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
     /// </summary>
     public partial class InstanceDetailModal : UserControl, IModalContent, INotifyPropertyChanged
     {
-        public Modal? ParentLayout { get; set; }
+        public IModal? ParentLayout { get; set; }
         public ModalOptions Options { get; } = new ModalOptions() { Title = "Instance detail" };
         public TaskInstance Instance { get; private set; }
 
         public string ContextJson { get; set; } = "";
         public string ResultJson { get; set; } = "";
 
-        
         private readonly TaskInstancesClient _instanceClient;
 
         public InstanceDetailModal(TaskInstance instance)

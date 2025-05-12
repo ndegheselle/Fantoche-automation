@@ -7,7 +7,7 @@ namespace Automation.App.Components.Inputs
 {
     public partial class TextBoxModal : UserControl, IModalContent
     {
-        public Modal? ParentLayout { get; set; }
+        public IModal? ParentLayout { get; set; }
         public ModalOptions Options { get; private set; } = new ModalOptions()
         {
             Title = "Input data"

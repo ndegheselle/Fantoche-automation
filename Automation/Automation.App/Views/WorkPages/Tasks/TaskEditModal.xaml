@@ -46,7 +46,7 @@
                 <fonts:Icon
                     Text="{Binding Task.Icon}"
                     VerticalAlignment="Center"
-                    Background="Red" />
+                    FontSize="22" />
             </layouts:FlexibleGrid>
 
             <Grid Margin="0,8,0,4">

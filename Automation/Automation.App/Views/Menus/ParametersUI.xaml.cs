@@ -1,6 +1,5 @@
 ﻿using Automation.App.ViewModels;
 using Joufflu.Popups;
-using Joufflu.Shared.Navigation;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows.Controls;
 
@@ -12,7 +11,7 @@ namespace Automation.App.Views.Menus
     public partial class ParametersUI : UserControl, IModalContent
     {
         public ModalOptions Options => new ModalOptions() { Title = "Parameters"};
-        public Modal? ParentLayout { get; set; }
+        public IModal? ParentLayout { get; set; }
 
         private readonly ParametersViewModel _context;
 

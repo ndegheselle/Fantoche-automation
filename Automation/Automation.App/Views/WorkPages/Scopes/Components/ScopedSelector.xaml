@@ -22,7 +22,7 @@
         <ListBox.ItemTemplate>
             <DataTemplate DataType="{x:Type viewmodels:ScopedElement}">
                 <StackPanel Orientation="Horizontal">
-                    <components:NodeIcon Type="{Binding Type}" Margin="0,0,4,0" />
+                    <components:ScopedIcon Scoped="{Binding}" Margin="0,0,4,0" />
                     <TextBlock Text="{Binding Name}" />
                 </StackPanel>
             </DataTemplate>

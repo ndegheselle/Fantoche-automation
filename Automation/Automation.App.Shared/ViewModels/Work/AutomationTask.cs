@@ -28,7 +28,6 @@ namespace Automation.App.Shared.ViewModels.Work
     [JsonDerivedType(typeof(AutomationWorkflow), "workflow")]
     public class AutomationTask : ScopedElement, IAutomationTask, INotifyPropertyChanged
     {
-        public string Icon { get; set; } = "\uf1b2";
         public TargetedPackage? Package { get; set; }
         public List<AutomationTaskConnector> Inputs { get; set; } = [];
         public List<AutomationTaskConnector> Outputs { get; set; } = [];

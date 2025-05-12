@@ -11,7 +11,7 @@ namespace Automation.App.Views.PackagesPages.Components
 {
     public class PackageSelectorModal : PackageSelector, IModalContent
     {
-        public Modal? ParentLayout { get; set; }
+        public IModal? ParentLayout { get; set; }
         public ModalOptions Options => new ModalOptions()
         {
             Title = "Select package"

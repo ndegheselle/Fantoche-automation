@@ -1,5 +1,4 @@
-﻿using Automation.App.Components.Display;
-using Automation.App.Components.Inputs;
+﻿using Automation.App.Components.Inputs;
 using Automation.App.Shared.ApiClients;
 using Automation.App.Shared.ViewModels.Work;
 using Automation.App.Views.PackagesPages.Components;
@@ -9,14 +8,12 @@ using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using Usuel.Shared;
 
 namespace Automation.App.Views.WorkPages.Tasks
 {
     public class TaskCreateModal : TextBoxModal, IModalContent
     {
-        
         private readonly TasksClient _taskClient;
 
         public AutomationTask NewTask { get; set; }
@@ -50,15 +47,11 @@ namespace Automation.App.Views.WorkPages.Tasks
     /// </summary>
     public partial class TaskEditModal : UserControl, INotifyPropertyChanged, IModalContent
     {
-        
         private readonly TasksClient _taskClient;
         private readonly PackagesClient _pacakgeClient;
 
         private IAlert _alert => this.GetCurrentAlertContainer();
-
-        private IModal _modal => this.GetCurrentModalContainer();
-
-        public Modal? ParentLayout { get; set; }
+        public IModal? ParentLayout { get; set; }
 
         public ModalOptions Options { get; private set; } = new ModalOptions();
 
@@ -82,7 +75,7 @@ namespace Automation.App.Views.WorkPages.Tasks
         private async void SelectPackage_Click(object sender, RoutedEventArgs e)
         {
             PackageSelectorModal modal = new PackageSelectorModal();
-            if (await _modal.Show(modal) && modal.SelectedTarget != null && modal.SelectedInfos != null)
+            if (await ParentLayout!.Show(modal) && modal.SelectedTarget != null && modal.SelectedInfos != null)
             {
                 Task.Package = modal.SelectedTarget;
             }
@@ -91,7 +84,7 @@ namespace Automation.App.Views.WorkPages.Tasks
         private async void ButtonEditIcon_Click(object sender, RoutedEventArgs e)
         {
             SelectIconModal modal = new SelectIconModal();
-            if (await _modal.Show(modal) && modal.Selected != null)
+            if (await ParentLayout!.Show(modal) && modal.Selected != null)
             {
                 Task.Icon = modal.Selected.Icon;
             }
@@ -105,6 +98,7 @@ namespace Automation.App.Views.WorkPages.Tasks
             {
                 await _taskClient.UpdateAsync(Task.Id, Task);
                 _alert.Success("Task updated !");
+                ParentLayout!.Hide();
             } catch (ValidationException ex)
             {
                 if (ex.Errors != null)

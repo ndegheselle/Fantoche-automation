@@ -8,7 +8,7 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
     /// </summary>
     public partial class GraphEditorHelp : UserControl, IModalContent
     {
-        public Modal? ParentLayout { get; set; }
+        public IModal? ParentLayout { get; set; }
         public ModalOptions Options { get; } = new ModalOptions() { Title = "Editor help" };
 
         public GraphEditorHelp()

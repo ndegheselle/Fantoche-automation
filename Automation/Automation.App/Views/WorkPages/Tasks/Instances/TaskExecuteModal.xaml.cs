@@ -11,10 +11,9 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
     /// </summary>
     public partial class TaskExecuteModal : UserControl, IModalContent
     {
-        
         private readonly TasksClient _taskClient;
 
-        public Modal? ParentLayout { get; set; }
+        public IModal? ParentLayout { get; set; }
         public ModalOptions Options { get; private set; } = new ModalOptions() { Title = "Execute task" };
 
         public string JsonSettings { get; set; } = "";

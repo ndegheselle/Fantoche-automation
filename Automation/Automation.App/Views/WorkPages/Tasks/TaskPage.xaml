@@ -62,11 +62,10 @@
             </Grid>
         </Grid>
         <Button
-            Height="22"
+            Height="27"
             Click="ButtonSettings_Click"
             HorizontalAlignment="Right"
-            VerticalAlignment="Top"
-            Margin="0,2">
+            VerticalAlignment="Top">
             <fonts:Icon Text="{x:Static fonts:IconFont.Gear}" />
         </Button>
     </Grid>

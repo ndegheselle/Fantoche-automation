@@ -15,7 +15,7 @@ namespace Automation.App.Components.Inputs
     /// </summary>
     public partial class FilePickerModal : UserControl, IModalContent
     {
-        public Modal? ParentLayout { get; set; }
+        public IModal? ParentLayout { get; set; }
         public ModalOptions Options { get; private set; } = new ModalOptions()
         {
             Title = "File select"

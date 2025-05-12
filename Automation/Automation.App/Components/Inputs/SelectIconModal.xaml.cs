@@ -6,7 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using Usuel.Shared;
 
-namespace Automation.App.Components.Display
+namespace Automation.App.Components.Inputs
 {
     public class IconItem
     {
@@ -20,7 +20,7 @@ namespace Automation.App.Components.Display
     /// </summary>
     public partial class SelectIconModal : UserControl, IModalContent, INotifyPropertyChanged
     {
-        public Modal? ParentLayout { get; set; }
+        public IModal? ParentLayout { get; set; }
 
         public ModalOptions Options { get; } = new ModalOptions() { Title = "Select icons" };
 

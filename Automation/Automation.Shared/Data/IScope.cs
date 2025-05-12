@@ -12,6 +12,8 @@
     {
         Guid? ParentId { get; set; }
         EnumScopedType Type { get; set; }
+        string? Color { get; set; }
+        string? Icon { get; set; }
     }
 
     public interface IScope : IScopedElement

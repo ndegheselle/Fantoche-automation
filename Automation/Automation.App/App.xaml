@@ -4,7 +4,9 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:Automation.App"
     xmlns:converters="clr-namespace:Automation.App.Converters"
-    xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI">
+    xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
+    xmlns:workComponents="clr-namespace:Automation.App.Views.WorkPages.Components"
+    xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -25,6 +27,7 @@
             <CornerRadius x:Key="{x:Static adonisUi:Dimensions.CornerRadius}">2</CornerRadius>
             <Thickness x:Key="{x:Static adonisUi:Dimensions.BorderThickness}">1</Thickness>
 
+            <Style TargetType="{x:Type workComponents:ScopedIcon}" BasedOn="{StaticResource {x:Type fonts:Icon}}" />
 
         </ResourceDictionary>
     </Application.Resources>

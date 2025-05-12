@@ -20,6 +20,9 @@ namespace Automation.App.Shared.ViewModels.Work
     [JsonDerivedType(typeof(Scope), "scope")]
     public class ScopedElement : ErrorValidationModel, IScopedElement, INotifyPropertyChanged
     {
+        public string? Color { get; set; }
+        public string? Icon { get; set; }
+
         public event PropertyChangedEventHandler? PropertyChanged;
         public void NotifyPropertyChanged([CallerMemberName] string? propertyName = null)
         { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }

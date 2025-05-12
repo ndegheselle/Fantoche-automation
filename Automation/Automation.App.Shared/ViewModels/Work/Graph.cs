@@ -19,7 +19,7 @@ namespace Automation.App.Shared.ViewModels.Work
 
     public class GraphTask : GraphNode
     {
-        public string Icon { get; set; } = "\uf596";
+        public string? Icon { get; set; } = "\uf596";
         public List<GraphConnector> Inputs { get; set; } = [];
         public List<GraphConnector> Outputs { get; set; } = [];
 

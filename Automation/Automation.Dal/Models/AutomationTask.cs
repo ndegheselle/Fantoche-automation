@@ -16,7 +16,6 @@ namespace Automation.Dal.Models
     [BsonKnownTypes(typeof(AutomationWorkflow))]
     public class AutomationTask : ScopedElement, IAutomationTask
     {
-        public string Icon { get; set; } = "";
         public IEnumerable<IAutomationTaskConnector> Inputs { get; set; } = [];
         public IEnumerable<IAutomationTaskConnector> Outputs { get; set; } = [];
         public IEnumerable<Schedule> Schedules { get; set; } = [];
