@@ -24,7 +24,7 @@
 
             <layouts:FlexibleGrid
                 Columns="2"
-                ColumnsWidth="*,64"
+                ColumnsWidth="*,80"
                 Gap="2">
 
                 <TextBlock Margin="0,8,0,4" FontWeight="Bold">Name</TextBlock>
@@ -32,21 +32,30 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition />
                         <ColumnDefinition Width="auto" />
+                        <ColumnDefinition Width="auto" />
                     </Grid.ColumnDefinitions>
                     <TextBlock Margin="0,8,0,4" FontWeight="Bold">Icon</TextBlock>
                     <Button
-                        Click="ButtonEditIcon_Click"
+                        Click="ButtonEditColor_Click"
                         Grid.Column="1"
+                        Style="{StaticResource IconButtonSmall}">
+                        <fonts:Icon Text="{x:Static fonts:IconFont.Palette}" />
+                    </Button>
+                    <Button
+                        Margin="2,0,0,0"
+                        Click="ButtonEditIcon_Click"
+                        Grid.Column="2"
                         Style="{StaticResource IconButtonSmall}">
                         <fonts:Icon Text="{x:Static fonts:IconFont.Pen}" />
                     </Button>
                 </Grid>
 
                 <TextBox Text="{Binding Task.Name}" />
-                <fonts:Icon
-                    Text="{Binding Task.Icon}"
-                    VerticalAlignment="Center"
-                    FontSize="22" />
+                <components:ScopedIcon
+                    Type="{Binding Task.Type}"
+                    Color="{Binding Task.Color}"
+                    Scoped="{Binding Task}"
+                    FontSize="18" />
             </layouts:FlexibleGrid>
 
             <Grid Margin="0,8,0,4">

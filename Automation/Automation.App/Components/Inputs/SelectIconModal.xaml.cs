@@ -21,8 +21,7 @@ namespace Automation.App.Components.Inputs
     public partial class SelectIconModal : UserControl, IModalContent, INotifyPropertyChanged
     {
         public IModal? ParentLayout { get; set; }
-
-        public ModalOptions Options { get; } = new ModalOptions() { Title = "Select icons" };
+        public ModalOptions Options { get; } = new ModalOptions() { Title = "Select icon" };
 
         public List<IconItem> Icons { get; private set; }
         public ICollectionView IconsView { get; private set; }

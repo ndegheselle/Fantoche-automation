@@ -20,7 +20,7 @@ namespace Automation.Dal.Repositories
 
         public async Task<IEnumerable<AutomationTask>> GetByDirectParentScopeAsync(Guid scopeId)
         {
-            var projection = Builders<AutomationTask>.Projection.Include(s => s.Id).Include(s => s.Name).Include("_t");
+            var projection = Builders<AutomationTask>.Projection.Include(s => s.Id).Include(s => s.Name).Include(s => s.Color).Include(s => s.Icon).Include("_t");
             return await _collection.Find(e => e.ParentId == scopeId).Project<AutomationTask>(projection).ToListAsync();
         }
 

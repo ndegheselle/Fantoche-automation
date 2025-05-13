@@ -1,5 +1,4 @@
-﻿using Automation.App.Shared.ViewModels.Work;
-using Automation.Shared.Data;
+﻿using Automation.Shared.Data;
 using Joufflu.Shared.Resources.Fonts;
 using System.Windows;
 using System.Windows.Media;
@@ -8,50 +7,69 @@ namespace Automation.App.Views.WorkPages.Components
 {
     internal class ScopedIcon : Icon
     {
+        #region Dependency Properties
         public static readonly DependencyProperty TypeProperty = DependencyProperty.Register(
-            nameof(Scoped),
-            typeof(ScopedElement),
+            nameof(Type),
+            typeof(EnumScopedType),
             typeof(ScopedIcon),
-            new PropertyMetadata(null, (d, e) => ((ScopedIcon)d).OnScopedChanged()));
+            new PropertyMetadata(EnumScopedType.Task, (d, e) => ((ScopedIcon)d).OnScopedChanged()));
 
-        public ScopedElement Scoped
+        public static readonly DependencyProperty ColorProperty = DependencyProperty.Register(
+            nameof(Color),
+            typeof(string),
+            typeof(ScopedIcon),
+            new PropertyMetadata(null));
+
+        public static readonly DependencyProperty IconProperty = DependencyProperty.Register(
+            nameof(Icon),
+            typeof(string),
+            typeof(ScopedIcon),
+            new PropertyMetadata(null));
+
+        #endregion
+
+        public EnumScopedType Type
         {
-            get { return (ScopedElement)GetValue(TypeProperty); }
+            get { return (EnumScopedType)GetValue(TypeProperty); }
             set { SetValue(TypeProperty, value); }
+        }
+
+        public string Color
+        {
+            get { return (string)GetValue(ColorProperty); }
+            set { SetValue(ColorProperty, value); }
         }
 
         public string Icon
         {
-            get
+            get { return (string)GetValue(IconProperty); }
+            set { SetValue(IconProperty, value); }
+        }
+
+        public void OnScopedChanged()
+        {
+            // Use specific icon if provided
+            if (string.IsNullOrEmpty(Icon) == false)
             {
-                if (string.IsNullOrEmpty(Scoped.Icon) == false)
-                    return Scoped.Icon;
-                switch (Scoped.Type)
+                Text = Icon;
+            }
+            // No specific icon, use default based on type
+            else
+            {
+                switch (Type)
                 {
                     case EnumScopedType.Scope:
-                        return IconFont.Folder;
+                        Text = IconFont.Folder; break;
                     case EnumScopedType.Workflow:
-                        return IconFont.Cubes;
+                        Text = IconFont.Cubes; break;
+                    default:
+                        Text = IconFont.Cube; break;
                 }
-                return IconFont.Cube;
             }
-        }
 
-        public SolidColorBrush? Color 
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(Scoped.Color) == false)
-                    return new BrushConverter().ConvertFrom(Scoped.Color) as SolidColorBrush;
-                return null;
-            }
-        }
-
-        private void OnScopedChanged()
-        {
-            Text = Icon;
-            if (Color != null)
-                Foreground = Color;
+            // Default 
+            if (string.IsNullOrEmpty(Color) == false)
+                Foreground = new BrushConverter().ConvertFrom(Color) as SolidColorBrush;
         }
     }
 }

@@ -5,6 +5,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Workflows.Editor"
+    xmlns:components="clr-namespace:Automation.App.Views.WorkPages.Components"
     mc:Ignorable="d"
     xmlns:nodify="clr-namespace:Nodify;assembly=Nodify"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
@@ -196,7 +197,11 @@
         </nodify:Node.Style>
 
         <Grid>
-            <fonts:Icon Text="{Binding Icon}" FontSize="24" />
+            <components:ScopedIcon
+                Icon="{Binding Icon}"
+                Color="{Binding Color}"
+                Type="{Binding Type}"
+                FontSize="24" />
         </Grid>
 
     </nodify:Node>

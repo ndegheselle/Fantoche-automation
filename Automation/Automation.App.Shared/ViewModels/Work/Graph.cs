@@ -19,14 +19,15 @@ namespace Automation.App.Shared.ViewModels.Work
 
     public class GraphTask : GraphNode
     {
-        public string? Icon { get; set; } = "\uf596";
+        public new string Name { get => Metadata.Name; set => Metadata.Name = value; } // TODO : remove this property and use the base one
+        public ScopedMetadata Metadata { get; set; }
+
         public List<GraphConnector> Inputs { get; set; } = [];
         public List<GraphConnector> Outputs { get; set; } = [];
 
         public GraphTask(AutomationTask task)
         {
-            Name = task.Name;
-            Icon = task.Icon;
+            Metadata = task.Metadata;
             Inputs.Add(new GraphConnector());
             Outputs.Add(new GraphConnector());
 
