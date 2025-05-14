@@ -2,6 +2,7 @@
 using Automation.App.Shared.ApiClients;
 using Automation.App.Shared.ViewModels.Work;
 using Automation.Shared.Base;
+using Automation.Shared.Data;
 using Joufflu.Popups;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows.Controls;
@@ -21,7 +22,7 @@ namespace Automation.App.Views.WorkPages.Scopes
             _scopeClient = Services.Provider.GetRequiredService<ScopesClient>();
             NewScope = scope;
             ValidateCommand = new DelegateCommand(Validate);
-            BindValue(nameof(Scope.Name), NewScope);
+            BindValue(nameof(ScopedMetadata.Name), NewScope.Metadata);
         }
 
         public async void Validate()

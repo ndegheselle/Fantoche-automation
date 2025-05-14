@@ -18,18 +18,23 @@ namespace Automation.App.Shared.ViewModels.Work
     [JsonDerivedType(typeof(AutomationTask), "task")]
     [JsonDerivedType(typeof(AutomationWorkflow), "workflow")]
     [JsonDerivedType(typeof(Scope), "scope")]
-    public class ScopedElement : ErrorValidationModel, IScopedElement, INotifyPropertyChanged
+    public abstract class ScopedElement : ErrorValidationModel, IScopedElement, INotifyPropertyChanged
     {
-        public ScopedMetadata Metadata { get; set; } = new ScopedMetadata();
-
         public event PropertyChangedEventHandler? PropertyChanged;
         public void NotifyPropertyChanged([CallerMemberName] string? propertyName = null)
         { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
+
+        public ScopedMetadata Metadata { get; set; }
 
         public Guid Id { get; set; }
         public Guid? ParentId { get; set; }
 
         public EnumScopedTabs FocusOn { get; set; } = EnumScopedTabs.History;
+
+        public ScopedElement(EnumScopedType type)
+        {
+            Metadata = new ScopedMetadata(type);
+        }
 
         #region UI specific
         [JsonIgnore]
@@ -51,9 +56,8 @@ namespace Automation.App.Shared.ViewModels.Work
         [JsonIgnore]
         public ListCollectionView? SortedChildrens { get; set; }
 
-        public Scope()
+        public Scope() : base(EnumScopedType.Scope)
         {
-            Type = EnumScopedType.Scope;
             Childrens = [];
         }
 
@@ -66,8 +70,8 @@ namespace Automation.App.Shared.ViewModels.Work
                     subScope.RefreshChildrens();
             }
             SortedChildrens = (ListCollectionView)CollectionViewSource.GetDefaultView(Childrens);
-            SortedChildrens.SortDescriptions.Add(new SortDescription(nameof(Type), ListSortDirection.Ascending));
-            SortedChildrens.SortDescriptions.Add(new SortDescription(nameof(Name), ListSortDirection.Ascending));
+            SortedChildrens.SortDescriptions.Add(new SortDescription(nameof(Metadata.Type), ListSortDirection.Ascending));
+            SortedChildrens.SortDescriptions.Add(new SortDescription(nameof(Metadata.Name), ListSortDirection.Ascending));
         }
 
         public void AddChild(ScopedElement element)

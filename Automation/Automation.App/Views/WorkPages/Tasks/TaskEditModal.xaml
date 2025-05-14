@@ -50,12 +50,8 @@
                     </Button>
                 </Grid>
 
-                <TextBox Text="{Binding Task.Name}" />
-                <components:ScopedIcon
-                    Type="{Binding Task.Type}"
-                    Color="{Binding Task.Color}"
-                    Scoped="{Binding Task}"
-                    FontSize="18" />
+                <TextBox Text="{Binding Task.Metadata.Name}" />
+                <components:ScopedIcon Metadata="{Binding Task.Metadata}" FontSize="18" />
             </layouts:FlexibleGrid>
 
             <Grid Margin="0,8,0,4">

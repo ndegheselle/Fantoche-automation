@@ -22,7 +22,7 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
         public TaskExecuteModal(AutomationTask task) {
             _taskClient = Services.Provider.GetRequiredService<TasksClient>();
             Task = task;
-            Options.Title = $"Execute task - {task.Name}";
+            Options.Title = $"Execute task - {task.Metadata.Name}";
 
             InitializeComponent(); 
         }

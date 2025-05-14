@@ -31,8 +31,8 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
             SelectCommand = new DelegateCommand(
                 () => ParentLayout?.Hide(true),
                 () => Selected != null &&
-                    (Selected.Type == Automation.Shared.Data.EnumScopedType.Workflow ||
-                        Selected.Type == Automation.Shared.Data.EnumScopedType.Task));
+                    (Selected.Metadata.Type == Automation.Shared.Data.EnumScopedType.Workflow ||
+                        Selected.Metadata.Type == Automation.Shared.Data.EnumScopedType.Task));
 
             InitializeComponent();
         }

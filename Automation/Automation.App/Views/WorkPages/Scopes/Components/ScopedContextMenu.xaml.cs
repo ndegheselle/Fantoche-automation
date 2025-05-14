@@ -74,7 +74,7 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
                 AdonisUI.Controls.MessageBoxResult.Yes)
                 return;
 
-            switch (Selected.Type)
+            switch (Selected.Metadata.Type)
             {
                 case EnumScopedType.Workflow:
                 case EnumScopedType.Task:

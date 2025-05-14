@@ -13,21 +13,21 @@ namespace Automation.Dal.Repositories
         public async Task<IEnumerable<AutomationTask>> GetByAnyParentScopeAsync(Guid scopeId)
         {
             // Include the discriminator field so that derived types are kept
-            var projection = Builders<AutomationTask>.Projection.Include(s => s.Id).Include(s => s.Name).Include("_t");
+            var projection = Builders<AutomationTask>.Projection.Include(s => s.Id).Include(s => s.Metadata).Include("_t");
             var filter = Builders<AutomationTask>.Filter.AnyEq(x => x.ParentTree, scopeId);
             return await _collection.Find(filter).Project<AutomationTask>(projection).ToListAsync();
         }
 
         public async Task<IEnumerable<AutomationTask>> GetByDirectParentScopeAsync(Guid scopeId)
         {
-            var projection = Builders<AutomationTask>.Projection.Include(s => s.Id).Include(s => s.Name).Include(s => s.Color).Include(s => s.Icon).Include("_t");
+            var projection = Builders<AutomationTask>.Projection.Include(s => s.Id).Include(s => s.Metadata).Include("_t");
             return await _collection.Find(e => e.ParentId == scopeId).Project<AutomationTask>(projection).ToListAsync();
         }
 
         public async Task<AutomationTask?> GetByParentScopeAndNameAsync(Guid scopeId, string name)
         {
-            var projection = Builders<AutomationTask>.Projection.Include(s => s.Id).Include(s => s.Name).Include("_t");
-            return await _collection.Find(e => e.ParentId == scopeId && e.Name == name).Project<AutomationTask>(projection).FirstOrDefaultAsync();
+            var projection = Builders<AutomationTask>.Projection.Include(s => s.Id).Include(s => s.Metadata).Include("_t");
+            return await _collection.Find(e => e.ParentId == scopeId && e.Metadata.Name == name).Project<AutomationTask>(projection).FirstOrDefaultAsync();
         }
 
         /// <summary>

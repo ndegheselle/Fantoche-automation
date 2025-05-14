@@ -1,9 +1,9 @@
 using Automation.Dal.Models;
 using Automation.Dal.Repositories;
 using Automation.Shared.Base;
+using Automation.Shared.Data;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
-using System.Xml.Linq;
 
 namespace Automation.Supervisor.Api.Controllers
 {
@@ -27,17 +27,17 @@ namespace Automation.Supervisor.Api.Controllers
             {
                 return BadRequest(new Dictionary<string, string[]>()
                 {
-                    {nameof(AutomationTask.Name), [$"A scope cannot be created without a parent."] }
+                    {nameof(AutomationTask.ParentId), [$"A scope cannot be created without a parent."] }
                 });
             }
 
-            var existingChild = await _repository.GetDirectChildByNameAsync(element.ParentId, element.Name);
+            var existingChild = await _repository.GetDirectChildByNameAsync(element.ParentId, element.Metadata.Name);
             if (existingChild != null)
             {
                 // XXX : if need more info can also use return ValidationProblem(new ValidationProblemDetails());
                 return BadRequest(new Dictionary<string, string[]>()
                 {
-                    {nameof(Scope.Name), [$"The name {element.Name} is already used in this scope."] }
+                    {nameof(ScopedMetadata.Name), [$"The name {element.Metadata.Name} is already used in this scope."] }
                 });
             }
 
@@ -46,7 +46,7 @@ namespace Automation.Supervisor.Api.Controllers
             {
                 return BadRequest(new Dictionary<string, string[]>()
                 {
-                    {nameof(AutomationTask.Name), [$"The parent id {element.ParentId} is invalid."] }
+                    {nameof(ScopedMetadata.Name), [$"The parent id {element.ParentId} is invalid."] }
                 });
             }
 
@@ -61,6 +61,13 @@ namespace Automation.Supervisor.Api.Controllers
             return await _repository.GetRootAsync();
         }
 
+        [HttpPost]
+        [Route("root")]
+        public async Task<Scope> CreateRootAsync()
+        {
+            return await _repository.CreateRootAsync();
+        }
+
         [HttpGet]
         [Route("{scopeId}/parents")]
         public async Task<ActionResult<IEnumerable<Scope>>> GetParentScopes([FromRoute] Guid scopeId)
@@ -70,7 +77,7 @@ namespace Automation.Supervisor.Api.Controllers
             {
                 return BadRequest(new Dictionary<string, string[]>()
                 {
-                    {nameof(AutomationTask.Name), [$"The scope id {scopeId} is invalid."] }
+                    {nameof(ScopedMetadata.Name), [$"The scope id {scopeId} is invalid."] }
                 });
             }
             return Ok(await _repository.GetByIdsAsync(scope.ParentTree));

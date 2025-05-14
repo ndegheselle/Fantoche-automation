@@ -19,7 +19,6 @@ namespace Automation.App.Views.WorkPages
         public ILayout? ParentLayout { get; set; }
         public Scope? CurrentScope { get; set; }
 
-        
         private readonly ScopesClient _client;
 
         public TasksMainPage()
@@ -54,7 +53,7 @@ namespace Automation.App.Views.WorkPages
             if (selected == null)
                 return;
 
-            switch (selected.Type)
+            switch (selected.Metadata.Type)
             {
                 case EnumScopedType.Scope:
                     Show(new ScopePage((Scope)selected));

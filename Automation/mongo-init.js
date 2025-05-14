@@ -29,7 +29,9 @@ db.tasks.createIndex(
 // Root scope
 db.scopes.insertOne({
     _id: UUID("00000000-0000-0000-0000-000000000001"),
+    metadata: {
+        name: "..",
+    },
     parentTree: [],
-    name: "..",
     context: {}
 });

@@ -46,8 +46,8 @@
                     FontSize="8"
                     VerticalAlignment="Center"
                     Margin="4,0" />
-                <components:ScopedIcon Scoped="{Binding}" Margin="0,0,4,0" />
-                <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                <components:ScopedIcon Metadata="{Binding Metadata}" Margin="0,0,4,0" />
+                <TextBlock Text="{Binding Metadata.Name}" VerticalAlignment="Center" />
             </StackPanel>
         </StackPanel>
 

@@ -2,6 +2,7 @@ using Automation.Dal.Models;
 using Automation.Dal.Repositories;
 using Automation.Realtime;
 using Automation.Shared.Base;
+using Automation.Shared.Data;
 using Automation.Supervisor.Api.Business;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
@@ -35,18 +36,18 @@ namespace Automation.Supervisor.Api.Controllers
             {
                 return BadRequest(new Dictionary<string, string[]>()
                 {
-                    {nameof(AutomationTask.Name), [$"A task cannot be created without a parent."] }
+                    {nameof(ScopedMetadata.Name), [$"A task cannot be created without a parent."] }
                 });
             }
 
             var scopeRepository = new ScopesRepository(_database);
-            var existingChild = await scopeRepository.GetDirectChildByNameAsync(element.ParentId, element.Name);
+            var existingChild = await scopeRepository.GetDirectChildByNameAsync(element.ParentId, element.Metadata.Name);
             
             if (existingChild != null)
             {
                 return BadRequest(new Dictionary<string, string[]>()
                 {
-                    {nameof(AutomationTask.Name), [$"The name {element.Name} is already used in this scope."] }
+                    {nameof(ScopedMetadata.Name), [$"The name {element.Metadata.Name} is already used in this scope."] }
                 });
             }
 
@@ -55,7 +56,7 @@ namespace Automation.Supervisor.Api.Controllers
             {
                 return BadRequest(new Dictionary<string, string[]>()
                 {
-                    {nameof(AutomationTask.Name), [$"The parent id {element.ParentId} is invalid."] }
+                    {nameof(ScopedMetadata.Name), [$"The parent id {element.ParentId} is invalid."] }
                 });
             }
 

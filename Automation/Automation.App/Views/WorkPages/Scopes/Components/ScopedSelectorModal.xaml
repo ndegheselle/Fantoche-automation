@@ -35,8 +35,8 @@
             <ListBox.ItemTemplate>
                 <DataTemplate DataType="{x:Type viewmodels:ScopedElement}">
                     <StackPanel Orientation="Horizontal">
-                        <components:ScopedIcon Scoped="{Binding}" Margin="0,0,4,0" />
-                        <TextBlock Text="{Binding Name}" />
+                        <components:ScopedIcon Metadata="{Binding Metadata}" Margin="0,0,4,0" />
+                        <TextBlock Text="{Binding Metadata.Name}" />
                     </StackPanel>
                 </DataTemplate>
             </ListBox.ItemTemplate>

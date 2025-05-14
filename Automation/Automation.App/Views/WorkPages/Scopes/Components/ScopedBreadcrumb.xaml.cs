@@ -53,7 +53,7 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
             foreach (Scope parent in parents)
             {
                 if (parent.Id == IScope.ROOT_SCOPE_ID)
-                    parent.Name = "..";
+                    parent.Metadata.Name = "..";
 
                 Parents.Add(parent);
             }

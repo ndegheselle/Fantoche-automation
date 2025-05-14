@@ -8,55 +8,31 @@ namespace Automation.App.Views.WorkPages.Components
     internal class ScopedIcon : Icon
     {
         #region Dependency Properties
-        public static readonly DependencyProperty TypeProperty = DependencyProperty.Register(
-            nameof(Type),
-            typeof(EnumScopedType),
+        public static readonly DependencyProperty MetadataProperty = DependencyProperty.Register(
+            nameof(Metadata),
+            typeof(ScopedMetadata),
             typeof(ScopedIcon),
-            new PropertyMetadata(EnumScopedType.Task, (d, e) => ((ScopedIcon)d).OnScopedChanged()));
-
-        public static readonly DependencyProperty ColorProperty = DependencyProperty.Register(
-            nameof(Color),
-            typeof(string),
-            typeof(ScopedIcon),
-            new PropertyMetadata(null));
-
-        public static readonly DependencyProperty IconProperty = DependencyProperty.Register(
-            nameof(Icon),
-            typeof(string),
-            typeof(ScopedIcon),
-            new PropertyMetadata(null));
+            new PropertyMetadata(null, (d, e) => ((ScopedIcon)d).OnMetadataChanged()));
 
         #endregion
 
-        public EnumScopedType Type
+        public ScopedMetadata Metadata
         {
-            get { return (EnumScopedType)GetValue(TypeProperty); }
-            set { SetValue(TypeProperty, value); }
+            get { return (ScopedMetadata)GetValue(MetadataProperty); }
+            set { SetValue(MetadataProperty, value); }
         }
 
-        public string Color
-        {
-            get { return (string)GetValue(ColorProperty); }
-            set { SetValue(ColorProperty, value); }
-        }
-
-        public string Icon
-        {
-            get { return (string)GetValue(IconProperty); }
-            set { SetValue(IconProperty, value); }
-        }
-
-        public void OnScopedChanged()
+        public void OnMetadataChanged()
         {
             // Use specific icon if provided
-            if (string.IsNullOrEmpty(Icon) == false)
+            if (string.IsNullOrEmpty(Metadata.Icon) == false)
             {
-                Text = Icon;
+                Text = Metadata.Icon;
             }
             // No specific icon, use default based on type
             else
             {
-                switch (Type)
+                switch (Metadata.Type)
                 {
                     case EnumScopedType.Scope:
                         Text = IconFont.Folder; break;
@@ -68,8 +44,8 @@ namespace Automation.App.Views.WorkPages.Components
             }
 
             // Default 
-            if (string.IsNullOrEmpty(Color) == false)
-                Foreground = new BrushConverter().ConvertFrom(Color) as SolidColorBrush;
+            if (string.IsNullOrEmpty(Metadata.Color) == false)
+                Foreground = new BrushConverter().ConvertFrom(Metadata.Color) as SolidColorBrush;
         }
     }
 }

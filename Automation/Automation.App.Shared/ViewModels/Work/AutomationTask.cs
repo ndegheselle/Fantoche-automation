@@ -37,10 +37,8 @@ namespace Automation.App.Shared.ViewModels.Work
         IEnumerable<IAutomationTaskConnector> IAutomationTask.Outputs => Outputs;
         IEnumerable<Schedule> IAutomationTask.Schedules => Schedules;
 
-        public AutomationTask()
-        {
-            Type = EnumScopedType.Task;
-        }
+        public AutomationTask() : base(EnumScopedType.Task)
+        {}
     }
 
     public class AutomationWorkflow : AutomationTask
@@ -49,7 +47,7 @@ namespace Automation.App.Shared.ViewModels.Work
 
         public AutomationWorkflow()
         {
-            Type = EnumScopedType.Workflow;
+            Metadata.Type = EnumScopedType.Workflow;
         }
     }
 }

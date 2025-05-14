@@ -197,11 +197,7 @@
         </nodify:Node.Style>
 
         <Grid>
-            <components:ScopedIcon
-                Icon="{Binding Icon}"
-                Color="{Binding Color}"
-                Type="{Binding Type}"
-                FontSize="24" />
+            <components:ScopedIcon Metadata="{Binding Metadata}" FontSize="24" />
         </Grid>
 
     </nodify:Node>

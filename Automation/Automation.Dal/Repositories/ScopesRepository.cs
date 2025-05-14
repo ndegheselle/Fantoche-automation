@@ -1,6 +1,7 @@
 ﻿using Automation.Dal.Models;
 using Automation.Shared.Data;
 using MongoDB.Driver;
+using System.Xml.Linq;
 
 namespace Automation.Dal.Repositories
 {
@@ -36,7 +37,7 @@ namespace Automation.Dal.Repositories
 
         public async Task<IEnumerable<Scope>> GetByScopeAsync(Guid scopeId, bool withChildrens = true)
         {
-            var projection = Builders<Scope>.Projection.Include(s => s.Id).Include(s => s.Name);
+            var projection = Builders<Scope>.Projection.Include(s => s.Id).Include(s => s.Metadata);
             var scopes = await _collection.Find(e => e.ParentId == scopeId).Project<Scope>(projection).ToListAsync();
 
             if (!withChildrens)
@@ -97,9 +98,28 @@ namespace Automation.Dal.Repositories
             return rootScope;
         }
 
+        public async Task<Scope> CreateRootAsync()
+        {
+            var rootScope = await GetByIdAsync(IScope.ROOT_SCOPE_ID);
+            if (rootScope == null)
+            {
+                rootScope = new Scope()
+                {
+                    Id = IScope.ROOT_SCOPE_ID,
+                    Metadata = new ScopedMetadata(EnumScopedType.Scope)
+                    {
+                        Name = "..",
+                    },
+                };
+                await _collection.InsertOneAsync(rootScope);
+            }
+
+            return rootScope;
+        }
+
         public async Task<ScopedElement?> GetDirectChildByNameAsync(Guid? scopeId, string name)
         {
-            var scope = await _collection.Find(e => e.Name == name && e.ParentId == scopeId).FirstOrDefaultAsync();
+            var scope = await _collection.Find(e => e.Metadata.Name == name && e.ParentId == scopeId).FirstOrDefaultAsync();
             if (scope != null)
                 return scope;
 

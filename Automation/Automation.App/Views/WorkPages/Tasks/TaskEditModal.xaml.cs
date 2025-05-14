@@ -3,6 +3,7 @@ using Automation.App.Shared.ApiClients;
 using Automation.App.Shared.ViewModels.Work;
 using Automation.App.Views.PackagesPages.Components;
 using Automation.Shared.Base;
+using Automation.Shared.Data;
 using Joufflu.Popups;
 using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;
@@ -23,7 +24,7 @@ namespace Automation.App.Views.WorkPages.Tasks
             _taskClient = Services.Provider.GetRequiredService<TasksClient>();
             NewTask = task;
             ValidateCommand = new DelegateCommand(Validate);
-            BindValue(nameof(Scope.Name), NewTask);
+            BindValue(nameof(ScopedMetadata.Name), NewTask.Metadata);
         }
 
         public async void Validate()
@@ -62,7 +63,7 @@ namespace Automation.App.Views.WorkPages.Tasks
         public TaskEditModal(AutomationTask task)
         {
             Task = task;
-            Options.Title = $"Edit task {task.Name}";
+            Options.Title = $"Edit task {task.Metadata.Name}";
             _taskClient = Services.Provider.GetRequiredService<TasksClient>();
             _pacakgeClient = Services.Provider.GetRequiredService<PackagesClient>();
             ValidateCommand = new DelegateCommand(Validate);
@@ -86,7 +87,7 @@ namespace Automation.App.Views.WorkPages.Tasks
             SelectIconModal modal = new SelectIconModal();
             if (await ParentLayout!.Show(modal) && modal.Selected != null)
             {
-                Task.Icon = modal.Selected.Icon;
+                Task.Metadata.Icon = modal.Selected.Icon;
             }
         }
 
@@ -95,7 +96,7 @@ namespace Automation.App.Views.WorkPages.Tasks
             SelectColorModal modal = new SelectColorModal();
             if (await ParentLayout!.Show(modal))
             {
-                Task.Color = modal.Selected;
+                Task.Metadata.Color = modal.Selected;
             }
         }
         #endregion

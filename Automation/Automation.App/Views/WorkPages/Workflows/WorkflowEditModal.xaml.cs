@@ -2,6 +2,7 @@
 using Automation.App.Shared.ApiClients;
 using Automation.App.Shared.ViewModels.Work;
 using Automation.Shared.Base;
+using Automation.Shared.Data;
 using Joufflu.Popups;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
@@ -22,7 +23,7 @@ namespace Automation.App.Views.WorkPages.Workflows
             _taskClient = Services.Provider.GetRequiredService<TasksClient>();
             NewWorkflow = newWorkflow;
             ValidateCommand = new DelegateCommand(Validate);
-            BindValue(nameof(Scope.Name), NewWorkflow);
+            BindValue(nameof(ScopedMetadata.Name), NewWorkflow.Metadata);
         }
 
         public async void Validate()
