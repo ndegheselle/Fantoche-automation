@@ -17,7 +17,7 @@
             <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
                 <Setter Property="Visibility" Value="Collapsed" />
                 <Style.Triggers>
-                    <DataTrigger Binding="{Binding Selected.Type}" Value="Scope">
+                    <DataTrigger Binding="{Binding Selected.Metadata.Type}" Value="Scope">
                         <Setter Property="Visibility" Value="Visible" />
                     </DataTrigger>
                 </Style.Triggers>

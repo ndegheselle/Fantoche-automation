@@ -59,7 +59,9 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
             InitializeComponent();
         }
 
-        private void OnSelectedChanged() { RemoveSelectedCommand.RaiseCanExecuteChanged(); }
+        private void OnSelectedChanged() { 
+            RemoveSelectedCommand.RaiseCanExecuteChanged(); 
+        }
 
         private async void OnRemoveSelected()
         {

@@ -13,7 +13,7 @@
         DataContext="{Binding ElementName=ContainerElement}"
         Grid.Row="1"
         ItemsSource="{Binding CurrentScope.SortedChildrens}"
-        SelectedItem="{Binding Selected, Mode=TwoWay}"
+        SelectedItem="{Binding Selected}"
         MouseDoubleClick="ListBox_MouseDoubleClick"
         PreviewMouseRightButtonDown="ListBox_PreviewMouseRightButtonDown">
         <ListBox.ContextMenu>
