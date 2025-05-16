@@ -16,7 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Automation.Server.Shared\Automation.Server.Shared.csproj" />
     <ProjectReference Include="..\Automation.Dal\Automation.Dal.csproj" />
     <ProjectReference Include="..\Automation.Realtime\Automation.Realtime.csproj" />
   </ItemGroup>
