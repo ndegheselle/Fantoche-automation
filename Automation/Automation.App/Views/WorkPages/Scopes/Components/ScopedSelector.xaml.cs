@@ -23,8 +23,6 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
             new PropertyMetadata(null));
         #endregion
 
-        private readonly ScopesClient _client;
-
         public Scope? CurrentScope
         {
             get { return (Scope)GetValue(CurrentScopeProperty); }
@@ -45,6 +43,8 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
         }
 
         public ScopedElement? Current => Selected ?? CurrentScope;
+
+        private readonly ScopesClient _client;
 
         public ScopedSelector()
         {

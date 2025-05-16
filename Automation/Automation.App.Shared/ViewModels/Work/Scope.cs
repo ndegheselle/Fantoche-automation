@@ -70,8 +70,8 @@ namespace Automation.App.Shared.ViewModels.Work
                     subScope.RefreshChildrens();
             }
             SortedChildrens = (ListCollectionView)CollectionViewSource.GetDefaultView(Childrens);
-            SortedChildrens.SortDescriptions.Add(new SortDescription(nameof(Metadata.Type), ListSortDirection.Ascending));
-            SortedChildrens.SortDescriptions.Add(new SortDescription(nameof(Metadata.Name), ListSortDirection.Ascending));
+            SortedChildrens.SortDescriptions.Add(new SortDescription($"{nameof(Metadata)}.{nameof(Metadata.Type)}", ListSortDirection.Ascending));
+            SortedChildrens.SortDescriptions.Add(new SortDescription($"{nameof(Metadata)}.{nameof(Metadata.Name)}", ListSortDirection.Ascending));
         }
 
         public void AddChild(ScopedElement element)

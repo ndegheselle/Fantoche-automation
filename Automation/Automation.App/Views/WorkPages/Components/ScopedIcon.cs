@@ -24,6 +24,9 @@ namespace Automation.App.Views.WorkPages.Components
 
         public void OnMetadataChanged()
         {
+            if (Metadata == null)
+                return;
+
             // Use specific icon if provided
             if (string.IsNullOrEmpty(Metadata.Icon) == false)
             {

@@ -6,6 +6,8 @@
     xmlns:converters="clr-namespace:Automation.App.Converters"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     xmlns:workComponents="clr-namespace:Automation.App.Views.WorkPages.Components"
+    xmlns:adonisControls="clr-namespace:AdonisUI.Controls;assembly=AdonisUI"
+    xmlns:adonisExtensions="clr-namespace:AdonisUI.Extensions;assembly=AdonisUI"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared">
     <Application.Resources>
         <ResourceDictionary>
@@ -28,6 +30,10 @@
             <Thickness x:Key="{x:Static adonisUi:Dimensions.BorderThickness}">1</Thickness>
 
             <Style TargetType="{x:Type workComponents:ScopedIcon}" BasedOn="{StaticResource {x:Type fonts:Icon}}" />
+
+            <Style TargetType="{x:Type adonisControls:MessageBoxWindow}" BasedOn="{StaticResource {x:Type adonisControls:AdonisWindow}}">
+                <Setter Property="BorderBrush" Value="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}" />
+            </Style>
 
         </ResourceDictionary>
     </Application.Resources>
