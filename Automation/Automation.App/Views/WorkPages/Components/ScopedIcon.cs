@@ -1,6 +1,8 @@
 ﻿using Automation.Shared.Data;
 using Joufflu.Shared.Resources.Fonts;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Media;
 
 namespace Automation.App.Views.WorkPages.Components
@@ -24,28 +26,26 @@ namespace Automation.App.Views.WorkPages.Components
 
         public void OnMetadataChanged()
         {
-            // Use specific icon if provided
-            if (string.IsNullOrEmpty(Metadata.Icon) == false)
+            if (Metadata == null)
+                return;
+
+            string lDefaultIcon = IconFont.Cube;
+            switch (Metadata.Type)
             {
-                Text = Metadata.Icon;
-            }
-            // No specific icon, use default based on type
-            else
-            {
-                switch (Metadata.Type)
-                {
-                    case EnumScopedType.Scope:
-                        Text = IconFont.Folder; break;
-                    case EnumScopedType.Workflow:
-                        Text = IconFont.Cubes; break;
-                    default:
-                        Text = IconFont.Cube; break;
-                }
+                case EnumScopedType.Scope:
+                    lDefaultIcon = IconFont.Folder; break;
+                case EnumScopedType.Workflow:
+                    lDefaultIcon = IconFont.Cubes; break;
             }
 
-            // Default 
-            if (string.IsNullOrEmpty(Metadata.Color) == false)
-                Foreground = new BrushConverter().ConvertFrom(Metadata.Color) as SolidColorBrush;
+            Binding iconBinding = new Binding(nameof(Metadata.Icon));
+            iconBinding.Source = Metadata;
+            iconBinding.TargetNullValue = lDefaultIcon;
+            this.SetBinding(TextProperty, iconBinding);
+
+            Binding colorBinding = new Binding(nameof(Metadata.Color));
+            colorBinding.Source = Metadata;
+            this.SetBinding(TextProperty, colorBinding);
         }
     }
 }
