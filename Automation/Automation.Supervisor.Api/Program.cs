@@ -1,5 +1,5 @@
 using Automation.Realtime;
-using Automation.Server.Shared.Packages;
+using Automation.Shared.Packages;
 using Automation.Supervisor.Api.Business;
 using DotNetEnv;
 using MongoDB.Bson;

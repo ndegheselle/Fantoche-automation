@@ -21,7 +21,7 @@ namespace Automation.App.Shared.ViewModels.Work
     public abstract class ScopedElement : ErrorValidationModel, IScopedElement, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
-        public void NotifyPropertyChanged([CallerMemberName] string? propertyName = null)
+        public void RaisePropertyChanged([CallerMemberName] string? propertyName = null)
         { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
 
         public ScopedMetadata Metadata { get; set; }

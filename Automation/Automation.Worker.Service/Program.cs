@@ -1,6 +1,6 @@
 using Automation.Realtime;
 using Automation.Realtime.Models;
-using Automation.Server.Shared.Packages;
+using Automation.Shared.Packages;
 using Automation.Worker.Service;
 using DotNetEnv;
 using MongoDB.Bson;

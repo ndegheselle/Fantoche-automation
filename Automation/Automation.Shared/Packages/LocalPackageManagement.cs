@@ -13,7 +13,7 @@ using System.Data;
 using System.Reflection;
 using System.Runtime.Versioning;
 
-namespace Automation.Server.Shared.Packages
+namespace Automation.Shared.Packages
 {
     public class LocalPackageManagement : IPackageManagement
     {

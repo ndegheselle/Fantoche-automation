@@ -1,8 +1,8 @@
 ﻿using Automation.Dal.Models;
 using Automation.Plugins.Shared;
 using Automation.Realtime.Clients;
-using Automation.Server.Shared.Packages;
 using Automation.Shared.Data;
+using Automation.Shared.Packages;
 using MongoDB.Bson;
 using StackExchange.Redis;
 

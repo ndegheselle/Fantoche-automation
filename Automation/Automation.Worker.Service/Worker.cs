@@ -3,8 +3,8 @@ using Automation.Dal.Repositories;
 using Automation.Realtime;
 using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
-using Automation.Server.Shared.Packages;
 using Automation.Shared.Data;
+using Automation.Shared.Packages;
 using Automation.Worker.Service.Business;
 using MongoDB.Driver;
 

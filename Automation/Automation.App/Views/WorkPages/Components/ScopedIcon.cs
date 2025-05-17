@@ -1,6 +1,9 @@
 ﻿using Automation.Shared.Data;
 using Joufflu.Shared.Resources.Fonts;
+using NuGet.Packaging.Core;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Media;
 
 namespace Automation.App.Views.WorkPages.Components
@@ -22,18 +25,18 @@ namespace Automation.App.Views.WorkPages.Components
             set { SetValue(MetadataProperty, value); }
         }
 
+        private ScopedMetadata? _previousMetadata;
+
         public void OnMetadataChanged()
         {
             if (Metadata == null)
                 return;
 
-            // Use specific icon if provided
-            if (string.IsNullOrEmpty(Metadata.Icon) == false)
-            {
-                Text = Metadata.Icon;
-            }
-            // No specific icon, use default based on type
-            else
+            if (_previousMetadata != null)
+                _previousMetadata.PropertyChanged -= Metadata_PropertyChanged;
+
+            Metadata.PropertyChanged +=Metadata_PropertyChanged;
+            if (Metadata.Icon == null)
             {
                 switch (Metadata.Type)
                 {
@@ -45,10 +48,21 @@ namespace Automation.App.Views.WorkPages.Components
                         Text = IconFont.Cube; break;
                 }
             }
+            else
+            {
+                Text = Metadata.Icon;
+            }
 
-            // Default 
+
             if (string.IsNullOrEmpty(Metadata.Color) == false)
                 Foreground = new BrushConverter().ConvertFrom(Metadata.Color) as SolidColorBrush;
+
+            _previousMetadata = Metadata;
+        }
+
+        private void Metadata_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            OnMetadataChanged();
         }
     }
 }
