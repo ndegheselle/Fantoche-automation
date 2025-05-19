@@ -1,22 +1,23 @@
 ﻿using Automation.Dal.Models;
 using Automation.Plugins.Shared;
 using Automation.Realtime.Clients;
-using Automation.Shared.Data;
 using Automation.Shared.Packages;
 using MongoDB.Bson;
 using StackExchange.Redis;
 
-namespace Automation.Worker.Service.Business
+namespace Automation.Worker
 {
-    public class TaskExecutor : IProgress
+    /// <summary>
+    /// Execute a task.
+    /// </summary>
+    public class RemoteTaskExecutor : ITaskExecutor
     {
         private readonly ConnectionMultiplexer _connection;
         // To send task progress to clients
         private readonly IPackageManagement _packages;
-        private TaskInstance? _currentInstance = null;
         private TasksRealtimeClient? _tasksClient;
 
-        public TaskExecutor(ConnectionMultiplexer connection, IPackageManagement packageManagement)
+        public RemoteTaskExecutor(ConnectionMultiplexer connection, IPackageManagement packageManagement)
         {
             _connection = connection;
             _packages = packageManagement;
@@ -24,31 +25,25 @@ namespace Automation.Worker.Service.Business
 
         public async Task<TaskInstance> ExecuteAsync(TaskInstance instance)
         {
-            _currentInstance = instance;
             _tasksClient = new TasksRealtimeClient(_connection, instance.Id);
-            _tasksClient.Lifecycle.Notify(_currentInstance.State);
+            _tasksClient.Lifecycle.Notify(instance.State);
 
-            ITask task = await _packages.CreateTaskInstanceAsync(_currentInstance.Target);
+            ITask task = await _packages.CreateTaskInstanceAsync(instance.Target);
             try
             {
-                task.Progress = this;
-                await task.ExecuteAsync(new TaskContext() { SettingsJson = _currentInstance.Context.Settings.ToJson() });
+                instance.State = await task.DoAsync(
+                    new TaskContext() { SettingsJson = instance.Context.Settings.ToJson() },
+                    new Progress<TaskProgress>(_tasksClient.Progress.Notify)
+                );
                 if (task is IResultsTask resultTask)
                     instance.Results = resultTask.Results;
-                instance.State = EnumTaskState.Completed;
-            } catch
+            }
+            catch
             {
                 instance.State = EnumTaskState.Failed;
             }
             _tasksClient.Lifecycle.Notify(instance.State);
             return instance;
-        }
-
-        public void Send(TaskProgress progress)
-        {
-            if (_currentInstance == null)
-                return;
-            _tasksClient?.Progress.Notify(progress);
         }
     }
 }

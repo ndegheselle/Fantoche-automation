@@ -25,30 +25,12 @@ namespace Automation.Supervisor.Api.Business
         /// <param name="taskId"></param>
         /// <param name="parameters"></param>
         /// <returns></returns>
-        public Task<TaskInstance> AssignAsync(AutomationTask task, string? settings)
+        public async Task<TaskInstance> AssignAsync(AutomationTask task, string? settings)
         {
             if (task.Package == null)
                 throw new ArgumentNullException(nameof(task));
 
             TaskInstance taskInstance = new TaskInstance(task.Id, task.Package, new InstanceContext() { Settings = settings });
-            return AssignAsync(taskInstance);
-        }
-
-        /// <summary>
-        /// Reassign a task to another worker (for exemple if the current worker crashed). The task state will be passed
-        /// to failed.
-        /// </summary>
-        /// <param name="task"></param>
-        /// <returns></returns>
-        public async Task<TaskInstance> ReassignAsync(TaskInstance task)
-        {
-            task.State = EnumTaskState.Failed;
-            await _repository.UpdateAsync(task.Id, task);
-            return await AssignAsync(task);
-        }
-
-        private async Task<TaskInstance> AssignAsync(TaskInstance taskInstance)
-        {
             WorkerInstance selectedWorker = await SelectWorkerAsync(taskInstance);
             taskInstance.WorkerId = selectedWorker.Id;
             await _repository.CreateAsync(taskInstance);

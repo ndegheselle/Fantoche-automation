@@ -1,8 +1,6 @@
-﻿using System.Runtime.InteropServices;
-
-namespace Automation.Plugins.Shared
+﻿namespace Automation.Plugins.Shared
 {
-    public enum TaskProgressType
+    public enum EnumTaskProgress
     {
         Info,
         Warning,
@@ -10,16 +8,39 @@ namespace Automation.Plugins.Shared
         Sucess
     }
 
+    public enum EnumTaskState
+    {
+        /// <summary>
+        /// Waiting for a worker to execute the task
+        /// </summary>
+        Pending,
+        /// <summary>
+        /// Task is waiting on another task, a manual action or a timer
+        /// </summary>
+        Waiting,
+        /// <summary>
+        /// Task is progressing
+        /// </summary>
+        Progressing,
+        /// <summary>
+        /// Task is completed
+        /// </summary>
+        Completed,
+        /// <summary>
+        /// Task failed
+        /// </summary>
+        Failed,
+        /// <summary>
+        /// Task is canceled
+        /// </summary>
+        Canceled,
+    }
+
     public class TaskProgress
     {
         public string Message { get; set; } = string.Empty;
-        public TaskProgressType Type { get; set; }
+        public EnumTaskProgress Type { get; set; }
         public DateTime Date { get; set; } = DateTime.Now;
-    }
-
-    public interface IProgress
-    {
-        public void Send(TaskProgress progress);
     }
 
     public class TaskContext
@@ -29,8 +50,7 @@ namespace Automation.Plugins.Shared
 
     public interface ITask
     {
-        public IProgress? Progress { get; set; }
-        public Task ExecuteAsync(TaskContext context);
+        public Task<EnumTaskState> DoAsync(TaskContext context, IProgress<TaskProgress>? progress);
     }
 
     public interface IResultsTask : ITask

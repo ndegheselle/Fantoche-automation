@@ -5,7 +5,6 @@ using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
 using Automation.Shared.Data;
 using Automation.Shared.Packages;
-using Automation.Worker.Service.Business;
 using MongoDB.Driver;
 
 namespace Automation.Worker.Service
@@ -15,7 +14,7 @@ namespace Automation.Worker.Service
         private readonly TaskIntancesRepository _repository;
 
         private readonly WorkerInstance _instance;
-        private readonly TaskExecutor _executor;
+        private readonly LocalTaskExecutor _executor;
         private readonly WorkerRealtimeClient _workerClient;
 
         private TaskCompletionSource? _waitingForTask;
@@ -29,7 +28,7 @@ namespace Automation.Worker.Service
         {
             _instance = instance;
             _repository = new TaskIntancesRepository(database);
-            _executor = new TaskExecutor(redis.Connection, packageManagement);
+            _executor = new LocalTaskExecutor(database, redis, packageManagement);
             _workerClient = new WorkersRealtimeClient(redis.Connection).ByWorker(_instance.Id);
         }
 
@@ -57,12 +56,12 @@ namespace Automation.Worker.Service
             }
         }
 
-        private async Task Execute(Guid taskId)
+        private async Task Execute(Guid instanceId)
         {
-            TaskInstance? instance = await _repository.GetByIdAsync(taskId) ??
-                throw new ArgumentException($"Unknow task instance id '{taskId}'");
+            TaskInstance? instance = await _repository.GetByIdAsync(instanceId) ??
+                throw new ArgumentException($"Unknow task instance id '{instanceId}'");
 
-            instance.State = EnumTaskState.Progress;
+            instance.State = EnumTaskState.Progressing;
             instance.StartDate = DateTime.Now;
             await _repository.UpdateAsync(instance.Id, instance);
 

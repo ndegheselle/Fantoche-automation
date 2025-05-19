@@ -42,7 +42,7 @@ namespace Automation.Supervisor.Api.Business
             IEnumerable<WorkerInstance> activeWorkers = await _workersClient.GetWorkersAsync();
             foreach (var task in await _repository.GetUnhandledAsync(activeWorkers.Select(x => x.Id)))
             {
-                await _assignator.ReassignAsync(task);
+                await _assignator.AssignAsync(task.TaskId, task.Context.Settings);
             }
         }
     }

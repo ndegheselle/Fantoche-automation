@@ -11,13 +11,18 @@ namespace Automation.Dal.Repositories
         {
         }
 
+        /// <summary>
+        /// Get the list of task instances that are not handled by the given workers.
+        /// </summary>
+        /// <param name="activeWorkersId">Ids of the active workers</param>
+        /// <returns>List of task instance than are ynhandled</returns>
         public virtual async Task<IEnumerable<TaskInstance>> GetUnhandledAsync(IEnumerable<string> activeWorkersId)
         {
             var filter = Builders<TaskInstance>.Filter
                 .And(
                     Builders<TaskInstance>.Filter.Nin(x => x.WorkerId, activeWorkersId),
                     // XXX : reassign task in progress ? Atomicity of the task data (database, file, ...) ?
-                    Builders<TaskInstance>.Filter.In(x => x.State, [EnumTaskState.Pending, EnumTaskState.Progress]));
+                    Builders<TaskInstance>.Filter.In(x => x.State, [EnumTaskState.Pending, EnumTaskState.Waiting, EnumTaskState.Progressing]));
 
             return await _collection.Find(filter).ToListAsync();
         }

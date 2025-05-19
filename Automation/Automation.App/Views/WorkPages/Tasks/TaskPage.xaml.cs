@@ -52,6 +52,7 @@ namespace Automation.App.Views.WorkPages.Tasks
         private void ButtonSettings_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             _modal.Show(new TaskEditModal(Task));
+            // TODO : maybe update the task in the side menu (different ref than the one modified in modal)
         }
     }
 }

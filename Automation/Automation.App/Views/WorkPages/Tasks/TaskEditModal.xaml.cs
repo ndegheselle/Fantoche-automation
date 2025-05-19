@@ -108,7 +108,7 @@ namespace Automation.App.Views.WorkPages.Tasks
             {
                 await _taskClient.UpdateAsync(Task.Id, Task);
                 _alert.Success("Task updated !");
-                ParentLayout!.Hide();
+                ParentLayout?.Hide(true);
             } catch (ValidationException ex)
             {
                 if (ex.Errors != null)
