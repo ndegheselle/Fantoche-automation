@@ -1,8 +1,13 @@
 ﻿using Automation.Dal.Models;
+using Automation.Dal.Repositories;
 using Automation.Plugins.Shared;
+using Automation.Realtime;
 using Automation.Realtime.Clients;
+using Automation.Realtime.Models;
 using Automation.Shared.Packages;
 using MongoDB.Bson;
+using MongoDB.Driver;
+using NuGet.Protocol.Core.Types;
 using StackExchange.Redis;
 
 namespace Automation.Worker
@@ -12,38 +17,52 @@ namespace Automation.Worker
     /// </summary>
     public class RemoteTaskExecutor : ITaskExecutor
     {
-        private readonly ConnectionMultiplexer _connection;
+        private readonly RedisConnectionManager _redis;
+        private readonly TaskIntancesRepository _instanceRepo;
+        private readonly TasksRepository _taskRepo;
+
         // To send task progress to clients
         private readonly IPackageManagement _packages;
         private TasksRealtimeClient? _tasksClient;
 
-        public RemoteTaskExecutor(ConnectionMultiplexer connection, IPackageManagement packageManagement)
+        public RemoteTaskExecutor(IMongoDatabase database, RedisConnectionManager connection, IPackageManagement packageManagement)
         {
-            _connection = connection;
+            _instanceRepo = new TaskIntancesRepository(database);
+            _taskRepo = new TasksRepository(database);
+            _redis = connection;
             _packages = packageManagement;
         }
 
-        public async Task<TaskInstance> ExecuteAsync(TaskInstance instance)
+        /// <summary>
+        /// Create a task instance for a specific task
+        /// </summary>
+        /// <param name="taskId"></param>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
+        public async Task<TaskInstance> AssignAsync(AutomationTask task, string? settings)
         {
-            _tasksClient = new TasksRealtimeClient(_connection, instance.Id);
-            _tasksClient.Lifecycle.Notify(instance.State);
+            if (task.Package == null)
+                throw new ArgumentNullException(nameof(task));
 
-            ITask task = await _packages.CreateTaskInstanceAsync(instance.Target);
-            try
-            {
-                instance.State = await task.DoAsync(
-                    new TaskContext() { SettingsJson = instance.Context.Settings.ToJson() },
-                    new Progress<TaskProgress>(_tasksClient.Progress.Notify)
-                );
-                if (task is IResultsTask resultTask)
-                    instance.Results = resultTask.Results;
-            }
-            catch
-            {
-                instance.State = EnumTaskState.Failed;
-            }
-            _tasksClient.Lifecycle.Notify(instance.State);
-            return instance;
+            TaskInstance taskInstance = new TaskInstance(task.Id, task.Package, new InstanceContext() { Settings = settings });
+            WorkerInstance selectedWorker = await SelectWorkerAsync(taskInstance);
+            taskInstance.WorkerId = selectedWorker.Id;
+            await _repository.CreateAsync(taskInstance);
+            _workersClient.ByWorker(selectedWorker.Id).Tasks.QueueAsync(taskInstance.Id);
+            return taskInstance;
+        }
+
+        /// <summary>
+        /// Select a worker for the task.
+        /// </summary>
+        /// <param name="task">Task to execute</param>
+        /// <returns>The selected worker instance.</returns>
+        /// <exception cref="Exception">No worker found.</exception>
+        private async Task<WorkerInstance> SelectWorkerAsync(TaskInstance task)
+        {
+            IEnumerable<WorkerInstance> workers = await _workersClient.GetWorkersAsync();
+            return workers.MinBy(async x => await _workersClient.ByWorker(x.Id).Tasks.GetQueueLengthAsync())
+                ?? throw new Exception("No available worker for the task.");
         }
     }
 }

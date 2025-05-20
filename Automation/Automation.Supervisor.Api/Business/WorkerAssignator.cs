@@ -3,7 +3,6 @@ using Automation.Dal.Repositories;
 using Automation.Realtime;
 using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
-using Automation.Shared.Data;
 using MongoDB.Driver;
 
 namespace Automation.Supervisor.Api.Business

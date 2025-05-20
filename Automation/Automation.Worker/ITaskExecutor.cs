@@ -1,4 +1,5 @@
-﻿using Automation.Dal.Models;
+﻿using Automation.Plugins.Shared;
+using Automation.Shared.Data;
 
 namespace Automation.Worker
 {
@@ -9,6 +10,6 @@ namespace Automation.Worker
         /// </summary>
         /// <param name="instance">Task instance to execute</param>
         /// <returns>Finished task instance</returns>
-        Task<TaskInstance> ExecuteAsync(TaskInstance instance);
+        Task<EnumTaskState> ExecuteAsync(TargetedPackage package, TaskContext context, IProgress<TaskProgress> progress);
     }
 }
