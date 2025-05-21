@@ -1,11 +1,11 @@
-﻿using Automation.Plugins.Shared;
-using Automation.Shared.Data;
+﻿using Automation.Dal.Models;
+using Automation.Plugins.Shared;
 using Automation.Shared.Packages;
 
 namespace Automation.Worker
 {
     /// <summary>
-    /// Execute a task.
+    /// Execute a automationTask.
     /// </summary>
     public class LocalTaskExecutor : ITaskExecutor
     {
@@ -15,9 +15,9 @@ namespace Automation.Worker
             _packages = packageManagement;
         }
 
-        public async Task<EnumTaskState> ExecuteAsync(TargetedPackage package, TaskContext context, IProgress<TaskProgress> progress)
+        public async Task<EnumTaskState> ExecuteAsync(AutomationTask automationTask, string contextJson, IProgress<TaskProgress> progress)
         {
-            ITask task = await _packages.CreateTaskInstanceAsync(package);
+            ITask task = await _packages.CreateTaskInstanceAsync(automationTask.Package ?? throw new Exception("Task without target package can't be executed."));
             try
             {
                 return await task.DoAsync(

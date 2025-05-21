@@ -64,5 +64,21 @@ namespace Automation.Worker
             return workers.MinBy(async x => await _workersClient.ByWorker(x.Id).Tasks.GetQueueLengthAsync())
                 ?? throw new Exception("No available worker for the task.");
         }
+
+
+        public async Task<EnumTaskState> ExecuteAsync(AutomationTask automationTask, TaskContext context, IProgress<TaskProgress> progress)
+        {
+            try
+            {
+                // Create task instance
+                // Wait for assigned worker to finish this specific task
+                // Get the updated instance with updated context
+                // Return the result
+            }
+            catch
+            { }
+
+            return EnumTaskState.Failed;
+        }
     }
 }

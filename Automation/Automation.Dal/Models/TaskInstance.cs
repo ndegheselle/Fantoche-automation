@@ -22,10 +22,7 @@ namespace Automation.Dal.Models
         public TargetedPackage Target { get; set; }
         public string? WorkerId { get; set; }
 
-        [JsonIgnore]
-        public InstanceContext Context { get; set; }
-        [JsonIgnore]
-        public Dictionary<string, object>? Results { get; set; }
+
 
         public EnumTaskState State { get; set; }
 

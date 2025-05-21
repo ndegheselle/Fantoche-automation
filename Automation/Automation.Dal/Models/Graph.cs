@@ -25,6 +25,9 @@ namespace Automation.Dal.Models
     {
         public string Icon { get; set; } = string.Empty;
 
+        public Guid TaskId { get; set; }
+        public string SettingsJson { get; set; } = string.Empty;
+
         public List<GraphConnector> Inputs { get; set; } = [];
         public List<GraphConnector> Outputs { get; set; } = [];
     }

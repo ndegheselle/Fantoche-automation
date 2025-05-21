@@ -45,7 +45,14 @@
 
     public class TaskContext
     {
-        public string? SettingsJson { get; set; }
+        public string SettingsJson { get; private set; } = string.Empty;
+        public string ContextJson { get; set; } = string.Empty;
+
+        public TaskContext(string settingsJson, string contextJson)
+        {
+            SettingsJson = settingsJson;
+            ContextJson = contextJson;
+        }
     }
 
     public interface ITask
