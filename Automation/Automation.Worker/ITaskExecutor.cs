@@ -1,6 +1,5 @@
 ﻿using Automation.Dal.Models;
 using Automation.Plugins.Shared;
-using Automation.Shared.Data;
 
 namespace Automation.Worker
 {
@@ -13,6 +12,6 @@ namespace Automation.Worker
         /// <param name="context">Context of the execution</param>
         /// <param name="progress">Progress of the task</param>
         /// <returns></returns>
-        Task<EnumTaskState> ExecuteAsync(AutomationTask automationTask, string , string contextJson, IProgress<TaskProgress> progress);
+        Task<EnumTaskState> ExecuteAsync(AutomationTask automationTask, TaskContext context, IProgress<TaskProgress> progress);
     }
 }

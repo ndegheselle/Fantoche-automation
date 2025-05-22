@@ -45,8 +45,8 @@
 
     public class TaskContext
     {
-        public string SettingsJson { get; private set; } = string.Empty;
-        public string ContextJson { get; set; } = string.Empty;
+        public string SettingsJson { get; private set; }
+        public string ContextJson { get; set; }
 
         public TaskContext(string settingsJson, string contextJson)
         {
@@ -58,10 +58,5 @@
     public interface ITask
     {
         public Task<EnumTaskState> DoAsync(TaskContext context, IProgress<TaskProgress>? progress);
-    }
-
-    public interface IResultsTask : ITask
-    {
-        public Dictionary<string, object> Results { get; }
     }
 }

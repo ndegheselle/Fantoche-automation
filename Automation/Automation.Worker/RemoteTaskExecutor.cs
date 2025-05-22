@@ -5,9 +5,7 @@ using Automation.Realtime;
 using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
 using Automation.Shared.Packages;
-using MongoDB.Bson;
 using MongoDB.Driver;
-using NuGet.Protocol.Core.Types;
 using StackExchange.Redis;
 
 namespace Automation.Worker
@@ -19,35 +17,30 @@ namespace Automation.Worker
     {
         private readonly RedisConnectionManager _redis;
         private readonly TaskIntancesRepository _instanceRepo;
-        private readonly TasksRepository _taskRepo;
-
+        private readonly WorkersRealtimeClient _workersClient;
         // To send task progress to clients
         private readonly IPackageManagement _packages;
-        private TasksRealtimeClient? _tasksClient;
 
         public RemoteTaskExecutor(IMongoDatabase database, RedisConnectionManager connection, IPackageManagement packageManagement)
         {
-            _instanceRepo = new TaskIntancesRepository(database);
-            _taskRepo = new TasksRepository(database);
             _redis = connection;
             _packages = packageManagement;
+            _instanceRepo = new TaskIntancesRepository(database);
+            _workersClient = new WorkersRealtimeClient(_redis.Connection);
         }
 
         /// <summary>
         /// Create a task instance for a specific task
         /// </summary>
         /// <param name="taskId"></param>
-        /// <param name="parameters"></param>
+        /// <param name="context"></param>
         /// <returns></returns>
-        public async Task<TaskInstance> AssignAsync(AutomationTask task, string? settings)
+        public async Task<TaskInstance> AssignAsync(Guid taskId, TaskContext context)
         {
-            if (task.Package == null)
-                throw new ArgumentNullException(nameof(task));
-
-            TaskInstance taskInstance = new TaskInstance(task.Id, task.Package, new InstanceContext() { Settings = settings });
+            TaskInstance taskInstance = new TaskInstance(taskId, context);
             WorkerInstance selectedWorker = await SelectWorkerAsync(taskInstance);
             taskInstance.WorkerId = selectedWorker.Id;
-            await _repository.CreateAsync(taskInstance);
+            await _instanceRepo.CreateAsync(taskInstance);
             _workersClient.ByWorker(selectedWorker.Id).Tasks.QueueAsync(taskInstance.Id);
             return taskInstance;
         }
@@ -68,6 +61,30 @@ namespace Automation.Worker
 
         public async Task<EnumTaskState> ExecuteAsync(AutomationTask automationTask, TaskContext context, IProgress<TaskProgress> progress)
         {
+            TaskInstance instance = await AssignAsync(automationTask.Id, context);
+            var tasksClient = new TasksRealtimeClient(_redis.Connection, instance.Id);
+
+            tasksClient.Lifecycle.WaitStateAsync()
+
+            await Task.Run(() =>
+            {
+                TaskCompletionSource completion = new TaskCompletionSource();
+                tasksClient.Lifecycle.Subscribe((state) =>
+                {
+                    if (state == EnumTaskState.Finished)
+                    {
+                        completion.SetResult();
+                    }
+                    else if (state == EnumTaskState.Failed)
+                    {
+                        completion.SetException(new Exception("Task failed"));
+                    }
+                });
+                return completion.Task;
+            });
+
+            tasksClient.Lifecycle.Unsubscribe();
+
             try
             {
                 // Create task instance

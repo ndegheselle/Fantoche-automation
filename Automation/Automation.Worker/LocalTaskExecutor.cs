@@ -15,7 +15,7 @@ namespace Automation.Worker
             _packages = packageManagement;
         }
 
-        public async Task<EnumTaskState> ExecuteAsync(AutomationTask automationTask, string contextJson, IProgress<TaskProgress> progress)
+        public async Task<EnumTaskState> ExecuteAsync(AutomationTask automationTask, TaskContext context, IProgress<TaskProgress> progress)
         {
             ITask task = await _packages.CreateTaskInstanceAsync(automationTask.Package ?? throw new Exception("Task without target package can't be executed."));
             try
