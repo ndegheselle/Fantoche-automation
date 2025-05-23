@@ -17,7 +17,7 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
     public partial class TaskProgressionModal : UserControl, IModalContent
     {
         
-        private readonly TasksRealtimeClient _taskRealtimeClient;
+        private readonly InstancesRealtimeClient _taskRealtimeClient;
 
         public TaskInstance Instance { get; private set; }
         public ObservableCollection<TaskProgress> ProgressMessages { get; private set; } = [];
@@ -30,7 +30,7 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
             RedisConnectionManager redis = Services.Provider.GetRequiredService<Lazy<RedisConnectionManager>>().Value;
 
             Instance = instance;
-            _taskRealtimeClient = new TasksRealtimeClient(redis.Connection, Instance.Id);
+            _taskRealtimeClient = new InstancesRealtimeClient(redis.Connection, Instance.Id);
             InitializeComponent();
 
             _taskRealtimeClient.Progress.Subscribe(OnInstanceMessage);

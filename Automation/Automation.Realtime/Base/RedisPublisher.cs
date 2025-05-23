@@ -1,54 +1,140 @@
 ﻿using StackExchange.Redis;
+using System.Collections.Concurrent;
 using System.Text.Json;
 
 namespace Automation.Realtime.Base
 {
-    public class RedisPublisher<T>
+    public class RedisPublisher<T> : IDisposable
     {
-        private ConnectionMultiplexer _connection;
-        private readonly string _publishChannel;
+        public delegate void SubscriberCallback(T? content, Guid subscriptionId);
 
-        public RedisPublisher(ConnectionMultiplexer connection, string publishChannel)
+        private readonly IConnectionMultiplexer _connection;
+        private readonly string _publishChannel;
+        private readonly ConcurrentDictionary<Guid, SubscriberCallback> _subscriptions = new();
+        private volatile bool _isChannelSubscribed = false;
+        // Specific object for locking the subscription process
+        private readonly object _subscriptionLock = new object();
+        private bool _disposed = false;
+
+        public RedisPublisher(IConnectionMultiplexer connection, string publishChannel)
         {
             _connection = connection;
             _publishChannel = publishChannel;
         }
 
         /// <summary>
-        /// Notify suscribers.
+        /// Subscribe to the publisher notifications.
+        /// Returns a subscription ID that can be used to unsubscribe this specific callback.
         /// </summary>
-        /// <param name="id"></param>
-        /// <param name="data"></param>
-        public void Notify(T data)
+        /// <param name="callback"></param>
+        /// <returns>Subscription ID for targeted unsubscription</returns>
+        public Guid Subscribe(SubscriberCallback callback)
         {
-            ISubscriber sub = _connection.GetSubscriber();
-            var channel = new RedisChannel(_publishChannel, RedisChannel.PatternMode.Literal);
-            sub.Publish(channel, JsonSerializer.Serialize(data));
+            var subscriptionId = Guid.NewGuid();
+            _subscriptions[subscriptionId] = callback;
+
+            lock (_subscriptionLock)
+            {
+                if (!_isChannelSubscribed)
+                {
+                    var channel = new RedisChannel(_publishChannel, RedisChannel.PatternMode.Literal);
+                    _connection.GetSubscriber()
+                        .Subscribe(channel, OnMessageReceived);
+                    _isChannelSubscribed = true;
+                }
+            }
+
+            return subscriptionId;
         }
 
         /// <summary>
-        /// Subscribe to the publisher notifications.
+        /// Unsubscribe a specific subscriber by ID
         /// </summary>
-        /// <param name="id"></param>
-        /// <param name="callback"></param>
-        public void Subscribe(Action<T?> callback)
+        /// <param name="subscriptionId"></param>
+        public void Unsubscribe(Guid subscriptionId)
         {
-            var channel = new RedisChannel(_publishChannel, RedisChannel.PatternMode.Literal);
-            _connection.GetSubscriber()
-                .Subscribe(
-                    channel,
-                    (channel, message) =>
-                    {
-                        callback.Invoke(JsonSerializer.Deserialize<T>(message.ToString()));
-                    });
+            _subscriptions.TryRemove(subscriptionId, out _);
+
+            lock (_subscriptionLock)
+            {
+                // If no more subscribers, unsubscribe from Redis channel
+                if (_subscriptions.IsEmpty && _isChannelSubscribed)
+                {
+                    var channel = new RedisChannel(_publishChannel, RedisChannel.PatternMode.Literal);
+                    _connection.GetSubscriber().Unsubscribe(channel);
+                    _isChannelSubscribed = false;
+                }
+            }
         }
 
-        // XXX : unsuscribe a specific suscriber ?
-        public void Unsubscribe()
+        /// <summary>
+        /// Unsubscribe all subscribers
+        /// </summary>
+        public void UnsubscribeAll()
         {
-            var channel = new RedisChannel(_publishChannel, RedisChannel.PatternMode.Literal);
-            var subscriber = _connection.GetSubscriber();
-            subscriber.Unsubscribe(channel);
+            _subscriptions.Clear();
+
+            lock (_subscriptionLock)
+            {
+                if (_isChannelSubscribed)
+                {
+                    var channel = new RedisChannel(_publishChannel, RedisChannel.PatternMode.Literal);
+                    _connection.GetSubscriber().Unsubscribe(channel);
+                    _isChannelSubscribed = false;
+                }
+            }
+        }
+
+        private void OnMessageReceived(RedisChannel channel, RedisValue message)
+        {
+            try
+            {
+                var deserializedMessage = JsonSerializer.Deserialize<T>(message.ToString());
+
+                // Notify all active subscribers
+                foreach (var subscription in _subscriptions)
+                {
+                    try
+                    {
+                        subscription.Value.Invoke(deserializedMessage, subscription.Key);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log exception but don't stop other callbacks
+                        Console.WriteLine($"Error in subscriber callback: {ex.Message}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deserializing message: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Dispose the object and unsubscribe all callbacks.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    UnsubscribeAll();
+                }
+                _disposed = true;
+            }
+        }
+
+        ~RedisPublisher()
+        {
+            Dispose(false);
         }
     }
 }

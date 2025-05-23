@@ -62,35 +62,15 @@ namespace Automation.Worker
         public async Task<EnumTaskState> ExecuteAsync(AutomationTask automationTask, TaskContext context, IProgress<TaskProgress> progress)
         {
             TaskInstance instance = await AssignAsync(automationTask.Id, context);
-            var tasksClient = new TasksRealtimeClient(_redis.Connection, instance.Id);
-
-            tasksClient.Lifecycle.WaitStateAsync()
-
-            await Task.Run(() =>
-            {
-                TaskCompletionSource completion = new TaskCompletionSource();
-                tasksClient.Lifecycle.Subscribe((state) =>
-                {
-                    if (state == EnumTaskState.Finished)
-                    {
-                        completion.SetResult();
-                    }
-                    else if (state == EnumTaskState.Failed)
-                    {
-                        completion.SetException(new Exception("Task failed"));
-                    }
-                });
-                return completion.Task;
-            });
-
-            tasksClient.Lifecycle.Unsubscribe();
+            var lifecycle = new InstanceLifecycleRedisPublisher(_redis.Connection, instance.Id);
 
             try
             {
-                // Create task instance
-                // Wait for assigned worker to finish this specific task
-                // Get the updated instance with updated context
-                // Return the result
+                EnumTaskState finishedState = await lifecycle.WaitStateAsync(EnumTaskState.Finished);
+                TaskInstance finishedInstance = await _instanceRepo.GetByIdAsync(instance.Id) ?? throw new Exception($"Unable to find the instance for the id '{instance.Id}'");
+                // Udpate the context
+                context.ContextJson = finishedInstance.Context.ContextJson;
+                return finishedState;
             }
             catch
             { }

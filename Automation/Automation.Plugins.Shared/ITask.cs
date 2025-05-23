@@ -8,32 +8,37 @@
         Sucess
     }
 
+    [Flags]
     public enum EnumTaskState
     {
         /// <summary>
         /// Waiting for a worker to execute the task
         /// </summary>
-        Pending,
+        Pending = 1,
         /// <summary>
         /// Task is waiting on another task, a manual action or a timer
         /// </summary>
-        Waiting,
+        Waiting = 2,
         /// <summary>
         /// Task is progressing
         /// </summary>
-        Progressing,
+        Progressing = 4,
         /// <summary>
         /// Task is completed
         /// </summary>
-        Completed,
+        Completed = 8,
         /// <summary>
         /// Task failed
         /// </summary>
-        Failed,
+        Failed = 16,
         /// <summary>
         /// Task is canceled
         /// </summary>
-        Canceled,
+        Canceled = 32,
+        /// <summary>
+        /// Task is finished
+        /// </summary>
+        Finished = Completed | Failed | Canceled
     }
 
     public class TaskProgress
