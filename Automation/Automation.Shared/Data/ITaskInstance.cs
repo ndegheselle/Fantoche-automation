@@ -6,7 +6,7 @@ namespace Automation.Shared.Data
     {
         public Guid TaskId { get; set; }
         public string? WorkerId { get; set; }
-        public TaskContext Context { get; set; }
+        public TaskParameters Parameters { get; set; }
 
         public EnumTaskState State { get; set; }
 

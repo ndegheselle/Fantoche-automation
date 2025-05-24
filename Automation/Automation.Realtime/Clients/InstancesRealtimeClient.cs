@@ -28,28 +28,29 @@ namespace Automation.Realtime.Clients
         /// <param name="targetState"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public Task<EnumTaskState> WaitStateAsync(EnumTaskState targetState, CancellationToken? cancellationToken = null)
+        public async Task<EnumTaskState> WaitStateAsync(EnumTaskState targetState, CancellationToken? cancellationToken = null)
         {
             cancellationToken ??= CancellationToken.None;
             var tcs = new TaskCompletionSource<EnumTaskState>();
 
-            void OnStateChanged(EnumTaskState state, Guid subscriberId)
+            var progress = new Progress<EnumTaskState>((state) =>
             {
                 if (state.HasFlag(targetState))
                 {
                     tcs.TrySetResult(state);
-                    Unsubscribe(subscriberId);
                 }
-            }
+            });
+            Subscribe(progress);
 
-            Guid subscriberId = Subscribe(OnStateChanged);
             cancellationToken?.Register(() =>
             {
                 tcs.TrySetCanceled();
-                Unsubscribe(subscriberId);
+                Unsubscribe(progress);
             });
 
-            return tcs.Task;
+            EnumTaskState finalState = await tcs.Task;
+            Unsubscribe(progress);
+            return finalState;
         }
     }
 }

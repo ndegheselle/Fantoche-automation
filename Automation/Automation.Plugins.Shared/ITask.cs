@@ -48,12 +48,12 @@
         public DateTime Date { get; set; } = DateTime.Now;
     }
 
-    public class TaskContext
+    public class TaskParameters
     {
         public string SettingsJson { get; private set; }
         public string ContextJson { get; set; }
 
-        public TaskContext(string settingsJson, string contextJson)
+        public TaskParameters(string settingsJson, string contextJson)
         {
             SettingsJson = settingsJson;
             ContextJson = contextJson;
@@ -62,6 +62,12 @@
 
     public interface ITask
     {
-        public Task<EnumTaskState> DoAsync(TaskContext context, IProgress<TaskProgress>? progress);
+        /// <summary>
+        /// Execute the task asynchronously and return the resultin state of the task.
+        /// </summary>
+        /// <param name="parameters">Context of execution of the task, the context can be modified by the task to pass data to next tasks</param>
+        /// <param name="progress"></param>
+        /// <returns></returns>
+        public Task<EnumTaskState> DoAsync(TaskParameters parameters, IProgress<TaskProgress>? progress);
     }
 }

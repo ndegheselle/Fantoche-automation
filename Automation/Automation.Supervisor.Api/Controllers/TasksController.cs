@@ -1,9 +1,11 @@
 using Automation.Dal.Models;
 using Automation.Dal.Repositories;
+using Automation.Plugins.Shared;
 using Automation.Realtime;
 using Automation.Shared.Base;
 using Automation.Shared.Data;
 using Automation.Supervisor.Api.Business;
+using Automation.Worker;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -19,13 +21,13 @@ namespace Automation.Supervisor.Api.Controllers
         private TasksRepository _taskRepo => (TasksRepository)_crudRepository;
         private readonly TaskIntancesRepository _taskInstanceRepo;
         private readonly IMongoDatabase _database;
-        private readonly WorkerAssignator _assignator;
+        private readonly RemoteTaskExecutor _executor;
 
         public TasksController(IMongoDatabase database, RedisConnectionManager redis) : base(new TasksRepository(database))
         {
             _database = database;
             _taskInstanceRepo = new TaskIntancesRepository(database);
-            _assignator = new WorkerAssignator(database, redis);
+            _executor = new RemoteTaskExecutor(database, redis);
         }
 
         [HttpPost]
@@ -66,7 +68,7 @@ namespace Automation.Supervisor.Api.Controllers
 
         [HttpPost]
         [Route("{id}/execute")]
-        public async Task<TaskInstance> ExecuteAsync([FromRoute] Guid id, [FromBody] string? settings)
+        public async Task<TaskInstance> ExecuteAsync([FromRoute] Guid id, [FromBody] TaskParameters? parameters)
         {
             AutomationTask? task = await _taskRepo.GetByIdAsync(id);
             if (task == null)
@@ -74,7 +76,7 @@ namespace Automation.Supervisor.Api.Controllers
             if (task.Package == null)
                 throw new InvalidOperationException($"The task '{id}' doesn't have an assigned package.");
 
-            return await _assignator.AssignAsync(task, settings);
+            return await _executor.ExecuteAsync(task, parameters);
         }
 
         [HttpGet]

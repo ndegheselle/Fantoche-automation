@@ -9,9 +9,9 @@ namespace Automation.Worker
         /// Execute a task, return the finished task state
         /// </summary>
         /// <param name="automationTask">Task to execute</param>
-        /// <param name="context">Context of the execution</param>
+        /// <param name="parameters">Context of the execution</param>
         /// <param name="progress">Progress of the task</param>
-        /// <returns></returns>
-        Task<EnumTaskState> ExecuteAsync(AutomationTask automationTask, TaskContext context, IProgress<TaskProgress> progress);
+        /// <returns>A task instance representing the task execution</returns>
+        Task<TaskInstance> ExecuteAsync(AutomationTask automationTask, TaskParameters parameters, IProgress<TaskProgress>? progress);
     }
 }

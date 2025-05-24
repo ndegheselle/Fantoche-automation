@@ -30,7 +30,7 @@ namespace Automation.Dal.Repositories
         public async Task<ListPageWrapper<TaskInstance>> GetByTaskAsync(Guid taskId, int page, int pageSize)
         {
             // We don't load context and result since it may be quite extensive
-            var projection = Builders<TaskInstance>.Projection.Exclude(s => s.Context).Exclude(s => s.Results);
+            var projection = Builders<TaskInstance>.Projection.Exclude(s => s.Parameters).Exclude(s => s.Results);
             var instances = await _collection.Find(e => e.TaskId == taskId)
                 .Project<TaskInstance>(projection)
                 .Skip(page * pageSize)
@@ -61,7 +61,7 @@ namespace Automation.Dal.Repositories
 
             var filter = Builders<TaskInstance>.Filter.In(x => x.TaskId, tasks.Select(x => x.Id));
             // We don't load context and result since it may be quite expensive
-            var projection = Builders<TaskInstance>.Projection.Exclude(s => s.Context).Exclude(s => s.Results);
+            var projection = Builders<TaskInstance>.Projection.Exclude(s => s.Parameters).Exclude(s => s.Results);
             var instances = await _collection.Find(filter)
                 .Project<TaskInstance>(projection)
                 .Skip(page * pageSize)

@@ -4,6 +4,7 @@ using Automation.Plugins.Shared;
 using Automation.Realtime;
 using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
+using Automation.Shared.Data;
 using Automation.Shared.Packages;
 using MongoDB.Driver;
 using StackExchange.Redis;
@@ -18,13 +19,10 @@ namespace Automation.Worker
         private readonly RedisConnectionManager _redis;
         private readonly TaskIntancesRepository _instanceRepo;
         private readonly WorkersRealtimeClient _workersClient;
-        // To send task progress to clients
-        private readonly IPackageManagement _packages;
 
-        public RemoteTaskExecutor(IMongoDatabase database, RedisConnectionManager connection, IPackageManagement packageManagement)
+        public RemoteTaskExecutor(IMongoDatabase database, RedisConnectionManager connection)
         {
             _redis = connection;
-            _packages = packageManagement;
             _instanceRepo = new TaskIntancesRepository(database);
             _workersClient = new WorkersRealtimeClient(_redis.Connection);
         }
@@ -35,7 +33,7 @@ namespace Automation.Worker
         /// <param name="taskId"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public async Task<TaskInstance> AssignAsync(Guid taskId, TaskContext context)
+        private async Task<TaskInstance> AssignAsync(Guid taskId, TaskParameters context)
         {
             TaskInstance taskInstance = new TaskInstance(taskId, context);
             WorkerInstance selectedWorker = await SelectWorkerAsync(taskInstance);
@@ -58,24 +56,29 @@ namespace Automation.Worker
                 ?? throw new Exception("No available worker for the task.");
         }
 
-
-        public async Task<EnumTaskState> ExecuteAsync(AutomationTask automationTask, TaskContext context, IProgress<TaskProgress> progress)
+        /// <inheritdoc />
+        public async Task<TaskInstance> ExecuteAsync(AutomationTask automationTask, TaskParameters parameters, IProgress<TaskProgress>? progress)
         {
-            TaskInstance instance = await AssignAsync(automationTask.Id, context);
+            TaskInstance instance = await AssignAsync(automationTask.Id, parameters);
             var lifecycle = new InstanceLifecycleRedisPublisher(_redis.Connection, instance.Id);
+            using InstanceProgressRedisPublisher instanceProgress = new InstanceProgressRedisPublisher(_redis.Connection, instance.Id);
 
             try
             {
+                Guid progressSubsciberId = instanceProgress.Subscribe((p, subscriberId) =>
+                {
+                    progress?.Report(p);
+                });
+
                 EnumTaskState finishedState = await lifecycle.WaitStateAsync(EnumTaskState.Finished);
+                // Udpate the context with the instance parameters stored in the database
                 TaskInstance finishedInstance = await _instanceRepo.GetByIdAsync(instance.Id) ?? throw new Exception($"Unable to find the instance for the id '{instance.Id}'");
-                // Udpate the context
-                context.ContextJson = finishedInstance.Context.ContextJson;
-                return finishedState;
+                parameters.ContextJson = finishedInstance.Parameters.ContextJson;
             }
             catch
             { }
 
-            return EnumTaskState.Failed;
+            return instance;
         }
     }
 }

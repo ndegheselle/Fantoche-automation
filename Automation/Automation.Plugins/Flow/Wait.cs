@@ -13,7 +13,7 @@ namespace Automation.Plugins.Flow
         public IProgress? Progress { get; set; }
         public Dictionary<string, object> Results { get; private set; } = [];
 
-        public async Task ExecuteAsync(TaskContext context)
+        public async Task ExecuteAsync(TaskParameters context)
         {
             WaitDelaySettings settings = new WaitDelaySettings();
             if (context.SettingsJson != null)

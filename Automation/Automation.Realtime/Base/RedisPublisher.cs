@@ -1,16 +1,13 @@
 ﻿using StackExchange.Redis;
-using System.Collections.Concurrent;
 using System.Text.Json;
 
 namespace Automation.Realtime.Base
 {
     public class RedisPublisher<T> : IDisposable
     {
-        public delegate void SubscriberCallback(T? content, Guid subscriptionId);
-
         private readonly IConnectionMultiplexer _connection;
         private readonly string _publishChannel;
-        private readonly ConcurrentDictionary<Guid, SubscriberCallback> _subscriptions = new();
+        private readonly List<IProgress<T>> _subscriptions = new();
         private volatile bool _isChannelSubscribed = false;
         // Specific object for locking the subscription process
         private readonly object _subscriptionLock = new object();
@@ -28,10 +25,10 @@ namespace Automation.Realtime.Base
         /// </summary>
         /// <param name="callback"></param>
         /// <returns>Subscription ID for targeted unsubscription</returns>
-        public Guid Subscribe(SubscriberCallback callback)
+        public Guid Subscribe(IProgress<T> callback)
         {
             var subscriptionId = Guid.NewGuid();
-            _subscriptions[subscriptionId] = callback;
+            _subscriptions.Add(callback);
 
             lock (_subscriptionLock)
             {
@@ -51,14 +48,14 @@ namespace Automation.Realtime.Base
         /// Unsubscribe a specific subscriber by ID
         /// </summary>
         /// <param name="subscriptionId"></param>
-        public void Unsubscribe(Guid subscriptionId)
+        public void Unsubscribe(IProgress<T> callback)
         {
-            _subscriptions.TryRemove(subscriptionId, out _);
+            _subscriptions.Remove(callback);
 
             lock (_subscriptionLock)
             {
                 // If no more subscribers, unsubscribe from Redis channel
-                if (_subscriptions.IsEmpty && _isChannelSubscribed)
+                if (_subscriptions.Count == 0 && _isChannelSubscribed)
                 {
                     var channel = new RedisChannel(_publishChannel, RedisChannel.PatternMode.Literal);
                     _connection.GetSubscriber().Unsubscribe(channel);
@@ -87,27 +84,12 @@ namespace Automation.Realtime.Base
 
         private void OnMessageReceived(RedisChannel channel, RedisValue message)
         {
-            try
-            {
-                var deserializedMessage = JsonSerializer.Deserialize<T>(message.ToString());
+            var deserializedMessage = JsonSerializer.Deserialize<T>(message.ToString()) ?? throw new Exception("Can't deserialize received message.");
 
-                // Notify all active subscribers
-                foreach (var subscription in _subscriptions)
-                {
-                    try
-                    {
-                        subscription.Value.Invoke(deserializedMessage, subscription.Key);
-                    }
-                    catch (Exception ex)
-                    {
-                        // Log exception but don't stop other callbacks
-                        Console.WriteLine($"Error in subscriber callback: {ex.Message}");
-                    }
-                }
-            }
-            catch (Exception ex)
+            // Notify all active subscribers
+            foreach (var subscription in _subscriptions)
             {
-                Console.WriteLine($"Error deserializing message: {ex.Message}");
+                subscription.Report(deserializedMessage);
             }
         }
 

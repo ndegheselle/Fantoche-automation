@@ -10,7 +10,7 @@ namespace Automation.Dal.Models
         public Guid Id { get; set; }
 
         public Guid TaskId { get; set; }
-        public TaskContext Context { get; set; }
+        public TaskParameters Parameters { get; set; }
 
         public string? WorkerId { get; set; }
         public EnumTaskState State { get; set; }
@@ -19,10 +19,10 @@ namespace Automation.Dal.Models
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
 
-        public TaskInstance(Guid taskId, TaskContext context)
+        public TaskInstance(Guid taskId, TaskParameters parameters)
         {
             TaskId = taskId;
-            Context = context;
+            Parameters = parameters;
         }
     }
 }
