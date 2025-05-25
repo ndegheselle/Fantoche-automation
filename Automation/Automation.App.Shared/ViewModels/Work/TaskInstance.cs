@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 
 namespace Automation.App.Shared.ViewModels.Work
 {
-    public class TaskInstance : ITaskInstance, INotifyPropertyChanged
+    public class TaskInstance : IAutomationTaskInstance, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
 

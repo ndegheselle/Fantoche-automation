@@ -18,13 +18,13 @@ namespace Automation.Worker
         }
 
         /// <inheritdoc />
-        public Task<TaskInstance> ExecuteAsync(AutomationTask automationTask, TaskParameters parameters, IProgress<TaskProgress>? progress)
+        public Task<AutomationTaskInstance> ExecuteAsync(AutomationTask automationTask, TaskParameters parameters, IProgress<TaskProgress>? progress = null)
         {
-            TaskInstance taskInstance = new TaskInstance(automationTask.Id, parameters);
+            AutomationTaskInstance taskInstance = new AutomationTaskInstance(automationTask.Id, parameters);
             return ExecuteAsync(taskInstance, automationTask.Package, progress);
         }
 
-        public async Task<TaskInstance> ExecuteAsync(TaskInstance taskInstance, TargetedPackage? package, IProgress<TaskProgress>? progress)
+        public async Task<AutomationTaskInstance> ExecuteAsync(AutomationTaskInstance taskInstance, TargetedPackage? package, IProgress<TaskProgress>? progress = null)
         {
             ITask task = await _packages.CreateTaskInstanceAsync(package ?? throw new Exception("Task without target package can't be executed."));
             try

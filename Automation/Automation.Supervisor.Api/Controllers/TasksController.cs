@@ -68,7 +68,7 @@ namespace Automation.Supervisor.Api.Controllers
 
         [HttpPost]
         [Route("{id}/execute")]
-        public async Task<TaskInstance> ExecuteAsync([FromRoute] Guid id, [FromBody] TaskParameters? parameters)
+        public async Task<AutomationTaskInstance> ExecuteAsync([FromRoute] Guid id, [FromBody] TaskParameters parameters)
         {
             AutomationTask? task = await _taskRepo.GetByIdAsync(id);
             if (task == null)
@@ -81,7 +81,7 @@ namespace Automation.Supervisor.Api.Controllers
 
         [HttpGet]
         [Route("{id}/instances")]
-        public async Task<ListPageWrapper<TaskInstance>> GetInstancesAsync([FromRoute] Guid id, [FromQuery] int page, [FromQuery] int pageSize)
+        public async Task<ListPageWrapper<AutomationTaskInstance>> GetInstancesAsync([FromRoute] Guid id, [FromQuery] int page, [FromQuery] int pageSize)
         {
             return await _taskInstanceRepo.GetByTaskAsync(id, page, pageSize);
         }

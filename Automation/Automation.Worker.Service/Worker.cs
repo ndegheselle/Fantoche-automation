@@ -1,9 +1,9 @@
 using Automation.Dal.Models;
 using Automation.Dal.Repositories;
+using Automation.Plugins.Shared;
 using Automation.Realtime;
 using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
-using Automation.Shared.Data;
 using Automation.Shared.Packages;
 using MongoDB.Driver;
 
@@ -11,7 +11,8 @@ namespace Automation.Worker.Service
 {
     public class Worker : BackgroundService
     {
-        private readonly TaskIntancesRepository _repository;
+        private readonly TaskIntancesRepository _instanceRepo;
+        private readonly TasksRepository _taskRepo;
 
         private readonly WorkerInstance _instance;
         private readonly LocalTaskExecutor _executor;
@@ -27,16 +28,15 @@ namespace Automation.Worker.Service
             IPackageManagement packageManagement)
         {
             _instance = instance;
-            _repository = new TaskIntancesRepository(database);
-            _executor = new LocalTaskExecutor(database, redis, packageManagement);
+            _instanceRepo = new TaskIntancesRepository(database);
+            _taskRepo = new TasksRepository(database);
+            _executor = new LocalTaskExecutor(packageManagement);
             _workerClient = new WorkersRealtimeClient(redis.Connection).ByWorker(_instance.Id);
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _workerClient.Tasks.SubscribeQueue(() => 
-                _waitingForTask?.SetResult()
-            );
+            _workerClient.Tasks.SubscribeQueue(() => _waitingForTask?.SetResult());
             while (!stoppingToken.IsCancellationRequested)
             {
                 // Execute all the queued tasks
@@ -58,16 +58,16 @@ namespace Automation.Worker.Service
 
         private async Task Execute(Guid instanceId)
         {
-            TaskInstance? instance = await _repository.GetByIdAsync(instanceId) ??
-                throw new ArgumentException($"Unknow task instance id '{instanceId}'");
+            AutomationTaskInstance instance = await _instanceRepo.GetByIdAsync(instanceId);
+            AutomationTask task = await _taskRepo.GetByIdAsync(instance.TaskId);
 
             instance.State = EnumTaskState.Progressing;
             instance.StartDate = DateTime.Now;
-            await _repository.UpdateAsync(instance.Id, instance);
+            await _instanceRepo.UpdateAsync(instance.Id, instance);
 
-            instance = await _executor.ExecuteAsync(instance);
+            instance = await _executor.ExecuteAsync(instance, task.Package);
             instance.EndDate = DateTime.Now;
-            await _repository.UpdateAsync(instance.Id, instance);
+            await _instanceRepo.UpdateAsync(instance.Id, instance);
         }
     }
 }

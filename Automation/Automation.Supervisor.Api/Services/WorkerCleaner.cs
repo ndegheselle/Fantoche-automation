@@ -2,6 +2,7 @@
 using Automation.Realtime;
 using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
+using Automation.Worker;
 using MongoDB.Driver;
 
 namespace Automation.Supervisor.Api.Business
@@ -14,13 +15,13 @@ namespace Automation.Supervisor.Api.Business
         private readonly TimeSpan _cleaningInterval = TimeSpan.FromSeconds(30);
         private readonly TaskIntancesRepository _repository;
         private readonly WorkersRealtimeClient _workersClient;
-        private readonly WorkerAssignator _assignator;
+        private readonly RemoteTaskExecutor _executor;
 
         public WorkerCleaner(IMongoDatabase database, RedisConnectionManager redis)
         {
             _repository = new TaskIntancesRepository(database);
             _workersClient = new WorkersRealtimeClient(redis.Connection);
-            _assignator = new WorkerAssignator(database, redis);
+            _executor = new RemoteTaskExecutor(database, redis);
         }
 
         protected async override Task ExecuteAsync(CancellationToken stoppingToken)
@@ -40,9 +41,9 @@ namespace Automation.Supervisor.Api.Business
         private async Task CleanUnhandledTasks()
         {
             IEnumerable<WorkerInstance> activeWorkers = await _workersClient.GetWorkersAsync();
-            foreach (var task in await _repository.GetUnhandledAsync(activeWorkers.Select(x => x.Id)))
+            foreach (var instance in await _repository.GetUnhandledAsync(activeWorkers.Select(x => x.Id)))
             {
-                await _assignator.AssignAsync(task.TaskId, task.Parameters.Settings);
+                await _executor.AssignAsync(instance);
             }
         }
     }

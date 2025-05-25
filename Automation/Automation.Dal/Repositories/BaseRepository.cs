@@ -26,9 +26,9 @@ namespace Automation.Dal.Repositories
         public BaseCrudRepository(IMongoDatabase database, string collectionName) : base(database, collectionName)
         { }
 
-        public virtual async Task<T?> GetByIdAsync(Guid id)
+        public virtual async Task<T> GetByIdAsync(Guid id)
         {
-            return await _collection.Find(e => e.Id == id).FirstOrDefaultAsync();
+            return await _collection.Find(e => e.Id == id).FirstOrDefaultAsync() ?? throw new Exception($"Unknow element with id '{id}'");
         }
 
         public virtual async Task<IEnumerable<T>> GetByIdsAsync(IEnumerable<Guid> ids)
