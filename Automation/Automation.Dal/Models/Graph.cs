@@ -32,6 +32,11 @@ namespace Automation.Dal.Models
         public List<GraphConnector> Outputs { get; set; } = [];
     }
 
+    public class GraphControlTask : GraphTask
+    {
+        public EnumControlTaskType Type { get; set; }
+    }
+
     public class GraphConnector
     {
         public Guid Id { get; set; }
@@ -47,7 +52,6 @@ namespace Automation.Dal.Models
     public class Graph : IIdentifier
     {
         public Guid Id { get; set; }
-        // Store directly in Workflow instead of a separated table ?
         public Guid WorkflowId { get; set; }
         public List<GraphConnection> Connections { get; set; } = [];
         public List<GraphNode> Nodes { get; private set; } = [];

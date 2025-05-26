@@ -46,7 +46,7 @@
 
     public interface IAutomationTask : IScopedElement
     {
-        TargetedPackage? Package { get; set; }
+        TargetedPackageClass? Package { get; set; }
         IEnumerable<IAutomationTaskConnector> Inputs { get; }
         IEnumerable<IAutomationTaskConnector> Outputs { get; }
         IEnumerable<Schedule> Schedules { get; }

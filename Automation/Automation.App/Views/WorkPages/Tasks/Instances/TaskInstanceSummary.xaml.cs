@@ -11,13 +11,13 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
     {
         public static readonly DependencyProperty InstanceProperty = DependencyProperty.Register(
             nameof(Instance),
-            typeof(TaskInstance),
+            typeof(AutomationTaskInstance),
             typeof(TaskInstanceSummary),
             new PropertyMetadata(null));
 
-        public TaskInstance? Instance
+        public AutomationTaskInstance? Instance
         {
-            get { return (TaskInstance?)GetValue(InstanceProperty); }
+            get { return (AutomationTaskInstance?)GetValue(InstanceProperty); }
             set { SetValue(InstanceProperty, value); }
         }
 

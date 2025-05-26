@@ -22,11 +22,11 @@ namespace Automation.App.Views.WorkPages.Scopes
 
         public Scope Scope { get { return (Scope)GetValue(ScopeProperty); } set { SetValue(ScopeProperty, value); } }
 
-        public ListPageWrapper<TaskInstance> Instances
+        public ListPageWrapper<AutomationTaskInstance> Instances
         {
             get;
             set;
-        } = new ListPageWrapper<TaskInstance>() { PageSize = 50, Page = 1 };
+        } = new ListPageWrapper<AutomationTaskInstance>() { PageSize = 50, Page = 1 };
 
         private bool _isAlreadyRefreshed = false;
         

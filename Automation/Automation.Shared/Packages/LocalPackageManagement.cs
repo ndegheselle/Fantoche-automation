@@ -158,7 +158,7 @@ namespace Automation.Shared.Packages
             return taskClasses;
         }
 
-        public async Task<ITask> CreateTaskInstanceAsync(TargetedPackage package)
+        public async Task<ITask> CreateTaskInstanceAsync(TargetedPackageClass package)
         {
             // Get package by id resource
             var findPackageByIdResource = await _repository.GetResourceAsync<FindPackageByIdResource>();

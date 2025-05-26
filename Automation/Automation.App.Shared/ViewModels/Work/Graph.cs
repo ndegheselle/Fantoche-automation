@@ -8,7 +8,7 @@ namespace Automation.App.Shared.ViewModels.Work
 {
     public class GraphNode
     {
-        public string Name { get; set; } = string.Empty;
+        public string Name { get; } = string.Empty;
         public Point Position { get; set; }
     }
 
@@ -19,7 +19,7 @@ namespace Automation.App.Shared.ViewModels.Work
 
     public class GraphTask : GraphNode
     {
-        public new string Name { get => Metadata.Name; set => Metadata.Name = value; } // TODO : remove this property and use the base one
+        public new string Name { get => Metadata.Name; set => Metadata.Name = value; }
         public ScopedMetadata Metadata { get; set; }
 
         public Guid TaskId { get; set; }

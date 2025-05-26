@@ -13,8 +13,6 @@ namespace Automation.App.Shared.ViewModels.Work
         public EnumTaskConnectorType Type { get; set; }
         public EnumTaskConnectorDirection Direction { get; set; }
 
-        // Ui specifics
-        public AutomationTask Parent { get; set; } = new AutomationTask();
         public bool IsConnected { get; set; }
         public Point Anchor { get; set; }
     }
@@ -28,7 +26,7 @@ namespace Automation.App.Shared.ViewModels.Work
     [JsonDerivedType(typeof(AutomationWorkflow), "workflow")]
     public class AutomationTask : ScopedElement, IAutomationTask, INotifyPropertyChanged
     {
-        public TargetedPackage? Package { get; set; }
+        public TargetedPackageClass? Package { get; set; }
         public List<AutomationTaskConnector> Inputs { get; set; } = [];
         public List<AutomationTaskConnector> Outputs { get; set; } = [];
         public List<Schedule> Schedules { get; set; } = [];

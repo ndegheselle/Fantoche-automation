@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 
 namespace Automation.App.Shared.ViewModels.Work
 {
-    public class TaskInstance : IAutomationTaskInstance, INotifyPropertyChanged
+    public class AutomationTaskInstance : IAutomationTaskInstance, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -16,12 +16,10 @@ namespace Automation.App.Shared.ViewModels.Work
 
         public Guid TaskId { get; set; }
 
-        public TargetedPackage Target { get; set; } = new TargetedPackage(new PackageIdentifier(), new PackageClass());
+        public TargetedPackageClass Target { get; set; } = new TargetedPackageClass(new PackageIdentifier(), new PackageClass());
         public string? WorkerId { get; set; }
 
-        public string SettingsJson { get; set; } = "";
-        public string ContextJson { get; set; } = "";
-
+        public TaskParameters Parameters { get; set; } = new TaskParameters("", "");
         public EnumTaskState State { get; set; }
 
         public DateTime CreateDate { get; set; }

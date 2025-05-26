@@ -17,20 +17,20 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
     public partial class TaskProgressionModal : UserControl, IModalContent
     {
         
-        private readonly InstancesRealtimeClient _taskRealtimeClient;
+        private readonly TasksRealtimeClient _taskRealtimeClient;
 
-        public TaskInstance Instance { get; private set; }
+        public AutomationTaskInstance Instance { get; private set; }
         public ObservableCollection<TaskProgress> ProgressMessages { get; private set; } = [];
 
         public IModal? ParentLayout { get; set; }
         public ModalOptions Options { get; private set; } = new ModalOptions() { Title = "Task progression" };
 
-        public TaskProgressionModal(TaskInstance instance)
+        public TaskProgressionModal(AutomationTaskInstance instance)
         {
             RedisConnectionManager redis = Services.Provider.GetRequiredService<Lazy<RedisConnectionManager>>().Value;
 
             Instance = instance;
-            _taskRealtimeClient = new InstancesRealtimeClient(redis.Connection, Instance.Id);
+            _taskRealtimeClient = new TasksRealtimeClient(redis.Connection, Instance.Id);
             InitializeComponent();
 
             _taskRealtimeClient.Progress.Subscribe(OnInstanceMessage);

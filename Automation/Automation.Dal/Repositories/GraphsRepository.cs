@@ -14,9 +14,9 @@ namespace Automation.Dal.Repositories
         /// </summary>
         /// <param name="workflowId">Target workflow id</param>
         /// <returns></returns>
-        public async Task<Graph?> GetByWorkflowIdAsync(Guid workflowId)
+        public async Task<Graph> GetByWorkflowIdAsync(Guid workflowId)
         {
-            return await _collection.Find(e => e.WorkflowId == workflowId).FirstOrDefaultAsync();
+            return await _collection.Find(e => e.WorkflowId == workflowId).FirstOrDefaultAsync() ?? throw new Exception($"Unknow graph for workflow id '{workflowId}'");
         }
     }
 }

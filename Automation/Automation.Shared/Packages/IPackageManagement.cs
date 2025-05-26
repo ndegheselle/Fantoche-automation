@@ -59,6 +59,6 @@ namespace Automation.Shared.Packages
         /// </summary>
         /// <param name="package">Target package informations</param>
         /// <returns>Instance of the class</returns>
-        Task<ITask> CreateTaskInstanceAsync(TargetedPackage package);
+        Task<ITask> CreateTaskInstanceAsync(TargetedPackageClass package);
     }
 }

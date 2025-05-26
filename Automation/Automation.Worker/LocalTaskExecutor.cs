@@ -24,7 +24,7 @@ namespace Automation.Worker
             return ExecuteAsync(taskInstance, automationTask.Package, progress);
         }
 
-        public async Task<AutomationTaskInstance> ExecuteAsync(AutomationTaskInstance taskInstance, TargetedPackage? package, IProgress<TaskProgress>? progress = null)
+        public async Task<AutomationTaskInstance> ExecuteAsync(AutomationTaskInstance taskInstance, TargetedPackageClass? package, IProgress<TaskProgress>? progress = null)
         {
             ITask task = await _packages.CreateTaskInstanceAsync(package ?? throw new Exception("Task without target package can't be executed."));
             try

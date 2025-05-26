@@ -1,4 +1,6 @@
-﻿namespace Automation.Shared.Data
+﻿using System.Security.Claims;
+
+namespace Automation.Shared.Data
 {
     public class PackageIdentifier
     {
@@ -30,12 +32,11 @@
         }
     }
 
-    public class TargetedPackage
+    public class TargetedPackageClass
     {
         public PackageIdentifier Identifier { get; set; }
         public PackageClass Class { get; set; }
-
-        public TargetedPackage(PackageIdentifier identifier, PackageClass targetClass)
+        public TargetedPackageClass(PackageIdentifier identifier, PackageClass targetClass)
         {
             Identifier = identifier;
             Class = targetClass;

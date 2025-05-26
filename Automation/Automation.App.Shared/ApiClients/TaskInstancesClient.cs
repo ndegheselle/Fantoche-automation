@@ -4,7 +4,7 @@ using RestSharp;
 
 namespace Automation.App.Shared.ApiClients
 {
-    public class TaskInstancesClient : BaseCrudClient<TaskInstance>
+    public class TaskInstancesClient : BaseCrudClient<AutomationTaskInstance>
     {
         public TaskInstancesClient(RestClient restClient) : base(restClient, "instances")
         { }
