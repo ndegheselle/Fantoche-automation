@@ -108,7 +108,8 @@ namespace Automation.App.Shared.ViewModels.Work
             {
                 var source = connectors[connection.SourceId];
                 var target = connectors[connection.TargetId];
-                connection.Connect(source, target);
+                connection.Source = source;
+                connection.Target = target;
             }
         }
     }

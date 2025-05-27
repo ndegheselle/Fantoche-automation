@@ -41,12 +41,20 @@ namespace Automation.Dal.Models
     {
         public Guid Id { get; set; }
         public bool IsConnected { get; set; }
+
+        [BsonIgnore, JsonIgnore]
+        public GraphTask? Parent { get; set; }
     }
 
     public class GraphConnection
     {
         public Guid SourceId { get; set; }
         public Guid TargetId { get; set; }
+
+        [BsonIgnore, JsonIgnore]
+        public GraphConnector? Source { get; set; }
+        [BsonIgnore, JsonIgnore]
+        public GraphConnector? Target { get; set; }
     }
 
     public class Graph : IIdentifier
@@ -55,5 +63,31 @@ namespace Automation.Dal.Models
         public Guid WorkflowId { get; set; }
         public List<GraphConnection> Connections { get; set; } = [];
         public List<GraphNode> Nodes { get; private set; } = [];
+
+        [BsonIgnore, JsonIgnore]
+        public Dictionary<Guid, AutomationTask> Tasks { get; set; } = [];
+
+        public void RefreshConnections()
+        {
+            Dictionary<Guid, GraphConnector> connectors = new Dictionary<Guid, GraphConnector>();
+            foreach (var node in Nodes)
+            {
+                if (node is GraphTask related)
+                {
+                    foreach (var connector in related.Inputs)
+                        connectors.Add(connector.Id, connector);
+                    foreach (var connector in related.Outputs)
+                        connectors.Add(connector.Id, connector);
+                }
+            }
+
+            // Set connections with corresponding connectors
+            foreach (var connection in Connections)
+            {
+                var source = connectors[connection.SourceId];
+                var target = connectors[connection.TargetId];
+                connection.Connect(source, target);
+            }
+        }
     }
 }
