@@ -1,15 +1,26 @@
 ﻿using Automation.Plugins.Shared;
 using Automation.Shared.Data;
 using MongoDB.Bson.Serialization.Attributes;
+using System.Reflection.Metadata.Ecma335;
+using System.Text.Json.Serialization;
 
 namespace Automation.Dal.Models
 {
+    /// <summary>
+    /// Task instance
+    /// </summary>
     public class AutomationTaskInstance : IAutomationTaskInstance
     {
         [BsonId]
         public Guid Id { get; set; }
 
+        /// <summary>
+        /// Task object of the TaskId
+        /// </summary>
+        [BsonIgnore, JsonIgnore]
+        public AutomationTask? Task { get; set; }
         public Guid TaskId { get; set; }
+
         public TaskParameters Parameters { get; set; }
 
         public string? WorkerId { get; set; }
@@ -19,6 +30,7 @@ namespace Automation.Dal.Models
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
 
+
         public AutomationTaskInstance(Guid taskId, TaskParameters parameters)
         {
             TaskId = taskId;
@@ -26,12 +38,18 @@ namespace Automation.Dal.Models
         }
     }
 
-    public class AutomationWorflowInstance : AutomationTaskInstance
+    /// <summary>
+    /// Task instance created from a graph
+    /// </summary>
+    public class AutomationTaskGraphInstance : AutomationTaskInstance
     {
-        // TODO : add instance graph history
+        public Guid WorkflowId { get; set; }
+        public Guid GraphNodeId { get; set; }
 
-        public AutomationWorflowInstance(Guid taskId, TaskParameters parameters) : base(taskId, parameters)
+        public AutomationTaskGraphInstance(Guid workflowId, GraphTask node, TaskParameters parameters) : base(node.TaskId, parameters)
         {
+            WorkflowId = workflowId;
+            GraphNodeId = node.Id;
         }
     }
 }

@@ -6,10 +6,10 @@ using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
 using MongoDB.Driver;
 
-namespace Automation.Worker
+namespace Automation.Worker.Executor
 {
     /// <summary>
-    /// Execute a task.
+    /// Execute a task by sending it to a worker
     /// </summary>
     public class RemoteTaskExecutor : ITaskExecutor
     {
@@ -25,17 +25,10 @@ namespace Automation.Worker
         }
 
         /// <summary>
-        /// Create a task instance for a specific task
+        /// Assign an instance to an available worker
         /// </summary>
-        /// <param name="taskId"></param>
-        /// <param name="context"></param>
+        /// <param name="taskInstance"></param>
         /// <returns></returns>
-        private Task<AutomationTaskInstance> AssignAsync(Guid taskId, TaskParameters context)
-        {
-            AutomationTaskInstance taskInstance = new AutomationTaskInstance(taskId, context);
-            return AssignAsync(taskInstance);
-        }
-
         public async Task<AutomationTaskInstance> AssignAsync(AutomationTaskInstance taskInstance)
         {
             WorkerInstance selectedWorker = await SelectWorkerAsync(taskInstance);
@@ -60,11 +53,10 @@ namespace Automation.Worker
 
         /// <inheritdoc/>
         public async Task<AutomationTaskInstance> ExecuteAsync(
-            AutomationTask automationTask,
-            TaskParameters parameters,
+            AutomationTaskInstance instance,
             IProgress<TaskProgress>? progress = null)
         {
-            AutomationTaskInstance instance = await AssignAsync(automationTask.Id, parameters);
+            instance = await AssignAsync(instance);
             var lifecycle = new InstanceLifecycleRedisPublisher(_redis.Connection, instance.Id);
             using InstanceProgressRedisPublisher instanceProgress = new InstanceProgressRedisPublisher(
                 _redis.Connection,
@@ -79,7 +71,7 @@ namespace Automation.Worker
                 // Udpate the context with the instance parameters stored in the database
                 AutomationTaskInstance finishedInstance = await _instanceRepo.GetByIdAsync(instance.Id) ??
                     throw new Exception($"Unable to find the instance for the id '{instance.Id}'");
-                parameters.ContextJson = finishedInstance.Parameters.ContextJson;
+                instance.Parameters.ContextJson = finishedInstance.Parameters.ContextJson;
             } catch
             {
                 instance.State = EnumTaskState.Failed;

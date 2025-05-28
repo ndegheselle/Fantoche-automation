@@ -32,10 +32,8 @@ namespace Automation.Dal.Models
         public List<GraphConnector> Outputs { get; set; } = [];
     }
 
-    public class GraphControlTask : GraphTask
-    {
-        public EnumControlTaskType Type { get; set; }
-    }
+    public class GraphWorkflow : GraphTask
+    {}
 
     public class GraphConnector
     {
@@ -64,20 +62,27 @@ namespace Automation.Dal.Models
         public List<GraphConnection> Connections { get; set; } = [];
         public List<GraphNode> Nodes { get; private set; } = [];
 
-        [BsonIgnore, JsonIgnore]
-        public Dictionary<Guid, AutomationTask> Tasks { get; set; } = [];
-
-        public void RefreshConnections()
+        /// <summary>
+        /// Refresh parent and object references between TaskNode, Connection and Connectors.
+        /// Simplify the graph resolution.
+        /// </summary>
+        public void Refresh()
         {
             Dictionary<Guid, GraphConnector> connectors = new Dictionary<Guid, GraphConnector>();
             foreach (var node in Nodes)
             {
-                if (node is GraphTask related)
+                if (node is GraphTask taskNode)
                 {
-                    foreach (var connector in related.Inputs)
+                    foreach (var connector in taskNode.Inputs)
+                    {
                         connectors.Add(connector.Id, connector);
-                    foreach (var connector in related.Outputs)
+                        connector.Parent = taskNode;
+                    }
+                    foreach (var connector in taskNode.Outputs)
+                    {
                         connectors.Add(connector.Id, connector);
+                        connector.Parent = taskNode;
+                    }
                 }
             }
 
@@ -86,7 +91,8 @@ namespace Automation.Dal.Models
             {
                 var source = connectors[connection.SourceId];
                 var target = connectors[connection.TargetId];
-                connection.Connect(source, target);
+                connection.Source = source;
+                connection.Target = source;
             }
         }
     }

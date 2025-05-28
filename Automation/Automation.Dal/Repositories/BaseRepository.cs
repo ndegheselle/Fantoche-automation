@@ -43,6 +43,16 @@ namespace Automation.Dal.Repositories
             return element.Id;
         }
 
+        public virtual async Task<Guid> CreateIfDoesntExistAsync(T element)
+        {
+            var existingElement = await _collection.Find(e => e.Id == element.Id).FirstOrDefaultAsync();
+            if (existingElement == null)
+            {
+                await _collection.InsertOneAsync(element);
+            }
+            return element.Id;
+        }
+
         public virtual async Task UpdateAsync(Guid id, T element)
         {
             await _collection.ReplaceOneAsync(e => e.Id == id, element);

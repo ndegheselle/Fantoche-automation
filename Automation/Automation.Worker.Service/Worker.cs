@@ -5,6 +5,7 @@ using Automation.Realtime;
 using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
 using Automation.Shared.Packages;
+using Automation.Worker.Executor;
 using MongoDB.Driver;
 
 namespace Automation.Worker.Service

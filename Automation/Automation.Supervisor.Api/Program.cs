@@ -1,6 +1,7 @@
 using Automation.Realtime;
 using Automation.Shared.Packages;
 using Automation.Supervisor.Api.Business;
+using Automation.Supervisor.Api.Database;
 using DotNetEnv;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
@@ -64,7 +65,15 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUi();
 }
 
-// XXX
+// Resolve DatabaseSeeder and call Seed method
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var database = services.GetRequiredService<IMongoDatabase>();
+    DatabaseSeeder databaseSeeder = new DatabaseSeeder(database);
+    await databaseSeeder.Seed();
+}
+
 // app.UseHttpsRedirection();
 
 app.UseAuthorization();

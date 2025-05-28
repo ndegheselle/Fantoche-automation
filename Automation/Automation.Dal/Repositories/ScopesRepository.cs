@@ -61,14 +61,14 @@ namespace Automation.Dal.Repositories
             return scopes;
         }
 
-        public override Task<Scope?> GetByIdAsync(Guid id) { return GetByIdAsync(id, true); }
+        public override Task<Scope> GetByIdAsync(Guid id) { return GetByIdAsync(id, true); }
 
-        public async Task<Scope?> GetByIdAsync(Guid id, bool withChildrens)
+        public async Task<Scope> GetByIdAsync(Guid id, bool withChildrens)
         {
             var scope = await _collection.Find(e => e.Id == id).FirstOrDefaultAsync();
 
             if (scope == null)
-                return null;
+                throw new Exception($"Unknow element with id '{id}'");
 
             if (withChildrens)
             {
@@ -94,25 +94,6 @@ namespace Automation.Dal.Repositories
 
             if (rootScope == null)
                 throw new Exception("Root scope doesn't exist.");
-
-            return rootScope;
-        }
-
-        public async Task<Scope> CreateRootAsync()
-        {
-            var rootScope = await GetByIdAsync(IScope.ROOT_SCOPE_ID);
-            if (rootScope == null)
-            {
-                rootScope = new Scope()
-                {
-                    Id = IScope.ROOT_SCOPE_ID,
-                    Metadata = new ScopedMetadata(EnumScopedType.Scope)
-                    {
-                        Name = "..",
-                    },
-                };
-                await _collection.InsertOneAsync(rootScope);
-            }
 
             return rootScope;
         }

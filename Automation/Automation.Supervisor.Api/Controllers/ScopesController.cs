@@ -61,13 +61,6 @@ namespace Automation.Supervisor.Api.Controllers
             return await _repository.GetRootAsync();
         }
 
-        [HttpPost]
-        [Route("root")]
-        public async Task<Scope> CreateRootAsync()
-        {
-            return await _repository.CreateRootAsync();
-        }
-
         [HttpGet]
         [Route("{scopeId}/parents")]
         public async Task<ActionResult<IEnumerable<Scope>>> GetParentScopes([FromRoute] Guid scopeId)
