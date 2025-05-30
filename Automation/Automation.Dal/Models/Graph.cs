@@ -32,6 +32,11 @@ namespace Automation.Dal.Models
         public List<GraphConnector> Outputs { get; set; } = [];
     }
 
+    public class GraphControl : GraphTask
+    {
+        public EnumControlTaskType Type { get; set; }
+    }
+
     public class GraphWorkflow : GraphTask
     {}
 

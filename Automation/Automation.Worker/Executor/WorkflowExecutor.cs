@@ -1,6 +1,7 @@
 ﻿using Automation.Dal.Models;
 using Automation.Dal.Repositories;
 using Automation.Plugins.Shared;
+using Automation.Shared.Data;
 
 namespace Automation.Worker.Executor
 {
@@ -14,14 +15,15 @@ namespace Automation.Worker.Executor
         public async Task ExecuteWorkflowAsync(AutomationTaskInstance instance)
         {
             var graph = await LoadGraph(instance.Id);
-            var startNode = graph.Nodes.OfType<GraphControlTask>().Where(x => x.Type == EnumControlTaskType.Start).Single();
+            var startNode = graph.Nodes.OfType<GraphControl>().Where(x => x.Type == EnumControlTaskType.Start).Single();
 
-            ExecuteNodeAsync(startNode, graph);
+            await ExecuteNodeAsync(startNode, graph, instance);
         }
 
         public async Task ExecuteNodeAsync(GraphTask node, Graph graph, AutomationTaskInstance workflowInstance)
         {
-            var instance = new AutomationTaskGraphInstance(workflowInstance.TaskId, node, new TaskParameters("", ""));
+            var instance = new AutomationSubTaskInstance(workflowInstance.TaskId, node, new TaskParameters("", ""));
+
             if (node is GraphWorkflow)
                 await ExecuteWorkflowAsync(instance);
             else

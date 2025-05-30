@@ -29,7 +29,7 @@ string realtimeConnectionString = Environment.GetEnvironmentVariable("REDIS_URI"
 builder.Services.AddSingleton<RedisConnectionManager>(new RedisConnectionManager(realtimeConnectionString));
 
 // Package management
-builder.Services.AddSingleton<IPackageManagement>(new LocalPackageManagement("/app/data/nuget"));
+builder.Services.AddSingleton<Automation.Worker.Packages.IPackageManagement>(new Automation.Worker.Packages.LocalPackageManagement("/app/data/nuget"));
 
 // Database
 builder.Services.AddSingleton<IMongoDatabase>(

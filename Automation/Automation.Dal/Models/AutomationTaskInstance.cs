@@ -41,12 +41,12 @@ namespace Automation.Dal.Models
     /// <summary>
     /// Task instance created from a graph
     /// </summary>
-    public class AutomationTaskGraphInstance : AutomationTaskInstance
+    public class AutomationSubTaskInstance : AutomationTaskInstance
     {
         public Guid WorkflowId { get; set; }
         public Guid GraphNodeId { get; set; }
 
-        public AutomationTaskGraphInstance(Guid workflowId, GraphTask node, TaskParameters parameters) : base(node.TaskId, parameters)
+        public AutomationSubTaskInstance(Guid workflowId, GraphTask node, TaskParameters parameters) : base(node.TaskId, parameters)
         {
             WorkflowId = workflowId;
             GraphNodeId = node.Id;

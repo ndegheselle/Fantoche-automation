@@ -5,7 +5,7 @@ using RestSharp;
 
 namespace Automation.App.Shared.ApiClients
 {
-    public class ScopesClient : BaseCrudClient<Scope>
+    public class ScopesClient : ApiClients.BaseCrudClient<Scope>
     {
         public ScopesClient(RestClient restClient) : base(restClient, "scopes")
         { }
@@ -13,13 +13,13 @@ namespace Automation.App.Shared.ApiClients
         public async Task<Scope> GetRootAsync()
         {
             return await _client.GetAsync<Scope>($"{_routeBase}/root") ??
-                throw new ApiException("Could not get the root scope element.");
+                throw new ApiClients.ApiException("Could not get the root scope element.");
         }
 
         public async Task<IEnumerable<Scope>> GetParentScopes(Guid scopeId)
         {
             return await _client.GetAsync<IEnumerable<Scope>>($"{_routeBase}/{scopeId}/parents") ??
-                throw new ApiException("Could not get the parents scopes.");
+                throw new ApiClients.ApiException("Could not get the parents scopes.");
         }
 
         public async Task<ListPageWrapper<AutomationTaskInstance>> GetInstancesAsync(Guid scopeId, int page, int pageSize)

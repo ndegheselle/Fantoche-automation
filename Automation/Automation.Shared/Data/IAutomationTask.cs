@@ -53,6 +53,5 @@
     }
 
     public interface IAutomationWorkflow : IAutomationTask
-    {
-    }
+    {}
 }

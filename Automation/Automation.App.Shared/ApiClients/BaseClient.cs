@@ -2,7 +2,7 @@
 using Newtonsoft.Json;
 using RestSharp;
 
-namespace Automation.Shared.Clients
+namespace Automation.App.Shared.ApiClients
 {
     public class ApiException : Exception
     {
@@ -21,7 +21,7 @@ namespace Automation.Shared.Clients
         }
     }
 
-    public class BaseCrudClient<T> : BaseClient
+    public class BaseCrudClient<T> : ApiClients.BaseClient
     {
         public BaseCrudClient(RestClient client, string routeBase) : base(client, routeBase)
         {

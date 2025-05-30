@@ -26,7 +26,7 @@ namespace Automation.Worker.Service
             WorkerInstance instance,
             IMongoDatabase database,
             RedisConnectionManager redis,
-            IPackageManagement packageManagement)
+            Packages.IPackageManagement packageManagement)
         {
             _instance = instance;
             _instanceRepo = new TaskIntancesRepository(database);

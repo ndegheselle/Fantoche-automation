@@ -2,7 +2,7 @@
 using Automation.Shared.Base;
 using Automation.Shared.Data;
 
-namespace Automation.Shared.Packages
+namespace Automation.Worker.Packages
 {
     public interface IPackageManagement
     {

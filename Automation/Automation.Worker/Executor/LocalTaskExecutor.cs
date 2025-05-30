@@ -9,8 +9,8 @@ namespace Automation.Worker.Executor
     /// </summary>
     public class LocalTaskExecutor : ITaskExecutor
     {
-        private readonly IPackageManagement _packages;
-        public LocalTaskExecutor(IPackageManagement packageManagement)
+        private readonly Packages.IPackageManagement _packages;
+        public LocalTaskExecutor(Packages.IPackageManagement packageManagement)
         {
             _packages = packageManagement;
         }
