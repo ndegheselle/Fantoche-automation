@@ -33,9 +33,7 @@ namespace Automation.Dal.Models
     }
 
     public class GraphControl : GraphTask
-    {
-        public EnumControlTaskType Type { get; set; }
-    }
+    {}
 
     public class GraphWorkflow : GraphTask
     {}

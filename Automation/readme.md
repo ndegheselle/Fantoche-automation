@@ -30,3 +30,11 @@ Worker (windows service) :
 - Better serparation between ViewModel and Model, some other solution than using wrapper ?
 
 Add common nameof for serialization attributes.
+
+# To improve
+
+## Control task handling
+Currently handled with specific if that check in a dictionnary, could be more generic with :
+- Seed the control task in the database (with a specific folder as well)
+- Create a TargetClass for internal class
+- Allow readonly tasks

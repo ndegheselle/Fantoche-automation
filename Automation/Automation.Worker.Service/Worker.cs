@@ -4,7 +4,7 @@ using Automation.Plugins.Shared;
 using Automation.Realtime;
 using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
-using Automation.Shared.Packages;
+using Automation.Worker.Control;
 using Automation.Worker.Executor;
 using MongoDB.Driver;
 
@@ -60,13 +60,28 @@ namespace Automation.Worker.Service
         private async Task Execute(Guid instanceId)
         {
             AutomationTaskInstance instance = await _instanceRepo.GetByIdAsync(instanceId);
-            AutomationTask task = await _taskRepo.GetByIdAsync(instance.TaskId);
+            ITask? task = null;
+
+            // Control task are specific cases (internal classes)
+            if (ControlTaskList.Availables.ContainsKey(instance.TaskId))
+            {
+                Type controlType = ControlTaskList.Availables[instance.TaskId];
+                task = Activator.CreateInstance(controlType) as ITask ?? throw new Exception();
+            }
+            else
+            {
+                instance.Task = await _taskRepo.GetByIdAsync(instance.TaskId);
+            }
 
             instance.State = EnumTaskState.Progressing;
             instance.StartDate = DateTime.Now;
             await _instanceRepo.UpdateAsync(instance.Id, instance);
 
-            instance = await _executor.ExecuteAsync(instance, task.Package);
+            if (task == null)
+                instance = await _executor.ExecuteAsync(instance);
+            else
+                instance = await _executor.ExecuteAsync(instance, task);
+
             instance.EndDate = DateTime.Now;
             await _instanceRepo.UpdateAsync(instance.Id, instance);
         }

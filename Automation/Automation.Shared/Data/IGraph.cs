@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 
 namespace Automation.Shared.Data
 {
-    public enum EnumControlTaskType
+
+    public static class GraphControls
     {
-        Start,
+        public static Guid Start = Guid.Parse("00000000-0000-0000-0000-000000000010");
     }
 }

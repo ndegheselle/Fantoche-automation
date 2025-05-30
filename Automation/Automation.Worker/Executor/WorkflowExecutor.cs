@@ -2,6 +2,8 @@
 using Automation.Dal.Repositories;
 using Automation.Plugins.Shared;
 using Automation.Shared.Data;
+using Automation.Worker.Control;
+using System.Xml.Linq;
 
 namespace Automation.Worker.Executor
 {
@@ -15,20 +17,27 @@ namespace Automation.Worker.Executor
         public async Task ExecuteWorkflowAsync(AutomationTaskInstance instance)
         {
             var graph = await LoadGraph(instance.Id);
-            var startNode = graph.Nodes.OfType<GraphControl>().Where(x => x.Type == EnumControlTaskType.Start).Single();
+            var startNode = graph.Nodes.OfType<GraphControl>().Where(x => x.TaskId == GraphControls.Start).Single();
 
-            await ExecuteNodeAsync(startNode, graph, instance);
+            // We don't need to execute the start node since it doesn't have any logic
+            await ExecuteNextAsync(startNode, graph, instance);
+
+            // TODO : change the instance state to finished
         }
 
         public async Task ExecuteNodeAsync(GraphTask node, Graph graph, AutomationTaskInstance workflowInstance)
         {
-            var instance = new AutomationSubTaskInstance(workflowInstance.TaskId, node, new TaskParameters("", ""));
-
+            AutomationSubTaskInstance instance = new AutomationSubTaskInstance(workflowInstance.TaskId, node, new TaskParameters("", ""));
             if (node is GraphWorkflow)
                 await ExecuteWorkflowAsync(instance);
             else
                 await _executor.ExecuteAsync(instance);
 
+            await ExecuteNextAsync(node, graph, workflowInstance);
+        }
+
+        public async Task ExecuteNextAsync(GraphTask node, Graph graph, AutomationTaskInstance workflowInstance)
+        {
             var nextConnections = graph.Connections.Where(x => x.Source?.Parent == node);
             foreach (var connection in nextConnections)
             {
@@ -42,7 +51,6 @@ namespace Automation.Worker.Executor
                 await ExecuteNodeAsync(connection.Target.Parent, graph, workflowInstance);
             }
         }
-
 
         /// <summary>
         /// Load a graph and all it's associated tasks by the workflow ID.

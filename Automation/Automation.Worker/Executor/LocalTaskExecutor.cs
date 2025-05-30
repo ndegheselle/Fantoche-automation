@@ -1,6 +1,7 @@
 ﻿using Automation.Dal.Models;
 using Automation.Plugins.Shared;
-using Automation.Shared.Packages;
+using Automation.Worker.Control;
+using MongoDB.Bson.Serialization.Serializers;
 
 namespace Automation.Worker.Executor
 {
@@ -18,13 +19,18 @@ namespace Automation.Worker.Executor
         public async Task<AutomationTaskInstance> ExecuteAsync(AutomationTaskInstance instance, IProgress<TaskProgress>? progress = null)
         {
             if (instance.Task == null)
-                throw new ArgumentNullException(nameof(instance.Task) , "Local execution of task instance require the Task to be loaded in the instance.");
+                throw new ArgumentNullException(nameof(instance.Task), "Local execution of task instance require the Task to be loaded in the instance.");
 
             if (instance.Task.Package == null)
                 throw new Exception("Task without target package can't be executed.");
 
-            instance.StartDate = DateTime.Now;
             ITask task = await _packages.CreateTaskInstanceAsync(instance.Task.Package);
+            return await ExecuteAsync(instance, task, progress);
+        }
+
+        public async Task<AutomationTaskInstance> ExecuteAsync(AutomationTaskInstance instance, ITask task, IProgress<TaskProgress>? progress = null)
+        {
+            instance.StartDate = DateTime.Now;
             try
             {
                 instance.State = await task.DoAsync(

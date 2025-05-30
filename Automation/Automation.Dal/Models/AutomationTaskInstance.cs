@@ -1,7 +1,6 @@
 ﻿using Automation.Plugins.Shared;
 using Automation.Shared.Data;
 using MongoDB.Bson.Serialization.Attributes;
-using System.Reflection.Metadata.Ecma335;
 using System.Text.Json.Serialization;
 
 namespace Automation.Dal.Models
@@ -9,6 +8,8 @@ namespace Automation.Dal.Models
     /// <summary>
     /// Task instance
     /// </summary>
+    [BsonKnownTypes(typeof(AutomationSubTaskInstance))]
+    [JsonDerivedType(typeof(AutomationSubTaskInstance), "sub")]
     public class AutomationTaskInstance : IAutomationTaskInstance
     {
         [BsonId]
