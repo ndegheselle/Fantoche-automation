@@ -25,7 +25,7 @@ namespace Automation.Dal.Models
 
         public IEnumerable<Schedule> Schedules { get; set; } = [];
 
-        public TargetedPackageClass? Package { get; set; }
+        public TaskTarget? Target { get; set; }
 
         public AutomationTask() : base(EnumScopedType.Task) {}
     }

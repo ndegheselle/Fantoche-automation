@@ -52,13 +52,13 @@ namespace Automation.Worker.Packages
         /// <param name="id">Target package id</param>
         /// <param name="version">Target package version</param>
         /// <returns>Collection of assembly file paths within the package</returns>
-        Task<IEnumerable<PackageClass>> GetTaskClassesAsync(string id, Version version);
+        Task<IEnumerable<ClassIdentifier>> GetTaskClassesAsync(string id, Version version);
 
         /// <summary>
         /// Create a task package instance from a class name
         /// </summary>
         /// <param name="package">Target package informations</param>
         /// <returns>Instance of the class</returns>
-        Task<ITask> CreateTaskInstanceAsync(TargetedPackageClass package);
+        Task<ITask> CreateTaskInstanceAsync(PackageClassTarget package);
     }
 }

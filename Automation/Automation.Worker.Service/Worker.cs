@@ -60,27 +60,12 @@ namespace Automation.Worker.Service
         private async Task Execute(Guid instanceId)
         {
             AutomationTaskInstance instance = await _instanceRepo.GetByIdAsync(instanceId);
-            ITask? task = null;
-
-            // Control task are specific cases (internal classes)
-            if (ControlTaskList.Availables.ContainsKey(instance.TaskId))
-            {
-                Type controlType = ControlTaskList.Availables[instance.TaskId];
-                task = Activator.CreateInstance(controlType) as ITask ?? throw new Exception();
-            }
-            else
-            {
-                instance.Task = await _taskRepo.GetByIdAsync(instance.TaskId);
-            }
 
             instance.State = EnumTaskState.Progressing;
             instance.StartDate = DateTime.Now;
             await _instanceRepo.UpdateAsync(instance.Id, instance);
 
-            if (task == null)
-                instance = await _executor.ExecuteAsync(instance);
-            else
-                instance = await _executor.ExecuteAsync(instance, task);
+            instance = await _executor.ExecuteAsync(instance);
 
             instance.EndDate = DateTime.Now;
             await _instanceRepo.UpdateAsync(instance.Id, instance);

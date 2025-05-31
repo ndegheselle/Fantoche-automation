@@ -71,14 +71,14 @@ namespace Automation.App.Views.WorkPages.Tasks
         }
 
         #region UI events
-        private void RemovePackage_Click(object sender, RoutedEventArgs e) { Task.Package = null; }
+        private void RemovePackage_Click(object sender, RoutedEventArgs e) { Task.Target = null; }
 
         private async void SelectPackage_Click(object sender, RoutedEventArgs e)
         {
             PackageSelectorModal modal = new PackageSelectorModal();
             if (await ParentLayout!.Show(modal) && modal.SelectedTarget != null && modal.SelectedInfos != null)
             {
-                Task.Package = modal.SelectedTarget;
+                Task.Target = modal.SelectedTarget;
             }
         }
 

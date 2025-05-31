@@ -9,8 +9,8 @@ namespace Automation.Supervisor.Api.Controllers
     [Route("packages")]
     public class PackagesController : Controller
     {
-        protected readonly Worker.Packages.IPackageManagement _packages;
-        public PackagesController(Worker.Packages.IPackageManagement packages) { _packages = packages; }
+        protected readonly IPackageManagement _packages;
+        public PackagesController(IPackageManagement packages) { _packages = packages; }
 
         [HttpGet("{id}")]
         public Task<PackageInfos> GetById([FromRoute] string id)
@@ -44,7 +44,7 @@ namespace Automation.Supervisor.Api.Controllers
         { return _packages.GetVersionsAsync(id); }
 
         [HttpGet("{id}/versions/{version}/classes")]
-        public Task<IEnumerable<PackageClass>> GetClasses([FromRoute] string id, [FromRoute] string version)
+        public Task<IEnumerable<ClassIdentifier>> GetClasses([FromRoute] string id, [FromRoute] string version)
         { return _packages.GetTaskClassesAsync(id, new Version(version)); }
 
         [HttpGet("{id}/versions/{version}")]

@@ -89,9 +89,9 @@ namespace Automation.App.Views.PackagesPages.Components
 
         public PackageInfos Package { get; set; }
         public IEnumerable<Version> Versions { get; set; } = [];
-        public IEnumerable<PackageClass> PackageClasses { get; set; } = [];
+        public IEnumerable<ClassIdentifier> PackageClasses { get; set; } = [];
         public Version SelectedVersion { get; set; }
-        public PackageClass? SelectedClass { get; set; } = null;
+        public ClassIdentifier? SelectedClass { get; set; } = null;
 
         private readonly PackagesClient _packagesClient;
 

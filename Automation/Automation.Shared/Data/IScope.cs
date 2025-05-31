@@ -20,6 +20,8 @@ namespace Automation.Shared.Data
         public string? Color { get; set; }
         public string? Icon { get; set; }
 
+        public bool IsReadOnly { get; set; }
+
         public ScopedMetadata(EnumScopedType type)
         {
             Type = type;

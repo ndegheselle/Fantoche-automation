@@ -1,5 +1,6 @@
 ﻿using Automation.Dal.Models;
 using Automation.Plugins.Shared;
+using Automation.Shared.Data;
 using Automation.Worker.Control;
 using MongoDB.Bson.Serialization.Serializers;
 
@@ -21,14 +22,24 @@ namespace Automation.Worker.Executor
             if (instance.Task == null)
                 throw new ArgumentNullException(nameof(instance.Task), "Local execution of task instance require the Task to be loaded in the instance.");
 
-            if (instance.Task.Package == null)
-                throw new Exception("Task without target package can't be executed.");
+            ITask? task = null;
+            if (instance.Task.Target is ClassTarget classTarget)
+            {
+                Type controlType = ControlsTasks.Availables[classTarget.Class];
+                task = Activator.CreateInstance(controlType) as ITask ?? throw new Exception();
+            }
+            else if (instance.Task.Target is PackageClassTarget packageTarget)
+            {
+                task = await _packages.CreateTaskInstanceAsync(packageTarget);
+            }
 
-            ITask task = await _packages.CreateTaskInstanceAsync(instance.Task.Package);
+            if (task == null)
+                throw new Exception("Task without a target can't be executed.");
+
             return await ExecuteAsync(instance, task, progress);
         }
 
-        public async Task<AutomationTaskInstance> ExecuteAsync(AutomationTaskInstance instance, ITask task, IProgress<TaskProgress>? progress = null)
+        private async Task<AutomationTaskInstance> ExecuteAsync(AutomationTaskInstance instance, ITask task, IProgress<TaskProgress>? progress = null)
         {
             instance.StartDate = DateTime.Now;
             try

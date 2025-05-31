@@ -7,7 +7,7 @@ using System.IO;
 
 namespace Automation.App.Shared.ApiClients
 {
-    public class PackagesClient : ApiClients.BaseClient
+    public class PackagesClient : BaseClient
     {
         public PackagesClient(RestClient restClient) : base(restClient, "packages") 
         { }
@@ -34,10 +34,10 @@ namespace Automation.App.Shared.ApiClients
             return await _client.GetAsync<IEnumerable<Version>>(request) ?? new List<Version>();
         }
 
-        public async Task<IEnumerable<PackageClass>> GetClassesAsync(string id, Version version)
+        public async Task<IEnumerable<ClassIdentifier>> GetClassesAsync(string id, Version version)
         {
             RestRequest request = new RestRequest($"{_routeBase}/{id}/versions/{version}/classes");
-            return await _client.GetAsync<IEnumerable<PackageClass>>(request) ?? new List<PackageClass>();
+            return await _client.GetAsync<IEnumerable<ClassIdentifier>>(request) ?? new List<ClassIdentifier>();
         }
 
         public async Task<PackageInfos> CreateAsync(string filePath)

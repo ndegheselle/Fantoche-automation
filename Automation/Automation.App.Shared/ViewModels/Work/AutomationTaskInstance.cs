@@ -16,7 +16,7 @@ namespace Automation.App.Shared.ViewModels.Work
 
         public Guid TaskId { get; set; }
 
-        public TargetedPackageClass Target { get; set; } = new TargetedPackageClass(new PackageIdentifier(), new PackageClass());
+        public PackageClassTarget Target { get; set; } = new PackageClassTarget(new PackageIdentifier(), new ClassIdentifier());
         public string? WorkerId { get; set; }
 
         public TaskParameters Parameters { get; set; } = new TaskParameters("", "");

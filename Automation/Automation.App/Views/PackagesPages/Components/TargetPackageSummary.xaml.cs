@@ -11,13 +11,13 @@ namespace Automation.App.Views.PackagesPages.Components
     {
         public static readonly DependencyProperty TargetedPackageProperty = DependencyProperty.Register(
             nameof(TargetPackage),
-            typeof(TargetedPackageClass),
+            typeof(PackageClassTarget),
             typeof(TargetPackageSummary),
             new PropertyMetadata(null));
 
-        public TargetedPackageClass? TargetPackage
+        public PackageClassTarget? TargetPackage
         {
-            get { return (TargetedPackageClass?)GetValue(TargetedPackageProperty); }
+            get { return (PackageClassTarget?)GetValue(TargetedPackageProperty); }
             set { SetValue(TargetedPackageProperty, value); }
         }
 
