@@ -1,6 +1,6 @@
 using Automation.Shared.Base;
 using Automation.Shared.Data;
-using Automation.Shared.Packages;
+using Automation.Worker.Packages;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Automation.Supervisor.Api.Controllers

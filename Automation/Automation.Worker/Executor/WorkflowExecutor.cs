@@ -1,9 +1,9 @@
 ﻿using Automation.Dal.Models;
 using Automation.Dal.Repositories;
 using Automation.Plugins.Shared;
-using Automation.Shared.Data;
-using Automation.Worker.Control;
-using System.Xml.Linq;
+using Automation.Realtime;
+using Automation.Worker.Control.Flow;
+using MongoDB.Driver;
 
 namespace Automation.Worker.Executor
 {
@@ -14,10 +14,17 @@ namespace Automation.Worker.Executor
 
         private readonly RemoteTaskExecutor _executor;
 
+        public WorkflowExecutor(IMongoDatabase database, RedisConnectionManager connection)
+        {
+            _graphsRepo = new GraphsRepository(database);
+            _tasksRepo = new TasksRepository(database);
+            _executor = new RemoteTaskExecutor(database, connection);
+        }
+
         public async Task ExecuteWorkflowAsync(AutomationTaskInstance instance)
         {
             var graph = await LoadGraph(instance.Id);
-            var startNode = graph.Nodes.OfType<GraphControl>().Where(x => x.TaskId == GraphControls.Start).Single();
+            var startNode = graph.Nodes.OfType<GraphControl>().Single(x => x.TaskId == StartTask.Id);
 
             // We don't need to execute the start node since it doesn't have any logic
             await ExecuteNextAsync(startNode, graph, instance);

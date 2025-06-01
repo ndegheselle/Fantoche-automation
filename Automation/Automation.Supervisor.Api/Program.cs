@@ -1,5 +1,4 @@
 using Automation.Realtime;
-using Automation.Shared.Packages;
 using Automation.Supervisor.Api.Business;
 using Automation.Supervisor.Api.Database;
 using DotNetEnv;

@@ -33,12 +33,13 @@ namespace Automation.Supervisor.Api.Database
 
             Guid controlsScopeId = await _scopeRepo.CreateIfDoesntExistAsync(new Scope()
             {
-                Id = IScope.ROOT_SCOPE_ID,
+                Id = Guid.Parse("00000000-0000-0000-0000-000000000002"),
                 ParentId = IScope.ROOT_SCOPE_ID,
                 ParentTree = [IScope.ROOT_SCOPE_ID],
                 Metadata = new ScopedMetadata(EnumScopedType.Scope)
                 {
                     Name = "Controls",
+                    IsReadOnly = true,
                 },
             });
 
@@ -51,7 +52,8 @@ namespace Automation.Supervisor.Api.Database
                 Metadata = new ScopedMetadata(EnumScopedType.Task)
                 {
                     Name = "Start",
-                    Icon = "\uf04b"
+                    Icon = "\uf04b",
+                    IsReadOnly = true
                 },
                 Target = new ClassTarget(StartTask.Identifier)
             });
