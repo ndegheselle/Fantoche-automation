@@ -4,13 +4,13 @@ using Automation.Plugins.Shared;
 using Automation.Realtime;
 using Automation.Shared.Base;
 using Automation.Shared.Data;
-using Automation.Supervisor.Api.Business;
 using Automation.Worker.Executor;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using System.Globalization;
 using System.Text.Json;
+using System.Xml.Linq;
 
 namespace Automation.Supervisor.Api.Controllers
 {
@@ -70,13 +70,8 @@ namespace Automation.Supervisor.Api.Controllers
         [Route("{id}/execute")]
         public async Task<AutomationTaskInstance> ExecuteAsync([FromRoute] Guid id, [FromBody] TaskParameters parameters)
         {
-            AutomationTask? task = await _taskRepo.GetByIdAsync(id);
-            if (task == null)
-                throw new InvalidOperationException($"No task node found for the id '{id}'.");
-            if (task.Package == null)
-                throw new InvalidOperationException($"The task '{id}' doesn't have an assigned package.");
-
-            return await _executor.ExecuteAsync(task, parameters);
+            AutomationTaskInstance instance = new AutomationTaskInstance(id, new TaskParameters("", ""));
+            return await _executor.ExecuteAsync(instance);
         }
 
         [HttpGet]

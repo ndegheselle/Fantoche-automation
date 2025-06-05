@@ -26,7 +26,7 @@ namespace Automation.App.Shared.ViewModels.Work
     [JsonDerivedType(typeof(AutomationWorkflow), "workflow")]
     public class AutomationTask : ScopedElement, IAutomationTask, INotifyPropertyChanged
     {
-        public TargetedPackageClass? Package { get; set; }
+        public PackageClassTarget? Target { get; set; }
         public List<AutomationTaskConnector> Inputs { get; set; } = [];
         public List<AutomationTaskConnector> Outputs { get; set; } = [];
         public List<Schedule> Schedules { get; set; } = [];

@@ -117,7 +117,7 @@ namespace Automation.Worker.Packages
         }
 
         // XXX : should be cached since we have to load the package and dll and check types dynamically
-        public async Task<IEnumerable<PackageClass>> GetTaskClassesAsync(string id, Version version)
+        public async Task<IEnumerable<ClassIdentifier>> GetTaskClassesAsync(string id, Version version)
         {
             var findPackageByIdResource = await _repository.GetResourceAsync<FindPackageByIdResource>();
             var nugetVersion = new NuGetVersion(version);
@@ -142,7 +142,7 @@ namespace Automation.Worker.Packages
                 .Where(f => f.StartsWith($"lib/{nearestFramework}/") && f.EndsWith(".dll"));
 
             // Load all the assemblies and get all the types that implement the ITask interface
-            var taskClasses = new List<PackageClass>();
+            var taskClasses = new List<ClassIdentifier>();
             foreach (var dllFile in dllFiles)
             {
                 using var dllStream = packageReader.GetStream(dllFile);
@@ -152,13 +152,13 @@ namespace Automation.Worker.Packages
 
                 var taskTypes = assembly.GetTypes()
                     .Where(t => typeof(ITask).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
-                taskClasses.AddRange(taskTypes.Select(t => new PackageClass(dllFile, t.FullName)));
+                taskClasses.AddRange(taskTypes.Select(t => new ClassIdentifier(dllFile, t.FullName)));
             }
 
             return taskClasses;
         }
 
-        public async Task<ITask> CreateTaskInstanceAsync(TargetedPackageClass package)
+        public async Task<ITask> CreateTaskInstanceAsync(PackageClassTarget package)
         {
             // Get package by id resource
             var findPackageByIdResource = await _repository.GetResourceAsync<FindPackageByIdResource>();

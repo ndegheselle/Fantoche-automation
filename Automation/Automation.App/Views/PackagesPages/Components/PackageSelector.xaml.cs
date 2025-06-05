@@ -17,7 +17,7 @@ namespace Automation.App.Views.PackagesPages.Components
             Title = "Select package"
         };
 
-        protected override void OnTargetSelected(PackageInfos package, PackageClass targetClass)
+        protected override void OnTargetSelected(PackageInfos package, ClassIdentifier targetClass)
         {
             base.OnTargetSelected(package, targetClass);
             ParentLayout?.Hide(true);
@@ -40,7 +40,7 @@ namespace Automation.App.Views.PackagesPages.Components
         } = new ListPageWrapper<PackageInfos>() { PageSize = 50, Page = 1, Total = -1, };
 
         public PackageInfos? SelectedInfos { get; set; }
-        public TargetedPackageClass? SelectedTarget { get; set; }
+        public PackageClassTarget? SelectedTarget { get; set; }
         public string SearchText { get; set; } = string.Empty;
 
         public PackageSelector()
@@ -95,10 +95,10 @@ namespace Automation.App.Views.PackagesPages.Components
             }
         }
 
-        protected virtual void OnTargetSelected(PackageInfos package, PackageClass targetClass)
+        protected virtual void OnTargetSelected(PackageInfos package, ClassIdentifier targetClass)
         {
             SelectedInfos = package;
-            SelectedTarget = new TargetedPackageClass(SelectedInfos.Identifier, targetClass);
+            SelectedTarget = new PackageClassTarget(SelectedInfos.Identifier, targetClass);
         }
     }
     #endregion
