@@ -1,14 +1,34 @@
-# Getting started
+# Automation
+No-code solution to create workflow automation based on a node editor.
 
-[Setting up a mongodb with docker in visual studio](https://medium.com/@hugo_cesar45/asp-net-core-web-api-net-8-docker-mongodb-8fab9a54f72c)
+Objectives:
 
-Todo :
-- Create a client specific redis user for the app 
-- Display task progression (state changes) and progression messages
-- Fix workflow creation and save
-    - Select task with no versions (last by default) or with specific version
-- Setup workflow execution (on the worker service)
-- Display workflow progression with each task state
-    - Send progression from tasks
-    - Display individual tasks on the workflow
-- Save scheduled tasks and execute them
+- Create tasks based on various technical packages.
+- Create workflows composed of tasks and sub-workflows connected to each other.
+	- During the execution of a workflow, pass the result of a node to each connected node.
+	- Flexible data handling while still supporting typed task results.
+- Order tasks and workflows by scopes.
+- Provide context on scope, tasks, and workflows to allow complex settings.
+
+Backend Requirements:
+
+- Workers to execute tasks that can be horizontally scaled.
+- Fast real-time communication (as opposed to loops with delays).
+
+## Architecture
+
+![Architecture](images/architecture.png)
+
+## Getting started
+
+- [Setting up a mongodb with docker in visual studio](https://medium.com/@hugo_cesar45/asp-net-core-web-api-net-8-docker-mongodb-8fab9a54f72c)
+
+Start the `docker-compose` startup project for the backend.
+Start `Automation.App` for the client.
+
+## Links
+
+- [Adonis UI](https://benruehl.github.io/adonis-ui/) for styles
+- [Fontawesome](https://fontawesome.com/) icons
+- [PropertyChanged.Fody](https://www.nuget.org/packages/PropertyChanged.Fody) for boilerplate
+- [Nodify](https://miroiu.github.io/nodify/) for the node editor
