@@ -1,6 +1,7 @@
 using Automation.Realtime;
 using Automation.Supervisor.Api.Business;
 using Automation.Supervisor.Api.Database;
+using Automation.Supervisor.Api.Hubs;
 using DotNetEnv;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
@@ -16,6 +17,7 @@ builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.SetMinimumLevel(LogLevel.Debug);
 
+builder.Services.AddSignalR();
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -78,5 +80,6 @@ using (var scope = app.Services.CreateScope())
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<TaskProgressHub>("/tasks/progress");
 
 app.Run();

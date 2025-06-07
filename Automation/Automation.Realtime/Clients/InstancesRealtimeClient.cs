@@ -4,20 +4,46 @@ using StackExchange.Redis;
 
 namespace Automation.Realtime.Clients
 {
-    public class InstanceProgressRedisPublisher : RedisPublisher<TaskProgress>
+    public class TaskInstanceProgress
+    {
+        public Guid InstanceId { get; set; }
+        public TaskProgress Progress { get; set; }
+
+        public TaskInstanceProgress(Guid instanceId, TaskProgress progress)
+        {
+            InstanceId = instanceId;
+            Progress = progress;
+        }
+    }
+
+    public class TaskIntanceState
+    {
+        public Guid InstanceId { get; set; }
+        public EnumTaskState State { get; set; }
+
+        public TaskIntanceState(Guid instanceId, EnumTaskState state)
+        {
+            InstanceId = instanceId;
+            State = state;
+        }
+    }
+
+    public class InstanceProgressRedisPublisher : RedisSubscriber<TaskInstanceProgress>
     {
         public InstanceProgressRedisPublisher(ConnectionMultiplexer connection, Guid instanceId) : base(
             connection,
-            $"instances:{instanceId}:progress")
+            $"instances:progress:{instanceId}")
         {
         }
     }
 
-    public class InstanceLifecycleRedisPublisher : RedisPublisher<EnumTaskState>
+    public 
+
+    public class InstanceLifecycleRedisPublisher : RedisSubscriber<TaskIntanceState>
     {
         public InstanceLifecycleRedisPublisher(ConnectionMultiplexer connection, Guid instanceId) : base(
             connection,
-            $"instances:{instanceId}:lifecycle")
+            $"instances:lifecycle:{instanceId}")
         {
         }
 
@@ -33,11 +59,11 @@ namespace Automation.Realtime.Clients
             cancellationToken ??= CancellationToken.None;
             var tcs = new TaskCompletionSource<EnumTaskState>();
 
-            var progress = new Progress<EnumTaskState>((state) =>
+            var progress = new Progress<TaskIntanceState>((instanceState) =>
             {
-                if (state.HasFlag(targetState))
+                if (instanceState.State.HasFlag(targetState))
                 {
-                    tcs.TrySetResult(state);
+                    tcs.TrySetResult(instanceState.State);
                 }
             });
             Subscribe(progress);

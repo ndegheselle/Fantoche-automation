@@ -2,7 +2,6 @@
 using Automation.Plugins.Shared;
 using Automation.Realtime;
 using Automation.Realtime.Clients;
-using Automation.Shared.Data;
 using Joufflu.Popups;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.ObjectModel;

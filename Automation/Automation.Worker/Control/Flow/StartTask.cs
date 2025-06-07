@@ -1,5 +1,5 @@
-﻿using Automation.Plugins.Shared;
-using Automation.Shared.Data;
+﻿using Automation.Dal.Models;
+using Automation.Plugins.Shared;
 
 namespace Automation.Worker.Control.Flow
 {

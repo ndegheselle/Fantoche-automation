@@ -25,6 +25,8 @@ namespace Automation.Dal.Models
 
         public IEnumerable<Schedule> Schedules { get; set; } = [];
 
+        [BsonIgnore]
+        ITaskTarget? IAutomationTask.Target => Target;
         public TaskTarget? Target { get; set; }
 
         public AutomationTask() : base(EnumScopedType.Task) {}

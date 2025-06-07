@@ -37,7 +37,7 @@ namespace Automation.Worker.Service
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _workerClient.Tasks.SubscribeQueue(() => _waitingForTask?.SetResult());
+            _workerClient.Tasks.Subscribe(new Progress<Guid>((id) => _waitingForTask?.SetResult()));
             while (!stoppingToken.IsCancellationRequested)
             {
                 // Execute all the queued tasks

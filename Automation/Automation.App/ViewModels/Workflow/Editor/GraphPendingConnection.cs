@@ -1,6 +1,5 @@
 ﻿using Automation.App.Shared.ViewModels.Work;
 using Automation.App.ViewModels.Workflow.Editor.Actions;
-using Automation.Shared.Data;
 using System.Windows.Input;
 using Usuel.Shared;
 

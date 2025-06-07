@@ -2,7 +2,6 @@
 using Automation.App.Shared.ViewModels.Work;
 using Automation.App.ViewModels.Workflow.Editor;
 using Automation.App.Views.WorkPages.Scopes.Components;
-using Automation.Shared.Data;
 using Joufflu.Popups;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows;

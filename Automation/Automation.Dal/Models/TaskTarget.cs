@@ -1,6 +1,9 @@
-﻿using System.Xml.Linq;
+﻿using Automation.Shared.Data;
+using MongoDB.Bson.Serialization.Attributes;
+using System.Text.Json.Serialization;
+using System.Xml.Linq;
 
-namespace Automation.Shared.Data
+namespace Automation.Dal.Models
 {
     public class PackageIdentifier
     {
@@ -44,7 +47,11 @@ namespace Automation.Shared.Data
         }
     }
 
-    public abstract class TaskTarget
+    [JsonDerivedType(typeof(ClassTarget), "class")]
+    [JsonDerivedType(typeof(PackageClassTarget), "package")]
+    [BsonKnownTypes(typeof(ClassTarget))]
+    [BsonKnownTypes(typeof(PackageClassTarget))]
+    public abstract class TaskTarget : ITaskTarget
     { }
 
     public class ClassTarget : TaskTarget

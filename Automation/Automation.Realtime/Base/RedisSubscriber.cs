@@ -3,17 +3,17 @@ using System.Text.Json;
 
 namespace Automation.Realtime.Base
 {
-    public class RedisPublisher<T> : IDisposable
+    public class RedisSubscriber<T> : IDisposable
     {
-        private readonly IConnectionMultiplexer _connection;
-        private readonly string _publishChannel;
+        protected readonly IConnectionMultiplexer _connection;
+        protected readonly string _publishChannel;
         private readonly List<IProgress<T>> _subscriptions = new();
         private volatile bool _isChannelSubscribed = false;
         // Specific object for locking the subscription process
         private readonly object _subscriptionLock = new object();
         private bool _disposed = false;
 
-        public RedisPublisher(IConnectionMultiplexer connection, string publishChannel)
+        public RedisSubscriber(IConnectionMultiplexer connection, string publishChannel)
         {
             _connection = connection;
             _publishChannel = publishChannel;
@@ -114,9 +114,27 @@ namespace Automation.Realtime.Base
             }
         }
 
-        ~RedisPublisher()
+        ~RedisSubscriber()
         {
             Dispose(false);
+        }
+    }
+
+    public class RedisPublisher<T> : RedisSubscriber<T>
+    {
+        public RedisPublisher(IConnectionMultiplexer connection, string publishChannel) : base(connection, publishChannel)
+        {
+        }
+
+        /// <summary>
+        /// Publish a message to the Redis channel.
+        /// </summary>
+        /// <param name="message">The message to publish.</param>
+        public void Publish(T message)
+        {
+            var serializedMessage = JsonSerializer.Serialize(message);
+            var channel = new RedisChannel(_publishChannel, RedisChannel.PatternMode.Literal);
+            _connection.GetSubscriber().Publish(channel, serializedMessage);
         }
     }
 }
