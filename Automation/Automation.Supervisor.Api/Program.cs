@@ -1,8 +1,10 @@
 using Automation.Realtime;
+using Automation.Realtime.Clients;
 using Automation.Supervisor.Api.Business;
 using Automation.Supervisor.Api.Database;
 using Automation.Supervisor.Api.Hubs;
 using DotNetEnv;
+using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
@@ -31,6 +33,7 @@ builder.Services.AddHostedService<WorkerCleaner>();
 string realtimeConnectionString = Environment.GetEnvironmentVariable("REDIS_URI") ??
     throw new ArgumentException("Missing REDIS_URI in .env file");
 builder.Services.AddSingleton<RedisConnectionManager>(new RedisConnectionManager(realtimeConnectionString));
+builder.Services.AddSingleton<RealtimeClients>((services) => new RealtimeClients(services.GetRequiredService<RedisConnectionManager>()));
 
 // Package management
 builder.Services.AddSingleton<Automation.Worker.Packages.IPackageManagement>(new Automation.Worker.Packages.LocalPackageManagement("/app/data/nuget"));

@@ -1,17 +1,20 @@
-﻿using Automation.Realtime;
-using Automation.Realtime.Clients;
+﻿using Automation.Realtime.Clients;
 using Microsoft.AspNetCore.SignalR;
 
 namespace Automation.Supervisor.Api.Hubs
 {
     public class TaskProgressHub : Hub
     {
-        private readonly InstanceProgressRedisPublisher _progress;
-        private readonly InstanceLifecycleRedisPublisher _lifecycle;
-
-        public TaskProgressHub(RedisConnectionManager redis)
+        private readonly RealtimeClients _realtime;
+        public TaskProgressHub(RealtimeClients realtime)
         {
-            _lifecycle = new InstanceLifecycleRedisPublisher()
+            _realtime = realtime;
+        }
+
+
+        public async Task SendMessage(string user, string message)
+        {
+            await Clients.All.SendAsync("ReceiveMessage", user, message);
         }
     }
 }

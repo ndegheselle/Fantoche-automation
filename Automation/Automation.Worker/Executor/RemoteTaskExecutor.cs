@@ -1,7 +1,6 @@
 ﻿using Automation.Dal.Models;
 using Automation.Dal.Repositories;
 using Automation.Plugins.Shared;
-using Automation.Realtime;
 using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
 using MongoDB.Driver;
@@ -13,15 +12,13 @@ namespace Automation.Worker.Executor
     /// </summary>
     public class RemoteTaskExecutor : ITaskExecutor
     {
-        private readonly RedisConnectionManager _redis;
+        private readonly RealtimeClients _realtime;
         private readonly TaskIntancesRepository _instanceRepo;
-        private readonly WorkersRealtimeClient _workersClient;
 
-        public RemoteTaskExecutor(IMongoDatabase database, RedisConnectionManager connection)
+        public RemoteTaskExecutor(IMongoDatabase database, RealtimeClients realtime)
         {
-            _redis = connection;
+            _realtime = realtime;
             _instanceRepo = new TaskIntancesRepository(database);
-            _workersClient = new WorkersRealtimeClient(_redis.Connection);
         }
 
         /// <summary>
@@ -34,7 +31,7 @@ namespace Automation.Worker.Executor
             WorkerInstance selectedWorker = await SelectWorkerAsync(taskInstance);
             taskInstance.WorkerId = selectedWorker.Id;
             await _instanceRepo.CreateAsync(taskInstance);
-            _workersClient.ByWorker(selectedWorker.Id).Tasks.QueueAsync(taskInstance.Id);
+            _realtime.Workers.ByWorker(selectedWorker.Id).Tasks.QueueAsync(taskInstance.Id);
             return taskInstance;
         }
 
@@ -46,8 +43,8 @@ namespace Automation.Worker.Executor
         /// <exception cref="Exception">No worker found.</exception>
         private async Task<WorkerInstance> SelectWorkerAsync(AutomationTaskInstance task)
         {
-            IEnumerable<WorkerInstance> workers = await _workersClient.GetWorkersAsync();
-            return workers.MinBy(async x => await _workersClient.ByWorker(x.Id).Tasks.GetQueueLengthAsync()) ??
+            IEnumerable<WorkerInstance> workers = await _realtime.Workers.GetWorkersAsync();
+            return workers.MinBy(async x => await _realtime.Workers.ByWorker(x.Id).Tasks.GetQueueLengthAsync()) ??
                 throw new Exception("No available worker for the task.");
         }
 
@@ -57,17 +54,12 @@ namespace Automation.Worker.Executor
             IProgress<TaskProgress>? progress = null)
         {
             instance = await AssignAsync(instance);
-            var lifecycle = new InstanceLifecycleRedisPublisher(_redis.Connection, instance.Id);
-            using InstanceProgressRedisPublisher instanceProgress = new InstanceProgressRedisPublisher(
-                _redis.Connection,
-                instance.Id);
-
             try
             {
                 if (progress != null)
-                    instanceProgress.Subscribe(progress);
+                    _realtime.Progress.Subscribe(instance.Id, progress);
 
-                EnumTaskState finishedState = await lifecycle.WaitStateAsync(EnumTaskState.Finished);
+                EnumTaskState finishedState = await _realtime.Lifecycle.WaitStateAsync(instance.Id, EnumTaskState.Finished);
                 // Udpate the context with the instance parameters stored in the database
                 AutomationTaskInstance finishedInstance = await _instanceRepo.GetByIdAsync(instance.Id) ??
                     throw new Exception($"Unable to find the instance for the id '{instance.Id}'");

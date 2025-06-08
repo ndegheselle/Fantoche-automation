@@ -4,7 +4,6 @@ using Automation.Plugins.Shared;
 using Automation.Realtime;
 using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
-using Automation.Worker.Control;
 using Automation.Worker.Executor;
 using MongoDB.Driver;
 

@@ -1,7 +1,7 @@
 using Automation.Dal.Models;
 using Automation.Dal.Repositories;
 using Automation.Plugins.Shared;
-using Automation.Realtime;
+using Automation.Realtime.Clients;
 using Automation.Shared.Base;
 using Automation.Shared.Data;
 using Automation.Worker.Executor;
@@ -10,7 +10,6 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 using System.Globalization;
 using System.Text.Json;
-using System.Xml.Linq;
 
 namespace Automation.Supervisor.Api.Controllers
 {
@@ -23,11 +22,11 @@ namespace Automation.Supervisor.Api.Controllers
         private readonly IMongoDatabase _database;
         private readonly RemoteTaskExecutor _executor;
 
-        public TasksController(IMongoDatabase database, RedisConnectionManager redis) : base(new TasksRepository(database))
+        public TasksController(IMongoDatabase database, RealtimeClients realtimeClients) : base(new TasksRepository(database))
         {
             _database = database;
             _taskInstanceRepo = new TaskIntancesRepository(database);
-            _executor = new RemoteTaskExecutor(database, redis);
+            _executor = new RemoteTaskExecutor(database, realtimeClients);
         }
 
         [HttpPost]

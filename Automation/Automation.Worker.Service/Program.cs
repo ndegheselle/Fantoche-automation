@@ -1,4 +1,5 @@
 using Automation.Realtime;
+using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
 using Automation.Worker.Service;
 using DotNetEnv;
@@ -26,6 +27,7 @@ builder.Services.AddHostedService<Worker>();
 string realtimeConnectionString = Environment.GetEnvironmentVariable("REDIS_URI") ??
     throw new ArgumentException("Missing REDIS_URI in .env file");
 builder.Services.AddSingleton<RedisConnectionManager>(new RedisConnectionManager(realtimeConnectionString));
+builder.Services.AddSingleton<RealtimeClients>((services) => new RealtimeClients(services.GetRequiredService<RedisConnectionManager>()));
 
 // Package management
 builder.Services.AddSingleton<Automation.Worker.Packages.IPackageManagement>(new Automation.Worker.Packages.LocalPackageManagement("/app/data/nuget"));
