@@ -12,8 +12,9 @@ Objectives:
 
 Backend Requirements:
 
-- Workers to execute tasks that can be horizontally scaled.
-- Fast real-time communication (as opposed to loops with delays).
+- One supervisor that handles comms between clients and workers. Supervisor is an unique entry point for simplification sake.
+- Workers that can be horizontally scaled to execute tasks.
+- Fast real-time communication between workers and supervisor (as opposed to loops with delays).
 
 ## Architecture
 
@@ -32,3 +33,10 @@ Start `Automation.App` for the client.
 - [Fontawesome](https://fontawesome.com/) icons
 - [PropertyChanged.Fody](https://www.nuget.org/packages/PropertyChanged.Fody) for boilerplate
 - [Nodify](https://miroiu.github.io/nodify/) for the node editor
+
+# WIP
+
+- Handle communication between client and supervisor with signalR
+- Scripting language to handle contexte change in tasks settings
+- Generic way to create UI form for settings
+    - Also handle validation and types with this ?
