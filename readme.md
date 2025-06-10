@@ -40,3 +40,5 @@ Start `Automation.App` for the client.
 - Scripting language to handle contexte change in tasks settings
 - Generic way to create UI form for settings
     - Also handle validation and types with this ?
+- Display workflow progress in realtime
+- Workflow validation with potential errors prompting (infinite loop. dead branches, ...)
