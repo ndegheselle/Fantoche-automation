@@ -34,7 +34,7 @@ Start `Automation.App` for the client.
 - [PropertyChanged.Fody](https://www.nuget.org/packages/PropertyChanged.Fody) for boilerplate
 - [Nodify](https://miroiu.github.io/nodify/) for the node editor
 
-# WIP
+# TODO
 
 - Handle communication between client and supervisor with signalR
 - Scripting language to handle contexte change in tasks settings
