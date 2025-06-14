@@ -43,3 +43,5 @@ Start `Automation.App` for the client.
 - Display workflow progress in realtime
 - Workflow validation with potential errors prompting (infinite loop. dead branches, ...)
 - Handle supervisor edge case for flow control tasks
+- Display workers list and allow supervision
+- Add user management with roles ans permissions
