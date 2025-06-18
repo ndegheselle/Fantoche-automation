@@ -46,3 +46,8 @@ Start `Automation.App` for the client.
 - Display workers list and allow supervision
 - Add user management with roles and permissions
 - Handle proper state (going back and forth with history) in the editor
+
+# ToThink
+
+- Allow multiple supervisor and more complex worker assignation
+    - Allow a workflow to be executed by only one worker for optomizations
