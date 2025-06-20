@@ -52,3 +52,4 @@ Start `Automation.App` for the client.
 - Allow multiple supervisor and more complex worker assignation
     - Allow a workflow to be executed by only one worker for optomizations
 - optimize and simplify signalR and redis communication
+- display potential errors in workflow creation
