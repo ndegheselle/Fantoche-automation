@@ -46,6 +46,7 @@ Start `Automation.App` for the client.
 - Display workers list and allow supervision
 - Add user management with roles and permissions
 - Handle proper state (going back and forth with history) in the editor
+- handle read and write tasks in the interface
 
 # ToThink
 
