@@ -12,7 +12,7 @@ namespace Automation.Supervisor.Api.Hubs
         }
 
 
-        public async Task SendMessage(string user, string message)
+        public async Task SendtaskUpdate(string user, string message)
         {
             await Clients.All.SendAsync("ReceiveMessage", user, message);
         }
