@@ -41,6 +41,15 @@ namespace Automation.Realtime.Base
         }
 
         /// <summary>
+        /// Unsubscribe all subscribers from the channel.
+        /// </summary>
+        public void UnsubscribeAll()
+        {
+            _subscribed.Clear();
+            _connection.GetSubscriber().Unsubscribe(_channel);
+        }
+
+        /// <summary>
         /// Publish a message to the Redis channel.
         /// </summary>
         /// <param name="message">The message to publish.</param>

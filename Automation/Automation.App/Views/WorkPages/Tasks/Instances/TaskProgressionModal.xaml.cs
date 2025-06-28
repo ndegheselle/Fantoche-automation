@@ -1,7 +1,6 @@
-﻿using Automation.App.Shared.ViewModels.Work;
+﻿using Automation.App.Shared.ApiClients;
+using Automation.App.Shared.ViewModels.Work;
 using Automation.Plugins.Shared;
-using Automation.Realtime;
-using Automation.Realtime.Clients;
 using Joufflu.Popups;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.ObjectModel;
@@ -16,53 +15,56 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
     public partial class TaskProgressionModal : UserControl, IModalContent
     {
         
-        private readonly TasksRealtimeClient _taskRealtimeClient;
+        private readonly TaskProgressHubClient _taskProgressHubClient;
 
         public AutomationTaskInstance Instance { get; private set; }
-        public ObservableCollection<TaskProgress> ProgressMessages { get; private set; } = [];
+        public ObservableCollection<TaskInstanceNotification> ProgressMessages { get; private set; } = [];
 
         public IModal? ParentLayout { get; set; }
         public ModalOptions Options { get; private set; } = new ModalOptions() { Title = "Task progression" };
 
         public TaskProgressionModal(AutomationTaskInstance instance)
         {
-            RedisConnectionManager redis = Services.Provider.GetRequiredService<Lazy<RedisConnectionManager>>().Value;
+            _taskProgressHubClient = Services.Provider.GetRequiredService<TaskProgressHubClient>();
 
             Instance = instance;
-            _taskRealtimeClient = new TasksRealtimeClient(redis.Connection, Instance.Id);
             InitializeComponent();
 
-            _taskRealtimeClient.Progress.Subscribe(OnInstanceMessage);
-            _taskRealtimeClient.Lifecycle.Subscribe(OnInstanceLifecycleChange);
+            _taskProgressHubClient.NotificationReceived += OnNotification;
+            _taskProgressHubClient.StateReceived += OnInstanceLifecycleChange;
         }
 
         public void OnHide()
         {
-            _taskRealtimeClient.Progress.Unsubscribe();
+            _taskProgressHubClient.NotificationReceived -= OnNotification;
+            _taskProgressHubClient.StateReceived -= OnInstanceLifecycleChange;
         }
 
         /// <summary>
         /// Trigger then the instance lifcycle change
         /// </summary>
-        /// <param name="state"></param>
-        private void OnInstanceLifecycleChange(EnumTaskState state)
+        /// <param name="instanceState"></param>
+        private void OnInstanceLifecycleChange(TaskIntanceState instanceState)
         {
-            Instance.State = state;
+            if (instanceState.InstanceId != Instance.Id)
+                return;
+
+            Instance.State = instanceState.State;
         }
 
         /// <summary>
         /// Trigger then the instance send progress
         /// </summary>
         /// <param name="progress"></param>
-        private void OnInstanceMessage(TaskProgress? progress)
+        private void OnNotification(TaskInstanceNotification progress)
         {
-            if (progress != null)
+            if (progress.InstanceId != Instance.Id)
+                return;
+
+            Application.Current.Dispatcher.BeginInvoke(() =>
             {
-                Application.Current.Dispatcher.BeginInvoke(() =>
-                {
-                    ProgressMessages.Add(progress);
-                });
-            }
+                ProgressMessages.Add(progress);
+            });
         }
     }
 }

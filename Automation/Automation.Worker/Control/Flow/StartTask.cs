@@ -12,7 +12,7 @@ namespace Automation.Worker.Control.Flow
             Name = nameof(StartTask)
         };
 
-        public Task<EnumTaskState> DoAsync(TaskParameters parameters, IProgress<TaskProgress>? progress)
+        public Task<EnumTaskState> DoAsync(TaskParameters parameters, IProgress<TaskInstanceNotification>? progress)
         {
             return Task.FromResult(EnumTaskState.Completed);
         }

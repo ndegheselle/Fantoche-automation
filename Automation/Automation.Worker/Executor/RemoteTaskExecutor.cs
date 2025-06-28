@@ -51,13 +51,13 @@ namespace Automation.Worker.Executor
         /// <inheritdoc/>
         public async Task<AutomationTaskInstance> ExecuteAsync(
             AutomationTaskInstance instance,
-            IProgress<TaskProgress>? progress = null)
+            IProgress<TaskInstanceNotification>? progress = null)
         {
             instance = await AssignAsync(instance);
             try
             {
                 if (progress != null)
-                    _realtime.Progress.Subscribe(instance.Id, progress);
+                    _realtime.Notifications.Subscribe(instance.Id, progress);
 
                 EnumTaskState finishedState = await _realtime.Lifecycle.WaitStateAsync(instance.Id, EnumTaskState.Finished);
                 // Udpate the context with the instance parameters stored in the database

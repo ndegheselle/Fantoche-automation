@@ -41,11 +41,30 @@
         Finished = Completed | Failed | Canceled
     }
 
-    public class TaskProgress
+    /// <summary>
+    /// Notification of a task instance, used to report the progress of a task execution.
+    /// </summary>
+    public class TaskInstanceNotification
     {
+        public Guid InstanceId { get; set; }
         public string Message { get; set; } = string.Empty;
         public EnumTaskProgress Type { get; set; }
         public DateTime Date { get; set; } = DateTime.Now;
+    }
+
+    /// <summary>
+    /// State of a task instance, used to track the lifecycle of a task.
+    /// </summary>
+    public class TaskIntanceState
+    {
+        public Guid InstanceId { get; set; }
+        public EnumTaskState State { get; set; }
+
+        public TaskIntanceState(Guid instanceId, EnumTaskState state)
+        {
+            InstanceId = instanceId;
+            State = state;
+        }
     }
 
     public class TaskParameters
@@ -68,6 +87,6 @@
         /// <param name="parameters">Context of execution of the task, the context can be modified by the task to pass data to next tasks</param>
         /// <param name="progress"></param>
         /// <returns></returns>
-        public Task<EnumTaskState> DoAsync(TaskParameters parameters, IProgress<TaskProgress>? progress);
+        public Task<EnumTaskState> DoAsync(TaskParameters parameters, IProgress<TaskInstanceNotification>? progress);
     }
 }

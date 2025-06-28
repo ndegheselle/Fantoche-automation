@@ -26,7 +26,7 @@ namespace Automation.Plugins.Flow
 
             for(int i = 0;  i < 5; i++)
             {
-                Progress?.Send(new TaskProgress() { Type = EnumTaskProgress.Info, Message = $"Progression {i} ..." });
+                Progress?.Send(new TaskInstanceNotification() { Type = EnumTaskProgress.Info, Message = $"Progression {i} ..." });
                 await Task.Delay(settings.DelayMs);
             }
         }

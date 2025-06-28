@@ -16,7 +16,7 @@ namespace Automation.Worker.Executor
             _packages = packageManagement;
         }
 
-        public async Task<AutomationTaskInstance> ExecuteAsync(AutomationTaskInstance instance, IProgress<TaskProgress>? progress = null)
+        public async Task<AutomationTaskInstance> ExecuteAsync(AutomationTaskInstance instance, IProgress<TaskInstanceNotification>? progress = null)
         {
             if (instance.Task == null)
                 throw new ArgumentNullException(nameof(instance.Task), "Local execution of task instance require the Task to be loaded in the instance.");
@@ -38,7 +38,7 @@ namespace Automation.Worker.Executor
             return await ExecuteAsync(instance, task, progress);
         }
 
-        private async Task<AutomationTaskInstance> ExecuteAsync(AutomationTaskInstance instance, ITask task, IProgress<TaskProgress>? progress = null)
+        private async Task<AutomationTaskInstance> ExecuteAsync(AutomationTaskInstance instance, ITask task, IProgress<TaskInstanceNotification>? progress = null)
         {
             instance.StartDate = DateTime.Now;
             try

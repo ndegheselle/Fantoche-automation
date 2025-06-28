@@ -36,8 +36,7 @@ namespace Automation.App
             services.AddTransient<MainWindow>();
             services.AddSingleton<ParametersViewModel>();
             services.AddSingleton<RestClient>(new RestClient(apiUrl));
-            services.AddSingleton<Lazy<RedisConnectionManager>>(
-                new Lazy<RedisConnectionManager>(() => new RedisConnectionManager(redisUrl)));
+            services.AddSingleton<TaskProgressHubClient>(new TaskProgressHubClient(apiUrl));
 
             services.AddTransient<ScopesClient>(
                 (provider) => new ScopesClient(provider.GetRequiredService<RestClient>()));

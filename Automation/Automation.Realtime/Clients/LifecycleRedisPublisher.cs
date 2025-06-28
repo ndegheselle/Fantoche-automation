@@ -4,18 +4,6 @@ using StackExchange.Redis;
 
 namespace Automation.Realtime.Clients
 {
-    public class TaskIntanceState
-    {
-        public Guid InstanceId { get; set; }
-        public EnumTaskState State { get; set; }
-
-        public TaskIntanceState(Guid instanceId, EnumTaskState state)
-        {
-            InstanceId = instanceId;
-            State = state;
-        }
-    }
-
     public class LifecycleRedisPublisher : RedisSubscriber<TaskIntanceState>
     {
         public LifecycleRedisPublisher(ConnectionMultiplexer connection) : base(
@@ -23,12 +11,12 @@ namespace Automation.Realtime.Clients
             $"instances:lifecycle")
         {}
 
-        public void Subscribe(Guid instanceId, IProgress<EnumTaskState> callback)
+        public void Subscribe(Guid instanceId, IProgress<TaskIntanceState> callback)
         {
             base.Subscribe(new Progress<TaskIntanceState>((instanceState) =>
             {
                 if (instanceState.InstanceId == instanceId)
-                    callback.Report(instanceState.State);
+                    callback.Report(instanceState);
             }));
         }
 
@@ -44,10 +32,10 @@ namespace Automation.Realtime.Clients
             cancellationToken ??= CancellationToken.None;
             var tcs = new TaskCompletionSource<EnumTaskState>();
 
-            var progress = new Progress<EnumTaskState>((state) =>
+            var progress = new Progress<TaskIntanceState>((instanceState) =>
             {
-                if (state.HasFlag(targetState))
-                    tcs.TrySetResult(state);
+                if (instanceState.State.HasFlag(targetState))
+                    tcs.TrySetResult(instanceState.State);
             });
             Subscribe(instanceId, progress);
 
