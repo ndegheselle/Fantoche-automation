@@ -33,7 +33,7 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
         private async void LoadFullInstance(Guid instanceId)
         {
             Instance = await _instanceClient.GetByIdAsync(instanceId) ?? throw new ArgumentException("Instance not found");
-            ContextJson = JsonSerializer.Serialize(Instance.Context, new JsonSerializerOptions() { WriteIndented = true });
+            ContextJson = JsonSerializer.Serialize(Instance.Parameters, new JsonSerializerOptions() { WriteIndented = true });
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using Automation.Shared.Data;
+using System.Windows;
 using System.Windows.Controls;
 
 namespace Automation.App.Views.PackagesPages.Components

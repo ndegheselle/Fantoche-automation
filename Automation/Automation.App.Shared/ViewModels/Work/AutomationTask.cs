@@ -34,6 +34,7 @@ namespace Automation.App.Shared.ViewModels.Work
         IEnumerable<IAutomationTaskConnector> IAutomationTask.Inputs => Inputs;
         IEnumerable<IAutomationTaskConnector> IAutomationTask.Outputs => Outputs;
         IEnumerable<Schedule> IAutomationTask.Schedules => Schedules;
+        ITaskTarget? IAutomationTask.Target => Target;
 
         public AutomationTask() : base(EnumScopedType.Task)
         {}

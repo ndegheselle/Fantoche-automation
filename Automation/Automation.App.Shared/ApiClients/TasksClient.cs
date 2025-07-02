@@ -1,11 +1,10 @@
 ﻿using Automation.App.Shared.ViewModels.Work;
 using Automation.Shared.Base;
-using Automation.Shared.Clients;
 using RestSharp;
 
 namespace Automation.App.Shared.ApiClients
 {
-    public class TasksClient : ApiClients.BaseCrudClient<AutomationTask>
+    public class TasksClient : BaseCrudClient<AutomationTask>
     {
         public TasksClient(RestClient restClient) : base(restClient, "tasks")
         {

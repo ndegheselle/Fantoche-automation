@@ -1,6 +1,5 @@
 ﻿using Automation.App.Shared.ApiClients;
 using Automation.App.ViewModels;
-using Automation.Realtime;
 using Microsoft.Extensions.DependencyInjection;
 using RestSharp;
 using System.Configuration;

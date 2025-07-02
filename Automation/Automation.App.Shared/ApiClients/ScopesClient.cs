@@ -1,6 +1,5 @@
 ﻿using Automation.App.Shared.ViewModels.Work;
 using Automation.Shared.Base;
-using Automation.Shared.Clients;
 using RestSharp;
 
 namespace Automation.App.Shared.ApiClients
