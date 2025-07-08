@@ -17,11 +17,11 @@ namespace Automation.Supervisor.Api.Business
         private readonly WorkersRealtimeClient _workersClient;
         private readonly RemoteTaskExecutor _executor;
 
-        public WorkerCleaner(IMongoDatabase database, RedisConnectionManager redis)
+        public WorkerCleaner(IMongoDatabase database, RedisConnectionManager redis, RealtimeClients clients)
         {
             _repository = new TaskIntancesRepository(database);
             _workersClient = new WorkersRealtimeClient(redis.Connection);
-            _executor = new RemoteTaskExecutor(database, redis);
+            _executor = new RemoteTaskExecutor(database, clients);
         }
 
         protected async override Task ExecuteAsync(CancellationToken stoppingToken)

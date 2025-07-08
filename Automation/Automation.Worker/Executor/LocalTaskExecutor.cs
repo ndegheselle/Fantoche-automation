@@ -1,7 +1,7 @@
 ﻿using Automation.Dal.Models;
 using Automation.Plugins.Shared;
+using Automation.Shared.Data;
 using Automation.Worker.Control;
-using MongoDB.Bson.Serialization.Serializers;
 
 namespace Automation.Worker.Executor
 {

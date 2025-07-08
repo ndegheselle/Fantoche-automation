@@ -1,4 +1,4 @@
-﻿using Automation.Dal.Models;
+﻿using Automation.Shared.Data;
 using Automation.Worker.Control.Flow;
 
 namespace Automation.Worker.Control

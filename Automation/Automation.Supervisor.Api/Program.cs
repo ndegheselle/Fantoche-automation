@@ -4,7 +4,6 @@ using Automation.Supervisor.Api.Business;
 using Automation.Supervisor.Api.Database;
 using Automation.Supervisor.Api.Hubs;
 using DotNetEnv;
-using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;

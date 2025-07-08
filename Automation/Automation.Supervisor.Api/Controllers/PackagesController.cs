@@ -1,5 +1,5 @@
-using Automation.Dal.Models;
 using Automation.Shared.Base;
+using Automation.Shared.Data;
 using Automation.Worker.Packages;
 using Microsoft.AspNetCore.Mvc;
 

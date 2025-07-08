@@ -10,4 +10,22 @@ namespace Automation.Dal.Models
     [BsonKnownTypes(typeof(PackageClassTarget))]
     public abstract class TaskTarget : ITaskTarget
     { }
+
+    public class ClassTarget : TaskTarget
+    {
+        public ClassIdentifier Class { get; set; }
+        public ClassTarget(ClassIdentifier targetClass)
+        {
+            Class = targetClass;
+        }
+    }
+
+    public class PackageClassTarget : ClassTarget
+    {
+        public PackageIdentifier Identifier { get; set; }
+        public PackageClassTarget(PackageIdentifier identifier, ClassIdentifier targetClass) : base(targetClass)
+        {
+            Identifier = identifier;
+        }
+    }
 }

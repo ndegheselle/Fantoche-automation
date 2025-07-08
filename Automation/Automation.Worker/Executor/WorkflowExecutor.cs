@@ -2,6 +2,7 @@
 using Automation.Dal.Repositories;
 using Automation.Plugins.Shared;
 using Automation.Realtime;
+using Automation.Realtime.Clients;
 using Automation.Worker.Control.Flow;
 using MongoDB.Driver;
 
@@ -14,11 +15,11 @@ namespace Automation.Worker.Executor
 
         private readonly RemoteTaskExecutor _executor;
 
-        public WorkflowExecutor(IMongoDatabase database, RedisConnectionManager connection)
+        public WorkflowExecutor(IMongoDatabase database, RealtimeClients clients)
         {
             _graphsRepo = new GraphsRepository(database);
             _tasksRepo = new TasksRepository(database);
-            _executor = new RemoteTaskExecutor(database, connection);
+            _executor = new RemoteTaskExecutor(database, clients);
         }
 
         public async Task ExecuteWorkflowAsync(AutomationTaskInstance instance)

@@ -1,6 +1,7 @@
 ﻿using Automation.Dal.Models;
 using Automation.Plugins.Shared;
 using Automation.Shared.Base;
+using Automation.Shared.Data;
 using NuGet.Common;
 using NuGet.Configuration;
 using NuGet.Frameworks;
