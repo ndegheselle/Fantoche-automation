@@ -1,4 +1,5 @@
 ﻿using Automation.App.Shared.ApiClients;
+using Automation.App.Shared.ViewModels.Work;
 using Automation.Shared.Base;
 using Automation.Shared.Data;
 using Joufflu.Popups;

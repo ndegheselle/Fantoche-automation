@@ -1,9 +1,6 @@
 ﻿using Automation.Shared.Data;
 using Joufflu.Shared.Resources.Fonts;
-using NuGet.Packaging.Core;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Media;
 
 namespace Automation.App.Views.WorkPages.Components

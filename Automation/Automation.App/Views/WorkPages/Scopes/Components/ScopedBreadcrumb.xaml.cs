@@ -45,22 +45,18 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
 
         private async void OnScopedChanged()
         {
-            if (Scope == null)
+            Parents.Clear();
+            if (Scope == null || Scope.Id == IScope.ROOT_SCOPE_ID)
                 return;
 
-            Parents.Clear();
             var parents = await _client.GetParentScopes(Scope.Id);
             foreach (Scope parent in parents)
             {
-                if (parent.Id == IScope.ROOT_SCOPE_ID)
-                    parent.Metadata.Name = "..";
-
                 Parents.Add(parent);
             }
-            // We include the scope in the list of parent
 
-            if (Scope.Id != IScope.ROOT_SCOPE_ID)
-                Parents.Add(Scope);
+            // We include the scope in the list of parent
+            Parents.Add(Scope);
         }
 
         private void ButtonScope_Click(object sender, RoutedEventArgs e)

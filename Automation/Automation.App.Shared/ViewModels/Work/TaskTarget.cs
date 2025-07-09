@@ -1,17 +1,8 @@
 ﻿using Automation.Shared.Data;
-using MongoDB.Bson.Serialization.Attributes;
-using System.Text.Json.Serialization;
 
-namespace Automation.Dal.Models
+namespace Automation.App.Shared.ViewModels.Work
 {
-    [JsonDerivedType(typeof(ClassTarget), "class")]
-    [JsonDerivedType(typeof(PackageClassTarget), "package")]
-    [BsonKnownTypes(typeof(ClassTarget))]
-    [BsonKnownTypes(typeof(PackageClassTarget))]
-    public abstract class TaskTarget : ITaskTarget
-    { }
-
-    public class ClassTarget : TaskTarget, IClassTarget
+    public class ClassTarget : IClassTarget
     {
         public ClassIdentifier Class { get; set; }
         public ClassTarget(ClassIdentifier targetClass)

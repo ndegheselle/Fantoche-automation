@@ -30,9 +30,6 @@
         public string JsonSettings { get; set; } = "";
     }
 
-    public class ITaskTarget
-    { }
-
     public interface IAutomationTaskConnector
     {
         Guid Id { get; }

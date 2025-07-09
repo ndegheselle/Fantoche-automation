@@ -1,4 +1,4 @@
-﻿using Automation.Shared.Data;
+﻿using Automation.App.Shared.ViewModels.Work;
 using System.Windows;
 using System.Windows.Controls;
 

@@ -30,22 +30,22 @@
                 Scope="{Binding CurrentScope}"
                 ScopeSelected="ScopedBreadcrumb_ScopeSelected"
                 Margin="4,0,0,0" />
-            <StackPanel Orientation="Horizontal">
-                <StackPanel.Style>
-                    <Style TargetType="StackPanel">
-                        <Setter Property="DataContext" Value="{Binding Selected, ElementName=Selector}" />
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding Selected, ElementName=Selector}" Value="{x:Null}">
-                                <Setter Property="DataContext" Value="{Binding CurrentScope}" />
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </StackPanel.Style>
+            <StackPanel Orientation="Horizontal" DataContext="{Binding Selected, ElementName=Selector}">
                 <fonts:Icon
                     Text="{x:Static fonts:IconFont.ChevronRight}"
                     FontSize="8"
                     VerticalAlignment="Center"
-                    Margin="4,0" />
+                    Margin="4,0">
+                    <fonts:Icon.Style>
+                        <Style TargetType="{x:Type fonts:Icon}" BasedOn="{StaticResource {x:Type fonts:Icon}}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Selected, ElementName=Selector}" Value="{x:Null}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </fonts:Icon.Style>
+                </fonts:Icon>
                 <components:ScopedIcon Metadata="{Binding Metadata}" Margin="0,0,4,0" />
                 <TextBlock Text="{Binding Metadata.Name}" VerticalAlignment="Center" />
             </StackPanel>

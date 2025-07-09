@@ -30,7 +30,7 @@ db.tasks.createIndex(
 db.scopes.insertOne({
     _id: UUID("00000000-0000-0000-0000-000000000001"),
     metadata: {
-        name: "..",
+        name: "Root",
     },
     parentTree: [],
     context: {}
