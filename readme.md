@@ -37,10 +37,10 @@ Start `Automation.App` for the client.
 # TODO
 
 - Handle communication between client and supervisor with signalR
+    - Display workflow progress in realtime
 - Scripting language to handle contexte change in tasks settings
 - Generic way to create UI form for settings
     - Also handle validation and types with this ?
-- Display workflow progress in realtime
 - Workflow validation with potential errors prompting (infinite loop. dead branches, ...)
 - Handle supervisor edge case for flow control tasks
 - Display workers list and allow supervision

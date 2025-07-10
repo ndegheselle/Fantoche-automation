@@ -23,6 +23,12 @@ namespace Automation.Dal.Models
     public class PackageClassTarget : ClassTarget, IPackageClassTarget
     {
         public PackageIdentifier Identifier { get; set; }
+
+        public PackageClassTarget() : base(new ClassIdentifier())
+        {
+            Identifier = new PackageIdentifier();
+        }
+
         public PackageClassTarget(PackageIdentifier identifier, ClassIdentifier targetClass) : base(targetClass)
         {
             Identifier = identifier;

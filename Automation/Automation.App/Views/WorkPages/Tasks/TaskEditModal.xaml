@@ -134,7 +134,7 @@
                     <TextBlock Margin="4,0,0,0">Cancel</TextBlock>
                 </StackPanel>
             </Button>
-            <Button Command="{Binding ValidateCommand}">
+            <Button Command="{Binding ValidateCommand}" IsEnabled="{Binding Task.Metadata.IsReadOnly, Converter={StaticResource BooleanFlipConverter}}">
                 <StackPanel Orientation="Horizontal">
                     <fonts:Icon Text="{x:Static fonts:IconFont.FloppyDisk}" />
                     <TextBlock Margin="4,0,0,0">Save changes</TextBlock>

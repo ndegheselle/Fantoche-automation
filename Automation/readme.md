@@ -29,7 +29,13 @@ Worker (windows service) :
         - Not a fan since it double everything + no clear way to ensure the DTO is compatible with the model
 - Better serparation between ViewModel and Model, some other solution than using wrapper ?
 
-Add common nameof for serialization attributes.
+## Postmortem
+
+Used interfaces, pretty heavy :
+- Need 3 definitions for each classes (one for API, one for interfaces, one for client)
+- Main issue is attributes for `JsonDerivedType` and `BsonKnownTypes` since I don't want to import bson dependencies in client I can't have shared definitions (that anyway can't be since client have definition at several levels)
+
+Real solution would be to use a really flat data scheme (pretty hard constraint) with inheritance ? Or having the clients classes generated from the API with partial and then the definition tweaked ?
 
 # To improve
 

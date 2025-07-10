@@ -26,11 +26,13 @@ namespace Automation.App.Views.WorkPages.Components
 
         public void OnMetadataChanged()
         {
+            Text = null;
+            if (_previousMetadata != null)
+                _previousMetadata.PropertyChanged -= Metadata_PropertyChanged;
+
             if (Metadata == null)
                 return;
 
-            if (_previousMetadata != null)
-                _previousMetadata.PropertyChanged -= Metadata_PropertyChanged;
 
             Metadata.PropertyChanged +=Metadata_PropertyChanged;
             if (Metadata.Icon == null)
