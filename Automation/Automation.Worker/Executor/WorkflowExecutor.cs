@@ -22,7 +22,7 @@ namespace Automation.Worker.Executor
             _executor = new RemoteTaskExecutor(database, clients);
         }
 
-        public async Task ExecuteWorkflowAsync(AutomationTaskInstance instance)
+        public async Task ExecuteWorkflowAsync(TaskInstance instance)
         {
             var graph = await LoadGraph(instance.Id);
             var startNode = graph.Nodes.OfType<GraphControl>().Single(x => x.TaskId == StartTask.Id);
@@ -33,9 +33,9 @@ namespace Automation.Worker.Executor
             // TODO : change the instance state to finished
         }
 
-        public async Task ExecuteNodeAsync(GraphTask node, Graph graph, AutomationTaskInstance workflowInstance)
+        public async Task ExecuteNodeAsync(GraphTask node, Graph graph, TaskInstance workflowInstance)
         {
-            AutomationSubTaskInstance instance = new AutomationSubTaskInstance(workflowInstance.TaskId, node, new TaskParameters("", ""));
+            SubTaskInstance instance = new SubTaskInstance(workflowInstance.TaskId, node, new TaskParameters("", ""));
             if (node is GraphWorkflow)
                 await ExecuteWorkflowAsync(instance);
             else
@@ -44,7 +44,7 @@ namespace Automation.Worker.Executor
             await ExecuteNextAsync(node, graph, workflowInstance);
         }
 
-        public async Task ExecuteNextAsync(GraphTask node, Graph graph, AutomationTaskInstance workflowInstance)
+        public async Task ExecuteNextAsync(GraphTask node, Graph graph, TaskInstance workflowInstance)
         {
             var nextConnections = graph.Connections.Where(x => x.Source?.Parent == node);
             foreach (var connection in nextConnections)

@@ -44,7 +44,7 @@ namespace Automation.Supervisor.Api.Database
             });
 
             // Control tasks
-            await _tasksRepo.CreateIfDoesntExistAsync(new AutomationTask()
+            await _tasksRepo.CreateIfDoesntExistAsync(new BaseAutomationTask()
             {
                 Id = StartTask.Id,
                 ParentId = controlsScopeId,

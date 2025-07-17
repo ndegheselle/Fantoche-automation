@@ -2,7 +2,7 @@
 
 namespace Automation.Shared.Data
 {
-    public interface IAutomationTaskInstance : IIdentifier
+    public interface ITaskInstance : IIdentifier
     {
         public Guid TaskId { get; set; }
         public string? WorkerId { get; set; }

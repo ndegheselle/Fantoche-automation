@@ -47,6 +47,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Automation.Worker", "Automa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Automation.Worker.Service", "Automation.Worker.Service\Automation.Worker.Service.csproj", "{4D63C0FD-0817-4AF4-8C53-D1BC035B58FC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Automation.Worker.Cli", "..\Automation.Worker.Cli\Automation.Worker.Cli.csproj", "{4872A4CC-B207-414D-BACD-C436D3981E7D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -121,6 +123,10 @@ Global
 		{4D63C0FD-0817-4AF4-8C53-D1BC035B58FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4D63C0FD-0817-4AF4-8C53-D1BC035B58FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4D63C0FD-0817-4AF4-8C53-D1BC035B58FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4872A4CC-B207-414D-BACD-C436D3981E7D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4872A4CC-B207-414D-BACD-C436D3981E7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4872A4CC-B207-414D-BACD-C436D3981E7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4872A4CC-B207-414D-BACD-C436D3981E7D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -144,6 +150,7 @@ Global
 		{43F5C9CF-77B2-4C9A-B18A-11F62027F9C7} = {22EF0554-5D93-41BE-A54F-D331C311226C}
 		{9601ADEA-958A-4710-86CD-1D398A365595} = {128D718D-1656-4F30-98A5-3764D87E87C4}
 		{4D63C0FD-0817-4AF4-8C53-D1BC035B58FC} = {128D718D-1656-4F30-98A5-3764D87E87C4}
+		{4872A4CC-B207-414D-BACD-C436D3981E7D} = {128D718D-1656-4F30-98A5-3764D87E87C4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AFEC477D-0D28-4C5A-9622-5F97F806819C}

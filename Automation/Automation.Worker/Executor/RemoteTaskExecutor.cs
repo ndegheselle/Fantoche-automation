@@ -26,7 +26,7 @@ namespace Automation.Worker.Executor
         /// </summary>
         /// <param name="taskInstance"></param>
         /// <returns></returns>
-        public async Task<AutomationTaskInstance> AssignAsync(AutomationTaskInstance taskInstance)
+        public async Task<TaskInstance> AssignAsync(TaskInstance taskInstance)
         {
             WorkerInstance selectedWorker = await SelectWorkerAsync(taskInstance);
             taskInstance.WorkerId = selectedWorker.Id;
@@ -41,7 +41,7 @@ namespace Automation.Worker.Executor
         /// <param name="task">Task to execute</param>
         /// <returns>The selected worker instance.</returns>
         /// <exception cref="Exception">No worker found.</exception>
-        private async Task<WorkerInstance> SelectWorkerAsync(AutomationTaskInstance task)
+        private async Task<WorkerInstance> SelectWorkerAsync(TaskInstance task)
         {
             IEnumerable<WorkerInstance> workers = await _realtime.Workers.GetWorkersAsync();
             return workers.MinBy(async x => await _realtime.Workers.ByWorker(x.Id).Tasks.GetQueueLengthAsync()) ??
@@ -49,8 +49,8 @@ namespace Automation.Worker.Executor
         }
 
         /// <inheritdoc/>
-        public async Task<AutomationTaskInstance> ExecuteAsync(
-            AutomationTaskInstance instance,
+        public async Task<TaskInstance> ExecuteAsync(
+            TaskInstance instance,
             IProgress<TaskInstanceNotification>? progress = null)
         {
             instance = await AssignAsync(instance);
@@ -61,7 +61,7 @@ namespace Automation.Worker.Executor
 
                 EnumTaskState finishedState = await _realtime.Lifecycle.WaitStateAsync(instance.Id, EnumTaskState.Finished);
                 // Udpate the context with the instance parameters stored in the database
-                AutomationTaskInstance finishedInstance = await _instanceRepo.GetByIdAsync(instance.Id) ??
+                TaskInstance finishedInstance = await _instanceRepo.GetByIdAsync(instance.Id) ??
                     throw new Exception($"Unable to find the instance for the id '{instance.Id}'");
                 instance.Parameters.ContextJson = finishedInstance.Parameters.ContextJson;
             } catch
@@ -70,6 +70,14 @@ namespace Automation.Worker.Executor
             }
 
             return instance;
+        }
+
+
+        public Task<TaskInstance> ExecuteAsync(Guid taskId, TaskParameters parameters, IProgress<TaskInstanceNotification>? progress = null)
+        {
+            // Get the task
+            // Check if the task is a graph or simple task
+            // Handle
         }
     }
 }

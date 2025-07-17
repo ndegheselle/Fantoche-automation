@@ -15,7 +15,7 @@ namespace Automation.Supervisor.Api.Controllers
 {
     [ApiController]
     [Route("tasks")]
-    public class TasksController : BaseCrudController<AutomationTask>
+    public class TasksController : BaseCrudController<BaseAutomationTask>
     {
         private TasksRepository _taskRepo => (TasksRepository)_crudRepository;
         private readonly TaskIntancesRepository _taskInstanceRepo;
@@ -31,7 +31,7 @@ namespace Automation.Supervisor.Api.Controllers
 
         [HttpPost]
         [Route("")]
-        public override async Task<ActionResult<Guid>> CreateAsync(AutomationTask element)
+        public override async Task<ActionResult<Guid>> CreateAsync(BaseAutomationTask element)
         {
             if (element.ParentId == null)
             {
@@ -67,15 +67,15 @@ namespace Automation.Supervisor.Api.Controllers
 
         [HttpPost]
         [Route("{id}/execute")]
-        public async Task<AutomationTaskInstance> ExecuteAsync([FromRoute] Guid id, [FromBody] TaskParameters parameters)
+        public async Task<TaskInstance> ExecuteAsync([FromRoute] Guid id, [FromBody] TaskParameters parameters)
         {
-            AutomationTaskInstance instance = new AutomationTaskInstance(id, new TaskParameters("", ""));
+            TaskInstance instance = new TaskInstance(id, new TaskParameters("", ""));
             return await _executor.ExecuteAsync(instance);
         }
 
         [HttpGet]
         [Route("{id}/instances")]
-        public async Task<ListPageWrapper<AutomationTaskInstance>> GetInstancesAsync([FromRoute] Guid id, [FromQuery] int page, [FromQuery] int pageSize)
+        public async Task<ListPageWrapper<TaskInstance>> GetInstancesAsync([FromRoute] Guid id, [FromQuery] int page, [FromQuery] int pageSize)
         {
             return await _taskInstanceRepo.GetByTaskAsync(id, page, pageSize);
         }

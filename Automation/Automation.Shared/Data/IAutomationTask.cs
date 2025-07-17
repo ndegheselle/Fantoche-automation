@@ -44,14 +44,20 @@
         Guid TargetId { get; set; }
     }
 
-    public interface IAutomationTask : IScopedElement
+    public interface IBaseAutomationTask : IScopedElement
     {
-        ITaskTarget? Target { get; }
         IEnumerable<IAutomationTaskConnector> Inputs { get; }
         IEnumerable<IAutomationTaskConnector> Outputs { get; }
         IEnumerable<Schedule> Schedules { get; }
     }
 
+    public interface IAutomationTask : IBaseAutomationTask
+    {
+        ITaskTarget? Target { get; }
+    }
+
     public interface IAutomationWorkflow : IAutomationTask
-    {}
+    {
+        // Graph ?
+    }
 }
