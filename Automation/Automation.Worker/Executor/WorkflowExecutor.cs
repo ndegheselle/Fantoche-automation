@@ -1,8 +1,6 @@
 ﻿using Automation.Dal.Models;
 using Automation.Dal.Repositories;
 using Automation.Plugins.Shared;
-using Automation.Realtime;
-using Automation.Realtime.Clients;
 using Automation.Worker.Control.Flow;
 using MongoDB.Driver;
 
@@ -10,21 +8,20 @@ namespace Automation.Worker.Executor
 {
     public class WorkflowExecutor
     {
-        private readonly GraphsRepository _graphsRepo;
         private readonly TasksRepository _tasksRepo;
 
-        private readonly RemoteTaskExecutor _executor;
+        private readonly ITaskExecutor _executor;
 
-        public WorkflowExecutor(IMongoDatabase database, RealtimeClients clients)
+        public WorkflowExecutor(ITaskExecutor executor, IMongoDatabase database)
         {
-            _graphsRepo = new GraphsRepository(database);
             _tasksRepo = new TasksRepository(database);
-            _executor = new RemoteTaskExecutor(database, clients);
+            _executor = executor;
         }
 
         public async Task ExecuteWorkflowAsync(TaskInstance instance)
         {
-            var graph = await LoadGraph(instance.Id);
+            var task = await _tasksRepo.GetByIdAsync(instance.TaskId);
+            task.Graph.Refresh();
             var startNode = graph.Nodes.OfType<GraphControl>().Single(x => x.TaskId == StartTask.Id);
 
             // We don't need to execute the start node since it doesn't have any logic
@@ -58,18 +55,6 @@ namespace Automation.Worker.Executor
 
                 await ExecuteNodeAsync(connection.Target.Parent, graph, workflowInstance);
             }
-        }
-
-        /// <summary>
-        /// Load a graph and all it's associated tasks by the workflow ID.
-        /// </summary>
-        /// <param name="workflowId">Workflow id</param>
-        /// <returns>Loaded graph</returns>
-        private async Task<Graph> LoadGraph(Guid workflowId)
-        {
-            var graph = await _graphsRepo.GetByWorkflowIdAsync(workflowId);
-            graph.Refresh();
-            return graph;
         }
     }
 }

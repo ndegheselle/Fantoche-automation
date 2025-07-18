@@ -10,12 +10,12 @@ namespace Automation.Worker.Executor
     /// <summary>
     /// Execute a task by sending it to a worker
     /// </summary>
-    public class RemoteTaskExecutor : ITaskExecutor
+    public class RemoteTaskExecutor : BaseTaskExecutor
     {
         private readonly RealtimeClients _realtime;
         private readonly TaskIntancesRepository _instanceRepo;
 
-        public RemoteTaskExecutor(IMongoDatabase database, RealtimeClients realtime)
+        public RemoteTaskExecutor(ITaskResolver resolver, IMongoDatabase database, RealtimeClients realtime) : base(resolver)
         {
             _realtime = realtime;
             _instanceRepo = new TaskIntancesRepository(database);
@@ -72,12 +72,9 @@ namespace Automation.Worker.Executor
             return instance;
         }
 
-
-        public Task<TaskInstance> ExecuteAsync(Guid taskId, TaskParameters parameters, IProgress<TaskInstanceNotification>? progress = null)
+        public override Task<TaskInstance> ExecuteAsync(TaskTarget target, TaskParameters parameters, IProgress<TaskInstanceNotification>? progress = null)
         {
-            // Get the task
-            // Check if the task is a graph or simple task
-            // Handle
+            throw new NotImplementedException();
         }
     }
 }
