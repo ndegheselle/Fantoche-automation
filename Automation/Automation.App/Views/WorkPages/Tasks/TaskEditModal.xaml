@@ -68,7 +68,7 @@
                     <Button.Style>
                         <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding Task.Package}" Value="{x:Null}">
+                                <DataTrigger Binding="{Binding Task.Target}" Value="{x:Null}">
                                     <Setter Property="Visibility" Value="Collapsed" />
                                 </DataTrigger>
                             </Style.Triggers>
@@ -87,7 +87,7 @@
                         <Style TargetType="GroupBox" BasedOn="{StaticResource {x:Type GroupBox}}">
                             <Setter Property="Visibility" Value="Collapsed" />
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding Task.Package}" Value="{x:Null}">
+                                <DataTrigger Binding="{Binding Task.Target}" Value="{x:Null}">
                                     <Setter Property="Visibility" Value="Visible" />
                                 </DataTrigger>
                             </Style.Triggers>
@@ -111,7 +111,7 @@
                     <Grid.Style>
                         <Style TargetType="Grid">
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding Task.Package}" Value="{x:Null}">
+                                <DataTrigger Binding="{Binding Task.Target}" Value="{x:Null}">
                                     <Setter Property="Visibility" Value="Collapsed" />
                                 </DataTrigger>
                             </Style.Triggers>
