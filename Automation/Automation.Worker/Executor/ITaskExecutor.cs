@@ -11,6 +11,6 @@ namespace Automation.Worker.Executor
         /// <param name="instance">Instance of the task to execute</param>
         /// <param name="progress">Progress of the task</param>
         /// <returns>A task instance representing the task execution</returns>
-        Task<AutomationTaskInstance> ExecuteAsync(AutomationTaskInstance instance, IProgress<TaskInstanceNotification>? progress = null);
+        public abstract Task<EnumTaskState> ExecuteAsync(TaskTarget target, TaskInstance instance, IProgress<TaskInstanceNotification>? progress = null);
     }
 }

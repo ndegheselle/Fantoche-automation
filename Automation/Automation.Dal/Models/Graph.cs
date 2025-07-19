@@ -58,10 +58,8 @@ namespace Automation.Dal.Models
         public GraphConnector? Target { get; set; }
     }
 
-    public class Graph : IIdentifier
+    public class Graph
     {
-        public Guid Id { get; set; }
-        public Guid WorkflowId { get; set; }
         public List<GraphConnection> Connections { get; set; } = [];
         public List<GraphNode> Nodes { get; private set; } = [];
 

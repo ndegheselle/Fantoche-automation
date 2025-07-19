@@ -6,8 +6,10 @@ namespace Automation.Dal.Models
 {
     [JsonDerivedType(typeof(ClassTarget), "class")]
     [JsonDerivedType(typeof(PackageClassTarget), "package")]
+    [JsonDerivedType(typeof(Graph), "graph")]
     [BsonKnownTypes(typeof(ClassTarget))]
     [BsonKnownTypes(typeof(PackageClassTarget))]
+    [BsonKnownTypes(typeof(Graph))]
     public abstract class TaskTarget : ITaskTarget
     { }
 

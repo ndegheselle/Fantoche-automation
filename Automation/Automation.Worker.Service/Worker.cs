@@ -58,7 +58,7 @@ namespace Automation.Worker.Service
 
         private async Task Execute(Guid instanceId)
         {
-            AutomationTaskInstance instance = await _instanceRepo.GetByIdAsync(instanceId);
+            TaskInstance instance = await _instanceRepo.GetByIdAsync(instanceId);
 
             instance.State = EnumTaskState.Progressing;
             instance.StartDate = DateTime.Now;

@@ -10,23 +10,23 @@ namespace Automation.App.Shared.ApiClients
         {
         }
 
-        public async Task<ListPageWrapper<AutomationTaskInstance>> GetInstancesAsync(Guid taskId, int page, int pageSize)
+        public async Task<ListPageWrapper<TaskInstance>> GetInstancesAsync(Guid taskId, int page, int pageSize)
         {
-            return await _client.GetAsync<ListPageWrapper<AutomationTaskInstance>>(
+            return await _client.GetAsync<ListPageWrapper<TaskInstance>>(
                     new RestRequest($"{_routeBase}/{taskId}/instances")
                 .AddParameter("page", page)
                 .AddParameter("pageSize", pageSize)) ??
-                new ListPageWrapper<AutomationTaskInstance>();
+                new ListPageWrapper<TaskInstance>();
         }
 
-        public async Task<AutomationTaskInstance> ExecuteAsync(Guid taskId, object? settings)
+        public async Task<TaskInstance> ExecuteAsync(Guid taskId, object? settings)
         {
             var request = new RestRequest($"{_routeBase}/{taskId}/execute");
 
             if (settings != null)
                 request.AddBody(settings);
 
-            return await _client.PostAsync<AutomationTaskInstance>(request) ??
+            return await _client.PostAsync<TaskInstance>(request) ??
                 throw new Exception("Could not get the task instance from the server.");
         }
     }

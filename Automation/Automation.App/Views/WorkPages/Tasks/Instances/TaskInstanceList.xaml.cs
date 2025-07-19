@@ -14,11 +14,11 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
         // Dependency property for the task id
         public static readonly DependencyProperty InstancesProperty = DependencyProperty.Register(
             nameof(Instances),
-            typeof(IEnumerable<AutomationTaskInstance>),
+            typeof(IEnumerable<TaskInstance>),
             typeof(TaskInstanceList),
             new PropertyMetadata(null));
 
-        public IEnumerable<AutomationTaskInstance>? Instances { get { return (IEnumerable<AutomationTaskInstance>?)GetValue(InstancesProperty); } set { SetValue(InstancesProperty, value); } }
+        public IEnumerable<TaskInstance>? Instances { get { return (IEnumerable<TaskInstance>?)GetValue(InstancesProperty); } set { SetValue(InstancesProperty, value); } }
         private IModal _modal => this.GetCurrentModalContainer();
 
         public TaskInstanceList() {
@@ -29,7 +29,7 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
         private void DataGridDetail_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             DataGrid dataGrid = (DataGrid)sender;
-            var instance = dataGrid.SelectedItem as AutomationTaskInstance;
+            var instance = dataGrid.SelectedItem as TaskInstance;
 
             if (instance == null)
                 return;

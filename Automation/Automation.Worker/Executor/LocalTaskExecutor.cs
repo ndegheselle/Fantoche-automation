@@ -16,18 +16,15 @@ namespace Automation.Worker.Executor
             _packages = packageManagement;
         }
 
-        public async Task<AutomationTaskInstance> ExecuteAsync(AutomationTaskInstance instance, IProgress<TaskInstanceNotification>? progress = null)
+        public async Task<EnumTaskState> ExecuteAsync(TaskTarget target, TaskInstance instance, IProgress<TaskInstanceNotification>? progress = null)
         {
-            if (instance.Task == null)
-                throw new ArgumentNullException(nameof(instance.Task), "Local execution of task instance require the Task to be loaded in the instance.");
-
             ITask? task = null;
-            if (instance.Task.Target is ClassTarget classTarget)
+            if (target is ClassTarget classTarget)
             {
                 Type controlType = ControlsTasks.Availables[classTarget.Class];
                 task = Activator.CreateInstance(controlType) as ITask ?? throw new Exception();
             }
-            else if (instance.Task.Target is PackageClassTarget packageTarget)
+            else if (target is PackageClassTarget packageTarget)
             {
                 task = await _packages.CreateTaskInstanceAsync(packageTarget);
             }
@@ -35,10 +32,10 @@ namespace Automation.Worker.Executor
             if (task == null)
                 throw new Exception("Task without a target can't be executed.");
 
-            return await ExecuteAsync(instance, task, progress);
+            return await ExecuteAsync(task, instance, progress);
         }
 
-        private async Task<AutomationTaskInstance> ExecuteAsync(AutomationTaskInstance instance, ITask task, IProgress<TaskInstanceNotification>? progress = null)
+        private async Task<EnumTaskState> ExecuteAsync(ITask task, TaskInstance instance, IProgress<TaskInstanceNotification>? progress = null)
         {
             instance.StartDate = DateTime.Now;
             try
@@ -54,7 +51,7 @@ namespace Automation.Worker.Executor
             }
 
             instance.EndDate = DateTime.Now;
-            return instance;
+            return instance.State;
         }
     }
 }

@@ -15,9 +15,9 @@ namespace Automation.Dal.Models
         public EnumTaskConnectorDirection Direction { get; set; }
     }
 
-    [JsonDerivedType(typeof(AutomationWorkflow), "workflow")]
-    [BsonKnownTypes(typeof(AutomationWorkflow))]
-    public class AutomationTask : ScopedElement, IAutomationTask
+    [BsonKnownTypes(typeof(AutomationWorkflow)), JsonDerivedType(typeof(AutomationWorkflow), "workflow")]
+    [BsonKnownTypes(typeof(AutomationTask)), JsonDerivedType(typeof(AutomationTask), "task")]
+    public abstract class BaseAutomationTask : ScopedElement
     {
         public IEnumerable<IAutomationTaskConnector> Inputs { get; set; } = [];
 
@@ -25,15 +25,25 @@ namespace Automation.Dal.Models
 
         public IEnumerable<Schedule> Schedules { get; set; } = [];
 
+        public BaseAutomationTask(EnumScopedType type) : base(type)
+        { }
+    }
+
+    public class AutomationTask : BaseAutomationTask, IAutomationTask
+    {
         [BsonIgnore]
         ITaskTarget? IAutomationTask.Target => Target;
         public TaskTarget? Target { get; set; }
-
-        public AutomationTask() : base(EnumScopedType.Task) {}
+        public AutomationTask() : base(EnumScopedType.Task)
+        { }
     }
 
-    public class AutomationWorkflow : AutomationTask, IAutomationWorkflow
+    public class AutomationWorkflow : BaseAutomationTask
     {
-        public AutomationWorkflow() { Metadata.Type = EnumScopedType.Workflow; }
+        public Graph Graph { get; set; }
+        public AutomationWorkflow(Graph graph) : base(EnumScopedType.Workflow)
+        {
+            Graph = graph;
+        }
     }
 }

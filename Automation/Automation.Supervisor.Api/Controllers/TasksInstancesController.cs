@@ -13,7 +13,7 @@ namespace Automation.Supervisor.Api.Controllers
 {
     [ApiController]
     [Route("instances")]
-    public class TasksInstancesController : BaseCrudController<AutomationTaskInstance>
+    public class TasksInstancesController : BaseCrudController<TaskInstance>
     {
         public TasksInstancesController(IMongoDatabase database) : base(new TaskIntancesRepository(database))
         {}
