@@ -1,7 +1,8 @@
 ﻿using Automation.Dal.Models;
+using Automation.Dal.Repositories;
 using Automation.Plugins.Shared;
-using Automation.Shared.Data;
-using Automation.Worker.Control;
+using Automation.Worker.Packages;
+using MongoDB.Driver;
 
 namespace Automation.Worker.Executor
 {
@@ -10,48 +11,32 @@ namespace Automation.Worker.Executor
     /// </summary>
     public class LocalTaskExecutor : ITaskExecutor
     {
-        private readonly Packages.IPackageManagement _packages;
-        public LocalTaskExecutor(Packages.IPackageManagement packageManagement)
+        private readonly TasksRepository _tasksRepo;
+        private readonly TargetExecutor _targetExecutor;
+        public LocalTaskExecutor(IMongoDatabase database, IPackageManagement packageManagement)
         {
-            _packages = packageManagement;
+            _tasksRepo = new TasksRepository(database);
+            _targetExecutor = new TargetExecutor(packageManagement);
         }
 
-        public async Task<EnumTaskState> ExecuteAsync(TaskTarget target, TaskInstance instance, IProgress<TaskInstanceNotification>? progress = null)
+        public async Task<TaskInstance> ExecuteAsync(
+            TaskInstance instance,
+            IProgress<TaskInstanceNotification>? progress = null)
         {
-            ITask? task = null;
-            if (target is ClassTarget classTarget)
-            {
-                Type controlType = ControlsTasks.Availables[classTarget.Class];
-                task = Activator.CreateInstance(controlType) as ITask ?? throw new Exception();
-            }
-            else if (target is PackageClassTarget packageTarget)
-            {
-                task = await _packages.CreateTaskInstanceAsync(packageTarget);
-            }
+            BaseAutomationTask baseTask = await _tasksRepo.GetByIdAsync(instance.TaskId);
 
-            if (task == null)
-                throw new Exception("Task without a target can't be executed.");
+            if (baseTask is not AutomationTask task)
+                throw new Exception("Task is not a valid automation task.");
 
-            return await ExecuteAsync(task, instance, progress);
-        }
+            if (task.Target == null)
+                throw new Exception("Task target is not defined.");
 
-        private async Task<EnumTaskState> ExecuteAsync(ITask task, TaskInstance instance, IProgress<TaskInstanceNotification>? progress = null)
-        {
-            instance.StartDate = DateTime.Now;
-            try
-            {
-                instance.State = await task.DoAsync(
-                    instance.Parameters,
-                    progress
-                );
-            }
-            catch
-            {
-                instance.State = EnumTaskState.Failed;
-            }
+            instance.StartedAt = DateTime.UtcNow;
+            EnumTaskState resultState = await _targetExecutor.ExecuteAsync(task.Target, instance.Parameters, progress);
+            instance.FinishedAt = DateTime.UtcNow;
+            instance.State = resultState;
 
-            instance.EndDate = DateTime.Now;
-            return instance.State;
+            return instance;
         }
     }
 }

@@ -10,12 +10,12 @@ namespace Automation.Worker.Executor
     /// <summary>
     /// Execute a task by sending it to a worker
     /// </summary>
-    public class RemoteTaskExecutor : BaseTaskExecutor
+    public class RemoteTaskExecutor : ITaskExecutor
     {
         private readonly RealtimeClients _realtime;
         private readonly TaskIntancesRepository _instanceRepo;
 
-        public RemoteTaskExecutor(ITaskResolver resolver, IMongoDatabase database, RealtimeClients realtime) : base(resolver)
+        public RemoteTaskExecutor(IMongoDatabase database, RealtimeClients realtime)
         {
             _realtime = realtime;
             _instanceRepo = new TaskIntancesRepository(database);
@@ -26,13 +26,13 @@ namespace Automation.Worker.Executor
         /// </summary>
         /// <param name="taskInstance"></param>
         /// <returns></returns>
-        public async Task<TaskInstance> AssignAsync(TaskInstance taskInstance)
+        public async Task<TaskInstance> AssignAsync(TaskInstance instance)
         {
-            WorkerInstance selectedWorker = await SelectWorkerAsync(taskInstance);
-            taskInstance.WorkerId = selectedWorker.Id;
-            await _instanceRepo.CreateAsync(taskInstance);
-            _realtime.Workers.ByWorker(selectedWorker.Id).Tasks.QueueAsync(taskInstance.Id);
-            return taskInstance;
+            WorkerInstance selectedWorker = await SelectWorkerAsync();
+            instance.WorkerId = selectedWorker.Id;
+            Guid instanceId = await _instanceRepo.CreateOrUpdateAsync(instance);
+            _realtime.Workers.ByWorker(selectedWorker.Id).Tasks.QueueAsync(instanceId);
+            return instance;
         }
 
         /// <summary>
@@ -41,7 +41,7 @@ namespace Automation.Worker.Executor
         /// <param name="task">Task to execute</param>
         /// <returns>The selected worker instance.</returns>
         /// <exception cref="Exception">No worker found.</exception>
-        private async Task<WorkerInstance> SelectWorkerAsync(TaskInstance task)
+        private async Task<WorkerInstance> SelectWorkerAsync()
         {
             IEnumerable<WorkerInstance> workers = await _realtime.Workers.GetWorkersAsync();
             return workers.MinBy(async x => await _realtime.Workers.ByWorker(x.Id).Tasks.GetQueueLengthAsync()) ??
@@ -54,27 +54,13 @@ namespace Automation.Worker.Executor
             IProgress<TaskInstanceNotification>? progress = null)
         {
             instance = await AssignAsync(instance);
-            try
-            {
-                if (progress != null)
-                    _realtime.Notifications.Subscribe(instance.Id, progress);
+            if (progress != null)
+                _realtime.Notifications.Subscribe(instance.Id, progress);
 
-                EnumTaskState finishedState = await _realtime.Lifecycle.WaitStateAsync(instance.Id, EnumTaskState.Finished);
-                // Udpate the context with the instance parameters stored in the database
-                TaskInstance finishedInstance = await _instanceRepo.GetByIdAsync(instance.Id) ??
-                    throw new Exception($"Unable to find the instance for the id '{instance.Id}'");
-                instance.Parameters.ContextJson = finishedInstance.Parameters.ContextJson;
-            } catch
-            {
-                instance.State = EnumTaskState.Failed;
-            }
-
-            return instance;
-        }
-
-        public override Task<TaskInstance> ExecuteAsync(TaskTarget target, TaskParameters parameters, IProgress<TaskInstanceNotification>? progress = null)
-        {
-            throw new NotImplementedException();
+            await _realtime.Lifecycle.WaitStateAsync(instance.Id, EnumTaskState.Finished);
+            // Get the updated instance from the repository
+            return await _instanceRepo.GetByIdAsync(instance.Id) ??
+                throw new Exception($"Unable to find the instance for the id '{instance.Id}'");
         }
     }
 }

@@ -22,7 +22,7 @@ namespace Automation.Supervisor.Api.Database
 
         public async Task Seed()
         {
-            await _scopeRepo.CreateIfDoesntExistAsync(new Scope()
+            await _scopeRepo.CreateOrUpdateAsync(new Scope()
             {
                 Id = IScope.ROOT_SCOPE_ID,
                 Metadata = new ScopedMetadata(EnumScopedType.Scope)
@@ -31,7 +31,7 @@ namespace Automation.Supervisor.Api.Database
                 },
             });
 
-            Guid controlsScopeId = await _scopeRepo.CreateIfDoesntExistAsync(new Scope()
+            Guid controlsScopeId = await _scopeRepo.CreateOrUpdateAsync(new Scope()
             {
                 Id = Guid.Parse("00000000-0000-0000-0000-000000000002"),
                 ParentId = IScope.ROOT_SCOPE_ID,
@@ -44,7 +44,7 @@ namespace Automation.Supervisor.Api.Database
             });
 
             // Control tasks
-            await _tasksRepo.CreateIfDoesntExistAsync(new BaseAutomationTask()
+            await _tasksRepo.CreateOrUpdateAsync(new AutomationTask()
             {
                 Id = StartTask.Id,
                 ParentId = controlsScopeId,

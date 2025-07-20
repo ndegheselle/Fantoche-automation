@@ -63,12 +63,17 @@ namespace Automation.Dal.Models
         public List<GraphConnection> Connections { get; set; } = [];
         public List<GraphNode> Nodes { get; private set; } = [];
 
+        private bool _isRefreshed = false;
         /// <summary>
         /// Refresh parent and object references between TaskNode, Connection and Connectors.
         /// Simplify the graph resolution.
         /// </summary>
-        public void Refresh()
+        /// <param name="force">Force the refresh even if the graph have already been refreshed.</param>
+        public void Refresh(bool force = false)
         {
+            if (_isRefreshed == true && force != true)
+                return;
+
             Dictionary<Guid, GraphConnector> connectors = new Dictionary<Guid, GraphConnector>();
             foreach (var node in Nodes)
             {
@@ -95,6 +100,8 @@ namespace Automation.Dal.Models
                 connection.Source = source;
                 connection.Target = source;
             }
+
+            _isRefreshed = true;
         }
     }
 }

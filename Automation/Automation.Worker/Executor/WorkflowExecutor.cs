@@ -18,27 +18,45 @@ namespace Automation.Worker.Executor
             _executor = executor;
         }
 
-        public async Task ExecuteWorkflowAsync(TaskInstance instance)
+        public async Task<TaskInstance> ExecuteWorkflowAsync(TaskInstance instance, IProgress<TaskInstanceNotification>? progress = null)
         {
-            var task = await _tasksRepo.GetByIdAsync(instance.TaskId);
-            task.Graph.Refresh();
-            var startNode = graph.Nodes.OfType<GraphControl>().Single(x => x.TaskId == StartTask.Id);
+            BaseAutomationTask baseTask = await _tasksRepo.GetByIdAsync(instance.TaskId);
+            if (baseTask is not AutomationWorkflow workflow)
+                throw new Exception("Task is not a valid automation task.");
 
+            workflow.Graph.Refresh();
+            var startNode = workflow.Graph.Nodes.OfType<GraphControl>().Single(x => x.TaskId == StartTask.Id);
+
+            instance.StartedAt = DateTime.UtcNow;
             // We don't need to execute the start node since it doesn't have any logic
-            await ExecuteNextAsync(startNode, graph, instance);
-
+            await ExecuteNextAsync(startNode, workflow.Graph, instance);
+            instance.FinishedAt = DateTime.UtcNow;
             // TODO : change the instance state to finished
+
+            return instance;
         }
 
         public async Task ExecuteNodeAsync(GraphTask node, Graph graph, TaskInstance workflowInstance)
         {
-            SubTaskInstance instance = new SubTaskInstance(workflowInstance.TaskId, node, new TaskParameters("", ""));
-            if (node is GraphWorkflow)
-                await ExecuteWorkflowAsync(instance);
-            else
-                await _executor.ExecuteAsync(instance);
+            SubTaskInstance instance = new SubTaskInstance(workflowInstance.Id, node, new TaskParameters("", ""));
 
-            await ExecuteNextAsync(node, graph, workflowInstance);
+            EnumTaskState resultState = EnumTaskState.Failed;
+
+            switch (node)
+            {
+                case GraphTask taskNode:
+                    if (task.Target == null)
+                        throw new Exception("Task target is not defined.");
+                    await _executor.ExecuteAsync(instance, null);
+                    break;
+
+                case GraphWorkflow:
+                    await ExecuteWorkflowAsync(instance, null);
+                    break;
+            }
+
+            if (instance.State == EnumTaskState.Completed)
+                await ExecuteNextAsync(node, graph, workflowInstance);
         }
 
         public async Task ExecuteNextAsync(GraphTask node, Graph graph, TaskInstance workflowInstance)
