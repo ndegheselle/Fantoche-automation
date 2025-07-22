@@ -44,8 +44,6 @@ namespace Automation.App
                 (provider) => new TaskInstancesClient(provider.GetRequiredService<RestClient>()));
             services.AddTransient<PackagesClient>(
                 (provider) => new PackagesClient(provider.GetRequiredService<RestClient>()));
-            services.AddTransient<GraphsClient>(
-                (provider) => new GraphsClient(provider.GetRequiredService<RestClient>()));
             return services.BuildServiceProvider();
         }
     }

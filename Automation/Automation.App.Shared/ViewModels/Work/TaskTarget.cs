@@ -8,7 +8,7 @@ namespace Automation.App.Shared.ViewModels.Work
     public abstract class TaskTarget : ITaskTarget
     { }
 
-    public class ClassTarget : IClassTarget
+    public class ClassTarget : TaskTarget, IClassTarget
     {
         public ClassIdentifier Class { get; set; }
         public ClassTarget(ClassIdentifier targetClass)

@@ -30,7 +30,7 @@ namespace Automation.Worker.Service
             _instance = instance;
             _instanceRepo = new TaskIntancesRepository(database);
             _taskRepo = new TasksRepository(database);
-            _executor = new LocalTaskExecutor(packageManagement);
+            _executor = new LocalTaskExecutor(database, packageManagement);
             _workerClient = new WorkersRealtimeClient(redis.Connection).ByWorker(_instance.Id);
         }
 
@@ -61,12 +61,12 @@ namespace Automation.Worker.Service
             TaskInstance instance = await _instanceRepo.GetByIdAsync(instanceId);
 
             instance.State = EnumTaskState.Progressing;
-            instance.StartDate = DateTime.Now;
+            instance.StartedAt = DateTime.UtcNow;
             await _instanceRepo.UpdateAsync(instance.Id, instance);
 
             instance = await _executor.ExecuteAsync(instance);
 
-            instance.EndDate = DateTime.Now;
+            instance.FinishedAt = DateTime.UtcNow;
             await _instanceRepo.UpdateAsync(instance.Id, instance);
         }
     }

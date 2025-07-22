@@ -32,29 +32,17 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
 
         public GraphEditorViewModel? Editor { get; private set; }
         
-        private readonly GraphsClient _graphsClient;
-
         public GraphEditor()
         {
-            _graphsClient = Services.Provider.GetRequiredService<GraphsClient>();
             InitializeComponent(); 
         }
 
-        private async void OnWorkflowChanged()
+        private void OnWorkflowChanged()
         {
             if (Workflow == null)
                 return;
-
-            // Load graph
-            Graph? graph = await _graphsClient.GetByWorkflowIdAsync(Workflow.Id);
-            if (graph == null)
-            {
-                // Create graph associed with workflow if doesn't exist
-                graph = new Graph();
-                await _graphsClient.CreateAsync(graph);
-            }
-
-            Editor = new GraphEditorViewModel(this, graph, new GraphEditorSettings());
+            Workflow.Graph.Refresh();
+            Editor = new GraphEditorViewModel(this, Workflow.Graph, new GraphEditorSettings());
         }
 
         private Rectangle GetSelectedBoundingBox(int padding)

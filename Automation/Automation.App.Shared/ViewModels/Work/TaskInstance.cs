@@ -22,8 +22,8 @@ namespace Automation.App.Shared.ViewModels.Work
         public TaskParameters Parameters { get; set; } = new TaskParameters("", "");
         public EnumTaskState State { get; set; }
 
-        public DateTime CreateDate { get; set; }
-        public DateTime? StartDate { get; set; }
-        public DateTime? EndDate { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? StartedAt { get; set; }
+        public DateTime? FinishedAt { get; set; }
     }
 }

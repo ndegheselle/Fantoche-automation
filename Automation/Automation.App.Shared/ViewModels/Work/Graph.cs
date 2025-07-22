@@ -89,7 +89,7 @@ namespace Automation.App.Shared.ViewModels.Work
         public ObservableCollection<GraphConnection> Connections { get; set; } = [];
         public ObservableCollection<GraphNode> Nodes { get; private set; } = [];
 
-        public void RefreshConnections()
+        public void Refresh()
         {
             Dictionary<Guid, GraphConnector> connectors = new Dictionary<Guid, GraphConnector>();
             foreach (var node in Nodes)

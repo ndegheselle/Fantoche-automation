@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 namespace Automation.Dal.Models
 {
     [JsonDerivedType(typeof(Scope), "scope")]
-    [JsonDerivedType(typeof(BaseAutomationTask), "task")]
+    [JsonDerivedType(typeof(AutomationTask), "task")]
     [JsonDerivedType(typeof(AutomationWorkflow), "workflow")]
     public abstract class ScopedElement : IScopedElement
     {

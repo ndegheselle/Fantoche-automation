@@ -31,8 +31,7 @@ namespace Automation.Worker.Executor
             // We don't need to execute the start node since it doesn't have any logic
             await ExecuteNextAsync(startNode, workflow.Graph, instance);
             instance.FinishedAt = DateTime.UtcNow;
-            // TODO : change the instance state to finished
-
+            instance.State = EnumTaskState.Completed;
             return instance;
         }
 
@@ -40,18 +39,13 @@ namespace Automation.Worker.Executor
         {
             SubTaskInstance instance = new SubTaskInstance(workflowInstance.Id, node, new TaskParameters("", ""));
 
-            EnumTaskState resultState = EnumTaskState.Failed;
-
             switch (node)
             {
-                case GraphTask taskNode:
-                    if (task.Target == null)
-                        throw new Exception("Task target is not defined.");
-                    await _executor.ExecuteAsync(instance, null);
-                    break;
-
                 case GraphWorkflow:
                     await ExecuteWorkflowAsync(instance, null);
+                    break;
+                case GraphTask:
+                    await _executor.ExecuteAsync(instance, null);
                     break;
             }
 

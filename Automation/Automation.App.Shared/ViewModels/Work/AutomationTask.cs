@@ -1,4 +1,5 @@
 ﻿using Automation.Shared.Data;
+using Newtonsoft.Json;
 using System.ComponentModel;
 using System.Text.Json.Serialization;
 using System.Windows;
@@ -24,29 +25,34 @@ namespace Automation.App.Shared.ViewModels.Work
     }
 
     [JsonDerivedType(typeof(AutomationWorkflow), "workflow")]
-    public class AutomationTask : ScopedElement, IAutomationTask, INotifyPropertyChanged
+    [JsonDerivedType(typeof(AutomationTask), "task")]
+    public abstract class BaseAutomationTask : ScopedElement, IBaseAutomationTask
     {
-        public PackageClassTarget? Target { get; set; }
         public List<AutomationTaskConnector> Inputs { get; set; } = [];
         public List<AutomationTaskConnector> Outputs { get; set; } = [];
         public List<Schedule> Schedules { get; set; } = [];
 
-        IEnumerable<IAutomationTaskConnector> IAutomationTask.Inputs => Inputs;
-        IEnumerable<IAutomationTaskConnector> IAutomationTask.Outputs => Outputs;
-        IEnumerable<Schedule> IAutomationTask.Schedules => Schedules;
-        ITaskTarget? IAutomationTask.Target => Target;
+        IEnumerable<IAutomationTaskConnector> IBaseAutomationTask.Inputs => Inputs;
+        IEnumerable<IAutomationTaskConnector> IBaseAutomationTask.Outputs => Outputs;
+        IEnumerable<Schedule> IBaseAutomationTask.Schedules => Schedules;
 
-        public AutomationTask() : base(EnumScopedType.Task)
-        {}
+        public BaseAutomationTask(EnumScopedType type) : base(type)
+        { }
     }
 
-    public class AutomationWorkflow : AutomationTask
+    public class AutomationTask : BaseAutomationTask, IAutomationTask
     {
-        public Graph Graph { get; } = new Graph();
+        ITaskTarget? IAutomationTask.Target => Target;
+        public TaskTarget? Target { get; set; }
+        public AutomationTask() : base(EnumScopedType.Task)
+        { }
+    }
 
-        public AutomationWorkflow()
+    public class AutomationWorkflow : BaseAutomationTask
+    {
+        public Graph Graph { get; set; } = new Graph();
+        public AutomationWorkflow() : base(EnumScopedType.Workflow)
         {
-            Metadata.Type = EnumScopedType.Workflow;
         }
     }
 }

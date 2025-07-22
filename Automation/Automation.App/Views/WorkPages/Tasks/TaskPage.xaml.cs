@@ -31,7 +31,7 @@ namespace Automation.App.Views.WorkPages.Tasks
 
         public async void LoadFullTask(Guid taskId)
         {
-            AutomationTask? fullTask = await _client.GetByIdAsync(taskId);
+            AutomationTask? fullTask = await _client.GetByIdAsync(taskId) as AutomationTask;
 
             if (fullTask == null)
                 throw new ArgumentException("Task not found");
