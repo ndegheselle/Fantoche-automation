@@ -1,18 +1,5 @@
 ﻿namespace Automation.Shared.Data
 {
-    public interface ITaskTarget
-    { }
-
-    public interface IClassTarget : ITaskTarget
-    {
-        public ClassIdentifier Class { get; set; }
-    }
-
-    public interface IPackageClassTarget : IClassTarget
-    {
-        public PackageIdentifier Identifier { get; set; }
-    }
-
     public class PackageIdentifier
     {
         public string Id { get; set; } = "";

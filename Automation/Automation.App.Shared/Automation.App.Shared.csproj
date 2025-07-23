@@ -18,4 +18,6 @@
     <ProjectReference Include="..\Automation.Shared\Automation.Shared.csproj" />
   </ItemGroup>
 
+  <Import Project="..\..\Automation.Dal.Models\Automation.Dal.Models.projitems" Label="Shared" />
+
 </Project>

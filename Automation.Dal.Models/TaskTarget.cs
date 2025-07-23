@@ -1,14 +1,14 @@
 ﻿using Automation.Shared.Data;
 using System.Text.Json.Serialization;
 
-namespace Automation.App.Shared.ViewModels.Work
+namespace Automation.Dal.Models
 {
     [JsonDerivedType(typeof(ClassTarget), "class")]
     [JsonDerivedType(typeof(PackageClassTarget), "package")]
-    public abstract class TaskTarget : ITaskTarget
+    public abstract class TaskTarget
     { }
 
-    public class ClassTarget : TaskTarget, IClassTarget
+    public class ClassTarget : TaskTarget
     {
         public ClassIdentifier Class { get; set; }
         public ClassTarget(ClassIdentifier targetClass)
@@ -17,9 +17,10 @@ namespace Automation.App.Shared.ViewModels.Work
         }
     }
 
-    public class PackageClassTarget : ClassTarget, IPackageClassTarget
+    public class PackageClassTarget : ClassTarget
     {
         public PackageIdentifier Identifier { get; set; }
+
         public PackageClassTarget() : base(new ClassIdentifier())
         {
             Identifier = new PackageIdentifier();

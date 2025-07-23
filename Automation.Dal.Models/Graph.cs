@@ -1,14 +1,16 @@
 ﻿using Automation.Shared.Data;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Windows;
+using System.Drawing;
+using System.Text.Json.Serialization;
 
-namespace Automation.App.Shared.ViewModels.Work
+namespace Automation.Dal.Models
 {
+    [JsonDerivedType(typeof(GraphTask), "task")]
+    [JsonDerivedType(typeof(GraphGroup), "group")]
     public class GraphNode
     {
-        public string Name { get; } = string.Empty;
+        public Guid Id { get; set; }
+        public string Name { get; set; } = string.Empty;
         public Point Position { get; set; }
     }
 
@@ -39,23 +41,19 @@ namespace Automation.App.Shared.ViewModels.Work
         }
     }
 
-    public class GraphConnector : INotifyPropertyChanged
+    public class GraphControl : GraphTask
+    {}
+
+    public class GraphWorkflow : GraphTask
+    {}
+
+    public partial class GraphConnector
     {
-        public event PropertyChangedEventHandler? PropertyChanged;
-        public void RaisePropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
         public Guid Id { get; set; }
+        [JsonIgnore]
         public bool IsConnected { get; set; }
-        public Point Anchor { get; set; }
-        public EnumTaskConnectorType Type { get; set; }
-
-        public GraphConnector(EnumTaskConnectorType type = EnumTaskConnectorType.Flow)
-        {
-            Type = type;
-        }
+        [JsonIgnore]
+        public GraphTask? Parent { get; set; }
     }
 
     public class GraphConnection
@@ -63,11 +61,13 @@ namespace Automation.App.Shared.ViewModels.Work
         public Guid SourceId { get; set; }
         public Guid TargetId { get; set; }
 
-        public GraphConnector Source { get; set; } = new GraphConnector();
-        public GraphConnector Target { get; set; } = new GraphConnector();
+        [JsonIgnore]
+        public GraphConnector? Source { get; set; }
+        [JsonIgnore]
+        public GraphConnector? Target { get; set; }
 
         public GraphConnection()
-        {}
+        { }
 
         public GraphConnection(GraphConnector source, GraphConnector target)
         {
@@ -89,17 +89,32 @@ namespace Automation.App.Shared.ViewModels.Work
         public ObservableCollection<GraphConnection> Connections { get; set; } = [];
         public ObservableCollection<GraphNode> Nodes { get; private set; } = [];
 
-        public void Refresh()
+        private bool _isRefreshed = false;
+        /// <summary>
+        /// Refresh parent and object references between TaskNode, Connection and Connectors.
+        /// Simplify the graph resolution.
+        /// </summary>
+        /// <param name="force">Force the refresh even if the graph is already refreshed.</param>
+        public void Refresh(bool force = false)
         {
+            if (_isRefreshed == true && force != true)
+                return;
+
             Dictionary<Guid, GraphConnector> connectors = new Dictionary<Guid, GraphConnector>();
             foreach (var node in Nodes)
             {
-                if (node is GraphTask related)
+                if (node is GraphTask taskNode)
                 {
-                    foreach (var connector in related.Inputs)
+                    foreach (var connector in taskNode.Inputs)
+                    {
                         connectors.Add(connector.Id, connector);
-                    foreach (var connector in related.Outputs)
+                        connector.Parent = taskNode;
+                    }
+                    foreach (var connector in taskNode.Outputs)
+                    {
                         connectors.Add(connector.Id, connector);
+                        connector.Parent = taskNode;
+                    }
                 }
             }
 
@@ -108,9 +123,10 @@ namespace Automation.App.Shared.ViewModels.Work
             {
                 var source = connectors[connection.SourceId];
                 var target = connectors[connection.TargetId];
-                connection.Source = source;
-                connection.Target = target;
+                connection.Connect(source, target);
             }
+
+            _isRefreshed = true;
         }
     }
 }

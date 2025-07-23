@@ -5,13 +5,13 @@ namespace Automation.Dal.Repositories
 {
     public class BaseRepository<T>
     {
-        protected readonly IMongoDatabase _database;
+        protected readonly DatabaseConnection _connection;
         protected readonly IMongoCollection<T> _collection;
 
-        public BaseRepository(IMongoDatabase database, string collectionName)
+        public BaseRepository(DatabaseConnection connection, string collectionName)
         {
-            _database = database;
-            _collection = _database.GetCollection<T>(collectionName);
+            _connection = connection;
+            _collection = _connection.Database.GetCollection<T>(collectionName);
         }
 
         public virtual async Task<List<T>> GetAllAsync()
@@ -23,7 +23,7 @@ namespace Automation.Dal.Repositories
     // TODO : use soft deletion and history (userId, createdAt, updatedAt, deletedAt)
     public class BaseCrudRepository<T> : BaseRepository<T> where T : IIdentifier
     {
-        public BaseCrudRepository(IMongoDatabase database, string collectionName) : base(database, collectionName)
+        public BaseCrudRepository(DatabaseConnection connection, string collectionName) : base(connection, collectionName)
         { }
 
         public virtual async Task<T> GetByIdAsync(Guid id)

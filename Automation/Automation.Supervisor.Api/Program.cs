@@ -37,7 +37,7 @@ builder.Services.AddSingleton<RealtimeClients>((services) => new RealtimeClients
 // Package management
 builder.Services.AddSingleton<Automation.Worker.Packages.IPackageManagement>(new Automation.Worker.Packages.LocalPackageManagement("/app/data/nuget"));
 
-// Database
+// DatabaseConnection
 builder.Services.AddSingleton<IMongoDatabase>(
         (services) =>
         {

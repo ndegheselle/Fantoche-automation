@@ -7,7 +7,7 @@ namespace Automation.Dal.Repositories
 {
     public class TaskIntancesRepository : BaseCrudRepository<TaskInstance>
     {
-        public TaskIntancesRepository(IMongoDatabase database) : base(database, "instances")
+        public TaskIntancesRepository(DatabaseConnection connection) : base(connection, "instances")
         {
         }
 
@@ -55,7 +55,7 @@ namespace Automation.Dal.Repositories
         /// <returns></returns>
         public async Task<ListPageWrapper<TaskInstance>> GetByScopeAsync(Guid scopeId, int page, int pageSize)
         {
-            TasksRepository taskRepo = new TasksRepository(_database);
+            TasksRepository taskRepo = new TasksRepository(_connection);
             var tasks = await taskRepo.GetByAnyParentScopeAsync(scopeId);
             var test = tasks.ToList();
 

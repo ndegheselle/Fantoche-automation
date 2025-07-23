@@ -1,5 +1,6 @@
 ﻿using Automation.Dal.Models;
 using Automation.Shared.Data;
+using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 using System.Xml.Linq;
 
@@ -7,9 +8,8 @@ namespace Automation.Dal.Repositories
 {
     public class ScopesRepository : BaseCrudRepository<Scope>
     {
-        public ScopesRepository(IMongoDatabase database) : base(database, "scopes")
-        {
-        }
+        public ScopesRepository(DatabaseConnection connection) : base(connection, "scopes")
+        {}
 
         /// <summary>
         /// Delete all tasks and scopes child of a scope, whatever how deep they are.
@@ -18,7 +18,7 @@ namespace Automation.Dal.Repositories
         /// <returns></returns>
         public override async Task DeleteAsync(Guid id)
         {
-            TasksRepository taskRepository = new TasksRepository(_database);
+            TasksRepository taskRepository = new TasksRepository(_connection);
             await taskRepository.DeleteByScopeAsync(id);
             await DeleteByScopeAsync(id);
             await _collection.DeleteOneAsync(e => e.Id == id);
@@ -44,7 +44,7 @@ namespace Automation.Dal.Repositories
                 return scopes;
 
             // Load childrens of the scopes
-            var taskRepo = new TasksRepository(_database);
+            var taskRepo = new TasksRepository(_connection);
             foreach (var scope in scopes)
             {
                 var scopeChildrenTask = GetByScopeAsync(scope.Id, false);
@@ -72,7 +72,7 @@ namespace Automation.Dal.Repositories
 
             if (withChildrens)
             {
-                var taskRepo = new TasksRepository(_database);
+                var taskRepo = new TasksRepository(_connection);
 
                 var scopeChildrenTask = GetByScopeAsync(scope.Id, true);
                 var taskChildrenTask = taskRepo.GetByDirectParentScopeAsync(scope.Id);
@@ -90,7 +90,7 @@ namespace Automation.Dal.Repositories
 
         public async Task<Scope> GetRootAsync()
         {
-            var rootScope = await GetByIdAsync(IScope.ROOT_SCOPE_ID);
+            var rootScope = await GetByIdAsync(Scope.ROOT_SCOPE_ID);
 
             if (rootScope == null)
                 throw new Exception("Root scope doesn't exist.");
@@ -104,8 +104,8 @@ namespace Automation.Dal.Repositories
             if (scope != null)
                 return scope;
 
-            var taskRepo = new TasksRepository(_database);
-            var task = await taskRepo.GetByParentScopeAndNameAsync(scopeId ?? IScope.ROOT_SCOPE_ID, name);
+            var taskRepo = new TasksRepository(_connection);
+            var task = await taskRepo.GetByParentScopeAndNameAsync(scopeId ?? Scope.ROOT_SCOPE_ID, name);
             if (task != null)
                 return task;
             return null;

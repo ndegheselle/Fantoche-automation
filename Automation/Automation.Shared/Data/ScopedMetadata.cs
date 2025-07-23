@@ -32,18 +32,4 @@ namespace Automation.Shared.Data
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
-
-    public interface IScopedElement : IIdentifier
-    {
-        Guid? ParentId { get; set; }
-        ScopedMetadata Metadata { get; set; }
-    }
-
-    public interface IScope : IScopedElement
-    {
-        public static readonly Guid ROOT_SCOPE_ID = new Guid("00000000-0000-0000-0000-000000000001");
-
-        Dictionary<string, string> Context { get; }
-        public IList<IScopedElement> Childrens { get; }
-    }
 }

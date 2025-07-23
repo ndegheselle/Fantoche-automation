@@ -6,7 +6,7 @@ namespace Automation.Dal.Repositories
 {
     public class TasksRepository : BaseCrudRepository<BaseAutomationTask>
     {
-        public TasksRepository(IMongoDatabase database) : base(database, "tasks")
+        public TasksRepository(DatabaseConnection connection) : base(connection, "tasks")
         {
         }
 
