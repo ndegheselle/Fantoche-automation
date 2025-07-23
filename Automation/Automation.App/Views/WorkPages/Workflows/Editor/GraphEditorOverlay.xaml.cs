@@ -1,5 +1,5 @@
 ﻿using Automation.App.Shared.ApiClients;
-using Automation.App.Shared.ViewModels.Work;
+using Automation.Dal.Models;
 using Automation.App.ViewModels.Workflow.Editor;
 using Automation.App.Views.WorkPages.Scopes.Components;
 using Joufflu.Popups;

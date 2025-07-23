@@ -1,5 +1,5 @@
 ﻿using Automation.App.Shared.ApiClients;
-using Automation.App.Shared.ViewModels.Work;
+using Automation.Dal.Models;
 using Automation.Shared.Data;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.ObjectModel;
@@ -46,7 +46,7 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
         private async void OnScopedChanged()
         {
             Parents.Clear();
-            if (Scope == null || Scope.Id == IScope.ROOT_SCOPE_ID)
+            if (Scope == null || Scope.Id == Scope.ROOT_SCOPE_ID)
                 return;
 
             var parents = await _client.GetParentScopes(Scope.Id);

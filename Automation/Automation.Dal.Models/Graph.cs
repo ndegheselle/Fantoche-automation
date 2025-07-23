@@ -30,7 +30,7 @@ namespace Automation.Dal.Models
         public List<GraphConnector> Inputs { get; set; } = [];
         public List<GraphConnector> Outputs { get; set; } = [];
 
-        public GraphTask(AutomationTask task)
+        public GraphTask(BaseAutomationTask task)
         {
             TaskId = task.Id;
             Metadata = task.Metadata;
@@ -42,10 +42,16 @@ namespace Automation.Dal.Models
     }
 
     public class GraphControl : GraphTask
-    {}
+    {
+        public GraphControl(BaseAutomationTask task) : base(task)
+        {}
+    }
 
     public class GraphWorkflow : GraphTask
-    {}
+    {
+        public GraphWorkflow(BaseAutomationTask task) : base(task)
+        { }
+    }
 
     public partial class GraphConnector
     {

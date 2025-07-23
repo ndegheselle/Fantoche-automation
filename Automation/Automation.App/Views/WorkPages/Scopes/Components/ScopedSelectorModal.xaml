@@ -10,7 +10,7 @@
     MinHeight="200"
     MinWidth="400"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
-    xmlns:viewmodels="clr-namespace:Automation.App.Shared.ViewModels.Work;assembly=Automation.App.Shared"
+    xmlns:models="clr-namespace:Automation.Dal.Models;assembly=Automation.App.Shared"
     xmlns:components="clr-namespace:Automation.App.Views.WorkPages.Components"
     x:Name="ContainerElement">
     <Grid DataContext="{Binding ElementName=ContainerElement}">
@@ -33,7 +33,7 @@
             MouseDoubleClick="ListBox_MouseDoubleClick"
             SelectionChanged="ListBox_SelectionChanged">
             <ListBox.ItemTemplate>
-                <DataTemplate DataType="{x:Type viewmodels:ScopedElement}">
+                <DataTemplate DataType="{x:Type models:ScopedElement}">
                     <StackPanel Orientation="Horizontal">
                         <components:ScopedIcon Metadata="{Binding Metadata}" Margin="0,0,4,0" />
                         <TextBlock Text="{Binding Metadata.Name}" />

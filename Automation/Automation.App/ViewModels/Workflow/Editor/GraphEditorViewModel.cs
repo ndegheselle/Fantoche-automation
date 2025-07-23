@@ -1,4 +1,4 @@
-﻿using Automation.App.Shared.ViewModels.Work;
+﻿using Automation.Dal.Models;
 using Automation.App.Views.WorkPages.Workflows.Editor;
 using System.Collections.ObjectModel;
 
@@ -46,8 +46,8 @@ namespace Automation.App.ViewModels.Workflow.Editor
             {
                 Graph.Connections.Remove(connection);
                 // Refresh connector
-                connection.Source.IsConnected = GetLinkedConnections(connection.Source).Any();
-                connection.Target.IsConnected = GetLinkedConnections(connection.Target).Any();
+                connection.Source!.IsConnected = GetLinkedConnections(connection.Source).Any();
+                connection.Target!.IsConnected = GetLinkedConnections(connection.Target).Any();
             }
         }
 

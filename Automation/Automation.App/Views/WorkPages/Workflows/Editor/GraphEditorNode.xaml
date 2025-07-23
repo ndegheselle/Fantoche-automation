@@ -2,17 +2,17 @@
     x:Class="Automation.App.Views.WorkPages.Workflows.Editor.GraphEditorNode"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Workflows.Editor"
-    xmlns:components="clr-namespace:Automation.App.Views.WorkPages.Components"
-    mc:Ignorable="d"
-    xmlns:nodify="clr-namespace:Nodify;assembly=Nodify"
-    xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
+    xmlns:components="clr-namespace:Automation.App.Views.WorkPages.Components"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:data="clr-namespace:Automation.Shared.Data;assembly=Automation.Shared"
-    xmlns:viewmodels="clr-namespace:Automation.App.Shared.ViewModels.Work;assembly=Automation.App.Shared"
-    x:Name="ContainerElement">
+    xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
+    xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Workflows.Editor"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="clr-namespace:Automation.Dal.Models;assembly=Automation.App.Shared"
+    xmlns:nodify="clr-namespace:Nodify;assembly=Nodify"
+    x:Name="ContainerElement"
+    mc:Ignorable="d">
     <UserControl.Resources>
         <ControlTemplate x:Key="FlowConnector" TargetType="Control">
             <Polygon
@@ -44,11 +44,11 @@
     </UserControl.Resources>
     <nodify:Node
         DataContext="{Binding Task, ElementName=ContainerElement}"
+        Footer="{Binding Name}"
         Input="{Binding Inputs}"
-        Output="{Binding Outputs}"
-        Footer="{Binding Name}">
+        Output="{Binding Outputs}">
         <nodify:Node.InputConnectorTemplate>
-            <DataTemplate DataType="{x:Type viewmodels:GraphConnector}">
+            <DataTemplate DataType="{x:Type models:GraphConnector}">
                 <nodify:NodeInput Anchor="{Binding Anchor, Mode=OneWayToSource}" IsConnected="{Binding IsConnected}">
                     <nodify:NodeInput.Style>
                         <Style BasedOn="{StaticResource {x:Type nodify:NodeInput}}" TargetType="{x:Type nodify:NodeInput}">
@@ -63,10 +63,10 @@
                                     <ControlTemplate TargetType="{x:Type nodify:NodeInput}">
                                         <Control
                                             x:Name="PART_Connector"
-                                            Focusable="False"
                                             VerticalAlignment="Center"
                                             Background="Transparent"
                                             BorderBrush="{TemplateBinding BorderBrush}"
+                                            Focusable="False"
                                             Template="{TemplateBinding ConnectorTemplate}" />
                                         <ControlTemplate.Triggers>
                                             <Trigger Property="IsConnected" Value="True">
@@ -85,7 +85,7 @@
             </DataTemplate>
         </nodify:Node.InputConnectorTemplate>
         <nodify:Node.OutputConnectorTemplate>
-            <DataTemplate DataType="{x:Type viewmodels:AutomationTaskConnector}">
+            <DataTemplate DataType="{x:Type models:TaskConnector}">
                 <nodify:NodeOutput
                     Padding="0"
                     Anchor="{Binding Anchor, Mode=OneWayToSource}"
@@ -103,10 +103,10 @@
                                     <ControlTemplate TargetType="{x:Type nodify:NodeOutput}">
                                         <Control
                                             x:Name="PART_Connector"
-                                            Focusable="False"
                                             VerticalAlignment="Center"
                                             Background="Transparent"
                                             BorderBrush="{TemplateBinding BorderBrush}"
+                                            Focusable="False"
                                             Template="{TemplateBinding ConnectorTemplate}" />
                                         <ControlTemplate.Triggers>
                                             <Trigger Property="IsConnected" Value="True">
@@ -126,7 +126,7 @@
         </nodify:Node.OutputConnectorTemplate>
 
         <nodify:Node.Style>
-            <Style TargetType="{x:Type nodify:Node}" BasedOn="{StaticResource {x:Type nodify:Node}}">
+            <Style BasedOn="{StaticResource {x:Type nodify:Node}}" TargetType="{x:Type nodify:Node}">
                 <Setter Property="HeaderBrush" Value="Transparent" />
                 <Setter Property="FooterBrush" Value="Transparent" />
                 <Setter Property="HeaderContainerStyle" Value="{StaticResource DefaultHeaderContainerStyle}" />
@@ -139,7 +139,7 @@
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="19" />
                                     <RowDefinition Height="*" />
-                                    <RowDefinition MinHeight="19" Height="auto" />
+                                    <RowDefinition Height="auto" MinHeight="19" />
                                 </Grid.RowDefinitions>
 
                                 <!--  Header  -->
@@ -172,8 +172,8 @@
                                     </Border>
                                     <!--  Data OUT  -->
                                     <ItemsControl
-                                        Margin="2,0,0,0"
                                         Grid.Column="2"
+                                        Margin="2,0,0,0"
                                         VerticalAlignment="Center"
                                         HorizontalContentAlignment="Right"
                                         Focusable="False"
@@ -197,7 +197,7 @@
         </nodify:Node.Style>
 
         <Grid>
-            <components:ScopedIcon Metadata="{Binding Metadata}" FontSize="24" />
+            <components:ScopedIcon FontSize="24" Metadata="{Binding Metadata}" />
         </Grid>
 
     </nodify:Node>

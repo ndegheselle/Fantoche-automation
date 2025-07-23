@@ -1,4 +1,4 @@
-﻿using Automation.App.Shared.ViewModels.Work;
+﻿using Automation.Dal.Models;
 using Joufflu.Popups;
 using System.ComponentModel;
 using System.Windows;

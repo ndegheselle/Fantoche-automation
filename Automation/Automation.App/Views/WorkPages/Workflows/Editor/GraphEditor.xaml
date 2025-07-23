@@ -11,7 +11,7 @@
     xmlns:data="clr-namespace:Automation.Shared.Data;assembly=Automation.Shared"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     xmlns:nodify="clr-namespace:Nodify;assembly=Nodify"
-    xmlns:viewmodels="clr-namespace:Automation.App.Shared.ViewModels.Work;assembly=Automation.App.Shared"
+    xmlns:models="clr-namespace:Automation.Dal.Models;assembly=Automation.App.Shared"
     x:Name="ContainerElement"
     mc:Ignorable="d"
     d:DesignHeight="450"
@@ -55,14 +55,14 @@
                 PendingConnection="{Binding PendingConnection}"
                 SelectedItems="{Binding SelectedNodes}">
                 <nodify:NodifyEditor.Resources>
-                    <DataTemplate DataType="{x:Type viewmodels:GraphGroup}">
+                    <DataTemplate DataType="{x:Type models:GraphGroup}">
                         <nodify:GroupingNode
                             ActualSize="{Binding Size}"
                             Header="{Binding Name}"
                             MovementMode="Group" />
                     </DataTemplate>
 
-                    <DataTemplate DataType="{x:Type viewmodels:GraphTask}">
+                    <DataTemplate DataType="{x:Type models:GraphTask}">
                         <local:GraphEditorNode Task="{Binding}" />
                     </DataTemplate>
                 </nodify:NodifyEditor.Resources>
@@ -82,7 +82,7 @@
                 </nodify:NodifyEditor.ItemContainerStyle>
 
                 <nodify:NodifyEditor.ConnectionTemplate>
-                    <DataTemplate DataType="{x:Type viewmodels:GraphConnection}">
+                    <DataTemplate DataType="{x:Type models:GraphConnection}">
                         <nodify:Connection Source="{Binding Source.Anchor}" Target="{Binding Target.Anchor}">
                             <nodify:Connection.Style>
                                 <Style BasedOn="{StaticResource {x:Type nodify:Connection}}" TargetType="{x:Type nodify:Connection}">

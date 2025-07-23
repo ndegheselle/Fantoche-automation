@@ -1,4 +1,4 @@
-﻿using Automation.App.Shared.ViewModels.Work;
+﻿using Automation.Dal.Models;
 using Automation.App.ViewModels.Workflow.Editor.Actions;
 using Automation.App.Views.WorkPages.Workflows.Editor;
 using System.Windows.Input;

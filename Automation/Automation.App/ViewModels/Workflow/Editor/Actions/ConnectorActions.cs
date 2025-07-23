@@ -1,4 +1,4 @@
-﻿using Automation.App.Shared.ViewModels.Work;
+﻿using Automation.Dal.Models;
 
 namespace Automation.App.ViewModels.Workflow.Editor.Actions
 {

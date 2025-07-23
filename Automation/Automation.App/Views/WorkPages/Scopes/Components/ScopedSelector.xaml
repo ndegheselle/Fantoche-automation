@@ -2,27 +2,27 @@
     x:Class="Automation.App.Views.WorkPages.Scopes.Components.ScopedSelector"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:components="clr-namespace:Automation.App.Views.WorkPages.Components"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Scopes.Components"
-    xmlns:viewmodels="clr-namespace:Automation.App.Shared.ViewModels.Work;assembly=Automation.App.Shared"
-    xmlns:components="clr-namespace:Automation.App.Views.WorkPages.Components"
-    mc:Ignorable="d"
-    x:Name="ContainerElement">
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="clr-namespace:Automation.Dal.Models;assembly=Automation.App.Shared"
+    x:Name="ContainerElement"
+    mc:Ignorable="d">
     <ListBox
-        DataContext="{Binding ElementName=ContainerElement}"
         Grid.Row="1"
+        DataContext="{Binding ElementName=ContainerElement}"
         ItemsSource="{Binding CurrentScope.SortedChildrens}"
-        SelectedItem="{Binding Selected}"
         MouseDoubleClick="ListBox_MouseDoubleClick"
-        PreviewMouseRightButtonDown="ListBox_PreviewMouseRightButtonDown">
+        PreviewMouseRightButtonDown="ListBox_PreviewMouseRightButtonDown"
+        SelectedItem="{Binding Selected}">
         <ListBox.ContextMenu>
             <local:ScopedContextMenu Selected="{Binding Current}" />
         </ListBox.ContextMenu>
         <ListBox.ItemTemplate>
-            <DataTemplate DataType="{x:Type viewmodels:ScopedElement}">
+            <DataTemplate DataType="{x:Type models:ScopedElement}">
                 <StackPanel Orientation="Horizontal">
-                    <components:ScopedIcon Metadata="{Binding Metadata}" Margin="0,0,4,0" />
+                    <components:ScopedIcon Margin="0,0,4,0" Metadata="{Binding Metadata}" />
                     <TextBlock Text="{Binding Metadata.Name}" />
                 </StackPanel>
             </DataTemplate>

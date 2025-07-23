@@ -1,6 +1,6 @@
 ﻿using Automation.App.Components.Inputs;
 using Automation.App.Shared.ApiClients;
-using Automation.App.Shared.ViewModels.Work;
+using Automation.Dal.Models;
 using Automation.App.Views.PackagesPages.Components;
 using Automation.Shared.Base;
 using Automation.Shared.Data;
