@@ -1,10 +1,8 @@
 ﻿using Automation.Dal.Models;
 using Automation.Dal.Repositories;
 using Automation.Shared.Data;
-using Automation.Worker.Control.Flow;
-using MongoDB.Driver;
 
-namespace Automation.Supervisor.Api.Database
+namespace Automation.Dal
 {
     /// <summary>
     /// Set the default values that should be present in the database
@@ -14,17 +12,17 @@ namespace Automation.Supervisor.Api.Database
         private readonly ScopesRepository _scopeRepo;
         private readonly TasksRepository _tasksRepo;
 
-        public DatabaseSeeder(IMongoDatabase database)
+        public DatabaseSeeder(DatabaseConnection connection)
         {
-            _scopeRepo = new ScopesRepository(database);
-            _tasksRepo = new TasksRepository(database);
+            _scopeRepo = new ScopesRepository(connection);
+            _tasksRepo = new TasksRepository(connection);
         }
 
         public async Task Seed()
         {
             await _scopeRepo.CreateOrUpdateAsync(new Scope()
             {
-                Id = IScope.ROOT_SCOPE_ID,
+                Id = Scope.ROOT_SCOPE_ID,
                 Metadata = new ScopedMetadata(EnumScopedType.Scope)
                 {
                     Name = "..",
@@ -33,9 +31,9 @@ namespace Automation.Supervisor.Api.Database
 
             Guid controlsScopeId = await _scopeRepo.CreateOrUpdateAsync(new Scope()
             {
-                Id = Guid.Parse("00000000-0000-0000-0000-000000000002"),
-                ParentId = IScope.ROOT_SCOPE_ID,
-                ParentTree = [IScope.ROOT_SCOPE_ID],
+                Id = ScopeControlId,
+                ParentId = Scope.ROOT_SCOPE_ID,
+                ParentTree = [Scope.ROOT_SCOPE_ID],
                 Metadata = new ScopedMetadata(EnumScopedType.Scope)
                 {
                     Name = "Controls",
@@ -48,7 +46,7 @@ namespace Automation.Supervisor.Api.Database
             {
                 Id = StartTask.Id,
                 ParentId = controlsScopeId,
-                ParentTree = [IScope.ROOT_SCOPE_ID, controlsScopeId],
+                ParentTree = [Scope.ROOT_SCOPE_ID, controlsScopeId],
                 Metadata = new ScopedMetadata(EnumScopedType.Task)
                 {
                     Name = "Start",

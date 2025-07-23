@@ -27,6 +27,12 @@ namespace Automation.Shared.Data
             Type = type;
         }
 
+        public ScopedMetadata(string name, EnumScopedType type)
+        {
+            Name = name;
+            Type = type;
+        }
+
         private void RaisePropertyChanged([CallerMemberName] string? propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

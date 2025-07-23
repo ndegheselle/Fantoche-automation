@@ -1,4 +1,5 @@
-﻿using Automation.Shared.Data;
+﻿using Automation.Dal.Models;
+using Automation.Shared.Data;
 using Automation.Worker.Control.Flow;
 
 namespace Automation.Worker.Control
@@ -9,6 +10,10 @@ namespace Automation.Worker.Control
     /// </summary>
     public static class ControlsTasks
     {
+        public static Scope ControlScope = new Scope("Controls", [Scope.ROOT_SCOPE_ID])
+        {
+            Id = Guid.Parse("00000000-0000-0000-0000-000000000002")
+        };
 
         public static Dictionary<ClassIdentifier, Type> Availables { get; } = new Dictionary<ClassIdentifier, Type>()
         {

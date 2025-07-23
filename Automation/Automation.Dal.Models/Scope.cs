@@ -18,6 +18,11 @@ namespace Automation.Dal.Models
         {
             Metadata = new ScopedMetadata(type);
         }
+
+        public ScopedElement(ScopedMetadata metadata)
+        {
+            Metadata = metadata;
+        }
     }
 
     public partial class Scope : ScopedElement
@@ -26,6 +31,12 @@ namespace Automation.Dal.Models
         public List<ScopedElement> Childrens { get; set; } = new List<ScopedElement>();
 
         public Scope() : base(EnumScopedType.Scope)
-        {}
+        { }
+
+        public Scope(string name, List<Guid> parentTree) : base(new ScopedMetadata(name, EnumScopedType.Scope) { IsReadOnly = true})
+        {
+            ParentTree = parentTree;
+            ParentId = parentTree.LastOrDefault();
+        }
     }
 }
