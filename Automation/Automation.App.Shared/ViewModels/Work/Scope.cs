@@ -24,14 +24,6 @@ namespace Automation.Dal.Models
 
         [JsonIgnore]
         public EnumScopedTabs FocusOn { get; set; } = EnumScopedTabs.History;
-        [JsonIgnore]
-        public Scope? Parent { get; set; }
-
-        public void ChangeParent(Scope scope)
-        {
-            Parent = scope;
-            ParentId = scope.Id;
-        }
     }
 
     public partial class Scope : ScopedElement
@@ -50,12 +42,6 @@ namespace Automation.Dal.Models
             SortedChildrens = (ListCollectionView)CollectionViewSource.GetDefaultView(Childrens);
             SortedChildrens.SortDescriptions.Add(new SortDescription($"{nameof(Metadata)}.{nameof(Metadata.Type)}", ListSortDirection.Ascending));
             SortedChildrens.SortDescriptions.Add(new SortDescription($"{nameof(Metadata)}.{nameof(Metadata.Name)}", ListSortDirection.Ascending));
-        }
-
-        public void AddChild(ScopedElement element)
-        {
-            element.ChangeParent(this);
-            Childrens.Add(element);
         }
     }
 }

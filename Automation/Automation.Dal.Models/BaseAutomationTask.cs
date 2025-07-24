@@ -22,6 +22,9 @@ namespace Automation.Dal.Models
 
         public BaseAutomationTask(EnumScopedType type) : base(type)
         { }
+
+        public BaseAutomationTask(ScopedMetadata metadata) : base(metadata)
+        { }
     }
 
     public class AutomationTask : BaseAutomationTask
@@ -29,6 +32,18 @@ namespace Automation.Dal.Models
         public TaskTarget? Target { get; set; }
         public AutomationTask() : base(EnumScopedType.Task)
         { }
+    }
+
+    public class AutomationControl : AutomationTask
+    {
+        /// <summary>
+        /// Type of the class that the target point on
+        /// </summary>
+        public Type Type { get; set; }
+        public AutomationControl(Type type)
+        {
+            Type = type;
+        }
     }
 
     public class AutomationWorkflow : BaseAutomationTask

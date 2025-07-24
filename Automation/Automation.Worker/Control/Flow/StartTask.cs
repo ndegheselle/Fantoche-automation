@@ -6,22 +6,19 @@ namespace Automation.Worker.Control.Flow
 {
     public class StartTask : ITaskControl
     {
-        public readonly static AutomationTask Task = new AutomationTask()
+        /// <summary>
+        /// Register the task as an available task
+        /// </summary>
+        static StartTask()
         {
-            ParentId = controlsScopeId,
-            ParentTree = [Scope.ROOT_SCOPE_ID, controlsScopeId],
-            Metadata = new ScopedMetadata(EnumScopedType.Task)
-            {
-                Name = "Start",
-                Icon = "\uf04b",
-                IsReadOnly = true
-            },
-            Target = new ClassTarget(new ClassIdentifier()
-            {
-                Dll = "internal.controls",
-                Name = typeof(StartTask).Name,
-            })
-        };
+            ControlsTasks.Register<StartTask>(
+                new AutomationControl(typeof(StartTask))
+                {
+                    Id = Guid.Parse("00000000-0000-0000-0000-100000000002"),
+                    Metadata =
+                        new ScopedMetadata(EnumScopedType.Task) { Name = "Start", Icon = "\uf04b", IsReadOnly = true }
+                });
+        }
 
         public Task<EnumTaskState> DoAsync(TaskParameters parameters, IProgress<TaskInstanceNotification>? progress)
         {

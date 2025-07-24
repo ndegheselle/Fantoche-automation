@@ -10,6 +10,8 @@ namespace Automation.Dal.Models
     public abstract partial class ScopedElement : ErrorValidationModel, IIdentifier
     {
         public Guid Id { get; set; }
+        [JsonIgnore]
+        public Scope? Parent { get; set; }
         public List<Guid> ParentTree { get; set; } = [];
         public Guid? ParentId { get; set; }
         public ScopedMetadata Metadata { get; set; }
@@ -22,6 +24,13 @@ namespace Automation.Dal.Models
         public ScopedElement(ScopedMetadata metadata)
         {
             Metadata = metadata;
+        }
+
+        public void ChangeParent(Scope parent)
+        {
+            Parent = parent;
+            ParentId = Parent.Id;
+            ParentTree = [.. Parent.ParentTree, Parent.Id];
         }
     }
 
@@ -37,6 +46,13 @@ namespace Automation.Dal.Models
         {
             ParentTree = parentTree;
             ParentId = parentTree.LastOrDefault();
+        }
+
+        public Scope AddChild(ScopedElement element)
+        {
+            element.ChangeParent(this);
+            Childrens.Add(element);
+            return this;
         }
     }
 }
