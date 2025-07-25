@@ -53,7 +53,7 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
             InitializeComponent();
         }
 
-        private async void ScopedSelector_Loaded(object sender, System.Windows.RoutedEventArgs e)
+        private async void ScopedSelector_Loaded(object sender, RoutedEventArgs e)
         {
             CurrentScope = await _client.GetRootAsync();
             CurrentScope.RefreshChildrens();

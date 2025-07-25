@@ -1,4 +1,5 @@
-﻿using Automation.Dal.Models;
+﻿using Automation.Dal;
+using Automation.Dal.Models;
 using Automation.Dal.Repositories;
 using Automation.Plugins.Shared;
 using Automation.Realtime.Clients;
@@ -15,10 +16,10 @@ namespace Automation.Worker.Executor
         private readonly RealtimeClients _realtime;
         private readonly TaskIntancesRepository _instanceRepo;
 
-        public RemoteTaskExecutor(IMongoDatabase database, RealtimeClients realtime)
+        public RemoteTaskExecutor(DatabaseConnection connection, RealtimeClients realtime)
         {
             _realtime = realtime;
-            _instanceRepo = new TaskIntancesRepository(database);
+            _instanceRepo = new TaskIntancesRepository(connection);
         }
 
         /// <summary>

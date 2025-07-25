@@ -1,20 +1,20 @@
 ﻿using Automation.Shared.Data;
 using System.Text.Json.Serialization;
-using Usuel.Shared;
 
 namespace Automation.Dal.Models
 {
     [JsonDerivedType(typeof(Scope), "scope")]
     [JsonDerivedType(typeof(AutomationTask), "task")]
+    [JsonDerivedType(typeof(AutomationControl), "control")]
     [JsonDerivedType(typeof(AutomationWorkflow), "workflow")]
-    public abstract partial class ScopedElement : ErrorValidationModel, IIdentifier
+    public abstract partial class ScopedElement : IIdentifier
     {
         public Guid Id { get; set; }
         [JsonIgnore]
         public Scope? Parent { get; set; }
         public List<Guid> ParentTree { get; set; } = [];
         public Guid? ParentId { get; set; }
-        public ScopedMetadata Metadata { get; set; }
+        public ScopedMetadata Metadata { get; set; } 
 
         public ScopedElement(EnumScopedType type)
         {

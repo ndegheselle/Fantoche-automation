@@ -13,9 +13,6 @@ namespace Automation.Dal.Models
         Settings
     }
 
-    [JsonDerivedType(typeof(AutomationTask), "task")]
-    [JsonDerivedType(typeof(AutomationWorkflow), "workflow")]
-    [JsonDerivedType(typeof(Scope), "scope")]
     public abstract partial class ScopedElement : ErrorValidationModel, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;

@@ -1,3 +1,4 @@
+using Automation.Dal;
 using Automation.Dal.Models;
 using Automation.Dal.Repositories;
 using Automation.Plugins.Shared;
@@ -19,14 +20,14 @@ namespace Automation.Supervisor.Api.Controllers
     {
         private TasksRepository _taskRepo => (TasksRepository)_crudRepository;
         private readonly TaskIntancesRepository _taskInstanceRepo;
-        private readonly IMongoDatabase _database;
+        private readonly DatabaseConnection _connection;
         private readonly RemoteTaskExecutor _executor;
 
-        public TasksController(IMongoDatabase database, RealtimeClients realtimeClients) : base(new TasksRepository(database))
+        public TasksController(DatabaseConnection connection, RealtimeClients realtimeClients) : base(new TasksRepository(connection))
         {
-            _database = database;
-            _taskInstanceRepo = new TaskIntancesRepository(database);
-            _executor = new RemoteTaskExecutor(database, realtimeClients);
+            _connection = connection;
+            _taskInstanceRepo = new TaskIntancesRepository(_connection);
+            _executor = new RemoteTaskExecutor(_connection, realtimeClients);
         }
 
         [HttpPost]
@@ -41,7 +42,7 @@ namespace Automation.Supervisor.Api.Controllers
                 });
             }
 
-            var scopeRepository = new ScopesRepository(_database);
+            var scopeRepository = new ScopesRepository(_connection);
             var existingChild = await scopeRepository.GetDirectChildByNameAsync(element.ParentId, element.Metadata.Name);
             
             if (existingChild != null)

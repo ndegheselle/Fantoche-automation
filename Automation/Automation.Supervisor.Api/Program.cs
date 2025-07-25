@@ -2,8 +2,8 @@ using Automation.Dal;
 using Automation.Realtime;
 using Automation.Realtime.Clients;
 using Automation.Supervisor.Api.Business;
-using Automation.Supervisor.Api.Database;
 using Automation.Supervisor.Api.Hubs;
+using Automation.Worker.Control;
 using DotNetEnv;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
@@ -73,9 +73,9 @@ if (app.Environment.IsDevelopment())
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    var database = services.GetRequiredService<IMongoDatabase>();
-    DatabaseSeeder databaseSeeder = new DatabaseSeeder(database);
-    await databaseSeeder.Seed();
+    var connection = services.GetRequiredService<DatabaseConnection>();
+    DatabaseSeeder databaseSeeder = new DatabaseSeeder(connection);
+    await databaseSeeder.Seed(ControlTasks.ControlScope);
 }
 
 // app.UseHttpsRedirection();

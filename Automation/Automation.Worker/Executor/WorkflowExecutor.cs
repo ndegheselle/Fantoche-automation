@@ -1,4 +1,5 @@
-﻿using Automation.Dal.Models;
+﻿using Automation.Dal;
+using Automation.Dal.Models;
 using Automation.Dal.Repositories;
 using Automation.Plugins.Shared;
 using Automation.Worker.Control.Flow;
@@ -12,9 +13,9 @@ namespace Automation.Worker.Executor
 
         private readonly ITaskExecutor _executor;
 
-        public WorkflowExecutor(ITaskExecutor executor, IMongoDatabase database)
+        public WorkflowExecutor(DatabaseConnection connection, ITaskExecutor executor)
         {
-            _tasksRepo = new TasksRepository(database);
+            _tasksRepo = new TasksRepository(connection);
             _executor = executor;
         }
 
@@ -25,7 +26,7 @@ namespace Automation.Worker.Executor
                 throw new Exception("Task is not a valid automation task.");
 
             workflow.Graph.Refresh();
-            var startNode = workflow.Graph.Nodes.OfType<GraphControl>().Single(x => x.TaskId == StartTask.Id);
+            var startNode = workflow.Graph.Nodes.OfType<GraphControl>().Single(x => x.TaskId == StartTask.AutomationTask.Id);
 
             instance.StartedAt = DateTime.UtcNow;
             // We don't need to execute the start node since it doesn't have any logic

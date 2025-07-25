@@ -18,7 +18,7 @@ namespace Automation.Dal
             if (memberMap.MemberName == nameof(IIdentifier.Id))
             {
                 memberMap.SetIdGenerator(StringObjectIdGenerator.Instance);
-                memberMap.SetSerializer(BsonSerializer.LookupSerializer(typeof(ObjectId)));
+                memberMap.SetSerializer(BsonSerializer.LookupSerializer(typeof(Guid)));
                 memberMap.SetIsRequired(true);
             }
         }
@@ -46,8 +46,26 @@ namespace Automation.Dal
                 cm.SetIsRootClass(true);
                 cm.AddKnownType(typeof(Scope));
                 cm.AddKnownType(typeof(AutomationTask));
+                cm.AddKnownType(typeof(AutomationControl));
+                cm.AddKnownType(typeof(AutomationWorkflow));
+                cm.UnmapMember(m => m.Parent);
+            });
+
+            BsonClassMap.RegisterClassMap<BaseAutomationTask>(cm =>
+            {
+                cm.AutoMap();
+                cm.SetIsRootClass(true);
+                cm.AddKnownType(typeof(AutomationTask));
+                cm.AddKnownType(typeof(AutomationControl));
                 cm.AddKnownType(typeof(AutomationWorkflow));
             });
+
+            BsonClassMap.RegisterClassMap<AutomationControl>(cm =>
+            {
+                cm.AutoMap();
+                cm.UnmapMember(m => m.Type);
+            });
+
             BsonClassMap.RegisterClassMap<Scope>(cm =>
             {
                 cm.AutoMap();

@@ -18,7 +18,7 @@ namespace Automation.Dal
             _tasksRepo = new TasksRepository(connection);
         }
 
-        public async Task Seed()
+        public async Task Seed(Scope controlScope)
         {
             await _scopeRepo.CreateOrUpdateAsync(new Scope()
             {
@@ -29,32 +29,12 @@ namespace Automation.Dal
                 },
             });
 
-            Guid controlsScopeId = await _scopeRepo.CreateOrUpdateAsync(new Scope()
-            {
-                Id = ScopeControlId,
-                ParentId = Scope.ROOT_SCOPE_ID,
-                ParentTree = [Scope.ROOT_SCOPE_ID],
-                Metadata = new ScopedMetadata(EnumScopedType.Scope)
-                {
-                    Name = "Controls",
-                    IsReadOnly = true,
-                },
-            });
-
+            Guid controlsScopeId = await _scopeRepo.CreateOrUpdateAsync(controlScope);
             // Control tasks
-            await _tasksRepo.CreateOrUpdateAsync(new AutomationTask()
+            foreach (var control in controlScope.Childrens.OfType<AutomationControl>())
             {
-                Id = StartTask.Id,
-                ParentId = controlsScopeId,
-                ParentTree = [Scope.ROOT_SCOPE_ID, controlsScopeId],
-                Metadata = new ScopedMetadata(EnumScopedType.Task)
-                {
-                    Name = "Start",
-                    Icon = "\uf04b",
-                    IsReadOnly = true
-                },
-                Target = new ClassTarget(StartTask.Identifier)
-            });
+                await _tasksRepo.CreateOrUpdateAsync(control);
+            }
         }
     }
 }

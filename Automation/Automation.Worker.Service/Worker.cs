@@ -1,3 +1,4 @@
+using Automation.Dal;
 using Automation.Dal.Models;
 using Automation.Dal.Repositories;
 using Automation.Plugins.Shared;
@@ -23,14 +24,14 @@ namespace Automation.Worker.Service
         public Worker(
             ILogger<Worker> logger,
             WorkerInstance instance,
-            IMongoDatabase database,
+            DatabaseConnection connection,
             RedisConnectionManager redis,
             Packages.IPackageManagement packageManagement)
         {
             _instance = instance;
-            _instanceRepo = new TaskIntancesRepository(database);
-            _taskRepo = new TasksRepository(database);
-            _executor = new LocalTaskExecutor(database, packageManagement);
+            _instanceRepo = new TaskIntancesRepository(connection);
+            _taskRepo = new TasksRepository(connection);
+            _executor = new LocalTaskExecutor(connection, packageManagement);
             _workerClient = new WorkersRealtimeClient(redis.Connection).ByWorker(_instance.Id);
         }
 

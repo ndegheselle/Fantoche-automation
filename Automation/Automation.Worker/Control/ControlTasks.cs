@@ -1,5 +1,6 @@
 ﻿using Automation.Dal.Models;
 using Automation.Shared.Data;
+using Automation.Worker.Control.Flow;
 
 namespace Automation.Worker.Control
 {
@@ -7,7 +8,7 @@ namespace Automation.Worker.Control
     /// List of all available control tasks types
     /// Should also add them to the database seeder <see cref="Automation.Supervisor.Api.Database.DatabaseSeeder"/>
     /// </summary>
-    public static class ControlsTasks
+    public static class ControlTasks
     {
         public static Scope ControlScope = new Scope("Controls", [Scope.ROOT_SCOPE_ID])
         {
@@ -17,7 +18,12 @@ namespace Automation.Worker.Control
         public static Dictionary<ClassIdentifier, AutomationControl> Availables { get; } = new Dictionary<ClassIdentifier, AutomationControl>();
         public static Dictionary<Guid, AutomationControl> AvailablesById { get; } = new Dictionary<Guid, AutomationControl>();
 
-        public static void Register<T>(AutomationControl task)
+        static ControlTasks()
+        {
+            Register<StartTask>(StartTask.AutomationTask);
+        }
+
+        public static AutomationControl Register<T>(AutomationControl task)
         {
             if (AvailablesById.ContainsKey(task.Id))
                 throw new Exception($"The key '{task.Id}' is already registered by task '{AvailablesById[task.Id].Metadata.Name}'.");
@@ -26,8 +32,9 @@ namespace Automation.Worker.Control
             task.Target = target;
             task.Type = typeof(T);
             ControlScope.AddChild(task);
-            Availables.Add(target.Class, task);
+            Availables.Add(target.TargetClass, task);
             AvailablesById.Add(task.Id, task);
+            return task;
         }
     }
 }

@@ -24,7 +24,7 @@ namespace Automation.Worker.Executor
             ITask? task = null;
             if (target is ClassTarget classTarget)
             {
-                Type controlType = ControlsTasks.Availables[classTarget.Class];
+                Type controlType = ControlTasks.Availables[classTarget.TargetClass].Type;
                 task = Activator.CreateInstance(controlType) as ITask ?? throw new Exception();
             }
             else if (target is PackageClassTarget packageTarget)

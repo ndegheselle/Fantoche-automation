@@ -1,4 +1,5 @@
-﻿using Automation.Dal.Models;
+﻿using Automation.Dal;
+using Automation.Dal.Models;
 using Automation.Dal.Repositories;
 using Automation.Plugins.Shared;
 using Automation.Worker.Packages;
@@ -13,9 +14,9 @@ namespace Automation.Worker.Executor
     {
         private readonly TasksRepository _tasksRepo;
         private readonly TargetExecutor _targetExecutor;
-        public LocalTaskExecutor(IMongoDatabase database, IPackageManagement packageManagement)
+        public LocalTaskExecutor(DatabaseConnection connection, IPackageManagement packageManagement)
         {
-            _tasksRepo = new TasksRepository(database);
+            _tasksRepo = new TasksRepository(connection);
             _targetExecutor = new TargetExecutor(packageManagement);
         }
 

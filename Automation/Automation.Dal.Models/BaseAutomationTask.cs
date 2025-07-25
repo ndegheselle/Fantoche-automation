@@ -11,8 +11,9 @@ namespace Automation.Dal.Models
         public EnumTaskConnectorDirection Direction { get; set; }
     }
 
-    [JsonDerivedType(typeof(AutomationWorkflow), "workflow")]
     [JsonDerivedType(typeof(AutomationTask), "task")]
+    [JsonDerivedType(typeof(AutomationControl), "control")]
+    [JsonDerivedType(typeof(AutomationWorkflow), "workflow")]
     public abstract class BaseAutomationTask : ScopedElement
     {
         public IEnumerable<TaskConnector> Inputs { get; set; } = [];
@@ -39,6 +40,7 @@ namespace Automation.Dal.Models
         /// <summary>
         /// Type of the class that the target point on
         /// </summary>
+        [JsonIgnore]
         public Type Type { get; set; }
         public AutomationControl(Type type)
         {
@@ -48,10 +50,8 @@ namespace Automation.Dal.Models
 
     public class AutomationWorkflow : BaseAutomationTask
     {
-        public Graph Graph { get; set; }
-        public AutomationWorkflow(Graph graph) : base(EnumScopedType.Workflow)
-        {
-            Graph = graph;
-        }
+        public Graph Graph { get; set; } = new Graph();
+        public AutomationWorkflow() : base(EnumScopedType.Workflow)
+        {}
     }
 }

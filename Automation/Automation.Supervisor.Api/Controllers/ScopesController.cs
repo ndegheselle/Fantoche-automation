@@ -1,3 +1,4 @@
+using Automation.Dal;
 using Automation.Dal.Models;
 using Automation.Dal.Repositories;
 using Automation.Shared.Base;
@@ -14,9 +15,9 @@ namespace Automation.Supervisor.Api.Controllers
         private ScopesRepository _repository => (ScopesRepository)_crudRepository;
         private readonly TaskIntancesRepository _taskInstanceRepo;
 
-        public ScopesController(IMongoDatabase database) : base(new ScopesRepository(database))
+        public ScopesController(DatabaseConnection connection) : base(new ScopesRepository(connection))
         {
-            _taskInstanceRepo = new TaskIntancesRepository(database);
+            _taskInstanceRepo = new TaskIntancesRepository(connection);
         }
 
         [HttpPost]

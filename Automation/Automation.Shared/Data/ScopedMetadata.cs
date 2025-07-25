@@ -22,6 +22,10 @@ namespace Automation.Shared.Data
 
         public bool IsReadOnly { get; set; }
 
+        public ScopedMetadata()
+        {
+        }
+
         public ScopedMetadata(EnumScopedType type)
         {
             Type = type;

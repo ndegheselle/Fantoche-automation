@@ -1,4 +1,5 @@
-﻿using Automation.Dal.Repositories;
+﻿using Automation.Dal;
+using Automation.Dal.Repositories;
 using Automation.Realtime;
 using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
@@ -17,11 +18,11 @@ namespace Automation.Supervisor.Api.Business
         private readonly WorkersRealtimeClient _workersClient;
         private readonly RemoteTaskExecutor _executor;
 
-        public WorkerCleaner(IMongoDatabase database, RedisConnectionManager redis, RealtimeClients clients)
+        public WorkerCleaner(DatabaseConnection connection, RedisConnectionManager redis, RealtimeClients clients)
         {
-            _repository = new TaskIntancesRepository(database);
+            _repository = new TaskIntancesRepository(connection);
             _workersClient = new WorkersRealtimeClient(redis.Connection);
-            _executor = new RemoteTaskExecutor(database, clients);
+            _executor = new RemoteTaskExecutor(connection, clients);
         }
 
         protected async override Task ExecuteAsync(CancellationToken stoppingToken)

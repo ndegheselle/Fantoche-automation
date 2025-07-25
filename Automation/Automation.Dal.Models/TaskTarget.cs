@@ -10,25 +10,25 @@ namespace Automation.Dal.Models
 
     public class ClassTarget : TaskTarget
     {
-        public ClassIdentifier Class { get; set; }
+        public ClassIdentifier TargetClass { get; set; }
         public ClassTarget(ClassIdentifier targetClass)
         {
-            Class = targetClass;
+            TargetClass = targetClass;
         }
     }
 
     public class PackageClassTarget : ClassTarget
     {
-        public PackageIdentifier Identifier { get; set; }
+        public PackageIdentifier Package { get; set; }
 
         public PackageClassTarget() : base(new ClassIdentifier())
         {
-            Identifier = new PackageIdentifier();
+            Package = new PackageIdentifier();
         }
 
         public PackageClassTarget(PackageIdentifier identifier, ClassIdentifier targetClass) : base(targetClass)
         {
-            Identifier = identifier;
+            Package = identifier;
         }
     }
 }
