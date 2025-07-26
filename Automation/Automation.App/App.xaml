@@ -28,6 +28,7 @@
 
             <jouffluConverters:BooleanConverter x:Key="BooleanConverter" />
             <jouffluConverters:BooleanFlipConverter x:Key="BooleanFlipConverter" />
+            <jouffluConverters:VisibilityConverter x:Key="VisibilityConverter" />
 
             <!--  Adonis customization  -->
             <CornerRadius x:Key="{x:Static adonisUi:Dimensions.CornerRadius}">2</CornerRadius>

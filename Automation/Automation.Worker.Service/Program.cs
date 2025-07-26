@@ -1,8 +1,10 @@
+using Automation.Dal;
 using Automation.Realtime;
 using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
 using Automation.Worker.Service;
 using DotNetEnv;
+using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
@@ -33,7 +35,7 @@ builder.Services.AddSingleton<RealtimeClients>((services) => new RealtimeClients
 builder.Services.AddSingleton<Automation.Worker.Packages.IPackageManagement>(new Automation.Worker.Packages.LocalPackageManagement("/app/data/nuget"));
 
 // DatabaseConnection
-builder.Services.AddSingleton<IMongoDatabase>(
+builder.Services.AddSingleton<DatabaseConnection>(
         (services) =>
         {
             string connectionString = Environment.GetEnvironmentVariable("MONGODB_URI") ??
@@ -41,18 +43,7 @@ builder.Services.AddSingleton<IMongoDatabase>(
             string databaseName = Environment.GetEnvironmentVariable("MONGO_INITDB_DATABASE") ??
                 throw new ArgumentException("Missing MONGO_INITDB_DATABASE in .env file");
 
-            MongoClient client = new MongoClient(connectionString);
-
-            // Allow find request on guid
-            BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
-
-            // Using camelCase for property names
-            ConventionRegistry.Register(
-                "camelCase",
-                new ConventionPack { new CamelCaseElementNameConvention() },
-                t => true);
-
-            return client.GetDatabase(databaseName);
+            return new DatabaseConnection(connectionString, databaseName);
         });
 #endregion
 

@@ -40,6 +40,8 @@ namespace Automation.App.Shared.ApiClients
                 var validationResult = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(result.Content);
                 throw new ValidationException(validationResult);
             }
+            if (result.StatusCode != System.Net.HttpStatusCode.OK && result.StatusCode != System.Net.HttpStatusCode.Created)
+                throw new ApiException($"An unexpected error happened.");
 
             return result.Data;
         }

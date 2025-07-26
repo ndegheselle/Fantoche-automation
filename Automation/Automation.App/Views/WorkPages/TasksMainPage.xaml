@@ -46,8 +46,11 @@
                         </Style>
                     </fonts:Icon.Style>
                 </fonts:Icon>
-                <components:ScopedIcon Metadata="{Binding Metadata}" Margin="0,0,4,0" />
-                <TextBlock Text="{Binding Metadata.Name}" VerticalAlignment="Center" />
+                <components:ScopedIcon Metadata="{Binding Metadata}" Margin="4,0,0,0" />
+                <TextBlock
+                    Margin="4,0,0,0"
+                    Text="{Binding Metadata.Name}"
+                    VerticalAlignment="Center" />
             </StackPanel>
         </StackPanel>
 

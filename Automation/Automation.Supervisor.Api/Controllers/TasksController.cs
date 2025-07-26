@@ -8,7 +8,6 @@ using Automation.Shared.Data;
 using Automation.Worker.Executor;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
-using MongoDB.Driver;
 using System.Globalization;
 using System.Text.Json;
 
@@ -64,6 +63,16 @@ namespace Automation.Supervisor.Api.Controllers
 
             element.ParentTree = [.. scope.ParentTree, scope.Id];
             return await _taskRepo.CreateAsync(element);
+        }
+
+        [HttpPut]
+        [Route("{id}")]
+        public override async Task UpdateAsync([FromRoute] Guid id, [FromBody] BaseAutomationTask element)
+        {
+            var task = await _taskRepo.GetByIdAsync(id);
+            if (task?.Metadata.IsReadOnly == true)
+                return;
+            await base.UpdateAsync(id, element);
         }
 
         [HttpPost]

@@ -63,7 +63,7 @@ namespace Automation.App.Views.WorkPages.Tasks
         public TaskEditModal(AutomationTask task)
         {
             Task = task;
-            Options.Title = $"Edit task {task.Metadata.Name}";
+            Options.Title = $"Edit - {task.Metadata.Name}";
             _taskClient = Services.Provider.GetRequiredService<TasksClient>();
             _pacakgeClient = Services.Provider.GetRequiredService<PackagesClient>();
             ValidateCommand = new DelegateCommand(Validate);

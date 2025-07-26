@@ -28,7 +28,7 @@
                     <Button
                         Background="Transparent"
                         BorderThickness="0"
-                        Padding="0"
+                        Padding="4,2"
                         Cursor="Hand"
                         Click="ButtonScope_Click">
                         <StackPanel Orientation="Horizontal">

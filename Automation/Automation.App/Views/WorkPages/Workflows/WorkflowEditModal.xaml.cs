@@ -5,7 +5,6 @@ using Automation.Shared.Base;
 using Automation.Shared.Data;
 using Joufflu.Popups;
 using Microsoft.Extensions.DependencyInjection;
-using System.Windows;
 using System.Windows.Controls;
 using Usuel.Shared;
 
@@ -13,7 +12,6 @@ namespace Automation.App.Views.WorkPages.Workflows
 {
     public class WorkflowCreateModal : TextBoxModal, IModalContent
     {
-        
         private readonly TasksClient _taskClient;
 
         public AutomationWorkflow NewWorkflow { get; set; }
@@ -41,7 +39,6 @@ namespace Automation.App.Views.WorkPages.Workflows
             }
         }
     }
-
 
     /// <summary>
     /// Logique d'interaction pour WorkflowEdit.xaml

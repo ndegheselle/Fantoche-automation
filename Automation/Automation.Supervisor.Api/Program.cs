@@ -5,10 +5,9 @@ using Automation.Supervisor.Api.Business;
 using Automation.Supervisor.Api.Hubs;
 using Automation.Worker.Control;
 using DotNetEnv;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization;
-using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Bson.Serialization.Serializers;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 Env.Load("../.env");
@@ -47,16 +46,7 @@ builder.Services.AddSingleton<DatabaseConnection>(
             string databaseName = Environment.GetEnvironmentVariable("MONGO_INITDB_DATABASE") ??
                 throw new ArgumentException("Missing MONGO_INITDB_DATABASE in .env file");
 
-            MongoClient client = new MongoClient(connectionString);
-            BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
-
-            // Using camelCase for property names
-            ConventionRegistry.Register(
-                "camelCase",
-                new ConventionPack { new CamelCaseElementNameConvention() },
-                t => true);
-
-            return new DatabaseConnection(client.GetDatabase(databaseName));
+            return new DatabaseConnection(connectionString, databaseName);
         });
 #endregion
 
