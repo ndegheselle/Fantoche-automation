@@ -1,4 +1,5 @@
 ﻿using Automation.Shared.Data;
+using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
 
 namespace Automation.Dal.Models
@@ -37,7 +38,7 @@ namespace Automation.Dal.Models
     public partial class Scope : ScopedElement
     {
         public static readonly Guid ROOT_SCOPE_ID = new Guid("00000000-0000-0000-0000-000000000001");
-        public List<ScopedElement> Childrens { get; set; } = new List<ScopedElement>();
+        public ObservableCollection<ScopedElement> Childrens { get; set; } = [];
 
         public Scope() : base(EnumScopedType.Scope)
         { }

@@ -28,13 +28,13 @@ namespace Automation.Dal.Models
         [JsonIgnore]
         public ListCollectionView? SortedChildrens { get; set; }
 
-        public void RefreshChildrens()
+        public void Refresh()
         {
             foreach (var child in Childrens)
             {
                 child.Parent = this;
                 if (child is Scope subScope)
-                    subScope.RefreshChildrens();
+                    subScope.Refresh();
             }
             SortedChildrens = (ListCollectionView)CollectionViewSource.GetDefaultView(Childrens);
             SortedChildrens.SortDescriptions.Add(new SortDescription($"{nameof(Metadata)}.{nameof(Metadata.Type)}", ListSortDirection.Ascending));

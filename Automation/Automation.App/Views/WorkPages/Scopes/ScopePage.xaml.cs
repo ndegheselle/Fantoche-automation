@@ -40,7 +40,7 @@ namespace Automation.App.Views.WorkPages.Scopes
                 throw new ArgumentException("Scope not found");
 
             Scope = fullScope;
-            Scope.RefreshChildrens();
+            Scope.Refresh();
         }
 
         private void HandleFocus()

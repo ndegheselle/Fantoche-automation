@@ -40,7 +40,7 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
         private async void ScopedSelectorModal_Loaded(object sender, System.Windows.RoutedEventArgs e)
         {
             CurrentScope = await _client.GetRootAsync();
-            CurrentScope.RefreshChildrens();
+            CurrentScope.Refresh();
         }
 
         private async void ListBox_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -48,7 +48,7 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
             if (Selected is not Scope scope)
                 return;
             CurrentScope = await _client.GetByIdAsync(scope.Id);
-            CurrentScope!.RefreshChildrens();
+            CurrentScope!.Refresh();
         }
 
         private void ListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -59,7 +59,7 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
         private async void BreadcrumbScopeChanged(Scope scope)
         {
             CurrentScope = await _client.GetByIdAsync(scope.Id);
-            CurrentScope!.RefreshChildrens();
+            CurrentScope!.Refresh();
         }
     }
 }

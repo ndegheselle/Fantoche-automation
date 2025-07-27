@@ -31,7 +31,7 @@ namespace Automation.App.Views.WorkPages
         protected async void OnLoaded()
         {
             CurrentScope = await _client.GetRootAsync();
-            CurrentScope.RefreshChildrens();
+            CurrentScope.Refresh();
             ScopedSelector_SelectedChanged(CurrentScope);
         }
 
@@ -72,7 +72,7 @@ namespace Automation.App.Views.WorkPages
             if (CurrentScope == null)
                 return;
             CurrentScope = await _client.GetByIdAsync(scope.Id) ?? throw new Exception("Breadcrumb scope cannot be found.");
-            CurrentScope.RefreshChildrens();
+            CurrentScope.Refresh();
             ScopedSelector_SelectedChanged(CurrentScope);
         }
         #endregion
