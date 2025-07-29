@@ -5,7 +5,7 @@ using System.Windows;
 
 namespace Automation.Dal.Models
 {
-    public partial class GraphConnector
+    public partial class GraphConnector : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
         public void RaisePropertyChanged([CallerMemberName] string? propertyName = null)
