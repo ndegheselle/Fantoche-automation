@@ -53,7 +53,7 @@ namespace Automation.App.ViewModels.Workflow.Editor
                     return;
                 }
 
-                _editor.Actions.Execute(new ConnectionsAdditionAction([new GraphConnection(_source, target)]));
+                _editor.Actions.Execute(new ConnectionsAddAction([new GraphConnection(_source, target)]));
             });
         }
 

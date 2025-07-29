@@ -1,10 +1,21 @@
 ﻿using Automation.Dal.Models;
+using System.Windows.Input;
+using Usuel.Shared;
 
 namespace Automation.App.ViewModels.Workflow.Editor.Actions
 {
-    internal class ConnectionsAdditionAction : SimpleTargetedAction<IEnumerable<GraphConnection>>, IAction
+    public class HistoryCommand<T> : DelegateCommand<T>
     {
-        public ConnectionsAdditionAction(IEnumerable<GraphConnection> target) : base(target)
+        public ICommand? Undo { get; set; }
+        public HistoryCommand(Action<T> action, Func<T, bool>? executeCondition = null, ICommand? undo = null) : base(action, executeCondition)
+        {
+            Undo = undo;
+        }
+    }
+
+    internal class ConnectionsAddAction : SimpleTargetedAction<IEnumerable<GraphConnection>>, IAction
+    {
+        public ConnectionsAddAction(IEnumerable<GraphConnection> target) : base(target)
         {}
 
         public void Execute(GraphEditorViewModel editor) => editor.Connect(_target);
@@ -17,6 +28,6 @@ namespace Automation.App.ViewModels.Workflow.Editor.Actions
         {}
 
         public void Execute(GraphEditorViewModel editor) => editor.Disconnect(_target);
-        public IAction UndoAction => new ConnectionsAdditionAction(_target);
+        public IAction UndoAction => new ConnectionsAddAction(_target);
     }
 }
