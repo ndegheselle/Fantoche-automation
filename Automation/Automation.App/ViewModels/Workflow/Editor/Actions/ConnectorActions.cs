@@ -4,15 +4,6 @@ using Usuel.Shared;
 
 namespace Automation.App.ViewModels.Workflow.Editor.Actions
 {
-    public class HistoryCommand<T> : DelegateCommand<T>
-    {
-        public ICommand? Undo { get; set; }
-        public HistoryCommand(Action<T> action, Func<T, bool>? executeCondition = null, ICommand? undo = null) : base(action, executeCondition)
-        {
-            Undo = undo;
-        }
-    }
-
     internal class ConnectionsAddAction : SimpleTargetedAction<IEnumerable<GraphConnection>>, IAction
     {
         public ConnectionsAddAction(IEnumerable<GraphConnection> target) : base(target)
