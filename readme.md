@@ -41,12 +41,14 @@ Start `Automation.App` for the client.
 - Scripting language to handle contexte change in tasks settings
 - Generic way to create UI form for settings
     - Also handle validation and types with this ?
-- Workflow validation with potential errors prompting (infinite loop. dead branches, ...)
 - Handle supervisor edge case for flow control tasks
-- Display workers list and allow supervision
 - Add user management with roles and permissions
 - Handle proper state (going back and forth with history) in the editor
 - handle read and write tasks in the interface
+- Supervisor
+
+- Display workers list and allow supervision
+- Workflow validation with potential errors prompting (infinite loop. dead branches, ...)
 
 # ToThink
 
@@ -54,4 +56,3 @@ Start `Automation.App` for the client.
     - Allow a workflow to be executed by only one worker for optomizations
 - optimize and simplify signalR and redis communication
 - display potential errors in workflow creation
-todo
