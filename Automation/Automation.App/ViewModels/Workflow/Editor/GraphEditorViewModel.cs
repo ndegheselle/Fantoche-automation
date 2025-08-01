@@ -1,6 +1,7 @@
 ﻿using Automation.Dal.Models;
 using Automation.App.Views.WorkPages.Workflows.Editor;
 using System.Collections.ObjectModel;
+using Automation.App.Shared.Base.History;
 
 namespace Automation.App.ViewModels.Workflow.Editor
 {
@@ -12,58 +13,24 @@ namespace Automation.App.ViewModels.Workflow.Editor
         public ObservableCollection<GraphNode> SelectedNodes { get; set; } = [];
 
         public Graph Graph { get; set; }
-        public GraphEditor Editor { get; }
+        public GraphEditor Ui { get; }
         public GraphEditorActions Actions { get; }
         public GraphEditorSettings Settings { get; }
-        public GraphEditorCommands Commands { get; }
 
-        public GraphEditorViewModel(GraphEditor editor, Graph graph, GraphEditorSettings settings)
+        public HistoryHandler History { get; }
+
+        public GraphEditorViewModel(Graph graph, GraphEditorSettings settings)
         {
             Graph = graph;
-            Editor = editor;
             Settings = settings;
-            Actions = new GraphEditorActions(this);
-            Commands = new GraphEditorCommands(this);
+            History = new HistoryHandler();
+            Actions = new GraphEditorActions(this, History);
             PendingConnection = new GraphPendingConnection(this);
         }
 
         public void RaiseAlert(string message)
         {
             AlertRaised?.Invoke(message);
-        }
-
-        public void Connect(IEnumerable<GraphConnection> connections)
-        {
-            foreach (var connection in connections)
-            {
-                Graph.Connections.Add(connection);
-            }
-        }
-
-        public void Disconnect(IEnumerable<GraphConnection> connections)
-        {
-            foreach (var connection in connections)
-            {
-                Graph.Connections.Remove(connection);
-                // Refresh connector
-                connection.Source!.IsConnected = GetLinkedConnections(connection.Source).Any();
-                connection.Target!.IsConnected = GetLinkedConnections(connection.Target).Any();
-            }
-        }
-
-        public void AddNode(GraphNode node)
-        {
-            Graph.Nodes.Add(node);
-        }
-
-        public void RemoveNode(GraphNode node)
-        {
-            Graph.Nodes.Remove(node);
-        }
-
-        public IEnumerable<GraphConnection> GetLinkedConnections(GraphConnector connector)
-        {
-            return Graph.Connections.Where(x => x.SourceId == connector.Id || x.TargetId == connector.Id);
         }
     }
 }

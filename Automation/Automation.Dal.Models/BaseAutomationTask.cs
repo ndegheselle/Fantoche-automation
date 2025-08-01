@@ -16,6 +16,8 @@ namespace Automation.Dal.Models
     [JsonDerivedType(typeof(AutomationWorkflow), "workflow")]
     public abstract class BaseAutomationTask : ScopedElement
     {
+        public IEnumerable<string> Tags { get; set; } = [];
+
         public IEnumerable<TaskConnector> Inputs { get; set; } = [];
         public IEnumerable<TaskConnector> Outputs { get; set; } = [];
 

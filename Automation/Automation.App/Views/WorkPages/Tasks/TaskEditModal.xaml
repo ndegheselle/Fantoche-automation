@@ -8,6 +8,7 @@
     xmlns:components="clr-namespace:Automation.App.Views.WorkPages.Components"
     xmlns:packageComponents="clr-namespace:Automation.App.Views.PackagesPages.Components"
     xmlns:inputs="clr-namespace:Automation.App.Components.Inputs"
+    xmlns:jouffluInputs="clr-namespace:Joufflu.Inputs;assembly=Joufflu.Inputs"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     xmlns:layouts="clr-namespace:Joufflu.Layouts;assembly=Joufflu.Layouts"
@@ -56,8 +57,10 @@
                     <components:ScopedIcon Metadata="{Binding Task.Metadata}" FontSize="18" />
                 </layouts:FlexibleGrid>
 
-                <Grid Margin="0,8,0,4">
+                <TextBlock Margin="0,8,0,4" FontWeight="Bold">Tags</TextBlock>
+                <jouffluInputs:ComboBoxTags AllowAdd="True" SelectedItems="{Binding Task.Tags}" />
 
+                <Grid Margin="0,8,0,4">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition />
                         <ColumnDefinition Width="auto" />
@@ -99,7 +102,6 @@
                             Click="SelectPackage_Click"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center">
-
                             <StackPanel Orientation="Horizontal">
                                 <fonts:Icon Text="{x:Static fonts:IconFont.MagnifyingGlass}" />
                                 <TextBlock Margin="4,0,0,0">
@@ -145,7 +147,10 @@
             </StackPanel>
         </Grid>
 
-        <Border Background="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}" Visibility="{Binding Task.Metadata.IsReadOnly, Converter={StaticResource VisibilityConverter}}">
+        <Border
+            d:Visibility="Collapsed"
+            Background="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}"
+            Visibility="{Binding Task.Metadata.IsReadOnly, Converter={StaticResource VisibilityConverter}}">
             <TextBlock
                 VerticalAlignment="Center"
                 HorizontalAlignment="Center"
@@ -153,6 +158,5 @@
                 This task is readonly.
             </TextBlock>
         </Border>
-
     </Grid>
 </UserControl>

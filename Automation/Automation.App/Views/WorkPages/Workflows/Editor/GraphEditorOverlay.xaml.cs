@@ -21,7 +21,19 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
             typeof(GraphEditorViewModel),
             typeof(GraphEditorOverlay),
             new PropertyMetadata(null));
+
+        public static readonly DependencyProperty UiProperty = DependencyProperty.Register(
+            nameof(Ui),
+            typeof(GraphEditor),
+            typeof(GraphEditorOverlay),
+            new PropertyMetadata(null));
         #endregion
+
+        public GraphEditor Ui
+        {
+            get { return (GraphEditor)GetValue(UiProperty); }
+            set { SetValue(UiProperty, value); }
+        }
 
         public GraphEditorViewModel Editor
         {
@@ -30,6 +42,7 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
         }
 
         private IModal _modal => this.GetCurrentModalContainer();
+
         private readonly ScopesClient _client;
 
         public GraphEditorOverlay()
@@ -39,17 +52,14 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
         }
 
         #region UI events
-        private void OpenHelp_Click(object sender, RoutedEventArgs e)
-        {
-            _modal.Show(new GraphEditorHelp());
-        }
+        private void OpenHelp_Click(object sender, RoutedEventArgs e) { _modal.Show(new GraphEditorHelp()); }
 
         private async void OpenAddNode_Click(object sender, RoutedEventArgs e)
         {
             var selector = new ScopedSelectorModal();
             if (await _modal.Show(selector) && selector.Selected is AutomationTask task)
             {
-                Editor.Commands.AddNode.Execute(new GraphTask(task));
+                Editor.Actions.Nodes.Add(new GraphTask(task));
             }
         }
         #endregion

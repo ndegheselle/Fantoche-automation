@@ -110,6 +110,6 @@
             </nodify:NodifyEditor>
             <Grid Panel.ZIndex="-2" Background="{StaticResource LargeGridLinesDrawingBrush}" />
         </Grid>
-        <local:GraphEditorOverlay Editor="{Binding}" />
+        <local:GraphEditorOverlay Ui="{Binding ElementName=ContainerElement}" Editor="{Binding}" />
     </Grid>
 </UserControl>

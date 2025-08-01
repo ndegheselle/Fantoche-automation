@@ -4,25 +4,4 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:local="clr-namespace:Automation.App.Views.PackagesPages.Components">
-    <GroupBox>
-        <Grid DataContext="{Binding TargetPackage, RelativeSource={RelativeSource AncestorType=local:TargetPackageSummary}}">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition />
-                <ColumnDefinition Width="auto" />
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition />
-                <RowDefinition />
-            </Grid.RowDefinitions>
-
-            <TextBlock FontWeight="Bold" Text="{Binding Id}" />
-            <TextBlock Grid.Column="1" Text="{Binding Version}" />
-
-            <TextBlock
-                Grid.Row="1"
-                Grid.ColumnSpan="2"
-                Text="{Binding Class.Name}" />
-        </Grid>
-    </GroupBox>
-</UserControl>
+    xmlns:local="clr-namespace:Automation.App.Views.PackagesPages.Components" />

@@ -1,12 +1,12 @@
-﻿using Automation.App.Shared.ApiClients;
+﻿using Automation.App.ViewModels.Workflow.Editor;
 using Automation.Dal.Models;
-using Automation.App.ViewModels.Workflow.Editor;
-using Microsoft.Extensions.DependencyInjection;
 using Nodify;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using Usuel.Shared;
 using Point = System.Drawing.Point;
 
 namespace Automation.App.Views.WorkPages.Workflows.Editor
@@ -24,6 +24,10 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
             new PropertyMetadata(null, (o, d) => ((GraphEditor)o).OnWorkflowChanged()));
         #endregion
 
+        public ICommand ZoomInCommand { get; private set; }
+        public ICommand ZoomOutCommand { get; private set; }
+        public ICommand ZoomFitCommand { get; private set; }
+
         public AutomationWorkflow Workflow
         {
             get { return (AutomationWorkflow)GetValue(WorkflowProperty); }
@@ -34,7 +38,10 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
         
         public GraphEditor()
         {
-            InitializeComponent(); 
+            InitializeComponent();
+            ZoomInCommand = new DelegateCommand(NodifyEditorElement.ZoomIn);
+            ZoomOutCommand = new DelegateCommand(NodifyEditorElement.ZoomOut);
+            ZoomFitCommand = new DelegateCommand(() => NodifyEditorElement.FitToScreen());
         }
 
         private void OnWorkflowChanged()
@@ -42,7 +49,7 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
             if (Workflow == null)
                 return;
             Workflow.Graph.Refresh();
-            Editor = new GraphEditorViewModel(this, Workflow.Graph, new GraphEditorSettings());
+            Editor = new GraphEditorViewModel(Workflow.Graph, new GraphEditorSettings());
         }
 
         private Rectangle GetSelectedBoundingBox(int padding)

@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Workflows"
     xmlns:components="clr-namespace:Automation.App.Views.WorkPages.Components"
+    xmlns:jouffluInputs="clr-namespace:Joufflu.Inputs;assembly=Joufflu.Inputs"
     mc:Ignorable="d"
     MinHeight="100"
     MinWidth="250"
@@ -13,6 +14,10 @@
     <StackPanel Orientation="Vertical" DataContext="{Binding Workflow, RelativeSource={RelativeSource AncestorType=local:WorkflowEditModal}}">
         <TextBlock Margin="0,0,0,4">Name</TextBlock>
         <TextBox Text="{Binding Name}" />
+
+        <TextBlock Margin="0,8,0,4" FontWeight="Bold">Tags</TextBlock>
+        <jouffluInputs:ComboBoxTags AllowAdd="True" SelectedItems="{Binding Task.Tags}" />
+
         <GroupBox
             Grid.Row="1"
             Margin="0,4,0,0"

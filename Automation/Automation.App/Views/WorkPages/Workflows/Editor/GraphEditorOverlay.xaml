@@ -25,19 +25,19 @@
                     <Button
                         Style="{StaticResource IconButton}"
                         ToolTip="Zoom in"
-                        Command="{Binding Editor.Commands.ZoomIn}">
+                        Command="{Binding Ui.ZoomInCommand}">
                         <fonts:Icon Text="{x:Static fonts:IconFont.MagnifyingGlassPlus}" />
                     </Button>
                     <Button
                         Style="{StaticResource IconButton}"
                         ToolTip="Fit nodes to screen"
-                        Command="{Binding Editor.Commands.ZoomFit}">
+                        Command="{Binding Ui.ZoomFitCommand}">
                         <fonts:Icon Text="{x:Static fonts:IconFont.Expand}" />
                     </Button>
                     <Button
                         Style="{StaticResource IconButton}"
                         ToolTip="Zoom out"
-                        Command="{Binding Editor.Commands.ZoomOut}">
+                        Command="{Binding Ui.ZoomOutCommand}">
                         <fonts:Icon Text="{x:Static fonts:IconFont.MagnifyingGlassMinus}" />
                     </Button>
                 </StackPanel>
@@ -100,13 +100,13 @@
                     <Button
                         Style="{StaticResource IconButton}"
                         ToolTip="Delete selection"
-                        Command="{Binding Editor.Commands.DeleteSelection}">
+                        IsEnabled="False">
                         <fonts:Icon Text="{x:Static fonts:IconFont.Trash}" />
                     </Button>
                     <Button
                         Style="{StaticResource IconButton}"
                         ToolTip="Group selected nodes"
-                        Command="{Binding Editor.Commands.GroupSelection}">
+                        IsEnabled="False">
                         <fonts:Icon Text="{x:Static fonts:IconFont.ObjectGroup}" />
                     </Button>
                 </StackPanel>
@@ -121,13 +121,13 @@
                     <Button
                         Style="{StaticResource IconButton}"
                         ToolTip="Go back"
-                        Command="{Binding Editor.Commands.HistoryUndo}">
+                        Command="{Binding Editor.History.UndoCommand}">
                         <fonts:Icon Text="{x:Static fonts:IconFont.ArrowRotateLeft}" />
                     </Button>
                     <Button
                         Style="{StaticResource IconButton}"
                         ToolTip="Go forward"
-                        Command="{Binding Editor.Commands.HistoryRedo}">
+                        Command="{Binding Editor.History.RedoCommand}">
                         <fonts:Icon Text="{x:Static fonts:IconFont.ArrowRotateRight}" />
                     </Button>
                 </StackPanel>
@@ -141,7 +141,7 @@
                 <Button
                     Style="{StaticResource IconButton}"
                     ToolTip="Save"
-                    Command="{Binding Editor.Commands.Save}">
+                    IsEnabled="False">
                     <fonts:Icon Text="{x:Static fonts:IconFont.FloppyDisk}" />
                 </Button>
             </Border>

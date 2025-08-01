@@ -1,22 +1,36 @@
-﻿using Automation.Dal.Models;
+﻿using Automation.App.Shared.Base.History;
+using Automation.Dal.Models;
 
 namespace Automation.App.ViewModels.Workflow.Editor.Actions
 {
-    internal class NodeAdditionAction : SimpleTargetedAction<GraphNode>, IAction
+    public class NodeActions
     {
-        public NodeAdditionAction(GraphNode target) : base(target)
-        {}
+        public IReversibleCommand AddCommand { get; private set; }
+        public IReversibleCommand RemoveCommand { get; private set; }
 
-        public void Execute(GraphEditorViewModel editor) => editor.AddNode(_target);
-        public IAction UndoAction => new NodeRemoveAction(_target);
-    }
+        private readonly GraphEditorViewModel _editor;
+        private readonly HistoryHandler _history;
+        public NodeActions(GraphEditorViewModel editor, HistoryHandler history)
+        {
+            _editor = editor;
+            _history = history;
 
-    internal class NodeRemoveAction : SimpleTargetedAction<GraphNode>, IAction
-    {
-        public NodeRemoveAction(GraphNode target) : base(target)
-        {}
+            AddCommand = new ReversibleCommand<GraphNode>(_history, OnAdd);
+            RemoveCommand = new ReversibleCommand<GraphNode>(_history, OnRemove);
+            RemoveCommand.Reverse = AddCommand;
+            AddCommand.Reverse = RemoveCommand;
+        }
 
-        public void Execute(GraphEditorViewModel editor) => editor.RemoveNode(_target);
-        public IAction UndoAction => new NodeAdditionAction(_target);
+        public void Add(GraphNode node) => AddCommand.Execute(node);
+        private void OnAdd(GraphNode node)
+        {
+            _editor.Graph.Nodes.Add(node);
+        }
+
+        public void Remove(GraphNode node) => RemoveCommand.Execute(node);
+        private void OnRemove(GraphNode node)
+        {
+            _editor.Graph.Nodes.Remove(node);
+        }
     }
 }
