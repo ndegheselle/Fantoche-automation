@@ -23,7 +23,7 @@ namespace Automation.App.Views.Menus
 
         private void Parameters_Click(object sender, RoutedEventArgs e)
         {
-            IModal modal = this.GetCurrentModalContainer();
+            IModal modal = this.GetCurrentModal();
             modal.Show(new ParametersUI());
         }
 

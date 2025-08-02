@@ -9,7 +9,7 @@ namespace Automation.App.Views.PackagesPages
     /// </summary>
     public partial class PackagesMainPage : UserControl, IPage
     {
-        private IModal _modal => this.GetCurrentModalContainer();
+        private IModal _modal => this.GetCurrentModal();
         public PackagesMainPage()
         {
             InitializeComponent();

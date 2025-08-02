@@ -1,7 +1,7 @@
 ﻿using Automation.App.Components.Inputs;
 using Automation.App.Shared.ApiClients;
-using Automation.Dal.Models;
 using Automation.App.Views.PackagesPages.Components;
+using Automation.Dal.Models;
 using Automation.Shared.Base;
 using Automation.Shared.Data;
 using Joufflu.Popups;
@@ -51,7 +51,7 @@ namespace Automation.App.Views.WorkPages.Tasks
         private readonly TasksClient _taskClient;
         private readonly PackagesClient _pacakgeClient;
 
-        private IAlert _alert => this.GetCurrentAlertContainer();
+        private IAlert _alert => this.GetCurrentAlert();
         public IModal? ParentLayout { get; set; }
 
         public ModalOptions Options { get; private set; } = new ModalOptions();

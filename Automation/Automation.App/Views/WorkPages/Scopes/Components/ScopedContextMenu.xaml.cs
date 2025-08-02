@@ -17,7 +17,7 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
     /// </summary>
     public partial class ScopedContextMenu : ContextMenu
     {
-        private IModal _modal => this.GetCurrentModalContainer();
+        private IModal _modal => this.GetCurrentModal();
 
         private readonly ScopesClient _scopeClient;
         private readonly TasksClient _taskClient;

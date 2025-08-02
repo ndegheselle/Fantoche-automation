@@ -41,7 +41,7 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
             set { SetValue(EditorProperty, value); }
         }
 
-        private IModal _modal => this.GetCurrentModalContainer();
+        private IModal _modal => this.GetCurrentModal();
 
         private readonly ScopesClient _client;
 

@@ -17,7 +17,7 @@ namespace Automation.App.Views.WorkPages.Tasks.Schedule
             new PropertyMetadata(default(AutomationTask), (o, e) => ((TaskSchedules)o).OnTargetChange()));
 
         public AutomationTask Task { get { return (AutomationTask)GetValue(TaskProperty); } set { SetValue(TaskProperty, value); } }
-        private IModal _modal => this.GetCurrentModalContainer();
+        private IModal _modal => this.GetCurrentModal();
 
         public TaskSchedules() { InitializeComponent(); }
 

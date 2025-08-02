@@ -19,7 +19,7 @@ namespace Automation.App.Views.WorkPages.Workflows
 
         
         private readonly TasksClient _client;
-        private IModal _modal => this.GetCurrentModalContainer();
+        private IModal _modal => this.GetCurrentModal();
 
         public WorkflowPage(AutomationWorkflow workflow)
         {

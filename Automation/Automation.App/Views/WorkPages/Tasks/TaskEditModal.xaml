@@ -8,6 +8,7 @@
     xmlns:components="clr-namespace:Automation.App.Views.WorkPages.Components"
     xmlns:packageComponents="clr-namespace:Automation.App.Views.PackagesPages.Components"
     xmlns:inputs="clr-namespace:Automation.App.Components.Inputs"
+    xmlns:models="clr-namespace:Automation.Dal.Models;assembly=Automation.App.Shared"
     xmlns:jouffluInputs="clr-namespace:Joufflu.Inputs;assembly=Joufflu.Inputs"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
@@ -67,7 +68,7 @@
                     </Grid.ColumnDefinitions>
 
                     <TextBlock FontWeight="Bold" VerticalAlignment="Center">
-                        Package
+                        Target
                     </TextBlock>
                     <Button Grid.Column="1" Click="RemovePackage_Click">
                         <Button.Style>
@@ -122,7 +123,43 @@
                             </Style>
                         </Grid.Style>
 
-                        <packageComponents:TargetPackageSummary TargetPackage="{Binding Task.Target.Package}" />
+                        <Grid>
+                            <Grid.Resources>
+                                <DataTemplate DataType="{x:Type models:PackageClassTarget}">
+                                    <packageComponents:TargetPackageSummary TargetPackage="{Binding}" />
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type models:ClassTarget}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition />
+                                            <ColumnDefinition Width="auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition />
+                                            <RowDefinition />
+                                        </Grid.RowDefinitions>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Border
+                                                CornerRadius="2"
+                                                VerticalAlignment="Center"
+                                                Padding="4,0"
+                                                Background="{DynamicResource {x:Static adonisUi:Brushes.Layer1BackgroundBrush}}">
+                                                <TextBlock FontSize="9">Class</TextBlock>
+                                            </Border>
+                                            <TextBlock
+                                                Margin="4,0,0,0"
+                                                FontWeight="Bold"
+                                                Text="{Binding TargetClass.Name}" />
+                                        </StackPanel>
+                                        <TextBlock
+                                            Grid.Row="1"
+                                            Grid.ColumnSpan="2"
+                                            Text="{Binding TargetClass.Dll}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </Grid.Resources>
+                            <ContentControl Content="{Binding Task.Target}" />
+                        </Grid>
                     </Grid>
                 </Grid>
             </StackPanel>
@@ -149,6 +186,7 @@
 
         <Border
             d:Visibility="Collapsed"
+            Opacity="0.8"
             Background="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}"
             Visibility="{Binding Task.Metadata.IsReadOnly, Converter={StaticResource VisibilityConverter}}">
             <TextBlock

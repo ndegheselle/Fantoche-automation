@@ -32,7 +32,7 @@ namespace Automation.App.Views.PackagesPages.Components
     {
         private readonly PackagesClient _packageClient;
 
-        private IModal _modal => this.GetCurrentModalContainer();
+        private IModal _modal => this.GetCurrentModal();
 
         public ListPageWrapper<PackageInfos> Packages
         {

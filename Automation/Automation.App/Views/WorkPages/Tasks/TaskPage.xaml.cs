@@ -18,7 +18,7 @@ namespace Automation.App.Views.WorkPages.Tasks
 
         
         private readonly TasksClient _client;
-        private IModal _modal => this.GetCurrentModalContainer();
+        private IModal _modal => this.GetCurrentModal();
 
         public TaskPage(AutomationTask task)
         {

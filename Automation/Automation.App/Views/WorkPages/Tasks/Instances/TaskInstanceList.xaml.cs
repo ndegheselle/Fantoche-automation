@@ -19,7 +19,7 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
             new PropertyMetadata(null));
 
         public IEnumerable<TaskInstance>? Instances { get { return (IEnumerable<TaskInstance>?)GetValue(InstancesProperty); } set { SetValue(InstancesProperty, value); } }
-        private IModal _modal => this.GetCurrentModalContainer();
+        private IModal _modal => this.GetCurrentModal();
 
         public TaskInstanceList() {
             InitializeComponent();

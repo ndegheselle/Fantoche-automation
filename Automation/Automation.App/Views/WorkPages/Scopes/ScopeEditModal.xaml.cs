@@ -49,7 +49,7 @@ namespace Automation.App.Views.WorkPages.Scopes
     {
         private readonly ScopesClient _scopeClient;
 
-        private IAlert _alert => this.GetCurrentAlertContainer();
+        private IAlert _alert => this.GetCurrentAlert();
 
         public IModal? ParentLayout { get; set; }
 

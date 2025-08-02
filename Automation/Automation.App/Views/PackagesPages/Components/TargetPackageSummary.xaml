@@ -4,4 +4,39 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:local="clr-namespace:Automation.App.Views.PackagesPages.Components" />
+    xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
+    xmlns:local="clr-namespace:Automation.App.Views.PackagesPages.Components">
+    <GroupBox>
+        <Grid DataContext="{Binding TargetPackage, RelativeSource={RelativeSource AncestorType=local:TargetPackageSummary}}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition Width="auto" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+
+            <StackPanel Orientation="Horizontal">
+                <Border
+                    CornerRadius="2"
+                    VerticalAlignment="Center"
+                    Padding="4,0"
+                    Background="{DynamicResource {x:Static adonisUi:Brushes.Layer1BackgroundBrush}}">
+                    <TextBlock FontSize="9">Package</TextBlock>
+                </Border>
+                <TextBlock
+                    Margin="4,0,0,0"
+                    FontWeight="Bold"
+                    Text="{Binding Package.Id}" />
+            </StackPanel>
+
+            <TextBlock Grid.Column="1" Text="{Binding Package.Version}" />
+
+            <TextBlock
+                Grid.Row="1"
+                Grid.ColumnSpan="2"
+                Text="{Binding TargetClass.Name}" />
+        </Grid>
+    </GroupBox>
+</UserControl>

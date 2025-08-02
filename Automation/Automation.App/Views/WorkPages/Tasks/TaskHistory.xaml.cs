@@ -33,7 +33,7 @@ namespace Automation.App.Views.WorkPages.Tasks
         private bool _isAlreadyLoaded = false;
         
         private readonly TasksClient _tasksClient;
-        private IModal _modal => this.GetCurrentModalContainer();
+        private IModal _modal => this.GetCurrentModal();
 
         public TaskHistory()
         {

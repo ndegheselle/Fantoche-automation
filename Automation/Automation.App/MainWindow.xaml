@@ -9,6 +9,7 @@
     xmlns:local="clr-namespace:Automation.App"
     xmlns:popups="clr-namespace:Joufflu.Popups;assembly=Joufflu.Popups"
     xmlns:menus="clr-namespace:Automation.App.Views.Menus"
+    xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     Title="Automation - test"
     Width="1600"
     Height="800"
@@ -34,6 +35,7 @@
             <menus:Footer Grid.Row="2" />
         </Grid>
         <popups:Modal x:Name="ModalElement" />
+        <popups:Loading x:Name="LoadingElement" />
         <popups:Alert x:Name="AlertElement" />
     </Grid>
 </adonisControls:AdonisWindow>

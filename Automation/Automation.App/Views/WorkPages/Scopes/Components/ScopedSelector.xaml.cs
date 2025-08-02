@@ -1,5 +1,6 @@
 ﻿using Automation.App.Shared.ApiClients;
 using Automation.Dal.Models;
+using Joufflu.Popups;
 using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;
 using System.Windows;
@@ -44,6 +45,7 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
 
         public ScopedElement? Current => Selected ?? CurrentScope;
 
+        private ILoading _loading => this.GetCurrentLoading();
         private readonly ScopesClient _client;
 
         public ScopedSelector()
@@ -63,7 +65,9 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
         {
             if (Selected is not Scope scope)
                 return;
+            _loading.Show("Loading scope ...");
             CurrentScope = await _client.GetByIdAsync(scope.Id);
+            _loading.Hide();
             CurrentScope!.Refresh();
         }
 

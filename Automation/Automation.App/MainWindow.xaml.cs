@@ -12,18 +12,24 @@ namespace Automation.App
     {
         IModal Modal {  get; }
         IAlert Alert { get; }
+        ILoading Loading { get; }
     }
 
     public static class DependencyObjectExtension
     {
-        public static IModal GetCurrentModalContainer(this DependencyObject d)
+        public static IModal GetCurrentModal(this DependencyObject d)
         {
             return ((IWindowContainer)Window.GetWindow(d)).Modal;
         }
 
-        public static IAlert GetCurrentAlertContainer(this DependencyObject d)
+        public static IAlert GetCurrentAlert(this DependencyObject d)
         {
             return ((IWindowContainer)Window.GetWindow(d)).Alert;
+        }
+
+        public static ILoading GetCurrentLoading(this DependencyObject d)
+        {
+            return ((IWindowContainer)Window.GetWindow(d)).Loading;
         }
     }
     /// <summary>
@@ -34,6 +40,7 @@ namespace Automation.App
         // XXX : if called before InitializeComponent, the property will be null
         public IModal Modal => this.ModalElement;
         public IAlert Alert => this.AlertElement;
+        public ILoading Loading => this.LoadingElement;
         public ILayout? ParentLayout { get; set; }
 
         public MainWindow()

@@ -16,7 +16,7 @@ namespace Automation.App.Views.WorkPages.Scopes
         public ILayout? ParentLayout { get; set; }
         public Scope Scope { get; set; }
 
-        private IModal _modal => this.GetCurrentModalContainer();
+        private IModal _modal => this.GetCurrentModal();
         
         private readonly ScopesClient _scopeClient;
         private readonly TasksClient _taskClient;
