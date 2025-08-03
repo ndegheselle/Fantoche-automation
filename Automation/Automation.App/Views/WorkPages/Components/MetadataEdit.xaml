@@ -1,0 +1,54 @@
+﻿<UserControl
+    x:Class="Automation.App.Views.WorkPages.Components.MetadataEdit"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Components"
+    xmlns:components="clr-namespace:Automation.App.Views.WorkPages.Components"
+    xmlns:inputs="clr-namespace:Automation.App.Components.Inputs"
+    xmlns:models="clr-namespace:Automation.Dal.Models;assembly=Automation.App.Shared"
+    xmlns:jouffluInputs="clr-namespace:Joufflu.Inputs;assembly=Joufflu.Inputs"
+    xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
+    xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
+    xmlns:layouts="clr-namespace:Joufflu.Layouts;assembly=Joufflu.Layouts"
+    mc:Ignorable="d"
+    x:Name="ContainerElement">
+    <StackPanel DataContext="{Binding ElementName=ContainerElement}" Orientation="Vertical">
+        <layouts:FlexibleGrid
+            Columns="2"
+            ColumnsWidth="*,80"
+            Gap="2">
+
+            <TextBlock Margin="0,8,0,4" FontWeight="Bold">Name</TextBlock>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition Width="auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Margin="0,8,0,4" FontWeight="Bold">Icon</TextBlock>
+                <Button
+                    Click="ButtonEditColor_Click"
+                    Grid.Column="1"
+                    Style="{StaticResource IconButtonSmall}">
+                    <fonts:Icon Text="{x:Static fonts:IconFont.Palette}" />
+                </Button>
+                <Button
+                    Margin="2,0,0,0"
+                    Click="ButtonEditIcon_Click"
+                    Grid.Column="2"
+                    Style="{StaticResource IconButtonSmall}">
+                    <fonts:Icon Text="{x:Static fonts:IconFont.Pen}" />
+                </Button>
+            </Grid>
+
+            <TextBox Text="{Binding Metadata.Name}" />
+            <components:ScopedIcon Metadata="{Binding Metadata}" FontSize="18" />
+        </layouts:FlexibleGrid>
+
+        <TextBlock Margin="0,8,0,4" FontWeight="Bold">Tags</TextBlock>
+        <jouffluInputs:ComboBoxTags AllowAdd="True" SelectedItems="{Binding Metadata.Tags}" />
+
+    </StackPanel>
+</UserControl>

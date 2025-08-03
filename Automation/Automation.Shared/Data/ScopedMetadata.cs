@@ -19,8 +19,8 @@ namespace Automation.Shared.Data
         public string Name { get; set; } = "";
         public string? Color { get; set; }
         public string? Icon { get; set; }
-
         public bool IsReadOnly { get; set; }
+        public IEnumerable<string> Tags { get; set; } = [];
 
         public ScopedMetadata()
         {

@@ -16,8 +16,7 @@
         </Grid.RowDefinitions>
 
         <StackPanel>
-            <TextBlock Margin="0,8,0,4" FontWeight="Bold">Name</TextBlock>
-            <TextBox Text="{Binding Scope.Name}" />
+            <components:MetadataEdit Metadata="{Binding Scope.Metadata}" />
             <TextBlock Margin="0,8,0,4" FontWeight="Bold">Context</TextBlock>
             <components:ContextVisualizer Context="{Binding Scope.Context}" />
         </StackPanel>

@@ -10,6 +10,18 @@ namespace Automation.Dal.Repositories
         {
         }
 
+        public override async Task<List<BaseAutomationTask>> GetAllAsync()
+        {
+            // Include the discriminator field so that derived types are kept
+            var projection = Builders<BaseAutomationTask>.Projection.Include(s => s.Id).Include(s => s.Metadata).Include("_t");
+            return await _collection.Find(_ => true).Project<BaseAutomationTask>(projection).ToListAsync();
+        }
+
+        /// <summary>
+        /// Get all tasks that are children of a scope, whatever how deep they are.
+        /// </summary>
+        /// <param name="scopeId"></param>
+        /// <returns></returns>
         public async Task<IEnumerable<BaseAutomationTask>> GetByAnyParentScopeAsync(Guid scopeId)
         {
             // Include the discriminator field so that derived types are kept
@@ -18,12 +30,23 @@ namespace Automation.Dal.Repositories
             return await _collection.Find(filter).Project<BaseAutomationTask>(projection).ToListAsync();
         }
 
+        /// <summary>
+        /// Get all tasks that are direct children of a scope.
+        /// </summary>
+        /// <param name="scopeId"></param>
+        /// <returns></returns>
         public async Task<IEnumerable<BaseAutomationTask>> GetByDirectParentScopeAsync(Guid scopeId)
         {
             var projection = Builders<BaseAutomationTask>.Projection.Include(s => s.Id).Include(s => s.Metadata).Include("_t");
             return await _collection.Find(e => e.ParentId == scopeId).Project<BaseAutomationTask>(projection).ToListAsync();
         }
 
+        /// <summary>
+        /// Get a task by its parent scope and the task name name.
+        /// </summary>
+        /// <param name="scopeId"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public async Task<BaseAutomationTask?> GetByParentScopeAndNameAsync(Guid scopeId, string name)
         {
             var projection = Builders<BaseAutomationTask>.Projection.Include(s => s.Id).Include(s => s.Metadata).Include("_t");

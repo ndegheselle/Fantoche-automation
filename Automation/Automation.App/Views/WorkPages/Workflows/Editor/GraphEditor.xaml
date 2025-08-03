@@ -8,6 +8,7 @@
     xmlns:appViewmodels="clr-namespace:Automation.App.ViewModels.Workflow.Editor"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     xmlns:converters="clr-namespace:Automation.App.Converters"
+    xmlns:tasksComponents="clr-namespace:Automation.App.Views.WorkPages.Tasks.Components"
     xmlns:data="clr-namespace:Automation.Shared.Data;assembly=Automation.Shared"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     xmlns:nodify="clr-namespace:Nodify;assembly=Nodify"
@@ -45,12 +46,21 @@
             ViewportUnits="Absolute" />
     </UserControl.Resources>
     <Grid DataContext="{Binding Editor, ElementName=ContainerElement}">
-        <Grid Background="{StaticResource NodifyEditor.BackgroundBrush}">
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="150" />
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
+
+        <Border BorderThickness="0,0,1,0" BorderBrush="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}">
+            <tasksComponents:TasksSelector />
+        </Border>
+
+        <Grid Grid.Column="1" Background="{StaticResource NodifyEditor.BackgroundBrush}">
             <nodify:NodifyEditor
                 x:Name="NodifyEditorElement"
                 Background="{StaticResource SmallGridLinesDrawingBrush}"
                 Connections="{Binding Graph.Connections}"
-                DisconnectConnectorCommand="{Binding Commands.DisconnectConnector}"
                 ItemsSource="{Binding Graph.Nodes}"
                 PendingConnection="{Binding PendingConnection}"
                 SelectedItems="{Binding SelectedNodes}">
@@ -110,6 +120,9 @@
             </nodify:NodifyEditor>
             <Grid Panel.ZIndex="-2" Background="{StaticResource LargeGridLinesDrawingBrush}" />
         </Grid>
-        <local:GraphEditorOverlay Ui="{Binding ElementName=ContainerElement}" Editor="{Binding}" />
+        <local:GraphEditorOverlay
+            Grid.Column="1"
+            Ui="{Binding ElementName=ContainerElement}"
+            Editor="{Binding}" />
     </Grid>
 </UserControl>

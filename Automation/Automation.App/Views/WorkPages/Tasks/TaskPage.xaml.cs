@@ -16,7 +16,6 @@ namespace Automation.App.Views.WorkPages.Tasks
         public AutomationTask Task { get; set; }
         public ILayout? ParentLayout { get; set; }
 
-        
         private readonly TasksClient _client;
         private IModal _modal => this.GetCurrentModal();
 

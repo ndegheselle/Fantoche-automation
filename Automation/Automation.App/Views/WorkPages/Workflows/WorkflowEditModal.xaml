@@ -12,12 +12,7 @@
     MinWidth="250"
     Padding="2">
     <StackPanel Orientation="Vertical" DataContext="{Binding Workflow, RelativeSource={RelativeSource AncestorType=local:WorkflowEditModal}}">
-        <TextBlock Margin="0,0,0,4">Name</TextBlock>
-        <TextBox Text="{Binding Name}" />
-
-        <TextBlock Margin="0,8,0,4" FontWeight="Bold">Tags</TextBlock>
-        <jouffluInputs:ComboBoxTags AllowAdd="True" SelectedItems="{Binding Task.Tags}" />
-
+        <components:MetadataEdit Metadata="{Binding Metadata}" />
         <GroupBox
             Grid.Row="1"
             Margin="0,4,0,0"

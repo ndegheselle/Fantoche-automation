@@ -81,24 +81,6 @@ namespace Automation.App.Views.WorkPages.Tasks
                 Task.Target = modal.SelectedTarget;
             }
         }
-
-        private async void ButtonEditIcon_Click(object sender, RoutedEventArgs e)
-        {
-            SelectIconModal modal = new SelectIconModal();
-            if (await ParentLayout!.Show(modal) && modal.Selected != null)
-            {
-                Task.Metadata.Icon = modal.Selected.Icon;
-            }
-        }
-
-        private async void ButtonEditColor_Click(object sender, RoutedEventArgs e)
-        {
-            SelectColorModal modal = new SelectColorModal();
-            if (await ParentLayout!.Show(modal))
-            {
-                Task.Metadata.Color = modal.Selected;
-            }
-        }
         #endregion
 
         public async void Validate()
