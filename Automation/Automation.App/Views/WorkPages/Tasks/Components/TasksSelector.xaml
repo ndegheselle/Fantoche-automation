@@ -5,36 +5,67 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Tasks.Components"
+    xmlns:components="clr-namespace:Automation.App.Views.WorkPages.Components"
+    xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
+    xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     mc:Ignorable="d"
     x:Name="ContainerElement">
-    <ListBox DataContext="{Binding ElementName=ContainerElement}" ItemsSource="{Binding TasksView}">
-        <ListBox.GroupStyle>
-            <GroupStyle>
-                <GroupStyle.ContainerStyle>
-                    <Style TargetType="{x:Type GroupItem}">
-                        <Setter Property="Template">
-                            <Setter.Value>
-                                <ControlTemplate TargetType="{x:Type GroupItem}">
-                                    <Expander IsExpanded="True">
-                                        <Expander.Header>
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="{Binding Name, TargetNullValue='Default'}" />
-                                                <TextBlock Text="{Binding ItemCount}" />
-                                            </StackPanel>
-                                        </Expander.Header>
-                                        <ItemsPresenter />
-                                    </Expander>
-                                </ControlTemplate>
-                            </Setter.Value>
-                        </Setter>
-                    </Style>
-                </GroupStyle.ContainerStyle>
-            </GroupStyle>
-        </ListBox.GroupStyle>
-        <ListBox.ItemTemplate>
-            <DataTemplate DataType="{x:Type local:FlatenedTask}">
-                <TextBlock Text="{Binding Task.Metadata.Name}" />
-            </DataTemplate>
-        </ListBox.ItemTemplate>
-    </ListBox>
+    <Grid DataContext="{Binding ElementName=ContainerElement}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+
+        <Grid>
+            
+        </Grid>
+        
+        <ListBox Grid.Row="1" ItemsSource="{Binding TasksView}">
+            <ListBox.GroupStyle>
+                <GroupStyle>
+                    <GroupStyle.ContainerStyle>
+                        <Style TargetType="{x:Type GroupItem}">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="{x:Type GroupItem}">
+                                        <Expander IsExpanded="True">
+                                            <Expander.Header>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <fonts:Icon Text="{x:Static fonts:IconFont.Tag}" />
+                                                        <TextBlock Margin="4,0,0,0" Text="{Binding Name, TargetNullValue='Default'}" />
+                                                    </StackPanel>
+                                                    <TextBlock Grid.Column="1" Text="{Binding ItemCount}" HorizontalAlignment="Right" />
+                                                </Grid>
+                                            </Expander.Header>
+                                            <ItemsPresenter />
+                                        </Expander>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </GroupStyle.ContainerStyle>
+                </GroupStyle>
+            </ListBox.GroupStyle>
+            <ListBox.ItemTemplate>
+                <DataTemplate DataType="{x:Type local:FlatenedTask}">
+                    <Border CornerRadius="2" Background="{DynamicResource {x:Static adonisUi:Brushes.Layer1BackgroundBrush}}">
+                        <StackPanel>
+                            <components:ScopedIcon Metadata="{Binding Task.Metadata}" />
+                            <TextBlock Margin="4,0,0,0" Text="{Binding Task.Metadata.Name}" />
+                        </StackPanel>
+                    </Border>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+            <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel IsItemsHost="True" />
+                </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+        </ListBox>
+    </Grid>
 </UserControl>
