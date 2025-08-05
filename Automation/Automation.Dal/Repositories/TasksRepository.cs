@@ -42,6 +42,17 @@ namespace Automation.Dal.Repositories
         }
 
         /// <summary>
+        /// Get all tasks by tag.
+        /// </summary>
+        /// <param name="tag"></param>
+        /// <returns></returns>
+        public async Task<IEnumerable<BaseAutomationTask>> GetByTagAsync(string tag)
+        {
+            var projection = Builders<BaseAutomationTask>.Projection.Include(s => s.Id).Include(s => s.Metadata).Include("_t");
+            return await _collection.Find(e => e.Metadata.Tags.Contains(tag)).Project<BaseAutomationTask>(projection).ToListAsync();
+        }
+
+        /// <summary>
         /// Get a task by its parent scope and the task name name.
         /// </summary>
         /// <param name="scopeId"></param>
@@ -64,7 +75,7 @@ namespace Automation.Dal.Repositories
             await _collection.DeleteManyAsync(filter); 
         }
 
-        public async Task<IEnumerable<TaskSchedule>> GetScheduled()
+        public async Task<IEnumerable<TaskSchedule>> GetScheduledAsync()
         {
             var projection = Builders<BaseAutomationTask>.Projection.Include(s => s.Id).Include(s => s.Schedules).Include("_t");
 
@@ -75,6 +86,17 @@ namespace Automation.Dal.Repositories
 
             var scheduledTasks = await _collection.Find(filter).Project<BaseAutomationTask>(projection).ToListAsync();
             return scheduledTasks.SelectMany(t => t.Schedules.Select(s => new TaskSchedule(t.Id, s)));
+        }
+
+        /// <summary>
+        /// Get all unique tags from all tasks.
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IEnumerable<string>> GetTagsAsync()
+        {
+            return await _collection
+                .Distinct<string>("Metadata.Tags", FilterDefinition<BaseAutomationTask>.Empty)
+                .ToListAsync();
         }
     }
 }

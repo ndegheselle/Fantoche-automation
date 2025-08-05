@@ -89,6 +89,20 @@ namespace Automation.Supervisor.Api.Controllers
         {
             return await _taskInstanceRepo.GetByTaskAsync(id, page, pageSize);
         }
+
+        [HttpGet]
+        [Route("tags")]
+        public Task<IEnumerable<string>> GetTagsAsync()
+        {
+            return _taskRepo.GetTagsAsync();
+        }
+
+        [HttpGet]
+        [Route("tags/{tag}")]
+        public Task<IEnumerable<BaseAutomationTask>> GetByTagAsync([FromRoute] string tag)
+        {
+            return _taskRepo.GetByTagAsync(tag);
+        }
     }
 
     public static class BsonExtensions

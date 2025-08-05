@@ -35,6 +35,7 @@ namespace Automation.App.Views.WorkPages.Tasks.Components
 
         private async void OnLoaded(object sender, System.Windows.RoutedEventArgs e)
         {
+            // XXX : toto maybe load by tag once the expander is opened
             var tasks = await _client.GetAllAsync();
             Tasks = tasks.SelectMany(d => d.Metadata.Tags.Count() == 0 ? [new FlatenedTask(d, null)] : d.Metadata.Tags.Select(tag => new FlatenedTask(d, tag)));
 

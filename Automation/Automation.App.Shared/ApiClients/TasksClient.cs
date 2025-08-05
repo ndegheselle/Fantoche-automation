@@ -1,6 +1,7 @@
 ﻿using Automation.Dal.Models;
 using Automation.Shared.Base;
 using RestSharp;
+using System.Threading.Tasks;
 
 namespace Automation.App.Shared.ApiClients
 {
@@ -28,6 +29,20 @@ namespace Automation.App.Shared.ApiClients
 
             return await _client.PostAsync<TaskInstance>(request) ??
                 throw new Exception("Could not get the task instance from the server.");
+        }
+
+        public async Task<IEnumerable<string>> GetTagsAsync()
+        {
+            var request = new RestRequest($"{_routeBase}/tags");
+            return await _client.GetAsync<IEnumerable<string>>(request) ??
+                throw new Exception("Could not get the tags from the server.");
+        }
+
+        public async Task<IEnumerable<BaseAutomationTask>> GetByTagAsync(string tag)
+        {
+            var request = new RestRequest($"{_routeBase}/tags/{tag}");
+            return await _client.GetAsync<IEnumerable<BaseAutomationTask>>(request) ??
+                throw new Exception("Could not get the tasks from the server.");
         }
     }
 }

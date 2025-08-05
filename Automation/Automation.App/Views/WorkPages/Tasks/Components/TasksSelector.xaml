@@ -16,10 +16,8 @@
             <RowDefinition />
         </Grid.RowDefinitions>
 
-        <Grid>
-            
-        </Grid>
-        
+        <Grid />
+
         <ListBox Grid.Row="1" ItemsSource="{Binding TasksView}">
             <ListBox.GroupStyle>
                 <GroupStyle>
@@ -36,10 +34,9 @@
                                                         <ColumnDefinition Width="Auto" />
                                                     </Grid.ColumnDefinitions>
                                                     <StackPanel Orientation="Horizontal">
-                                                        <fonts:Icon Text="{x:Static fonts:IconFont.Tag}" />
-                                                        <TextBlock Margin="4,0,0,0" Text="{Binding Name, TargetNullValue='Default'}" />
+                                                        <fonts:Icon Text="{x:Static fonts:IconFont.Tag}" Opacity="0.5" />
+                                                        <TextBlock Margin="2,0,0,0" Text="{Binding Name, TargetNullValue='Default'}" />
                                                     </StackPanel>
-                                                    <TextBlock Grid.Column="1" Text="{Binding ItemCount}" HorizontalAlignment="Right" />
                                                 </Grid>
                                             </Expander.Header>
                                             <ItemsPresenter />
@@ -53,12 +50,10 @@
             </ListBox.GroupStyle>
             <ListBox.ItemTemplate>
                 <DataTemplate DataType="{x:Type local:FlatenedTask}">
-                    <Border CornerRadius="2" Background="{DynamicResource {x:Static adonisUi:Brushes.Layer1BackgroundBrush}}">
-                        <StackPanel>
-                            <components:ScopedIcon Metadata="{Binding Task.Metadata}" />
-                            <TextBlock Margin="4,0,0,0" Text="{Binding Task.Metadata.Name}" />
-                        </StackPanel>
-                    </Border>
+                    <StackPanel>
+                        <components:ScopedIcon Metadata="{Binding Task.Metadata}" />
+                        <TextBlock Margin="4,0,0,0" Text="{Binding Task.Metadata.Name}" />
+                    </StackPanel>
                 </DataTemplate>
             </ListBox.ItemTemplate>
             <ListBox.ItemsPanel>

@@ -48,7 +48,10 @@
         </layouts:FlexibleGrid>
 
         <TextBlock Margin="0,8,0,4" FontWeight="Bold">Tags</TextBlock>
-        <jouffluInputs:ComboBoxTags AllowAdd="True" SelectedItems="{Binding Metadata.Tags}" />
+        <jouffluInputs:ComboBoxTags
+            AllowAdd="True"
+            ItemsSource="{Binding Tags}"
+            SelectedItems="{Binding Metadata.Tags, Mode=TwoWay}" />
 
     </StackPanel>
 </UserControl>
