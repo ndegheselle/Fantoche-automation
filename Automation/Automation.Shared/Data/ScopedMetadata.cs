@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 namespace Automation.Shared.Data
@@ -20,7 +21,7 @@ namespace Automation.Shared.Data
         public string? Color { get; set; }
         public string? Icon { get; set; }
         public bool IsReadOnly { get; set; }
-        public IEnumerable<string> Tags { get; set; } = [];
+        public ObservableCollection<string> Tags { get; set; } = [];
 
         public ScopedMetadata()
         {

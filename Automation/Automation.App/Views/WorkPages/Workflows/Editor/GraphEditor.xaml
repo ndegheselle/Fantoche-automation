@@ -52,7 +52,10 @@
             <ColumnDefinition />
         </Grid.ColumnDefinitions>
 
-        <Border BorderThickness="0,0,1,0" BorderBrush="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}">
+        <Border
+            Padding="0,0,2,0"
+            BorderThickness="0,0,1,0"
+            BorderBrush="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}">
             <tasksComponents:TasksSelector />
         </Border>
 

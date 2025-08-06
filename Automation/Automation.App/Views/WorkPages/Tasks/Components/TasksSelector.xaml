@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Tasks.Components"
     xmlns:components="clr-namespace:Automation.App.Views.WorkPages.Components"
+    xmlns:inputs="clr-namespace:Joufflu.Inputs;assembly=Joufflu.Inputs"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     mc:Ignorable="d"
@@ -16,9 +17,12 @@
             <RowDefinition />
         </Grid.RowDefinitions>
 
-        <Grid />
+        <inputs:Search />
 
-        <ListBox Grid.Row="1" ItemsSource="{Binding TasksView}">
+        <ListBox
+            Margin="0,4,0,0"
+            Grid.Row="1"
+            ItemsSource="{Binding TasksView}">
             <ListBox.GroupStyle>
                 <GroupStyle>
                     <GroupStyle.ContainerStyle>
