@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
+using System.Windows;
 using System.Windows.Data;
 using Usuel.Shared;
 
@@ -11,6 +12,11 @@ namespace Automation.Dal.Models
         Default,
         History,
         Settings
+    }
+
+    public partial class GraphNode
+    {
+        public Point Position { get; set; }
     }
 
     public abstract partial class ScopedElement : ErrorValidationModel, INotifyPropertyChanged

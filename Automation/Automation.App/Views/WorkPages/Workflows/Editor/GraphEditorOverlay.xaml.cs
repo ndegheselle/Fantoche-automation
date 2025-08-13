@@ -1,12 +1,9 @@
 ﻿using Automation.App.Shared.ApiClients;
-using Automation.Dal.Models;
 using Automation.App.ViewModels.Workflow.Editor;
-using Automation.App.Views.WorkPages.Scopes.Components;
 using Joufflu.Popups;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 using System.Windows.Controls;
-using System.Xaml;
 
 namespace Automation.App.Views.WorkPages.Workflows.Editor
 {
@@ -53,15 +50,6 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
 
         #region UI events
         private void OpenHelp_Click(object sender, RoutedEventArgs e) { _modal.Show(new GraphEditorHelp()); }
-
-        private async void OpenAddNode_Click(object sender, RoutedEventArgs e)
-        {
-            var selector = new ScopedSelectorModal();
-            if (await _modal.Show(selector) && selector.Selected is AutomationTask task)
-            {
-                Editor.Actions.Nodes.Add(new GraphTask(task));
-            }
-        }
         #endregion
     }
 }

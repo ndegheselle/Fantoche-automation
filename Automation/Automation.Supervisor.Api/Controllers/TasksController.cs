@@ -71,7 +71,7 @@ namespace Automation.Supervisor.Api.Controllers
         {
             var task = await _taskRepo.GetByIdAsync(id);
             if (task?.Metadata.IsReadOnly == true)
-                return;
+                throw new InvalidOperationException($"The task '{task.Metadata.Name}' is read-only and cannot be updated.");
             await base.UpdateAsync(id, element);
         }
 

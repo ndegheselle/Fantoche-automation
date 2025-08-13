@@ -1,17 +1,5 @@
 ﻿namespace Automation.Shared.Data
 {
-    public enum EnumTaskConnectorType
-    {
-        Data,
-        Flow
-    }
-
-    public enum EnumTaskConnectorDirection
-    {
-        In,
-        Out
-    }
-
     public class TaskSchedule
     {
         public Guid TaskId { get; set; }

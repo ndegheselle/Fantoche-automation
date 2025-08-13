@@ -12,6 +12,7 @@
     xmlns:data="clr-namespace:Automation.Shared.Data;assembly=Automation.Shared"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     xmlns:nodify="clr-namespace:Nodify;assembly=Nodify"
+    xmlns:dnd="clr-namespace:Joufflu.Data.DnD;assembly=Joufflu.Data"
     xmlns:models="clr-namespace:Automation.Dal.Models;assembly=Automation.App.Shared"
     x:Name="ContainerElement"
     mc:Ignorable="d"
@@ -61,6 +62,7 @@
 
         <Grid Grid.Column="1" Background="{StaticResource NodifyEditor.BackgroundBrush}">
             <nodify:NodifyEditor
+                dnd:DropBehavior.Handler="{Binding DropHandler, ElementName=ContainerElement}"
                 x:Name="NodifyEditorElement"
                 Background="{StaticResource SmallGridLinesDrawingBrush}"
                 Connections="{Binding Graph.Connections}"

@@ -3,21 +3,13 @@ using System.Text.Json.Serialization;
 
 namespace Automation.Dal.Models
 {
-    public partial class TaskConnector
-    {
-        public Guid Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public EnumTaskConnectorType Type { get; set; }
-        public EnumTaskConnectorDirection Direction { get; set; }
-    }
-
     [JsonDerivedType(typeof(AutomationTask), "task")]
     [JsonDerivedType(typeof(AutomationControl), "control")]
     [JsonDerivedType(typeof(AutomationWorkflow), "workflow")]
     public abstract class BaseAutomationTask : ScopedElement
     {
-        public IEnumerable<TaskConnector> Inputs { get; set; } = [];
-        public IEnumerable<TaskConnector> Outputs { get; set; } = [];
+        public IEnumerable<TaskConnector> Inputs { get; set; } = [new TaskConnector()];
+        public IEnumerable<TaskConnector> Outputs { get; set; } = [new TaskConnector()];
 
         public IEnumerable<Schedule> Schedules { get; set; } = [];
 

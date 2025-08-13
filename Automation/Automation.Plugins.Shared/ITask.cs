@@ -79,8 +79,16 @@
         }
     }
 
+    // XXX : may be replaced by a simple guid if there is no need for more information
+    public partial class TaskConnector
+    {
+        public Guid Id { get; set; }
+    }
+
     public interface ITask
     {
+        public IEnumerable<TaskConnector> Inputs { get; }
+        public IEnumerable<TaskConnector> Outputs { get; }
         /// <summary>
         /// Execute the task asynchronously and return the resultin state of the task.
         /// </summary>

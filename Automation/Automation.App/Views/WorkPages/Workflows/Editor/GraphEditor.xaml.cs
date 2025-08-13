@@ -1,5 +1,6 @@
 ﻿using Automation.App.ViewModels.Workflow.Editor;
 using Automation.Dal.Models;
+using Joufflu.Data.DnD;
 using Nodify;
 using System.ComponentModel;
 using System.Drawing;
@@ -11,6 +12,22 @@ using Point = System.Drawing.Point;
 
 namespace Automation.App.Views.WorkPages.Workflows.Editor
 {
+    public class TaskDropHandler : DropHandler<BaseAutomationTask>
+    {
+        private readonly GraphEditorViewModel _editor;
+        public TaskDropHandler(GraphEditorViewModel editor)
+        {
+            _editor = editor;
+        }
+
+        protected override void ApplyDrop(BaseAutomationTask? data, DragEventArgs e)
+        {
+            if (data == null)
+                return;
+            _editor.Actions.Nodes.Add(new GraphTask(data) { Position = _editor.Ui.GetPositionInside(e) });
+        }
+    }
+
     /// <summary>
     /// Logique d'interaction pour GraphEditor.xaml
     /// </summary>
@@ -35,7 +52,8 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
         }
 
         public GraphEditorViewModel? Editor { get; private set; }
-        
+        public TaskDropHandler? DropHandler { get; private set; }
+
         public GraphEditor()
         {
             InitializeComponent();
@@ -49,7 +67,8 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
             if (Workflow == null)
                 return;
             Workflow.Graph.Refresh();
-            Editor = new GraphEditorViewModel(Workflow.Graph, new GraphEditorSettings());
+            Editor = new GraphEditorViewModel(this, Workflow.Graph, new GraphEditorSettings());
+            DropHandler = new TaskDropHandler(Editor);
         }
 
         private Rectangle GetSelectedBoundingBox(int padding)
@@ -73,6 +92,11 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
             }
 
             return new Rectangle(min.X - padding, min.Y - padding, max.X - min.X + padding * 2, max.Y - min.Y + padding * 2);
+        }
+
+        public System.Windows.Point GetPositionInside(DragEventArgs e)
+        {
+            return NodifyEditorElement.GetLocationInsideEditor(e);
         }
     }
 }

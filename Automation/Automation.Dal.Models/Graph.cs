@@ -7,11 +7,10 @@ namespace Automation.Dal.Models
 {
     [JsonDerivedType(typeof(GraphTask), "task")]
     [JsonDerivedType(typeof(GraphGroup), "group")]
-    public class GraphNode
+    public partial class GraphNode
     {
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
-        public Point Position { get; set; }
     }
 
     public class GraphGroup : GraphNode
@@ -34,10 +33,9 @@ namespace Automation.Dal.Models
         {
             TaskId = task.Id;
             Metadata = task.Metadata;
-            Inputs.Add(new GraphConnector());
-            Outputs.Add(new GraphConnector());
 
-            // TODO : get task inputs/outputs
+            Inputs = task.Inputs.Select(x => new GraphConnector(x)).ToList();
+            Outputs = task.Outputs.Select(x => new GraphConnector(x)).ToList();
         }
     }
 
@@ -56,10 +54,16 @@ namespace Automation.Dal.Models
     public partial class GraphConnector
     {
         public Guid Id { get; set; }
+        public Guid TaskConnectorId { get; set; }
         [JsonIgnore]
         public bool IsConnected { get; set; }
         [JsonIgnore]
         public GraphTask? Parent { get; set; }
+
+        public GraphConnector(TaskConnector connector)
+        {
+            TaskConnectorId = connector.Id;
+        }
     }
 
     public class GraphConnection

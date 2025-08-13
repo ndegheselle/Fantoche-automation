@@ -5,8 +5,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Tasks.Components"
-    xmlns:components="clr-namespace:Automation.App.Views.WorkPages.Components"
     xmlns:inputs="clr-namespace:Joufflu.Inputs;assembly=Joufflu.Inputs"
+    xmlns:dnd="clr-namespace:Joufflu.Data.DnD;assembly=Joufflu.Data"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     mc:Ignorable="d"
@@ -16,14 +16,12 @@
             <RowDefinition Height="auto" />
             <RowDefinition />
         </Grid.RowDefinitions>
-
         <inputs:Search />
-
-        <ListBox
+        <ItemsControl
             Margin="0,4,0,0"
             Grid.Row="1"
             ItemsSource="{Binding TasksView}">
-            <ListBox.GroupStyle>
+            <ItemsControl.GroupStyle>
                 <GroupStyle>
                     <GroupStyle.ContainerStyle>
                         <Style TargetType="{x:Type GroupItem}">
@@ -51,20 +49,20 @@
                         </Style>
                     </GroupStyle.ContainerStyle>
                 </GroupStyle>
-            </ListBox.GroupStyle>
-            <ListBox.ItemTemplate>
+            </ItemsControl.GroupStyle>
+            <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="{x:Type local:FlatenedTask}">
-                    <StackPanel>
-                        <components:ScopedIcon Metadata="{Binding Task.Metadata}" />
-                        <TextBlock Margin="4,0,0,0" Text="{Binding Task.Metadata.Name}" />
-                    </StackPanel>
+                    <local:TaskTile
+                        Cursor="Hand"
+                        Task="{Binding Task}"
+                        dnd:DragBehavior.Handler="{Binding DragHandler, RelativeSource={RelativeSource AncestorType=local:TasksSelector}}" />
                 </DataTemplate>
-            </ListBox.ItemTemplate>
-            <ListBox.ItemsPanel>
+            </ItemsControl.ItemTemplate>
+            <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <WrapPanel IsItemsHost="True" />
                 </ItemsPanelTemplate>
-            </ListBox.ItemsPanel>
-        </ListBox>
+            </ItemsControl.ItemsPanel>
+        </ItemsControl>
     </Grid>
 </UserControl>

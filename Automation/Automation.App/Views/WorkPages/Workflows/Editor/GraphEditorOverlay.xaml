@@ -93,12 +93,6 @@
                 <StackPanel Orientation="Horizontal">
                     <Button
                         Style="{StaticResource IconButton}"
-                        ToolTip="Add node"
-                        Click="OpenAddNode_Click">
-                        <fonts:Icon Text="{x:Static fonts:IconFont.Plus}" />
-                    </Button>
-                    <Button
-                        Style="{StaticResource IconButton}"
                         ToolTip="Delete selection"
                         IsEnabled="False">
                         <fonts:Icon Text="{x:Static fonts:IconFont.Trash}" />

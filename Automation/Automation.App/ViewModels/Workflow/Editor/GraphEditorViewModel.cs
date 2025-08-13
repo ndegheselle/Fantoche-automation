@@ -19,8 +19,9 @@ namespace Automation.App.ViewModels.Workflow.Editor
 
         public HistoryHandler History { get; }
 
-        public GraphEditorViewModel(Graph graph, GraphEditorSettings settings)
+        public GraphEditorViewModel(GraphEditor ui,Graph graph, GraphEditorSettings settings)
         {
+            Ui = ui;
             Graph = graph;
             Settings = settings;
             History = new HistoryHandler();

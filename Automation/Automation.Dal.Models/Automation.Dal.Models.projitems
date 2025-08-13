@@ -15,4 +15,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)TaskInstance.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TaskTarget.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)readme.md" />
+  </ItemGroup>
 </Project>

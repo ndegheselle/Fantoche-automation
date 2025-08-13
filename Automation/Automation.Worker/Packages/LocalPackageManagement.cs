@@ -153,7 +153,7 @@ namespace Automation.Worker.Packages
 
                 var taskTypes = assembly.GetTypes()
                     .Where(t => typeof(ITask).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
-                taskClasses.AddRange(taskTypes.Select(t => new ClassIdentifier(dllFile, t.FullName)));
+                taskClasses.AddRange(taskTypes.Select(t => new ClassIdentifier(dllFile, !t.FullName)));
             }
 
             return taskClasses;

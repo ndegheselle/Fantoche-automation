@@ -1,4 +1,6 @@
-﻿namespace Automation.Shared.Data
+﻿using Automation.Plugins.Shared;
+
+namespace Automation.Shared.Data
 {
     public class PackageIdentifier
     {
@@ -16,6 +18,9 @@
     {
         public string Dll { get; set; }
         public string Name { get; set; }
+
+        public IEnumerable<TaskConnector> Inputs { get; set; } = [];
+        public IEnumerable<TaskConnector> Outputs { get; set; } = [];
 
         public ClassIdentifier()
         {
