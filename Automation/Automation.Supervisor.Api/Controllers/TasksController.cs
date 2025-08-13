@@ -6,6 +6,7 @@ using Automation.Realtime.Clients;
 using Automation.Shared.Base;
 using Automation.Shared.Data;
 using Automation.Worker.Executor;
+using Automation.Worker.Packages;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using System.Globalization;
@@ -21,12 +22,14 @@ namespace Automation.Supervisor.Api.Controllers
         private readonly TaskIntancesRepository _taskInstanceRepo;
         private readonly DatabaseConnection _connection;
         private readonly RemoteTaskExecutor _executor;
+        private readonly IPackageManagement _packageManagement;
 
-        public TasksController(DatabaseConnection connection, RealtimeClients realtimeClients) : base(new TasksRepository(connection))
+        public TasksController(DatabaseConnection connection, RealtimeClients realtimeClients, IPackageManagement packageManagement) : base(new TasksRepository(connection))
         {
             _connection = connection;
             _taskInstanceRepo = new TaskIntancesRepository(_connection);
             _executor = new RemoteTaskExecutor(_connection, realtimeClients);
+            _packageManagement = packageManagement;
         }
 
         [HttpPost]
@@ -72,6 +75,12 @@ namespace Automation.Supervisor.Api.Controllers
             var task = await _taskRepo.GetByIdAsync(id);
             if (task?.Metadata.IsReadOnly == true)
                 throw new InvalidOperationException($"The task '{task.Metadata.Name}' is read-only and cannot be updated.");
+
+            if (task is AutomationTask existingTask && element is AutomationTask updatedTask && existingTask.Target != updatedTask.Target)
+            {
+                await OnTaskTargetChange(updatedTask);
+            }
+
             await base.UpdateAsync(id, element);
         }
 
@@ -102,6 +111,24 @@ namespace Automation.Supervisor.Api.Controllers
         public Task<IEnumerable<BaseAutomationTask>> GetByTagAsync([FromRoute] string tag)
         {
             return _taskRepo.GetByTagAsync(tag);
+        }
+
+        /// <summary>
+        /// Special behavior then a task target is updated
+        /// </summary>
+        /// <param name="task"></param>
+        /// <returns></returns>
+        private async Task OnTaskTargetChange(AutomationTask task)
+        {
+            if (task.Target is PackageClassTarget target)
+            {
+                // Update the inputs outputs based on the package
+                ITask instance = await _packageManagement.CreateTaskInstanceAsync(target);
+                task.Inputs = instance.Inputs;
+                task.Outputs = instance.Outputs;
+
+                // TODO : should do something with all the workflow that use this task
+            }
         }
     }
 
