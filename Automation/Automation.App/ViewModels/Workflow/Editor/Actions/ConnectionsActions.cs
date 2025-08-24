@@ -15,8 +15,8 @@ namespace Automation.App.ViewModels.Workflow.Editor.Actions
             _editor = editor;
             _history = history;
 
-            ConnectCommand = new ReversibleCommand<IEnumerable<GraphConnection>>(_history, Connect);
-            DisconnectCommand = new ReversibleCommand<IEnumerable<GraphConnection>>(_history, Disconnect);
+            ConnectCommand = new ReversibleCommand<IEnumerable<GraphConnection>>(_history, OnConnect);
+            DisconnectCommand = new ReversibleCommand<IEnumerable<GraphConnection>>(_history, OnDisconnect);
             ConnectCommand.Reverse = DisconnectCommand;
             DisconnectCommand.Reverse = DisconnectCommand;
         }
