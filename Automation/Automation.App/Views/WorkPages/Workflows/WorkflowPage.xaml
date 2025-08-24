@@ -18,7 +18,7 @@
             <TabItem>
                 <TabItem.Header>
                     <StackPanel Orientation="Horizontal">
-                        <fonts:Icon Text="{x:Static fonts:IconFont.DiagramProject}" />
+                        <fonts:Icon Text="{x:Static fonts:IconFont.Graph}" />
                         <TextBlock Margin="4,0,0,0">Graph</TextBlock>
                     </StackPanel>
                 </TabItem.Header>

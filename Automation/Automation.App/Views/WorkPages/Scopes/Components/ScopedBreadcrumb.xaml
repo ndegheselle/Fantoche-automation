@@ -21,7 +21,7 @@
             <DataTemplate>
                 <StackPanel Orientation="Horizontal">
                     <fonts:Icon
-                        Text="{x:Static fonts:IconFont.ChevronRight}"
+                        Text="{x:Static fonts:IconFont.CaretRight}"
                         FontSize="8"
                         VerticalAlignment="Center"
                         Margin="4,0" />

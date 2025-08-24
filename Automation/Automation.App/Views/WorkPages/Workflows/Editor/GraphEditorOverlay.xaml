@@ -32,7 +32,7 @@
                         Style="{StaticResource IconButton}"
                         ToolTip="Fit nodes to screen"
                         Command="{Binding Ui.ZoomFitCommand}">
-                        <fonts:Icon Text="{x:Static fonts:IconFont.Expand}" />
+                        <fonts:Icon Text="{x:Static fonts:IconFont.Resize}" />
                     </Button>
                     <Button
                         Style="{StaticResource IconButton}"
@@ -53,7 +53,7 @@
                         Style="{StaticResource IconToggleButton}"
                         ToolTip="Allow snaping"
                         IsChecked="{Binding Editor.Settings.IsGridActivated, Mode=TwoWay}">
-                        <fonts:Icon Text="{x:Static fonts:IconFont.TableCells}" />
+                        <fonts:Icon Text="{x:Static fonts:IconFont.GridNine}" />
                     </ToggleButton>
                     <ToggleButton
                         Style="{StaticResource IconToggleButton}"
@@ -74,7 +74,7 @@
                     Style="{StaticResource IconButton}"
                     ToolTip="Help"
                     Click="OpenHelp_Click">
-                    <fonts:Icon Text="{x:Static fonts:IconFont.CircleQuestion}" />
+                    <fonts:Icon Text="{x:Static fonts:IconFont.Question}" />
                 </Button>
             </Border>
         </StackPanel>
@@ -101,7 +101,7 @@
                         Style="{StaticResource IconButton}"
                         ToolTip="Group selected nodes"
                         IsEnabled="False">
-                        <fonts:Icon Text="{x:Static fonts:IconFont.ObjectGroup}" />
+                        <fonts:Icon Text="{x:Static fonts:IconFont.FrameCorners}" />
                     </Button>
                 </StackPanel>
             </Border>
@@ -116,13 +116,13 @@
                         Style="{StaticResource IconButton}"
                         ToolTip="Go back"
                         Command="{Binding Editor.History.UndoCommand}">
-                        <fonts:Icon Text="{x:Static fonts:IconFont.ArrowRotateLeft}" />
+                        <fonts:Icon Text="{x:Static fonts:IconFont.ArrowCounterClockwise}" />
                     </Button>
                     <Button
                         Style="{StaticResource IconButton}"
                         ToolTip="Go forward"
                         Command="{Binding Editor.History.RedoCommand}">
-                        <fonts:Icon Text="{x:Static fonts:IconFont.ArrowRotateRight}" />
+                        <fonts:Icon Text="{x:Static fonts:IconFont.ArrowClockwise}" />
                     </Button>
                 </StackPanel>
             </Border>

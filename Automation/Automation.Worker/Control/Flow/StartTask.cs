@@ -10,12 +10,11 @@ namespace Automation.Worker.Control.Flow
             new AutomationControl(typeof(StartTask))
             {
                 Id = Guid.Parse("00000000-0000-0000-0000-100000000002"),
-                Metadata = new ScopedMetadata(EnumScopedType.Task) { Name = "Start", Icon = "\uf04b", IsReadOnly = true },
-                // No inputs for the start task
-                Inputs = [],
+                Metadata = new ScopedMetadata(EnumScopedType.Task) { Name = "Start", Icon = "\uE3D2", IsReadOnly = true },
+                Inputs = []
             };
 
-        public Task<EnumTaskState> DoAsync(TaskParameters parameters, IProgress<TaskInstanceNotification>? progress)
-        { return Task.FromResult(EnumTaskState.Completed); }
+        public Task<TaskResult> DoAsync(object parameters, IProgress<TaskInstanceNotification>? progress)
+        { return Task.FromResult(new TaskResult(EnumTaskState.Completed)); }
     }
 }

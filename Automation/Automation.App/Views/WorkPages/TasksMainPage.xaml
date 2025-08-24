@@ -32,7 +32,7 @@
                 Margin="4,0,0,0" />
             <StackPanel Orientation="Horizontal" DataContext="{Binding Selected, ElementName=Selector}">
                 <fonts:Icon
-                    Text="{x:Static fonts:IconFont.ChevronRight}"
+                    Text="{x:Static fonts:IconFont.CaretRight}"
                     FontSize="8"
                     VerticalAlignment="Center"
                     Margin="4,0">

@@ -39,7 +39,7 @@
                     Click="ButtonEditIcon_Click"
                     Grid.Column="2"
                     Style="{StaticResource IconButtonSmall}">
-                    <fonts:Icon Text="{x:Static fonts:IconFont.Pen}" />
+                    <fonts:Icon Text="{x:Static fonts:IconFont.PencilSimple}" />
                 </Button>
             </Grid>
 

@@ -67,34 +67,25 @@
         }
     }
 
-    public class TaskParameters
+    public class TaskResult
     {
-        public string SettingsJson { get; private set; }
-        public string ContextJson { get; set; }
+        public EnumTaskState State { get; private set; }
+        public object? Data { get; private set; }
 
-        public TaskParameters(string settingsJson, string contextJson)
+        public TaskResult(EnumTaskState state)
         {
-            SettingsJson = settingsJson;
-            ContextJson = contextJson;
+            State = state;
         }
-    }
-
-    // XXX : may be replaced by a simple guid if there is no need for more information
-    public partial class TaskConnector
-    {
-        public Guid Id { get; set; }
     }
 
     public interface ITask
     {
-        public IEnumerable<TaskConnector> Inputs { get; }
-        public IEnumerable<TaskConnector> Outputs { get; }
         /// <summary>
         /// Execute the task asynchronously and return the resultin state of the task.
         /// </summary>
         /// <param name="parameters">Context of execution of the task, the context can be modified by the task to pass data to next tasks</param>
         /// <param name="progress"></param>
         /// <returns></returns>
-        public Task<EnumTaskState> DoAsync(TaskParameters parameters, IProgress<TaskInstanceNotification>? progress);
+        public Task<TaskResult> DoAsync(object parameters, IProgress<TaskInstanceNotification>? progress);
     }
 }

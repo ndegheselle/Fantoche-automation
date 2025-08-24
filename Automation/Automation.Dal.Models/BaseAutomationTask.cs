@@ -3,6 +3,12 @@ using System.Text.Json.Serialization;
 
 namespace Automation.Dal.Models
 {
+    // XXX : may be replaced by a simple guid if there is no need for more information
+    public partial class TaskConnector
+    {
+        public Guid Id { get; set; }
+    }
+
     [JsonDerivedType(typeof(AutomationTask), "task")]
     [JsonDerivedType(typeof(AutomationControl), "control")]
     [JsonDerivedType(typeof(AutomationWorkflow), "workflow")]

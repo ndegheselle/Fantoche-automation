@@ -23,7 +23,7 @@
                     </Style.Triggers>
                 </Style>
             </Button.Style>
-            <fonts:Icon FontSize="24" Text="{x:Static fonts:IconFont.Cubes}">
+            <fonts:Icon FontSize="24" Text="{x:Static fonts:IconFont.TreeStructure}">
                 <fonts:Icon.Style>
                     <Style TargetType="{x:Type fonts:Icon}" BasedOn="{StaticResource {x:Type fonts:Icon}}">
                         <Style.Triggers>
@@ -48,7 +48,7 @@
                     </Style.Triggers>
                 </Style>
             </Button.Style>
-            <fonts:Icon FontSize="24" Text="{x:Static fonts:IconFont.Server}">
+            <fonts:Icon FontSize="24" Text="{x:Static fonts:IconFont.HardDrives}">
                 <fonts:Icon.Style>
                     <Style TargetType="{x:Type fonts:Icon}" BasedOn="{StaticResource {x:Type fonts:Icon}}">
                         <Style.Triggers>
@@ -73,7 +73,7 @@
                     </Style.Triggers>
                 </Style>
             </Button.Style>
-            <fonts:Icon FontSize="24" Text="{x:Static fonts:IconFont.Box}">
+            <fonts:Icon FontSize="24" Text="{x:Static fonts:IconFont.Package}">
                 <fonts:Icon.Style>
                     <Style TargetType="{x:Type fonts:Icon}" BasedOn="{StaticResource {x:Type fonts:Icon}}">
                         <Style.Triggers>

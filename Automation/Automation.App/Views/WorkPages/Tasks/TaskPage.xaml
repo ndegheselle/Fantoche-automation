@@ -55,7 +55,7 @@
                     CornerRadius="{StaticResource {x:Static adonisUi:Dimensions.CornerRadius}}"
                     BorderBrush="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}">
                     <StackPanel Orientation="Horizontal">
-                        <fonts:Icon Text="{x:Static fonts:IconFont.CircleExclamation}" />
+                        <fonts:Icon Text="{x:Static fonts:IconFont.WarningCircle}" />
                         <TextBlock Margin="4,0,0,0">The task is not fully configured yet.</TextBlock>
                     </StackPanel>
                 </Border>

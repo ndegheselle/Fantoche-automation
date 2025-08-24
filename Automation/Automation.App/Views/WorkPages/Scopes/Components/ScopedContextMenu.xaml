@@ -33,12 +33,12 @@
         </MenuItem>
         <MenuItem Header="Add workflow" Command="{Binding AddWorkflowCommand}">
             <MenuItem.Icon>
-                <fonts:Icon Text="{x:Static fonts:IconFont.Cubes}" Margin="0,0,4,0" />
+                <fonts:Icon Text="{x:Static fonts:IconFont.TreeStructure}" Margin="0,0,4,0" />
             </MenuItem.Icon>
         </MenuItem>
         <MenuItem Header="Add task" Command="{Binding AddTaskCommand}">
             <MenuItem.Icon>
-                <fonts:Icon Text="{x:Static fonts:IconFont.Cube}" Margin="0,0,4,0" />
+                <fonts:Icon Text="{x:Static fonts:IconFont.FlowArrow}" Margin="0,0,4,0" />
             </MenuItem.Icon>
         </MenuItem>
     </MenuItem>

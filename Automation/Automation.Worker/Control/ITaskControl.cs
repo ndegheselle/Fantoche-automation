@@ -3,6 +3,5 @@
 namespace Automation.Worker.Control
 {
     internal interface ITaskControl : ITask
-    {
-    }
+    {}
 }

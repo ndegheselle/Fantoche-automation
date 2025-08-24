@@ -74,11 +74,11 @@
                             <Style TargetType="{x:Type fonts:Icon}" BasedOn="{StaticResource {x:Type fonts:Icon}}">
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding State}" Value="Completed">
-                                        <Setter Property="Text" Value="{x:Static fonts:IconFont.CircleCheck}" />
+                                        <Setter Property="Text" Value="{x:Static fonts:IconFont.CheckCircle}" />
                                         <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.SuccessBrush}}" />
                                     </DataTrigger>
                                     <DataTrigger Binding="{Binding State}" Value="Failed">
-                                        <Setter Property="Text" Value="{x:Static fonts:IconFont.CircleExclamation}" />
+                                        <Setter Property="Text" Value="{x:Static fonts:IconFont.WarningCircle}" />
                                         <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.AlertBrush}}" />
                                     </DataTrigger>
                                 </Style.Triggers>

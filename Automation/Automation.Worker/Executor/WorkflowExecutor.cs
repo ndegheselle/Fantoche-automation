@@ -38,7 +38,7 @@ namespace Automation.Worker.Executor
 
         public async Task ExecuteNodeAsync(GraphTask node, Graph graph, TaskInstance workflowInstance)
         {
-            SubTaskInstance instance = new SubTaskInstance(workflowInstance.Id, node, new TaskParameters("", ""));
+            SubTaskInstance instance = new SubTaskInstance(workflowInstance.Id, node, null);
 
             switch (node)
             {

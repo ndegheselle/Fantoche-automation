@@ -7,7 +7,6 @@
     xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Scopes"
     xmlns:components="clr-namespace:Automation.App.Views.WorkPages.Components"
     mc:Ignorable="d"
-    xmlns:data="clr-namespace:Automation.App.Components.Data"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared">
     <Grid Margin="2" DataContext="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:ScopeEditModal}}}">
         <Grid.RowDefinitions>
@@ -28,7 +27,7 @@
             Margin="0,2,0,0">
             <Button Margin="2,0" Command="{Binding ParentLayout.HideCommand}">
                 <StackPanel Orientation="Horizontal">
-                    <fonts:Icon Text="{x:Static fonts:IconFont.Xmark}" />
+                    <fonts:Icon Text="{x:Static fonts:IconFont.X}" />
                     <TextBlock Margin="4,0,0,0">Cancel</TextBlock>
                 </StackPanel>
             </Button>

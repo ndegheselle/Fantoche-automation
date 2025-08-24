@@ -20,13 +20,13 @@ namespace Automation.Dal.Models
         public Guid TaskId { get; set; }
         public string? WorkerId { get; set; }
 
-        public TaskParameters Parameters { get; set; }
+        public object Parameters { get; set; }
         public EnumTaskState State { get; set; }
 
         public DateTime CreatedAt { get; set; }
         public DateTime? StartedAt { get; set; }
         public DateTime? FinishedAt { get; set; }
-        public TaskInstance(Guid taskId, TaskParameters parameters)
+        public TaskInstance(Guid taskId, object parameters)
         {
             TaskId = taskId;
             Parameters = parameters;
@@ -42,7 +42,7 @@ namespace Automation.Dal.Models
         public Guid WorkflowInstanceId { get; set; }
         public Guid GraphNodeId { get; set; }
 
-        public SubTaskInstance(Guid workflowInstanceId, GraphTask node, TaskParameters parameters) : base(node.TaskId, parameters)
+        public SubTaskInstance(Guid workflowInstanceId, GraphTask node, object parameters) : base(node.TaskId, parameters)
         {
             WorkflowInstanceId = workflowInstanceId;
             GraphNodeId = node.Id;

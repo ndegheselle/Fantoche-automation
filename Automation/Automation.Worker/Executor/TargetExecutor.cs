@@ -19,7 +19,7 @@ namespace Automation.Worker.Executor
             _packages = packageManagement;
         }
 
-        public async Task<EnumTaskState> ExecuteAsync(TaskTarget target, TaskParameters parameters, IProgress<TaskInstanceNotification>? progress = null)
+        public async Task<EnumTaskState> ExecuteAsync(TaskTarget target, object parameters, IProgress<TaskInstanceNotification>? progress = null)
         {
             ITask? task = null;
             if (target is ClassTarget classTarget)
@@ -38,14 +38,14 @@ namespace Automation.Worker.Executor
             return await ExecuteAsync(task, parameters, progress);
         }
 
-        public async Task<EnumTaskState> ExecuteAsync(ITask task, TaskParameters parameters, IProgress<TaskInstanceNotification>? progress = null)
+        public async Task<EnumTaskState> ExecuteAsync(ITask task, object parameters, IProgress<TaskInstanceNotification>? progress = null)
         {
             try
             {
-                return await task.DoAsync(
+                TaskResult result = await task.DoAsync(
                     parameters,
-                    progress
-                );
+                    progress);
+                return result.State;
             }
             catch
             { }

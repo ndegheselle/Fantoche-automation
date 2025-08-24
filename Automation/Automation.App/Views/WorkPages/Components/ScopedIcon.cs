@@ -42,9 +42,9 @@ namespace Automation.App.Views.WorkPages.Components
                     case EnumScopedType.Scope:
                         Text = IconFont.Folder; break;
                     case EnumScopedType.Workflow:
-                        Text = IconFont.Cubes; break;
+                        Text = IconFont.TreeStructure; break;
                     default:
-                        Text = IconFont.Cube; break;
+                        Text = IconFont.FlowArrow; break;
                 }
             }
             else

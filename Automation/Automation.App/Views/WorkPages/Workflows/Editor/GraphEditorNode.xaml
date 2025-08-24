@@ -52,12 +52,8 @@
                 <nodify:NodeInput Anchor="{Binding Anchor, Mode=OneWayToSource}" IsConnected="{Binding IsConnected}">
                     <nodify:NodeInput.Style>
                         <Style BasedOn="{StaticResource {x:Type nodify:NodeInput}}" TargetType="{x:Type nodify:NodeInput}">
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding Type}" Value="{x:Static data:EnumTaskConnectorType.Flow}">
-                                    <Setter Property="ConnectorTemplate" Value="{StaticResource FlowConnector}" />
-                                    <Setter Property="BorderBrush" Value="{StaticResource {x:Static adonisUi:Brushes.ForegroundBrush}}" />
-                                </DataTrigger>
-                            </Style.Triggers>
+                            <Setter Property="ConnectorTemplate" Value="{StaticResource FlowConnector}" />
+                            <Setter Property="BorderBrush" Value="{StaticResource {x:Static adonisUi:Brushes.ForegroundBrush}}" />
                             <Setter Property="Template">
                                 <Setter.Value>
                                     <ControlTemplate TargetType="{x:Type nodify:NodeInput}">
@@ -92,12 +88,8 @@
                     IsConnected="{Binding IsConnected}">
                     <nodify:NodeOutput.Style>
                         <Style BasedOn="{StaticResource {x:Type nodify:NodeOutput}}" TargetType="{x:Type nodify:NodeOutput}">
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding Type}" Value="{x:Static data:EnumTaskConnectorType.Flow}">
-                                    <Setter Property="ConnectorTemplate" Value="{StaticResource FlowConnector}" />
-                                    <Setter Property="BorderBrush" Value="{StaticResource {x:Static adonisUi:Brushes.ForegroundBrush}}" />
-                                </DataTrigger>
-                            </Style.Triggers>
+                            <Setter Property="ConnectorTemplate" Value="{StaticResource FlowConnector}" />
+                            <Setter Property="BorderBrush" Value="{StaticResource {x:Static adonisUi:Brushes.ForegroundBrush}}" />
                             <Setter Property="Template">
                                 <Setter.Value>
                                     <ControlTemplate TargetType="{x:Type nodify:NodeOutput}">

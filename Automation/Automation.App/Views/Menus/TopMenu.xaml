@@ -21,7 +21,7 @@
             <Separator />
             <MenuItem Header="Exit" Click="Exit_Click">
                 <MenuItem.Icon>
-                    <fonts:Icon Text="{x:Static fonts:IconFont.ArrowRightFromBracket}" />
+                    <fonts:Icon Text="{x:Static fonts:IconFont.SignOut}" />
                 </MenuItem.Icon>
             </MenuItem>
         </MenuItem>

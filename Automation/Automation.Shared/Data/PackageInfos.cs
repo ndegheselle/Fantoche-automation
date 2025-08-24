@@ -19,9 +19,6 @@ namespace Automation.Shared.Data
         public string Dll { get; set; }
         public string Name { get; set; }
 
-        public IEnumerable<TaskConnector> Inputs { get; set; } = [];
-        public IEnumerable<TaskConnector> Outputs { get; set; } = [];
-
         public ClassIdentifier()
         {
             Dll = string.Empty;

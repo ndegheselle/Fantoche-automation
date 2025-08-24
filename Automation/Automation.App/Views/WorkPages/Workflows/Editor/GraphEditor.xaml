@@ -101,14 +101,7 @@
                         <nodify:Connection Source="{Binding Source.Anchor}" Target="{Binding Target.Anchor}">
                             <nodify:Connection.Style>
                                 <Style BasedOn="{StaticResource {x:Type nodify:Connection}}" TargetType="{x:Type nodify:Connection}">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding Source.Type}" Value="{x:Static data:EnumTaskConnectorType.Data}">
-                                            <Setter Property="ArrowEnds" Value="None" />
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding Source.Type}" Value="{x:Static data:EnumTaskConnectorType.Flow}">
-                                            <Setter Property="Stroke" Value="{StaticResource {x:Static adonisUi:Brushes.ForegroundBrush}}" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
+                                    <Setter Property="Stroke" Value="{StaticResource {x:Static adonisUi:Brushes.ForegroundBrush}}" />
                                 </Style>
                             </nodify:Connection.Style>
                         </nodify:Connection>

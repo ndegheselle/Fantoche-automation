@@ -59,15 +59,15 @@
                                                 <Setter Property="Text" Value="{x:Static fonts:IconFont.Hourglass}" />
                                             </DataTrigger>
                                             <DataTrigger Binding="{Binding State}" Value="Stopped">
-                                                <Setter Property="Text" Value="{x:Static fonts:IconFont.CirclePause}" />
+                                                <Setter Property="Text" Value="{x:Static fonts:IconFont.PauseCircle}" />
                                                 <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.AlertBrush}}" />
                                             </DataTrigger>
                                             <DataTrigger Binding="{Binding State}" Value="Completed">
-                                                <Setter Property="Text" Value="{x:Static fonts:IconFont.CircleCheck}" />
+                                                <Setter Property="Text" Value="{x:Static fonts:IconFont.CheckCircle}" />
                                                 <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.SuccessBrush}}" />
                                             </DataTrigger>
                                             <DataTrigger Binding="{Binding State}" Value="Failed">
-                                                <Setter Property="Text" Value="{x:Static fonts:IconFont.CircleXmark}" />
+                                                <Setter Property="Text" Value="{x:Static fonts:IconFont.XCircle}" />
                                                 <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.ErrorBrush}}" />
                                             </DataTrigger>
                                         </Style.Triggers>
