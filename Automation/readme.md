@@ -29,7 +29,19 @@ Worker (windows service) :
         - Not a fan since it double everything + no clear way to ensure the DTO is compatible with the model
 - Better serparation between ViewModel and Model, some other solution than using wrapper ?
 
-## Postmortem
+# TODO
+
+- Move all the TaskInstanceInfo handling
+- Handle ITask.DoAsync new format
+- Convert from an ITask to a SchemaProperty in BaseAutomationTask
+	-> Add JsonDerived in SchemaProperty
+- Store the SchemaProperty as a SchemaValue in the node (copy + modify)
+	-> DataBase handle inherit in conf
+- Handle SchemaValue reference to another property
+- Handle converting a Class to a SchemaProperty and a SchemaProperty to a class
+	-> Create Attribute to indicate which field should be taken into consideration
+
+# Postmortem
 
 Used interfaces, pretty heavy :
 - Need 3 definitions for each classes (one for API, one for interfaces, one for client)
@@ -37,10 +49,4 @@ Used interfaces, pretty heavy :
 
 Real solution would be to use a really flat data scheme (pretty hard constraint) with inheritance ? Or having the clients classes generated from the API with partial and then the definition tweaked ?
 
-# To improve
-
-## Control task handling
-Currently handled with specific if that check in a dictionnary, could be more generic with :
-- Seed the control task in the database (with a specific folder as well)
-- Create a TargetClass for internal class
-- Allow readonly tasks
+-> Pretty good solution with a sharedproject but can be pretty confusing to understand

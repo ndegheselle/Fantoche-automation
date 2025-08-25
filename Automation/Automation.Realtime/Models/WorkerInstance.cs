@@ -1,4 +1,6 @@
-﻿namespace Automation.Realtime.Models
+﻿using Automation.Plugins.Shared;
+
+namespace Automation.Realtime.Models
 {
     public class WorkerInstance
     {

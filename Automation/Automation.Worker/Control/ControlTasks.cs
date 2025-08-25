@@ -23,7 +23,7 @@ namespace Automation.Worker.Control
             Register<StartTask>(StartTask.AutomationTask);
         }
 
-        public static AutomationControl Register<T>(AutomationControl task)
+        public static AutomationControl Register<T>(AutomationControl task) where T : ITaskControl
         {
             if (AvailablesById.ContainsKey(task.Id))
                 throw new Exception($"The key '{task.Id}' is already registered by task '{AvailablesById[task.Id].Metadata.Name}'.");

@@ -14,7 +14,7 @@ namespace Automation.Worker.Control.Flow
                 Inputs = []
             };
 
-        public Task<TaskResult> DoAsync(object parameters, IProgress<TaskInstanceNotification>? progress)
-        { return Task.FromResult(new TaskResult(EnumTaskState.Completed)); }
+        public Task<EnumTaskState> DoAsync(WorkflowContext context)
+        { return Task.FromResult(EnumTaskState.Completed); }
     }
 }

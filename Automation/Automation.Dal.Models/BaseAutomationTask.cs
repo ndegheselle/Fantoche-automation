@@ -1,12 +1,47 @@
 ﻿using Automation.Shared.Data;
 using System.Text.Json.Serialization;
+using Usuel.Shared.Data;
 
 namespace Automation.Dal.Models
 {
+    [Flags]
+    public enum EnumTaskState
+    {
+        /// <summary>
+        /// Waiting for a worker to execute the task
+        /// </summary>
+        Pending = 1,
+        /// <summary>
+        /// Task is waiting on another task, a manual action or a timer
+        /// </summary>
+        Waiting = 2,
+        /// <summary>
+        /// Task is progressing
+        /// </summary>
+        Progressing = 4,
+        /// <summary>
+        /// Task is completed
+        /// </summary>
+        Completed = 8,
+        /// <summary>
+        /// Task failed
+        /// </summary>
+        Failed = 16,
+        /// <summary>
+        /// Task is canceled
+        /// </summary>
+        Canceled = 32,
+        /// <summary>
+        /// Task is finished
+        /// </summary>
+        Finished = Completed | Failed | Canceled
+    }
+
     // XXX : may be replaced by a simple guid if there is no need for more information
     public partial class TaskConnector
     {
         public Guid Id { get; set; }
+        public SchemaProperty Property { get; set; }
     }
 
     [JsonDerivedType(typeof(AutomationTask), "task")]

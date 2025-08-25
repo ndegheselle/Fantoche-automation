@@ -1,7 +1,15 @@
-﻿using Automation.Plugins.Shared;
+﻿using Automation.Dal.Models;
 
 namespace Automation.Worker.Control
 {
-    internal interface ITaskControl : ITask
-    {}
+    public class WorkflowContext
+    {
+        // Graph
+        // Current token and so on
+    }
+
+    public interface ITaskControl
+    {
+        public Task<EnumTaskState> DoAsync(WorkflowContext context);
+    }
 }
