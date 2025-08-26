@@ -1,4 +1,5 @@
 ﻿using Automation.Plugins.Shared;
+using Automation.Shared.Data;
 
 namespace Automation.Realtime.Models
 {
@@ -8,9 +9,7 @@ namespace Automation.Realtime.Models
     public class TaskInstanceNotification
     {
         public Guid InstanceId { get; set; }
-        public string Message { get; set; } = string.Empty;
-        public DateTime Date { get; set; } = DateTime.Now;
-        public EnumTaskProgress Type { get; set; }
+        public TaskNotification Data { get; set; }
     }
 
     /// <summary>
@@ -20,11 +19,5 @@ namespace Automation.Realtime.Models
     {
         public Guid InstanceId { get; set; }
         public EnumTaskState State { get; set; }
-
-        public TaskIntanceState(Guid instanceId, EnumTaskState state)
-        {
-            InstanceId = instanceId;
-            State = state;
-        }
     }
 }

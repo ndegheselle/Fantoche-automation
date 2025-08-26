@@ -2,11 +2,22 @@
 using Automation.Dal.Models;
 using Automation.Dal.Repositories;
 using Automation.Plugins.Shared;
+using Automation.Realtime.Models;
+using Automation.Shared.Data;
+using Automation.Worker.Control;
 using Automation.Worker.Control.Flow;
 using MongoDB.Driver;
+using System.Threading.Tasks;
 
 namespace Automation.Worker.Executor
 {
+    public interface ITaskExecutor
+    {
+        public Task<TaskInstance> ExecuteAsync(
+            TaskInstance instance,
+            IProgress<TaskInstanceNotification>? progress = null);
+    }
+
     public class WorkflowExecutor
     {
         private readonly TasksRepository _tasksRepo;
@@ -36,7 +47,7 @@ namespace Automation.Worker.Executor
             return instance;
         }
 
-        public async Task ExecuteNodeAsync(GraphTask node, Graph graph, TaskInstance workflowInstance)
+        private async Task ExecuteNodeAsync(GraphTask node, Graph graph, TaskInstance workflowInstance)
         {
             SubTaskInstance instance = new SubTaskInstance(workflowInstance.Id, node, null);
 
@@ -44,6 +55,9 @@ namespace Automation.Worker.Executor
             {
                 case GraphWorkflow:
                     await ExecuteWorkflowAsync(instance, null);
+                    break;
+                case GraphControl controlNode:
+                    await ExecuteControlAsync(controlNode);
                     break;
                 case GraphTask:
                     await _executor.ExecuteAsync(instance, null);
@@ -54,7 +68,7 @@ namespace Automation.Worker.Executor
                 await ExecuteNextAsync(node, graph, workflowInstance);
         }
 
-        public async Task ExecuteNextAsync(GraphTask node, Graph graph, TaskInstance workflowInstance)
+        private async Task ExecuteNextAsync(GraphTask node, Graph graph, TaskInstance workflowInstance)
         {
             var nextConnections = graph.Connections.Where(x => x.Source?.Parent == node);
             foreach (var connection in nextConnections)
@@ -68,6 +82,20 @@ namespace Automation.Worker.Executor
 
                 await ExecuteNodeAsync(connection.Target.Parent, graph, workflowInstance);
             }
+        }
+
+        /// <summary>
+        /// Control task need to be executed by the workflow directly so that it have access to all the workflow execution context.
+        /// </summary>
+        /// <param name="controlNode"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        private async Task ExecuteControlAsync(GraphControl controlNode)
+        {
+            Type controlType = ControlTasks.AvailablesById[controlNode.TaskId].Type;
+            ITaskControl control = Activator.CreateInstance(controlType) as ITaskControl ?? throw new Exception();
+
+            await control.DoAsync(null);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Automation.Dal.Models;
+using Automation.Shared.Data;
 
 namespace Automation.Worker.Control
 {

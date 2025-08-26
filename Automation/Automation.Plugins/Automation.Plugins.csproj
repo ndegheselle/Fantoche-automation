@@ -12,4 +12,8 @@
     <ProjectReference Include="..\Automation.Plugins.Shared\Automation.Plugins.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Flow\" />
+  </ItemGroup>
+
 </Project>

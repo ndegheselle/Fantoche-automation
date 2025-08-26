@@ -1,10 +1,9 @@
 ﻿using Automation.Dal;
 using Automation.Dal.Models;
 using Automation.Dal.Repositories;
-using Automation.Plugins.Shared;
 using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
-using MongoDB.Driver;
+using Automation.Shared.Data;
 
 namespace Automation.Worker.Executor
 {

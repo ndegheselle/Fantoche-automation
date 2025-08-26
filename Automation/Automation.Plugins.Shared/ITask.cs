@@ -1,6 +1,6 @@
 ﻿namespace Automation.Plugins.Shared
 {
-    public enum EnumTaskProgressState
+    public enum EnumTaskNotificationState
     {
         Info,
         Warning,
@@ -8,9 +8,12 @@
         Sucess
     }
 
-    public class TaskProgress
+    public struct TaskNotification
     {
-        public EnumTaskProgressState State { get; set; }
+        public TaskNotification()
+        {}
+
+        public EnumTaskNotificationState State { get; set; } = EnumTaskNotificationState.Info;
         public string Message { get; set; } = "";
     }
 
@@ -22,7 +25,7 @@
         /// <param name="parameters">Context of execution of the task, the context can be modified by the task to pass data to next tasks</param>
         /// <param name="progress"></param>
         /// <returns></returns>
-        public Task<object?> DoAsync(object parameters, IProgress<TaskProgress>? progress);
+        public Task<object?> DoAsync(object parameters, IProgress<TaskNotification>? progress);
     }
 
     public interface ITask<TParameters, TResult> : ITask
@@ -30,7 +33,7 @@
         public Type ParametersType => typeof(TParameters);
         public Type ResultType => typeof(TResult);
 
-        public new  async Task<object?> DoAsync(object parameters, IProgress<TaskProgress>? progress)
+        public new  async Task<object?> DoAsync(object parameters, IProgress<TaskNotification>? progress)
         {
             if (parameters is not TParameters)
                 throw new ArgumentException($"Parameters are not of expected type '{ParametersType}'.", nameof(parameters));
@@ -38,6 +41,6 @@
             return await DoAsync((TParameters)parameters, progress);
         }
 
-        public Task<TResult> DoAsync(TParameters parameters, IProgress<TaskProgress>? progress);
+        public Task<TResult> DoAsync(TParameters parameters, IProgress<TaskNotification>? progress);
     }
 }

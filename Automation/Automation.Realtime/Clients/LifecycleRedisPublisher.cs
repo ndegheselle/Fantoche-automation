@@ -1,5 +1,6 @@
-﻿using Automation.Plugins.Shared;
-using Automation.Realtime.Base;
+﻿using Automation.Realtime.Base;
+using Automation.Realtime.Models;
+using Automation.Shared.Data;
 using StackExchange.Redis;
 
 namespace Automation.Realtime.Clients
