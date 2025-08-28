@@ -1,6 +1,6 @@
-﻿using Automation.Shared.Data;
+﻿using Automation.Dal.Models.Schema;
+using Automation.Shared.Data;
 using System.Text.Json.Serialization;
-using Usuel.Shared.Data;
 
 namespace Automation.Dal.Models
 {

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net9.0-windows7.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
@@ -55,6 +55,9 @@
 
   <ItemGroup>
     <Compile Update="Components\Inputs\TextBoxModal.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Components\Schema\SchemaEdit.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
