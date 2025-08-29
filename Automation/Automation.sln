@@ -47,7 +47,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Automation.Worker", "Automa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Automation.Worker.Service", "Automation.Worker.Service\Automation.Worker.Service.csproj", "{4D63C0FD-0817-4AF4-8C53-D1BC035B58FC}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Automation.Dal.Models", "Automation.Dal.Models\Automation.Dal.Models.shproj", "{68F873E1-6840-40B0-BB35-B8BAE408B09C}"
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Automation.Models", "Automation.Models\Automation.Models.shproj", "{68F873E1-6840-40B0-BB35-B8BAE408B09C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -152,8 +152,8 @@ Global
 		SolutionGuid = {AFEC477D-0D28-4C5A-9622-5F97F806819C}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		Automation.Dal.Models\Automation.Dal.Models.projitems*{68f873e1-6840-40b0-bb35-b8bae408b09c}*SharedItemsImports = 13
-		Automation.Dal.Models\Automation.Dal.Models.projitems*{6b894e7d-4ebe-4bf3-9d80-b1a948d2837f}*SharedItemsImports = 5
-		Automation.Dal.Models\Automation.Dal.Models.projitems*{f455c5bd-19bf-4d15-b53e-4c1a51b3d50a}*SharedItemsImports = 5
+		Automation.Models\Automation.Models.projitems*{68f873e1-6840-40b0-bb35-b8bae408b09c}*SharedItemsImports = 13
+		Automation.Models\Automation.Models.projitems*{6b894e7d-4ebe-4bf3-9d80-b1a948d2837f}*SharedItemsImports = 5
+		Automation.Models\Automation.Models.projitems*{f455c5bd-19bf-4d15-b53e-4c1a51b3d50a}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal

@@ -1,7 +1,6 @@
 ﻿using Automation.Plugins.Shared;
-using Automation.Shared.Data;
 
-namespace Automation.Realtime.Models
+namespace Automation.Shared.Data.Task
 {
     /// <summary>
     /// Notification of a task instance, used to report the progress of a task execution.

@@ -1,8 +1,9 @@
-﻿using Automation.Shared.Data;
+﻿using Automation.Shared.Base;
+using Automation.Shared.Data;
 using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
 
-namespace Automation.Dal.Models
+namespace Automation.Models.Work
 {
     [JsonDerivedType(typeof(Scope), "scope")]
     [JsonDerivedType(typeof(AutomationTask), "task")]

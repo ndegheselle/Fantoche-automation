@@ -1,4 +1,4 @@
-﻿namespace Automation.Shared.Data
+﻿namespace Automation.Shared.Data.Task
 {
     [Flags]
     public enum EnumTaskState

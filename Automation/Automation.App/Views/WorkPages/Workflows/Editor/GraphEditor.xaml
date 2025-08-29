@@ -13,7 +13,7 @@
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     xmlns:nodify="clr-namespace:Nodify;assembly=Nodify"
     xmlns:dnd="clr-namespace:Joufflu.Data.DnD;assembly=Joufflu.Data"
-    xmlns:models="clr-namespace:Automation.Dal.Models;assembly=Automation.App.Shared"
+    xmlns:models="clr-namespace:Automation.Models;assembly=Automation.App.Shared"
     x:Name="ContainerElement"
     mc:Ignorable="d"
     d:DesignHeight="450"

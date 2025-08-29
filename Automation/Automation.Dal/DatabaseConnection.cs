@@ -1,5 +1,5 @@
-﻿using Automation.Dal.Models;
-using Automation.Shared.Data;
+﻿using Automation.Models.Work;
+using Automation.Shared.Base;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;

@@ -1,4 +1,4 @@
-﻿namespace Automation.Dal.Models.Schema
+﻿namespace Automation.Models.Schema
 {
     public partial class SchemaProperty
     {

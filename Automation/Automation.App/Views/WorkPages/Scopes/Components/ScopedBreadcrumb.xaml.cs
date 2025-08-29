@@ -1,5 +1,5 @@
 ﻿using Automation.App.Shared.ApiClients;
-using Automation.Dal.Models;
+using Automation.Models;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.ObjectModel;
 using System.Windows;

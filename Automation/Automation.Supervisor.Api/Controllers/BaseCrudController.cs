@@ -1,5 +1,5 @@
 ﻿using Automation.Dal.Repositories;
-using Automation.Shared.Data;
+using Automation.Shared.Base;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Automation.Supervisor.Api.Controllers

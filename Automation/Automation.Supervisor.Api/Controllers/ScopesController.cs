@@ -1,5 +1,5 @@
 using Automation.Dal;
-using Automation.Dal.Models;
+using Automation.Models;
 using Automation.Dal.Repositories;
 using Automation.Shared.Base;
 using Automation.Shared.Data;
@@ -28,7 +28,7 @@ namespace Automation.Supervisor.Api.Controllers
             {
                 return BadRequest(new Dictionary<string, string[]>()
                 {
-                    {nameof(BaseAutomationTask.ParentId), [$"A scope cannot be created without a parent."] }
+                    {nameof(Shared.Data.Task.BaseAutomationTask.ParentId), [$"A scope cannot be created without a parent."] }
                 });
             }
 

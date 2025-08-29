@@ -1,5 +1,5 @@
 ﻿using Automation.App.Shared.ApiClients;
-using Automation.Dal.Models;
+using Automation.Models;
 using Automation.Plugins.Shared;
 using Joufflu.Popups;
 using Microsoft.Extensions.DependencyInjection;

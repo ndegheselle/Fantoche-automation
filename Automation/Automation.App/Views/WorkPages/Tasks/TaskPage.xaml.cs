@@ -1,5 +1,5 @@
 ﻿using Automation.App.Shared.ApiClients;
-using Automation.Dal.Models;
+using Automation.Models;
 using Joufflu.Popups;
 using Joufflu.Shared.Navigation;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,13 +13,13 @@ namespace Automation.App.Views.WorkPages.Tasks
     /// </summary>
     public partial class TaskPage : UserControl, IPage, INotifyPropertyChanged
     {
-        public AutomationTask Task { get; set; }
+        public Automation.Shared.Data.Task.AutomationTask Task { get; set; }
         public ILayout? ParentLayout { get; set; }
 
         private readonly TasksClient _client;
         private IModal _modal => this.GetCurrentModal();
 
-        public TaskPage(AutomationTask task)
+        public TaskPage(Automation.Shared.Data.Task.AutomationTask task)
         {
             _client = Services.Provider.GetRequiredService<TasksClient>();
             Task = task;
@@ -30,7 +30,7 @@ namespace Automation.App.Views.WorkPages.Tasks
 
         public async void LoadFullTask(Guid taskId)
         {
-            AutomationTask? fullTask = await _client.GetByIdAsync(taskId) as AutomationTask;
+            Automation.Shared.Data.Task.AutomationTask? fullTask = await _client.GetByIdAsync(taskId) as Automation.Shared.Data.Task.AutomationTask;
 
             if (fullTask == null)
                 throw new ArgumentException("Task not found");

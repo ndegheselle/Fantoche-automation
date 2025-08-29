@@ -1,5 +1,5 @@
-﻿using Automation.Dal.Models;
-using Automation.Shared.Data;
+﻿using Automation.Models;
+using Automation.Shared.Data.Task;
 
 namespace Automation.Worker.Control
 {

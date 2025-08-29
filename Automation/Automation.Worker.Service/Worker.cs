@@ -1,11 +1,11 @@
 using Automation.Dal;
-using Automation.Dal.Models;
+using Automation.Models;
 using Automation.Dal.Repositories;
 using Automation.Plugins.Shared;
 using Automation.Realtime;
 using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
-using Automation.Shared.Data;
+using Automation.Shared.Data.Task;
 using Automation.Worker.Executor;
 using MongoDB.Driver;
 

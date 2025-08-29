@@ -1,11 +1,12 @@
-﻿using Automation.Dal.Models;
+﻿using Automation.Models;
+using Automation.Models.Work;
 using Automation.Shared.Base;
-using Automation.Shared.Data;
+using Automation.Shared.Data.Task;
 using MongoDB.Driver;
 
 namespace Automation.Dal.Repositories
 {
-    public class TaskIntancesRepository : BaseCrudRepository<TaskInstance>
+    public class TaskIntancesRepository : BaseCrudRepository<Automation.Models.Work.TaskInstance>
     {
         public TaskIntancesRepository(DatabaseConnection connection) : base(connection, "instances")
         {

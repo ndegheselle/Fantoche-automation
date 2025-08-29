@@ -1,5 +1,5 @@
 ﻿using Automation.App.Shared.ApiClients;
-using Automation.Dal.Models;
+using Automation.Models;
 using Joufflu.Popups;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows.Controls;
@@ -17,9 +17,9 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
         public ModalOptions Options { get; private set; } = new ModalOptions() { Title = "Execute task" };
 
         public string JsonSettings { get; set; } = "";
-        public AutomationTask Task { get; set; }
+        public Automation.Shared.Data.Task.AutomationTask Task { get; set; }
 
-        public TaskExecuteModal(AutomationTask task) {
+        public TaskExecuteModal(Automation.Shared.Data.Task.AutomationTask task) {
             _taskClient = Services.Provider.GetRequiredService<TasksClient>();
             Task = task;
             Options.Title = $"Execute task - {task.Metadata.Name}";

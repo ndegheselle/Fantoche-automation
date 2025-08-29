@@ -1,4 +1,4 @@
-﻿using Automation.Dal.Models;
+﻿using Automation.Models;
 using System.Windows;
 using System.Windows.Controls;
 

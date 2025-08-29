@@ -1,5 +1,5 @@
 using Automation.Dal;
-using Automation.Dal.Models;
+using Automation.Models;
 using Automation.Dal.Repositories;
 using Microsoft.AspNetCore.Mvc;
 

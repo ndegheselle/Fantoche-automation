@@ -1,4 +1,4 @@
-﻿using Automation.Shared.Data;
+﻿using Automation.Shared.Base;
 using MongoDB.Driver;
 
 namespace Automation.Dal.Repositories

@@ -1,4 +1,4 @@
-﻿using Automation.Dal.Models;
+﻿using Automation.Models;
 using Joufflu.Popups;
 using System.ComponentModel;
 using System.Windows;

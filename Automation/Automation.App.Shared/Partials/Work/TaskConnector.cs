@@ -2,7 +2,7 @@
 using System.Text.Json.Serialization;
 using System.Windows;
 
-namespace Automation.Dal.Models
+namespace Automation.Models.Work
 {
     public partial class TaskConnector
     {

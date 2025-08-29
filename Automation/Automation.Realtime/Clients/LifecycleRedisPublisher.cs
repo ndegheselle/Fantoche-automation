@@ -1,6 +1,6 @@
 ﻿using Automation.Realtime.Base;
 using Automation.Realtime.Models;
-using Automation.Shared.Data;
+using Automation.Shared.Data.Task;
 using StackExchange.Redis;
 
 namespace Automation.Realtime.Clients

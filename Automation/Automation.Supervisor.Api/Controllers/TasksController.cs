@@ -1,5 +1,5 @@
 using Automation.Dal;
-using Automation.Dal.Models;
+using Automation.Models;
 using Automation.Dal.Repositories;
 using Automation.Plugins.Shared;
 using Automation.Realtime.Clients;
@@ -16,7 +16,7 @@ namespace Automation.Supervisor.Api.Controllers
 {
     [ApiController]
     [Route("tasks")]
-    public class TasksController : BaseCrudController<BaseAutomationTask>
+    public class TasksController : BaseCrudController<Shared.Data.Task.BaseAutomationTask>
     {
         private TasksRepository _taskRepo => (TasksRepository)_crudRepository;
         private readonly TaskIntancesRepository _taskInstanceRepo;
@@ -34,7 +34,7 @@ namespace Automation.Supervisor.Api.Controllers
 
         [HttpPost]
         [Route("")]
-        public override async Task<ActionResult<Guid>> CreateAsync(BaseAutomationTask element)
+        public override async Task<ActionResult<Guid>> CreateAsync(Shared.Data.Task.BaseAutomationTask element)
         {
             if (element.ParentId == null)
             {
@@ -70,7 +70,7 @@ namespace Automation.Supervisor.Api.Controllers
 
         [HttpPut]
         [Route("{id}")]
-        public override async Task UpdateAsync([FromRoute] Guid id, [FromBody] BaseAutomationTask element)
+        public override async Task UpdateAsync([FromRoute] Guid id, [FromBody] Shared.Data.Task.BaseAutomationTask element)
         {
             var task = await _taskRepo.GetByIdAsync(id);
             if (task?.Metadata.IsReadOnly == true)
@@ -103,7 +103,7 @@ namespace Automation.Supervisor.Api.Controllers
 
         [HttpGet]
         [Route("tags/{tag}")]
-        public Task<IEnumerable<BaseAutomationTask>> GetByTagAsync([FromRoute] string tag)
+        public Task<IEnumerable<Shared.Data.Task.BaseAutomationTask>> GetByTagAsync([FromRoute] string tag)
         {
             return _taskRepo.GetByTagAsync(tag);
         }

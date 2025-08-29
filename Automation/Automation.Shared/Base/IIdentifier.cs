@@ -1,4 +1,4 @@
-﻿namespace Automation.Shared.Data
+﻿namespace Automation.Shared.Base
 {
     public interface IIdentifier
     {

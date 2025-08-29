@@ -1,4 +1,5 @@
-﻿using Automation.Dal.Models;
+﻿using Automation.Models;
+using Automation.Models.Work;
 using Automation.Shared.Data;
 using MongoDB.Driver;
 

@@ -1,7 +1,7 @@
 ﻿using Automation.Shared.Data;
 using System.Text.Json.Serialization;
 
-namespace Automation.Dal.Models
+namespace Automation.Models.Work
 {
     [JsonDerivedType(typeof(ClassTarget), "class")]
     [JsonDerivedType(typeof(PackageClassTarget), "package")]

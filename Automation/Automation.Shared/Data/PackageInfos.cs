@@ -1,6 +1,4 @@
-﻿using Automation.Plugins.Shared;
-
-namespace Automation.Shared.Data
+﻿namespace Automation.Shared.Data
 {
     public class PackageIdentifier
     {

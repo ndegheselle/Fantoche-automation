@@ -1,5 +1,6 @@
 ﻿using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
+using Automation.Shared.Data.Task;
 using Microsoft.AspNetCore.SignalR;
 
 namespace Automation.Supervisor.Api.Hubs

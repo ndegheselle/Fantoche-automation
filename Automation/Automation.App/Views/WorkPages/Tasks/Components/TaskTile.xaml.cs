@@ -1,4 +1,4 @@
-﻿using Automation.Dal.Models;
+﻿using Automation.Models;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -12,13 +12,13 @@ namespace Automation.App.Views.WorkPages.Tasks.Components
         public static readonly DependencyProperty TaskProperty =
             DependencyProperty.Register(
             nameof(Task),
-            typeof(BaseAutomationTask),
+            typeof(Automation.Shared.Data.Task.BaseAutomationTask),
             typeof(TaskTile),
             new PropertyMetadata(null));
 
-        public BaseAutomationTask Task
+        public Automation.Shared.Data.Task.BaseAutomationTask Task
         {
-            get { return (BaseAutomationTask)GetValue(TaskProperty); }
+            get { return (Automation.Shared.Data.Task.BaseAutomationTask)GetValue(TaskProperty); }
             set { SetValue(TaskProperty, value); }
         }
 

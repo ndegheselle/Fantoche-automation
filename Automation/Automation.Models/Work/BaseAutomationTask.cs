@@ -1,8 +1,8 @@
-﻿using Automation.Dal.Models.Schema;
+﻿using Automation.Models.Schema;
 using Automation.Shared.Data;
 using System.Text.Json.Serialization;
 
-namespace Automation.Dal.Models
+namespace Automation.Models.Work
 {
     // XXX : may be replaced by a simple guid if there is no need for more information
     public partial class TaskConnector

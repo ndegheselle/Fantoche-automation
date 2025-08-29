@@ -1,5 +1,5 @@
 ﻿using Automation.App.Shared.Base.History;
-using Automation.Dal.Models;
+using Automation.Models;
 
 namespace Automation.App.ViewModels.Workflow.Editor.Actions
 {

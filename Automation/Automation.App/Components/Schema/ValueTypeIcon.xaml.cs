@@ -1,4 +1,4 @@
-﻿using Automation.Dal.Models.Schema;
+﻿using Automation.Models.Schema;
 using Joufflu.Shared.Resources.Fonts;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;

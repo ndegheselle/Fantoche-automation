@@ -1,6 +1,6 @@
 ﻿using System.Drawing;
 
-namespace Automation.Dal.Models
+namespace Automation.Models.Work
 {
     public partial class GraphNode
     {

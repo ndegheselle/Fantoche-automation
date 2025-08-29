@@ -1,5 +1,5 @@
 ﻿using Automation.App.Shared.ApiClients;
-using Automation.Dal.Models;
+using Automation.Models;
 using Automation.App.Views.WorkPages.Scopes;
 using Automation.App.Views.WorkPages.Tasks;
 using Automation.App.Views.WorkPages.Workflows;
@@ -59,10 +59,10 @@ namespace Automation.App.Views.WorkPages
                     Show(new ScopePage((Scope)selected));
                     break;
                 case EnumScopedType.Workflow:
-                    Show(new WorkflowPage((AutomationWorkflow)selected));
+                    Show(new WorkflowPage((Automation.Shared.Data.Task.AutomationWorkflow)selected));
                     break;
                 case EnumScopedType.Task:
-                    Show(new TaskPage((AutomationTask)selected));
+                    Show(new TaskPage((Automation.Shared.Data.Task.AutomationTask)selected));
                     break;
             }
         }

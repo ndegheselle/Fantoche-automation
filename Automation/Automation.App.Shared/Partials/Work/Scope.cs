@@ -5,7 +5,7 @@ using System.Windows;
 using System.Windows.Data;
 using Usuel.Shared;
 
-namespace Automation.Dal.Models
+namespace Automation.Models.Work
 {
     public enum EnumScopedTabs
     {

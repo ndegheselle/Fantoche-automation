@@ -1,4 +1,4 @@
-﻿using Automation.Dal.Models;
+﻿using Automation.Models;
 using Automation.App.Views.WorkPages.Workflows.Editor;
 using System.Collections.ObjectModel;
 using Automation.App.Shared.Base.History;

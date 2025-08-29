@@ -3,7 +3,7 @@ using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Text.Json.Serialization;
 
-namespace Automation.Dal.Models
+namespace Automation.Models.Work
 {
     [JsonDerivedType(typeof(GraphTask), "task")]
     [JsonDerivedType(typeof(GraphGroup), "group")]

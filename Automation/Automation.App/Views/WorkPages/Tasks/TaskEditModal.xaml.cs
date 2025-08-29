@@ -1,7 +1,7 @@
 ﻿using Automation.App.Components.Inputs;
 using Automation.App.Shared.ApiClients;
 using Automation.App.Views.PackagesPages.Components;
-using Automation.Dal.Models;
+using Automation.Models;
 using Automation.Shared.Base;
 using Automation.Shared.Data;
 using Joufflu.Popups;
@@ -17,9 +17,9 @@ namespace Automation.App.Views.WorkPages.Tasks
     {
         private readonly TasksClient _taskClient;
 
-        public AutomationTask NewTask { get; set; }
+        public Automation.Shared.Data.Task.AutomationTask NewTask { get; set; }
 
-        public TaskCreateModal(AutomationTask task) : base("Create new task")
+        public TaskCreateModal(Automation.Shared.Data.Task.AutomationTask task) : base("Create new task")
         {
             _taskClient = Services.Provider.GetRequiredService<TasksClient>();
             NewTask = task;
@@ -56,11 +56,11 @@ namespace Automation.App.Views.WorkPages.Tasks
 
         public ModalOptions Options { get; private set; } = new ModalOptions();
 
-        public AutomationTask Task { get; set; }
+        public Automation.Shared.Data.Task.AutomationTask Task { get; set; }
 
         public ICustomCommand ValidateCommand { get; private set; }
 
-        public TaskEditModal(AutomationTask task)
+        public TaskEditModal(Automation.Shared.Data.Task.AutomationTask task)
         {
             Task = task;
             Options.Title = $"Edit - {task.Metadata.Name}";

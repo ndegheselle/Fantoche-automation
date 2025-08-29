@@ -1,10 +1,10 @@
-﻿using Automation.Plugins.Shared;
-using Automation.Shared.Data;
+﻿using Automation.Shared.Base;
+using Automation.Shared.Data.Task;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 
-namespace Automation.Dal.Models
+namespace Automation.Models.Work
 {
     /// <summary>
     /// Task instance

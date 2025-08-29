@@ -1,9 +1,9 @@
 ﻿using Automation.Dal;
-using Automation.Dal.Models;
+using Automation.Models;
 using Automation.Dal.Repositories;
 using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
-using Automation.Shared.Data;
+using Automation.Shared.Data.Task;
 
 namespace Automation.Worker.Executor
 {

@@ -1,5 +1,5 @@
 ﻿using Automation.App.Shared.ApiClients;
-using Automation.Dal.Models;
+using Automation.Models;
 using Automation.App.Views.WorkPages.Tasks;
 using Automation.Shared.Base;
 using Microsoft.Extensions.DependencyInjection;

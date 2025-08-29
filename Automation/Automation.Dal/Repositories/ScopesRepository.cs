@@ -1,8 +1,5 @@
-﻿using Automation.Dal.Models;
-using Automation.Shared.Data;
-using MongoDB.Bson.Serialization;
+﻿using Automation.Models.Work;
 using MongoDB.Driver;
-using System.Xml.Linq;
 
 namespace Automation.Dal.Repositories
 {

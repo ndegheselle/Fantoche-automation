@@ -1,6 +1,6 @@
 ﻿using Automation.App.Components.Inputs;
 using Automation.App.Shared.ApiClients;
-using Automation.Dal.Models;
+using Automation.Models;
 using Automation.Shared.Base;
 using Automation.Shared.Data;
 using Joufflu.Popups;

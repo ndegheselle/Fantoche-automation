@@ -1,5 +1,5 @@
 ﻿using Automation.App.Shared.ApiClients;
-using Automation.Dal.Models;
+using Automation.Models;
 using Automation.App.Views.WorkPages.Tasks;
 using Automation.App.Views.WorkPages.Workflows;
 using Automation.Shared.Data;
@@ -108,7 +108,7 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
             if (Selected is not Scope parentScope)
                 return;
 
-            AutomationTask task = new AutomationTask();
+            Automation.Shared.Data.Task.AutomationTask task = new Automation.Shared.Data.Task.AutomationTask();
             task.ChangeParent(parentScope);
             if (await _modal.Show(new TaskCreateModal(task)))
             {
@@ -122,7 +122,7 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
             if (Selected is not Scope parentScope)
                 return;
 
-            AutomationWorkflow workflow = new AutomationWorkflow();
+            Automation.Shared.Data.Task.AutomationWorkflow workflow = new Automation.Shared.Data.Task.AutomationWorkflow();
             workflow.ChangeParent(parentScope);
             if (await _modal.Show(new WorkflowCreateModal(workflow)))
             {
