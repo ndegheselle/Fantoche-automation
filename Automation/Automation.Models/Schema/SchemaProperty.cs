@@ -15,6 +15,9 @@ namespace Automation.Models.Schema
     }
 
     [JsonDerivedType(typeof(SchemaObject), "object")]
+    [JsonDerivedType(typeof(SchemaValue), "value")]
+    [JsonDerivedType(typeof(SchemaValue), "array")]
+    [JsonDerivedType(typeof(SchemaTable), "table")]
     public partial class SchemaProperty
     {
         public bool IsArray { get; set; }
@@ -27,5 +30,20 @@ namespace Automation.Models.Schema
     public partial class SchemaObject : SchemaProperty
     {
         public ObservableCollection<SchemaProperty> Properties { get; private set; } = [];
+    }
+
+    public partial class SchemaValue : SchemaProperty
+    {
+        public dynamic? Value { get; set; } = null;
+    }
+
+    public partial class SchemaArray : SchemaProperty
+    {
+        public List<dynamic> Value { get; set; } = [];
+    }
+
+    public partial class SchemaTable : SchemaObject
+    {
+        public List<dynamic> Values { get; private set; } = [];
     }
 }

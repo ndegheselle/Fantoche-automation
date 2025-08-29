@@ -1,4 +1,5 @@
-﻿using Automation.Models.Work;
+﻿using Automation.Models.Schema;
+using Automation.Models.Work;
 using Automation.Shared.Base;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
@@ -129,6 +130,15 @@ namespace Automation.Dal
                     cm.SetIsRootClass(true);
                     cm.AddKnownType(typeof(ClassTarget));
                     cm.AddKnownType(typeof(PackageClassTarget));
+                });
+
+            BsonClassMap.RegisterClassMap<SchemaProperty>(
+                cm =>
+                {
+                    cm.AutoMap();
+                    cm.SetIsRootClass(true);
+                    cm.AddKnownType(typeof(SchemaObject));
+                    cm.AddKnownType(typeof(SchemaValue));
                 });
         }
     }
