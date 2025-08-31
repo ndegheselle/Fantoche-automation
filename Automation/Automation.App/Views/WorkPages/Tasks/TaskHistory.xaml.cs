@@ -1,6 +1,6 @@
 ﻿using Automation.App.Shared.ApiClients;
-using Automation.Models;
 using Automation.App.Views.WorkPages.Tasks.Instances;
+using Automation.Models.Work;
 using Automation.Shared.Base;
 using Joufflu.Popups;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,11 +18,11 @@ namespace Automation.App.Views.WorkPages.Tasks
         public static readonly DependencyProperty TaskProperty =
             DependencyProperty.Register(
             nameof(Task),
-            typeof(Automation.Shared.Data.Task.AutomationTask),
+            typeof(AutomationTask),
             typeof(TaskHistory),
             new PropertyMetadata(null));
 
-        public Automation.Shared.Data.Task.AutomationTask Task { get { return (Automation.Shared.Data.Task.AutomationTask)GetValue(TaskProperty); } set { SetValue(TaskProperty, value); } }
+        public AutomationTask Task { get { return (AutomationTask)GetValue(TaskProperty); } set { SetValue(TaskProperty, value); } }
 
         public ListPageWrapper<TaskInstance> Instances
         {

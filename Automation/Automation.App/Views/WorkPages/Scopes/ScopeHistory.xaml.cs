@@ -1,6 +1,5 @@
 ﻿using Automation.App.Shared.ApiClients;
-using Automation.Models;
-using Automation.App.Views.WorkPages.Tasks;
+using Automation.Models.Work;
 using Automation.Shared.Base;
 using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;

@@ -1,0 +1,132 @@
+﻿<UserControl
+    x:Class="Automation.App.Components.Schema.SchemaItem"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Automation.App.Components.Schema"
+    xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
+    xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
+    xmlns:schema="clr-namespace:Automation.Models.Schema;assembly=Automation.App.Shared"
+    mc:Ignorable="d"
+    x:Name="ContainerElement">
+    <UserControl.Resources>
+        <!--
+        <Style TargetType="{x:Type local:SchemaItem}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Property.IsArray, ElementName=ContainerElement}" Value="True">
+                    <Setter TargetName="IconIsAnArray" Property="Visibility" Value="Visible" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Property.IsHovered, ElementName=ContainerElement}" Value="True">
+                    <Setter TargetName="DropPreview" Property="BorderThickness" Value="0,4,0,0" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsActionsVisible, ElementName=ContainerElement}" Value="True">
+                    <Setter TargetName="ContainerActions" Property="Visibility" Value="Visible" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsEditing, ElementName=ContainerElement}" Value="True">
+                    <Setter TargetName="TextBoxName" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="ComboBoxKind" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="CheckBoxIsAnArray" Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        -->
+        <local:DepthToMarginConverter x:Key="DepthToMarginConverter" />
+    </UserControl.Resources>
+
+    <!--
+    <Grid
+        DataContext="{Binding Property, ElementName=ContainerElement}"
+        Height="24"
+        Background="Transparent">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto" SharedSizeGroup="Name" />
+            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Grid Margin="{Binding Depth, Converter={StaticResource DepthToMarginConverter}}">
+            <TextBlock
+                Margin="4,0"
+                VerticalAlignment="Center"
+                Style="{StaticResource TextBlockValidation}"
+                Text="{Binding Name}" />
+            <TextBox
+                x:Name="TextBoxName"
+                Margin="0,1"
+                Padding="4,0"
+                Text="{Binding Name, Mode=TwoWay}"
+                Visibility="Collapsed" />
+        </Grid>
+
+        <Grid Grid.Column="1" Margin="2,0,0,0">
+            <local:DataTypeIcon Margin="8,0,0,0" Type="{Binding Type}" />
+            <ComboBox
+                x:Name="ComboBoxKind"
+                Width="100"
+                Margin="0,1"
+                HorizontalAlignment="Left"
+                ItemsSource="{extensions:EnumValuesExtension {x:Type schema:EnumPropertyKind}}"
+                SelectedItem="{Binding Kind, Mode=TwoWay}"
+                Visibility="Collapsed">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <local:DataTypeIcon Type="{Binding}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+        </Grid>
+
+        <ContentPresenter
+            x:Name="ContainerActions"
+            Grid.Column="2"
+            Margin="1"
+            HorizontalAlignment="Right"
+            Content="{Binding}"
+            Visibility="Collapsed">
+            <ContentPresenter.ContentTemplateSelector>
+                <local:ActionTemplateSelector>
+                    <local:ActionTemplateSelector.SchemaObjectTemplate>
+                        <DataTemplate DataType="{x:Type local:SchemaObject}">
+                            <StackPanel Orientation="Horizontal">
+                                <Button
+                                    Margin="1,0,0,0"
+                                    Padding="6"
+                                    Background="Transparent"
+                                    Command="{Binding AddPropertyCommand}"
+                                    Style="{StaticResource IconButton}">
+                                    <fonts:Icon FontSize="10" Text="{x:Static fonts:IconFont.Plus}" />
+                                </Button>
+                                <Button
+                                    Margin="1,0,0,0"
+                                    Padding="6"
+                                    Background="Transparent"
+                                    Command="{Binding RemoveCommand}"
+                                    Style="{StaticResource IconButton}">
+                                    <fonts:Icon FontSize="10" Text="{x:Static fonts:IconFont.Trash}" />
+                                </Button>
+                            </StackPanel>
+                        </DataTemplate>
+                    </local:ActionTemplateSelector.SchemaObjectTemplate>
+                    <local:ActionTemplateSelector.SchemaPropertyTemplate>
+                        <DataTemplate DataType="{x:Type schema:SchemaProperty}">
+                            <Button
+                                Margin="1,0,0,0"
+                                Padding="6"
+                                Background="Transparent"
+                                Command="{Binding RemoveCommand}"
+                                Style="{StaticResource IconButton}">
+                                <fonts:Icon FontSize="10" Text="{x:Static fonts:IconFont.Trash}" />
+                            </Button>
+                        </DataTemplate>
+                    </local:ActionTemplateSelector.SchemaPropertyTemplate>
+                </local:ActionTemplateSelector>
+            </ContentPresenter.ContentTemplateSelector>
+        </ContentPresenter>
+        <Border
+            x:Name="DropPreview"
+            Grid.ColumnSpan="2"
+            BorderBrush="{StaticResource {x:Static adonisUi:Brushes.AccentIntenseHighlightBorderBrush}}" />
+    </Grid>
+    -->
+</UserControl>

@@ -1,5 +1,5 @@
 ﻿using Automation.App.Shared.ApiClients;
-using Automation.Models;
+using Automation.Models.Work;
 using Joufflu.Data.DnD;
 using Joufflu.Shared.Helpers;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,10 +12,10 @@ namespace Automation.App.Views.WorkPages.Tasks.Components
 {
     public class FlatenedTask
     {
-        public Automation.Shared.Data.Task.BaseAutomationTask Task { get; set; }
+        public BaseAutomationTask Task { get; set; }
         public string? Tag { get; set; }
 
-        public FlatenedTask(Automation.Shared.Data.Task.BaseAutomationTask task, string? tag)
+        public FlatenedTask(BaseAutomationTask task, string? tag)
         {
             Task = task;
             Tag = tag;
@@ -38,7 +38,7 @@ namespace Automation.App.Views.WorkPages.Tasks.Components
 
         protected override FrameworkElement? CreateAdornerContent(object data)
         {
-            if (data is not Automation.Shared.Data.Task.BaseAutomationTask task)
+            if (data is not BaseAutomationTask task)
                 return null;
             return new TaskTile() { Task = task };
         }

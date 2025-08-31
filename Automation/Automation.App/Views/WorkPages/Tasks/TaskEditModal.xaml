@@ -8,15 +8,16 @@
     xmlns:components="clr-namespace:Automation.App.Views.WorkPages.Components"
     xmlns:packageComponents="clr-namespace:Automation.App.Views.PackagesPages.Components"
     xmlns:inputs="clr-namespace:Automation.App.Components.Inputs"
-    xmlns:models="clr-namespace:Automation.Models;assembly=Automation.App.Shared"
+    xmlns:models="clr-namespace:Automation.Models.Work;assembly=Automation.App.Shared"
     xmlns:jouffluInputs="clr-namespace:Joufflu.Inputs;assembly=Joufflu.Inputs"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     xmlns:layouts="clr-namespace:Joufflu.Layouts;assembly=Joufflu.Layouts"
     mc:Ignorable="d"
     MinWidth="300"
-    MinHeight="180">
-    <Grid DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:TaskEditModal}}">
+    MinHeight="180"
+    x:Name="ContainerElement">
+    <Grid DataContext="{Binding ElementName=ContainerElement}">
         <Grid Margin="2">
             <Grid.RowDefinitions>
                 <RowDefinition />

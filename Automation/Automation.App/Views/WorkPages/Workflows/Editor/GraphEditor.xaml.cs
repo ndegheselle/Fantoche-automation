@@ -1,5 +1,5 @@
 ﻿using Automation.App.ViewModels.Workflow.Editor;
-using Automation.Models;
+using Automation.Models.Work;
 using Joufflu.Data.DnD;
 using Nodify;
 using System.ComponentModel;
@@ -12,7 +12,7 @@ using Point = System.Drawing.Point;
 
 namespace Automation.App.Views.WorkPages.Workflows.Editor
 {
-    public class TaskDropHandler : DropHandler<Automation.Shared.Data.Task.BaseAutomationTask>
+    public class TaskDropHandler : DropHandler<BaseAutomationTask>
     {
         private readonly GraphEditorViewModel _editor;
         public TaskDropHandler(GraphEditorViewModel editor)
@@ -20,7 +20,7 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
             _editor = editor;
         }
 
-        protected override void ApplyDrop(Automation.Shared.Data.Task.BaseAutomationTask? data, DragEventArgs e)
+        protected override void ApplyDrop(BaseAutomationTask? data, DragEventArgs e)
         {
             if (data == null)
                 return;
@@ -36,7 +36,7 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
         #region Dependency properties
         public static readonly DependencyProperty WorkflowProperty = DependencyProperty.Register(
             nameof(Workflow),
-            typeof(Automation.Shared.Data.Task.AutomationWorkflow),
+            typeof(AutomationWorkflow),
             typeof(GraphEditor),
             new PropertyMetadata(null, (o, d) => ((GraphEditor)o).OnWorkflowChanged()));
         #endregion
@@ -45,9 +45,9 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
         public ICommand ZoomOutCommand { get; private set; }
         public ICommand ZoomFitCommand { get; private set; }
 
-        public Automation.Shared.Data.Task.AutomationWorkflow Workflow
+        public AutomationWorkflow Workflow
         {
-            get { return (Automation.Shared.Data.Task.AutomationWorkflow)GetValue(WorkflowProperty); }
+            get { return (AutomationWorkflow)GetValue(WorkflowProperty); }
             set { SetValue(WorkflowProperty, value); }
         }
 

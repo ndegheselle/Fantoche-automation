@@ -1,6 +1,7 @@
 ﻿using Automation.App.Components.Inputs;
 using Automation.App.Shared.ApiClients;
 using Automation.Models;
+using Automation.Models.Work;
 using Automation.Shared.Base;
 using Automation.Shared.Data;
 using Joufflu.Popups;
@@ -14,9 +15,9 @@ namespace Automation.App.Views.WorkPages.Workflows
     {
         private readonly TasksClient _taskClient;
 
-        public Automation.Shared.Data.Task.AutomationWorkflow NewWorkflow { get; set; }
+        public AutomationWorkflow NewWorkflow { get; set; }
 
-        public WorkflowCreateModal(Automation.Shared.Data.Task.AutomationWorkflow newWorkflow) : base("Create new workflow")
+        public WorkflowCreateModal(AutomationWorkflow newWorkflow) : base("Create new workflow")
         {
             _taskClient = Services.Provider.GetRequiredService<TasksClient>();
             NewWorkflow = newWorkflow;
@@ -45,13 +46,13 @@ namespace Automation.App.Views.WorkPages.Workflows
     /// </summary>
     public partial class WorkflowEditModal : UserControl, IModalContent
     {
-        public Automation.Shared.Data.Task.AutomationWorkflow Workflow { get; set; }
+        public AutomationWorkflow Workflow { get; set; }
 
         public IModal? ParentLayout { get; set; }
 
         public ModalOptions Options { get; private set; } = new ModalOptions() { Title = "Edit workflow" };
 
-        public WorkflowEditModal(Automation.Shared.Data.Task.AutomationWorkflow workflow)
+        public WorkflowEditModal(AutomationWorkflow workflow)
         {
             Workflow = workflow;
             InitializeComponent();

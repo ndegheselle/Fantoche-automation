@@ -1,7 +1,7 @@
-﻿using Automation.Models;
+﻿using Automation.App.Shared.Base.History;
 using Automation.App.Views.WorkPages.Workflows.Editor;
+using Automation.Models.Work;
 using System.Collections.ObjectModel;
-using Automation.App.Shared.Base.History;
 
 namespace Automation.App.ViewModels.Workflow.Editor
 {
@@ -19,7 +19,7 @@ namespace Automation.App.ViewModels.Workflow.Editor
 
         public HistoryHandler History { get; }
 
-        public GraphEditorViewModel(GraphEditor ui,Graph graph, GraphEditorSettings settings)
+        public GraphEditorViewModel(GraphEditor ui, Graph graph, GraphEditorSettings settings)
         {
             Ui = ui;
             Graph = graph;

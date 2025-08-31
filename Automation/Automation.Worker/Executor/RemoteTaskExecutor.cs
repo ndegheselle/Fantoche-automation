@@ -1,6 +1,6 @@
 ﻿using Automation.Dal;
-using Automation.Models;
 using Automation.Dal.Repositories;
+using Automation.Models.Work;
 using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
 using Automation.Shared.Data.Task;

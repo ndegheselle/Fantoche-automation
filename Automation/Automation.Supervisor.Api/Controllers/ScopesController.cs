@@ -5,6 +5,7 @@ using Automation.Shared.Base;
 using Automation.Shared.Data;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
+using Automation.Models.Work;
 
 namespace Automation.Supervisor.Api.Controllers
 {
@@ -28,7 +29,7 @@ namespace Automation.Supervisor.Api.Controllers
             {
                 return BadRequest(new Dictionary<string, string[]>()
                 {
-                    {nameof(Shared.Data.Task.BaseAutomationTask.ParentId), [$"A scope cannot be created without a parent."] }
+                    {nameof(BaseAutomationTask.ParentId), [$"A scope cannot be created without a parent."] }
                 });
             }
 

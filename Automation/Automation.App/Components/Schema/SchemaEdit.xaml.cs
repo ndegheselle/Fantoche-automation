@@ -1,4 +1,5 @@
-﻿using Joufflu.Data.DnD;
+﻿using Automation.Models.Schema;
+using Joufflu.Data.DnD;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -30,26 +31,6 @@ namespace Automation.App.Components.Schema
     }
 
     /// <summary>
-    /// Template selector to selection an action template from a property type.
-    /// Overkill for this kind of use case but nice example of how this work.
-    /// </summary>
-    public class ActionTemplateSelector : DataTemplateSelector
-    {
-        public DataTemplate? SchemaPropertyTemplate { get; set; }
-        public DataTemplate? SchemaObjectTemplate { get; set; }
-
-        public override DataTemplate? SelectTemplate(object item, DependencyObject container)
-        {
-            if (item is SchemaObjectUi)
-                return SchemaObjectTemplate;
-            if (item is SchemaPropertyUi)
-                return SchemaPropertyTemplate;
-
-            return base.SelectTemplate(item, container);
-        }
-    }
-
-    /// <summary>
     /// Handle schema property dragging. 
     /// </summary>
     public class SchemaDragHandler : DragHandler
@@ -69,9 +50,9 @@ namespace Automation.App.Components.Schema
     /// <summary>
     /// Handle schema property droping.
     /// </summary>
-    public class SchemaDropHandler : DropHandler<SchemaPropertyUi>
+    public class SchemaDropHandler : DropHandler<SchemaProperty>
     {
-        private SchemaPropertyUi? _hoveredProperty = null;
+        private SchemaProperty? _hoveredProperty = null;
         private readonly Schema.SchemaEdit _schema;
         public SchemaDropHandler(Schema.SchemaEdit schema)
         {
@@ -91,14 +72,14 @@ namespace Automation.App.Components.Schema
             if (_schema.IsReadOnly)
                 return false;
 
-            var source = GetDropData<SchemaPropertyUi>(e.Data);
-            var target = ((FrameworkElement)e.OriginalSource).DataContext as SchemaPropertyUi;
+            var source = GetDropData<SchemaProperty>(e.Data);
+            var target = ((FrameworkElement)e.OriginalSource).DataContext as SchemaProperty;
             return base.IsDropAuthorized(e) && source != target;
         }
 
         protected override void OnPassingOver(DragEventArgs e)
         {
-            if (((FrameworkElement)e.OriginalSource).DataContext is not SchemaPropertyUi property)
+            if (((FrameworkElement)e.OriginalSource).DataContext is not SchemaProperty property)
                 return;
 
             if (_hoveredProperty != null)
@@ -113,13 +94,13 @@ namespace Automation.App.Components.Schema
         /// </summary>
         /// <param name="data"></param>
         /// <param name="e"></param>
-        protected override void ApplyDrop(SchemaPropertyUi? data, DragEventArgs e)
+        protected override void ApplyDrop(SchemaProperty? data, DragEventArgs e)
         {
             if (data == null)
                 return;
             if (e.OriginalSource is not FrameworkElement target)
                 return;
-            if (target.DataContext is not SchemaPropertyUi property)
+            if (target.DataContext is not SchemaProperty property)
                 return;
 
             StopHovering();
@@ -131,29 +112,30 @@ namespace Automation.App.Components.Schema
     }
 
     /// <summary>
-    /// Display a data schema object and allow edit to schema property
+    /// Logique d'interaction pour SchemaEdit.xaml
     /// </summary>
-    public partial class SchemaEdit : Control
+    public partial class SchemaEdit : UserControl
     {
+
         #region Dependency properties
         public static readonly DependencyProperty RootProperty =
             DependencyProperty.Register(
             nameof(Root),
-            typeof(SchemaObjectUi),
-            typeof(Schema.SchemaEdit),
+            typeof(SchemaObject),
+            typeof(SchemaEdit),
             new PropertyMetadata(null));
 
         public static readonly DependencyProperty IsReadOnlyProperty =
             DependencyProperty.Register(
             nameof(IsReadOnly),
             typeof(bool),
-            typeof(Schema.SchemaEdit),
+            typeof(SchemaEdit),
             new PropertyMetadata(false));
         #endregion
 
-        public SchemaObjectUi Root
+        public SchemaObject Root
         {
-            get { return (SchemaObjectUi)GetValue(RootProperty); }
+            get { return (SchemaObject)GetValue(RootProperty); }
             set { SetValue(RootProperty, value); }
         }
 
@@ -163,57 +145,14 @@ namespace Automation.App.Components.Schema
             set { SetValue(IsReadOnlyProperty, value); }
         }
 
-        public Schema.SchemaDragHandler DragHandler { get; }
-        public Schema.SchemaDropHandler DropHandler { get; }
+        public SchemaDragHandler DragHandler { get; }
+        public SchemaDropHandler DropHandler { get; }
 
         public SchemaEdit()
         {
             DropHandler = new Schema.SchemaDropHandler(this);
             DragHandler = new Schema.SchemaDragHandler(this, DropHandler);
-        }
-    }
-
-    public partial class SchemaItem : Control
-    {
-        #region Dependency properties
-        public static readonly DependencyProperty PropertyProperty =
-            DependencyProperty.Register(
-            nameof(Property),
-            typeof(SchemaPropertyUi),
-            typeof(Schema.SchemaItem),
-            new PropertyMetadata(null));
-
-        public static readonly DependencyProperty IsActionsVisibleProperty =
-            DependencyProperty.Register(
-            nameof(IsActionsVisible),
-            typeof(bool),
-            typeof(Schema.SchemaItem),
-            new PropertyMetadata(false));
-
-        public static readonly DependencyProperty IsEditingProperty =
-            DependencyProperty.Register(
-            nameof(IsEditing),
-            typeof(bool),
-            typeof(Schema.SchemaItem),
-            new PropertyMetadata(false));
-        #endregion
-
-        public SchemaPropertyUi Property
-        {
-            get { return (SchemaPropertyUi)GetValue(PropertyProperty); }
-            set { SetValue(PropertyProperty, value); }
-        }
-
-        public bool IsActionsVisible
-        {
-            get { return (bool)GetValue(IsActionsVisibleProperty); }
-            set { SetValue(IsActionsVisibleProperty, value); }
-        }
-
-        public bool IsEditing
-        {
-            get { return (bool)GetValue(IsEditingProperty); }
-            set { SetValue(IsEditingProperty, value); }
+            InitializeComponent();
         }
     }
 }

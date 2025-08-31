@@ -8,7 +8,7 @@ namespace Automation.Models.Work
     public partial class TaskConnector
     {
         public Guid Id { get; set; }
-        public SchemaProperty Property { get; set; }
+        public SchemaProperty Property { get; set; } = null;
     }
 
     [JsonDerivedType(typeof(AutomationTask), "task")]

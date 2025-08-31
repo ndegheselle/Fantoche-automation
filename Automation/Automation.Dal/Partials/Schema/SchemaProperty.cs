@@ -7,11 +7,5 @@
         {
             get => _name; set => _name = value;
         }
-
-        private EnumValueType _type;
-        public partial EnumValueType Type
-        {
-            get => _type; set => _type = value;
-        }
     }
 }

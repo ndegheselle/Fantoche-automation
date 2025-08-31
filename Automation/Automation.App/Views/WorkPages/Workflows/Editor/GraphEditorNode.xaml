@@ -9,7 +9,7 @@
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Workflows.Editor"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:models="clr-namespace:Automation.Models;assembly=Automation.App.Shared"
+    xmlns:models="clr-namespace:Automation.Models.Work;assembly=Automation.App.Shared"
     xmlns:nodify="clr-namespace:Nodify;assembly=Nodify"
     x:Name="ContainerElement"
     mc:Ignorable="d">

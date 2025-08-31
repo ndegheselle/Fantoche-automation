@@ -1,13 +1,10 @@
 ﻿using Automation.Dal;
-using Automation.Models;
 using Automation.Dal.Repositories;
-using Automation.Plugins.Shared;
-using Automation.Realtime.Models;
+using Automation.Models.Work;
 using Automation.Shared.Data.Task;
 using Automation.Worker.Control;
 using Automation.Worker.Control.Flow;
 using MongoDB.Driver;
-using System.Threading.Tasks;
 
 namespace Automation.Worker.Executor
 {
@@ -32,8 +29,8 @@ namespace Automation.Worker.Executor
 
         public async Task<TaskInstance> ExecuteWorkflowAsync(TaskInstance instance, IProgress<TaskInstanceNotification>? progress = null)
         {
-            Shared.Data.Task.BaseAutomationTask baseTask = await _tasksRepo.GetByIdAsync(instance.TaskId);
-            if (baseTask is not Shared.Data.Task.AutomationWorkflow workflow)
+            BaseAutomationTask baseTask = await _tasksRepo.GetByIdAsync(instance.TaskId);
+            if (baseTask is not AutomationWorkflow workflow)
                 throw new Exception("Task is not a valid automation task.");
 
             workflow.Graph.Refresh();

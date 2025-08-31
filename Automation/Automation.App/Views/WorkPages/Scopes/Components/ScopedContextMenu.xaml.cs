@@ -1,7 +1,7 @@
 ﻿using Automation.App.Shared.ApiClients;
-using Automation.Models;
 using Automation.App.Views.WorkPages.Tasks;
 using Automation.App.Views.WorkPages.Workflows;
+using Automation.Models.Work;
 using Automation.Shared.Data;
 using Joufflu.Popups;
 using Microsoft.Extensions.DependencyInjection;
@@ -108,7 +108,7 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
             if (Selected is not Scope parentScope)
                 return;
 
-            Automation.Shared.Data.Task.AutomationTask task = new Automation.Shared.Data.Task.AutomationTask();
+            AutomationTask task = new AutomationTask();
             task.ChangeParent(parentScope);
             if (await _modal.Show(new TaskCreateModal(task)))
             {
@@ -122,7 +122,7 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
             if (Selected is not Scope parentScope)
                 return;
 
-            Automation.Shared.Data.Task.AutomationWorkflow workflow = new Automation.Shared.Data.Task.AutomationWorkflow();
+            AutomationWorkflow workflow = new AutomationWorkflow();
             workflow.ChangeParent(parentScope);
             if (await _modal.Show(new WorkflowCreateModal(workflow)))
             {

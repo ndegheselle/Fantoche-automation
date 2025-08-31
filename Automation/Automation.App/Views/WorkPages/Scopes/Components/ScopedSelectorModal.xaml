@@ -10,7 +10,7 @@
     MinHeight="200"
     MinWidth="400"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
-    xmlns:models="clr-namespace:Automation.Models;assembly=Automation.App.Shared"
+    xmlns:models="clr-namespace:Automation.Models.Work;assembly=Automation.App.Shared"
     xmlns:components="clr-namespace:Automation.App.Views.WorkPages.Components"
     x:Name="ContainerElement">
     <Grid DataContext="{Binding ElementName=ContainerElement}">

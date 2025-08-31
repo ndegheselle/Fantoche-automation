@@ -1,8 +1,7 @@
 ﻿using Automation.Dal;
-using Automation.Models;
 using Automation.Dal.Repositories;
+using Automation.Models.Work;
 using Automation.Plugins.Shared;
-using Automation.Realtime.Models;
 using Automation.Shared.Data.Task;
 using Automation.Worker.Packages;
 
@@ -32,9 +31,9 @@ namespace Automation.Worker.Executor
             TaskInstance instance,
             IProgress<TaskInstanceNotification>? progress = null)
         {
-            Shared.Data.Task.BaseAutomationTask baseTask = await _tasksRepo.GetByIdAsync(instance.TaskId);
+            BaseAutomationTask baseTask = await _tasksRepo.GetByIdAsync(instance.TaskId);
 
-            if (baseTask is not Shared.Data.Task.AutomationTask task)
+            if (baseTask is not AutomationTask task)
                 throw new Exception("Task is not a valid automation task.");
 
             if (task.Target is not PackageClassTarget package)
@@ -63,7 +62,7 @@ namespace Automation.Worker.Executor
                 Progress<TaskNotification>? taskProgress = null;
                 if (progress != null)
                 {
-                    taskProgress = new Progress<TaskNotification>((notification) => progress.Report(new Shared.Data.TaskInstanceNotification() { InstanceId = instance.Id, Data = notification }));
+                    taskProgress = new Progress<TaskNotification>((notification) => progress.Report(new TaskInstanceNotification() { InstanceId = instance.Id, Data = notification }));
                 }
 
                 await task.DoAsync(instance.Parameters, taskProgress);

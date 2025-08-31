@@ -1,4 +1,4 @@
-﻿using Automation.Models;
+﻿using Automation.Models.Work;
 using Automation.Shared.Data;
 using Automation.Worker.Control.Flow;
 
@@ -15,15 +15,15 @@ namespace Automation.Worker.Control
             Id = Guid.Parse("00000000-0000-0000-0000-100000000000")
         };
 
-        public static Dictionary<ClassIdentifier, Shared.Data.Task.AutomationControl> Availables { get; } = new Dictionary<ClassIdentifier, Shared.Data.Task.AutomationControl>();
-        public static Dictionary<Guid, Shared.Data.Task.AutomationControl> AvailablesById { get; } = new Dictionary<Guid, Shared.Data.Task.AutomationControl>();
+        public static Dictionary<ClassIdentifier, AutomationControl> Availables { get; } = new Dictionary<ClassIdentifier, AutomationControl>();
+        public static Dictionary<Guid, AutomationControl> AvailablesById { get; } = new Dictionary<Guid, AutomationControl>();
 
         static ControlTasks()
         {
             Register<StartTask>(StartTask.AutomationTask);
         }
 
-        public static Shared.Data.Task.AutomationControl Register<T>(Shared.Data.Task.AutomationControl task) where T : ITaskControl
+        public static AutomationControl Register<T>(AutomationControl task) where T : ITaskControl
         {
             if (AvailablesById.ContainsKey(task.Id))
                 throw new Exception($"The key '{task.Id}' is already registered by task '{AvailablesById[task.Id].Metadata.Name}'.");

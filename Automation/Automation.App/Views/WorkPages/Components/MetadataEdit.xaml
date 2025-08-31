@@ -7,7 +7,7 @@
     xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Components"
     xmlns:components="clr-namespace:Automation.App.Views.WorkPages.Components"
     xmlns:inputs="clr-namespace:Automation.App.Components.Inputs"
-    xmlns:models="clr-namespace:Automation.Models;assembly=Automation.App.Shared"
+    xmlns:models="clr-namespace:Automation.Models.Work;assembly=Automation.App.Shared"
     xmlns:jouffluInputs="clr-namespace:Joufflu.Inputs;assembly=Joufflu.Inputs"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"

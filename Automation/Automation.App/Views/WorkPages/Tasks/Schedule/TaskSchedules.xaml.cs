@@ -1,4 +1,4 @@
-﻿using Automation.Models;
+﻿using Automation.Models.Work;
 using Joufflu.Popups;
 using System.Windows;
 using System.Windows.Controls;
@@ -12,11 +12,11 @@ namespace Automation.App.Views.WorkPages.Tasks.Schedule
     {
         public static readonly DependencyProperty TaskProperty = DependencyProperty.Register(
             nameof(Task),
-            typeof(Automation.Shared.Data.Task.AutomationTask),
+            typeof(AutomationTask),
             typeof(TaskSchedules),
-            new PropertyMetadata(default(Automation.Shared.Data.Task.AutomationTask), (o, e) => ((TaskSchedules)o).OnTargetChange()));
+            new PropertyMetadata(default(AutomationTask), (o, e) => ((TaskSchedules)o).OnTargetChange()));
 
-        public Automation.Shared.Data.Task.AutomationTask Task { get { return (Automation.Shared.Data.Task.AutomationTask)GetValue(TaskProperty); } set { SetValue(TaskProperty, value); } }
+        public AutomationTask Task { get { return (AutomationTask)GetValue(TaskProperty); } set { SetValue(TaskProperty, value); } }
         private IModal _modal => this.GetCurrentModal();
 
         public TaskSchedules() { InitializeComponent(); }

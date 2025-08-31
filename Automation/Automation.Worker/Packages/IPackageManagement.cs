@@ -1,4 +1,4 @@
-﻿using Automation.Models;
+﻿using Automation.Models.Work;
 using Automation.Plugins.Shared;
 using Automation.Shared.Base;
 using Automation.Shared.Data;
