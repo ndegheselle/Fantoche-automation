@@ -1,0 +1,55 @@
+﻿using Automation.Models.Schema;
+using Joufflu.Shared.Resources.Fonts;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using System.Windows;
+using System.Windows.Controls;
+
+namespace Automation.App.Components.Schema
+{
+    /// <summary>
+    /// Logique d'interaction pour DataTypeIcon.xaml
+    /// </summary>
+    public partial class IconDataType : Control, INotifyPropertyChanged
+    {
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected void NotifyPropertyChanged([CallerMemberName] string? name = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
+
+        public static readonly DependencyProperty TypeProperty =
+            DependencyProperty.Register(
+            nameof(Type),
+            typeof(EnumDataType),
+            typeof(IconDataType),
+            new PropertyMetadata(EnumDataType.String, (d, e) => ((IconDataType)d).OnTypeChanged()));
+
+        /// <summary>
+        /// Type of the value represented by this icon.
+        /// </summary>
+        public EnumDataType Type
+        {
+            get { return (EnumDataType)GetValue(TypeProperty); }
+            set { SetValue(TypeProperty, value); }
+        }
+
+        public string Icon { get; set; } = IconFont.Quotes;
+
+        /// <summary>
+        /// Change the icon based on the type of value.
+        /// </summary>
+        private void OnTypeChanged()
+        {
+            Icon = Type switch
+            {
+                EnumDataType.String => IconFont.Quotes,
+                EnumDataType.Decimal => IconFont.Hash,
+                EnumDataType.Boolean => IconFont.Check,
+                EnumDataType.DateTime => IconFont.Calendar,
+                EnumDataType.TimeSpan => IconFont.Clock,
+                _ => IconFont.QuestionMark
+            };
+        }
+    }
+}

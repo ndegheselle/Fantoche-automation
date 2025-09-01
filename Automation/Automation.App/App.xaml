@@ -5,11 +5,11 @@
     xmlns:local="clr-namespace:Automation.App"
     xmlns:converters="clr-namespace:Automation.App.Converters"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
-    xmlns:workComponents="clr-namespace:Automation.App.Views.WorkPages.Components"
+    xmlns:componentsWork="clr-namespace:Automation.App.Views.WorkPages.Components"
     xmlns:adonisControls="clr-namespace:AdonisUI.Controls;assembly=AdonisUI"
     xmlns:adonisExtensions="clr-namespace:AdonisUI.Extensions;assembly=AdonisUI"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
-    xmlns:jouffluConverters="clr-namespace:Joufflu.Shared.Converters;assembly=Joufflu.Shared">
+    xmlns:convertersJoufflu="clr-namespace:Joufflu.Shared.Converters;assembly=Joufflu.Shared">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -21,24 +21,34 @@
                 <ResourceDictionary Source="pack://application:,,,/Joufflu.Shared;component/Styles/Resources.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/Joufflu.Popups;component/Resources.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/Joufflu.Inputs;component/Resources.xaml" />
+
+                <!--#region Components-->
+                <ResourceDictionary Source="/Components/Schema/IconDataType.xaml" />
+                <ResourceDictionary Source="/Components/Schema/IconPropertyKind.xaml" />
+                <ResourceDictionary Source="/Components/Schema/SchemaItem.xaml" />
+                <ResourceDictionary Source="/Components/Schema/SchemaEdit.xaml" />
+                <!--#endregion-->
+
             </ResourceDictionary.MergedDictionaries>
 
             <converters:EnumToListConverter x:Key="EnumToListConverter" />
             <converters:EnumToBooleanConverter x:Key="EnumToBooleanConverter" />
 
-            <jouffluConverters:BooleanConverter x:Key="BooleanConverter" />
-            <jouffluConverters:BooleanFlipConverter x:Key="BooleanFlipConverter" />
-            <jouffluConverters:VisibilityConverter x:Key="VisibilityConverter" />
+            <convertersJoufflu:BooleanConverter x:Key="BooleanConverter" />
+            <convertersJoufflu:BooleanFlipConverter x:Key="BooleanFlipConverter" />
+            <convertersJoufflu:VisibilityConverter x:Key="VisibilityConverter" />
 
-            <!--  Adonis customization  -->
+            <!--#region Adonis customization-->
             <CornerRadius x:Key="{x:Static adonisUi:Dimensions.CornerRadius}">2</CornerRadius>
             <Thickness x:Key="{x:Static adonisUi:Dimensions.BorderThickness}">1</Thickness>
-
-            <Style TargetType="{x:Type workComponents:ScopedIcon}" BasedOn="{StaticResource {x:Type fonts:Icon}}" />
-
             <Style TargetType="{x:Type adonisControls:MessageBoxWindow}" BasedOn="{StaticResource {x:Type adonisControls:AdonisWindow}}">
                 <Setter Property="BorderBrush" Value="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}" />
             </Style>
+            <!--#endregion-->
+
+            <!--#region Components-->
+            <Style TargetType="{x:Type componentsWork:ScopedIcon}" BasedOn="{StaticResource {x:Type fonts:Icon}}" />
+            <!--#endregion-->
 
         </ResourceDictionary>
     </Application.Resources>

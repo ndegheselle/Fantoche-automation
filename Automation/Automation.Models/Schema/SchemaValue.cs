@@ -1,4 +1,0 @@
-﻿namespace Automation.Models.Schema
-{
-
-}

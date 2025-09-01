@@ -12,7 +12,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Work\BaseAutomationTask.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Work\Graph.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Schema\SchemaProperty.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Schema\SchemaValue.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Work\Scope.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Work\TaskInstance.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Work\TaskTarget.cs" />

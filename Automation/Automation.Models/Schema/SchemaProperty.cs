@@ -20,6 +20,7 @@ namespace Automation.Models.Schema
         Table
     }
 
+    // XXX : made things too complexe, instead of using partial just use the complete definition in Automation.App.Shared
     [JsonDerivedType(typeof(SchemaValue), "value")]
     [JsonDerivedType(typeof(SchemaArray), "array")]
     [JsonDerivedType(typeof(SchemaObject), "object")]
@@ -27,7 +28,13 @@ namespace Automation.Models.Schema
     public partial class SchemaProperty
     {
         public partial string Name { get; set; }
+        public partial EnumPropertyKind Kind { get; private set; }
         public override string ToString() => Name;
+    }
+
+    public partial class SchemaPropertyTyped : SchemaProperty
+    {
+        public EnumDataType DataType { get; private set; }
     }
 
     public partial class SchemaObject : SchemaProperty
@@ -35,14 +42,8 @@ namespace Automation.Models.Schema
         public ObservableCollection<SchemaProperty> Properties { get; private set; } = [];
     }
 
-    public partial class SchemaTable : SchemaObject
+    public partial class SchemaValue : SchemaPropertyTyped
     {
-        public ObservableCollection<dynamic> Values { get; private set; } = [];
-    }
-
-    public partial class SchemaValue : SchemaProperty
-    {
-        public EnumDataType DataType { get; set; }
         public dynamic? Value { get; set; } = null;
     }
 
@@ -50,5 +51,11 @@ namespace Automation.Models.Schema
     {
         public EnumDataType DataType { get; set; }
         public ObservableCollection<dynamic> Values { get; set; } = [];
+    }
+
+    public partial class SchemaTable : SchemaProperty
+    {
+        public List<SchemaPropertyTyped> Columns { get; private set; } = [];
+        public ObservableCollection<dynamic> Values { get; private set; } = [];
     }
 }

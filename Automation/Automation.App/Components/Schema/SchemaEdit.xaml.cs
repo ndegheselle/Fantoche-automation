@@ -7,30 +7,6 @@ using System.Windows.Data;
 namespace Automation.App.Components.Schema
 {
     /// <summary>
-    /// Convert a depth to a left margin for the schema properties.
-    /// </summary>
-    public class DepthToMarginConverter : IValueConverter
-    {
-        public object? Convert(
-            object value,
-            Type targetType,
-            object parameter,
-            System.Globalization.CultureInfo culture)
-        {
-            if (value is not uint depth)
-                return null;
-            return new Thickness((depth - 1) * 16, 0, 0, 0);
-        }
-
-        public object ConvertBack(
-            object value,
-            Type targetType,
-            object parameter,
-            System.Globalization.CultureInfo culture)
-        { throw new NotImplementedException(); }
-    }
-
-    /// <summary>
     /// Handle schema property dragging. 
     /// </summary>
     public class SchemaDragHandler : DragHandler
@@ -114,7 +90,7 @@ namespace Automation.App.Components.Schema
     /// <summary>
     /// Logique d'interaction pour SchemaEdit.xaml
     /// </summary>
-    public partial class SchemaEdit : UserControl
+    public partial class SchemaEdit : Control
     {
 
         #region Dependency properties
@@ -152,7 +128,6 @@ namespace Automation.App.Components.Schema
         {
             DropHandler = new Schema.SchemaDropHandler(this);
             DragHandler = new Schema.SchemaDragHandler(this, DropHandler);
-            InitializeComponent();
         }
     }
 }

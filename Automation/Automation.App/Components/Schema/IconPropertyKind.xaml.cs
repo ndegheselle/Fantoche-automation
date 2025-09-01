@@ -10,7 +10,7 @@ namespace Automation.App.Components.Schema
     /// <summary>
     /// Logique d'interaction pour DataTypeIcon.xaml
     /// </summary>
-    public partial class DataTypeIcon : UserControl, INotifyPropertyChanged
+    public partial class IconPropertyKind : Control, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void NotifyPropertyChanged([CallerMemberName] string? name = null)
@@ -21,25 +21,20 @@ namespace Automation.App.Components.Schema
         public static readonly DependencyProperty TypeProperty =
             DependencyProperty.Register(
             nameof(Type),
-            typeof(EnumDataType),
-            typeof(DataTypeIcon),
-            new PropertyMetadata(EnumDataType.String, (d, e) => ((DataTypeIcon)d).OnTypeChanged()));
+            typeof(EnumPropertyKind),
+            typeof(IconPropertyKind),
+            new PropertyMetadata(EnumDataType.String, (d, e) => ((IconPropertyKind)d).OnTypeChanged()));
 
         /// <summary>
         /// Type of the value represented by this icon.
         /// </summary>
-        public EnumDataType Type
+        public EnumPropertyKind Type
         {
-            get { return (EnumDataType)GetValue(TypeProperty); }
+            get { return (EnumPropertyKind)GetValue(TypeProperty); }
             set { SetValue(TypeProperty, value); }
         }
 
         public string Icon { get; set; } = IconFont.Quotes;
-
-        public DataTypeIcon()
-        {
-            InitializeComponent();
-        }
 
         /// <summary>
         /// Change the icon based on the type of value.
@@ -48,11 +43,10 @@ namespace Automation.App.Components.Schema
         {
             Icon = Type switch
             {
-                EnumDataType.String => IconFont.Quotes,
-                EnumDataType.Decimal => IconFont.Hash,
-                EnumDataType.Boolean => IconFont.Check,
-                EnumDataType.DateTime => IconFont.Calendar,
-                EnumDataType.TimeSpan => IconFont.Clock,
+                EnumPropertyKind.Value => IconFont.Quotes,
+                EnumPropertyKind.Array => IconFont.BracketsSquare,
+                EnumPropertyKind.Object => IconFont.BracketsCurly,
+                EnumPropertyKind.Table => IconFont.Table,
                 _ => IconFont.QuestionMark
             };
         }
