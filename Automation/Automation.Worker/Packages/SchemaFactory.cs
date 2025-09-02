@@ -1,9 +1,16 @@
 ﻿using Automation.Models.Schema;
 using System.Reflection;
+using System.Runtime.Serialization;
 
-namespace Automation.Dal.Partials.Schema
+namespace Automation.Worker.Packages
 {
-    public static class TypeExtensions
+    public class SchemaDefinitionException : Exception
+    {
+        public SchemaDefinitionException(string message) : base(message)
+        { }
+    }
+
+    public static class SchemaExtensions
     {
         /// <summary>
         /// Convert type to a <see cref="EnumDataType"/> if the type is compatible.
@@ -33,6 +40,12 @@ namespace Automation.Dal.Partials.Schema
             var enumerableInterface = type.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEnumerable<>));
             return enumerableInterface?.GetGenericArguments()[0];
         }
+
+        public static bool IsIgnorable(this PropertyInfo property)
+        {
+            IEnumerable<IgnoreDataMemberAttribute> ignoreAttribute = property.GetCustomAttributes(false).OfType<IgnoreDataMemberAttribute>();
+            return ignoreAttribute.Any();
+        }
     }
 
     public static class SchemaFactory
@@ -46,7 +59,6 @@ namespace Automation.Dal.Partials.Schema
                 return new SchemaValue(name, dataType.Value);
             }
 
-            // Array and Table
             Type? enumerableType = type.GetEnumerableType();
             if (enumerableType != null)
             {
@@ -57,11 +69,10 @@ namespace Automation.Dal.Partials.Schema
                 }
                 else
                 {
-                    return new SchemaTable(name, dataTypeEnumerable.Value);
+                    return ConvertTable(enumerableType, name);
                 }
             }
 
-            // Object
             return ConvertObject(type, name);
         }
 
@@ -71,10 +82,30 @@ namespace Automation.Dal.Partials.Schema
             PropertyInfo[] properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
             foreach (var property in properties)
             {
+                if (property.IsIgnorable())
+                    continue;
+
                 var schemaProperty = Convert(property.PropertyType, property.Name);
                 schemaObject.Properties.Add(schemaProperty);
             }
             return schemaObject;
+        }
+
+        public static SchemaTable ConvertTable(Type type, string name)
+        {
+            List<SchemaColumn> columns = new List<SchemaColumn>();
+            PropertyInfo[] properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            foreach(var property in properties)
+            {
+                if (property.IsIgnorable())
+                    continue;
+
+                EnumDataType dataType = property.PropertyType.ToDataType() 
+                    ?? throw new Packages.SchemaDefinitionException($"The array '{name}' can't have a complexe typ'.{property.Name}'");
+                columns.Add(new SchemaColumn(property.Name, dataType));
+            }
+
+            return new SchemaTable(name, columns);
         }
     }
 }

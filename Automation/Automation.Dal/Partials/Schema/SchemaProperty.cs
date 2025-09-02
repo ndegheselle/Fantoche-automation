@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.ComponentModel.DataAnnotations;
 
 namespace Automation.Models.Schema
 {
@@ -23,18 +24,12 @@ namespace Automation.Models.Schema
         }
     }
 
-    public partial class SchemaPropertyTyped : SchemaProperty
+    public partial class SchemaValue : SchemaProperty
     {
-        public SchemaPropertyTyped(string name, EnumDataType type) : base(name, EnumPropertyKind.Value)
+        public SchemaValue(string name, EnumDataType type) : base(name, EnumPropertyKind.Value)
         {
             DataType = type;
         }
-    }
-
-    public partial class SchemaValue : SchemaPropertyTyped
-    {
-        public SchemaValue(string name, EnumDataType type) : base(name, type)
-        {}
     }
 
     public partial class SchemaArray : SchemaProperty
@@ -53,7 +48,9 @@ namespace Automation.Models.Schema
 
     public partial class SchemaTable : SchemaProperty
     {
-        public SchemaTable(string name) : base(name, EnumPropertyKind.Table)
-        {}
+        public SchemaTable(string name, List<SchemaColumn> columns) : base(name, EnumPropertyKind.Table)
+        {
+            Columns = columns;
+        }
     }
 }

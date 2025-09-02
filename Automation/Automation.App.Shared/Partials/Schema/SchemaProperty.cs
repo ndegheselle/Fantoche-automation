@@ -34,7 +34,7 @@ namespace Automation.Models.Schema
         public partial EnumPropertyKind Kind
         {
             get => _kind;
-            set
+            private set
             {
                 if (_kind == value)
                     return;
@@ -178,11 +178,11 @@ namespace Automation.Models.Schema
                 },
                 EnumPropertyKind.Object => new SchemaObject(children.Name)
                 {
-                    Properties = (children as SchemaTable)?.Properties ?? []
+                    Properties = (children as SchemaObject)?.Properties ?? []
                 },
                 EnumPropertyKind.Table => new SchemaTable(children.Name)
                 {
-                    Properties = (children as SchemaObject)?.Properties ?? []
+                    Colum = (children as SchemaTable)?.Properties ?? []
                 },
                 _ => throw new ArgumentOutOfRangeException(nameof(kind), $"Unexpected kind value: {kind}"),
             };

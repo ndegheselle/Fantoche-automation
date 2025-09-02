@@ -32,18 +32,9 @@ namespace Automation.Models.Schema
         public override string ToString() => Name;
     }
 
-    public partial class SchemaPropertyTyped : SchemaProperty
+    public partial class SchemaValue : SchemaProperty
     {
-        public EnumDataType DataType { get; private set; }
-    }
-
-    public partial class SchemaObject : SchemaProperty
-    {
-        public ObservableCollection<SchemaProperty> Properties { get; private set; } = [];
-    }
-
-    public partial class SchemaValue : SchemaPropertyTyped
-    {
+        public EnumDataType DataType { get; set; }
         public dynamic? Value { get; set; } = null;
     }
 
@@ -53,9 +44,14 @@ namespace Automation.Models.Schema
         public ObservableCollection<dynamic> Values { get; set; } = [];
     }
 
+    public partial class SchemaObject : SchemaProperty
+    {
+        public ObservableCollection<SchemaProperty> Properties { get; private set; } = [];
+    }
+
     public partial class SchemaTable : SchemaProperty
     {
-        public List<SchemaPropertyTyped> Columns { get; private set; } = [];
-        public ObservableCollection<dynamic> Values { get; private set; } = [];
+        public ObservableCollection<SchemaProperty> Properties { get; private set; } = [];
+        public ObservableCollection<SchemaObject> Values { get; private set; } = [];
     }
 }
