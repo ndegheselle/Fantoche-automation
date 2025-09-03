@@ -12,46 +12,63 @@ namespace Automation.Models.Schema
         TimeSpan
     }
 
-    public enum EnumPropertyKind
+    public interface ISchemaElement
+    {}
+
+    public interface ISchemaValue : ISchemaElement
     {
-        Value,
-        Array,
-        Object,
-        Table
+        public EnumDataType DataType { get; }
     }
 
-    // XXX : made things too complexe, instead of using partial just use the complete definition in Automation.App.Shared
-    [JsonDerivedType(typeof(SchemaValue), "value")]
-    [JsonDerivedType(typeof(SchemaArray), "array")]
-    [JsonDerivedType(typeof(SchemaObject), "object")]
-    [JsonDerivedType(typeof(SchemaTable), "table")]
-    public partial class SchemaProperty
-    {
-        public partial string Name { get; set; }
-        public partial EnumPropertyKind Kind { get; private set; }
-        public override string ToString() => Name;
-    }
-
-    public partial class SchemaValue : SchemaProperty
+    public partial class SchemaValue : ISchemaValue
     {
         public EnumDataType DataType { get; set; }
         public dynamic? Value { get; set; } = null;
     }
 
-    public partial class SchemaArray : SchemaProperty
+    public partial class SchemaArray : ISchemaValue
     {
         public EnumDataType DataType { get; set; }
         public ObservableCollection<dynamic> Values { get; set; } = [];
     }
 
-    public partial class SchemaObject : SchemaProperty
+    public interface ISchemaProperty
     {
-        public ObservableCollection<SchemaProperty> Properties { get; private set; } = [];
+        public string Name { get; }
     }
 
-    public partial class SchemaTable : SchemaProperty
+    public class SchemaValueProperty : ISchemaProperty
     {
-        public ObservableCollection<SchemaProperty> Properties { get; private set; } = [];
-        public ObservableCollection<SchemaObject> Values { get; private set; } = [];
+        public string Name { get; set; }
+        public ISchemaValue Element { get; set; }
+
+        public SchemaValueProperty(string name, ISchemaValue element)
+        {
+            Name = name;
+            Element = element;
+        }
+    }
+
+    public class SchemaObjectProperty : ISchemaProperty
+    {
+        public string Name { get; set; }
+        public SchemaObject Element { get; set; }
+
+        public SchemaObjectProperty(string name, SchemaObject element)
+        {
+            Name = name;
+            Element = element;
+        }
+    }
+
+    public partial class SchemaObject : ISchemaElement
+    {
+        public ObservableCollection<ISchemaProperty> Properties { get; private set; } = [];
+    }
+
+    public partial class SchemaTable : ISchemaElement
+    {
+        public ObservableCollection<ISchemaProperty> Properties { get; private set; } = [];
+        public ObservableCollection<ISchemaElement> Values { get; private set; } = [];
     }
 }

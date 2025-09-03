@@ -42,7 +42,7 @@ namespace Automation.App.Components.Schema
         {
             if (item is SchemaObject)
                 return SchemaObjectTemplate;
-            if (item is SchemaProperty)
+            if (item is SchemaValueProperty)
                 return SchemaPropertyTemplate;
 
             return base.SelectTemplate(item, container);
@@ -58,7 +58,7 @@ namespace Automation.App.Components.Schema
         public static readonly DependencyProperty PropertyProperty =
             DependencyProperty.Register(
             nameof(Property),
-            typeof(SchemaProperty),
+            typeof(SchemaValueProperty),
             typeof(SchemaItem),
             new PropertyMetadata(null));
 
@@ -77,9 +77,9 @@ namespace Automation.App.Components.Schema
             new PropertyMetadata(false));
         #endregion
 
-        public SchemaProperty Property
+        public SchemaValueProperty Property
         {
-            get { return (SchemaProperty)GetValue(PropertyProperty); }
+            get { return (SchemaValueProperty)GetValue(PropertyProperty); }
             set { SetValue(PropertyProperty, value); }
         }
 

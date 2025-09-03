@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Automation.Models.Schema
 {
-    public partial class SchemaProperty
+    public partial class SchemaValueProperty
     {
         private string _name = "";
         public partial string Name
@@ -17,14 +17,14 @@ namespace Automation.Models.Schema
             get => _kind; private set => _kind = value;
         }
 
-        public SchemaProperty(string name, EnumPropertyKind kind)
+        public SchemaValueProperty(string name, EnumPropertyKind kind)
         {
             Name = name;
             Kind = kind;
         }
     }
 
-    public partial class SchemaValue : SchemaProperty
+    public partial class SchemaValue : SchemaValueProperty
     {
         public SchemaValue(string name, EnumDataType type) : base(name, EnumPropertyKind.Value)
         {
@@ -32,7 +32,7 @@ namespace Automation.Models.Schema
         }
     }
 
-    public partial class SchemaArray : SchemaProperty
+    public partial class SchemaArray : SchemaValueProperty
     {
         public SchemaArray(string name, EnumDataType type) : base(name, EnumPropertyKind.Array)
         {
@@ -40,13 +40,13 @@ namespace Automation.Models.Schema
         }
     }
 
-    public partial class SchemaObject : SchemaProperty
+    public partial class SchemaObject : SchemaValueProperty
     {
         public SchemaObject(string name) : base(name, EnumPropertyKind.Object)
         { }
     }
 
-    public partial class SchemaTable : SchemaProperty
+    public partial class SchemaTable : SchemaValueProperty
     {
         public SchemaTable(string name, List<SchemaColumn> columns) : base(name, EnumPropertyKind.Table)
         {

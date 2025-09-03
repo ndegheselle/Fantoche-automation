@@ -71,7 +71,7 @@
                                         </MultiDataTrigger>
                                     </HierarchicalDataTemplate.Triggers>
                                 </HierarchicalDataTemplate>
-                                <DataTemplate DataType="{x:Type schema:SchemaProperty}">
+                                <DataTemplate DataType="{x:Type schema:SchemaValueProperty}">
                                     <local:SchemaItem
                                         x:Name="Item"
                                         dnd:DragBehavior.Handler="{Binding DataContext.DragHandler, RelativeSource={RelativeSource AncestorType={x:Type TreeView}}, Mode=OneTime}"

@@ -26,9 +26,9 @@ namespace Automation.App.Components.Schema
     /// <summary>
     /// Handle schema property droping.
     /// </summary>
-    public class SchemaDropHandler : DropHandler<SchemaProperty>
+    public class SchemaDropHandler : DropHandler<SchemaValueProperty>
     {
-        private SchemaProperty? _hoveredProperty = null;
+        private SchemaValueProperty? _hoveredProperty = null;
         private readonly Schema.SchemaEdit _schema;
         public SchemaDropHandler(Schema.SchemaEdit schema)
         {
@@ -48,14 +48,14 @@ namespace Automation.App.Components.Schema
             if (_schema.IsReadOnly)
                 return false;
 
-            var source = GetDropData<SchemaProperty>(e.Data);
-            var target = ((FrameworkElement)e.OriginalSource).DataContext as SchemaProperty;
+            var source = GetDropData<SchemaValueProperty>(e.Data);
+            var target = ((FrameworkElement)e.OriginalSource).DataContext as SchemaValueProperty;
             return base.IsDropAuthorized(e) && source != target;
         }
 
         protected override void OnPassingOver(DragEventArgs e)
         {
-            if (((FrameworkElement)e.OriginalSource).DataContext is not SchemaProperty property)
+            if (((FrameworkElement)e.OriginalSource).DataContext is not SchemaValueProperty property)
                 return;
 
             if (_hoveredProperty != null)
@@ -70,13 +70,13 @@ namespace Automation.App.Components.Schema
         /// </summary>
         /// <param name="data"></param>
         /// <param name="e"></param>
-        protected override void ApplyDrop(SchemaProperty? data, DragEventArgs e)
+        protected override void ApplyDrop(SchemaValueProperty? data, DragEventArgs e)
         {
             if (data == null)
                 return;
             if (e.OriginalSource is not FrameworkElement target)
                 return;
-            if (target.DataContext is not SchemaProperty property)
+            if (target.DataContext is not SchemaValueProperty property)
                 return;
 
             StopHovering();

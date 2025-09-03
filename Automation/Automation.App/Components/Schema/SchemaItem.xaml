@@ -120,7 +120,7 @@
                                         </DataTemplate>
                                     </local:ActionTemplateSelector.SchemaObjectTemplate>
                                     <local:ActionTemplateSelector.SchemaPropertyTemplate>
-                                        <DataTemplate DataType="{x:Type schema:SchemaProperty}">
+                                        <DataTemplate DataType="{x:Type schema:SchemaValueProperty}">
                                             <Button
                                                 Margin="1,0,0,0"
                                                 Padding="6"

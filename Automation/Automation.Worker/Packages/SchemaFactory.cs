@@ -50,7 +50,7 @@ namespace Automation.Worker.Packages
 
     public static class SchemaFactory
     {
-        public static SchemaProperty Convert(Type type, string name = "Root")
+        public static SchemaValueProperty Convert(Type type, string name = "Root")
         {
             // Simple value
             EnumDataType? dataType = type.ToDataType();

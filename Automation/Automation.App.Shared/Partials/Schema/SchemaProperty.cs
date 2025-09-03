@@ -4,7 +4,7 @@ using Usuel.Shared;
 
 namespace Automation.Models.Schema
 {
-    public partial class SchemaProperty : ErrorValidationModel, INotifyPropertyChanged
+    public partial class SchemaValueProperty : ErrorValidationModel, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void NotifyPropertyChanged([CallerMemberName] string? name = null)
@@ -51,7 +51,7 @@ namespace Automation.Models.Schema
 
         public SchemaObject? Parent { get; set; } = null;
 
-        public SchemaProperty(string name, EnumPropertyKind kind)
+        public SchemaValueProperty(string name, EnumPropertyKind kind)
         {
             RemoveCommand = new DelegateCommand(Remove);
             Name = name;
@@ -79,7 +79,7 @@ namespace Automation.Models.Schema
         }
     }
 
-    public partial class SchemaValue : SchemaProperty
+    public partial class SchemaValue : SchemaValueProperty
     {
         public SchemaValue(string name, EnumDataType type = EnumDataType.String, dynamic? value = null) : base(name, EnumPropertyKind.Value)
         {
@@ -88,12 +88,12 @@ namespace Automation.Models.Schema
         }
     }
 
-    public partial class SchemaArray : SchemaProperty
+    public partial class SchemaArray : SchemaValueProperty
     {
         public SchemaArray(string name, EnumDataType type = EnumDataType.String) : base(name, EnumPropertyKind.Array) { DataType = type; }
     }
 
-    public partial class SchemaObject : SchemaProperty
+    public partial class SchemaObject : SchemaValueProperty
     {
         public ICustomCommand AddPropertyCommand { get; set; }
 
@@ -107,7 +107,7 @@ namespace Automation.Models.Schema
         /// <param name="property">Property</param>
         /// <param name="index">Index of the property to add</param>
         /// <returns>This</returns>
-        public SchemaObject Add(SchemaProperty property, int index = -1)
+        public SchemaObject Add(SchemaValueProperty property, int index = -1)
         {
             property.Name = GetUniquePropertyName(property.Name);
             property.Depth = Depth + 1;
@@ -144,7 +144,7 @@ namespace Automation.Models.Schema
         /// </summary>
         /// <param name="property"></param>
         /// <exception cref="Exception"></exception>
-        public void Remove(SchemaProperty property)
+        public void Remove(SchemaValueProperty property)
         {
             if (Properties.Remove(property))
             {
@@ -157,7 +157,7 @@ namespace Automation.Models.Schema
         }
         #endregion
 
-        public void ChangeChildrenKind(SchemaProperty children, EnumPropertyKind kind)
+        public void ChangeChildrenKind(SchemaValueProperty children, EnumPropertyKind kind)
         {
             int index = Properties.IndexOf(children);
             if (index == -1)
@@ -165,7 +165,7 @@ namespace Automation.Models.Schema
 
             // Remove old property
             Properties.RemoveAt(index);
-            SchemaProperty newProperty = kind switch
+            SchemaValueProperty newProperty = kind switch
             {
                 EnumPropertyKind.Value => new SchemaValue(children.Name)
                 {

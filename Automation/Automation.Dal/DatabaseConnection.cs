@@ -132,7 +132,7 @@ namespace Automation.Dal
                     cm.AddKnownType(typeof(PackageClassTarget));
                 });
 
-            BsonClassMap.RegisterClassMap<SchemaProperty>(
+            BsonClassMap.RegisterClassMap<SchemaValueProperty>(
                 cm =>
                 {
                     cm.AutoMap();
