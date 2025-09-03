@@ -1,4 +1,5 @@
 ﻿using Automation.Models.Schema;
+using System;
 using System.Reflection;
 using System.Runtime.Serialization;
 
@@ -17,28 +18,33 @@ namespace Automation.Worker.Packages
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static EnumDataType? ToDataType(this Type type) => type switch
+        public static bool IsValue(this Type type, out EnumDataType datatype)
         {
-            _ when type == typeof(string) => EnumDataType.String,
-            _ when type == typeof(int) => EnumDataType.Decimal,
-            _ when type == typeof(float) => EnumDataType.Decimal,
-            _ when type == typeof(double) => EnumDataType.Decimal,
-            _ when type == typeof(decimal) => EnumDataType.Decimal,
-            _ when type == typeof(bool) => EnumDataType.Boolean,
-            _ when type == typeof(DateTime) => EnumDataType.DateTime,
-            _ when type == typeof(TimeSpan) => EnumDataType.TimeSpan,
-            _ => null
-        };
+            datatype = type switch
+            {
+                _ when type == typeof(string) => EnumDataType.String,
+                _ when type == typeof(int) => EnumDataType.Decimal,
+                _ when type == typeof(float) => EnumDataType.Decimal,
+                _ when type == typeof(double) => EnumDataType.Decimal,
+                _ when type == typeof(decimal) => EnumDataType.Decimal,
+                _ when type == typeof(bool) => EnumDataType.Boolean,
+                _ when type == typeof(DateTime) => EnumDataType.DateTime,
+                _ when type == typeof(TimeSpan) => EnumDataType.TimeSpan,
+                _ => EnumDataType.Dynamic
+            };
+            return datatype != EnumDataType.Dynamic;
+        }
 
         /// <summary>
         /// If the type is an IEnumerable<> get the generic type, null otherwise.
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static Type? GetEnumerableType(this Type type)
+        public static bool IsEnumerable(this Type type, out Type? enumerableType)
         {
             var enumerableInterface = type.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEnumerable<>));
-            return enumerableInterface?.GetGenericArguments()[0];
+            enumerableType = enumerableInterface?.GetGenericArguments()[0];
+            return enumerableType != null;
         }
 
         public static bool IsIgnorable(this PropertyInfo property)
@@ -50,30 +56,48 @@ namespace Automation.Worker.Packages
 
     public static class SchemaFactory
     {
-        public static SchemaValueProperty Convert(Type type, string name = "Root")
+        public static ISchemaElement Convert(Type type)
         {
             // Simple value
-            EnumDataType? dataType = type.ToDataType();
-            if (dataType != null)
+            if (type.IsValue(out EnumDataType dataType))
             {
-                return new SchemaValue(name, dataType.Value);
+                return new SchemaValue(dataType);
             }
-
-            Type? enumerableType = type.GetEnumerableType();
-            if (enumerableType != null)
+            else if (type.IsEnumerable(out Type? enumerableType) && enumerableType != null)
             {
-                EnumDataType? dataTypeEnumerable = enumerableType.ToDataType();
-                if (dataTypeEnumerable != null)
+                if (enumerableType.IsValue(out EnumDataType enumerableDataType))
                 {
-                    return new SchemaArray(name, dataTypeEnumerable.Value);
+                    return new SchemaArray(enumerableDataType);
                 }
                 else
                 {
-                    return ConvertTable(enumerableType, name);
+                    return new SchemaTable();
                 }
             }
 
-            return ConvertObject(type, name);
+            return new SchemaObject();
+        }
+
+        public static IEnumerable<ISchemaProperty> ConvertProperties(Type type)
+        {
+            IEnumerable<PropertyInfo> properties = type
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(prop => prop.IsIgnorable() == false);
+            foreach (var property in properties)
+            {
+                if (property.PropertyType.IsValue(out EnumDataType datatype))
+                {
+                    new SchemaValueProperty(property.PropertyType);
+                }
+                else
+                {
+                    var subObject = new SchemaObject(ConvertProperties(property.PropertyType));
+                    new SchemaObjectProperty(property.Name, subObject);
+                }
+
+                    var schemaProperty = Convert(, );
+                schemaObject.Properties.Add(schemaProperty);
+            }
         }
 
         public static SchemaObject ConvertObject(Type type, string name)
@@ -95,12 +119,12 @@ namespace Automation.Worker.Packages
         {
             List<SchemaColumn> columns = new List<SchemaColumn>();
             PropertyInfo[] properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
-            foreach(var property in properties)
+            foreach (var property in properties)
             {
                 if (property.IsIgnorable())
                     continue;
 
-                EnumDataType dataType = property.PropertyType.ToDataType() 
+                EnumDataType dataType = property.PropertyType.IsValueType()
                     ?? throw new Packages.SchemaDefinitionException($"The array '{name}' can't have a complexe typ'.{property.Name}'");
                 columns.Add(new SchemaColumn(property.Name, dataType));
             }
