@@ -23,16 +23,21 @@ namespace Automation.Models.Schema
     public partial class SchemaObjectProperty : ISchemaProperty
     {
         public string Name { get; set; }
-        public SchemaObject Element { get; set; }
+        public ISchemaObject Element { get; set; }
 
-        public SchemaObjectProperty(string name, SchemaObject element)
+        public SchemaObjectProperty(string name, ISchemaObject element)
         {
             Name = name;
             Element = element;
         }
     }
 
-    public class SchemaObject : ISchemaElement
+    public interface ISchemaObject : ISchemaElement
+    {
+        public ObservableCollection<ISchemaProperty> Properties { get; set; }
+    }
+
+    public class SchemaObject : ISchemaObject
     {
         public ObservableCollection<ISchemaProperty> Properties { get; private set; }
         public SchemaObject(IEnumerable<ISchemaProperty> properties)
@@ -41,7 +46,7 @@ namespace Automation.Models.Schema
         }
     }
 
-    public class SchemaTable : ISchemaElement
+    public class SchemaTable : ISchemaObject
     {
         public ObservableCollection<ISchemaProperty> Properties { get; private set; } = [];
         public ObservableCollection<ISchemaElement> Values { get; private set; } = [];

@@ -71,65 +71,35 @@ namespace Automation.Worker.Packages
                 }
                 else
                 {
-                    return new SchemaTable();
+                    return new SchemaTable(ConvertProperties(enumerableType));
                 }
             }
 
-            return new SchemaObject();
+            return new SchemaObject(ConvertProperties(type));
         }
 
+        /// <summary>
+        /// Get a recursive list of properties from a type.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
         public static IEnumerable<ISchemaProperty> ConvertProperties(Type type)
         {
-            IEnumerable<PropertyInfo> properties = type
+            IEnumerable<PropertyInfo> typeProps = type
                 .GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 .Where(prop => prop.IsIgnorable() == false);
-            foreach (var property in properties)
+
+            List<ISchemaProperty> properties = [];
+            foreach (var property in typeProps)
             {
-                if (property.PropertyType.IsValue(out EnumDataType datatype))
-                {
-                    new SchemaValueProperty(property.PropertyType);
-                }
-                else
-                {
-                    var subObject = new SchemaObject(ConvertProperties(property.PropertyType));
-                    new SchemaObjectProperty(property.Name, subObject);
-                }
-
-                    var schemaProperty = Convert(, );
-                schemaObject.Properties.Add(schemaProperty);
+                ISchemaElement element = Convert(property.PropertyType);
+                
+                if (element is ISchemaValue elementValue)
+                    properties.Add(new SchemaValueProperty(property.Name, elementValue));
+                else if (element is ISchemaObject elementObject)
+                    properties.Add(new SchemaObjectProperty(property.Name, elementObject));
             }
-        }
-
-        public static SchemaObject ConvertObject(Type type, string name)
-        {
-            var schemaObject = new SchemaObject(name);
-            PropertyInfo[] properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
-            foreach (var property in properties)
-            {
-                if (property.IsIgnorable())
-                    continue;
-
-                var schemaProperty = Convert(property.PropertyType, property.Name);
-                schemaObject.Properties.Add(schemaProperty);
-            }
-            return schemaObject;
-        }
-
-        public static SchemaTable ConvertTable(Type type, string name)
-        {
-            List<SchemaColumn> columns = new List<SchemaColumn>();
-            PropertyInfo[] properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
-            foreach (var property in properties)
-            {
-                if (property.IsIgnorable())
-                    continue;
-
-                EnumDataType dataType = property.PropertyType.IsValueType()
-                    ?? throw new Packages.SchemaDefinitionException($"The array '{name}' can't have a complexe typ'.{property.Name}'");
-                columns.Add(new SchemaColumn(property.Name, dataType));
-            }
-
-            return new SchemaTable(name, columns);
+            return properties;
         }
     }
 }
