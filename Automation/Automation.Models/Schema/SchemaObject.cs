@@ -3,7 +3,7 @@
 namespace Automation.Models.Schema
 {
 
-    public abstract class SchemaProperty
+    public abstract partial class SchemaProperty
     {
         public string Name { get; set; } = "";
 
@@ -46,7 +46,7 @@ namespace Automation.Models.Schema
         public ObservableCollection<SchemaProperty> Properties { get; }
     }
 
-    public class SchemaObject : ISchemaObject
+    public partial class SchemaObject : ISchemaObject
     {
         public ObservableCollection<SchemaProperty> Properties { get; private set; }
         public SchemaObject(IEnumerable<SchemaProperty> properties)

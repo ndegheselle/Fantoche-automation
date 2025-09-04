@@ -4,44 +4,13 @@ using Usuel.Shared;
 
 namespace Automation.Models.Schema
 {
-    public partial class SchemaValueProperty : ErrorValidationModel, INotifyPropertyChanged
+    public partial class SchemaProperty : ErrorValidationModel, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void NotifyPropertyChanged([CallerMemberName] string? name = null)
         { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name)); }
 
         public ICustomCommand RemoveCommand { get; set; }
-
-        private string _name = "";
-        public partial string Name
-        {
-            get => _name;
-            set
-            {
-                if (_name == value)
-                    return;
-                ClearErrors();
-                if (_name != value && Parent?.IsPropertyNameUnique(value) == false)
-                {
-                    AddError($"The property name '{value}' is already used.");
-                }
-                _name = value;
-                NotifyPropertyChanged();
-            }
-        }
-
-        private EnumPropertyKind _kind;
-        public partial EnumPropertyKind Kind
-        {
-            get => _kind;
-            private set
-            {
-                if (_kind == value)
-                    return;
-                _kind = value;
-                ChangeKind(value);
-            }
-        }
 
         public uint Depth { get; set; }
 
@@ -51,11 +20,10 @@ namespace Automation.Models.Schema
 
         public SchemaObject? Parent { get; set; } = null;
 
-        public SchemaValueProperty(string name, EnumPropertyKind kind)
+        public SchemaProperty(string name)
         {
             RemoveCommand = new DelegateCommand(Remove);
             Name = name;
-            Kind = kind;
         }
 
         /// <summary>
@@ -69,36 +37,16 @@ namespace Automation.Models.Schema
 
             Parent.Remove(this);
         }
-
-        public void ChangeKind(EnumPropertyKind kind)
-        {
-            if (Parent == null)
-                throw new Exception("Can't change kind without a parent.");
-
-            Parent.ChangeChildrenKind(this, kind);
-        }
     }
 
-    public partial class SchemaValue : SchemaValueProperty
-    {
-        public SchemaValue(string name, EnumDataType type = EnumDataType.String, dynamic? value = null) : base(name, EnumPropertyKind.Value)
-        {
-            DataType = type;
-            Value = value;
-        }
-    }
-
-    public partial class SchemaArray : SchemaValueProperty
-    {
-        public SchemaArray(string name, EnumDataType type = EnumDataType.String) : base(name, EnumPropertyKind.Array) { DataType = type; }
-    }
-
-    public partial class SchemaObject : SchemaValueProperty
+    public partial class SchemaObject : ISchemaObject
     {
         public ICustomCommand AddPropertyCommand { get; set; }
 
-        public SchemaObject(string name) : base(name, EnumPropertyKind.Object)
-        { AddPropertyCommand = new DelegateCommand(() => AddValue("default")); }
+        public SchemaObject(string name)
+        { 
+            AddPropertyCommand = new DelegateCommand(() => AddValue("default"));
+        }
 
         #region Add & Remove properties
         /// <summary>
@@ -107,7 +55,7 @@ namespace Automation.Models.Schema
         /// <param name="property">Property</param>
         /// <param name="index">Index of the property to add</param>
         /// <returns>This</returns>
-        public SchemaObject Add(SchemaValueProperty property, int index = -1)
+        public SchemaObject Add(SchemaProperty property, int index = -1)
         {
             property.Name = GetUniquePropertyName(property.Name);
             property.Depth = Depth + 1;
@@ -139,12 +87,17 @@ namespace Automation.Models.Schema
         /// <returns>This</returns>
         public SchemaObject AddValue(string name) { return Add(new SchemaValue(name)); }
 
+        public SchemaObject AddArray(string name)
+        { }
+        public SchemaObject AddTable(string name)
+        { }
+
         /// <summary>
         /// Removes a property from the schema object.
         /// </summary>
         /// <param name="property"></param>
         /// <exception cref="Exception"></exception>
-        public void Remove(SchemaValueProperty property)
+        public void Remove(SchemaProperty property)
         {
             if (Properties.Remove(property))
             {
@@ -156,37 +109,6 @@ namespace Automation.Models.Schema
             }
         }
         #endregion
-
-        public void ChangeChildrenKind(SchemaValueProperty children, EnumPropertyKind kind)
-        {
-            int index = Properties.IndexOf(children);
-            if (index == -1)
-                return;
-
-            // Remove old property
-            Properties.RemoveAt(index);
-            SchemaValueProperty newProperty = kind switch
-            {
-                EnumPropertyKind.Value => new SchemaValue(children.Name)
-                {
-                    DataType = (children as SchemaArray)?.DataType ?? EnumDataType.String,
-                    Value = (children as SchemaArray)?.Values.FirstOrDefault()
-                },
-                EnumPropertyKind.Array => new SchemaArray(children.Name)
-                {
-                    DataType = (children as SchemaValue)?.DataType ?? EnumDataType.String
-                },
-                EnumPropertyKind.Object => new SchemaObject(children.Name)
-                {
-                    Properties = (children as SchemaObject)?.Properties ?? []
-                },
-                EnumPropertyKind.Table => new SchemaTable(children.Name)
-                {
-                    Colum = (children as SchemaTable)?.Properties ?? []
-                },
-                _ => throw new ArgumentOutOfRangeException(nameof(kind), $"Unexpected kind value: {kind}"),
-            };
-        }
 
         public bool IsPropertyNameUnique(string name)
         {
@@ -213,14 +135,6 @@ namespace Automation.Models.Schema
             } while (Properties.Any(p => p.Name.Equals(uniqueName, StringComparison.OrdinalIgnoreCase)));
 
             return uniqueName;
-        }
-    }
-
-    public partial class SchemaTable : SchemaObject
-    {
-        public SchemaTable(string name) : base(name)
-        {
-            Kind = EnumPropertyKind.Table;
         }
     }
 }
