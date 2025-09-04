@@ -56,6 +56,11 @@ namespace Automation.Worker.Packages
 
     public static class SchemaFactory
     {
+        /// <summary>
+        /// Convert a type to a ISchema element recusively.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
         public static ISchemaElement Convert(Type type)
         {
             // Simple value
@@ -83,13 +88,13 @@ namespace Automation.Worker.Packages
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static IEnumerable<ISchemaProperty> ConvertProperties(Type type)
+        private static IEnumerable<SchemaProperty> ConvertProperties(Type type)
         {
             IEnumerable<PropertyInfo> typeProps = type
                 .GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 .Where(prop => prop.IsIgnorable() == false);
 
-            List<ISchemaProperty> properties = [];
+            List<SchemaProperty> properties = [];
             foreach (var property in typeProps)
             {
                 ISchemaElement element = Convert(property.PropertyType);

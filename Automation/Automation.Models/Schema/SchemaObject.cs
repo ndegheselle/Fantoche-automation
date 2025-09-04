@@ -3,16 +3,27 @@
 namespace Automation.Models.Schema
 {
 
-    public interface ISchemaProperty
+    public abstract class SchemaProperty
     {
-        public string Name { get; }
+        public string Name { get; set; } = "";
+
+        public override bool Equals(object? obj)
+        {
+            if (obj == null || GetType() != obj.GetType())
+                return false;
+            var other = (SchemaObjectProperty)obj;
+            return Name == other.Name;
+        }
+
+        public override int GetHashCode()
+        {
+            return Name?.GetHashCode() ?? 0;
+        }
     }
 
-    public partial class SchemaValueProperty : ISchemaProperty
+    public partial class SchemaValueProperty : SchemaProperty
     {
-        public string Name { get; set; }
         public ISchemaValue Element { get; set; }
-
         public SchemaValueProperty(string name, ISchemaValue element)
         {
             Name = name;
@@ -20,11 +31,9 @@ namespace Automation.Models.Schema
         }
     }
 
-    public partial class SchemaObjectProperty : ISchemaProperty
+    public partial class SchemaObjectProperty : SchemaProperty
     {
-        public string Name { get; set; }
         public ISchemaObject Element { get; set; }
-
         public SchemaObjectProperty(string name, ISchemaObject element)
         {
             Name = name;
@@ -34,26 +43,28 @@ namespace Automation.Models.Schema
 
     public interface ISchemaObject : ISchemaElement
     {
-        public ObservableCollection<ISchemaProperty> Properties { get; set; }
+        public ObservableCollection<SchemaProperty> Properties { get; }
     }
 
     public class SchemaObject : ISchemaObject
     {
-        public ObservableCollection<ISchemaProperty> Properties { get; private set; }
-        public SchemaObject(IEnumerable<ISchemaProperty> properties)
+        public ObservableCollection<SchemaProperty> Properties { get; private set; }
+        public SchemaObject(IEnumerable<SchemaProperty> properties)
         {
-            Properties = new ObservableCollection<ISchemaProperty>(properties);
+            Properties = new ObservableCollection<SchemaProperty>(properties);
         }
+
+        public SchemaProperty? this[string name] => Properties.FirstOrDefault(x => x.Name == name);
     }
 
     public class SchemaTable : ISchemaObject
     {
-        public ObservableCollection<ISchemaProperty> Properties { get; private set; } = [];
+        public ObservableCollection<SchemaProperty> Properties { get; private set; }
         public ObservableCollection<ISchemaElement> Values { get; private set; } = [];
 
-        public SchemaTable(IEnumerable<ISchemaProperty> properties)
+        public SchemaTable(IEnumerable<SchemaProperty> properties)
         {
-            Properties = new ObservableCollection<ISchemaProperty>(properties);
+            Properties = new ObservableCollection<SchemaProperty>(properties);
         }
     }
 }

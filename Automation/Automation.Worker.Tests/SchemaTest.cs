@@ -1,4 +1,6 @@
-﻿using System.Runtime.Serialization;
+﻿using Automation.Models.Schema;
+using Automation.Worker.Packages;
+using System.Runtime.Serialization;
 
 namespace Automation.Worker.Tests
 {
@@ -9,11 +11,9 @@ namespace Automation.Worker.Tests
         public int IntMember { get; set; }
         public DateTime DateTimeMember { get; set; }
 
+        public SchemaSubClassTest SubProperty { get; set; } = new SchemaSubClassTest();
         public List<string> StringList { get; set; } = [];
         public List<SchemaSubClassTest> TableList { get; set; } = [];
-
-        [IgnoreDataMember]
-        public bool IgnoredBool { get; set; }
     }
 
     public class SchemaSubClassTest
@@ -22,14 +22,76 @@ namespace Automation.Worker.Tests
         public bool SubBoolMember { get; set; }
         public int SubIntMember { get; set; }
         public DateTime SubDateTimeMember { get; set; }
+
+        [IgnoreDataMember]
+        public bool Ignored { get; set; }
     }
 
     public class SchemaTest
     {
         [Fact]
-        public void Test1()
+        public void ConvertValue()
         {
+            ISchemaElement element = SchemaFactory.Convert(typeof(bool));
+            Assert.IsType<SchemaValue>(element);
+            SchemaValue value = (SchemaValue)element;
+            Assert.Equal(EnumDataType.Boolean, value.DataType);
+        }
 
+        [Fact]
+        public void ConvertArray()
+        {
+            ISchemaElement element = SchemaFactory.Convert(typeof(List<string>));
+            Assert.IsType<SchemaArray>(element);
+            SchemaArray array = (SchemaArray)element;
+            Assert.Equal(EnumDataType.String, array.DataType);
+        }
+
+        [Fact]
+        public void ConvertValueObject()
+        {
+            ISchemaElement element = SchemaFactory.Convert(typeof(SchemaSubClassTest));
+            Assert.IsType<SchemaObject>(element);
+            SchemaObject schema = (SchemaObject)element;
+
+            Assert.Contains(schema.Properties, prop => prop.Name == nameof(SchemaSubClassTest.SubStringMember));
+            Assert.Contains(schema.Properties, prop => prop.Name == nameof(SchemaSubClassTest.SubBoolMember));
+            Assert.Contains(schema.Properties, prop => prop.Name == nameof(SchemaSubClassTest.SubIntMember));
+            Assert.Contains(schema.Properties, prop => prop.Name == nameof(SchemaSubClassTest.SubDateTimeMember));
+
+            Assert.DoesNotContain(schema.Properties, prop => prop.Name == nameof(SchemaSubClassTest.Ignored));
+        }
+
+        [Fact]
+        public void ConvertSubObject()
+        {
+            ISchemaElement element = SchemaFactory.Convert(typeof(SchemaClassTest));
+            Assert.IsType<SchemaObject>(element);
+            SchemaObject schema = (SchemaObject)element;
+
+            Assert.Contains(schema.Properties, prop => prop.Name == nameof(SchemaClassTest.SubProperty));
+            Assert.Contains(schema.Properties, prop => prop.Name == nameof(SchemaClassTest.TableList));
+
+            SchemaProperty? subProperty = schema[nameof(SchemaClassTest.SubProperty)];
+            Assert.IsType<SchemaObjectProperty>(subProperty);
+            SchemaObjectProperty objectProperty = (SchemaObjectProperty) subProperty;
+            Assert.IsType<SchemaObject>(objectProperty.Element);
+        }
+
+        [Fact]
+        public void ConvertSubTable()
+        {
+            ISchemaElement element = SchemaFactory.Convert(typeof(SchemaClassTest));
+            Assert.IsType<SchemaObject>(element);
+            SchemaObject schema = (SchemaObject)element;
+
+            Assert.Contains(schema.Properties, prop => prop.Name == nameof(SchemaClassTest.SubProperty));
+            Assert.Contains(schema.Properties, prop => prop.Name == nameof(SchemaClassTest.TableList));
+
+            SchemaProperty? subProperty = schema[nameof(SchemaClassTest.TableList)];
+            Assert.IsType<SchemaObjectProperty>(subProperty);
+            SchemaObjectProperty objectProperty = (SchemaObjectProperty)subProperty;
+            Assert.IsType<SchemaTable>(objectProperty.Element);
         }
     }
 }
