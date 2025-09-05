@@ -1,5 +1,4 @@
 ﻿using Automation.Models.Schema;
-using System;
 using System.Reflection;
 using System.Runtime.Serialization;
 
@@ -76,7 +75,7 @@ namespace Automation.Worker.Packages
                 }
                 else
                 {
-                    return new SchemaTable(ConvertProperties(enumerableType));
+                    return new SchemaTable(new SchemaObject(ConvertProperties(enumerableType)));
                 }
             }
 
@@ -101,7 +100,7 @@ namespace Automation.Worker.Packages
                 
                 if (element is ISchemaValue elementValue)
                     properties.Add(new SchemaValueProperty(property.Name, elementValue));
-                else if (element is ISchemaObject elementObject)
+                else if (element is SchemaObject elementObject)
                     properties.Add(new SchemaObjectProperty(property.Name, elementObject));
             }
             return properties;

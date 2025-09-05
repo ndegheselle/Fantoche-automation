@@ -41,5 +41,4 @@ namespace Automation.Models.Schema
             DataType = dataType;
         }
     }
-
 }

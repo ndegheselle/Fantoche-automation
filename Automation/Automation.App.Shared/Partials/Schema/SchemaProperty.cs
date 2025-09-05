@@ -39,15 +39,16 @@ namespace Automation.Models.Schema
         }
     }
 
-    public partial class SchemaObject : ISchemaObject
+    public partial class SchemaObjectProperty
     {
-        public ICustomCommand AddPropertyCommand { get; set; }
+        public ICustomCommand AddValueCommand { get; set; }
+        public ICustomCommand AddArrayCommand { get; set; }
+        public ICustomCommand AddObjectCommand { get; set; }
+        public ICustomCommand AddTableCommand { get; set; }
+    }
 
-        public SchemaObject(string name)
-        { 
-            AddPropertyCommand = new DelegateCommand(() => AddValue("default"));
-        }
-
+    public partial class SchemaObject : ISchemaElement
+    {
         #region Add & Remove properties
         /// <summary>
         /// Adds a property to the schema object.
@@ -55,10 +56,10 @@ namespace Automation.Models.Schema
         /// <param name="property">Property</param>
         /// <param name="index">Index of the property to add</param>
         /// <returns>This</returns>
-        public SchemaObject Add(SchemaProperty property, int index = -1)
+        public SchemaObject Add(SchemaProperty property, uint depth, int index = -1)
         {
             property.Name = GetUniquePropertyName(property.Name);
-            property.Depth = Depth + 1;
+            property.Depth = depth;
             property.Parent = this;
             if (index >= 0 && index < Properties.Count)
             {
@@ -71,26 +72,17 @@ namespace Automation.Models.Schema
             return this;
         }
 
-        /// <summary>
-        /// Adds a new object to the schema with the specified name.
-        /// </summary>
-        /// <param name="name">Property name</param>
-        /// <returns>This</returns>
-        public SchemaObject AddObject(string name) { return Add(new SchemaObject(name)); }
+        public SchemaObject AddValue(string name, uint depth) 
+        { return Add(new SchemaValueProperty(name, new SchemaValue(EnumDataType.String)), depth); }
 
-        /// <summary>
-        /// Adds a new value to the schema with the specified name and type.
-        /// </summary>
-        /// <param name="name">Property name</param>
-        /// <param name="type">Type of the value</param>
-        /// <param name="value">Value</param>
-        /// <returns>This</returns>
-        public SchemaObject AddValue(string name) { return Add(new SchemaValue(name)); }
+        public SchemaObject AddArray(string name, uint depth)
+        { return Add(new SchemaValueProperty(name, new SchemaArray(EnumDataType.String)), depth); }
 
-        public SchemaObject AddArray(string name)
-        { }
-        public SchemaObject AddTable(string name)
-        { }
+        public SchemaObject AddObject(string name, uint depth)
+        { return Add(new SchemaObjectProperty(name, new SchemaObject()), depth); }
+
+        public SchemaObject AddTable(string name, uint depth)
+        { return Add(new SchemaObjectProperty(name, new SchemaTable()), depth); }
 
         /// <summary>
         /// Removes a property from the schema object.
