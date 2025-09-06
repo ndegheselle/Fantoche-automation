@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Text.Json.Serialization;
 
 namespace Automation.Models.Schema
 {
@@ -12,6 +13,11 @@ namespace Automation.Models.Schema
         TimeSpan
     }
 
+
+    [JsonDerivedType(typeof(SchemaValue))]
+    [JsonDerivedType(typeof(SchemaArray))]
+    [JsonDerivedType(typeof(SchemaObject))]
+    [JsonDerivedType(typeof(SchemaTable))]
     public interface ISchemaElement
     { }
 

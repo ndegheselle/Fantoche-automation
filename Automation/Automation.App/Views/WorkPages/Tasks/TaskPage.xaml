@@ -7,6 +7,7 @@
     xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Tasks"
     xmlns:components="clr-namespace:Automation.App.Views.WorkPages.Components"
     xmlns:instances="clr-namespace:Automation.App.Views.WorkPages.Tasks.Instances"
+    xmlns:schema="clr-namespace:Automation.App.Components.Schema"
     xmlns:data="clr-namespace:Joufflu.Data;assembly=Joufflu.Data"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
@@ -30,6 +31,16 @@
                         </StackPanel>
                     </TabItem.Header>
                     <local:TaskHistory Task="{Binding Task}" />
+                </TabItem>
+                <TabItem>
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal">
+                            <fonts:Icon Text="{x:Static fonts:IconFont.TreeView}" />
+                            <TextBlock Margin="4,0,0,0">Schema</TextBlock>
+                        </StackPanel>
+                    </TabItem.Header>
+
+                    <schema:SchemaEdit Root="{Binding Schema}" />
                 </TabItem>
             </TabControl>
 

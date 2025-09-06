@@ -39,12 +39,26 @@ namespace Automation.Models.Schema
         }
     }
 
-    public partial class SchemaObjectProperty
+    public partial class SchemaValueProperty : SchemaProperty
+    {
+        public SchemaValueProperty(string name, ISchemaValue element) : base(name)
+        {
+            Element = element;
+        }
+    }
+
+    public partial class SchemaObjectProperty : SchemaProperty
     {
         public ICustomCommand AddValueCommand { get; set; }
         public ICustomCommand AddArrayCommand { get; set; }
         public ICustomCommand AddObjectCommand { get; set; }
         public ICustomCommand AddTableCommand { get; set; }
+
+        public SchemaObjectProperty(string name, SchemaObject element) : base(name)
+        {
+            Name = name;
+            Element = element;
+        }
     }
 
     public partial class SchemaObject : ISchemaElement
@@ -72,16 +86,16 @@ namespace Automation.Models.Schema
             return this;
         }
 
-        public SchemaObject AddValue(string name, uint depth) 
+        public SchemaObject AddValue(string name, uint depth = 0) 
         { return Add(new SchemaValueProperty(name, new SchemaValue(EnumDataType.String)), depth); }
 
-        public SchemaObject AddArray(string name, uint depth)
+        public SchemaObject AddArray(string name, uint depth = 0)
         { return Add(new SchemaValueProperty(name, new SchemaArray(EnumDataType.String)), depth); }
 
-        public SchemaObject AddObject(string name, uint depth)
+        public SchemaObject AddObject(string name, uint depth = 0)
         { return Add(new SchemaObjectProperty(name, new SchemaObject()), depth); }
 
-        public SchemaObject AddTable(string name, uint depth)
+        public SchemaObject AddTable(string name, uint depth = 0)
         { return Add(new SchemaObjectProperty(name, new SchemaTable()), depth); }
 
         /// <summary>
@@ -124,7 +138,7 @@ namespace Automation.Models.Schema
             {
                 uniqueName = $"{baseName} {counter}";
                 counter++;
-            } while (Properties.Any(p => p.Name.Equals(uniqueName, StringComparison.OrdinalIgnoreCase)));
+            } while (IsPropertyNameUnique(uniqueName) == false);
 
             return uniqueName;
         }

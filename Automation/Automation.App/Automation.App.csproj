@@ -57,9 +57,6 @@
     <Compile Update="Components\Inputs\TextBoxModal.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Components\Schema\IconPropertyKind.xaml.cs">
-      <SubType>Code</SubType>
-    </Compile>
   </ItemGroup>
 
   <ItemGroup>

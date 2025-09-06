@@ -21,14 +21,6 @@
                 <ResourceDictionary Source="pack://application:,,,/Joufflu.Shared;component/Styles/Resources.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/Joufflu.Popups;component/Resources.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/Joufflu.Inputs;component/Resources.xaml" />
-
-                <!--#region Components-->
-                <ResourceDictionary Source="/Components/Schema/IconDataType.xaml" />
-                <ResourceDictionary Source="/Components/Schema/IconPropertyKind.xaml" />
-                <ResourceDictionary Source="/Components/Schema/SchemaItem.xaml" />
-                <ResourceDictionary Source="/Components/Schema/SchemaEdit.xaml" />
-                <!--#endregion-->
-
             </ResourceDictionary.MergedDictionaries>
 
             <converters:EnumToListConverter x:Key="EnumToListConverter" />

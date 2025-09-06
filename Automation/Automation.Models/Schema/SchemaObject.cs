@@ -11,7 +11,7 @@ namespace Automation.Models.Schema
         {
             if (obj == null || GetType() != obj.GetType())
                 return false;
-            var other = (SchemaObjectProperty)obj;
+            var other = (SchemaProperty)obj;
             return Name == other.Name;
         }
 
@@ -24,21 +24,11 @@ namespace Automation.Models.Schema
     public partial class SchemaValueProperty : SchemaProperty
     {
         public ISchemaValue Element { get; set; }
-        public SchemaValueProperty(string name, ISchemaValue element)
-        {
-            Name = name;
-            Element = element;
-        }
     }
 
     public partial class SchemaObjectProperty : SchemaProperty
     {
         public SchemaObject Element { get; set; }
-        public SchemaObjectProperty(string name, SchemaObject element)
-        {
-            Name = name;
-            Element = element;
-        }
     }
 
     public partial class SchemaObject : ISchemaElement
@@ -57,11 +47,13 @@ namespace Automation.Models.Schema
         public SchemaProperty? this[string name] => Properties.FirstOrDefault(x => x.Name == name);
     }
 
-    public class SchemaTable : ISchemaElement
+    public class SchemaTable : SchemaObject
     {
-        public SchemaObject Schema { get; set; }
         public ObservableCollection<SchemaObject> Values { get; private set; } = [];
 
-        public SchemaTable(SchemaObject schema) { Schema = schema; }
+        public SchemaTable() : base()
+        { }
+        public SchemaTable(IEnumerable<SchemaProperty> properties) : base(properties)
+        {}
     }
 }

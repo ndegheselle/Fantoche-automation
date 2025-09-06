@@ -75,7 +75,7 @@ namespace Automation.Worker.Packages
                 }
                 else
                 {
-                    return new SchemaTable(new SchemaObject(ConvertProperties(enumerableType)));
+                    return new SchemaTable(ConvertProperties(enumerableType));
                 }
             }
 

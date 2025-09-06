@@ -1,4 +1,5 @@
 ﻿using Automation.App.Shared.ApiClients;
+using Automation.Models.Schema;
 using Automation.Models.Work;
 using Joufflu.Popups;
 using Joufflu.Shared.Navigation;
@@ -15,13 +16,21 @@ namespace Automation.App.Views.WorkPages.Workflows
     {
         public ILayout? ParentLayout { get; set; }
         public AutomationWorkflow Workflow { get; set; }
+        public SchemaObject Schema { get; set; }
 
-        
         private readonly TasksClient _client;
         private IModal _modal => this.GetCurrentModal();
 
         public WorkflowPage(AutomationWorkflow workflow)
         {
+            Schema = new SchemaObject();
+            SchemaObject schemaObject = new SchemaObject().AddValue("afdlfljksdlf", 1).AddValue("kllkphgfopo", 1);
+            Schema
+                .AddValue("tata")
+                .AddArray("arras")
+                .Add(new SchemaObjectProperty("flsdkfl", schemaObject), 0)
+                .AddValue("toto");
+
             _client = Services.Provider.GetRequiredService<TasksClient>();
             Workflow = workflow;
             InitializeComponent();

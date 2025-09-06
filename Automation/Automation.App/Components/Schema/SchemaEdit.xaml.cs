@@ -1,5 +1,4 @@
 ﻿using Automation.Models.Schema;
-using Joufflu.Data.DnD;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -7,12 +6,37 @@ using System.Windows.Data;
 namespace Automation.App.Components.Schema
 {
     /// <summary>
+    /// Convert a depth to a left margin for the schema properties.
+    /// </summary>
+    public class DepthToMarginConverter : IValueConverter
+    {
+        public object? Convert(
+            object value,
+            Type targetType,
+            object parameter,
+            System.Globalization.CultureInfo culture)
+        {
+            if (value is not uint depth)
+                return null;
+            return new Thickness(depth * 16, 0, 0, 0);
+        }
+
+        public object ConvertBack(
+            object value,
+            Type targetType,
+            object parameter,
+            System.Globalization.CultureInfo culture)
+        { throw new NotImplementedException(); }
+    }
+
+    /*
+    /// <summary>
     /// Handle schema property dragging. 
     /// </summary>
     public class SchemaDragHandler : DragHandler
     {
-        private readonly Schema.SchemaDropHandler _dropHandler;
-        public SchemaDragHandler(FrameworkElement parent, Schema.SchemaDropHandler dropHandler) : base(parent)
+        private readonly SchemaDropHandler _dropHandler;
+        public SchemaDragHandler(FrameworkElement parent, SchemaDropHandler dropHandler) : base(parent)
         {
             _dropHandler = dropHandler;
         }
@@ -29,8 +53,8 @@ namespace Automation.App.Components.Schema
     public class SchemaDropHandler : DropHandler<SchemaValueProperty>
     {
         private SchemaValueProperty? _hoveredProperty = null;
-        private readonly Schema.SchemaEdit _schema;
-        public SchemaDropHandler(Schema.SchemaEdit schema)
+        private readonly SchemaEdit _schema;
+        public SchemaDropHandler(SchemaEdit schema)
         {
             _schema = schema;
         }
@@ -86,13 +110,12 @@ namespace Automation.App.Components.Schema
             data.IsSelected = true;
         }
     }
-
+    */
     /// <summary>
     /// Logique d'interaction pour SchemaEdit.xaml
     /// </summary>
-    public partial class SchemaEdit : Control
+    public partial class SchemaEdit : UserControl
     {
-
         #region Dependency properties
         public static readonly DependencyProperty RootProperty =
             DependencyProperty.Register(
@@ -121,13 +144,14 @@ namespace Automation.App.Components.Schema
             set { SetValue(IsReadOnlyProperty, value); }
         }
 
-        public SchemaDragHandler DragHandler { get; }
-        public SchemaDropHandler DropHandler { get; }
+        // public SchemaDragHandler DragHandler { get; }
+        // public SchemaDropHandler DropHandler { get; }
 
         public SchemaEdit()
         {
-            DropHandler = new Schema.SchemaDropHandler(this);
-            DragHandler = new Schema.SchemaDragHandler(this, DropHandler);
+            // DropHandler = new Schema.SchemaDropHandler(this);
+            // DragHandler = new Schema.SchemaDragHandler(this, DropHandler);
+            InitializeComponent();
         }
     }
 }

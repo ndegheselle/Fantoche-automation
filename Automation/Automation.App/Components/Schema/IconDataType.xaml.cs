@@ -10,7 +10,7 @@ namespace Automation.App.Components.Schema
     /// <summary>
     /// Logique d'interaction pour DataTypeIcon.xaml
     /// </summary>
-    public partial class IconDataType : Control, INotifyPropertyChanged
+    public partial class IconDataType : UserControl, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void NotifyPropertyChanged([CallerMemberName] string? name = null)
@@ -35,6 +35,11 @@ namespace Automation.App.Components.Schema
         }
 
         public string Icon { get; set; } = IconFont.Quotes;
+
+        public IconDataType()
+        {
+            InitializeComponent();
+        }
 
         /// <summary>
         /// Change the icon based on the type of value.
