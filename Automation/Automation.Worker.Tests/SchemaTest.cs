@@ -33,8 +33,8 @@ namespace Automation.Worker.Tests
         public void ConvertValue()
         {
             ISchemaElement element = SchemaFactory.Convert(typeof(bool));
-            Assert.IsType<SchemaValue>(element);
-            SchemaValue value = (SchemaValue)element;
+            Assert.IsType<SchemaTypedValue>(element);
+            SchemaTypedValue value = (SchemaTypedValue)element;
             Assert.Equal(EnumDataType.Boolean, value.DataType);
         }
 
@@ -44,7 +44,9 @@ namespace Automation.Worker.Tests
             ISchemaElement element = SchemaFactory.Convert(typeof(List<string>));
             Assert.IsType<SchemaArray>(element);
             SchemaArray array = (SchemaArray)element;
-            Assert.Equal(EnumDataType.String, array.DataType);
+            Assert.IsType<SchemaPropertyValue>(array.Schema);
+            SchemaPropertyValue property = (SchemaPropertyValue)array.Schema;
+            Assert.Equal(EnumDataType.String, ((SchemaTypedValue)property.Element).DataType);
         }
 
         [Fact]
@@ -72,7 +74,7 @@ namespace Automation.Worker.Tests
             Assert.Contains(schema.Properties, prop => prop.Name == nameof(SchemaClassTest.SubProperty));
             Assert.Contains(schema.Properties, prop => prop.Name == nameof(SchemaClassTest.TableList));
 
-            SchemaProperty? subProperty = schema[nameof(SchemaClassTest.SubProperty)];
+            ISchemaObjectProperty? subProperty = schema[nameof(SchemaClassTest.SubProperty)];
             Assert.IsType<SchemaObjectProperty>(subProperty);
             SchemaObjectProperty objectProperty = (SchemaObjectProperty) subProperty;
             Assert.IsType<SchemaObject>(objectProperty.Element);
@@ -88,7 +90,7 @@ namespace Automation.Worker.Tests
             Assert.Contains(schema.Properties, prop => prop.Name == nameof(SchemaClassTest.SubProperty));
             Assert.Contains(schema.Properties, prop => prop.Name == nameof(SchemaClassTest.TableList));
 
-            SchemaProperty? subProperty = schema[nameof(SchemaClassTest.TableList)];
+            ISchemaObjectProperty? subProperty = schema[nameof(SchemaClassTest.TableList)];
             Assert.IsType<SchemaObjectProperty>(subProperty);
             SchemaObjectProperty objectProperty = (SchemaObjectProperty)subProperty;
             Assert.IsType<SchemaTable>(objectProperty.Element);

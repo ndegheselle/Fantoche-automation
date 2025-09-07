@@ -2,58 +2,79 @@
 
 namespace Automation.Models.Schema
 {
-
-    public abstract partial class SchemaProperty
+    public interface ISchemaObjectProperty
     {
-        public string Name { get; set; } = "";
+        public string Name { get; }
+        public ISchemaElement Element { get; }
+    }
 
-        public override bool Equals(object? obj)
-        {
-            if (obj == null || GetType() != obj.GetType())
-                return false;
-            var other = (SchemaProperty)obj;
-            return Name == other.Name;
-        }
+    public class SchemaObjectProperty<TElement> : ISchemaObjectProperty where TElement : ISchemaElement
+    {
+        public string Name { get; private set; } = "";
+        public TElement Element { get; private set; }
+        ISchemaElement ISchemaObjectProperty.Element => Element;
 
-        public override int GetHashCode()
+        public SchemaObjectProperty(string name, TElement element)
         {
-            return Name?.GetHashCode() ?? 0;
+            Name = name;
+            Element=element;
         }
     }
 
-    public partial class SchemaValueProperty : SchemaProperty
+    public class SchemaPropertyValue : SchemaObjectProperty<SchemaValue>
     {
-        public ISchemaValue Element { get; set; }
+        public SchemaPropertyValue(string name, SchemaValue element) : base(name, element)
+        {}
     }
 
-    public partial class SchemaObjectProperty : SchemaProperty
+    public class SchemaPropertyTypedValue : SchemaObjectProperty<SchemaTypedValue>
     {
-        public SchemaObject Element { get; set; }
+        public SchemaPropertyTypedValue(string name, SchemaTypedValue element) : base(name, element)
+        { }
+    }
+
+    public class SchemaPropertyArray : SchemaObjectProperty<SchemaArray>
+    {
+        public SchemaPropertyArray(string name, SchemaArray element) : base(name, element)
+        {}
+    }
+
+    public class SchemaPropertyObject : SchemaObjectProperty<SchemaObject>
+    {
+        public SchemaPropertyObject(string name, SchemaObject element) : base(name, element)
+        {}
     }
 
     public partial class SchemaObject : ISchemaElement
     {
-        public ObservableCollection<SchemaProperty> Properties { get; private set; }
+        public ObservableCollection<ISchemaObjectProperty> Properties { get; private set; } = [];
+        public ISchemaObjectProperty? this[string name] => Properties.FirstOrDefault(x => x.Name == name);
 
-        public SchemaObject()
+        public SchemaObject(IEnumerable<ISchemaObjectProperty> properties)
         {
-            Properties = [];
+            Properties= new ObservableCollection<ISchemaObjectProperty>(properties);
         }
-        public SchemaObject(IEnumerable<SchemaProperty> properties)
-        {
-            Properties = new ObservableCollection<SchemaProperty>(properties);
-        }
-
-        public SchemaProperty? this[string name] => Properties.FirstOrDefault(x => x.Name == name);
     }
 
-    public class SchemaTable : SchemaObject
+    public class SchemaArray : ISchemaElement
     {
-        public ObservableCollection<SchemaObject> Values { get; private set; } = [];
+        public EnumDataType DataType { get; set; }
+        public ObservableCollection<SchemaPropertyValue> Values { get; private set; } = [];
 
-        public SchemaTable() : base()
-        { }
-        public SchemaTable(IEnumerable<SchemaProperty> properties) : base(properties)
-        {}
+        public SchemaArray(ISchemaElement schema)
+        {
+            Schema=schema;
+        }
+    }
+
+    public class SchemaTable : ISchemaElement
+    {
+        public ISchemaElement Schema { get; set; }
+        public ObservableCollection<ISchemaObjectProperty> Values { get; private set; } = [];
+
+        public SchemaArray(ISchemaElement schema)
+        {
+            Schema=schema;
+        }
     }
 }

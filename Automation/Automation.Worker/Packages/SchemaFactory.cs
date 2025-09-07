@@ -65,18 +65,11 @@ namespace Automation.Worker.Packages
             // Simple value
             if (type.IsValue(out EnumDataType dataType))
             {
-                return new SchemaValue(dataType);
+                return new SchemaTypedValue(dataType);
             }
             else if (type.IsEnumerable(out Type? enumerableType) && enumerableType != null)
             {
-                if (enumerableType.IsValue(out EnumDataType enumerableDataType))
-                {
-                    return new SchemaArray(enumerableDataType);
-                }
-                else
-                {
-                    return new SchemaTable(ConvertProperties(enumerableType));
-                }
+                return new SchemaArray(Convert(enumerableType));
             }
 
             return new SchemaObject(ConvertProperties(type));
@@ -87,21 +80,23 @@ namespace Automation.Worker.Packages
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        private static IEnumerable<SchemaProperty> ConvertProperties(Type type)
+        private static IEnumerable<ISchemaObjectProperty> ConvertProperties(Type type)
         {
             IEnumerable<PropertyInfo> typeProps = type
                 .GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 .Where(prop => prop.IsIgnorable() == false);
 
-            List<SchemaProperty> properties = [];
+            List<ISchemaObjectProperty> properties = [];
             foreach (var property in typeProps)
             {
                 ISchemaElement element = Convert(property.PropertyType);
                 
-                if (element is ISchemaValue elementValue)
-                    properties.Add(new SchemaValueProperty(property.Name, elementValue));
+                if (element is SchemaValue elementValue)
+                    properties.Add(new SchemaPropertyValue(property.Name, elementValue));
+                else if (element is SchemaArray elementArray)
+                    properties.Add(new SchemaPropertyArray(property.Name, elementArray));
                 else if (element is SchemaObject elementObject)
-                    properties.Add(new SchemaObjectProperty(property.Name, elementObject));
+                    properties.Add(new SchemaPropertyObject(property.Name, elementObject));
             }
             return properties;
         }
