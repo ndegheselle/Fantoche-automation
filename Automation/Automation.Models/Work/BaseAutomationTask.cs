@@ -1,5 +1,5 @@
-﻿using Automation.Models.Schema;
-using Automation.Shared.Data;
+﻿using Automation.Shared.Data;
+using NJsonSchema;
 using System.Text.Json.Serialization;
 
 namespace Automation.Models.Work
@@ -8,7 +8,7 @@ namespace Automation.Models.Work
     public partial class TaskConnector
     {
         public Guid Id { get; set; }
-        public SchemaValueProperty Property { get; set; } = null;
+        public JsonSchema Schema { get; set; }
     }
 
     [JsonDerivedType(typeof(AutomationTask), "task")]
