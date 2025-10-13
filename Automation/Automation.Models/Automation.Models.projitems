@@ -9,10 +9,8 @@
     <Import_RootNamespace>Automation.Models</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)Schema\SchemaValue.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Work\BaseAutomationTask.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Work\Graph.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Schema\SchemaObject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Work\Scope.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Work\TaskInstance.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Work\TaskTarget.cs" />

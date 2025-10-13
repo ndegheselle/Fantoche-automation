@@ -1,3 +1,0 @@
-﻿namespace Automation.Models.Schema
-{
-}
