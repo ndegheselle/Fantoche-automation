@@ -59,10 +59,9 @@ namespace Automation.Dal.Repositories
         /// <param name="scopeId"></param>
         /// <param name="name"></param>
         /// <returns></returns>
-        public async Task<BaseAutomationTask?> GetByParentScopeAndNameAsync(Guid scopeId, string name)
+        public async Task<bool> IsNameUsedAsync(Guid scopeId, string name)
         {
-            var projection = Builders<BaseAutomationTask>.Projection.Include(s => s.Id).Include(s => s.Metadata).Include("_t");
-            return await _collection.Find(e => e.ParentId == scopeId && e.Metadata.Name == name).Project<BaseAutomationTask>(projection).FirstOrDefaultAsync();
+            return await _collection.Find(e => e.ParentId == scopeId && e.Metadata.Name == name).AnyAsync();
         }
 
         /// <summary>

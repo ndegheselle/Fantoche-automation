@@ -92,7 +92,7 @@ namespace Automation.Worker.Executor
             Type controlType = ControlTasks.AvailablesById[controlNode.TaskId].Type;
             ITaskControl control = Activator.CreateInstance(controlType) as ITaskControl ?? throw new Exception();
 
-            await control.DoAsync(null);
+            await control.DoAsync(new WorkflowContext());
         }
     }
 }

@@ -1,6 +1,7 @@
 using Automation.Dal;
 using Automation.Dal.Repositories;
 using Automation.Models.Work;
+using Automation.Plugins.Shared;
 using Automation.Realtime.Clients;
 using Automation.Shared.Base;
 using Automation.Shared.Data;
@@ -8,6 +9,7 @@ using Automation.Worker.Executor;
 using Automation.Worker.Packages;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
+using NJsonSchema;
 using System.Globalization;
 using System.Text.Json;
 
@@ -44,9 +46,7 @@ namespace Automation.Supervisor.Api.Controllers
             }
 
             var scopeRepository = new ScopesRepository(_connection);
-            var existingChild = await scopeRepository.GetDirectChildByNameAsync(element.ParentId, element.Metadata.Name);
-            
-            if (existingChild != null)
+            if (await _taskRepo.IsNameUsedAsync(element.ParentId.Value, element.Metadata.Name) == true)
             {
                 return BadRequest(new Dictionary<string, string[]>()
                 {
@@ -74,6 +74,14 @@ namespace Automation.Supervisor.Api.Controllers
             var task = await _taskRepo.GetByIdAsync(id);
             if (task?.Metadata.IsReadOnly == true)
                 throw new InvalidOperationException($"The task '{task.Metadata.Name}' is read-only and cannot be updated.");
+
+            if (element is AutomationTask updatedTask && updatedTask.Target is PackageClassTarget package)
+            {
+                ITask packageTask = await _packageManagement.CreateTaskInstanceAsync(package);
+                updatedTask.UpdateConnectors(
+                    packageTask.InputType == null ? new JsonSchema() : JsonSchema.FromType(packageTask.InputType),
+                    packageTask.OutputType == null ? new JsonSchema() : JsonSchema.FromType(packageTask.OutputType));
+            }
 
             await base.UpdateAsync(id, element);
         }

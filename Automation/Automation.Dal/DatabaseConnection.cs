@@ -1,5 +1,4 @@
-﻿using Automation.Models.Schema;
-using Automation.Models.Work;
+﻿using Automation.Models.Work;
 using Automation.Shared.Base;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
@@ -71,6 +70,12 @@ namespace Automation.Dal
                     cm.AddKnownType(typeof(AutomationControl));
                     cm.AddKnownType(typeof(AutomationWorkflow));
                 });
+            BsonClassMap.RegisterClassMap<TaskConnector>(
+                cm =>
+                {
+                    cm.AutoMap();
+                    cm.UnmapMember(m => m.Schema);
+                });
 
             BsonClassMap.RegisterClassMap<AutomationControl>(
                 cm =>
@@ -130,15 +135,6 @@ namespace Automation.Dal
                     cm.SetIsRootClass(true);
                     cm.AddKnownType(typeof(ClassTarget));
                     cm.AddKnownType(typeof(PackageClassTarget));
-                });
-
-            BsonClassMap.RegisterClassMap<SchemaProperty>(
-                cm =>
-                {
-                    cm.AutoMap();
-                    cm.SetIsRootClass(true);
-                    cm.AddKnownType(typeof(SchemaValueProperty));
-                    cm.AddKnownType(typeof(SchemaObjectProperty));
                 });
         }
     }

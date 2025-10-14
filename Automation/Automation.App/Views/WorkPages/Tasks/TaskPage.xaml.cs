@@ -1,5 +1,4 @@
 ﻿using Automation.App.Shared.ApiClients;
-using Automation.Models.Schema;
 using Automation.Models.Work;
 using Joufflu.Popups;
 using Joufflu.Shared.Navigation;
@@ -15,7 +14,6 @@ namespace Automation.App.Views.WorkPages.Tasks
     public partial class TaskPage : UserControl, IPage, INotifyPropertyChanged
     {
         public AutomationTask Task { get; set; }
-        public SchemaObject Schema { get; set; }
         public ILayout? ParentLayout { get; set; }
 
         private readonly TasksClient _client;

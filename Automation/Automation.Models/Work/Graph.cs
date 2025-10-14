@@ -34,7 +34,7 @@ namespace Automation.Models.Work
             TaskId = task.Id;
             Metadata = task.Metadata;
 
-            Inputs = task.Inputs.Select(x => new GraphConnector(x)).ToList();
+            Inputs = task. Inputs.Select(x => new GraphConnector(x)).ToList();
             Outputs = task.Outputs.Select(x => new GraphConnector(x)).ToList();
         }
     }

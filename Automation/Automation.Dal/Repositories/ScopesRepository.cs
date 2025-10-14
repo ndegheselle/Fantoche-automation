@@ -95,17 +95,15 @@ namespace Automation.Dal.Repositories
             return rootScope;
         }
 
-        public async Task<ScopedElement?> GetDirectChildByNameAsync(Guid? scopeId, string name)
+        /// <summary>
+        /// Get a task by its parent scope and the task name name.
+        /// </summary>
+        /// <param name="scopeId"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public async Task<bool> IsNameUsedAsync(Guid scopeId, string name)
         {
-            var scope = await _collection.Find(e => e.Metadata.Name == name && e.ParentId == scopeId).FirstOrDefaultAsync();
-            if (scope != null)
-                return scope;
-
-            var taskRepo = new TasksRepository(_connection);
-            var task = await taskRepo.GetByParentScopeAndNameAsync(scopeId ?? Scope.ROOT_SCOPE_ID, name);
-            if (task != null)
-                return task;
-            return null;
+            return await _collection.Find(e => e.ParentId == scopeId && e.Metadata.Name == name).AnyAsync();
         }
     }
 }

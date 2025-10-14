@@ -1,20 +1,26 @@
 ﻿using Automation.Models.Work;
+using Automation.Plugins.Shared;
 using Automation.Shared.Data;
 using Automation.Shared.Data.Task;
+using NJsonSchema;
 
 namespace Automation.Worker.Control.Flow
 {
-    public class StartTask : ITaskControl
+    public class StartTask : BaseTask<WorkflowContext, EnumTaskState>, ITaskControl
     {
         public static readonly AutomationControl AutomationTask = 
             new AutomationControl(typeof(StartTask))
             {
                 Id = Guid.Parse("00000000-0000-0000-0000-100000000002"),
                 Metadata = new ScopedMetadata(EnumScopedType.Task) { Name = "Start", Icon = "\uE3D2", IsReadOnly = true },
-                Inputs = []
+                Inputs = [],
+                // The workflow setting will set a custom schema
+                Outputs = [new TaskConnector(new JsonSchema())],
             };
 
-        public Task<EnumTaskState> DoAsync(WorkflowContext context)
-        { return Task.FromResult(EnumTaskState.Completed); }
+        public override Task<EnumTaskState> DoAsync(WorkflowContext parameters, IProgress<TaskNotification>? progress = null)
+        {
+            return Task.FromResult(EnumTaskState.Completed);
+        }
     }
 }

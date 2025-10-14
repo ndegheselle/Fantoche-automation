@@ -20,7 +20,6 @@ namespace Automation.Models.Work
     public class PackageClassTarget : ClassTarget
     {
         public PackageIdentifier Package { get; set; }
-
         public PackageClassTarget() : base(new ClassIdentifier())
         {
             Package = new PackageIdentifier();

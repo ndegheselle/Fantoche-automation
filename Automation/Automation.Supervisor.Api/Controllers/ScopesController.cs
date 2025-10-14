@@ -33,10 +33,8 @@ namespace Automation.Supervisor.Api.Controllers
                 });
             }
 
-            var existingChild = await _repository.GetDirectChildByNameAsync(element.ParentId, element.Metadata.Name);
-            if (existingChild != null)
+            if (await _repository.IsNameUsedAsync(element.ParentId.Value, element.Metadata.Name) == true)
             {
-                // XXX : if need more info can also use return ValidationProblem(new ValidationProblemDetails());
                 return BadRequest(new Dictionary<string, string[]>()
                 {
                     {nameof(ScopedMetadata.Name), [$"The name {element.Metadata.Name} is already used in this scope."] }

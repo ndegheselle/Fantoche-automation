@@ -4,11 +4,21 @@ using System.Text.Json.Serialization;
 
 namespace Automation.Models.Work
 {
-    // XXX : may be replaced by a simple guid if there is no need for more information
     public partial class TaskConnector
     {
         public Guid Id { get; set; }
         public JsonSchema Schema { get; set; }
+        public string SchemaJson
+        {
+            get => Schema.ToJson(Newtonsoft.Json.Formatting.Indented);
+            set => Schema = JsonSchema.FromJsonAsync(value).Result;
+        }
+
+        public TaskConnector(JsonSchema schema)
+        {
+            Id = Guid.NewGuid();
+            Schema=schema;
+        }
     }
 
     [JsonDerivedType(typeof(AutomationTask), "task")]
@@ -16,8 +26,8 @@ namespace Automation.Models.Work
     [JsonDerivedType(typeof(AutomationWorkflow), "workflow")]
     public abstract class BaseAutomationTask : ScopedElement
     {
-        public IEnumerable<TaskConnector> Inputs { get; set; } = [new TaskConnector()];
-        public IEnumerable<TaskConnector> Outputs { get; set; } = [new TaskConnector()];
+        public IEnumerable<TaskConnector> Inputs { get; set; } = [new TaskConnector(new JsonSchema())];
+        public IEnumerable<TaskConnector> Outputs { get; set; } = [new TaskConnector(new JsonSchema())];
 
         public IEnumerable<Schedule> Schedules { get; set; } = [];
 
@@ -33,6 +43,12 @@ namespace Automation.Models.Work
         public TaskTarget? Target { get; set; }
         public AutomationTask() : base(EnumScopedType.Task)
         { }
+
+        public void UpdateConnectors(JsonSchema input, JsonSchema output)
+        {
+            Inputs = [new TaskConnector(input)];
+            Outputs = [new TaskConnector(output)];
+        }
     }
 
     public class AutomationControl : AutomationTask

@@ -1,4 +1,4 @@
-﻿using Automation.Models;
+﻿using Automation.Plugins.Shared;
 using Automation.Shared.Data.Task;
 
 namespace Automation.Worker.Control
@@ -9,8 +9,8 @@ namespace Automation.Worker.Control
         // Current token and so on
     }
 
-    public interface ITaskControl
+    public interface ITaskControl : ITask
     {
-        public Task<EnumTaskState> DoAsync(WorkflowContext context);
+        public Task<EnumTaskState> DoAsync(WorkflowContext context, IProgress<TaskNotification>? progress = null);
     }
 }

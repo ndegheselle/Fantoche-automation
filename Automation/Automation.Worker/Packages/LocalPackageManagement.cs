@@ -18,7 +18,6 @@ namespace Automation.Worker.Packages
 {
     public class LocalPackageManagement : IPackageManagement
     {
-        private const string PACKAGE_EXTENSION = ".nupkg";
         private readonly string _folder;
         private readonly SourceRepository _repository;
         private readonly SourceCacheContext _cacheContext;
