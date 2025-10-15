@@ -5,6 +5,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Components.Schema"
+    xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     mc:Ignorable="d"
     x:Name="CotnainerName"
     d:DesignHeight="450"
@@ -15,6 +16,7 @@
             <RowDefinition />
             <RowDefinition Height="auto" />
             <RowDefinition />
+            <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
         <TextBlock Text="Input" FontWeight="Bold" />
@@ -26,6 +28,7 @@
             IsReadOnly="{Binding IsReadOnly}" />
 
         <TextBlock
+            Margin="0,4,0,0"
             Grid.Row="2"
             Text="Output"
             FontWeight="Bold" />
@@ -34,6 +37,13 @@
             TextWrapping="Wrap"
             AcceptsReturn="True"
             Text="{Binding OutputJson}"
-            IsReadOnly="{Binding IsReadOnly}" />
+            IsReadOnly="True" />
+
+        <Button IsEnabled="{Binding IsReadOnly, Converter={StaticResource BooleanFlipConverter}}" Grid.Row="4" HorizontalAlignment="Right" Margin="0,2,0,0" Click="ButtonSave_Click">
+            <StackPanel Orientation="Horizontal">
+                <fonts:Icon Text="{x:Static fonts:IconFont.FloppyDisk}" />
+                <TextBlock Margin="4,0,0,0">Save changes</TextBlock>
+            </StackPanel>
+        </Button>
     </Grid>
 </UserControl>

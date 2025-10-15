@@ -71,9 +71,9 @@ namespace Automation.Supervisor.Api.Controllers
         [Route("{id}")]
         public override async Task UpdateAsync([FromRoute] Guid id, [FromBody] BaseAutomationTask element)
         {
-            var task = await _taskRepo.GetByIdAsync(id);
-            if (task?.Metadata.IsReadOnly == true)
-                throw new InvalidOperationException($"The task '{task.Metadata.Name}' is read-only and cannot be updated.");
+            var existingTask = await _taskRepo.GetByIdAsync(id);
+            if (existingTask?.Metadata.IsReadOnly == true)
+                throw new InvalidOperationException($"The task '{existingTask.Metadata.Name}' is read-only and cannot be updated.");
 
             if (element is AutomationTask updatedTask && updatedTask.Target is PackageClassTarget package)
             {

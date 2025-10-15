@@ -1,4 +1,6 @@
-﻿using Automation.Models.Work;
+﻿using Automation.App.Shared.ApiClients;
+using Automation.Models.Work;
+using Microsoft.Extensions.DependencyInjection;
 using NuGet.Protocol;
 using System.Windows;
 using System.Windows.Controls;
@@ -28,10 +30,11 @@ namespace Automation.App.Views.WorkPages.Components.Schema
 
         public bool IsReadOnly { get; set; }
 
+        private readonly TasksClient _taskClient;
         public SchemaEdit()
         {
+            _taskClient = Services.Provider.GetRequiredService<TasksClient>();
             InitializeComponent();
-            Task.Inputs.First().ToJson(Newtonsoft.Json.Formatting.Indented);
         }
 
         private void OnTaskChanged()
@@ -41,6 +44,13 @@ namespace Automation.App.Views.WorkPages.Components.Schema
 
             InputJson = Task.Inputs.First().SchemaJson;
             OutputJson = Task.Outputs.First().SchemaJson;
+        }
+
+        private async void ButtonSave_Click(object sender, RoutedEventArgs e)
+        {
+            Task.Inputs.First().SchemaJson = InputJson;
+            Task.Outputs.First().SchemaJson = OutputJson;
+            await _taskClient.UpdateAsync(Task.Id, Task);
         }
     }
 }
