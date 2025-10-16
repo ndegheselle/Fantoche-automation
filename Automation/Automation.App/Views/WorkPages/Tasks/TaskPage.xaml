@@ -7,7 +7,6 @@
     xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Tasks"
     xmlns:components="clr-namespace:Automation.App.Views.WorkPages.Components"
     xmlns:instances="clr-namespace:Automation.App.Views.WorkPages.Tasks.Instances"
-    xmlns:schema="clr-namespace:Automation.App.Views.WorkPages.Components.Schema"
     xmlns:data="clr-namespace:Joufflu.Data;assembly=Joufflu.Data"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
@@ -40,7 +39,7 @@
                         </StackPanel>
                     </TabItem.Header>
 
-                    <schema:SchemaEdit Task="{Binding Task}" IsReadOnly="True" />
+                    <components:SchemaEdit Task="{Binding Task}" IsReadOnly="True" />
                 </TabItem>
             </TabControl>
 

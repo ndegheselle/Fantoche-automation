@@ -70,12 +70,6 @@ namespace Automation.Dal
                     cm.AddKnownType(typeof(AutomationControl));
                     cm.AddKnownType(typeof(AutomationWorkflow));
                 });
-            BsonClassMap.RegisterClassMap<TaskConnector>(
-                cm =>
-                {
-                    cm.AutoMap();
-                    cm.UnmapMember(m => m.Schema);
-                });
 
             BsonClassMap.RegisterClassMap<AutomationControl>(
                 cm =>

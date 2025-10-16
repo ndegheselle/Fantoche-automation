@@ -8,7 +8,6 @@
     xmlns:editor="clr-namespace:Automation.App.Views.WorkPages.Workflows.Editor"
     xmlns:components="clr-namespace:Automation.App.Views.WorkPages.Components"
     xmlns:instances="clr-namespace:Automation.App.Views.WorkPages.Tasks.Instances"
-    xmlns:schema="clr-namespace:Automation.App.Views.WorkPages.Components.Schema"
     xmlns:tasks="clr-namespace:Automation.App.Views.WorkPages.Tasks"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     mc:Ignorable="d">
@@ -47,7 +46,7 @@
                     </StackPanel>
                 </TabItem.Header>
 
-                <schema:SchemaEdit Task="{Binding Workflow}" />
+                <components:SchemaEdit Task="{Binding Workflow}" />
             </TabItem>
         </TabControl>
         <Button

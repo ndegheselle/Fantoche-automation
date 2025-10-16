@@ -78,9 +78,8 @@ namespace Automation.Supervisor.Api.Controllers
             if (element is AutomationTask updatedTask && updatedTask.Target is PackageClassTarget package)
             {
                 ITask packageTask = await _packageManagement.CreateTaskInstanceAsync(package);
-                updatedTask.UpdateConnectors(
-                    packageTask.InputType == null ? new JsonSchema() : JsonSchema.FromType(packageTask.InputType),
-                    packageTask.OutputType == null ? new JsonSchema() : JsonSchema.FromType(packageTask.OutputType));
+                updatedTask.InputSchema = packageTask.InputType == null ? null : JsonSchema.FromType(packageTask.InputType);
+                updatedTask.OutputSchema = packageTask.OutputType == null ? new JsonSchema() : JsonSchema.FromType(packageTask.OutputType);
             }
 
             await base.UpdateAsync(id, element);

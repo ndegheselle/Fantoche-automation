@@ -16,8 +16,6 @@
 
         <StackPanel>
             <components:MetadataEdit Metadata="{Binding Scope.Metadata}" />
-            <TextBlock Margin="0,8,0,4" FontWeight="Bold">Context</TextBlock>
-            <components:ContextVisualizer Context="{Binding Scope.Context}" />
         </StackPanel>
 
         <StackPanel

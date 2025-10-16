@@ -1,11 +1,10 @@
 ﻿using Automation.App.Shared.ApiClients;
 using Automation.Models.Work;
 using Microsoft.Extensions.DependencyInjection;
-using NuGet.Protocol;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace Automation.App.Views.WorkPages.Components.Schema
+namespace Automation.App.Views.WorkPages.Components
 {
     /// <summary>
     /// Logique d'interaction pour SchemaEdit.xaml

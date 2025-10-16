@@ -8,14 +8,14 @@ namespace Automation.Worker.Control.Flow
 {
     public class StartTask : BaseTask<WorkflowContext, EnumTaskState>, ITaskControl
     {
-        public static readonly AutomationControl AutomationTask = 
+        public static readonly AutomationControl AutomationTask =
             new AutomationControl(typeof(StartTask))
             {
                 Id = Guid.Parse("00000000-0000-0000-0000-100000000002"),
                 Metadata = new ScopedMetadata(EnumScopedType.Task) { Name = "Start", Icon = "\uE3D2", IsReadOnly = true },
-                Inputs = [],
+                InputSchema = null,
                 // The workflow setting will set a custom schema
-                Outputs = [new TaskConnector(new JsonSchema())],
+                OutputSchema = new JsonSchema()
             };
 
         public override Task<EnumTaskState> DoAsync(WorkflowContext parameters, IProgress<TaskNotification>? progress = null)

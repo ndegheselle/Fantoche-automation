@@ -1,4 +1,5 @@
 ﻿using Automation.Shared.Data;
+using NJsonSchema;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Text.Json.Serialization;
@@ -26,16 +27,22 @@ namespace Automation.Models.Work
         public Guid TaskId { get; set; }
         public string SettingsJson { get; set; } = string.Empty;
 
-        public List<GraphConnector> Inputs { get; set; } = [];
-        public List<GraphConnector> Outputs { get; set; } = [];
+        public List<GraphConnector> Inputs { get; set; }
+        public List<GraphConnector> Outputs { get; set; }
+
+        // XXX : should not be stored in the base since this is already stored in the Task
+        public JsonSchema? InputSchema { get; set; }
+        public JsonSchema? OutputSchema { get; set; }
 
         public GraphTask(BaseAutomationTask task)
         {
             TaskId = task.Id;
             Metadata = task.Metadata;
 
-            Inputs = task. Inputs.Select(x => new GraphConnector(x)).ToList();
-            Outputs = task.Outputs.Select(x => new GraphConnector(x)).ToList();
+            InputSchema = task.InputSchema;
+            OutputSchema = task.OutputSchema;
+            Inputs = task.InputSchema == null ? [] : [new GraphConnector(this)] ;
+            Outputs = task.OutputSchema == null ? [] : [new GraphConnector(this)];
         }
     }
 
@@ -53,16 +60,15 @@ namespace Automation.Models.Work
 
     public partial class GraphConnector
     {
-        public Guid Id { get; set; }
-        public Guid TaskConnectorId { get; set; }
+        public Guid Id { get; set; } = Guid.NewGuid();
         [JsonIgnore]
         public bool IsConnected { get; set; }
         [JsonIgnore]
         public GraphTask? Parent { get; set; }
 
-        public GraphConnector(TaskConnector connector)
+        public GraphConnector(GraphTask? parent)
         {
-            TaskConnectorId = connector.Id;
+            Parent = parent;
         }
     }
 
