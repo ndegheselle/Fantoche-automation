@@ -69,6 +69,8 @@ namespace Automation.Dal
                     cm.AddKnownType(typeof(AutomationTask));
                     cm.AddKnownType(typeof(AutomationControl));
                     cm.AddKnownType(typeof(AutomationWorkflow));
+                    cm.UnmapMember(m => m.InputSchema);
+                    cm.UnmapMember(m => m.OutputSchema);
                 });
 
             BsonClassMap.RegisterClassMap<AutomationControl>(
@@ -93,11 +95,17 @@ namespace Automation.Dal
                     cm.AddKnownType(typeof(GraphTask));
                     cm.AddKnownType(typeof(GraphGroup));
                 });
+
+
             BsonClassMap.RegisterClassMap<GraphTask>(
                 cm =>
                 {
                     cm.AutoMap();
                     cm.UnmapMember(m => m.Name);
+                    cm.UnmapMember(m => m.InputSchema);
+                    cm.UnmapMember(m => m.OutputSchema);
+                    cm.AddKnownType(typeof(GraphWorkflow));
+                    cm.AddKnownType(typeof(GraphControl));
                 });
             BsonClassMap.RegisterClassMap<GraphConnector>(
                 cm =>

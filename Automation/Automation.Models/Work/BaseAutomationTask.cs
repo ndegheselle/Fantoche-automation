@@ -9,8 +9,21 @@ namespace Automation.Models.Work
     [JsonDerivedType(typeof(AutomationWorkflow), "workflow")]
     public abstract class BaseAutomationTask : ScopedElement
     {
-        public JsonSchema? InputSchema { get; set; }
-        public JsonSchema? OutputSchema { get; set; }
+        [JsonIgnore]
+        public JsonSchema? InputSchema
+        {
+            get => InputSchemaJson == null ? null : JsonSchema.FromJsonAsync(InputSchemaJson).Result;
+            set => InputSchemaJson = value == null ? null : value.ToJson();
+        }
+        public string? InputSchemaJson { get; set; }
+
+        [JsonIgnore]
+        public JsonSchema? OutputSchema
+        {
+            get => OutputSchemaJson == null ? null : JsonSchema.FromJsonAsync(OutputSchemaJson).Result;
+            set => OutputSchemaJson = value == null ? null : value.ToJson();
+        }
+        public string? OutputSchemaJson { get; set; }
 
         public IEnumerable<Schedule> Schedules { get; set; } = [];
 

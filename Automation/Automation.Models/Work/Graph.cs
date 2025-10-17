@@ -25,14 +25,27 @@ namespace Automation.Models.Work
         public ScopedMetadata Metadata { get; set; }
 
         public Guid TaskId { get; set; }
-        public string SettingsJson { get; set; } = string.Empty;
 
         public List<GraphConnector> Inputs { get; set; }
         public List<GraphConnector> Outputs { get; set; }
 
-        // XXX : should not be stored in the base since this is already stored in the Task
-        public JsonSchema? InputSchema { get; set; }
-        public JsonSchema? OutputSchema { get; set; }
+        public string InputJson { get; set; } = string.Empty;
+
+        [JsonIgnore]
+        public JsonSchema? InputSchema
+        {
+            get => InputSchemaJson == null ? null : JsonSchema.FromJsonAsync(InputSchemaJson).Result;
+            set => InputSchemaJson = value == null ? null : value.ToJson();
+        }
+        public string? InputSchemaJson { get; set; }
+
+        [JsonIgnore]
+        public JsonSchema? OutputSchema
+        {
+            get => OutputSchemaJson == null ? null : JsonSchema.FromJsonAsync(OutputSchemaJson).Result;
+            set => OutputSchemaJson = value == null ? null : value.ToJson();
+        }
+        public string? OutputSchemaJson { get; set; }
 
         public GraphTask(BaseAutomationTask task)
         {

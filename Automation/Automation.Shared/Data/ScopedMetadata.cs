@@ -15,10 +15,6 @@ namespace Automation.Shared.Data
     public class ScopedMetadata : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
-        private void NotifyPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
 
         public EnumScopedType Type { get; set; }
         public string Name { get; set; } = "";
@@ -40,6 +36,11 @@ namespace Automation.Shared.Data
         {
             Name = name;
             Type = type;
+        }
+
+        private void NotifyPropertyChanged([CallerMemberName] string? propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }
