@@ -11,7 +11,9 @@
     Background="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}">
     <StackPanel Orientation="Vertical" DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:NavigationSideMenu}}">
         <Button
-            Padding="10"
+            Padding="8"
+            Width="Auto"
+            Height="Auto"
             ToolTip="Work"
             Click="NavigationTasks_Click">
             <Button.Style>
@@ -23,7 +25,7 @@
                     </Style.Triggers>
                 </Style>
             </Button.Style>
-            <fonts:Icon FontSize="24" Text="{x:Static fonts:IconFont.TreeStructure}">
+            <fonts:Icon FontSize="16" Text="{x:Static fonts:IconFont.TreeStructure}">
                 <fonts:Icon.Style>
                     <Style TargetType="{x:Type fonts:Icon}" BasedOn="{StaticResource {x:Type fonts:Icon}}">
                         <Style.Triggers>
@@ -36,7 +38,9 @@
             </fonts:Icon>
         </Button>
         <Button
-            Padding="10"
+            Padding="8"
+            Width="Auto"
+            Height="Auto"
             ToolTip="Servers"
             Click="NavigationWorkers_Click">
             <Button.Style>
@@ -48,7 +52,7 @@
                     </Style.Triggers>
                 </Style>
             </Button.Style>
-            <fonts:Icon FontSize="24" Text="{x:Static fonts:IconFont.HardDrives}">
+            <fonts:Icon FontSize="16" Text="{x:Static fonts:IconFont.HardDrives}">
                 <fonts:Icon.Style>
                     <Style TargetType="{x:Type fonts:Icon}" BasedOn="{StaticResource {x:Type fonts:Icon}}">
                         <Style.Triggers>
@@ -61,7 +65,9 @@
             </fonts:Icon>
         </Button>
         <Button
-            Padding="10"
+            Padding="8"
+            Width="Auto"
+            Height="Auto"
             ToolTip="Packages"
             Click="NavigationPackages_Click">
             <Button.Style>
@@ -73,7 +79,7 @@
                     </Style.Triggers>
                 </Style>
             </Button.Style>
-            <fonts:Icon FontSize="24" Text="{x:Static fonts:IconFont.Package}">
+            <fonts:Icon FontSize="16" Text="{x:Static fonts:IconFont.Package}">
                 <fonts:Icon.Style>
                     <Style TargetType="{x:Type fonts:Icon}" BasedOn="{StaticResource {x:Type fonts:Icon}}">
                         <Style.Triggers>

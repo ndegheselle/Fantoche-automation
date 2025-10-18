@@ -19,7 +19,7 @@
                 <RowDefinition />
             </Grid.RowDefinitions>
 
-            <TextBlock FontWeight="Bold" Text="{Binding Identifier.Id}" />
+            <TextBlock FontWeight="Bold" Text="{Binding Identifier.Identifier}" />
             <TextBlock Grid.Column="1" Text="{Binding Identifier.Version}" />
 
             <TextBlock

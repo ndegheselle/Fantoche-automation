@@ -16,7 +16,7 @@ namespace Automation.Dal
     {
         public void Apply(BsonMemberMap memberMap)
         {
-            if (memberMap.MemberName == nameof(IIdentifier.Id))
+            if (memberMap.MemberName == nameof(IIdentifier.Id) && memberMap.MemberType == typeof(Guid))
             {
                 memberMap.SetSerializer(new GuidSerializer(GuidRepresentation.Standard));
                 memberMap.SetIdGenerator(new GuidGenerator());

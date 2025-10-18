@@ -16,16 +16,13 @@ namespace Automation.App.Views.WorkPages.Components
             nameof(Task),
             typeof(AutomationTask),
             typeof(SchemaEdit),
-            new PropertyMetadata(null, (o, d) => ((SchemaEdit)o).OnTaskChanged()));
+            new PropertyMetadata(null));
 
         public AutomationTask Task
         {
             get { return (AutomationTask)GetValue(TaskProperty); }
             set { SetValue(TaskProperty, value); }
         }
-
-        public string InputJson { get; set; } = "";
-        public string OutputJson { get; set; } = "";
 
         public bool IsReadOnly { get; set; }
 
@@ -36,19 +33,8 @@ namespace Automation.App.Views.WorkPages.Components
             InitializeComponent();
         }
 
-        private void OnTaskChanged()
-        {
-            if (Task == null)
-                return;
-
-            InputJson = Task.Inputs.First().SchemaJson;
-            OutputJson = Task.Outputs.First().SchemaJson;
-        }
-
         private async void ButtonSave_Click(object sender, RoutedEventArgs e)
         {
-            Task.Inputs.First().SchemaJson = InputJson;
-            Task.Outputs.First().SchemaJson = OutputJson;
             await _taskClient.UpdateAsync(Task.Id, Task);
         }
     }

@@ -13,6 +13,7 @@ namespace Automation.App.Views.WorkPages.Tasks.Components
     public class FlatenedTask
     {
         public BaseAutomationTask Task { get; set; }
+
         public string? Tag { get; set; }
 
         public FlatenedTask(BaseAutomationTask task, string? tag)
@@ -25,7 +26,8 @@ namespace Automation.App.Views.WorkPages.Tasks.Components
     public class TaskDragHandler : AdornerDragHandler
     {
         public TaskDragHandler(FrameworkElement parent) : base(parent)
-        {}
+        {
+        }
 
         protected override object? GetSourceData(FrameworkElement? source)
         {
@@ -47,7 +49,9 @@ namespace Automation.App.Views.WorkPages.Tasks.Components
     public partial class TasksSelector : UserControl, INotifyPropertyChanged
     {
         public IEnumerable<FlatenedTask> Tasks { get; set; } = [];
+
         public ICollectionView TasksView => CollectionViewSource.GetDefaultView(Tasks);
+
         public TaskDragHandler DragHandler { get; }
 
         private readonly TasksClient _client;
@@ -64,7 +68,10 @@ namespace Automation.App.Views.WorkPages.Tasks.Components
         {
             // XXX : toto maybe load by tag once the expander is opened
             var tasks = await _client.GetAllAsync();
-            Tasks = tasks.SelectMany(d => d.Metadata.Tags.Count() == 0 ? [new FlatenedTask(d, null)] : d.Metadata.Tags.Select(tag => new FlatenedTask(d, tag)));
+            Tasks = tasks.SelectMany(
+                d => d.Metadata.Tags.Count() == 0
+                    ? [new FlatenedTask(d, null)]
+                    : d.Metadata.Tags.Select(tag => new FlatenedTask(d, tag)));
 
             ICollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(Tasks);
             view.GroupDescriptions.Add(new PropertyGroupDescription(nameof(FlatenedTask.Tag)));

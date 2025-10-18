@@ -79,7 +79,7 @@ namespace Automation.Supervisor.Api.Controllers
             {
                 ITask packageTask = await _packageManagement.CreateTaskInstanceAsync(package);
                 updatedTask.InputSchema = packageTask.InputType == null ? null : JsonSchema.FromType(packageTask.InputType);
-                updatedTask.OutputSchema = packageTask.OutputType == null ? new JsonSchema() : JsonSchema.FromType(packageTask.OutputType);
+                updatedTask.OutputSchema = packageTask.OutputType == null ? null : JsonSchema.FromType(packageTask.OutputType);
             }
 
             await base.UpdateAsync(id, element);

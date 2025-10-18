@@ -14,7 +14,12 @@ namespace Automation.Dal.Repositories
         public override async Task<List<BaseAutomationTask>> GetAllAsync()
         {
             // Include the discriminator field so that derived types are kept
-            var projection = Builders<BaseAutomationTask>.Projection.Include(s => s.Id).Include(s => s.Metadata).Include("_t");
+            var projection = Builders<BaseAutomationTask>.Projection
+                .Include(s => s.Id)
+                .Include(s => s.Metadata)
+                .Include(s => s.InputSchemaJson)
+                .Include(s => s.OutputSchemaJson)
+                .Include("_t");
             return await _collection.Find(_ => true).Project<BaseAutomationTask>(projection).ToListAsync();
         }
 
@@ -26,7 +31,10 @@ namespace Automation.Dal.Repositories
         public async Task<IEnumerable<BaseAutomationTask>> GetByAnyParentScopeAsync(Guid scopeId)
         {
             // Include the discriminator field so that derived types are kept
-            var projection = Builders<BaseAutomationTask>.Projection.Include(s => s.Id).Include(s => s.Metadata).Include("_t");
+            var projection = Builders<BaseAutomationTask>.Projection
+                .Include(s => s.Id)
+                .Include(s => s.Metadata)
+                .Include("_t");
             var filter = Builders<BaseAutomationTask>.Filter.AnyEq(x => x.ParentTree, scopeId);
             return await _collection.Find(filter).Project<BaseAutomationTask>(projection).ToListAsync();
         }
@@ -38,8 +46,13 @@ namespace Automation.Dal.Repositories
         /// <returns></returns>
         public async Task<IEnumerable<BaseAutomationTask>> GetByDirectParentScopeAsync(Guid scopeId)
         {
-            var projection = Builders<BaseAutomationTask>.Projection.Include(s => s.Id).Include(s => s.Metadata).Include("_t");
-            return await _collection.Find(e => e.ParentId == scopeId).Project<BaseAutomationTask>(projection).ToListAsync();
+            var projection = Builders<BaseAutomationTask>.Projection
+                .Include(s => s.Id)
+                .Include(s => s.Metadata)
+                .Include("_t");
+            return await _collection.Find(e => e.ParentId == scopeId)
+                .Project<BaseAutomationTask>(projection)
+                .ToListAsync();
         }
 
         /// <summary>
@@ -49,8 +62,13 @@ namespace Automation.Dal.Repositories
         /// <returns></returns>
         public async Task<IEnumerable<BaseAutomationTask>> GetByTagAsync(string tag)
         {
-            var projection = Builders<BaseAutomationTask>.Projection.Include(s => s.Id).Include(s => s.Metadata).Include("_t");
-            return await _collection.Find(e => e.Metadata.Tags.Contains(tag)).Project<BaseAutomationTask>(projection).ToListAsync();
+            var projection = Builders<BaseAutomationTask>.Projection
+                .Include(s => s.Id)
+                .Include(s => s.Metadata)
+                .Include("_t");
+            return await _collection.Find(e => e.Metadata.Tags.Contains(tag))
+                .Project<BaseAutomationTask>(projection)
+                .ToListAsync();
         }
 
         /// <summary>
@@ -60,9 +78,7 @@ namespace Automation.Dal.Repositories
         /// <param name="name"></param>
         /// <returns></returns>
         public async Task<bool> IsNameUsedAsync(Guid scopeId, string name)
-        {
-            return await _collection.Find(e => e.ParentId == scopeId && e.Metadata.Name == name).AnyAsync();
-        }
+        { return await _collection.Find(e => e.ParentId == scopeId && e.Metadata.Name == name).AnyAsync(); }
 
         /// <summary>
         /// Delete all tasks related child of a scope, whatever how deep they are.
@@ -72,17 +88,21 @@ namespace Automation.Dal.Repositories
         public async Task DeleteByScopeAsync(Guid scopeId)
         {
             var filter = Builders<BaseAutomationTask>.Filter.AnyEq(x => x.ParentTree, scopeId);
-            await _collection.DeleteManyAsync(filter); 
+            await _collection.DeleteManyAsync(filter);
         }
 
         public async Task<IEnumerable<TaskSchedule>> GetScheduledAsync()
         {
-            var projection = Builders<BaseAutomationTask>.Projection.Include(s => s.Id).Include(s => s.Schedules).Include("_t");
+            var projection = Builders<BaseAutomationTask>.Projection
+                .Include(s => s.Id)
+                .Include(s => s.Schedules)
+                .Include("_t");
 
             var filter = Builders<BaseAutomationTask>.Filter
-               .And(
-                   Builders<BaseAutomationTask>.Filter.Ne(x => x.Schedules, null),
-                   Builders<BaseAutomationTask>.Filter.Not(Builders<BaseAutomationTask>.Filter.Size(nameof(BaseAutomationTask.Schedules), 0)));
+                .And(
+                    Builders<BaseAutomationTask>.Filter.Ne(x => x.Schedules, null),
+                    Builders<BaseAutomationTask>.Filter
+                        .Not(Builders<BaseAutomationTask>.Filter.Size(nameof(BaseAutomationTask.Schedules), 0)));
 
             var scheduledTasks = await _collection.Find(filter).Project<BaseAutomationTask>(projection).ToListAsync();
             return scheduledTasks.SelectMany(t => t.Schedules.Select(s => new TaskSchedule(t.Id, s)));

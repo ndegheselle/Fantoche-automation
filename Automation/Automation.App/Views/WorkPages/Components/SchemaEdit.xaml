@@ -20,38 +20,32 @@
         </Grid.RowDefinitions>
 
         <TextBlock FontWeight="Bold" Text="Input" />
-        <ItemsControl Grid.Row="1" ItemsSource="{Binding Task.Inputs}">
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <TextBox
-                        Grid.Row="1"
-                        AcceptsReturn="True"
-                        FontFamily="Courier New"
-                        IsReadOnly="{Binding IsReadOnly}"
-                        Text="{Binding SchemaJson, Mode=TwoWay}"
-                        TextWrapping="Wrap" />
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
+        <TextBox
+            ScrollViewer.VerticalScrollBarVisibility="Auto"
+            VerticalContentAlignment="Top"
+            Grid.Row="1"
+            AcceptsReturn="True"
+            AcceptsTab="True"
+            FontFamily="Courier New"
+            IsReadOnly="{Binding IsReadOnly}"
+            Text="{Binding Task.InputSchemaJson, Mode=TwoWay}"
+            TextWrapping="Wrap" />
 
         <TextBlock
             Grid.Row="2"
             Margin="0,4,0,0"
             FontWeight="Bold"
             Text="Output" />
-        <ItemsControl Grid.Row="3" ItemsSource="{Binding Task.Outputs}">
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <TextBox
-                        Grid.Row="1"
-                        AcceptsReturn="True"
-                        FontFamily="Courier New"
-                        IsReadOnly="True"
-                        Text="{Binding SchemaJson, Mode=TwoWay}"
-                        TextWrapping="Wrap" />
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
+        <TextBox
+            ScrollViewer.VerticalScrollBarVisibility="Auto"
+            VerticalContentAlignment="Top"
+            Grid.Row="3"
+            AcceptsReturn="True"
+            AcceptsTab="True"
+            FontFamily="Courier New"
+            IsReadOnly="True"
+            Text="{Binding Task.OutputSchemaJson, Mode=TwoWay}"
+            TextWrapping="Wrap" />
 
         <Button
             Grid.Row="4"

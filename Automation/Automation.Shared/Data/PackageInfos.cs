@@ -2,7 +2,7 @@
 {
     public class PackageIdentifier
     {
-        public string Id { get; set; } = "";
+        public string Identifier { get; set; } = "";
         public Version Version { get; set; } = new Version();
     }
 

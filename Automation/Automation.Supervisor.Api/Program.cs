@@ -5,10 +5,6 @@ using Automation.Supervisor.Api.Business;
 using Automation.Supervisor.Api.Hubs;
 using Automation.Worker.Control;
 using DotNetEnv;
-using MongoDB.Bson.Serialization.Serializers;
-using MongoDB.Bson.Serialization;
-using MongoDB.Bson;
-using MongoDB.Driver;
 
 Env.Load("../.env");
 

@@ -166,7 +166,7 @@ namespace Automation.Worker.Packages
 
             using var packageStream = new MemoryStream();
             await findPackageByIdResource.CopyNupkgToStreamAsync(
-                package.Package.Id,
+                package.Package.Identifier,
                 nugetVersion,
                 packageStream,
                 _cacheContext,
@@ -178,7 +178,7 @@ namespace Automation.Worker.Packages
 
             var dllPath = packageReader.GetFiles()
                 .FirstOrDefault(f => f.EndsWith(package.TargetClass.Dll))
-                ?? throw new Exception($"Could not find main DLL for package '{package.Package.Id}' and dll '{package.TargetClass.Dll}'.");
+                ?? throw new Exception($"Could not find main DLL for package '{package.Package.Identifier}' and dll '{package.TargetClass.Dll}'.");
 
             // Load the assembly
             using var dllStream = packageReader.GetStream(dllPath);
@@ -233,7 +233,7 @@ namespace Automation.Worker.Packages
             {
                 Identifier = new PackageIdentifier()
                 {
-                    Id = package.Identity.Id,
+                    Identifier = package.Identity.Id,
                     Version = package.Identity.Version.Version
                 },
                 Description = package.Description
@@ -245,7 +245,7 @@ namespace Automation.Worker.Packages
             {
                 Identifier = new PackageIdentifier()
                 {
-                    Id = reader.GetId(),
+                    Identifier = reader.GetId(),
                     Version = reader.GetVersion().Version
                 },
                 Description = reader.GetDescription()

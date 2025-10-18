@@ -50,17 +50,20 @@
 
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="150" />
+            <ColumnDefinition Width="auto" />
             <ColumnDefinition />
         </Grid.ColumnDefinitions>
 
-        <Border
-            Padding="0,0,2,0"
-            BorderThickness="0,0,1,0"
-            BorderBrush="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}">
-            <tasksComponents:TasksSelector />
-        </Border>
+        <tasksComponents:TasksSelector />
 
-        <Grid Grid.Column="1" Background="{StaticResource NodifyEditor.BackgroundBrush}">
+        <GridSplitter
+            Grid.Column="1"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Stretch"
+            ShowsPreview="True"
+            Width="2" />
+
+        <Grid Grid.Column="2" Background="{StaticResource NodifyEditor.BackgroundBrush}">
             <nodify:NodifyEditor
                 dnd:DropBehavior.Handler="{Binding DropHandler, ElementName=ContainerElement}"
                 x:Name="NodifyEditorElement"
@@ -119,7 +122,7 @@
             <Grid Panel.ZIndex="-2" Background="{StaticResource LargeGridLinesDrawingBrush}" />
         </Grid>
         <local:GraphEditorOverlay
-            Grid.Column="1"
+            Grid.Column="2"
             Ui="{Binding ElementName=ContainerElement}"
             Editor="{Binding}" />
     </Grid>

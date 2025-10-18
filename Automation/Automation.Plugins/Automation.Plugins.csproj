@@ -5,15 +5,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Title>Base automation plugins</Title>
-    <PackageIcon>fa</PackageIcon>
+    <PackageIcon></PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Automation.Plugins.Shared\Automation.Plugins.Shared.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Flow\" />
   </ItemGroup>
 
 </Project>
