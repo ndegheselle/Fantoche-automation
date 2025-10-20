@@ -72,6 +72,13 @@
                 ItemsSource="{Binding Graph.Nodes}"
                 PendingConnection="{Binding PendingConnection}"
                 SelectedItems="{Binding SelectedNodes}">
+                <!--  Shortcuts  -->
+                <nodify:NodifyEditor.InputBindings>
+                    <KeyBinding
+                        Key="Delete"
+                        Command="{Binding Actions.Nodes.RemoveCommand}"
+                        CommandParameter="{Binding SelectedNodes}" />
+                </nodify:NodifyEditor.InputBindings>
                 <nodify:NodifyEditor.Resources>
                     <DataTemplate DataType="{x:Type models:GraphGroup}">
                         <nodify:GroupingNode

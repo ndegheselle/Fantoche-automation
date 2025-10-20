@@ -1,19 +1,51 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Usuel.Shared;
 
 namespace Automation.App.Shared.Base.History
 {
-    public class HistoryAction
+    public interface IHistoryAction
+    {
+        public bool CanReverse { get; }
+        public IReversibleCommand Reverse();
+    }
+
+    public class HistoryAction : IHistoryAction
     {
         public IReversibleCommand Command { get; }
-
         public object? Parameter { get; }
+
+        public bool CanReverse => Command.Reverse != null;
 
         public HistoryAction(IReversibleCommand command, object? parameter = null)
         {
             Command = command;
             Parameter = parameter;
+        }
+
+        public IReversibleCommand Reverse()
+        {
+            if (Command.Reverse == null)
+                throw new Exception("This action can't be reversed.");
+            Command.Reverse.Execute(Parameter, withHistory: false);
+
+            return Command.Reverse;
+        }
+    }
+
+    public class HistoryActionBatch : IHistoryAction
+    {
+        public List<IHistoryAction> Actions { get; } = [];
+        public bool CanReverse => Actions.Count > 0;
+
+        public void Reverse()
+        {
+            foreach(var action  in Actions)
+            {
+                if (action.CanReverse)
+                    action.Reverse();
+            }
         }
     }
 
@@ -55,8 +87,10 @@ namespace Automation.App.Shared.Base.History
         public ICustomCommand UndoCommand { get; }
         public ICustomCommand RedoCommand { get; }
 
-        private Stack<HistoryAction> _undoStack = [];
-        private Stack<HistoryAction> _redoStack = [];
+        private Stack<IHistoryAction> _undoStack = [];
+        private Stack<IHistoryAction> _redoStack = [];
+
+        private Stack<HistoryActionBatch> _batch = [];
 
         public HistoryHandler()
         {
@@ -66,11 +100,26 @@ namespace Automation.App.Shared.Base.History
 
         public void Add(IReversibleCommand command, object? parameter = null)
         {
-            _undoStack.Push(new HistoryAction(command, parameter));
+            Add(new HistoryAction(command, parameter));
+        }
+
+        public void Add(IHistoryAction action)
+        {
+            _undoStack.Push(action);
             _redoStack.Clear();
 
             IsRedoAvailable = _redoStack.Count!=0;
             IsUndoAvailable = _undoStack.Count!=0;
+        }
+
+        public void BeginBatch()
+        {
+            _batch = new HistoryActionBatch();
+        }
+
+        public void EndBatch()
+        {
+
         }
 
         public void Undo()
@@ -82,10 +131,10 @@ namespace Automation.App.Shared.Base.History
             IsUndoAvailable = _undoStack.Count!=0;
 
             // Ignore the command that don't have any undo command
-            if (action.Command.Reverse == null)
+            if (action.CanReverse == false)
                 return;
-            action.Command.Reverse.Execute(action.Parameter, withHistory: false);
-            _redoStack.Push(action);
+            var reverseAction = action.Reverse();
+            _redoStack.Push(reverseAction);
             IsRedoAvailable = _redoStack.Count!=0;
         }
 
@@ -98,9 +147,9 @@ namespace Automation.App.Shared.Base.History
             IsRedoAvailable = _redoStack.Count!=0;
 
             // Ignore the command that don't have any undo command
-            if (action.Command.Reverse == null)
+            if (action.CanReverse == false)
                 return;
-            action.Command.Reverse.Execute(action.Parameter, withHistory: false);
+            action.Reverse();
             _undoStack.Push(action);
             IsUndoAvailable = _undoStack.Count!=0;
         }

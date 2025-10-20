@@ -16,7 +16,7 @@ namespace Automation.App.ViewModels.Workflow.Editor.Actions
             _history = history;
 
             AddCommand = new ReversibleCommand<GraphNode>(_history, OnAdd);
-            RemoveCommand = new ReversibleCommand<GraphNode>(_history, OnRemove);
+            RemoveCommand = new ReversibleCommand<IEnumerable<GraphNode>>(_history, OnRemove);
             RemoveCommand.Reverse = AddCommand;
             AddCommand.Reverse = RemoveCommand;
         }
@@ -27,10 +27,16 @@ namespace Automation.App.ViewModels.Workflow.Editor.Actions
             _editor.Graph.Nodes.Add(node);
         }
 
-        public void Remove(GraphNode node) => RemoveCommand.Execute(node);
-        private void OnRemove(GraphNode node)
+        public void Remove(IEnumerable<GraphNode> nodes) => RemoveCommand.Execute(nodes);
+        private void OnRemove(IEnumerable<GraphNode> nodes)
         {
-            _editor.Graph.Nodes.Remove(node);
+            foreach(GraphNode node in nodes.ToList())
+            {
+                if (node is GraphTask task)
+                    _editor.Actions.Connections.Disconnect(task);
+                _editor.Graph.Nodes.Remove(node);
+            }
+
         }
     }
 }

@@ -107,7 +107,8 @@ namespace Automation.Models.Work
         {
             Source = source;
             Target = target;
-
+            SourceId = Source.Id;
+            TargetId = Target.Id;
             Source.IsConnected = true;
             Target.IsConnected = true;
         }
