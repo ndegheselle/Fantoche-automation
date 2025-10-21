@@ -8,7 +8,7 @@ namespace Automation.App.Shared.Base.History
     public interface IHistoryAction
     {
         public bool CanReverse { get; }
-        public IReversibleCommand Reverse();
+        public IHistoryAction ExecuteReverse();
     }
 
     public class HistoryAction : IHistoryAction
@@ -24,13 +24,14 @@ namespace Automation.App.Shared.Base.History
             Parameter = parameter;
         }
 
-        public IReversibleCommand Reverse()
+        public IHistoryAction ExecuteReverse()
         {
             if (Command.Reverse == null)
                 throw new Exception("This action can't be reversed.");
-            Command.Reverse.Execute(Parameter, withHistory: false);
 
-            return Command.Reverse;
+            // History line is added by the handler in the correct stack (undo or redo)
+            Command.Reverse.Execute(Parameter, withHistory: false);
+            return new HistoryAction(Command.Reverse, Parameter);
         }
     }
 
@@ -39,13 +40,17 @@ namespace Automation.App.Shared.Base.History
         public List<IHistoryAction> Actions { get; } = [];
         public bool CanReverse => Actions.Count > 0;
 
-        public void Reverse()
+        public IHistoryAction ExecuteReverse()
         {
-            foreach(var action  in Actions)
+            HistoryActionBatch reverseBatch = new HistoryActionBatch();
+            for (int i = Actions.Count - 1; i >= 0; i--)
             {
+                var action = Actions[i];
                 if (action.CanReverse)
-                    action.Reverse();
+                    action.ExecuteReverse();
+                reverseBatch.Actions.Add(action);
             }
+            return reverseBatch;
         }
     }
 
@@ -90,7 +95,7 @@ namespace Automation.App.Shared.Base.History
         private Stack<IHistoryAction> _undoStack = [];
         private Stack<IHistoryAction> _redoStack = [];
 
-        private Stack<HistoryActionBatch> _batch = [];
+        private Stack<HistoryActionBatch> _batches = [];
 
         public HistoryHandler()
         {
@@ -105,21 +110,28 @@ namespace Automation.App.Shared.Base.History
 
         public void Add(IHistoryAction action)
         {
-            _undoStack.Push(action);
+            // Add to current batch or directly as an action
+            if (_batches.Any())
+            {
+                HistoryActionBatch currentBatch = _batches.Peek();
+                currentBatch.Actions.Add(action);
+            }
+            else
+            {
+                _undoStack.Push(action);
+            }
+
             _redoStack.Clear();
 
             IsRedoAvailable = _redoStack.Count!=0;
             IsUndoAvailable = _undoStack.Count!=0;
         }
 
-        public void BeginBatch()
-        {
-            _batch = new HistoryActionBatch();
-        }
-
+        public void BeginBatch() => _batches.Push(new HistoryActionBatch());
         public void EndBatch()
         {
-
+            var batch = _batches.Pop();
+            Add(batch);
         }
 
         public void Undo()
@@ -133,7 +145,7 @@ namespace Automation.App.Shared.Base.History
             // Ignore the command that don't have any undo command
             if (action.CanReverse == false)
                 return;
-            var reverseAction = action.Reverse();
+            var reverseAction = action.ExecuteReverse();
             _redoStack.Push(reverseAction);
             IsRedoAvailable = _redoStack.Count!=0;
         }
@@ -149,7 +161,7 @@ namespace Automation.App.Shared.Base.History
             // Ignore the command that don't have any undo command
             if (action.CanReverse == false)
                 return;
-            action.Reverse();
+            action.ExecuteReverse();
             _undoStack.Push(action);
             IsUndoAvailable = _undoStack.Count!=0;
         }

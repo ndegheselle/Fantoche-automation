@@ -8,6 +8,12 @@ namespace Automation.App.Shared.Base.History
         /// Command that does the exact oposit of this command.
         /// </summary>
         public IReversibleCommand? Reverse { get; set; }
+        /// <summary>
+        /// Execute the command.
+        /// </summary>
+        /// <param name="parameter"></param>
+        /// <param name="withHistory">If the command should add an history line.</param>
+        public void Execute(object? parameter, bool withHistory);
     }
 
     public class ReversibleCommand : DelegateCommand, IReversibleCommand
@@ -22,12 +28,17 @@ namespace Automation.App.Shared.Base.History
             executeCondition)
         { _handler = handler; }
 
-        public override void Execute(object? parameter)
+        public override void Execute(object? parameter) => Execute(parameter, true);
+        public void Execute(object? parameter, bool withHistory)
         {
-            if (IsBatched)
+            if (withHistory && IsBatched)
                 _handler.BeginBatch();
+
             base.Execute(parameter);
-            if (IsBatched)
+
+            if (withHistory)
+                _handler.Add(this, parameter);
+            if (withHistory && IsBatched)
                 _handler.EndBatch();
         }
     }
@@ -44,15 +55,17 @@ namespace Automation.App.Shared.Base.History
             executeCondition)
         { _handler = handler; }
 
-        public override void Execute(object? parameter) { Execute(parameter, false); }
-                
-        public override void Execute(object? parameter, bool isReversed)
+        public override void Execute(object? parameter) => Execute(parameter, true);
+        public void Execute(object? parameter, bool withHistory)
         {
-            if (IsBatched)
+            if (withHistory && IsBatched)
                 _handler.BeginBatch();
+
             base.Execute(parameter);
-            _handler.Add(this, parameter);
-            if (IsBatched)
+
+            if (withHistory)
+                _handler.Add(this, parameter);
+            if (withHistory && IsBatched)
                 _handler.EndBatch();
         }
     }
