@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\wpf-components\Usuel.History\Usuel.History.csproj" />
     <ProjectReference Include="..\..\..\wpf-components\Usuel.Shared\Usuel.Shared.csproj" />
     <ProjectReference Include="..\Automation.Shared\Automation.Shared.csproj" />
   </ItemGroup>

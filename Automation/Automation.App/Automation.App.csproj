@@ -36,6 +36,7 @@
     <ProjectReference Include="..\..\..\wpf-components\Joufflu.Layouts\Joufflu.Layouts.csproj" />
     <ProjectReference Include="..\..\..\wpf-components\Joufflu.Popups\Joufflu.Popups.csproj" />
     <ProjectReference Include="..\..\..\wpf-components\Joufflu.Shared\Joufflu.Shared.csproj" />
+    <ProjectReference Include="..\..\..\wpf-components\Usuel.History\Usuel.History.csproj" />
     <ProjectReference Include="..\..\..\wpf-components\Usuel.Shared\Usuel.Shared.csproj" />
     <ProjectReference Include="..\Automation.App.Shared\Automation.App.Shared.csproj" />
     <ProjectReference Include="..\Automation.Shared\Automation.Shared.csproj" />

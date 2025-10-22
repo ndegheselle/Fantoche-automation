@@ -1,5 +1,5 @@
-﻿using Automation.App.Shared.Base.History;
-using Automation.Models.Work;
+﻿using Automation.Models.Work;
+using Usuel.History;
 
 namespace Automation.App.ViewModels.Workflow.Editor.Actions
 {
@@ -15,22 +15,20 @@ namespace Automation.App.ViewModels.Workflow.Editor.Actions
             _editor = editor;
             _history = history;
 
-            AddCommand = new ReversibleCommand<GraphNode>(_history, OnAdd);
-            RemoveCommand = new ReversibleCommand<IEnumerable<GraphNode>>(_history, OnRemove) { IsBatched = true };
+            AddCommand = new ReversibleCommand<GraphNode>(_history, Add);
+            RemoveCommand = new ReversibleCommand<IEnumerable<GraphNode>>(_history, Remove);
             RemoveCommand.Reverse = AddCommand;
             AddCommand.Reverse = RemoveCommand;
         }
 
-        public void Add(GraphNode node) => AddCommand.Execute(node);
-        private void OnAdd(GraphNode node)
+        public void Add(GraphNode node)
         {
             _editor.Graph.Nodes.Add(node);
         }
 
-        public void Remove(IEnumerable<GraphNode> nodes) => RemoveCommand.Execute(nodes);
-        private void OnRemove(IEnumerable<GraphNode> nodes)
+        public void Remove(IEnumerable<GraphNode> nodes)
         {
-            foreach(GraphNode node in nodes.ToList())
+            foreach (GraphNode node in nodes.ToList())
             {
                 if (node is GraphTask task)
                     _editor.Actions.Connections.Disconnect(task);

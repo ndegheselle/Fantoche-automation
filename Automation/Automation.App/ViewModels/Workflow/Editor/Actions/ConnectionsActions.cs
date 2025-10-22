@@ -1,5 +1,5 @@
-﻿using Automation.App.Shared.Base.History;
-using Automation.Models.Work;
+﻿using Automation.Models.Work;
+using Usuel.History;
 
 namespace Automation.App.ViewModels.Workflow.Editor.Actions
 {
@@ -16,15 +16,14 @@ namespace Automation.App.ViewModels.Workflow.Editor.Actions
             _editor = editor;
             _history = history;
 
-            ConnectCommand = new ReversibleCommand<IEnumerable<GraphConnection>>(_history, OnConnect);
-            DisconnectCommand = new ReversibleCommand<IEnumerable<GraphConnection>>(_history, OnDisconnect);
-            DisconnectTaskCommand = new ReversibleCommand<GraphTask>(_history, OnDisconnect);
+            ConnectCommand = new ReversibleCommand<IEnumerable<GraphConnection>>(_history, Connect);
+            DisconnectCommand = new ReversibleCommand<IEnumerable<GraphConnection>>(_history, Disconnect);
+            DisconnectTaskCommand = new ReversibleCommand<GraphTask>(_history, Disconnect);
             ConnectCommand.Reverse = DisconnectCommand;
             DisconnectCommand.Reverse = ConnectCommand;
         }
 
-        public void Connect(IEnumerable<GraphConnection> connections) => ConnectCommand.Execute(connections);
-        private void OnConnect(IEnumerable<GraphConnection> connections)
+        public void Connect(IEnumerable<GraphConnection> connections)
         {
             foreach (var connection in connections)
             {
@@ -32,8 +31,7 @@ namespace Automation.App.ViewModels.Workflow.Editor.Actions
             }
         }
 
-        public void Disconnect(IEnumerable<GraphConnection> connections) => DisconnectCommand.Execute(connections);
-        private void OnDisconnect(IEnumerable<GraphConnection> connections)
+        public void Disconnect(IEnumerable<GraphConnection> connections)
         {
             foreach (var connection in connections)
             {
@@ -43,14 +41,13 @@ namespace Automation.App.ViewModels.Workflow.Editor.Actions
                 connection.Target!.IsConnected = GetFrom(connection.Target).Any();
             }
         }
-         
-        public void Disconnect(GraphTask task) => DisconnectTaskCommand.Execute(task);
-        private void OnDisconnect(GraphTask task)
+
+        public void Disconnect(GraphTask task)
         {
             var connections = GetFrom(task);
             Disconnect(connections);
         }
-
+        
         private IEnumerable<GraphConnection> GetFrom(GraphTask task)
         {
             List<GraphConnection> connections = [];
