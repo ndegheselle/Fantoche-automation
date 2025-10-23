@@ -47,8 +47,8 @@ namespace Automation.App.ViewModels.Workflow.Editor.Actions
             var connections = GetFrom(task);
             Disconnect(connections);
         }
-        
-        private IEnumerable<GraphConnection> GetFrom(GraphTask task)
+
+        public IEnumerable<GraphConnection> GetFrom(GraphTask task)
         {
             List<GraphConnection> connections = [];
             foreach (var input in task.Inputs)
@@ -58,7 +58,7 @@ namespace Automation.App.ViewModels.Workflow.Editor.Actions
             return connections;
         }
 
-        private IEnumerable<GraphConnection> GetFrom(GraphConnector connector)
+        public IEnumerable<GraphConnection> GetFrom(GraphConnector connector)
         {
             return _editor.Graph.Connections.Where(x => x.SourceId == connector.Id || x.TargetId == connector.Id);
         }
