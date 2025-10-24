@@ -1,12 +1,13 @@
-﻿using Automation.Models.Work;
+﻿using Accessibility;
+using Automation.Models.Work;
 using Usuel.History;
 
 namespace Automation.App.ViewModels.Workflow.Editor.Actions
 {
     public class ConnectionsActions
     {
-        public IReversibleCommand ConnectCommand { get; private set; }
-        public IReversibleCommand DisconnectCommand { get; private set; }
+        public ReversibleCommand<IEnumerable<GraphConnection>> ConnectCommand { get; private set; }
+        public ReversibleCommand<IEnumerable<GraphConnection>> DisconnectCommand { get; private set; }
         public IReversibleCommand DisconnectTaskCommand { get; private set; }
 
         private readonly GraphEditorViewModel _editor;
@@ -19,8 +20,8 @@ namespace Automation.App.ViewModels.Workflow.Editor.Actions
             ConnectCommand = new ReversibleCommand<IEnumerable<GraphConnection>>(_history, Connect);
             DisconnectCommand = new ReversibleCommand<IEnumerable<GraphConnection>>(_history, Disconnect);
             DisconnectTaskCommand = new ReversibleCommand<GraphTask>(_history, Disconnect);
-            ConnectCommand.Reverse = DisconnectCommand;
-            DisconnectCommand.Reverse = ConnectCommand;
+
+            _history.SetReverse(ConnectCommand, DisconnectTaskCommand);
         }
 
         public void Connect(IEnumerable<GraphConnection> connections)

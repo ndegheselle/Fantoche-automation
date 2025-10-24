@@ -48,11 +48,11 @@ namespace Automation.App.ViewModels.Workflow.Editor
                 var existingConnection = _editor.Graph.Connections.FirstOrDefault(x => x.Source == _source && x.Target == target);
                 if (existingConnection != null)
                 {
-                    _editor.Actions.Connections.Disconnect([existingConnection]);
+                    _editor.Connections.DisconnectCommand.Execute([existingConnection]);
                     return;
                 }
 
-                _editor.Actions.Connections.Connect([new GraphConnection(_source, target)]);
+                _editor.Connections.ConnectCommand.Execute([new GraphConnection(_source, target)]);
             });
         }
 

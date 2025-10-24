@@ -1,5 +1,4 @@
-﻿using Automation.App.Shared.Base.History;
-using Automation.App.ViewModels.Workflow.Editor.Actions;
+﻿using Automation.App.ViewModels.Workflow.Editor.Actions;
 using Automation.App.Views.WorkPages.Workflows.Editor;
 using Automation.Models.Work;
 using System.Collections.ObjectModel;
