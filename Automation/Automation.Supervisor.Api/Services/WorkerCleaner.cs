@@ -4,7 +4,6 @@ using Automation.Realtime;
 using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
 using Automation.Worker.Executor;
-using MongoDB.Driver;
 
 namespace Automation.Supervisor.Api.Business
 {

@@ -1,5 +1,4 @@
-﻿using Automation.Plugins.Shared;
-using Automation.Shared.Data.Task;
+﻿using Automation.Shared.Data.Task;
 using Microsoft.AspNetCore.SignalR.Client;
 
 namespace Automation.App.Shared.ApiClients

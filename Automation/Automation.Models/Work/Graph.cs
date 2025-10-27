@@ -29,7 +29,7 @@ namespace Automation.Models.Work
         public List<GraphConnector> Inputs { get; set; }
         public List<GraphConnector> Outputs { get; set; }
 
-        public string InputJson { get; set; } = string.Empty;
+        public string? InputJson { get; set; }
 
         [JsonIgnore]
         public JsonSchema? InputSchema
