@@ -27,7 +27,7 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
         {
             if (data == null)
                 return;
-            _editor.Nodes.AddCommand.Execute(new GraphTask(data) { Position = _editor.Ui.GetPositionInside(e) });
+           // TODO : convert to workflow, task or control based on the task type _editor.Nodes.AddCommand.Execute(new GraphTask(data) { Position = _editor.Ui.GetPositionInside(e) });
         }
     }
 
