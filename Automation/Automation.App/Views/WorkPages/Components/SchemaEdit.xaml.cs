@@ -14,17 +14,15 @@ namespace Automation.App.Views.WorkPages.Components
         public static readonly DependencyProperty TaskProperty =
             DependencyProperty.Register(
             nameof(Task),
-            typeof(AutomationTask),
+            typeof(BaseAutomationTask),
             typeof(SchemaEdit),
             new PropertyMetadata(null));
 
-        public AutomationTask Task
+        public BaseAutomationTask Task
         {
-            get { return (AutomationTask)GetValue(TaskProperty); }
+            get { return (BaseAutomationTask)GetValue(TaskProperty); }
             set { SetValue(TaskProperty, value); }
         }
-
-        public bool IsReadOnly { get; set; }
 
         private readonly TasksClient _taskClient;
         public SchemaEdit()

@@ -64,8 +64,4 @@
     <EditorConfigFiles Remove="D:\Perso\Informatique\_git\MeApollo-automation\Automation\Automation.App\.editorconfig" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Include="D:\Perso\Informatique\_git\MeApollo-automation\Automation\Automation.App\.editorconfig" />
-  </ItemGroup>
-
 </Project>

@@ -3,6 +3,8 @@ using Automation.Models.Work;
 using Joufflu.Popups;
 using Joufflu.Shared.Navigation;
 using Microsoft.Extensions.DependencyInjection;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -11,12 +13,15 @@ namespace Automation.App.Views.WorkPages.Workflows
     /// <summary>
     /// Logique d'interaction pour WorkflowPage.xaml
     /// </summary>
-    public partial class WorkflowPage : UserControl, IPage
+    public partial class WorkflowPage : UserControl, IPage, INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler? PropertyChanged;
+
         public ILayout? ParentLayout { get; set; }
         public AutomationWorkflow Workflow { get; set; }
 
         private readonly TasksClient _client;
+
         private IModal _modal => this.GetCurrentModal();
 
         public WorkflowPage(AutomationWorkflow workflow)
@@ -34,6 +39,11 @@ namespace Automation.App.Views.WorkPages.Workflows
             if (fullWorkflow == null)
                 throw new ArgumentException("Workflow not found");
             Workflow = fullWorkflow;
+        }
+
+        public void NotifyPropertyChanged([CallerMemberName] string? name = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
 
         #region UI Events

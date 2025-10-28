@@ -39,7 +39,7 @@
                         </StackPanel>
                     </TabItem.Header>
 
-                    <components:SchemaEdit Task="{Binding Task}" IsReadOnly="True" />
+                    <components:SchemaEdit Task="{Binding Task}" />
                 </TabItem>
             </TabControl>
 

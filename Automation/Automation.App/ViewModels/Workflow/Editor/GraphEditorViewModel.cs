@@ -3,6 +3,7 @@ using Automation.App.Views.WorkPages.Workflows.Editor;
 using Automation.Models.Work;
 using System.Collections.ObjectModel;
 using Usuel.History;
+using Usuel.Shared;
 
 namespace Automation.App.ViewModels.Workflow.Editor
 {

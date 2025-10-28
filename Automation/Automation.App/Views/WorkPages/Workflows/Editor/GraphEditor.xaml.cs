@@ -1,6 +1,9 @@
-﻿using Automation.App.ViewModels.Workflow.Editor;
+﻿using Automation.App.Shared.ApiClients;
+using Automation.App.ViewModels.Workflow.Editor;
 using Automation.Models.Work;
 using Joufflu.Data.DnD;
+using Joufflu.Popups;
+using Microsoft.Extensions.DependencyInjection;
 using Nodify;
 using System.ComponentModel;
 using System.Drawing;
@@ -45,6 +48,8 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
         public ICommand ZoomOutCommand { get; private set; }
         public ICommand ZoomFitCommand { get; private set; }
 
+        public ICustomCommand SaveCommand { get; private set; }
+
         public AutomationWorkflow Workflow
         {
             get { return (AutomationWorkflow)GetValue(WorkflowProperty); }
@@ -54,8 +59,17 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
         public GraphEditorViewModel? Editor { get; private set; }
         public TaskDropHandler? DropHandler { get; private set; }
 
+        public IModal Modal => this.GetCurrentModal();
+        private ILoading _loading => this.GetCurrentLoading();
+        private IAlert _alert => this.GetCurrentAlert();
+
+        private readonly TasksClient _client;
+
         public GraphEditor()
         {
+            _client = Services.Provider.GetRequiredService<TasksClient>();
+            SaveCommand = new DelegateCommand(Save);
+
             InitializeComponent();
             ZoomInCommand = new DelegateCommand(NodifyEditorElement.ZoomIn);
             ZoomOutCommand = new DelegateCommand(NodifyEditorElement.ZoomOut);
@@ -71,7 +85,25 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
             DropHandler = new TaskDropHandler(Editor);
         }
 
-        private Rectangle GetSelectedBoundingBox(int padding)
+        public async void Save()
+        {
+            if (Workflow == null)
+                return;
+
+            _loading.Show("Saving ...");
+            try
+            {
+                await _client.UpdateAsync(Workflow.Id, Workflow);
+                _alert.Success("Workflow saved !");
+            }
+            catch (Exception ex)
+            {
+                _alert.Error(ex.Message);
+            }
+            _loading.Hide();
+        }
+
+        public Rectangle GetSelectedBoundingBox(int padding)
         {
             Point min = new Point(int.MaxValue, int.MaxValue);
             Point max = new Point(int.MinValue, int.MinValue);

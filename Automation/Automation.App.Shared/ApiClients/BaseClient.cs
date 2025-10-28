@@ -1,6 +1,6 @@
 ﻿using Automation.Shared.Base;
-using Newtonsoft.Json;
 using RestSharp;
+using System.Text.Json;
 
 namespace Automation.App.Shared.ApiClients
 {
@@ -50,7 +50,7 @@ namespace Automation.App.Shared.ApiClients
             {
                 if (string.IsNullOrEmpty(result.Content))
                     throw new ValidationException(null);
-                var validationResult = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(result.Content);
+                var validationResult = JsonSerializer.Deserialize<Dictionary<string, List<string>>>(result.Content);
                 throw new ValidationException(validationResult);
             }
             if (result.StatusCode != System.Net.HttpStatusCode.OK && result.StatusCode != System.Net.HttpStatusCode.Created)
@@ -65,6 +65,7 @@ namespace Automation.App.Shared.ApiClients
         {
             if (element == null)
                 throw new ArgumentNullException(nameof(element));
+            var test = JsonSerializer.Serialize(element);
             var result = await _client.ExecutePutAsync(new RestRequest($"{_routeBase}/{id}").AddBody(element));
         }
         #endregion

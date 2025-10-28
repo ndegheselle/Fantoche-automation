@@ -134,8 +134,8 @@
                 BorderBrush="{DynamicResource {x:Static adonisUi:Brushes.Layer1BorderBrush}}">
                 <Button
                     Style="{StaticResource IconButton}"
-                    ToolTip="Save"
-                    IsEnabled="False">
+                    Command="{Binding Ui.SaveCommand}"
+                    ToolTip="Save">
                     <fonts:Icon Text="{x:Static fonts:IconFont.FloppyDisk}" />
                 </Button>
             </Border>

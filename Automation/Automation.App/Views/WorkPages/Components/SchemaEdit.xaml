@@ -16,7 +16,6 @@
             <RowDefinition />
             <RowDefinition Height="auto" />
             <RowDefinition />
-            <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
         <TextBlock FontWeight="Bold" Text="Input" />
@@ -27,8 +26,8 @@
             AcceptsReturn="True"
             AcceptsTab="True"
             FontFamily="Courier New"
-            IsReadOnly="{Binding IsReadOnly}"
-            Text="{Binding Task.InputSchemaJson, Mode=TwoWay}"
+            IsReadOnly="True"
+            Text="{Binding Task.InputSchemaJson}"
             TextWrapping="Wrap" />
 
         <TextBlock
@@ -44,19 +43,7 @@
             AcceptsTab="True"
             FontFamily="Courier New"
             IsReadOnly="True"
-            Text="{Binding Task.OutputSchemaJson, Mode=TwoWay}"
+            Text="{Binding Task.OutputSchemaJson}"
             TextWrapping="Wrap" />
-
-        <Button
-            Grid.Row="4"
-            Margin="0,2,0,0"
-            HorizontalAlignment="Right"
-            Click="ButtonSave_Click"
-            IsEnabled="{Binding IsReadOnly, Converter={StaticResource BooleanFlipConverter}}">
-            <StackPanel Orientation="Horizontal">
-                <fonts:Icon Text="{x:Static fonts:IconFont.FloppyDisk}" />
-                <TextBlock Margin="4,0,0,0">Save changes</TextBlock>
-            </StackPanel>
-        </Button>
     </Grid>
 </UserControl>

@@ -1,4 +1,5 @@
-﻿using Automation.Models.Work;
+﻿using Automation.App.Views.WorkPages.Workflows.Editor.Components;
+using Automation.Models.Work;
 using Usuel.History;
 using Usuel.Shared;
 
@@ -14,8 +15,8 @@ namespace Automation.App.ViewModels.Workflow.Editor.Actions
     public class NodeActions
     {
         public ICustomCommand AddCommand { get; private set; }
-
         public ICustomCommand RemoveCommand { get; private set; }
+        public ICustomCommand OpenCommand { get; private set; }
 
         internal ReversibleCommand<NodeModifyContext> AddAllCommand { get; private set; }
         internal ReversibleCommand<NodeModifyContext> RemoveAllCommand { get; private set; }
@@ -28,12 +29,20 @@ namespace Automation.App.ViewModels.Workflow.Editor.Actions
             _editor = editor;
             _history = history;
 
+            OpenCommand = new DelegateCommand<GraphTask>(Open);
             AddCommand = new DelegateCommand<GraphNode>(Add);
             RemoveCommand = new DelegateCommand<IEnumerable<GraphNode>>(Remove);
 
             AddAllCommand = new ReversibleCommand<NodeModifyContext>(_history, AddAll);
             RemoveAllCommand = new ReversibleCommand<NodeModifyContext>(_history, RemoveAll);
             _history.SetReverse(AddAllCommand, RemoveAllCommand);
+        }
+
+        public void Open(GraphTask task)
+        {
+            if (task == null)
+                return;
+            _editor.Ui.Modal.Show(new TaskInputSetting(task));
         }
 
         public void Add(GraphNode node) { AddAllCommand.Execute(new NodeModifyContext() { Nodes = [node] }); }

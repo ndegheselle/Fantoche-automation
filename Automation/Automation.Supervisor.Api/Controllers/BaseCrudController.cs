@@ -1,6 +1,7 @@
 ﻿using Automation.Dal.Repositories;
 using Automation.Shared.Base;
 using Microsoft.AspNetCore.Mvc;
+using System.Text;
 
 namespace Automation.Supervisor.Api.Controllers
 {
@@ -36,9 +37,9 @@ namespace Automation.Supervisor.Api.Controllers
 
         [HttpPut]
         [Route("{id}")]
-        public virtual Task UpdateAsync([FromRoute] Guid id, [FromBody] T element)
+        public virtual async Task UpdateAsync([FromRoute] Guid id, [FromBody] T element)
         {
-            return _crudRepository.UpdateAsync(id, element);
+            await _crudRepository.UpdateAsync(id, element);
         }
 
         [HttpDelete]

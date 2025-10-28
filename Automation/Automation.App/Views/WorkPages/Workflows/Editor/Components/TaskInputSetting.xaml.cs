@@ -1,13 +1,9 @@
-﻿using Automation.App.Shared.ApiClients;
-using Automation.Models.Work;
+﻿using Automation.Models.Work;
 using Joufflu.Popups;
-using Microsoft.Extensions.Options;
-using System.ComponentModel.DataAnnotations;
-using System.Security.Cryptography.X509Certificates;
 using System.Windows.Controls;
 using Usuel.Shared;
 
-namespace Automation.App.Views.WorkPages.Tasks.Components
+namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
 {
     /// <summary>
     /// Logique d'interaction pour TaskInputSetting.xaml

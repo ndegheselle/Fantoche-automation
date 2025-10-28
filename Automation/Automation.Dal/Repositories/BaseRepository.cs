@@ -50,7 +50,7 @@ namespace Automation.Dal.Repositories
                 element.Id = Guid.NewGuid();
             }
 
-            var options = new ReplaceOptions { IsUpsert = true };
+            var options = new ReplaceOptions { IsUpsert = true,  };
             await _collection.ReplaceOneAsync(e => e.Id == element.Id, element, options);
             return element.Id;
         }

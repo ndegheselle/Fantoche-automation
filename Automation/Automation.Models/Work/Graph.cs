@@ -8,9 +8,11 @@ namespace Automation.Models.Work
 {
     [JsonDerivedType(typeof(GraphTask), "task")]
     [JsonDerivedType(typeof(GraphGroup), "group")]
+    [JsonDerivedType(typeof(GraphWorkflow), "worklfow")]
+    [JsonDerivedType(typeof(GraphControl), "control")]
     public partial class GraphNode
     {
-        public Guid Id { get; set; }
+        public Guid Id { get; set; } = Guid.NewGuid();
         public string Name { get; set; } = string.Empty;
     }
 
@@ -22,12 +24,12 @@ namespace Automation.Models.Work
     public class GraphTask : GraphNode
     {
         public new string Name { get => Metadata.Name; set => Metadata.Name = value; }
-        public ScopedMetadata Metadata { get; set; }
+        public ScopedMetadata Metadata { get; set; } = new ScopedMetadata();
 
         public Guid TaskId { get; set; }
 
-        public List<GraphConnector> Inputs { get; set; }
-        public List<GraphConnector> Outputs { get; set; }
+        public List<GraphConnector> Inputs { get; set; } = [];
+        public List<GraphConnector> Outputs { get; set; } = [];
 
         public string? InputJson { get; set; }
 
@@ -46,6 +48,9 @@ namespace Automation.Models.Work
             set => OutputSchemaJson = value == null ? null : value.ToJson();
         }
         public string? OutputSchemaJson { get; set; }
+
+        public GraphTask()
+        {}
 
         public GraphTask(BaseAutomationTask task)
         {
@@ -117,7 +122,7 @@ namespace Automation.Models.Work
     public class Graph
     {
         public ObservableCollection<GraphConnection> Connections { get; set; } = [];
-        public ObservableCollection<GraphNode> Nodes { get; private set; } = [];
+        public ObservableCollection<GraphNode> Nodes { get; set; } = [];
 
         private bool _isRefreshed = false;
         /// <summary>
