@@ -87,7 +87,7 @@
                             MovementMode="Group" />
                     </DataTemplate>
 
-                    <DataTemplate DataType="{x:Type models:GraphTask}">
+                    <DataTemplate DataType="{x:Type models:BaseGraphTask}">
                         <local:GraphEditorNode Task="{Binding}">
                             <local:GraphEditorNode.InputBindings>
                                 <MouseBinding

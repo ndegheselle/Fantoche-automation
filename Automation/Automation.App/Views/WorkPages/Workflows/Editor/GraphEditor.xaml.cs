@@ -27,7 +27,17 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
         {
             if (data == null)
                 return;
-           // TODO : convert to workflow, task or control based on the task type _editor.Nodes.AddCommand.Execute(new GraphTask(data) { Position = _editor.Ui.GetPositionInside(e) });
+
+            BaseGraphTask graphTask = data switch
+            {
+                _ when data is AutomationWorkflow task => new GraphWorkflow(task),
+                _ when data is AutomationControl task => new GraphControl(task),
+                _ when data is AutomationTask task => new GraphTask(task),
+                _ => throw new NotImplementedException(),
+            };
+            graphTask.Position = _editor.Ui.GetPositionInside(e);
+
+            _editor.Nodes.AddCommand.Execute(graphTask);
         }
     }
 

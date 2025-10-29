@@ -62,12 +62,12 @@ namespace Automation.Worker.Service
 
             instance.State = EnumTaskState.Progressing;
             instance.StartedAt = DateTime.UtcNow;
-            await _instanceRepo.UpdateAsync(instance.Id, instance);
+            await _instanceRepo.ReplaceAsync(instance.Id, instance);
 
             instance = await _executor.ExecuteAsync(instance);
 
             instance.FinishedAt = DateTime.UtcNow;
-            await _instanceRepo.UpdateAsync(instance.Id, instance);
+            await _instanceRepo.ReplaceAsync(instance.Id, instance);
         }
     }
 }

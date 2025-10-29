@@ -30,7 +30,7 @@ namespace Automation.Worker.Executor
         {
             WorkerInstance selectedWorker = await SelectWorkerAsync();
             instance.WorkerId = selectedWorker.Id;
-            Guid instanceId = await _instanceRepo.CreateOrUpdateAsync(instance);
+            Guid instanceId = await _instanceRepo.CreateOrReplaceAsync(instance);
             _realtime.Workers.ByWorker(selectedWorker.Id).Tasks.QueueAsync(instanceId);
             return instance;
         }

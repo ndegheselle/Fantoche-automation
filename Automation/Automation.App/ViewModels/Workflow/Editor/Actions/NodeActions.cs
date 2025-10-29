@@ -29,7 +29,7 @@ namespace Automation.App.ViewModels.Workflow.Editor.Actions
             _editor = editor;
             _history = history;
 
-            OpenCommand = new DelegateCommand<GraphTask>(Open);
+            OpenCommand = new DelegateCommand<BaseGraphTask>(Open);
             AddCommand = new DelegateCommand<GraphNode>(Add);
             RemoveCommand = new DelegateCommand<IEnumerable<GraphNode>>(Remove);
 
@@ -38,11 +38,20 @@ namespace Automation.App.ViewModels.Workflow.Editor.Actions
             _history.SetReverse(AddAllCommand, RemoveAllCommand);
         }
 
-        public void Open(GraphTask task)
+        public void Open(BaseGraphTask task)
         {
             if (task == null)
                 return;
-            _editor.Ui.Modal.Show(new TaskInputSetting(task));
+
+            // If the task is the start control task
+            if (task is GraphControl control && control.TaskId == AutomationControl.StartTaskId)
+            {
+                _editor.Ui.Modal.Show(new WorkflowSchemaModal(_editor.Ui.Workflow));
+            }
+            else
+            {
+                _editor.Ui.Modal.Show(new TaskInputSettingModal(task));
+            }
         }
 
         public void Add(GraphNode node) { AddAllCommand.Execute(new NodeModifyContext() { Nodes = [node] }); }

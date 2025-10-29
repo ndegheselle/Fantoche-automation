@@ -39,7 +39,7 @@ namespace Automation.Supervisor.Api.Controllers
         [Route("{id}")]
         public virtual async Task UpdateAsync([FromRoute] Guid id, [FromBody] T element)
         {
-            await _crudRepository.UpdateAsync(id, element);
+            await _crudRepository.ReplaceAsync(id, element);
         }
 
         [HttpDelete]

@@ -21,7 +21,7 @@ namespace Automation.Models.Work
         public Size Size { get; set; }
     }
 
-    public class GraphTask : GraphNode
+    public class BaseGraphTask : GraphNode
     {
         public new string Name { get => Metadata.Name; set => Metadata.Name = value; }
         public ScopedMetadata Metadata { get; set; } = new ScopedMetadata();
@@ -49,30 +49,36 @@ namespace Automation.Models.Work
         }
         public string? OutputSchemaJson { get; set; }
 
-        public GraphTask()
-        {}
+        public BaseGraphTask()
+        { }
 
-        public GraphTask(BaseAutomationTask task)
+        public BaseGraphTask(BaseAutomationTask task)
         {
             TaskId = task.Id;
             Metadata = task.Metadata;
 
             InputSchema = task.InputSchema;
             OutputSchema = task.OutputSchema;
-            Inputs = task.InputSchema == null ? [] : [new GraphConnector(this)] ;
+            Inputs = task.InputSchema == null ? [] : [new GraphConnector(this)];
             Outputs = task.OutputSchema == null ? [] : [new GraphConnector(this)];
         }
     }
 
-    public class GraphControl : GraphTask
+    public class GraphTask : BaseGraphTask
     {
-        public GraphControl(BaseAutomationTask task) : base(task)
-        {}
+        public GraphTask(AutomationTask task) : base(task)
+        { }
     }
 
-    public class GraphWorkflow : GraphTask
+    public class GraphControl : BaseGraphTask
     {
-        public GraphWorkflow(BaseAutomationTask task) : base(task)
+        public GraphControl(AutomationControl task) : base(task)
+        { }
+    }
+
+    public class GraphWorkflow : BaseGraphTask
+    {
+        public GraphWorkflow(AutomationWorkflow task) : base(task)
         { }
     }
 
@@ -82,9 +88,9 @@ namespace Automation.Models.Work
         [JsonIgnore]
         public bool IsConnected { get; set; }
         [JsonIgnore]
-        public GraphTask? Parent { get; set; }
+        public BaseGraphTask? Parent { get; set; }
 
-        public GraphConnector(GraphTask? parent)
+        public GraphConnector(BaseGraphTask parent)
         {
             Parent = parent;
         }

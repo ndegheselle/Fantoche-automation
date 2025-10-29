@@ -44,6 +44,15 @@ namespace Automation.Models.Work
     public class AutomationControl : AutomationTask
     {
         /// <summary>
+        /// Id of the start task.
+        /// </summary>
+        public static readonly Guid StartTaskId = Guid.Parse("00000000-0000-0000-0000-100000000001");
+        /// <summary>
+        /// Id of the end task.
+        /// </summary>
+        public static readonly Guid EndTaskId = Guid.Parse("00000000-0000-0000-0000-100000000002");
+
+        /// <summary>
         /// Type of the class that the target point on
         /// </summary>
         [JsonIgnore]

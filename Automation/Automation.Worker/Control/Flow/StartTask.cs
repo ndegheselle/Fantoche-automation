@@ -11,7 +11,7 @@ namespace Automation.Worker.Control.Flow
         public static readonly AutomationControl AutomationTask =
             new AutomationControl(typeof(StartTask))
             {
-                Id = Guid.Parse("00000000-0000-0000-0000-100000000002"),
+                Id = AutomationControl.StartTaskId,
                 Metadata = new ScopedMetadata(EnumScopedType.Task) { Name = "Start", Icon = "\uE3D2", IsReadOnly = true },
                 InputSchema = null,
                 // The workflow setting will set a custom schema

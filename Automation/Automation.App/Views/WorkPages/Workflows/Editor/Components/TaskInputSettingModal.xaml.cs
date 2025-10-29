@@ -6,14 +6,14 @@ using Usuel.Shared;
 namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
 {
     /// <summary>
-    /// Logique d'interaction pour TaskInputSetting.xaml
+    /// Logique d'interaction pour TaskInputSettingModal.xaml
     /// </summary>
-    public partial class TaskInputSetting : UserControl, IModalContent
+    public partial class TaskInputSettingModal : UserControl, IModalContent
     {
         public ModalOptions Options { get; private set; } = new ModalOptions();
         public IModal? ParentLayout { get; set; }
 
-        public GraphTask Task { get; private set; }
+        public BaseGraphTask Task { get; private set; }
 
         public ICustomCommand CancelCommand { get; private set; }
         public ICustomCommand ValidateCommand { get; private set; }
@@ -21,7 +21,7 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
         private IAlert _alert => this.GetCurrentAlert();
         private readonly string? _originalSettings;
 
-        public TaskInputSetting(GraphTask task) {
+        public TaskInputSettingModal(BaseGraphTask task) {
             Task = task;
             _originalSettings = Task.InputJson;
 
@@ -30,7 +30,7 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
 
             Options.Title = $"{Task.Name} - settings";
             CancelCommand = new DelegateCommand(Cancel);
-            ValidateCommand = new DelegateCommand(Validate);
+            ValidateCommand = new DelegateCommand(Validate, () => string.IsNullOrEmpty(Task.InputJson) == false);
             InitializeComponent();
         }
 
@@ -45,9 +45,22 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
             if (string.IsNullOrEmpty(Task.InputJson))
                 return;
 
-            Task.InputSchema?.Validate(Task.InputJson);
+            var errors = Task.InputSchema?.Validate(Task.InputJson);
+            if (errors?.Count > 0)
+            {
+                _alert.Error("The task settings doesn't correspond to the task schema.");
+                return;
+            }
+
             _alert.Success("Settings changed !");
             ParentLayout?.Hide(true);
         }
+
+        #region UI events
+        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            ValidateCommand.RaiseCanExecuteChanged();
+        }
+        #endregion
     }
 }

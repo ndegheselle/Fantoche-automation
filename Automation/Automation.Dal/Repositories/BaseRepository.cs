@@ -20,7 +20,7 @@ namespace Automation.Dal.Repositories
         }
     }
 
-    // TODO : use soft deletion and history (userId, createdAt, updatedAt, deletedAt)
+    // XXX : may want to use soft deletion and history (userId, createdAt, updatedAt, deletedAt)
     public class BaseCrudRepository<T> : BaseRepository<T> where T : IIdentifier
     {
         public BaseCrudRepository(DatabaseConnection connection, string collectionName) : base(connection, collectionName)
@@ -43,7 +43,7 @@ namespace Automation.Dal.Repositories
             return element.Id;
         }
 
-        public virtual async Task<Guid> CreateOrUpdateAsync(T element)
+        public virtual async Task<Guid> CreateOrReplaceAsync(T element)
         {
             if (element.Id == Guid.Empty)
             {
@@ -55,7 +55,7 @@ namespace Automation.Dal.Repositories
             return element.Id;
         }
 
-        public virtual async Task UpdateAsync(Guid id, T element)
+        public virtual async Task ReplaceAsync(Guid id, T element)
         {
             await _collection.ReplaceOneAsync(e => e.Id == id, element);
         }
