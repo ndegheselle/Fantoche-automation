@@ -45,6 +45,7 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
             if (string.IsNullOrEmpty(Task.InputJson))
                 return;
 
+            // TODO : before validate the context references should be modified
             var errors = Task.InputSchema?.Validate(Task.InputJson);
             if (errors?.Count > 0)
             {
