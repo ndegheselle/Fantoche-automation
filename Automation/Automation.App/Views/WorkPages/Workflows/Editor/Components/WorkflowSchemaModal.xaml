@@ -21,10 +21,9 @@
             AcceptsReturn="True"
             AcceptsTab="True"
             FontFamily="Courier New"
-            IsReadOnly="True"
-            Text="{Binding WorkflowSchemaSample, Mode=TwoWay}"
+            Text="{Binding WorkflowSchemaSample, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
             TextWrapping="Wrap"
-            TextChanged="TextBox_TextChanged"/>
+            TextChanged="TextBox_TextChanged" />
 
         <StackPanel
             Orientation="Horizontal"

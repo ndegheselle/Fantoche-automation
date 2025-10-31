@@ -12,13 +12,13 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
         public static readonly DependencyProperty TaskProperty =
             DependencyProperty.Register(
             nameof(Task),
-            typeof(GraphTask),
+            typeof(BaseGraphTask),
             typeof(GraphEditorNode),
             new PropertyMetadata(null));
 
-        public GraphTask Task
+        public BaseGraphTask Task
         {
-            get { return (GraphTask)GetValue(TaskProperty); }
+            get { return (BaseGraphTask)GetValue(TaskProperty); }
             set { SetValue(TaskProperty, value); }
         }
 

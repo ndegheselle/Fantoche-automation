@@ -44,7 +44,7 @@ namespace Automation.Worker.Executor
             return instance;
         }
 
-        private async Task ExecuteNodeAsync(GraphTask node, Graph graph, TaskInstance workflowInstance)
+        private async Task ExecuteNodeAsync(BaseGraphTask node, Graph graph, TaskInstance workflowInstance)
         {
             SubTaskInstance instance = new SubTaskInstance(workflowInstance.Id, node, null);
 
@@ -65,7 +65,7 @@ namespace Automation.Worker.Executor
                 await ExecuteNextAsync(node, graph, workflowInstance);
         }
 
-        private async Task ExecuteNextAsync(GraphTask node, Graph graph, TaskInstance workflowInstance)
+        private async Task ExecuteNextAsync(BaseGraphTask node, Graph graph, TaskInstance workflowInstance)
         {
             var nextConnections = graph.Connections.Where(x => x.Source?.Parent == node);
             foreach (var connection in nextConnections)

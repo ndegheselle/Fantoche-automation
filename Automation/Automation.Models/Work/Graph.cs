@@ -66,18 +66,27 @@ namespace Automation.Models.Work
 
     public class GraphTask : BaseGraphTask
     {
+        public GraphTask() 
+        { }
+
         public GraphTask(AutomationTask task) : base(task)
         { }
     }
 
     public class GraphControl : BaseGraphTask
     {
+        public GraphControl()
+        { }
+
         public GraphControl(AutomationControl task) : base(task)
         { }
     }
 
     public class GraphWorkflow : BaseGraphTask
     {
+        public GraphWorkflow()
+        { }
+
         public GraphWorkflow(AutomationWorkflow task) : base(task)
         { }
     }
@@ -144,7 +153,7 @@ namespace Automation.Models.Work
             Dictionary<Guid, GraphConnector> connectors = new Dictionary<Guid, GraphConnector>();
             foreach (var node in Nodes)
             {
-                if (node is GraphTask taskNode)
+                if (node is BaseGraphTask taskNode)
                 {
                     foreach (var connector in taskNode.Inputs)
                     {

@@ -1,4 +1,5 @@
 ﻿using Automation.Models.Work;
+using Automation.Shared.Data;
 using Joufflu.Popups;
 using System.Windows.Controls;
 using Usuel.Shared;
@@ -46,7 +47,9 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
                 return;
 
             // TODO : before validate the context references should be modified
-            var errors = Task.InputSchema?.Validate(Task.InputJson);
+
+            string contextualizedInput = ContextHandler.ReplaceContext(Task.InputJson, "");
+            var errors = Task.InputSchema?.Validate(contextualizedInput);
             if (errors?.Count > 0)
             {
                 _alert.Error("The task settings doesn't correspond to the task schema.");

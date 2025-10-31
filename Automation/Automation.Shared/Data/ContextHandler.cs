@@ -1,27 +1,25 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Collections.Specialized.BitVector32;
+﻿using Newtonsoft.Json.Linq;
 
 namespace Automation.Shared.Data
 {
-    internal class ContextHandler
+    public class ContextHandler
     {
         public const string REFERENCE_IDENTIFIER = "$";
 
-        public void ReplaceContext(string settingJson, string contextJson)
+        public static string ReplaceContext(string settingJson, string contextJson)
         {
+            if (string.IsNullOrEmpty(settingJson) || string.IsNullOrEmpty(contextJson))
+                return settingJson;
+
             JToken setting = JToken.Parse(settingJson);
             JToken context = JToken.Parse(contextJson);
 
             Crawl(setting, context);
+
+            return setting.ToString();
         }
 
-        private void Crawl(JToken token, JToken context)
+        private static void Crawl(JToken token, JToken context)
         {
             if (token.Type == JTokenType.String)
             {

@@ -42,7 +42,7 @@ namespace Automation.Models.Work
         public Guid WorkflowInstanceId { get; set; }
         public Guid GraphNodeId { get; set; }
 
-        public SubTaskInstance(Guid workflowInstanceId, GraphTask node, object parameters) : base(node.TaskId, parameters)
+        public SubTaskInstance(Guid workflowInstanceId, BaseGraphTask node, object parameters) : base(node.TaskId, parameters)
         {
             WorkflowInstanceId = workflowInstanceId;
             GraphNodeId = node.Id;

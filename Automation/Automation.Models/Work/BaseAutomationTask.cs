@@ -1,4 +1,5 @@
 ﻿using Automation.Shared.Data;
+using Newtonsoft.Json.Linq;
 using NJsonSchema;
 using System.Text.Json.Serialization;
 
@@ -66,7 +67,28 @@ namespace Automation.Models.Work
     public class AutomationWorkflow : BaseAutomationTask
     {
         public Graph Graph { get; set; } = new Graph();
+
+        /// <summary>
+        /// Schema of all the shared data in the workflow
+        /// </summary>
+        [JsonIgnore]
+        public JsonSchema? WorkflowSchema
+        {
+            get => WorkflowSchemaJson == null ? null : JsonSchema.FromJsonAsync(WorkflowSchemaJson).Result;
+            set => WorkflowSchemaJson = value == null ? null : value.ToJson();
+        }
+        public string? WorkflowSchemaJson { get; set; }
+
         public AutomationWorkflow() : base(EnumScopedType.Workflow)
         {}
+
+        /// <summary>
+        /// Generate a sample of the context based on the previous tasks
+        /// </summary>
+        /// <param name="task"></param>
+        public void GetContextSampleFor(GraphTask task)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

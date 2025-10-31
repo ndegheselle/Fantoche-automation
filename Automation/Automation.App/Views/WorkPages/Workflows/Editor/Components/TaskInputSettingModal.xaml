@@ -21,7 +21,6 @@
             AcceptsReturn="True"
             AcceptsTab="True"
             FontFamily="Courier New"
-            IsReadOnly="True"
             Text="{Binding Task.InputJson, Mode=TwoWay}"
             TextWrapping="Wrap"
             TextChanged="TextBox_TextChanged"/>

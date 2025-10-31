@@ -33,7 +33,7 @@ services:
 
   mongo:
     restart: always
-    image: mongo:latest
+    image: mongo:8.0
     container_name: mongodb-container
     command: mongod --auth --bind_ip_all
     ports:
