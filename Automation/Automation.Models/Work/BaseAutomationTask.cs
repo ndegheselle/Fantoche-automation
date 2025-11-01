@@ -1,6 +1,7 @@
 ﻿using Automation.Shared.Data;
 using Newtonsoft.Json.Linq;
 using NJsonSchema;
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace Automation.Models.Work
@@ -83,12 +84,28 @@ namespace Automation.Models.Work
         {}
 
         /// <summary>
-        /// Generate a sample of the context based on the previous tasks
+        /// Generate a sample of the contexts based on the previous tasks.
         /// </summary>
         /// <param name="task"></param>
-        public void GetContextSampleFor(GraphTask task)
+        public List<string?> GetContextSampleFor(BaseGraphTask task)
         {
-            throw new NotImplementedException();
+            var previousTasks = Graph.GetPreviousFrom(task);
+
+            List<string?> contexts = [];
+            if (task.Settings.WaitAll)
+            {
+                JObject jToken = new JObject();
+                foreach (var previousTask in previousTasks)
+                {
+                    jToken[previousTask.Name] = previousTask.OutputSchema?.ToSampleJson();
+                }
+                contexts.Add(jToken.ToString());
+            }
+            else
+            {
+                contexts = previousTasks.Select(x => x.OutputSchema?.ToSampleJson().ToString()).ToList();
+            }
+            return contexts;
         }
     }
 }

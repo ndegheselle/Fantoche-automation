@@ -62,7 +62,7 @@ namespace Automation.App.ViewModels.Workflow.Editor.Actions
                 new NodeModifyContext()
                 {
                     Nodes = nodes,
-                    Connections = nodes.OfType<GraphTask>().SelectMany(_editor.Connections.GetFrom)
+                    Connections = nodes.OfType<GraphTask>().SelectMany(_editor.Graph.GetConnectionsFrom)
                 });
         }
 

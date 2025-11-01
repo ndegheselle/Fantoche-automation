@@ -3,6 +3,7 @@ using NJsonSchema;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 
 namespace Automation.Models.Work
 {
@@ -21,6 +22,11 @@ namespace Automation.Models.Work
         public Size Size { get; set; }
     }
 
+    public class GraphTaskSetting
+    {
+        public bool WaitAll { get; set; } = false;
+    }
+
     public class BaseGraphTask : GraphNode
     {
         public new string Name { get => Metadata.Name; set => Metadata.Name = value; }
@@ -32,6 +38,7 @@ namespace Automation.Models.Work
         public List<GraphConnector> Outputs { get; set; } = [];
 
         public string? InputJson { get; set; }
+        public GraphTaskSetting Settings { get; private set; } = new GraphTaskSetting();
 
         [JsonIgnore]
         public JsonSchema? InputSchema
@@ -177,6 +184,62 @@ namespace Automation.Models.Work
             }
 
             _isRefreshed = true;
+        }
+
+        public IEnumerable<BaseGraphTask> GetPreviousFrom(BaseGraphTask task)
+        {
+            var connections = GetInputsConnectionsFrom(task);
+            return connections.Select(x => x.Source!.Parent!);
+        }
+
+        /// <summary>
+        /// Get all the connections linked to a task.
+        /// </summary>
+        /// <param name="task"></param>
+        /// <returns></returns>
+        public IEnumerable<GraphConnection> GetConnectionsFrom(BaseGraphTask task)
+        {
+            List<GraphConnection> connections = [];
+            connections.AddRange(GetInputsConnectionsFrom(task));
+            connections.AddRange(GetOutputsConnectionsFrom(task));
+            return connections;
+        }
+
+
+        /// <summary>
+        /// Get all the input connections linked to a task.
+        /// </summary>
+        /// <param name="connector"></param>
+        /// <returns></returns>
+        public IEnumerable<GraphConnection> GetInputsConnectionsFrom(BaseGraphTask task)
+        {
+            List<GraphConnection> connections = [];
+            foreach (var input in task.Inputs)
+                connections.AddRange(GetConnectionsFrom(input));
+            return connections;
+        }
+
+        /// <summary>
+        /// Get all the output connections linked to a task.
+        /// </summary>
+        /// <param name="connector"></param>
+        /// <returns></returns>
+        public IEnumerable<GraphConnection> GetOutputsConnectionsFrom(BaseGraphTask task)
+        {
+            List<GraphConnection> connections = [];
+            foreach (var input in task.Outputs)
+                connections.AddRange(GetConnectionsFrom(input));
+            return connections;
+        }
+
+        /// <summary>
+        /// Get all the connections linked to a connector.
+        /// </summary>
+        /// <param name="connector"></param>
+        /// <returns></returns>
+        public IEnumerable<GraphConnection> GetConnectionsFrom(GraphConnector connector)
+        {
+            return Connections.Where(x => x.SourceId == connector.Id || x.TargetId == connector.Id);
         }
     }
 }

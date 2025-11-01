@@ -38,30 +38,15 @@ namespace Automation.App.ViewModels.Workflow.Editor.Actions
             {
                 _editor.Graph.Connections.Remove(connection);
                 // Refresh connector
-                connection.Source!.IsConnected = GetFrom(connection.Source).Any();
-                connection.Target!.IsConnected = GetFrom(connection.Target).Any();
+                connection.Source!.IsConnected = _editor.Graph.GetConnectionsFrom(connection.Source).Any();
+                connection.Target!.IsConnected = _editor.Graph.GetConnectionsFrom(connection.Target).Any();
             }
         }
 
         public void Disconnect(GraphTask task)
         {
-            var connections = GetFrom(task);
+            var connections = _editor.Graph.GetConnectionsFrom(task);
             Disconnect(connections);
-        }
-
-        public IEnumerable<GraphConnection> GetFrom(GraphTask task)
-        {
-            List<GraphConnection> connections = [];
-            foreach (var input in task.Inputs)
-                connections.AddRange(GetFrom(input));
-            foreach (var output in task.Outputs)
-                connections.AddRange(GetFrom(output));
-            return connections;
-        }
-
-        public IEnumerable<GraphConnection> GetFrom(GraphConnector connector)
-        {
-            return _editor.Graph.Connections.Where(x => x.SourceId == connector.Id || x.TargetId == connector.Id);
         }
     }
 }
