@@ -87,23 +87,31 @@ namespace Automation.Models.Work
         /// Generate a sample of the contexts based on the previous tasks.
         /// </summary>
         /// <param name="task"></param>
-        public List<string?> GetContextSampleFor(BaseGraphTask task)
+        public List<string?> GetInputSampleFor(BaseGraphTask task)
         {
             var previousTasks = Graph.GetPreviousFrom(task);
 
             List<string?> contexts = [];
             if (task.Settings.WaitAll)
             {
-                JObject jToken = new JObject();
+                JObject context = new JObject();
+                JObject previous = new JObject();
+                context["previous"] = previous;
                 foreach (var previousTask in previousTasks)
                 {
-                    jToken[previousTask.Name] = previousTask.OutputSchema?.ToSampleJson();
+                    previous[previousTask.Name] = previousTask.OutputSchema?.ToSampleJson();
                 }
-                contexts.Add(jToken.ToString());
+                contexts.Add(context.ToString());
             }
             else
             {
-                contexts = previousTasks.Select(x => x.OutputSchema?.ToSampleJson().ToString()).ToList();
+                // XXX : maybe group by TaskId ?
+                foreach (var previousTask in previousTasks)
+                {
+                    JObject context = new JObject();
+                    context["previous"] = previousTask.OutputSchema?.ToSampleJson();
+                    contexts.Add(context.ToString());
+                }
             }
             return contexts;
         }

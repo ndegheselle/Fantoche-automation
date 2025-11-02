@@ -5,25 +5,95 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     mc:Ignorable="d"
-    MinHeight="300"
-    MinWidth="300"
+    MinHeight="500"
+    MinWidth="600"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     x:Name="ContainerElement">
+    <UserControl.Resources>
+        <Style
+            x:Key="CodeTextBox"
+            TargetType="TextBox"
+            BasedOn="{StaticResource {x:Type TextBox}}">
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+            <Setter Property="VerticalContentAlignment" Value="Top" />
+            <Setter Property="AcceptsReturn" Value="True" />
+            <Setter Property="AcceptsTab" Value="True" />
+            <Setter Property="IsReadOnly" Value="True" />
+            <Setter Property="FontFamily" Value="Consolas" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+    </UserControl.Resources>
     <Grid DataContext="{Binding ElementName=ContainerElement}" Margin="2">
         <Grid.RowDefinitions>
             <RowDefinition />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
-        <TextBox
-            ScrollViewer.VerticalScrollBarVisibility="Auto"
-            VerticalContentAlignment="Top"
-            AcceptsReturn="True"
-            AcceptsTab="True"
-            FontFamily="Courier New"
-            Text="{Binding Task.InputJson, Mode=TwoWay}"
-            TextWrapping="Wrap"
-            TextChanged="TextBox_TextChanged"/>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto" />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+                <TextBlock FontWeight="Bold">Input sample</TextBlock>
+
+                <ItemsControl
+                    Grid.Row="1"
+                    ItemsSource="{Binding InputsSamplesJson}"
+                    Margin="0,4,0,0">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="1" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBox
+                                BorderThickness="1"
+                                Margin="0,2,0,0"
+                                IsReadOnly="True"
+                                Style="{StaticResource CodeTextBox}"
+                                Text="{Binding Mode=OneWay}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Grid>
+
+            <Grid Grid.Column="1" Margin="2,0,0,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="3*" />
+                </Grid.RowDefinitions>
+                <Expander>
+                    <Expander.Header>
+                        <TextBlock Text="Setting schema" FontWeight="Bold" />
+                    </Expander.Header>
+                    <TextBox
+                        Style="{StaticResource CodeTextBox}"
+                        MaxHeight="150"
+                        Text="{Binding Task.InputSchemaJson}" />
+                </Expander>
+
+                <TextBlock
+                    Margin="0,2,0,0"
+                    Grid.Row="1"
+                    FontWeight="Bold">
+                    Task settings
+                </TextBlock>
+                <TextBox
+                    Grid.Row="2"
+                    Style="{StaticResource CodeTextBox}"
+                    Text="{Binding Task.InputJson, Mode=TwoWay}"
+                    TextChanged="TextBox_TextChanged" />
+            </Grid>
+        </Grid>
+
 
         <StackPanel
             Orientation="Horizontal"

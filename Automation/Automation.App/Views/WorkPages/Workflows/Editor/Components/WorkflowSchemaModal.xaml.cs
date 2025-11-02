@@ -56,6 +56,7 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
                 foreach(var task in startTasks)
                 {
                     task.InputSchemaJson = Workflow.InputSchemaJson;
+                    task.OutputSchemaJson = Workflow.InputSchemaJson;
                 }
             }
             catch

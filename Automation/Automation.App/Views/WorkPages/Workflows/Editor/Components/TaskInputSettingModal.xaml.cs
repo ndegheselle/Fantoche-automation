@@ -15,6 +15,8 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
         public IModal? ParentLayout { get; set; }
 
         public BaseGraphTask Task { get; private set; }
+        public AutomationWorkflow Workflow { get; private set; }
+        public IEnumerable<string?> InputsSamplesJson { get; private set; }
 
         public ICustomCommand CancelCommand { get; private set; }
         public ICustomCommand ValidateCommand { get; private set; }
@@ -22,8 +24,10 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
         private IAlert _alert => this.GetCurrentAlert();
         private readonly string? _originalSettings;
 
-        public TaskInputSettingModal(BaseGraphTask task) {
+        public TaskInputSettingModal(BaseGraphTask task, AutomationWorkflow workflow) {
             Task = task;
+            Workflow = workflow;
+            InputsSamplesJson = Workflow.GetInputSampleFor(Task);
             _originalSettings = Task.InputJson;
 
             if (string.IsNullOrEmpty(Task.InputJson))
@@ -48,13 +52,18 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
 
             // TODO : before validate the context references should be modified
 
-            string contextualizedInput = ContextHandler.ReplaceContext(Task.InputJson, "");
-            var errors = Task.InputSchema?.Validate(contextualizedInput);
-            if (errors?.Count > 0)
+            foreach (var contextSample in InputsSamplesJson)
             {
-                _alert.Error("The task settings doesn't correspond to the task schema.");
-                return;
+                string contextualizedInput = ContextHandler.ReplaceContext(Task.InputJson, contextSample);
+                var errors = Task.InputSchema?.Validate(contextualizedInput);
+                if (errors?.Count > 0)
+                {
+                    _alert.Error("The task settings doesn't correspond to the task schema.");
+                    return;
+                }
             }
+
+
 
             _alert.Success("Settings changed !");
             ParentLayout?.Hide(true);

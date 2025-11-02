@@ -6,16 +6,15 @@ using NJsonSchema;
 
 namespace Automation.Worker.Control.Flow
 {
-    public class StartTask : BaseTask<WorkflowContext, EnumTaskState>, ITaskControl
+    public class EndTask : BaseTask<WorkflowContext, EnumTaskState>, ITaskControl
     {
         public static readonly AutomationControl AutomationTask =
             new AutomationControl(typeof(StartTask))
             {
-                Id = AutomationControl.StartTaskId,
-                Metadata = new ScopedMetadata(EnumScopedType.Task) { Tags=["Control"], Name = "Start", Icon = "\uE3D2", IsReadOnly = true },
-                InputSchema = null,
-                // The workflow setting will set a custom schema
-                OutputSchema = new JsonSchema(),
+                Id = AutomationControl.EndTaskId,
+                Metadata = new ScopedMetadata(EnumScopedType.Task) { Tags= ["Control"], Name = "End", Icon = "\uE244", IsReadOnly = true },
+                InputSchema = new JsonSchema(),
+                OutputSchema = null
             };
 
         public override Task<EnumTaskState> DoAsync(WorkflowContext parameters, IProgress<TaskNotification>? progress = null)

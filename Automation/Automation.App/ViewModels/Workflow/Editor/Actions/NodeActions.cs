@@ -50,7 +50,7 @@ namespace Automation.App.ViewModels.Workflow.Editor.Actions
             }
             else
             {
-                _editor.Ui.Modal.Show(new TaskInputSettingModal(task));
+                _editor.Ui.Modal.Show(new TaskInputSettingModal(task, _editor.Ui.Workflow));
             }
         }
 

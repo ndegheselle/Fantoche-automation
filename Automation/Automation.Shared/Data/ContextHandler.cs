@@ -6,7 +6,7 @@ namespace Automation.Shared.Data
     {
         public const string REFERENCE_IDENTIFIER = "$";
 
-        public static string ReplaceContext(string settingJson, string contextJson)
+        public static string ReplaceContext(string settingJson, string? contextJson)
         {
             if (string.IsNullOrEmpty(settingJson) || string.IsNullOrEmpty(contextJson))
                 return settingJson;

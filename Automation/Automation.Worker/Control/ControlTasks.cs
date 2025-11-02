@@ -21,6 +21,7 @@ namespace Automation.Worker.Control
         static ControlTasks()
         {
             Register<StartTask>(StartTask.AutomationTask);
+            Register<EndTask>(EndTask.AutomationTask);
         }
 
         public static AutomationControl Register<T>(AutomationControl task) where T : ITaskControl

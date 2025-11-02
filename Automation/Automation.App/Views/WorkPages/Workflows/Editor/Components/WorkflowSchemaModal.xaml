@@ -9,6 +9,20 @@
     MinWidth="300"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     x:Name="ContainerElement">
+    <UserControl.Resources>
+        <Style
+            x:Key="CodeTextBox"
+            TargetType="TextBox"
+            BasedOn="{StaticResource {x:Type TextBox}}">
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+            <Setter Property="VerticalContentAlignment" Value="Top" />
+            <Setter Property="AcceptsReturn" Value="True" />
+            <Setter Property="AcceptsTab" Value="True" />
+            <Setter Property="IsReadOnly" Value="True" />
+            <Setter Property="FontFamily" Value="Consolas" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+    </UserControl.Resources>
     <Grid DataContext="{Binding ElementName=ContainerElement}" Margin="2">
         <Grid.RowDefinitions>
             <RowDefinition />
@@ -16,13 +30,8 @@
         </Grid.RowDefinitions>
 
         <TextBox
-            ScrollViewer.VerticalScrollBarVisibility="Auto"
-            VerticalContentAlignment="Top"
-            AcceptsReturn="True"
-            AcceptsTab="True"
-            FontFamily="Courier New"
+            Style="{StaticResource CodeTextBox}"
             Text="{Binding WorkflowSchemaSample, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-            TextWrapping="Wrap"
             TextChanged="TextBox_TextChanged" />
 
         <StackPanel
