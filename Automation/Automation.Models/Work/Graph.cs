@@ -260,7 +260,7 @@ namespace Automation.Models.Work
         /// </summary>
         /// <param name="connector"></param>
         /// <returns></returns>
-        private IEnumerable<GraphConnection> GetConnectionsFrom(GraphConnector connector)
+        public IEnumerable<GraphConnection> GetConnectionsFrom(GraphConnector connector)
         {
             return Connections.Where(x => x.SourceId == connector.Id || x.TargetId == connector.Id);
         }
