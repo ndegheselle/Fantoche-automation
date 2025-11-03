@@ -54,7 +54,7 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
 
             foreach (var contextSample in InputsSamplesJson)
             {
-                string contextualizedInput = ContextHandler.ReplaceContext(Task.InputJson, contextSample);
+                string contextualizedInput = ContextHandler.ReplaceReferences(Task.InputJson, contextSample);
                 var errors = Task.InputSchema?.Validate(contextualizedInput);
                 if (errors?.Count > 0)
                 {
