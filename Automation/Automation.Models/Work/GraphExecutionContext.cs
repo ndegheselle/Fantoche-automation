@@ -56,8 +56,7 @@ namespace Automation.Models.Work
         /// <exception cref="NotImplementedException"></exception>
         public void GetContextFor(BaseGraphTask task)
         {
-            // TODO : add instance of the previous task in parameter
-            throw new NotImplementedException();
+            throw new NotImplementedException("Add instance of the previous task in parameter");
         }
         
         /// <summary>
@@ -65,8 +64,7 @@ namespace Automation.Models.Work
         /// </summary>
         public void GetOutputSchemaFor()
         {
-            // TODO : join all the end control task previous Schema (handle previous task as well)
-            throw new NotImplementedException();
+            throw new NotImplementedException("Join all the end control task previous Schema (handle previous task as well)");
         }
         
         #endregion

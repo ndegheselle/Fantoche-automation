@@ -1,8 +1,15 @@
 #See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
 
 FROM mcr.microsoft.com/dotnet/runtime:9.0 AS base
-USER app
 WORKDIR /app
+
+# Create .nuget directory with proper permissions BEFORE switching to app user
+USER root
+RUN mkdir -p /home/app/.nuget/NuGet && \
+    chown -R app:app /home/app/.nuget && \
+    chmod -R 755 /home/app/.nuget
+
+USER app
 
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release

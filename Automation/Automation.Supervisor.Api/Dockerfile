@@ -1,6 +1,13 @@
 #See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
 
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+
+# Create .nuget directory with proper permissions BEFORE switching to app user
+USER root
+RUN mkdir -p /home/app/.nuget/NuGet && \
+    chown -R app:app /home/app/.nuget && \
+    chmod -R 755 /home/app/.nuget
+
 USER app
 WORKDIR /app
 
@@ -20,5 +27,4 @@ RUN dotnet publish "./Automation.Supervisor.Api.csproj" -c $BUILD_CONFIGURATION 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-COPY .env .
 ENTRYPOINT ["dotnet", "Automation.Supervisor.Api.dll"]
