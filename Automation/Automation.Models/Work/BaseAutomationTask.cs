@@ -82,38 +82,5 @@ namespace Automation.Models.Work
 
         public AutomationWorkflow() : base(EnumScopedType.Workflow)
         {}
-
-        /// <summary>
-        /// Generate a sample of the contexts based on the previous tasks.
-        /// </summary>
-        /// <param name="task"></param>
-        public List<string?> GetInputSampleFor(BaseGraphTask task)
-        {
-            var previousTasks = Graph.GetPreviousFrom(task);
-
-            List<string?> contexts = [];
-            if (task.Settings.WaitAll)
-            {
-                JObject context = new JObject();
-                JObject previous = new JObject();
-                context["previous"] = previous;
-                foreach (var previousTask in previousTasks)
-                {
-                    previous[previousTask.Name] = previousTask.OutputSchema?.ToSampleJson();
-                }
-                contexts.Add(context.ToString());
-            }
-            else
-            {
-                // XXX : maybe group by TaskId ?
-                foreach (var previousTask in previousTasks)
-                {
-                    JObject context = new JObject();
-                    context["previous"] = previousTask.OutputSchema?.ToSampleJson();
-                    contexts.Add(context.ToString());
-                }
-            }
-            return contexts;
-        }
     }
 }

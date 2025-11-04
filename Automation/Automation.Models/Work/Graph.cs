@@ -3,13 +3,12 @@ using NJsonSchema;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 
 namespace Automation.Models.Work
 {
     [JsonDerivedType(typeof(GraphTask), "task")]
     [JsonDerivedType(typeof(GraphGroup), "group")]
-    [JsonDerivedType(typeof(GraphWorkflow), "worklfow")]
+    [JsonDerivedType(typeof(GraphWorkflow), "workflow")]
     [JsonDerivedType(typeof(GraphControl), "control")]
     public partial class GraphNode
     {
@@ -29,7 +28,12 @@ namespace Automation.Models.Work
 
     public class BaseGraphTask : GraphNode
     {
-        public new string Name { get => Metadata.Name; set => Metadata.Name = value; }
+        public new string Name
+        {
+            get => Metadata.Name;
+            set => Metadata.Name = value;
+        }
+
         public ScopedMetadata Metadata { get; set; } = new ScopedMetadata();
 
         public Guid TaskId { get; set; }
@@ -44,20 +48,23 @@ namespace Automation.Models.Work
         public JsonSchema? InputSchema
         {
             get => InputSchemaJson == null ? null : JsonSchema.FromJsonAsync(InputSchemaJson).Result;
-            set => InputSchemaJson = value == null ? null : value.ToJson();
+            set => InputSchemaJson = value?.ToJson();
         }
+
         public string? InputSchemaJson { get; set; }
 
         [JsonIgnore]
         public JsonSchema? OutputSchema
         {
             get => OutputSchemaJson == null ? null : JsonSchema.FromJsonAsync(OutputSchemaJson).Result;
-            set => OutputSchemaJson = value == null ? null : value.ToJson();
+            set => OutputSchemaJson = value?.ToJson();
         }
+
         public string? OutputSchemaJson { get; set; }
 
         public BaseGraphTask()
-        { }
+        {
+        }
 
         public BaseGraphTask(BaseAutomationTask task)
         {
@@ -73,38 +80,42 @@ namespace Automation.Models.Work
 
     public class GraphTask : BaseGraphTask
     {
-        public GraphTask() 
-        { }
+        public GraphTask()
+        {
+        }
 
         public GraphTask(AutomationTask task) : base(task)
-        { }
+        {
+        }
     }
 
     public class GraphControl : BaseGraphTask
     {
         public GraphControl()
-        { }
+        {
+        }
 
         public GraphControl(AutomationControl task) : base(task)
-        { }
+        {
+        }
     }
 
     public class GraphWorkflow : BaseGraphTask
     {
         public GraphWorkflow()
-        { }
+        {
+        }
 
         public GraphWorkflow(AutomationWorkflow task) : base(task)
-        { }
+        {
+        }
     }
 
     public partial class GraphConnector
     {
         public Guid Id { get; set; } = Guid.NewGuid();
-        [JsonIgnore]
-        public bool IsConnected { get; set; }
-        [JsonIgnore]
-        public BaseGraphTask? Parent { get; set; }
+        [JsonIgnore] public bool IsConnected { get; set; }
+        [JsonIgnore] public BaseGraphTask? Parent { get; set; }
 
         public GraphConnector(BaseGraphTask parent)
         {
@@ -117,13 +128,12 @@ namespace Automation.Models.Work
         public Guid SourceId { get; set; }
         public Guid TargetId { get; set; }
 
-        [JsonIgnore]
-        public GraphConnector? Source { get; set; }
-        [JsonIgnore]
-        public GraphConnector? Target { get; set; }
+        [JsonIgnore] public GraphConnector? Source { get; set; }
+        [JsonIgnore] public GraphConnector? Target { get; set; }
 
         public GraphConnection()
-        { }
+        {
+        }
 
         public GraphConnection(GraphConnector source, GraphConnector target)
         {
@@ -146,7 +156,15 @@ namespace Automation.Models.Work
         public ObservableCollection<GraphConnection> Connections { get; set; } = [];
         public ObservableCollection<GraphNode> Nodes { get; set; } = [];
 
-        private bool _isRefreshed = false;
+        private bool _isRefreshed;
+
+        [JsonIgnore] public GraphExecutionContext Execution { get; private set; }
+
+        public Graph()
+        {
+            Execution = new GraphExecutionContext(this);
+        }
+
         /// <summary>
         /// Refresh parent and object references between TaskNode, Connection and Connectors.
         /// Simplify the graph resolution.
@@ -154,38 +172,46 @@ namespace Automation.Models.Work
         /// <param name="force">Force the refresh even if the graph is already refreshed.</param>
         public void Refresh(bool force = false)
         {
-            if (_isRefreshed == true && force != true)
+            if (_isRefreshed && !force)
                 return;
 
-            Dictionary<Guid, GraphConnector> connectors = new Dictionary<Guid, GraphConnector>();
-            foreach (var node in Nodes)
+            var connectors = new Dictionary<Guid, GraphConnector>();
+            foreach (GraphNode node in Nodes)
             {
-                if (node is BaseGraphTask taskNode)
+                if (node is not BaseGraphTask taskNode)
+                    continue;
+
+                foreach (GraphConnector connector in taskNode.Inputs)
                 {
-                    foreach (var connector in taskNode.Inputs)
-                    {
-                        connectors.Add(connector.Id, connector);
-                        connector.Parent = taskNode;
-                    }
-                    foreach (var connector in taskNode.Outputs)
-                    {
-                        connectors.Add(connector.Id, connector);
-                        connector.Parent = taskNode;
-                    }
+                    connectors.Add(connector.Id, connector);
+                    connector.Parent = taskNode;
+                }
+
+                foreach (GraphConnector connector in taskNode.Outputs)
+                {
+                    connectors.Add(connector.Id, connector);
+                    connector.Parent = taskNode;
                 }
             }
 
             // Set connections with corresponding connectors
-            foreach (var connection in Connections)
+            foreach (GraphConnection connection in Connections)
             {
-                var source = connectors[connection.SourceId];
-                var target = connectors[connection.TargetId];
+                GraphConnector source = connectors[connection.SourceId];
+                GraphConnector target = connectors[connection.TargetId];
                 connection.Connect(source, target);
             }
 
             _isRefreshed = true;
         }
 
+        #region Connections
+
+        /// <summary>
+        /// Get all previous tasks.
+        /// </summary>
+        /// <param name="task">Task to get the previous tasks from</param>
+        /// <returns></returns>
         public IEnumerable<BaseGraphTask> GetPreviousFrom(BaseGraphTask task)
         {
             var connections = GetInputsConnectionsFrom(task);
@@ -205,16 +231,14 @@ namespace Automation.Models.Work
             return connections;
         }
 
-
         /// <summary>
         /// Get all the input connections linked to a task.
         /// </summary>
-        /// <param name="connector"></param>
         /// <returns></returns>
-        public IEnumerable<GraphConnection> GetInputsConnectionsFrom(BaseGraphTask task)
+        private IEnumerable<GraphConnection> GetInputsConnectionsFrom(BaseGraphTask task)
         {
             List<GraphConnection> connections = [];
-            foreach (var input in task.Inputs)
+            foreach (GraphConnector input in task.Inputs)
                 connections.AddRange(GetConnectionsFrom(input));
             return connections;
         }
@@ -222,12 +246,11 @@ namespace Automation.Models.Work
         /// <summary>
         /// Get all the output connections linked to a task.
         /// </summary>
-        /// <param name="connector"></param>
         /// <returns></returns>
-        public IEnumerable<GraphConnection> GetOutputsConnectionsFrom(BaseGraphTask task)
+        private IEnumerable<GraphConnection> GetOutputsConnectionsFrom(BaseGraphTask task)
         {
             List<GraphConnection> connections = [];
-            foreach (var input in task.Outputs)
+            foreach (GraphConnector input in task.Outputs)
                 connections.AddRange(GetConnectionsFrom(input));
             return connections;
         }
@@ -241,5 +264,7 @@ namespace Automation.Models.Work
         {
             return Connections.Where(x => x.SourceId == connector.Id || x.TargetId == connector.Id);
         }
+
+        #endregion
     }
 }

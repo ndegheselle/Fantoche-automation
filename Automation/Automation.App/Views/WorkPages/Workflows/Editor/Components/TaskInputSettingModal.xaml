@@ -44,7 +44,7 @@
 
                 <ItemsControl
                     Grid.Row="1"
-                    ItemsSource="{Binding InputsSamplesJson}"
+                    ItemsSource="{Binding ContextSamplesJson}"
                     Margin="0,4,0,0">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>

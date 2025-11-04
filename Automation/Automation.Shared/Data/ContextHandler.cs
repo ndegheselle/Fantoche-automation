@@ -2,31 +2,40 @@
 
 namespace Automation.Shared.Data
 {
-    public class ContextHandler
+    public static class ContextHandler
     {
-        public const string REFERENCE_IDENTIFIER = "$";
-
-        public static string ReplaceContext(string settingJson, string? contextJson)
+        private const string ReferenceIdentifier = "$";
+        /// <summary>
+        /// Replace references by their actual context value (if the reference path exist in the context).
+        /// </summary>
+        /// <param name="settingJson">Setting containing references</param>
+        /// <param name="contextJson">Context the references points to</param>
+        /// <returns></returns>
+        public static string ReplaceReferences(string settingJson, string? contextJson)
         {
             if (string.IsNullOrEmpty(settingJson) || string.IsNullOrEmpty(contextJson))
                 return settingJson;
 
             JToken setting = JToken.Parse(settingJson);
-            JToken context = JToken.Parse(contextJson);
-
-            Crawl(setting, context);
+            ReplaceReferences(setting, JToken.Parse(contextJson));
 
             return setting.ToString();
         }
-
-        private static void Crawl(JToken token, JToken context)
+        
+        /// <summary>
+        /// Replace references by their actual context value (if the reference path exist in the context).
+        /// </summary>
+        /// <param name="token">Setting containing references</param>
+        /// <param name="context">Context the references points to</param>
+        /// <returns></returns>
+        private static void ReplaceReferences(JToken token, JToken context)
         {
             if (token.Type == JTokenType.String)
             {
                 string? value = token.Value<string>();
-                if (value != null && value.StartsWith(REFERENCE_IDENTIFIER))
+                if (value != null && value.StartsWith(ReferenceIdentifier))
                 {
-                    string path = value.Substring(REFERENCE_IDENTIFIER.Length);
+                    string path = value.Substring(ReferenceIdentifier.Length);
                     JToken? contextValue = context.SelectToken(path);
                     if (contextValue != null)
                     {
@@ -35,9 +44,9 @@ namespace Automation.Shared.Data
                 }
             }
 
-            foreach (var child in token.Children())
+            foreach (JToken child in token.Children())
             {
-                Crawl(child, context);
+                ReplaceReferences(child, context);
             }
         }
     }

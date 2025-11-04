@@ -10,6 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Work\BaseAutomationTask.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Work\GraphExecutionContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Work\Graph.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Work\Scope.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Work\TaskInstance.cs" />
@@ -17,8 +18,5 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)readme.md" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="$(MSBuildThisFileDirectory)Work\" />
   </ItemGroup>
 </Project>
