@@ -8,31 +8,15 @@
     MinHeight="300"
     MinWidth="300"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
+    xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Workflows.Editor.Components"
     x:Name="ContainerElement">
-    <UserControl.Resources>
-        <Style
-            x:Key="CodeTextBox"
-            TargetType="TextBox"
-            BasedOn="{StaticResource {x:Type TextBox}}">
-            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
-            <Setter Property="VerticalContentAlignment" Value="Top" />
-            <Setter Property="AcceptsReturn" Value="True" />
-            <Setter Property="AcceptsTab" Value="True" />
-            <Setter Property="IsReadOnly" Value="True" />
-            <Setter Property="FontFamily" Value="Consolas" />
-            <Setter Property="TextWrapping" Value="Wrap" />
-        </Style>
-    </UserControl.Resources>
     <Grid DataContext="{Binding ElementName=ContainerElement}" Margin="2">
         <Grid.RowDefinitions>
             <RowDefinition />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
-        <TextBox
-            Style="{StaticResource CodeTextBox}"
-            Text="{Binding WorkflowSchemaSample, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-            TextChanged="TextBox_TextChanged" />
+        <local:SchemaEdit SchemaJson="{Binding WorkflowSchemaSample}" />
 
         <StackPanel
             Orientation="Horizontal"

@@ -40,17 +40,17 @@ namespace Automation.App.ViewModels.Workflow.Editor.Actions
 
         public void Open(BaseGraphTask task)
         {
-            if (task == null)
-                return;
-
-            // If the task is the start control task
-            if (task is GraphControl control && control.TaskId == AutomationControl.StartTaskId)
+            switch (task)
             {
-                _editor.Ui.Modal.Show(new WorkflowSchemaModal(_editor.Ui.Workflow));
-            }
-            else
-            {
-                _editor.Ui.Modal.Show(new TaskInputSettingModal(task, _editor.Ui.Workflow));
+                case null:
+                    return;
+                // If the task is the start control task
+                case GraphControl control when control.TaskId == AutomationControl.StartTaskId:
+                    _editor.Ui.Modal.Show(new WorkflowSchemaModal(_editor.Ui.Workflow));
+                    break;
+                default:
+                    _editor.Ui.Modal.Show(new TaskInputSettingModal(task, _editor.Ui.Workflow.Graph));
+                    break;
             }
         }
 
@@ -66,17 +66,17 @@ namespace Automation.App.ViewModels.Workflow.Editor.Actions
                 });
         }
 
-        void AddAll(NodeModifyContext context)
+        private void AddAll(NodeModifyContext context)
         {
-            foreach (GraphNode node in context.Nodes)
+            foreach (var node in context.Nodes)
                 _editor.Graph.Nodes.Add(node);
             _editor.Connections.Connect(context.Connections);
         }
 
-        void RemoveAll(NodeModifyContext context)
+        private void RemoveAll(NodeModifyContext context)
         {
             _editor.Connections.Disconnect(context.Connections);
-            foreach (GraphNode node in context.Nodes)
+            foreach (var node in context.Nodes.ToList())
                 _editor.Graph.Nodes.Remove(node);
         }
     }

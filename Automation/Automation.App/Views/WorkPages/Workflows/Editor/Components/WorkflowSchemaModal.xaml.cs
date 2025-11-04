@@ -33,7 +33,7 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
 
             Options.Title = $"{Workflow.Metadata.Name} - inputs schema";
             CancelCommand = new DelegateCommand(Cancel);
-            ValidateCommand = new DelegateCommand(Validate, () => string.IsNullOrEmpty(WorkflowSchemaSample) == false);
+            ValidateCommand = new DelegateCommand(Validate);
             InitializeComponent();
         }
 
@@ -68,12 +68,5 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
             _alert.Success("Workflow input schema changed !");
             ParentLayout?.Hide(true);
         }
-
-        #region UI events
-        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            ValidateCommand.RaiseCanExecuteChanged();
-        }
-        #endregion
     }
 }

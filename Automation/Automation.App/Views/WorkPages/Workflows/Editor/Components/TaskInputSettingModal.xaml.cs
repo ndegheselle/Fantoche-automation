@@ -15,7 +15,7 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
         public IModal? ParentLayout { get; set; }
 
         public BaseGraphTask Task { get; private set; }
-        public AutomationWorkflow Workflow { get; private set; }
+        public Graph Graph { get; private set; }
         public IEnumerable<string?> ContextSamplesJson { get; private set; }
 
         public ICustomCommand CancelCommand { get; private set; }
@@ -24,10 +24,10 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
         private IAlert _alert => this.GetCurrentAlert();
         private readonly string? _originalSettings;
 
-        public TaskInputSettingModal(BaseGraphTask task, AutomationWorkflow workflow) {
+        public TaskInputSettingModal(BaseGraphTask task, Graph graph) {
             Task = task;
-            Workflow = workflow;
-            ContextSamplesJson = Workflow.Graph.Execution.GetContextSampleFor(Task);
+            Graph = graph;
+            ContextSamplesJson = Graph.Execution.GetContextSampleFor(Task);
             _originalSettings = Task.InputJson;
 
             if (string.IsNullOrEmpty(Task.InputJson))

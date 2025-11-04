@@ -10,7 +10,6 @@ using NuGet.Packaging.Core;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
-using System.Data;
 using System.Reflection;
 using System.Runtime.Versioning;
 
