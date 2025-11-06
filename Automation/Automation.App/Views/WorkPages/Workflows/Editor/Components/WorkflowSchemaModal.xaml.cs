@@ -15,8 +15,6 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
 
         public AutomationWorkflow Workflow { get; private set; }
 
-        public string WorkflowSchemaSample { get; set; }
-
         public ICustomCommand CancelCommand { get; private set; }
         public ICustomCommand ValidateCommand { get; private set; }
 
@@ -29,7 +27,6 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
 
             if (string.IsNullOrEmpty(Workflow.InputSchemaJson))
                 Workflow.InputSchema = new NJsonSchema.JsonSchema();
-            WorkflowSchemaSample = Workflow.InputSchema!.ToSampleJson().ToString();
 
             Options.Title = $"{Workflow.Metadata.Name} - inputs schema";
             CancelCommand = new DelegateCommand(Cancel);
@@ -37,20 +34,19 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
             InitializeComponent();
         }
 
-        public void Cancel()
+        private void Cancel()
         {
             Workflow.InputSchemaJson = _originalSchema;
             ParentLayout?.Hide();
         }
 
-        public void Validate()
+        private void Validate()
         {
-            if (string.IsNullOrEmpty(WorkflowSchemaSample))
+            if (SchemaDisplayElement.WithError)
                 return;
 
             try
             {
-                Workflow.InputSchema = NJsonSchema.JsonSchema.FromSampleJson(WorkflowSchemaSample);
                 // Update all start task InputSchemaJson
                 var startTasks = Workflow.Graph.Nodes.OfType<GraphControl>().Where(x => x.TaskId == AutomationControl.StartTaskId);
                 foreach(var task in startTasks)

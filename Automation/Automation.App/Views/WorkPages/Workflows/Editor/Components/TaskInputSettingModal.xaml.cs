@@ -16,7 +16,7 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
 
         public BaseGraphTask Task { get; private set; }
         public Graph Graph { get; private set; }
-        public IEnumerable<string?> ContextSamplesJson { get; private set; }
+        public IEnumerable<string?> ContextSchemaJson { get; private set; }
 
         public ICustomCommand CancelCommand { get; private set; }
         public ICustomCommand ValidateCommand { get; private set; }
@@ -27,7 +27,7 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
         public TaskInputSettingModal(BaseGraphTask task, Graph graph) {
             Task = task;
             Graph = graph;
-            ContextSamplesJson = Graph.Execution.GetContextSampleFor(Task);
+            ContextSchemaJson = Graph.Execution.GetContextSchemaFor(Task);
             _originalSettings = Task.InputJson;
 
             if (string.IsNullOrEmpty(Task.InputJson))
@@ -52,7 +52,7 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
 
             // TODO : before validate the context references should be modified
 
-            foreach (var contextSample in ContextSamplesJson)
+            foreach (var contextSample in ContextSchemaJson)
             {
                 string contextualizedInput = ContextHandler.ReplaceReferences(Task.InputJson, contextSample);
                 var errors = Task.InputSchema?.Validate(contextualizedInput);

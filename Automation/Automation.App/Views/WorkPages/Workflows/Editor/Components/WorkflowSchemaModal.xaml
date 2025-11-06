@@ -16,7 +16,7 @@
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
-        <local:SchemaEdit SchemaJson="{Binding WorkflowSchemaSample}" />
+        <local:SchemaDisplay x:Name="SchemaDisplayElement" SchemaJson="{Binding Workflow.InputSchemaJson, Mode=TwoWay}" />
 
         <StackPanel
             Orientation="Horizontal"

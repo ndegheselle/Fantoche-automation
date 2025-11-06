@@ -8,6 +8,7 @@
     MinHeight="500"
     MinWidth="600"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
+    xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Workflows.Editor.Components"
     x:Name="ContainerElement">
     <UserControl.Resources>
         <Style
@@ -44,7 +45,7 @@
 
                 <ItemsControl
                     Grid.Row="1"
-                    ItemsSource="{Binding ContextSamplesJson}"
+                    ItemsSource="{Binding ContextSchemaJson}"
                     Margin="0,4,0,0">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -53,12 +54,7 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <TextBox
-                                BorderThickness="1"
-                                Margin="0,2,0,0"
-                                IsReadOnly="True"
-                                Style="{StaticResource CodeTextBox}"
-                                Text="{Binding Mode=OneWay}" />
+                            <local:SchemaDisplay SchemaJson="{Binding}" IsReadOnly="True"></local:SchemaDisplay>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
