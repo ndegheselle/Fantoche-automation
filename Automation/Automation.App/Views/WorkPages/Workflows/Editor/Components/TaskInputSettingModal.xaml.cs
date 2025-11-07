@@ -2,6 +2,7 @@
 using Automation.Shared.Data;
 using Joufflu.Popups;
 using System.Windows.Controls;
+using Newtonsoft.Json.Linq;
 using Usuel.Shared;
 
 namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
@@ -16,7 +17,7 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
 
         public BaseGraphTask Task { get; private set; }
         public Graph Graph { get; private set; }
-        public IEnumerable<string?> ContextSchemaJson { get; private set; }
+        public IEnumerable<JToken> ContextSample { get; private set; }
 
         public ICustomCommand CancelCommand { get; private set; }
         public ICustomCommand ValidateCommand { get; private set; }
@@ -27,7 +28,7 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
         public TaskInputSettingModal(BaseGraphTask task, Graph graph) {
             Task = task;
             Graph = graph;
-            ContextSchemaJson = Graph.Execution.GetContextSchemaFor(Task);
+            ContextSample = Graph.Execution.GetContextSampleFor(Task);
             _originalSettings = Task.InputJson;
 
             if (string.IsNullOrEmpty(Task.InputJson))
@@ -39,22 +40,22 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
             InitializeComponent();
         }
 
-        public void Cancel()
+        private void Cancel()
         {
             Task.InputJson = _originalSettings;
             ParentLayout?.Hide();
         }
 
-        public void Validate()
+        private void Validate()
         {
             if (string.IsNullOrEmpty(Task.InputJson))
                 return;
 
             // TODO : before validate the context references should be modified
 
-            foreach (var contextSample in ContextSchemaJson)
+            foreach (JToken contextSample in ContextSample)
             {
-                string contextualizedInput = ContextHandler.ReplaceReferences(Task.InputJson, contextSample);
+                var contextualizedInput = ContextHandler.ReplaceReferences(Task.InputJson, contextSample.ToString());
                 var errors = Task.InputSchema?.Validate(contextualizedInput);
                 if (errors?.Count > 0)
                 {
@@ -62,8 +63,6 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
                     return;
                 }
             }
-
-
 
             _alert.Success("Settings changed !");
             ParentLayout?.Hide(true);

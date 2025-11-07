@@ -45,7 +45,7 @@
 
                 <ItemsControl
                     Grid.Row="1"
-                    ItemsSource="{Binding ContextSchemaJson}"
+                    ItemsSource="{Binding ContextSample}"
                     Margin="0,4,0,0">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -54,7 +54,8 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <local:SchemaDisplay SchemaJson="{Binding}" IsReadOnly="True"></local:SchemaDisplay>
+                            <TextBox Margin="0,2,0,0" IsReadOnly="True"
+                                     Text="{Binding }"/>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
