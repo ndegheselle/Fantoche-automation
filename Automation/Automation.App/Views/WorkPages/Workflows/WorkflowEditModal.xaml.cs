@@ -27,7 +27,7 @@ namespace Automation.App.Views.WorkPages.Workflows
 
         public async void Validate()
         {
-            NewWorkflow.ClearErrors();
+            NewWorkflow.Errors.Clear();
             try
             {
                 NewWorkflow.Id = await _taskClient.CreateAsync(NewWorkflow);
@@ -35,7 +35,7 @@ namespace Automation.App.Views.WorkPages.Workflows
             } catch (ValidationException ex)
             {
                 if (ex.Errors != null)
-                    NewWorkflow.AddErrors(ex.Errors);
+                    NewWorkflow.Errors.Add(ex.Errors);
                 return;
             }
         }

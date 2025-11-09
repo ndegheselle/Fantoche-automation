@@ -17,7 +17,7 @@ namespace Automation.App.Views.PackagesPages.Components
     /// <summary>
     /// Either create a new package or a package version if an existing package is passed
     /// </summary>
-    public class PackageCreateModal : FilePickerModal, IModalContent, INotifyPropertyChanged
+    public class PackageCreateModal : FilePickerModal, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
         private void NotifyPropertyChanged([CallerMemberName] string? propertyName = "")
@@ -41,11 +41,11 @@ namespace Automation.App.Views.PackagesPages.Components
 
         public bool IsInvalid()
         {
-            SelectedFile.ClearErrors();
+            SelectedFile.Errors.Clear();
             // TODO : show error
             if (string.IsNullOrWhiteSpace(SelectedFile.FilePath) || !File.Exists(SelectedFile.FilePath))
             {
-                SelectedFile.AddError("The selected file is invalid.", nameof(FilePickerFile.FilePath));
+                SelectedFile.Errors.Add("The selected file is invalid.", nameof(FilePickerFile.FilePath));
                 return true;
             }
             return false;
@@ -69,7 +69,7 @@ namespace Automation.App.Views.PackagesPages.Components
             } catch (ValidationException ex)
             {
                 if (ex.Errors != null)
-                    SelectedFile.AddErrors(ex.Errors);
+                    SelectedFile.Errors.Add(ex.Errors);
                 return;
             }
             ParentLayout?.Hide(true);
@@ -91,7 +91,7 @@ namespace Automation.App.Views.PackagesPages.Components
         public IEnumerable<Version> Versions { get; set; } = [];
         public IEnumerable<ClassIdentifier> PackageClasses { get; set; } = [];
         public Version SelectedVersion { get; set; }
-        public ClassIdentifier? SelectedClass { get; set; } = null;
+        public ClassIdentifier? SelectedClass { get; set; }
 
         private readonly PackagesClient _packagesClient;
 
@@ -111,14 +111,14 @@ namespace Automation.App.Views.PackagesPages.Components
             Package.Identifier.Version = SelectedVersion;
         }
 
-        private async void LoadClasses()
+        private async Task LoadClasses()
         {
             PackageClasses = await _packagesClient.GetClassesAsync(Package.Identifier.Identifier, SelectedVersion);
         }
 
         #region UI events
 
-        private async void ButtonAdd_Click(object sender, System.Windows.RoutedEventArgs e)
+        private async Task ButtonAdd_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             var createPackage = new PackageCreateModal(Package);
             if (await ParentLayout!.Show(createPackage) && createPackage.Package != null)
@@ -137,8 +137,8 @@ namespace Automation.App.Views.PackagesPages.Components
             if (MessageBox.Show(
                     $"Are you sure you want to remove the version '{SelectedVersion}' ?",
                     "Confirmation",
-                    AdonisUI.Controls.MessageBoxButton.YesNo) !=
-                    AdonisUI.Controls.MessageBoxResult.Yes)
+                    MessageBoxButton.YesNo) !=
+                    MessageBoxResult.Yes)
                 return;
 
             await _packagesClient.RemoveFromVersionAsync(Package.Identifier.Identifier, SelectedVersion);

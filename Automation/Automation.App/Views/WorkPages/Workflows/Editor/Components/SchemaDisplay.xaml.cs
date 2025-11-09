@@ -20,8 +20,8 @@ public partial class SchemaDisplay : UserControl, INotifyPropertyChanged
         get => (string)GetValue(SchemaJsonProperty);
         set => SetValue(SchemaJsonProperty, value);
     }
-    
-    public string SampleJson { get; set; }
+
+    public string SampleJson { get; set; } = "";
     public bool WithError { get; private set; } = false;
 
     public bool IsReadOnly { get; set; } = false;
@@ -31,7 +31,7 @@ public partial class SchemaDisplay : UserControl, INotifyPropertyChanged
         InitializeComponent();
     }
     
-    private async void OnSchemaJsonChanged(object sender, TextChangedEventArgs e)
+    private async void HandleSchemaJsonChanged(object sender, TextChangedEventArgs e)
     {
         WithError = false;
         if (string.IsNullOrEmpty(SchemaJson))
@@ -48,7 +48,7 @@ public partial class SchemaDisplay : UserControl, INotifyPropertyChanged
         }
     }
     
-    private async void OnSampleJsonChanged(object sender, TextChangedEventArgs e)
+    private void HandleSampleJsonChanged(object sender, TextChangedEventArgs e)
     {
         WithError = false;
         if (string.IsNullOrEmpty(SampleJson))
@@ -64,7 +64,7 @@ public partial class SchemaDisplay : UserControl, INotifyPropertyChanged
         }
     }
 
-    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }

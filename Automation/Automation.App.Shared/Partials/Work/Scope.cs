@@ -19,7 +19,7 @@ namespace Automation.Models.Work
         public Point Position { get; set; }
     }
 
-    public abstract partial class ScopedElement : ErrorValidationModel, INotifyPropertyChanged
+    public abstract partial class ScopedElement : BaseErrorModel, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
         public void RaisePropertyChanged([CallerMemberName] string? propertyName = null)

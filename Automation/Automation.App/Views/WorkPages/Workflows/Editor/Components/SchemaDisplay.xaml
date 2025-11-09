@@ -33,7 +33,7 @@
             </TabItem.Header>
             <TextBox Margin="0,2,0,0" IsReadOnly="{Binding IsReadOnly}"
                      Text="{Binding SchemaJson, UpdateSourceTrigger=PropertyChanged}"
-                     TextChanged="OnSchemaJsonChanged"
+                     TextChanged="HandleSchemaJsonChanged"
                      adonisExtensions:CursorSpotlightExtension.BorderBrush="Transparent">
                 <TextBox.Style>
                     <Style TargetType="TextBox" BasedOn="{StaticResource CodeTextBox}">
@@ -57,7 +57,7 @@
             </TabItem.Header>
             <TextBox Margin="0,2,0,0" IsReadOnly="{Binding IsReadOnly}"
                      Text="{Binding SampleJson, UpdateSourceTrigger=PropertyChanged}"
-                     TextChanged="OnSampleJsonChanged"
+                     TextChanged="HandleSampleJsonChanged"
                      adonisExtensions:CursorSpotlightExtension.BorderBrush="Transparent">
                 <TextBox.Style>
                     <Style TargetType="TextBox" BasedOn="{StaticResource CodeTextBox}">

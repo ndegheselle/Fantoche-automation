@@ -5,7 +5,7 @@ using Usuel.Shared;
 
 namespace Automation.App.Components.Inputs
 {
-    public class FilePickerFile : ErrorValidationModel
+    public class FilePickerFile : BaseErrorModel
     {
         public string FilePath { get; set; } = "";
     }

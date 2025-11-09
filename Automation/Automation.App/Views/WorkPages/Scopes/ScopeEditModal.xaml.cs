@@ -27,7 +27,7 @@ namespace Automation.App.Views.WorkPages.Scopes
 
         public async void Validate()
         {
-            NewScope.ClearErrors();
+            NewScope.Errors.Clear();
             try
             {
                 NewScope.Id = await _scopeClient.CreateAsync(NewScope);
@@ -35,7 +35,7 @@ namespace Automation.App.Views.WorkPages.Scopes
             } catch (ValidationException ex)
             {
                 if (ex.Errors != null)
-                    NewScope.AddErrors(ex.Errors);
+                    NewScope.Errors.Add(ex.Errors);
                 return;
             }
             return;
@@ -69,7 +69,7 @@ namespace Automation.App.Views.WorkPages.Scopes
 
         public async void Validate()
         {
-            Scope.ClearErrors();
+            Scope.Errors.Clear();
             try
             {
                 await _scopeClient.UpdateAsync(Scope.Id, Scope);
@@ -77,7 +77,7 @@ namespace Automation.App.Views.WorkPages.Scopes
             } catch (ValidationException ex)
             {
                 if (ex.Errors != null)
-                    Scope.AddErrors(ex.Errors);
+                    Scope.Errors.Add(ex.Errors);
                 return;
             }
         }

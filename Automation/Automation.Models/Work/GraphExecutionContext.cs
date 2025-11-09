@@ -5,7 +5,11 @@ namespace Automation.Models.Work
 {
     public class GraphExecutionContext
     {
+        private JObject _context => new JObject() { [PreviousIdentifier] = null, [GlobalIdentifier] = null, [LocalIdentifier] = null };
+        
         private const string PreviousIdentifier = "previous";
+        private const string GlobalIdentifier = "global";
+        private const string LocalIdentifier = "local";
         private readonly Graph _graph;
         
         public GraphExecutionContext(Graph graph)
@@ -19,29 +23,32 @@ namespace Automation.Models.Work
         /// Generate a sample of the contexts based on the previous tasks.
         /// </summary>
         /// <param name="task"></param>
-        public List<JToken> GetContextSampleFor(BaseGraphTask task)
+        public List<string> GetContextSampleJsonFor(BaseGraphTask task)
         {
             var previousTasks = _graph.GetPreviousFrom(task);
             
-            // Create a context sample
-            // Generate schema from this sample
-            
-            List<JToken> contexts = [];
+            List<string> contexts = [];
             if (task.Settings.WaitAll)
             {
-                var previous = new JObject();
-                foreach (BaseGraphTask previousTask in previousTasks)
+                var context = _context;
+                foreach (var previousTask in previousTasks)
                 {
-                    previous[previousTask.Name].Replace(previousTask.OutputSchema?.ToSampleJson());
+                    var previousContext = previousTask.OutputSchema?.ToSampleJson();
+                    if (previousContext != null)
+                        context[PreviousIdentifier][previousTask.Name] = previousContext;
                 }
-                contexts.Add(new JObject {[PreviousIdentifier] = previous});
+                contexts.Add(context.ToString());
             }
             else
             {
                 // XXX : maybe group by TaskId ?
-                foreach (BaseGraphTask previousTask in previousTasks)
+                foreach (var previousTask in previousTasks)
                 {
-                    contexts.Add(previousTask.OutputSchema?.ToSampleJson());
+                    var previousContext = previousTask.OutputSchema?.ToSampleJson();
+                    var context = _context;
+                    if (previousContext != null)
+                        context[PreviousIdentifier] = previousContext;
+                    contexts.Add(context.ToString());
                 }
             }
             return contexts;

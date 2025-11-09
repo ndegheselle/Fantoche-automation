@@ -46,7 +46,7 @@ namespace Automation.App.ViewModels.Workflow.Editor.Actions
                     return;
                 // If the task is the start control task
                 case GraphControl control when control.TaskId == AutomationControl.StartTaskId:
-                    _editor.Ui.Modal.Show(new WorkflowSchemaModal(_editor.Ui.Workflow));
+                    _editor.Ui.Modal.Show(new WorkflowInputModal(_editor.Ui.Workflow));
                     break;
                 default:
                     _editor.Ui.Modal.Show(new TaskInputSettingModal(task, _editor.Ui.Workflow.Graph));

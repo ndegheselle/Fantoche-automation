@@ -29,7 +29,7 @@ namespace Automation.App.Views.WorkPages.Tasks
 
         public async void Validate()
         {
-            NewTask.ClearErrors();
+            NewTask.Errors.Clear();
             try
             {
                 NewTask.Id = await _taskClient.CreateAsync(NewTask);
@@ -37,7 +37,7 @@ namespace Automation.App.Views.WorkPages.Tasks
             } catch (ValidationException ex)
             {
                 if (ex.Errors != null)
-                    NewTask.AddErrors(ex.Errors);
+                    NewTask.Errors.Add(ex.Errors);
                 return;
             }
         }
@@ -85,7 +85,7 @@ namespace Automation.App.Views.WorkPages.Tasks
 
         public async void Validate()
         {
-            Task.ClearErrors();
+            Task.Errors.Clear();
             try
             {
                 await _taskClient.UpdateAsync(Task.Id, Task);
@@ -94,7 +94,7 @@ namespace Automation.App.Views.WorkPages.Tasks
             } catch (ValidationException ex)
             {
                 if (ex.Errors != null)
-                    Task.AddErrors(ex.Errors);
+                    Task.Errors.Add(ex.Errors);
                 return;
             }
         }
