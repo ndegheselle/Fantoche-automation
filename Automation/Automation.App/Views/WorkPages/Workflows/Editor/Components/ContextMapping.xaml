@@ -51,8 +51,7 @@
 
             <ItemsControl
                 Grid.Row="1"
-                ItemsSource="{Binding Inputs}"
-                Margin="0,4,0,0">
+                ItemsSource="{Binding Inputs}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <UniformGrid Columns="1" />
@@ -60,7 +59,7 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <TextBox Margin="0,2,0,0"
+                        <TextBox Margin="0,0,0,2"
                                  Text="{Binding Mode=OneTime }" Style="{StaticResource CodeTextBox}" />
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
@@ -86,7 +85,7 @@
                 <TextBox
                     Grid.Row="1"
                     Style="{StaticResource CodeTextBox}"
-                    Text="{Binding SettingsJson, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    Text="{Binding SettingsJson, Mode=TwoWay}"
 />
             </Grid>
 

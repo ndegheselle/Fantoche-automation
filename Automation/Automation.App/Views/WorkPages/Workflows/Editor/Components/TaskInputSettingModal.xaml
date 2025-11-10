@@ -11,17 +11,6 @@
     xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Workflows.Editor.Components"
     x:Name="ContainerElement">
     <UserControl.Resources>
-        <Style
-            x:Key="CodeTextBox"
-            TargetType="TextBox"
-            BasedOn="{StaticResource {x:Type TextBox}}">
-            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
-            <Setter Property="VerticalContentAlignment" Value="Top" />
-            <Setter Property="AcceptsReturn" Value="True" />
-            <Setter Property="AcceptsTab" Value="True" />
-            <Setter Property="FontFamily" Value="Consolas" />
-            <Setter Property="TextWrapping" Value="Wrap" />
-        </Style>
     </UserControl.Resources>
     <Grid DataContext="{Binding ElementName=ContainerElement}" Margin="2">
         <Grid.RowDefinitions>
@@ -29,8 +18,11 @@
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
-        <local:ContextMapping />
-        
+        <local:ContextMapping x:Name="ContextMappingElement" Inputs="{Binding ContextSamples}"
+                              SettingsJson="{Binding Task.InputJson, Mode=TwoWay}"
+                              SchemaJson="{Binding Task.InputSchemaJson}"
+                              IsSchemaReadOnly="True" />
+
         <StackPanel
             Orientation="Horizontal"
             Grid.Row="1"

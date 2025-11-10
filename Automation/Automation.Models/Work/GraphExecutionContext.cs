@@ -5,11 +5,11 @@ namespace Automation.Models.Work
 {
     public class GraphExecutionContext
     {
-        private JObject _context => new JObject() { [PreviousIdentifier] = null, [GlobalIdentifier] = null, [LocalIdentifier] = null };
+        private JObject _context => new JObject() { [PreviousIdentifier] = null, [GlobalIdentifier] = null, [WorkflowIdentifier] = null };
         
         private const string PreviousIdentifier = "previous";
         private const string GlobalIdentifier = "global";
-        private const string LocalIdentifier = "local";
+        private const string WorkflowIdentifier = "workflow";
         private readonly Graph _graph;
         
         public GraphExecutionContext(Graph graph)

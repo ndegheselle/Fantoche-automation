@@ -43,6 +43,9 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
 
         private void Validate()
         {
+            if (ContextMappingElement.HasErrors)
+                return;
+            
             try
             {
                 // Update all start task InputSchemaJson

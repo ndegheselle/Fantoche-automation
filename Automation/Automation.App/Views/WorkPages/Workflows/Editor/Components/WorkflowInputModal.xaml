@@ -16,7 +16,9 @@
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
-        <local:ContextMapping  SchemaJson="{Binding Workflow.InputSchemaJson}" SettingsJson="{Binding InputSampleJson}" />
+        <local:ContextMapping x:Name="ContextMappingElement"
+                              SchemaJson="{Binding Workflow.InputSchemaJson, Mode=TwoWay}"
+                              SettingsJson="{Binding InputSampleJson}" />
 
         <StackPanel
             Orientation="Horizontal"
