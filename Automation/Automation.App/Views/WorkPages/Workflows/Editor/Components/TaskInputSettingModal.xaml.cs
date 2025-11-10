@@ -51,29 +51,8 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
             if (ContextMappingElement.HasErrors)
                 return;
             
-            if (string.IsNullOrEmpty(Task.InputJson))
-                return;
-
-            foreach (string contextSample in ContextSamples)
-            {
-                var contextualizedInput = ContextHandler.ReplaceReferences(Task.InputJson, contextSample);
-                var errors = Task.InputSchema?.Validate(contextualizedInput);
-                if (errors?.Count > 0)
-                {
-                    _alert.Error("The task settings doesn't correspond to the task schema.");
-                    return;
-                }
-            }
-
             _alert.Success("Settings changed !");
             ParentLayout?.Hide(true);
         }
-
-        #region UI events
-        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            ValidateCommand.RaiseCanExecuteChanged();
-        }
-        #endregion
     }
 }
