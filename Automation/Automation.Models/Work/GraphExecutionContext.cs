@@ -18,7 +18,6 @@ namespace Automation.Models.Work
         }
             
         #region Samples
-
         /// <summary>
         /// Generate a sample of the contexts based on the previous tasks.
         /// </summary>

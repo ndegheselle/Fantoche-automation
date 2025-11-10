@@ -64,18 +64,17 @@ public partial class ContextMapping : UserControl, INotifyPropertyChanged, INoti
     
     private async Task HandleSettingsChanged()
     {
+        Errors.Clear(nameof(SettingsJson));
         foreach (string contextSample in Inputs)
         {
-            var contextualizedInput = ContextHandler.ReplaceReferences(SettingsJson, contextSample);
-            var errors = Task.InputSchema?.Validate(contextualizedInput);
+            var contextualizedInput = ContextHandler.ReplaceReferences(SettingsJson, contextSample, out var errors);
             if (errors?.Count > 0)
             {
-                _alert.Error("The task settings doesn't correspond to the task schema.");
+                Errors.Add(errors, nameof(SettingsJson));
                 return;
             }
         }
         
-        Errors.Clear(nameof(SettingsJson));
         if (IsSchemaReadOnly)
         {
             var schema = await JsonSchema.FromJsonAsync(SchemaJson);
