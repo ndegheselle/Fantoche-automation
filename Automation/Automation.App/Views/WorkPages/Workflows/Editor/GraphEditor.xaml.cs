@@ -36,7 +36,6 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor
                 _ => throw new NotImplementedException(),
             };
             graphTask.Position = _editor.Ui.GetPositionInside(e);
-
             _editor.Nodes.AddCommand.Execute(graphTask);
         }
     }

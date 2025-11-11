@@ -19,9 +19,9 @@
         </Grid.RowDefinitions>
 
         <local:ContextMapping x:Name="ContextMappingElement" Inputs="{Binding ContextSamples}"
-                              SettingsJson="{Binding Task.InputJson, Mode=TwoWay}"
                               SchemaJson="{Binding Task.InputSchemaJson}"
-                              IsSchemaReadOnly="True" />
+                              SettingsJson="{Binding Task.InputJson, Mode=TwoWay}"
+                              DoesSettingUpdateSchema="False"/>
 
         <StackPanel
             Orientation="Horizontal"

@@ -30,10 +30,7 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
             Graph = graph;
             ContextSamples = Graph.Execution.GetContextSampleJsonFor(Task);
             _originalSettings = Task.InputJson;
-
-            if (string.IsNullOrEmpty(Task.InputJson))
-                Task.InputJson = Task.InputSchema?.ToSampleJson().ToString();
-
+            
             Options.Title = $"{Task.Name} - settings";
             CancelCommand = new DelegateCommand(Cancel);
             ValidateCommand = new DelegateCommand(Validate, () => string.IsNullOrEmpty(Task.InputJson) == false);

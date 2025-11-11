@@ -54,6 +54,21 @@ namespace Automation.Models.Work
         }
 
         /// <summary>
+        /// Get context of all the end tasks since they act as one.
+        /// </summary>
+        /// <returns></returns>
+        public List<string> GetContextSampleForEnd()
+        {
+            List<string> contexts = [];
+            var endTasks = _graph.GetEndNodes();
+            foreach (var task in endTasks)
+            {
+                contexts.AddRange(GetContextSampleJsonFor(task));
+            }
+            return contexts;
+        }
+        
+        /// <summary>
         /// Get the context of the task for execution.
         /// </summary>
         /// <param name="task"></param>

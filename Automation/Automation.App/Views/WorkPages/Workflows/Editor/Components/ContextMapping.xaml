@@ -109,7 +109,7 @@
                     Grid.Row="1"
                     Style="{StaticResource CodeTextBox}"
                     Text="{Binding SchemaJson, Mode=TwoWay}"
-                    IsReadOnly="{Binding IsSchemaReadOnly}" />
+                    IsReadOnly="True" />
             </Grid>
         </Grid>
     </Grid>

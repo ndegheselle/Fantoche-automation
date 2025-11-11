@@ -18,8 +18,8 @@ namespace Automation.App.ViewModels.Workflow.Editor.Actions
         public ICustomCommand RemoveCommand { get; private set; }
         public ICustomCommand OpenCommand { get; private set; }
 
-        internal ReversibleCommand<NodeModifyContext> AddAllCommand { get; private set; }
-        internal ReversibleCommand<NodeModifyContext> RemoveAllCommand { get; private set; }
+        private ReversibleCommand<NodeModifyContext> AddAllCommand { get; }
+        private ReversibleCommand<NodeModifyContext> RemoveAllCommand { get; }
 
         private readonly GraphEditorViewModel _editor;
         private readonly HistoryHandler _history;
@@ -44,9 +44,12 @@ namespace Automation.App.ViewModels.Workflow.Editor.Actions
             {
                 case null:
                     return;
-                // If the task is the start control task
+                // If the task is the start control task or an end task
                 case GraphControl control when control.TaskId == AutomationControl.StartTaskId:
                     _editor.Ui.Modal.Show(new WorkflowInputModal(_editor.Ui.Workflow));
+                    break;
+                case GraphControl control when control.TaskId == AutomationControl.EndTaskId:
+                    _editor.Ui.Modal.Show(new WorkflowOutputModal(_editor.Ui.Workflow));
                     break;
                 default:
                     _editor.Ui.Modal.Show(new TaskInputSettingModal(task, _editor.Ui.Workflow.Graph));
@@ -54,7 +57,10 @@ namespace Automation.App.ViewModels.Workflow.Editor.Actions
             }
         }
 
-        public void Add(GraphNode node) { AddAllCommand.Execute(new NodeModifyContext() { Nodes = [node] }); }
+        public void Add(GraphNode node)
+        {
+            AddAllCommand.Execute(new NodeModifyContext() { Nodes = [node] });
+        }
 
         public void Remove(IEnumerable<GraphNode> nodes)
         {

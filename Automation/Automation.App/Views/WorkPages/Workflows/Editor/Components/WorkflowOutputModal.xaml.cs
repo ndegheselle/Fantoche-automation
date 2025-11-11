@@ -14,8 +14,8 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
     {
         public ModalOptions Options { get; private set; } = new ModalOptions();
         public IModal? ParentLayout { get; set; }
-
-        public IEnumerable<string> ContextSample { get; private set; }
+        
+        public IEnumerable<string> ContextSamples { get; private set; }
         public AutomationWorkflow Workflow { get; private set; }
 
         public ICustomCommand CancelCommand { get; private set; }
@@ -23,16 +23,15 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
 
         private IAlert _alert => this.GetCurrentAlert();
         private readonly string? _originalSchema;
+        private readonly string? _originalSettings;
 
         public WorkflowOutputModal(AutomationWorkflow workflow) {
             Workflow = workflow;
-            _originalSchema = Workflow.InputSchemaJson;
+            _originalSchema = Workflow.OutputSchemaJson;
+            _originalSettings = Workflow.OutputJson;
             
+            ContextSamples = Workflow.Graph.Execution.GetContextSampleForEnd();
             
-            
-            if (string.IsNullOrEmpty(Workflow.OutputSchemaJson))
-                Workflow.InputSchema = new NJsonSchema.JsonSchema();
-
             Options.Title = $"{Workflow.Metadata.Name} - output schema";
             CancelCommand = new DelegateCommand(Cancel);
             ValidateCommand = new DelegateCommand(Validate);
@@ -41,21 +40,20 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
 
         private void Cancel()
         {
+            // Restore
             Workflow.OutputSchemaJson = _originalSchema;
+            Workflow.OutputJson = _originalSettings;
+            
             ParentLayout?.Hide();
         }
 
         private void Validate()
         {
+            if (ContextMappingElement.HasErrors)
+                return;
+            
             _alert.Success("Settings changed !");
             ParentLayout?.Hide(true);
         }
-
-        #region UI events
-        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            ValidateCommand.RaiseCanExecuteChanged();
-        }
-        #endregion
     }
 }

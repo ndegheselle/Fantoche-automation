@@ -39,7 +39,7 @@ public partial class ContextMapping : UserControl, INotifyPropertyChanged, INoti
         set => SetValue(InputsProperty, value);
     }
 
-    public bool IsSchemaReadOnly { get; set; } = false;
+    public bool DoesSettingUpdateSchema { get; set; } = true;
 
     public ContextMapping()
     {
@@ -48,7 +48,7 @@ public partial class ContextMapping : UserControl, INotifyPropertyChanged, INoti
 
     private async Task HandleSchemaChanged()
     {
-        if (IsSchemaReadOnly)
+        if (DoesSettingUpdateSchema == false)
             return;
         
         Errors.Clear(nameof(SchemaJson));
@@ -65,35 +65,36 @@ public partial class ContextMapping : UserControl, INotifyPropertyChanged, INoti
     private async Task HandleSettingsChanged()
     {
         Errors.Clear(nameof(SettingsJson));
-        foreach (string contextSample in Inputs)
+        
+        try
         {
-            var contextualizedInput = ContextHandler.ReplaceReferences(SettingsJson, contextSample, out var errors);
-            if (errors?.Count > 0)
+            var result = ReferencesHandler.ReplaceReferences(SettingsJson, Inputs ?? []);
+            if (result.InconsistentReferenceErrors.Count > 0)
             {
-                Errors.Add(errors, nameof(SettingsJson));
+                Errors.Add(result.InconsistentReferenceErrors.Select(x => x.ToString()), nameof(SettingsJson));
                 return;
             }
-        }
-        
-        if (IsSchemaReadOnly)
-        {
-            var schema = await JsonSchema.FromJsonAsync(SchemaJson);
-            var errors = schema.Validate(SettingsJson);
-
-            if (errors.Count > 0)
-                Errors.Add(errors.Select(x => x.ToString()), nameof(SettingsJson));
-        }
-        else
-        {
-            // Update schema from settings
-            try
+            
+            if (DoesSettingUpdateSchema)
             {
                 SchemaJson = JsonSchema.FromSampleJson(SettingsJson).ToJson();
             }
-            catch
+            else
             {
-                Errors.Add("Could not create schema from sample.", nameof(SettingsJson));
+                // Check if replaced references pass schema
+                var schema = await JsonSchema.FromJsonAsync(SchemaJson);
+                foreach (var context in result.Contexts)
+                {
+                    var errors = schema.Validate(context.ReplacedSetting);
+                    if (errors.Count > 0)
+                        Errors.Add(errors.Select(x => x.ToString()), nameof(SettingsJson));
+                    return;
+                }
             }
+        }
+        catch (Exception ex)
+        {
+            Errors.Add(ex.Message, nameof(SettingsJson));
         }
     }
 

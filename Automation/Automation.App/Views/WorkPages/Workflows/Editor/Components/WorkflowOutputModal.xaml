@@ -28,8 +28,11 @@
             <RowDefinition />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
-        <local:ContextMapping />
-
+        
+        <local:ContextMapping x:Name="ContextMappingElement"
+                              Inputs="{Binding ContextSamples}"
+                              SchemaJson="{Binding Workflow.OutputSchemaJson, Mode=TwoWay}"
+                              SettingsJson="{Binding Workflow.OutputJson, Mode=TwoWay}" />
         <StackPanel
             Orientation="Horizontal"
             Grid.Row="1"

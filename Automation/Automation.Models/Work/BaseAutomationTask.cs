@@ -69,6 +69,8 @@ namespace Automation.Models.Work
     {
         public Graph Graph { get; set; } = new Graph();
 
+        public string? OutputJson { get; set; }
+        
         /// <summary>
         /// Schema of all the shared data in the workflow
         /// </summary>

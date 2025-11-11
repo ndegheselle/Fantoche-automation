@@ -46,22 +46,13 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
             if (ContextMappingElement.HasErrors)
                 return;
             
-            try
+            // Update all start task OutputSchema
+            var startTasks = Workflow.Graph.GetStartNodes();
+            foreach(var task in startTasks)
             {
-                // Update all start task InputSchemaJson
-                var startTasks = Workflow.Graph.Nodes.OfType<GraphControl>().Where(x => x.TaskId == AutomationControl.StartTaskId);
-                foreach(var task in startTasks)
-                {
-                    task.InputSchemaJson = Workflow.InputSchemaJson;
-                    task.OutputSchemaJson = Workflow.InputSchemaJson;
-                }
+                task.OutputSchemaJson = Workflow.InputSchemaJson;
             }
-            catch
-            {
-                _alert.Error("The sample can't be converted to a Schema.");
-                return;
-            }
-
+            
             _alert.Success("Workflow input schema changed !");
             ParentLayout?.Hide(true);
         }

@@ -205,6 +205,20 @@ namespace Automation.Models.Work
             _isRefreshed = true;
         }
 
+        #region Nodes
+
+        public IEnumerable<GraphControl> GetStartNodes()
+        {
+            return Nodes.OfType<GraphControl>().Where(x => x.TaskId == AutomationControl.StartTaskId);
+        }
+
+        public IEnumerable<GraphControl> GetEndNodes()
+        {
+            return Nodes.OfType<GraphControl>().Where(x => x.TaskId == AutomationControl.EndTaskId);
+        }
+
+        #endregion
+        
         #region Connections
 
         /// <summary>
