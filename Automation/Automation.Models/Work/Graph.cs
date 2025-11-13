@@ -6,10 +6,10 @@ using System.Text.Json.Serialization;
 
 namespace Automation.Models.Work
 {
-    [JsonDerivedType(typeof(GraphTask), "task")]
     [JsonDerivedType(typeof(GraphGroup), "group")]
-    [JsonDerivedType(typeof(GraphWorkflow), "workflow")]
+    [JsonDerivedType(typeof(GraphTask), "task")]
     [JsonDerivedType(typeof(GraphControl), "control")]
+    [JsonDerivedType(typeof(GraphWorkflow), "workflow")]
     public partial class GraphNode
     {
         public Guid Id { get; set; } = Guid.NewGuid();
@@ -26,6 +26,9 @@ namespace Automation.Models.Work
         public bool WaitAll { get; set; } = false;
     }
 
+    [JsonDerivedType(typeof(GraphTask), "task")]
+    [JsonDerivedType(typeof(GraphControl), "control")]
+    [JsonDerivedType(typeof(GraphWorkflow), "workflow")]
     public class BaseGraphTask : GraphNode
     {
         public new string Name

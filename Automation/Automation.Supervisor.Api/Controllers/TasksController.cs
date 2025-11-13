@@ -68,7 +68,7 @@ namespace Automation.Supervisor.Api.Controllers
         }
 
         [HttpPut]
-        [Route("{id}")]
+        [Route("{id:guid}")]
         public override async Task UpdateAsync([FromRoute] Guid id, [FromBody] BaseAutomationTask element)
         {
             var existingTask = await _taskRepo.GetByIdAsync(id);
@@ -86,7 +86,7 @@ namespace Automation.Supervisor.Api.Controllers
         }
 
         [HttpPost]
-        [Route("{id}/execute")]
+        [Route("{id:guid}/execute")]
         public async Task<TaskInstance> ExecuteAsync([FromRoute] Guid id, [FromBody] object parameters)
         {
             TaskInstance instance = new TaskInstance(id, parameters);
@@ -94,7 +94,7 @@ namespace Automation.Supervisor.Api.Controllers
         }
 
         [HttpGet]
-        [Route("{id}/instances")]
+        [Route("{id:guid}/instances")]
         public async Task<ListPageWrapper<TaskInstance>> GetInstancesAsync([FromRoute] Guid id, [FromQuery] int page, [FromQuery] int pageSize)
         {
             return await _taskInstanceRepo.GetByTaskAsync(id, page, pageSize);

@@ -129,7 +129,7 @@ namespace Automation.App.Views.PackagesPages.Components
 
         private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            LoadClasses();
+            _ = LoadClasses();
         }
 
         private async void ButtonRemove_Click(object sender, System.Windows.RoutedEventArgs e)

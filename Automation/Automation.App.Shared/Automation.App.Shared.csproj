@@ -21,6 +21,4 @@
   </ItemGroup>
 
   <Import Project="..\Automation.Models\Automation.Models.projitems" Label="Shared" />
-
-  <Import Project="..\Automation.Models\Automation.Models.projitems" Label="Shared" />
 </Project>

@@ -1,4 +1,6 @@
-﻿using Automation.Models.Work;
+﻿using System.ComponentModel;
+using System.Windows;
+using Automation.Models.Work;
 using Automation.Shared.Data;
 using Joufflu.Popups;
 using System.Windows.Controls;
@@ -10,7 +12,7 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
     /// <summary>
     /// Logique d'interaction pour TaskInputSettingModal.xaml
     /// </summary>
-    public partial class TaskInputSettingModal : UserControl, IModalContent
+    public partial class TaskInputSettingModal : UserControl, IModalContent, INotifyPropertyChanged
     {
         public ModalOptions Options { get; private set; } = new ModalOptions();
         public IModal? ParentLayout { get; set; }
@@ -50,6 +52,11 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
             
             _alert.Success("Settings changed !");
             ParentLayout?.Hide(true);
+        }
+
+        private void HandleWaitAllChanged(object sender, RoutedEventArgs e)
+        {
+            ContextSamples = Graph.Execution.GetContextSampleJsonFor(Task);
         }
     }
 }

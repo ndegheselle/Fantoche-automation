@@ -12,11 +12,11 @@ public partial class ContextMapping : UserControl, INotifyPropertyChanged, INoti
 {
     public static readonly DependencyProperty SchemaJsonProperty = DependencyProperty.Register(
         nameof(SchemaJson), typeof(string), typeof(ContextMapping), 
-        new PropertyMetadata(null, (o, args) => ((ContextMapping)o).HandleSchemaChanged()));
+        new PropertyMetadata(null, (o, args) => _ = ((ContextMapping)o).HandleSchemaChanged()));
     
     public static readonly DependencyProperty SettingsJsonProperty = DependencyProperty.Register(
         nameof(SettingsJson), typeof(string), typeof(ContextMapping),
-        new PropertyMetadata(null, (o, args) => ((ContextMapping)o).HandleSettingsChanged()));
+        new PropertyMetadata(null, (o, args) => _ = ((ContextMapping)o).HandleSettingsChanged()));
 
     public static readonly DependencyProperty InputsProperty = DependencyProperty.Register(
         nameof(Inputs), typeof(List<string>), typeof(ContextMapping), new PropertyMetadata(default(List<string>)));
@@ -40,7 +40,7 @@ public partial class ContextMapping : UserControl, INotifyPropertyChanged, INoti
     }
 
     public bool DoesSettingUpdateSchema { get; set; } = true;
-
+    
     public ContextMapping()
     {
         InitializeComponent();

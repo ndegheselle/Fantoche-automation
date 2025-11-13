@@ -50,6 +50,7 @@
             </StackPanel>
 
             <ItemsControl
+                Margin="0,1,0,0"
                 Grid.Row="1"
                 ItemsSource="{Binding Inputs}">
                 <ItemsControl.ItemsPanel>
@@ -59,8 +60,12 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <TextBox Margin="0,0,0,2"
-                                 Text="{Binding Mode=OneTime }" Style="{StaticResource CodeTextBox}" />
+                        <TextBox Name="Context" Margin="0,2,0,0" Text="{Binding Mode=OneTime }" Style="{StaticResource CodeTextBox}" />
+                        <DataTemplate.Triggers>
+                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource PreviousData}}" Value="{x:Null}">
+                                <Setter TargetName="Context" Property="Margin" Value="0"/>
+                            </DataTrigger>
+                        </DataTemplate.Triggers>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
@@ -85,8 +90,7 @@
                 <TextBox
                     Grid.Row="1"
                     Style="{StaticResource CodeTextBox}"
-                    Text="{Binding SettingsJson, Mode=TwoWay}"
-/>
+                    Text="{Binding SettingsJson, Mode=TwoWay}" />
             </Grid>
 
             <GridSplitter

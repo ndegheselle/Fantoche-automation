@@ -29,21 +29,21 @@ namespace Automation.Supervisor.Api.Controllers
         }
 
         [HttpGet]
-        [Route("{id}")]
+        [Route("{id:guid}")]
         public virtual async Task<T?> GetByIdAsync([FromRoute] Guid id)
         {
             return await _crudRepository.GetByIdAsync(id);
         }
 
         [HttpPut]
-        [Route("{id}")]
+        [Route("{id:guid}")]
         public virtual async Task UpdateAsync([FromRoute] Guid id, [FromBody] T element)
         {
             await _crudRepository.ReplaceAsync(id, element);
         }
 
         [HttpDelete]
-        [Route("{id}")]
+        [Route("{id:guid}")]
         public virtual Task DeleteAsync([FromRoute] Guid id)
         {
             return _crudRepository.DeleteAsync(id);

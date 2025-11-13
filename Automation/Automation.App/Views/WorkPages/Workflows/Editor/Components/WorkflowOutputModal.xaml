@@ -27,12 +27,16 @@
         <Grid.RowDefinitions>
             <RowDefinition />
             <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
         
         <local:ContextMapping x:Name="ContextMappingElement"
                               Inputs="{Binding ContextSamples}"
                               SchemaJson="{Binding Workflow.OutputSchemaJson, Mode=TwoWay}"
                               SettingsJson="{Binding Workflow.OutputJson, Mode=TwoWay}" />
+        
+        <CheckBox Grid.Row="1" IsChecked="{Binding EndTask.Settings.WaitAll, Mode=TwoWay}" Checked="HandleWaitAllChanged" Unchecked="HandleWaitAllChanged">Wait for all inputs</CheckBox>
+
         <StackPanel
             Orientation="Horizontal"
             Grid.Row="1"

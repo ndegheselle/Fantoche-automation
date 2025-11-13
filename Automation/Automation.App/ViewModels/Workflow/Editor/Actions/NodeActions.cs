@@ -49,7 +49,7 @@ namespace Automation.App.ViewModels.Workflow.Editor.Actions
                     _editor.Ui.Modal.Show(new WorkflowInputModal(_editor.Ui.Workflow));
                     break;
                 case GraphControl control when control.TaskId == AutomationControl.EndTaskId:
-                    _editor.Ui.Modal.Show(new WorkflowOutputModal(_editor.Ui.Workflow));
+                    _editor.Ui.Modal.Show(new WorkflowOutputModal(control, _editor.Ui.Workflow));
                     break;
                 default:
                     _editor.Ui.Modal.Show(new TaskInputSettingModal(task, _editor.Ui.Workflow.Graph));
