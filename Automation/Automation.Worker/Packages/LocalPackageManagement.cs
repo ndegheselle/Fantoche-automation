@@ -118,6 +118,15 @@ namespace Automation.Worker.Packages
         // XXX : should be cached since we have to load the package and dll and check types dynamically
         public async Task<IEnumerable<ClassIdentifier>> GetTaskClassesAsync(string id, Version version)
         {
+            string dllPath = await GetPackageDllAsync(id, version);
+            
+            using TaskLoader loader = new TaskLoader(dllPath);
+            return loader.GetTypes().Select(t => new ClassIdentifier(dllPath, t.FullName ?? ""));
+        }
+
+        public async Task<string> GetPackageDllAsync(string id, Version version)
+        {
+            // Get package by id resource
             var findPackageByIdResource = await _repository.GetResourceAsync<FindPackageByIdResource>();
             var nugetVersion = new NuGetVersion(version);
 
@@ -132,77 +141,20 @@ namespace Automation.Worker.Packages
 
             packageStream.Position = 0;
             using var packageReader = new PackageArchiveReader(packageStream);
-
-            // Get the nearest framework
-            var nearestFramework = GetNearestFramework(packageReader);
-
-            // Get only the dll files from the nearest framework folder
-            var dllFiles = packageReader.GetFiles()
-                .Where(f => f.StartsWith($"lib/{nearestFramework}/") && f.EndsWith(".dll"));
-
-            // Load all the assemblies and get all the types that implement the ITask interface
-            var taskClasses = new List<ClassIdentifier>();
-            foreach (var dllFile in dllFiles)
-            {
-                using var dllStream = packageReader.GetStream(dllFile);
-                using var memoryStream = new MemoryStream();
-                dllStream.CopyTo(memoryStream);
-                var assembly = Assembly.Load(memoryStream.ToArray());
-
-                var taskTypes = assembly.GetTypes()
-                    .Where(t => typeof(ITask).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
-                taskClasses.AddRange(taskTypes.Select(t => new ClassIdentifier(dllFile, t.FullName ?? "")));
-            }
-
-            return taskClasses;
+            NuGetFramework nearestFramework = GetNearestFramework(packageReader);
+            FrameworkSpecificGroup? lib = packageReader.GetLibItems().FirstOrDefault(x => x.TargetFramework == nearestFramework);
+            
+            var packageId = packageReader.NuspecReader.GetId();
+            return lib?.Items.FirstOrDefault(item => item.EndsWith($"{packageId}.dll", StringComparison.OrdinalIgnoreCase))
+                ?? throw new Exception("Could not find package dll.");  
         }
-
-        public async Task<ITask> CreateTaskInstanceAsync(PackageClassTarget package)
-        {
-            // Get package by id resource
-            var findPackageByIdResource = await _repository.GetResourceAsync<FindPackageByIdResource>();
-            var nugetVersion = new NuGetVersion(package.Package.Version);
-
-            using var packageStream = new MemoryStream();
-            await findPackageByIdResource.CopyNupkgToStreamAsync(
-                package.Package.Identifier,
-                nugetVersion,
-                packageStream,
-                _cacheContext,
-                _logger,
-                CancellationToken.None);
-
-            packageStream.Position = 0;
-            using var packageReader = new PackageArchiveReader(packageStream);
-
-            var dllPath = packageReader.GetFiles()
-                .FirstOrDefault(f => f.EndsWith(package.TargetClass.Dll))
-                ?? throw new Exception($"Could not find main DLL for package '{package.Package.Identifier}' and dll '{package.TargetClass.Dll}'.");
-
-            // Load the assembly
-            using var dllStream = packageReader.GetStream(dllPath);
-            using var memoryStream = new MemoryStream();
-            await dllStream.CopyToAsync(memoryStream);
-
-            var assembly = Assembly.Load(memoryStream.ToArray());
-            var taskType = assembly.GetType(package.TargetClass.Name)
-                ?? throw new Exception($"Could not find type '{package.TargetClass.Name}'.");
-
-            if (!typeof(ITask).IsAssignableFrom(taskType))
-            {
-                throw new Exception($"Type '{package.TargetClass.Name}' does not implement ITask interface.");
-            }
-
-            return (Activator.CreateInstance(taskType) as ITask)
-                ?? throw new Exception($"Failed to create instance of type '{package.TargetClass.Name}'.");
-        }
-
+        
         /// <summary>
         /// Get the nearest framework to the current assembly
         /// </summary>
         /// <param name="packageReader"></param>
         /// <returns></returns>
-        private string GetNearestFramework(PackageArchiveReader packageReader)
+        private NuGetFramework GetNearestFramework(PackageArchiveReader packageReader)
         {
             var currentFramework = NuGetFramework.Parse(
                 Assembly
@@ -217,7 +169,7 @@ namespace Automation.Worker.Packages
 
             var nearestFramework = NuGetFrameworkUtility.GetNearest(frameworks, currentFramework, f => f) ?? throw new Exception("Can't find the nearest framework.");
 
-            return nearestFramework.GetShortFolderName();
+            return nearestFramework;
         }
     }
 

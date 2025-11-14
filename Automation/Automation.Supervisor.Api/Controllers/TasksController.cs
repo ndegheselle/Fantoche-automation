@@ -77,7 +77,10 @@ namespace Automation.Supervisor.Api.Controllers
 
             if (element is AutomationTask updatedTask && updatedTask.Target is PackageClassTarget package)
             {
-                ITask packageTask = await _packageManagement.CreateTaskInstanceAsync(package);
+                string? dllPath = await _packageManagement.GetPackageDllAsync(package.Package.Identifier, package.Package.Version);
+                using TaskLoader loader = new TaskLoader(dllPath);
+                
+                ITask packageTask = loader.CreateInstance(package.TargetClass.Name);
                 updatedTask.InputSchema = packageTask.InputType == null ? null : JsonSchema.FromType(packageTask.InputType);
                 updatedTask.OutputSchema = packageTask.OutputType == null ? null : JsonSchema.FromType(packageTask.OutputType);
             }

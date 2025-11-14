@@ -56,7 +56,10 @@ namespace Automation.Worker.Executor
         /// <returns></returns>
         private async Task<EnumTaskState> ExecuteAsync(PackageClassTarget packageTarget, TaskInstance instance, IProgress<TaskInstanceNotification>? progress = null)
         {
-            ITask task = await _packages.CreateTaskInstanceAsync(packageTarget);
+            string? dllPath = await _packages.GetPackageDllAsync(packageTarget.Package.Identifier, packageTarget.Package.Version);
+            using TaskLoader loader = new TaskLoader(dllPath);
+
+            ITask task = loader.CreateInstance(packageTarget.TargetClass.Name);
             try
             {
                 Progress<TaskNotification>? taskProgress = null;

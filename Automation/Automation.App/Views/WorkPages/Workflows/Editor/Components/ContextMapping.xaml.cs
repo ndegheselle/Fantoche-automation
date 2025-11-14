@@ -82,8 +82,8 @@ public partial class ContextMapping : UserControl, INotifyPropertyChanged, INoti
             else
             {
                 // Check if replaced references pass schema
-                var schema = await JsonSchema.FromJsonAsync(SchemaJson);
-                foreach (var context in result.Contexts)
+                JsonSchema schema = await JsonSchema.FromJsonAsync(SchemaJson);
+                foreach (ReferenceReplaceContext context in result.Contexts)
                 {
                     var errors = schema.Validate(context.ReplacedSetting);
                     if (errors.Count > 0)

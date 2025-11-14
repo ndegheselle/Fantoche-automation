@@ -31,6 +31,11 @@ namespace Automation.Worker.Packages
         /// <returns>Infos of the package</returns>
         PackageInfos GetInfosFromStream(Stream stream);
 
+        /// <summary>
+        /// Get a list of available versions.
+        /// </summary>
+        /// <param name="packageId"></param>
+        /// <returns></returns>
         Task<IEnumerable<Version>> GetVersionsAsync(string packageId);
 
         /// <summary>
@@ -50,16 +55,15 @@ namespace Automation.Worker.Packages
         /// <summary>
         /// Get all assemblies contained in a specific package version
         /// </summary>
-        /// <param name="id">Target package id</param>
-        /// <param name="version">Target package version</param>
+        /// <param name="package">Target package infos</param>
         /// <returns>Collection of assembly file paths within the package</returns>
         Task<IEnumerable<ClassIdentifier>> GetTaskClassesAsync(string id, Version version);
 
         /// <summary>
-        /// Create a task package instance from a class name
+        /// Get the main dll from a package.
         /// </summary>
-        /// <param name="package">Target package informations</param>
-        /// <returns>Instance of the class</returns>
-        Task<ITask> CreateTaskInstanceAsync(PackageClassTarget package);
+        /// <param name="package">Target package infos</param>
+        /// <returns>Path to the dll</returns>
+        Task<string> GetPackageDllAsync(string id, Version version);
     }
 }
