@@ -52,18 +52,7 @@ namespace Automation.Worker.Packages
         /// <param name="version">Target package version</param>
         Task RemoveAsync(string id, Version version);
 
-        /// <summary>
-        /// Get all assemblies contained in a specific package version
-        /// </summary>
-        /// <param name="package">Target package infos</param>
-        /// <returns>Collection of assembly file paths within the package</returns>
-        Task<IEnumerable<ClassIdentifier>> GetTaskClassesAsync(string id, Version version);
-
-        /// <summary>
-        /// Get the main dll from a package.
-        /// </summary>
-        /// <param name="package">Target package infos</param>
-        /// <returns>Path to the dll</returns>
-        Task<string> GetPackageDllAsync(string id, Version version);
+        Task<string> DownloadToLocalIfMissing(string id, Version version);
+        string? GetLocalDllPath(string id, Version version);
     }
 }

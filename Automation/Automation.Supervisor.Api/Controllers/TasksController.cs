@@ -77,7 +77,7 @@ namespace Automation.Supervisor.Api.Controllers
 
             if (element is AutomationTask updatedTask && updatedTask.Target is PackageClassTarget package)
             {
-                string? dllPath = await _packageManagement.GetPackageDllAsync(package.Package.Identifier, package.Package.Version);
+                string dllPath = await _packageManagement.DownloadToLocalIfMissing(package.Package.Identifier, package.Package.Version);
                 using TaskLoader loader = new TaskLoader(dllPath);
                 
                 ITask packageTask = loader.CreateInstance(package.TargetClass.Name);

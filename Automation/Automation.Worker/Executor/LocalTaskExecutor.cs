@@ -56,7 +56,7 @@ namespace Automation.Worker.Executor
         /// <returns></returns>
         private async Task<EnumTaskState> ExecuteAsync(PackageClassTarget packageTarget, TaskInstance instance, IProgress<TaskInstanceNotification>? progress = null)
         {
-            string? dllPath = await _packages.GetPackageDllAsync(packageTarget.Package.Identifier, packageTarget.Package.Version);
+            string dllPath = await _packages.DownloadToLocalIfMissing(packageTarget.Package.Identifier, packageTarget.Package.Version);
             using TaskLoader loader = new TaskLoader(dllPath);
 
             ITask task = loader.CreateInstance(packageTarget.TargetClass.Name);

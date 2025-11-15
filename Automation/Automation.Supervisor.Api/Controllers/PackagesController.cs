@@ -44,8 +44,12 @@ namespace Automation.Supervisor.Api.Controllers
         { return _packages.GetVersionsAsync(id); }
 
         [HttpGet("{id}/versions/{version}/classes")]
-        public Task<IEnumerable<ClassIdentifier>> GetClasses([FromRoute] string id, [FromRoute] string version)
-        { return _packages.GetTaskClassesAsync(id, new Version(version)); }
+        public async Task<IEnumerable<ClassIdentifier>> GetClasses([FromRoute] string id, [FromRoute] string version)
+        {
+            string pluginPath = await _packages.DownloadToLocalIfMissing(id, new Version(version));
+            using TaskLoader loader = new TaskLoader(pluginPath);
+            return loader.GetClasses();
+        }
 
         [HttpGet("{id}/versions/{version}")]
         public Task<PackageInfos> GetByIdAndVersion([FromRoute] string id, [FromRoute] string version)

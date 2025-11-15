@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using System.Runtime.Loader;
 using Automation.Plugins.Shared;
+using Automation.Shared.Data;
 
 namespace Automation.Worker.Packages;
 
@@ -17,6 +18,11 @@ public class PluginLoader<TPlugin>: AssemblyLoadContext, IDisposable where TPlug
 
     protected override Assembly? Load(AssemblyName assemblyName)
     {
+        // Force shared assemblies to load from the default context
+        if (assemblyName.Name == "System.Runtime" ||
+            assemblyName.Name?.StartsWith("System.") == true)
+            return null; // Fall back to default context
+        
         // Let the resolver find the dependency path
         var assemblyPath = _resolver.ResolveAssemblyToPath(assemblyName);
         if (assemblyPath != null) return LoadFromAssemblyPath(assemblyPath);
@@ -55,6 +61,11 @@ public class PluginLoader<TPlugin>: AssemblyLoadContext, IDisposable where TPlug
         Assembly assembly = LoadFromAssemblyPath(_pluginPath);
         return assembly.GetTypes()
             .Where(t => typeof(TPlugin).IsAssignableFrom(t) && t is { IsInterface: false, IsAbstract: false });
+    }
+
+    public IEnumerable<ClassIdentifier> GetClasses()
+    {
+        return GetTypes().Select(t => new ClassIdentifier(_pluginPath, t.FullName ?? ""));
     }
 
     public void Dispose() => Unload();
