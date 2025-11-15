@@ -13,9 +13,11 @@ namespace Automation.Worker.Executor
     public class LocalTaskExecutor : ITaskExecutor
     {
         private readonly TasksRepository _tasksRepo;
+        private readonly TaskIntancesRepository _instancesRepo;
         private readonly IPackageManagement _packages;
         public LocalTaskExecutor(DatabaseConnection connection, IPackageManagement packageManagement)
         {
+            _instancesRepo = new TaskIntancesRepository(connection);
             _tasksRepo = new TasksRepository(connection);
             _packages = packageManagement;
         }
@@ -56,6 +58,8 @@ namespace Automation.Worker.Executor
         /// <returns></returns>
         private async Task<EnumTaskState> ExecuteAsync(PackageClassTarget packageTarget, TaskInstance instance, IProgress<TaskInstanceNotification>? progress = null)
         {
+            await _instancesRepo.CreateAsync(instance);
+            
             string dllPath = await _packages.DownloadToLocalIfMissing(packageTarget.Package.Identifier, packageTarget.Package.Version);
             using TaskLoader loader = new TaskLoader(dllPath);
 
@@ -72,7 +76,10 @@ namespace Automation.Worker.Executor
                 return EnumTaskState.Completed;
             }
             catch
-            { }
+            {
+                // ignored
+            }
+
             return EnumTaskState.Failed;
         }
     }

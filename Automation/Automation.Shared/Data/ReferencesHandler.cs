@@ -78,7 +78,7 @@ public static class ReferencesHandler
         return ReplaceReferences(setting, context);
     }
 
-    private static ReferenceReplaceContext ReplaceReferences(JToken token, JToken context)
+    public static ReferenceReplaceContext ReplaceReferences(JToken token, JToken context)
     {
         var result = new ReferenceReplaceContext();
         ReplaceReferences(token, context, result);

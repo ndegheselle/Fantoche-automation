@@ -6,7 +6,7 @@ using MongoDB.Driver;
 
 namespace Automation.Dal.Repositories
 {
-    public class TaskIntancesRepository : BaseCrudRepository<Automation.Models.Work.TaskInstance>
+    public sealed class TaskIntancesRepository : BaseCrudRepository<TaskInstance>
     {
         public TaskIntancesRepository(DatabaseConnection connection) : base(connection, "instances")
         {
@@ -17,7 +17,7 @@ namespace Automation.Dal.Repositories
         /// </summary>
         /// <param name="activeWorkersId">Ids of the active workers</param>
         /// <returns>List of task instance than are ynhandled</returns>
-        public virtual async Task<IEnumerable<TaskInstance>> GetUnhandledAsync(IEnumerable<string> activeWorkersId)
+        public async Task<IEnumerable<TaskInstance>> GetUnhandledAsync(IEnumerable<string> activeWorkersId)
         {
             var filter = Builders<TaskInstance>.Filter
                 .And(
@@ -30,10 +30,7 @@ namespace Automation.Dal.Repositories
 
         public async Task<ListPageWrapper<TaskInstance>> GetByTaskAsync(Guid taskId, int page, int pageSize)
         {
-            // We don't load context and result since it may be quite extensive
-            var projection = Builders<TaskInstance>.Projection.Exclude(s => s.Parameters);
             var instances = await _collection.Find(e => e.TaskId == taskId)
-                .Project<TaskInstance>(projection)
                 .Skip(page * pageSize)
                 .Limit(pageSize)
                 .ToListAsync();
@@ -43,7 +40,7 @@ namespace Automation.Dal.Repositories
                 Data = instances,
                 Page = page,
                 PageSize = pageSize,
-                Total = _collection.CountDocuments(x => x.TaskId == taskId)
+                Total = await _collection.CountDocumentsAsync(x => x.TaskId == taskId)
             };
         }
 
@@ -62,9 +59,7 @@ namespace Automation.Dal.Repositories
 
             var filter = Builders<TaskInstance>.Filter.In(x => x.TaskId, tasks.Select(x => x.Id));
             // We don't load context and result since it may be quite expensive
-            var projection = Builders<TaskInstance>.Projection.Exclude(s => s.Parameters);
             var instances = await _collection.Find(filter)
-                .Project<TaskInstance>(projection)
                 .Skip(page * pageSize)
                 .Limit(pageSize)
                 .ToListAsync();
@@ -74,7 +69,7 @@ namespace Automation.Dal.Repositories
                 Data = instances,
                 Page = page,
                 PageSize = pageSize,
-                Total = _collection.CountDocuments(filter)
+                Total = await _collection.CountDocumentsAsync(filter)
             };
         }
     }

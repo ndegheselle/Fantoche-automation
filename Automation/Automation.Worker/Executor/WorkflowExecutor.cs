@@ -5,13 +5,15 @@ using Automation.Shared.Data.Task;
 using Automation.Worker.Control;
 using Automation.Worker.Control.Flow;
 using MongoDB.Driver;
+using Newtonsoft.Json.Linq;
 
 namespace Automation.Worker.Executor
 {
     public interface ITaskExecutor
     {
-        public Task<TaskInstance> ExecuteAsync(
+        public Task<JToken?> ExecuteAsync(
             TaskInstance instance,
+            JToken? input,
             IProgress<TaskInstanceNotification>? progress = null);
     }
 
@@ -31,7 +33,7 @@ namespace Automation.Worker.Executor
         {
             BaseAutomationTask baseTask = await _tasksRepo.GetByIdAsync(instance.TaskId);
             if (baseTask is not AutomationWorkflow workflow)
-                throw new Exception("Task is not a valid automation task.");
+                throw new Exception("Task is not a workflow.");
 
             workflow.Graph.Refresh();
             var startNode = workflow.Graph.Nodes.OfType<GraphControl>().Single(x => x.TaskId == StartTask.AutomationTask.Id);
@@ -46,11 +48,11 @@ namespace Automation.Worker.Executor
 
         private async Task ExecuteNodeAsync(BaseGraphTask node, Graph graph, TaskInstance workflowInstance)
         {
-            SubTaskInstance instance = new SubTaskInstance(workflowInstance.Id, node, null);
+            SubTaskInstance instance = new SubTaskInstance(workflowInstance.Id, node);
 
             switch (node)
             {
-                case GraphWorkflow:
+                case GraphWorkflow workflow:
                     await ExecuteWorkflowAsync(instance, null);
                     break;
                 case GraphControl controlNode:
@@ -62,12 +64,13 @@ namespace Automation.Worker.Executor
             }
 
             if (instance.State == EnumTaskState.Completed)
-                await ExecuteNextAsync(node, graph, workflowInstance);
+                ExecuteNextAsync(node, graph, workflowInstance);
         }
 
-        private async Task ExecuteNextAsync(BaseGraphTask node, Graph graph, TaskInstance workflowInstance)
+        private void ExecuteNextAsync(BaseGraphTask node, Graph graph, TaskInstance workflowInstance)
         {
             var nextConnections = graph.Connections.Where(x => x.Source?.Parent == node);
+            List<Task> nextTasks = [];
             foreach (var connection in nextConnections)
             {
                 if (connection.Target?.Parent == null)
@@ -77,8 +80,10 @@ namespace Automation.Worker.Executor
                 // TODO : handle task state and errors (if any) to stop the workflow execution if needed
                 // TODO : handle task outputs and pass them to the next task if needed
 
-                await ExecuteNodeAsync(connection.Target.Parent, graph, workflowInstance);
+                nextTasks.Add(ExecuteNodeAsync(connection.Target.Parent, graph, workflowInstance));
             }
+            
+            Task.WaitAll(nextTasks);
         }
 
         /// <summary>
@@ -94,5 +99,8 @@ namespace Automation.Worker.Executor
 
             await control.DoAsync(new WorkflowContext());
         }
+        
+        private async Task ExecuteSubWorkflowAsync(GraphWorkflow workflowNode, Graph graph, TaskInstance workflowInstance)
+        {}
     }
 }

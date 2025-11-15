@@ -3,6 +3,7 @@ using Automation.Shared.Data.Task;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
+using Newtonsoft.Json.Linq;
 
 namespace Automation.Models.Work
 {
@@ -19,17 +20,23 @@ namespace Automation.Models.Work
         public Guid Id { get; set; }
         public Guid TaskId { get; set; }
         public string? WorkerId { get; set; }
-
-        public object Parameters { get; set; }
+        
+        public string? InputJson { get; set; }
+        [JsonIgnore]
+        public JToken? InputToken { get; set; }
+        
+        public string? OutputJson { get; set; }
+        [JsonIgnore]
+        public JToken? OutputToken { get; set; }
+        
         public EnumTaskState State { get; set; }
 
         public DateTime CreatedAt { get; set; }
         public DateTime? StartedAt { get; set; }
         public DateTime? FinishedAt { get; set; }
-        public TaskInstance(Guid taskId, object parameters)
+        public TaskInstance(Guid taskId)
         {
             TaskId = taskId;
-            Parameters = parameters;
             CreatedAt = DateTime.UtcNow;
         }
     }
@@ -42,7 +49,7 @@ namespace Automation.Models.Work
         public Guid WorkflowInstanceId { get; set; }
         public Guid GraphNodeId { get; set; }
 
-        public SubTaskInstance(Guid workflowInstanceId, BaseGraphTask node, object parameters) : base(node.TaskId, parameters)
+        public SubTaskInstance(Guid workflowInstanceId, BaseGraphTask node) : base(node.TaskId)
         {
             WorkflowInstanceId = workflowInstanceId;
             GraphNodeId = node.Id;
