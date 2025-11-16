@@ -105,6 +105,7 @@ namespace Automation.Dal
                     cm.UnmapMember(m => m.Name);
                     cm.UnmapMember(m => m.InputSchema);
                     cm.UnmapMember(m => m.OutputSchema);
+                    cm.UnmapMember(m => m.WaitedInputs);
                 });
 
             BsonClassMap.RegisterClassMap<GraphConnector>(

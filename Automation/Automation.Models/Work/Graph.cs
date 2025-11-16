@@ -3,6 +3,8 @@ using NJsonSchema;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Text.Json.Serialization;
+using Newtonsoft.Json.Linq;
+using ZstdSharp.Unsafe;
 
 namespace Automation.Models.Work
 {
@@ -65,6 +67,12 @@ namespace Automation.Models.Work
 
         public string? OutputSchemaJson { get; set; }
 
+        /// <summary>
+        /// For Settings.WaitAll, we list inputs that are done to know then to start the task.
+        /// </summary>
+        [JsonIgnore]
+        public Dictionary<Guid, JToken?> WaitedInputs { get; private set; } = new Dictionary<Guid, JToken?>();
+        
         public BaseGraphTask()
         {
         }
@@ -101,6 +109,9 @@ namespace Automation.Models.Work
         public GraphControl(AutomationControl task) : base(task)
         {
         }
+
+        public bool IsEnd() => TaskId == AutomationControl.EndTaskId;
+        public bool IsStart() => TaskId == AutomationControl.StartTaskId;
     }
 
     public class GraphWorkflow : BaseGraphTask
@@ -161,7 +172,8 @@ namespace Automation.Models.Work
 
         private bool _isRefreshed;
 
-        [JsonIgnore] public GraphExecutionContext Execution { get; private set; }
+        [JsonIgnore] 
+        public GraphExecutionContext Execution { get; private set; }
 
         public Graph()
         {
@@ -210,16 +222,25 @@ namespace Automation.Models.Work
 
         #region Nodes
 
-        public IEnumerable<GraphControl> GetStartNodes()
-        {
-            return Nodes.OfType<GraphControl>().Where(x => x.TaskId == AutomationControl.StartTaskId);
-        }
+        public IEnumerable<GraphControl> GetStartNodes() => Nodes.OfType<GraphControl>().Where(x => x.IsStart());
+        public IEnumerable<GraphControl> GetEndNodes() => Nodes.OfType<GraphControl>().Where(x => x.IsEnd());
 
-        public IEnumerable<GraphControl> GetEndNodes()
+        /// <summary>
+        /// Check if a task can execute (if all previous are completed for WaitAll)
+        /// </summary>
+        /// <param name="task"></param>
+        /// <returns></returns>
+        public bool CanExecute(BaseGraphTask task)
         {
-            return Nodes.OfType<GraphControl>().Where(x => x.TaskId == AutomationControl.EndTaskId);
+            // If we don't wait we can start the task immediately
+            if (task.Settings.WaitAll == false)
+                return true;
+            
+            // Else make sure that all previous task have finished
+            var previousTasks = GetPreviousFrom(task);
+            return previousTasks.All(previous => task.WaitedInputs.ContainsKey(previous.Id));
         }
-
+        
         #endregion
         
         #region Connections
@@ -234,7 +255,18 @@ namespace Automation.Models.Work
             var connections = GetInputsConnectionsFrom(task);
             return connections.Select(x => x.Source!.Parent!);
         }
-
+        
+        /// <summary>
+        /// Get all next tasks.
+        /// </summary>
+        /// <param name="task">Task to get the previous tasks from</param>
+        /// <returns></returns>
+        public IEnumerable<BaseGraphTask> GetNextFrom(BaseGraphTask task)
+        {
+            var connections = GetOutputsConnectionsFrom(task);
+            return connections.Select(x => x.Target!.Parent!);
+        }
+        
         /// <summary>
         /// Get all the connections linked to a task.
         /// </summary>

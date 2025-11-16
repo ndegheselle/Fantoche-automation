@@ -1,4 +1,5 @@
-﻿using Automation.Dal;
+﻿using System.Reflection.Metadata;
+using Automation.Dal;
 using Automation.Dal.Repositories;
 using Automation.Models.Work;
 using Automation.Shared.Data.Task;
@@ -23,12 +24,84 @@ namespace Automation.Worker.Executor
 
         private readonly ITaskExecutor _executor;
 
+        private readonly AutomationWorkflow _workflow;
+        
         public WorkflowExecutor(DatabaseConnection connection, ITaskExecutor executor)
         {
             _tasksRepo = new TasksRepository(connection);
             _executor = executor;
         }
 
+        public void Start(TaskInstance instance)
+        {
+            JObject context = _workflow.Graph.Execution.GetBaseContext();
+            foreach (var start in _workflow.Graph.GetStartNodes())
+            {
+                Next(start, instance.InputToken, context);
+            }
+        }
+
+        public void End()
+        {
+            
+        }
+        
+        public async void Next(BaseGraphTask task, JToken? previous, JObject context)
+        {
+            var nextTasks = _workflow.Graph.GetNextFrom(task);
+            foreach (var next in nextTasks)
+            {
+                if (next.Settings.WaitAll)
+                    next.WaitedInputs.Add(task.Id, previous);
+                
+                if (_workflow.Graph.CanExecute(next))
+                    _ = Execute(next, previous, context);
+            }
+        }
+
+        public async Task Execute(BaseGraphTask task, JToken? previous, JObject context)
+        {
+            if (task.Settings.WaitAll)
+                task.WaitedInputs.Clear();
+            
+            // Apply context and create 
+            
+            JToken? output = null;
+            switch (task)
+            {
+                case GraphWorkflow workflowNode:
+                    output = await ExecuteSubWorkflow(workflowNode, previous);
+                    break;
+                case GraphControl controlNode:
+                    output = await ExecuteControl(controlNode, previous);
+                    break;
+                case GraphTask taskNode:
+                    output = await ExecuteTask(taskNode, previous);
+                    break;
+            }
+
+            Next(node, output, context);
+        }
+        
+        private Task<JToken?> ExecuteSubWorkflow(GraphWorkflow workflowNode, JToken? input)
+        {
+            
+        }
+        
+        private Task<JToken?> ExecuteControl(GraphControl controlNode, JToken? input)
+        {
+            if (controlNode.IsEnd())
+            {
+                
+            }
+        }
+
+        private Task<JToken?> ExecuteTask(GraphTask taskNode, JToken? input)
+        {
+            
+        }
+
+        /*
         public async Task<TaskInstance> ExecuteWorkflowAsync(TaskInstance instance, IProgress<TaskInstanceNotification>? progress = null)
         {
             BaseAutomationTask baseTask = await _tasksRepo.GetByIdAsync(instance.TaskId);
@@ -102,5 +175,6 @@ namespace Automation.Worker.Executor
         
         private async Task ExecuteSubWorkflowAsync(GraphWorkflow workflowNode, Graph graph, TaskInstance workflowInstance)
         {}
+        */
     }
 }

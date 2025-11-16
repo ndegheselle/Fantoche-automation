@@ -1,12 +1,16 @@
-﻿using Automation.Plugins.Shared;
+﻿using Automation.Models.Work;
+using Automation.Plugins.Shared;
 using Automation.Shared.Data.Task;
 
 namespace Automation.Worker.Control
 {
     public class WorkflowContext
     {
-        // Graph
-        // Current token and so on
+        public AutomationWorkflow Workflow { get; }
+        public WorkflowContext(AutomationWorkflow workflow)
+        {
+            Workflow = workflow;
+        }
     }
 
     public interface ITaskControl : ITask

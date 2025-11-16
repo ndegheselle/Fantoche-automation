@@ -19,6 +19,8 @@ namespace Automation.Worker.Control.Flow
 
         public override Task<EnumTaskState> DoAsync(WorkflowContext parameters, IProgress<TaskNotification>? progress = null)
         {
+            
+            
             return Task.FromResult(EnumTaskState.Completed);
         }
     }

@@ -32,6 +32,7 @@ public class MultiReferenceReplaceContext
     public List<ReferenceReplaceError> InconsistentReferenceErrors { get; set; } = [];
 }
 
+// TODO : separate Global, Workflow and previous and allow recursive references
 public static class ReferencesHandler
 {
     private const string ReferenceIdentifier = "$";

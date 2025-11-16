@@ -17,11 +17,12 @@ public class GraphExecutionContext
 
     #region Samples
 
-    private JObject GetBaseContext()
+    public JObject GetBaseContext()
     {
         return new JObject
         {
-            [PreviousIdentifier] = new JObject(), [GlobalIdentifier] = new JObject(),
+            [PreviousIdentifier] = new JObject(), 
+            [GlobalIdentifier] = new JObject(),
             [WorkflowIdentifier] = new JObject()
         };
     }
@@ -77,25 +78,22 @@ public class GraphExecutionContext
         foreach (var task in endTasks) contexts.AddRange(GetContextSampleJsonFor(task));
         return contexts;
     }
-
+    #endregion
+    
     /// <summary>
     /// Get the context of the task for execution.
     /// </summary>
     /// <param name="task"></param>
     /// <exception cref="NotImplementedException"></exception>
-    public void GetContextFor(BaseGraphTask task)
+    public void GetContextFor(BaseGraphTask task, JToken? previous, JObject context)
     {
-        throw new NotImplementedException("Add instance of the previous task in parameter");
+        if (task.Settings.WaitAll)
+        {
+            
+        }
+        else
+        {
+            
+        }
     }
-
-    /// <summary>
-    /// Get the output schema for the current graph.
-    /// </summary>
-    public void GetOutputSchemaFor()
-    {
-        throw new NotImplementedException(
-            "Join all the end control task previous Schema (handle previous task as well)");
-    }
-
-    #endregion
 }
