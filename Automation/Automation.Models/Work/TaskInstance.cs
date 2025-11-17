@@ -7,6 +7,41 @@ using Newtonsoft.Json.Linq;
 
 namespace Automation.Models.Work
 {
+    public class TaskInstanceData
+    {
+        public string? InputJson
+        {
+            get => InputToken?.ToString();
+            set => InputToken = JToken.Parse(value);
+        }
+        [JsonIgnore]
+        public JToken? InputToken { get; set; }
+        
+        public string? GlobalJson
+        {
+            get => GlobalToken?.ToString();
+            set => GlobalToken = JToken.Parse(value);
+        }
+        [JsonIgnore]
+        public JToken? GlobalToken { get; set; }
+        
+        public string? CommonJson
+        {
+            get => CommonToken?.ToString();
+            set => CommonToken = JToken.Parse(value);
+        }
+        [JsonIgnore]
+        public JToken? CommonToken { get; set; }
+        
+        public string? OutputJson
+        {
+            get => OutputToken?.ToString();
+            set => OutputToken = JToken.Parse(value);
+        }
+        [JsonIgnore]
+        public JToken? OutputToken { get; set; }
+    }
+    
     /// <summary>
     /// Task instance
     /// </summary>
@@ -21,13 +56,7 @@ namespace Automation.Models.Work
         public Guid TaskId { get; set; }
         public string? WorkerId { get; set; }
         
-        public string? InputJson { get; set; }
-        [JsonIgnore]
-        public JToken? InputToken { get; set; }
-        
-        public string? OutputJson { get; set; }
-        [JsonIgnore]
-        public JToken? OutputToken { get; set; }
+        public TaskInstanceData? Data { get; set; }
         
         public EnumTaskState State { get; set; }
 

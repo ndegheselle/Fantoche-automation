@@ -24,6 +24,12 @@ public class ReferenceReplaceContext
     public List<ReferenceReplaceError> Errors { get; } = [];
     public string ReplacedSetting { get; set; } = "";
     public Dictionary<string, JTokenType> ReferencesTypes { get; } = [];
+
+    public void SetReferenceType(string reference, JTokenType type)
+    {
+        if (!ReferencesTypes.TryAdd(reference, type))
+            ReferencesTypes[reference] = type;
+    }
 }
 
 public class MultiReferenceReplaceContext
@@ -92,6 +98,7 @@ public static class ReferencesHandler
     /// </summary>
     /// <param name="token">Setting containing references</param>
     /// <param name="context">Context the references points to</param>
+    /// <param name="result"></param>
     /// <returns></returns>
     private static void ReplaceReferences(JToken token, JToken context, ReferenceReplaceContext result)
     {
@@ -102,17 +109,33 @@ public static class ReferencesHandler
             if (contextValue != null)
             {
                 token.Replace(contextValue);
-                result.ReferencesTypes.Add(reference, contextValue.Type);
+                result.SetReferenceType(reference, contextValue.Type);
             }
             else
             {
                 result.Errors.Add(new ReferenceReplaceError(reference, $"[{reference}] not found in context."));
             }
+            
+            // Recursive reference
+            if (IsReference(token))
+                ReplaceReferences(token, context, result);
         }
 
         foreach (var child in token.Children()) ReplaceReferences(child, context, result);
     }
 
+    private static bool IsReference(JToken token)
+    {
+        if (token.Type != JTokenType.String)
+            return false;
+        var value = token.Value<string>();
+        if (value == null)
+            return false;
+        if (value.StartsWith(ReferenceIdentifier) == false)
+            return false;
+        return true;
+    }
+    
     private static string? GetReferencePath(JToken token)
     {
         if (token.Type != JTokenType.String)

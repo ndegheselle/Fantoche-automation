@@ -7,7 +7,7 @@ public class GraphExecutionContext
 {
     private const string PreviousIdentifier = "previous";
     private const string GlobalIdentifier = "global";
-    private const string WorkflowIdentifier = "workflow";
+    private const string CommonIdentifier = "common";
     private readonly Graph _graph;
 
     public GraphExecutionContext(Graph graph)
@@ -16,17 +16,7 @@ public class GraphExecutionContext
     }
 
     #region Samples
-
-    public JObject GetBaseContext()
-    {
-        return new JObject
-        {
-            [PreviousIdentifier] = new JObject(), 
-            [GlobalIdentifier] = new JObject(),
-            [WorkflowIdentifier] = new JObject()
-        };
-    }
-
+    
     /// <summary>
     /// Generate a sample of the contexts based on the previous tasks.
     /// </summary>
@@ -80,20 +70,32 @@ public class GraphExecutionContext
     }
     #endregion
     
-    /// <summary>
-    /// Get the context of the task for execution.
-    /// </summary>
-    /// <param name="task"></param>
-    /// <exception cref="NotImplementedException"></exception>
-    public void GetContextFor(BaseGraphTask task, JToken? previous, JObject context)
+    public JObject GetContextFor(JToken? previous, TaskInstanceData data)
     {
-        if (task.Settings.WaitAll)
+        return new JObject
         {
-            
-        }
-        else
+            [PreviousIdentifier] = previous,
+            [GlobalIdentifier] = data.GlobalToken,
+            [CommonIdentifier] = data.CommonToken
+        };
+    }
+
+    public JObject GetContextFor(Dictionary<string, JToken?> previous, TaskInstanceData data)
+    {
+        JObject context = new JObject
         {
-            
+            [PreviousIdentifier] = new JObject(),
+            [GlobalIdentifier] = data.GlobalToken,
+            [CommonIdentifier] = data.CommonToken
+        };
+        
+        foreach (var pre in previous)
+        {
+            JToken previousContext = context[PreviousIdentifier] ?? new JObject();
+            previousContext[pre.Key] = pre.Value;
+            context[PreviousIdentifier] ??= previousContext;
         }
+        
+        return context;
     }
 }

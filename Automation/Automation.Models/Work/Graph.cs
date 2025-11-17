@@ -69,9 +69,10 @@ namespace Automation.Models.Work
 
         /// <summary>
         /// For Settings.WaitAll, we list inputs that are done to know then to start the task.
+        /// Token are regrouped by node name.
         /// </summary>
         [JsonIgnore]
-        public Dictionary<Guid, JToken?> WaitedInputs { get; private set; } = new Dictionary<Guid, JToken?>();
+        public Dictionary<string, JToken?> WaitedInputs { get; private set; } = new Dictionary<string, JToken?>();
         
         public BaseGraphTask()
         {

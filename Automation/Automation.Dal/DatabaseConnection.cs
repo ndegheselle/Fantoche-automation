@@ -130,6 +130,15 @@ namespace Automation.Dal
                     cm.SetIsRootClass(true);
                     cm.AddKnownType(typeof(SubTaskInstance));
                 });
+            BsonClassMap.RegisterClassMap<TaskInstanceData>(
+                cm =>
+                {
+                    cm.AutoMap();
+                    cm.UnmapMember(m => m.InputToken);
+                    cm.UnmapMember(m => m.GlobalToken);
+                    cm.UnmapMember(m => m.CommonToken);
+                    cm.UnmapMember(m => m.OutputToken);
+                });
 
             BsonClassMap.RegisterClassMap<TaskTarget>(
                 cm =>

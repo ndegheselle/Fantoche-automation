@@ -80,7 +80,7 @@ namespace Automation.Worker.Executor
                     break;
             }
 
-            Next(node, output, context);
+            Next(task, output, context);
         }
         
         private Task<JToken?> ExecuteSubWorkflow(GraphWorkflow workflowNode, JToken? input)
