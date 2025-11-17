@@ -24,36 +24,30 @@ public class GraphExecutionContext
     public List<string> GetContextSampleJsonFor(BaseGraphTask task)
     {
         var previousTasks = _graph.GetPreviousFrom(task);
-
+        
+        // TODO : get the global and common token samples
+        var data = new TaskInstanceData()
+        {
+            
+        };
+        
         List<string> contexts = [];
         if (task.Settings.WaitAll)
         {
-            var context = GetBaseContext();
-            foreach (var previousTask in previousTasks)
-            {
-                var previousTaskContext = previousTask.OutputSchema?.ToSampleJson();
-                if (previousTaskContext == null) continue;
-
-                var previousContext = context[PreviousIdentifier] ?? new JObject();
-                previousContext[previousTask.Name] = previousTaskContext;
-                context[PreviousIdentifier] ??= previousContext;
-            }
-
-            contexts.Add(context.ToString());
+            Dictionary<string, JToken?> previous = new Dictionary<string, JToken?>();
+            foreach (var pre in previousTasks)
+                previous.Add(task.Name, pre.OutputSchema?.ToSampleJson());
+            contexts.Add(GenerateContextFrom(previous, data).ToString());
         }
         else
         {
             // XXX : maybe group by TaskId ?
             foreach (var previousTask in previousTasks)
             {
-                var previousContext = previousTask.OutputSchema?.ToSampleJson();
-                var context = GetBaseContext();
-                if (previousContext != null)
-                    context[PreviousIdentifier] = previousContext;
-                contexts.Add(context.ToString());
+                data.InputToken = previousTask.OutputSchema?.ToSampleJson();
+                contexts.Add(GenerateContextFrom(data).ToString());
             }
         }
-
         return contexts;
     }
 
@@ -69,18 +63,23 @@ public class GraphExecutionContext
         return contexts;
     }
     #endregion
+
+    public JObject GetContextFor(BaseGraphTask task, TaskInstanceData data)
+    {
+        return task.Settings.WaitAll ? GenerateContextFrom(task.WaitedInputs, data) : GenerateContextFrom(data);
+    }
     
-    public JObject GetContextFor(JToken? previous, TaskInstanceData data)
+    public JObject GenerateContextFrom(TaskInstanceData data)
     {
         return new JObject
         {
-            [PreviousIdentifier] = previous,
+            [PreviousIdentifier] = data.InputToken,
             [GlobalIdentifier] = data.GlobalToken,
             [CommonIdentifier] = data.CommonToken
         };
     }
 
-    public JObject GetContextFor(Dictionary<string, JToken?> previous, TaskInstanceData data)
+    public JObject GenerateContextFrom(Dictionary<string, JToken?> previous, TaskInstanceData data)
     {
         JObject context = new JObject
         {

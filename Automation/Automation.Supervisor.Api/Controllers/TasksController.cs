@@ -90,9 +90,9 @@ namespace Automation.Supervisor.Api.Controllers
 
         [HttpPost]
         [Route("{id:guid}/execute")]
-        public async Task<TaskInstance> ExecuteAsync([FromRoute] Guid id, [FromBody] object parameters)
+        public async Task<TaskInstance> ExecuteAsync([FromRoute] Guid id, [FromBody] string input)
         {
-            TaskInstance instance = new TaskInstance(id, parameters);
+            TaskInstance instance = new TaskInstance(id) {Data = new TaskInstanceData() {InputJson = input}};
             return await _executor.ExecuteAsync(instance);
         }
 

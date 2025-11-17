@@ -34,7 +34,11 @@ namespace Automation.Worker.Executor
 
         public void Start(TaskInstance instance)
         {
-            JObject context = _workflow.Graph.Execution.GetBaseContext();
+            // TODO : get the scope 
+
+            _scopeRepo.Get();
+            
+            JObject context = _workflow.Graph.Execution.GetContextFor();
             foreach (var start in _workflow.Graph.GetStartNodes())
             {
                 Next(start, instance.InputToken, context);

@@ -34,7 +34,7 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
             EndTask = task;
             Workflow = workflow;
             _originalSchema = Workflow.OutputSchemaJson;
-            _originalSettings = Workflow.OutputJson;
+            _originalSettings = Workflow.OutputMappingJson;
             
             ContextSamples = Workflow.Graph.Execution.GetContextSampleForEnd();
             
@@ -48,7 +48,7 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
         {
             // Restore
             Workflow.OutputSchemaJson = _originalSchema;
-            Workflow.OutputJson = _originalSettings;
+            Workflow.OutputMappingJson = _originalSettings;
             
             ParentLayout?.Hide();
         }

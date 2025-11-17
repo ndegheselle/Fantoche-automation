@@ -28,13 +28,13 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
             _instanceClient = Services.Provider.GetRequiredService<TaskInstancesClient>();
             Instance = instance;
             InitializeComponent();
-            LoadFullInstance(Instance.Id);
+            _ = LoadFullInstance(Instance.Id);
         }
 
-        private async void LoadFullInstance(Guid instanceId)
+        private async Task LoadFullInstance(Guid instanceId)
         {
             Instance = await _instanceClient.GetByIdAsync(instanceId) ?? throw new ArgumentException("Instance not found");
-            ContextJson = JsonSerializer.Serialize(Instance.Parameters, new JsonSerializerOptions() { WriteIndented = true });
+            ContextJson = JsonSerializer.Serialize(Instance.Data?.InputJson, new JsonSerializerOptions() { WriteIndented = true });
         }
     }
 }

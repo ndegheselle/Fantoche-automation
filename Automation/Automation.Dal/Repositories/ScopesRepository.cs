@@ -1,5 +1,6 @@
 ﻿using Automation.Models.Work;
 using MongoDB.Driver;
+using Newtonsoft.Json.Linq;
 
 namespace Automation.Dal.Repositories
 {
@@ -104,6 +105,11 @@ namespace Automation.Dal.Repositories
         public async Task<bool> IsNameUsedAsync(Guid scopeId, string name)
         {
             return await _collection.Find(e => e.ParentId == scopeId && e.Metadata.Name == name).AnyAsync();
+        }
+
+        public async Task<JObject?> GetContext()
+        {
+            
         }
     }
 }

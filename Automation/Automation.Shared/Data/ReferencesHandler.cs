@@ -124,6 +124,11 @@ public static class ReferencesHandler
         foreach (var child in token.Children()) ReplaceReferences(child, context, result);
     }
 
+    /// <summary>
+    /// Check if a token is a reference to the context.
+    /// </summary>
+    /// <param name="token"></param>
+    /// <returns></returns>
     private static bool IsReference(JToken token)
     {
         if (token.Type != JTokenType.String)
@@ -136,6 +141,11 @@ public static class ReferencesHandler
         return true;
     }
     
+    /// <summary>
+    /// Get the reference path if the token contain a reference.
+    /// </summary>
+    /// <param name="token"></param>
+    /// <returns></returns>
     private static string? GetReferencePath(JToken token)
     {
         if (token.Type != JTokenType.String)

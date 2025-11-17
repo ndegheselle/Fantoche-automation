@@ -33,7 +33,7 @@
         <local:ContextMapping x:Name="ContextMappingElement"
                               Inputs="{Binding ContextSamples}"
                               SchemaJson="{Binding Workflow.OutputSchemaJson, Mode=TwoWay}"
-                              SettingsJson="{Binding Workflow.OutputJson, Mode=TwoWay}" />
+                              SettingsJson="{Binding Workflow.OutputMappingJson, Mode=TwoWay}" />
         
         <CheckBox Grid.Row="1" IsChecked="{Binding EndTask.Settings.WaitAll, Mode=TwoWay}" Checked="HandleWaitAllChanged" Unchecked="HandleWaitAllChanged">Wait for all inputs</CheckBox>
 

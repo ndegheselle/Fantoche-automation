@@ -69,19 +69,16 @@ namespace Automation.Models.Work
     {
         public Graph Graph { get; set; } = new Graph();
 
-        public string? OutputJson { get; set; }
+        /// <summary>
+        /// Mapping for the output of the workflow.
+        /// </summary>
+        public string? OutputMappingJson { get; set; }
         
         /// <summary>
-        /// Schema of all the shared data in the workflow
+        /// Schema of all the common data of the workflow.
         /// </summary>
-        [JsonIgnore]
-        public JsonSchema? WorkflowSchema
-        {
-            get => WorkflowSchemaJson == null ? null : JsonSchema.FromJsonAsync(WorkflowSchemaJson).Result;
-            set => WorkflowSchemaJson = value == null ? null : value.ToJson();
-        }
-        public string? WorkflowSchemaJson { get; set; }
-
+        public string? CommonSchemaJson { get; set; }
+        
         public AutomationWorkflow() : base(EnumScopedType.Workflow)
         {}
     }
