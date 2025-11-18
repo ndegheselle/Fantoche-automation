@@ -55,7 +55,6 @@ namespace Automation.Dal.Repositories
         {
             TasksRepository taskRepo = new TasksRepository(_connection);
             var tasks = await taskRepo.GetByAnyParentScopeAsync(scopeId);
-            var test = tasks.ToList();
 
             var filter = Builders<TaskInstance>.Filter.In(x => x.TaskId, tasks.Select(x => x.Id));
             // We don't load context and result since it may be quite expensive

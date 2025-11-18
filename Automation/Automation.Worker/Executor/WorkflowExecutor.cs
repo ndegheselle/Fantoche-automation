@@ -2,6 +2,7 @@
 using Automation.Dal;
 using Automation.Dal.Repositories;
 using Automation.Models.Work;
+using Automation.Shared.Data;
 using Automation.Shared.Data.Task;
 using Automation.Worker.Control;
 using Automation.Worker.Control.Flow;
@@ -21,27 +22,31 @@ namespace Automation.Worker.Executor
     public class WorkflowExecutor
     {
         private readonly TasksRepository _tasksRepo;
+        private readonly ScopesRepository _scopesRepo;
 
         private readonly ITaskExecutor _executor;
 
         private readonly AutomationWorkflow _workflow;
         
-        public WorkflowExecutor(DatabaseConnection connection, ITaskExecutor executor)
+        public WorkflowExecutor(DatabaseConnection connection, ITaskExecutor executor, AutomationWorkflow workflow)
         {
+            _workflow = workflow;
             _tasksRepo = new TasksRepository(connection);
+            _scopesRepo = new ScopesRepository(connection);
             _executor = executor;
         }
 
-        public void Start(TaskInstance instance)
+        public async Task Start(TaskInstance instance)
         {
-            // TODO : get the scope 
-
-            _scopeRepo.Get();
+            if (instance.Data == null)
+                instance.Data = new TaskInstanceData();
             
-            JObject context = _workflow.Graph.Execution.GetContextFor();
+            // Add global context
+            instance.Data.GlobalToken = await _scopesRepo.GetContextFromTree(_workflow.ParentTree);
+
             foreach (var start in _workflow.Graph.GetStartNodes())
             {
-                Next(start, instance.InputToken, context);
+                Next(start, instance.Data);
             }
         }
 
@@ -50,41 +55,43 @@ namespace Automation.Worker.Executor
             
         }
         
-        public async void Next(BaseGraphTask task, JToken? previous, JObject context)
+        public async void Next(BaseGraphTask task, TaskInstanceData data)
         {
             var nextTasks = _workflow.Graph.GetNextFrom(task);
+
             foreach (var next in nextTasks)
             {
                 if (next.Settings.WaitAll)
-                    next.WaitedInputs.Add(task.Id, previous);
+                    next.WaitedInputs.Add(task.Name, data.InputToken);
                 
                 if (_workflow.Graph.CanExecute(next))
-                    _ = Execute(next, previous, context);
+                    _ = Execute(next, data);
             }
         }
 
-        public async Task Execute(BaseGraphTask task, JToken? previous, JObject context)
+        public async Task Execute(BaseGraphTask task, TaskInstanceData data)
         {
+            JObject context = _workflow.Graph.Execution.GetContextFor(task, data);
             if (task.Settings.WaitAll)
                 task.WaitedInputs.Clear();
-            
-            // Apply context and create 
-            
+
+            JToken? input = ReferencesHandler.ReplaceReferences(JToken.Parse(task.InputJson), context).ReplacedSetting;
             JToken? output = null;
             switch (task)
             {
                 case GraphWorkflow workflowNode:
-                    output = await ExecuteSubWorkflow(workflowNode, previous);
+                    output = await ExecuteSubWorkflow(workflowNode, input);
                     break;
                 case GraphControl controlNode:
-                    output = await ExecuteControl(controlNode, previous);
+                    output = await ExecuteControl(controlNode, input);
                     break;
                 case GraphTask taskNode:
-                    output = await ExecuteTask(taskNode, previous);
+                    output = await ExecuteTask(taskNode, input);
                     break;
             }
 
-            Next(task, output, context);
+            data.InputToken = output;
+            Next(task, data);
         }
         
         private Task<JToken?> ExecuteSubWorkflow(GraphWorkflow workflowNode, JToken? input)

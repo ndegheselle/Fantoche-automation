@@ -21,8 +21,8 @@ public class ReferenceReplaceError
 
 public class ReferenceReplaceContext
 {
+    public JToken? ReplacedSetting { get; set; }
     public List<ReferenceReplaceError> Errors { get; } = [];
-    public string ReplacedSetting { get; set; } = "";
     public Dictionary<string, JTokenType> ReferencesTypes { get; } = [];
 
     public void SetReferenceType(string reference, JTokenType type)
@@ -59,7 +59,8 @@ public static class ReferencesHandler
             {
                 var types = results
                     .Select(d => d.ReferencesTypes.TryGetValue(key, out var value) ? (JTokenType?)value : null)
-                    .Distinct();
+                    .Distinct()
+                    .ToList();
                 // Inconsistent if: has null (missing) OR multiple different types
                 return types.Contains(null) || types.Count(t => t.HasValue) > 1;
             })
@@ -85,11 +86,11 @@ public static class ReferencesHandler
         return ReplaceReferences(setting, context);
     }
 
-    public static ReferenceReplaceContext ReplaceReferences(JToken token, JToken context)
+    public static ReferenceReplaceContext ReplaceReferences(JToken setting, JToken context)
     {
         var result = new ReferenceReplaceContext();
-        ReplaceReferences(token, context, result);
-        result.ReplacedSetting = token.ToString();
+        ReplaceReferences(setting, context, result);
+        result.ReplacedSetting = setting;
         return result;
     }
 

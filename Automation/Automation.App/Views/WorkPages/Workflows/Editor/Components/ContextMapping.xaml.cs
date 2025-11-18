@@ -85,7 +85,7 @@ public partial class ContextMapping : UserControl, INotifyPropertyChanged, INoti
                 JsonSchema schema = await JsonSchema.FromJsonAsync(SchemaJson);
                 foreach (ReferenceReplaceContext context in result.Contexts)
                 {
-                    var errors = schema.Validate(context.ReplacedSetting);
+                    var errors = schema.Validate(context.ReplacedSetting.ToString());
                     if (errors.Count > 0)
                         Errors.Add(errors.Select(x => x.ToString()), nameof(SettingsJson));
                     return;

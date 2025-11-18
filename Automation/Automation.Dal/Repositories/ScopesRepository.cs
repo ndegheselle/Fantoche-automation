@@ -107,9 +107,29 @@ namespace Automation.Dal.Repositories
             return await _collection.Find(e => e.ParentId == scopeId && e.Metadata.Name == name).AnyAsync();
         }
 
-        public async Task<JObject?> GetContext()
+        /// <summary>
+        /// Get the global context from the parentTree of a ScopedElement
+        /// </summary>
+        /// <param name="parentTree"></param>
+        /// <returns></returns>
+        public async Task<JObject> GetContextFromTree(List<Guid> parentTree)
         {
+            var filter = Builders<Scope>.Filter.In(nameof(Scope.Id), parentTree);
+            var scopes = await _collection.Find(filter).ToListAsync();
+            scopes = scopes.OrderBy(s => parentTree.IndexOf(s.Id)).ToList();
+
+            var contextsJson = scopes.Select(x => x.ContextJson);
             
+            var merged = new JObject();
+            foreach (var contextJson in contextsJson)
+            {
+                if (!string.IsNullOrEmpty(contextJson))
+                {
+                    var context = JObject.Parse(contextJson);
+                    merged.Merge(context);
+                }
+            }
+            return merged;
         }
     }
 }
