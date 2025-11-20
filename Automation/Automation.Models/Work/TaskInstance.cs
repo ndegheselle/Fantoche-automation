@@ -12,7 +12,7 @@ namespace Automation.Models.Work
         public string? InputJson
         {
             get => InputToken?.ToString();
-            set => InputToken = JToken.Parse(value);
+            set => InputToken = value == null ? null : JToken.Parse(value);
         }
         [JsonIgnore]
         public JToken? InputToken { get; set; }
@@ -20,7 +20,7 @@ namespace Automation.Models.Work
         public string? GlobalJson
         {
             get => GlobalToken?.ToString();
-            set => GlobalToken = JToken.Parse(value);
+            set => GlobalToken = value == null ? null : JToken.Parse(value);
         }
         [JsonIgnore]
         public JToken? GlobalToken { get; set; }
@@ -28,7 +28,7 @@ namespace Automation.Models.Work
         public string? CommonJson
         {
             get => CommonToken?.ToString();
-            set => CommonToken = JToken.Parse(value);
+            set => CommonToken = value == null ? null : JToken.Parse(value);
         }
         [JsonIgnore]
         public JToken? CommonToken { get; set; }
@@ -36,10 +36,21 @@ namespace Automation.Models.Work
         public string? OutputJson
         {
             get => OutputToken?.ToString();
-            set => OutputToken = JToken.Parse(value);
+            set => OutputToken = value == null ? null : JToken.Parse(value);
         }
         [JsonIgnore]
         public JToken? OutputToken { get; set; }
+        
+        public TaskInstanceData Clone()
+        {
+            return new TaskInstanceData
+            {
+                InputToken = InputToken?.DeepClone(),
+                GlobalToken = GlobalToken?.DeepClone(),
+                CommonToken = CommonToken?.DeepClone(),
+                OutputToken = OutputToken?.DeepClone()
+            };
+        }
     }
     
     /// <summary>

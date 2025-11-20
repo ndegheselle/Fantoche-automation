@@ -5,7 +5,7 @@ using Automation.Realtime.Models;
 namespace Automation.Worker.Service
 {
     /// <summary>
-    /// Register the worker and send heartbeat reguraly
+    /// Register the worker and send heartbeat regularly
     /// </summary>
     public class Lifecycle : BackgroundService
     {

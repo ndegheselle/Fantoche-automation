@@ -17,7 +17,7 @@ namespace Automation.Plugins
 
     public class TestTask : BaseTask<TestParameters, TestResult>
     {
-        public override Task<TestResult> DoAsync(TestParameters parameters, IProgress<TaskNotification>? progress = null)
+        public override Task<TestResult> DoAsync(TestParameters parameters, IProgress<TaskNotification>? progress = null, CancellationToken? cancellation = null)
         {
             return Task.FromResult(new TestResult()
             {

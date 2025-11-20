@@ -4,7 +4,6 @@ using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Text.Json.Serialization;
 using Newtonsoft.Json.Linq;
-using ZstdSharp.Unsafe;
 
 namespace Automation.Models.Work
 {
@@ -23,9 +22,12 @@ namespace Automation.Models.Work
         public Size Size { get; set; }
     }
 
-    public class GraphTaskSetting
+    public class GraphTaskSettings
     {
-        public bool WaitAll { get; set; } = false;
+        /// <summary>
+        /// Wait for all inputs to complete before starting the task.
+        /// </summary>
+        public bool IsWaitingAllInputs { get; set; } = false;
     }
 
     [JsonDerivedType(typeof(GraphTask), "task")]
@@ -47,7 +49,7 @@ namespace Automation.Models.Work
         public List<GraphConnector> Outputs { get; set; } = [];
 
         public string? InputJson { get; set; }
-        public GraphTaskSetting Settings { get; private set; } = new GraphTaskSetting();
+        public GraphTaskSettings Settings { get; private set; } = new GraphTaskSettings();
 
         [JsonIgnore]
         public JsonSchema? InputSchema
@@ -234,12 +236,12 @@ namespace Automation.Models.Work
         public bool CanExecute(BaseGraphTask task)
         {
             // If we don't wait we can start the task immediately
-            if (task.Settings.WaitAll == false)
+            if (task.Settings.IsWaitingAllInputs == false)
                 return true;
             
             // Else make sure that all previous task have finished
             var previousTasks = GetPreviousFrom(task);
-            return previousTasks.All(previous => task.WaitedInputs.ContainsKey(previous.Id));
+            return previousTasks.All(previous => task.WaitedInputs.ContainsKey(previous.Name));
         }
         
         #endregion

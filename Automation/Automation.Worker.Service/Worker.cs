@@ -6,15 +6,13 @@ using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
 using Automation.Shared.Data.Task;
 using Automation.Worker.Executor;
+using Automation.Worker.Packages;
 
 namespace Automation.Worker.Service
 {
     public class Worker : BackgroundService
     {
         private readonly TaskIntancesRepository _instanceRepo;
-        private readonly TasksRepository _taskRepo;
-
-        private readonly WorkerInstance _instance;
         private readonly LocalTaskExecutor _executor;
         private readonly WorkerRealtimeClient _workerClient;
 
@@ -25,13 +23,11 @@ namespace Automation.Worker.Service
             WorkerInstance instance,
             DatabaseConnection connection,
             RedisConnectionManager redis,
-            Packages.IPackageManagement packageManagement)
+            IPackageManagement packageManagement)
         {
-            _instance = instance;
             _instanceRepo = new TaskIntancesRepository(connection);
-            _taskRepo = new TasksRepository(connection);
             _executor = new LocalTaskExecutor(connection, packageManagement);
-            _workerClient = new WorkersRealtimeClient(redis.Connection).ByWorker(_instance.Id);
+            _workerClient = new WorkersRealtimeClient(redis.Connection).ByWorker(instance.Id);
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -46,7 +42,8 @@ namespace Automation.Worker.Service
                     taskId = await _workerClient.Tasks.DequeueAsync();
                     if (taskId != null)
                     {
-                        await Execute(taskId.Value);
+                        TaskInstance instance = await _instanceRepo.GetByIdAsync(taskId.Value);
+                        await _executor.ExecuteAsync(instance);
                     }
                 } while (taskId != null);
 
@@ -54,20 +51,6 @@ namespace Automation.Worker.Service
                 _waitingForTask = new TaskCompletionSource(stoppingToken);
                 await _waitingForTask.Task;
             }
-        }
-
-        private async Task Execute(Guid instanceId)
-        {
-            TaskInstance instance = await _instanceRepo.GetByIdAsync(instanceId);
-
-            instance.State = EnumTaskState.Progressing;
-            instance.StartedAt = DateTime.UtcNow;
-            await _instanceRepo.ReplaceAsync(instance.Id, instance);
-
-            instance = await _executor.ExecuteAsync(instance);
-
-            instance.FinishedAt = DateTime.UtcNow;
-            await _instanceRepo.ReplaceAsync(instance.Id, instance);
         }
     }
 }

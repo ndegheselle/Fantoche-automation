@@ -1,0 +1,15 @@
+﻿<UserControl x:Class="Automation.App.Views.WorkPages.Tasks.Components.TaskSettingsEdit"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Tasks.Components"
+             mc:Ignorable="d"
+             x:Name="ContainerElement"
+             d:DesignWidth="300">
+    <GroupBox Header="Settings" DataContext="{Binding ElementName=ContainerElement}">
+        <StackPanel Margin="4">
+            <CheckBox IsChecked="{Binding Settings.IsStoringAllData}">Store all data during execution (for debugging)</CheckBox>
+        </StackPanel>
+    </GroupBox>
+</UserControl>

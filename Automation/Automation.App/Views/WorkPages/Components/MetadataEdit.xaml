@@ -12,46 +12,54 @@
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     xmlns:layouts="clr-namespace:Joufflu.Layouts;assembly=Joufflu.Layouts"
+    d:DesignWidth="300"
     mc:Ignorable="d"
     x:Name="ContainerElement">
-    <StackPanel DataContext="{Binding ElementName=ContainerElement}" Orientation="Vertical">
-        <layouts:FlexibleGrid
-            Columns="2"
-            ColumnsWidth="*,80"
-            Gap="2">
-
-            <TextBlock Margin="0,8,0,4" FontWeight="Bold">Name</TextBlock>
+    <GroupBox Header="Metadata" DataContext="{Binding ElementName=ContainerElement}" >
+        <StackPanel Orientation="Vertical">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition />
-                    <ColumnDefinition Width="auto" />
-                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition Width="80" />
                 </Grid.ColumnDefinitions>
-                <TextBlock Margin="0,8,0,4" FontWeight="Bold">Icon</TextBlock>
-                <Button
-                    Click="ButtonEditColor_Click"
-                    Grid.Column="1"
-                    Style="{StaticResource IconButtonSmall}">
-                    <fonts:Icon Text="{x:Static fonts:IconFont.Palette}" />
-                </Button>
-                <Button
-                    Margin="2,0,0,0"
-                    Click="ButtonEditIcon_Click"
-                    Grid.Column="2"
-                    Style="{StaticResource IconButtonSmall}">
-                    <fonts:Icon Text="{x:Static fonts:IconFont.PencilSimple}" />
-                </Button>
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+                
+                <TextBlock Margin="0,4,0,2">Name</TextBlock>
+                <TextBox Grid.Column="0" Grid.Row="1" Text="{Binding Metadata.Name}" />
+                
+                <Grid Grid.Row="0" Grid.Column="1" Margin="4,0,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition />
+                        <ColumnDefinition Width="auto" />
+                        <ColumnDefinition Width="auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Margin="0,4,0,2" >Icon</TextBlock>
+                    <Button
+                        Click="ButtonEditColor_Click"
+                        Grid.Column="1"
+                        Style="{StaticResource IconButtonSmall}">
+                        <fonts:Icon Text="{x:Static fonts:IconFont.Palette}" />
+                    </Button>
+                    <Button
+                        Margin="2,0,0,0"
+                        Click="ButtonEditIcon_Click"
+                        Grid.Column="2"
+                        Style="{StaticResource IconButtonSmall}">
+                        <fonts:Icon Text="{x:Static fonts:IconFont.PencilSimple}" />
+                    </Button>
+                </Grid>
+                <components:ScopedIcon Grid.Column="1" Grid.Row="1" Metadata="{Binding Metadata}" FontSize="18" />
             </Grid>
 
-            <TextBox Text="{Binding Metadata.Name}" />
-            <components:ScopedIcon Metadata="{Binding Metadata}" FontSize="18" />
-        </layouts:FlexibleGrid>
+            <TextBlock Margin="0,4,0,2" >Tags</TextBlock>
+            <jouffluInputs:ComboBoxTags
+                AllowAdd="True"
+                ItemsSource="{Binding Tags}"
+                SelectedItems="{Binding Metadata.Tags, Mode=TwoWay}" />
 
-        <TextBlock Margin="0,8,0,4" FontWeight="Bold">Tags</TextBlock>
-        <jouffluInputs:ComboBoxTags
-            AllowAdd="True"
-            ItemsSource="{Binding Tags}"
-            SelectedItems="{Binding Metadata.Tags, Mode=TwoWay}" />
-
-    </StackPanel>
+        </StackPanel>
+    </GroupBox>
 </UserControl>

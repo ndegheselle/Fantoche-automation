@@ -6,18 +6,13 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Workflows"
     xmlns:components="clr-namespace:Automation.App.Views.WorkPages.Components"
-    xmlns:jouffluInputs="clr-namespace:Joufflu.Inputs;assembly=Joufflu.Inputs"
+    xmlns:tasksComponents="clr-namespace:Automation.App.Views.WorkPages.Tasks.Components"
     mc:Ignorable="d"
     MinHeight="100"
     MinWidth="250"
     Padding="2">
     <StackPanel Orientation="Vertical" DataContext="{Binding Workflow, RelativeSource={RelativeSource AncestorType=local:WorkflowEditModal}}">
         <components:MetadataEdit Metadata="{Binding Metadata}" />
-        <GroupBox
-            Grid.Row="1"
-            Margin="0,4,0,0"
-            Header="Workflow">
-            <TextBlock>Edit the intputs and outputs</TextBlock>
-        </GroupBox>
+        <tasksComponents:TaskSettingsEdit Margin="0,2,0,0" Settings="{Binding Task.Settings}" />
     </StackPanel>
 </UserControl>

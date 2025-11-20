@@ -1,86 +1,75 @@
 ﻿using Automation.Dal;
 using Automation.Dal.Repositories;
 using Automation.Models.Work;
-using Automation.Plugins.Shared;
 using Automation.Shared.Data.Task;
+using Automation.Worker.Control;
 using Automation.Worker.Packages;
 
-namespace Automation.Worker.Executor
+namespace Automation.Worker.Executor;
+
+/// <summary>
+/// Execute a task localy
+/// </summary>
+public class LocalTaskExecutor : ITaskExecutor
 {
-    /// <summary>
-    /// Execute a task localy
-    /// </summary>
-    public class LocalTaskExecutor : ITaskExecutor
+    private readonly TasksRepository _taskRepo;
+    private readonly IPackageManagement _packages;
+    private readonly DatabaseConnection _connection;
+
+    public LocalTaskExecutor(DatabaseConnection connection, IPackageManagement packageManagement)
     {
-        private readonly TasksRepository _tasksRepo;
-        private readonly TaskIntancesRepository _instancesRepo;
-        private readonly IPackageManagement _packages;
-        public LocalTaskExecutor(DatabaseConnection connection, IPackageManagement packageManagement)
+        _connection = connection;
+        _taskRepo = new TasksRepository(connection);
+        _packages = packageManagement;
+    }
+
+    public async Task<TaskInstance> ExecuteAsync(
+        TaskInstance instance,
+        IProgress<TaskInstanceNotification>? progress = null)
+    {
+        var baseTask = await _taskRepo.GetByIdAsync(instance.TaskId);
+        return baseTask switch
         {
-            _instancesRepo = new TaskIntancesRepository(connection);
-            _tasksRepo = new TasksRepository(connection);
-            _packages = packageManagement;
-        }
+            AutomationControl => throw new Exception("A control task can be started only from a workflow."),
+            AutomationTask task => await ExecuteTaskAsync(task, instance, progress),
+            AutomationWorkflow workflow => await ExecuteWorkflowAsync(workflow, instance, progress),
+            _ => throw new Exception("Unknown task type.")
+        };
+    }
+    
+    private async Task<TaskInstance> ExecuteTaskAsync(
+        AutomationTask automationTask,
+        TaskInstance instance,
+        IProgress<TaskInstanceNotification>? progress = null)
+    {
+        if (automationTask.Target is not PackageClassTarget target)
+            throw new Exception("Task target is not a package.");
 
-        /// <summary>
-        /// Execute a task instance
-        /// </summary>
-        /// <param name="instance"></param>
-        /// <param name="progress"></param>
-        /// <returns></returns>
-        /// <exception cref="Exception"></exception>
-        public async Task<TaskInstance> ExecuteAsync(
-            TaskInstance instance,
-            IProgress<TaskInstanceNotification>? progress = null)
+        instance.StartedAt = DateTime.UtcNow;
+        try
         {
-            BaseAutomationTask baseTask = await _tasksRepo.GetByIdAsync(instance.TaskId);
-
-            if (baseTask is not AutomationTask task)
-                throw new Exception("Task is not a valid automation task.");
-
-            if (task.Target is not PackageClassTarget package)
-                throw new Exception("Task target is not a package.");
-
-            instance.StartedAt = DateTime.UtcNow;
-            EnumTaskState resultState = await ExecuteAsync(package, instance, progress);
-            instance.FinishedAt = DateTime.UtcNow;
-            instance.State = resultState;
-
-            return instance;
+            string dllPath = await _packages.DownloadToLocalIfMissing(target.Package.Identifier, target.Package.Version);
+            using var loader = new TaskLoader(dllPath);
+            var task = loader.CreateInstance(target.TargetClass.Name);
+            await task.DoAsync(null);
+            instance.State = EnumTaskState.Completed;
         }
-
-        /// <summary>
-        /// Execute a package target.
-        /// </summary>
-        /// <param name="packageTarget"></param>
-        /// <param name="instance"></param>
-        /// <param name="progress"></param>
-        /// <returns></returns>
-        private async Task<EnumTaskState> ExecuteAsync(PackageClassTarget packageTarget, TaskInstance instance, IProgress<TaskInstanceNotification>? progress = null)
+        catch
         {
-            await _instancesRepo.CreateAsync(instance);
-            
-            string dllPath = await _packages.DownloadToLocalIfMissing(packageTarget.Package.Identifier, packageTarget.Package.Version);
-            using TaskLoader loader = new TaskLoader(dllPath);
-
-            ITask task = loader.CreateInstance(packageTarget.TargetClass.Name);
-            try
-            {
-                Progress<TaskNotification>? taskProgress = null;
-                if (progress != null)
-                {
-                    taskProgress = new Progress<TaskNotification>((notification) => progress.Report(new TaskInstanceNotification() { InstanceId = instance.Id, Data = notification }));
-                }
-
-                await task.DoAsync(instance.Parameters, taskProgress);
-                return EnumTaskState.Completed;
-            }
-            catch
-            {
-                // ignored
-            }
-
-            return EnumTaskState.Failed;
+            instance.State = EnumTaskState.Failed;
         }
+        instance.FinishedAt = DateTime.UtcNow;
+
+        return instance;
+    }
+
+    private async Task<TaskInstance> ExecuteWorkflowAsync(
+        AutomationWorkflow automationWorkflow,
+        TaskInstance instance,
+        IProgress<TaskInstanceNotification>? progress = null)
+    {
+        LocalWorkflowExecutor executor = new LocalWorkflowExecutor(_connection, this, automationWorkflow);
+        await executor.ExecuteAsync(instance);
+        return instance;
     }
 }

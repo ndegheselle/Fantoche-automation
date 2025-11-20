@@ -31,7 +31,7 @@ public class GraphExecutionContext
         };
         
         List<string> contexts = [];
-        if (task.Settings.WaitAll)
+        if (task.Settings.IsWaitingAllInputs)
         {
             Dictionary<string, JToken?> previous = new Dictionary<string, JToken?>();
             foreach (var pre in previousTasks)
@@ -65,7 +65,7 @@ public class GraphExecutionContext
 
     public JObject GetContextFor(BaseGraphTask task, TaskInstanceData data)
     {
-        return task.Settings.WaitAll ? GenerateContextFrom(task.WaitedInputs, data) : GenerateContextFrom(data);
+        return task.Settings.IsWaitingAllInputs ? GenerateContextFrom(task.WaitedInputs, data) : GenerateContextFrom(data);
     }
     
     public JObject GenerateContextFrom(TaskInstanceData data)

@@ -4,12 +4,6 @@ using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
 using Automation.Worker.Service;
 using DotNetEnv;
-using Microsoft.Extensions.DependencyInjection;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization;
-using MongoDB.Bson.Serialization.Conventions;
-using MongoDB.Bson.Serialization.Serializers;
-using MongoDB.Driver;
 
 Env.Load("../.env");
 

@@ -118,7 +118,7 @@ public class LocalPackageManagement : IPackageManagement
         return Task.CompletedTask;
     }
 
-    public async Task DownloadPackageAsync(string id, Version version)
+    public async Task<string> DownloadPackageAsync(string id, Version version)
     {
         // Get package by id resource
         var findPackageByIdResource = await _repository.GetResourceAsync<FindPackageByIdResource>();
@@ -140,8 +140,8 @@ public class LocalPackageManagement : IPackageManagement
 
         var extractedFiles = await packageReader.CopyFilesAsync(_localFolder, lib.Items,
             (source, target, stream) => ExtractFile(id, version, target, stream), _logger, CancellationToken.None);
-        string[] files = Directory.GetFiles(_localFolder, "*.*", SearchOption.AllDirectories);
-        string dllPath = GetLocalDllPath(id, version);
+
+        return GetLocalDllPath(id, version) ?? throw new Exception($"Could not find dll for [id:{id}][version:{version}] in downloaded package.");
     }
 
     private string ExtractFile(string id, Version version, string targetPath, Stream fileStream)
@@ -157,10 +157,10 @@ public class LocalPackageManagement : IPackageManagement
 
     public async Task<string> DownloadToLocalIfMissing(string id, Version version)
     {
-        string path = GetLocalDllPath(id, version);
-        if (path == null)
-            await DownloadPackageAsync(id, version);
-        return path;
+        string? path = GetLocalDllPath(id, version);
+        if (string.IsNullOrEmpty(path) == false)
+            return path;
+        return await DownloadPackageAsync(id, version);
     }
 
     public string? GetLocalDllPath(string id, Version version)

@@ -6,11 +6,20 @@ using System.Text.Json.Serialization;
 
 namespace Automation.Models.Work
 {
+    public class TaskSettings
+    {
+        /// <summary>
+        /// Store all data (input, output, global, ...) in task instance.
+        /// </summary>
+        public bool IsStoringAllData  { get; set; } = false;
+    }
+    
     [JsonDerivedType(typeof(AutomationTask), "task")]
     [JsonDerivedType(typeof(AutomationControl), "control")]
     [JsonDerivedType(typeof(AutomationWorkflow), "workflow")]
     public abstract class BaseAutomationTask : ScopedElement
     {
+        
         [JsonIgnore]
         public JsonSchema? InputSchema
         {
@@ -29,6 +38,8 @@ namespace Automation.Models.Work
 
         public IEnumerable<Schedule> Schedules { get; set; } = [];
 
+        public TaskSettings Settings { get; } = new TaskSettings();
+        
         public BaseAutomationTask(EnumScopedType type) : base(type)
         { }
 

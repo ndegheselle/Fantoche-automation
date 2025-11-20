@@ -15,6 +15,6 @@ namespace Automation.Worker.Control
 
     public interface ITaskControl : ITask
     {
-        public Task<EnumTaskState> DoAsync(WorkflowContext context, IProgress<TaskNotification>? progress = null);
+        public Task<EnumTaskState> DoAsync(WorkflowContext context, IProgress<TaskNotification>? progress = null, CancellationToken? cancellation = null);
     }
 }

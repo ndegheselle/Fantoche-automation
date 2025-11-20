@@ -18,7 +18,7 @@ namespace Automation.Worker.Control.Flow
                 OutputSchema = new JsonSchema(),
             };
 
-        public override Task<EnumTaskState> DoAsync(WorkflowContext parameters, IProgress<TaskNotification>? progress = null)
+        public override Task<EnumTaskState> DoAsync(WorkflowContext parameters, IProgress<TaskNotification>? progress = null, CancellationToken? cancellation = null)
         {
             return Task.FromResult(EnumTaskState.Completed);
         }

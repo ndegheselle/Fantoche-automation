@@ -4,15 +4,12 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Tasks"
     xmlns:components="clr-namespace:Automation.App.Views.WorkPages.Components"
+    xmlns:tasksComponents="clr-namespace:Automation.App.Views.WorkPages.Tasks.Components"
     xmlns:packageComponents="clr-namespace:Automation.App.Views.PackagesPages.Components"
-    xmlns:inputs="clr-namespace:Automation.App.Components.Inputs"
     xmlns:models="clr-namespace:Automation.Models.Work;assembly=Automation.App.Shared"
-    xmlns:jouffluInputs="clr-namespace:Joufflu.Inputs;assembly=Joufflu.Inputs"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
-    xmlns:layouts="clr-namespace:Joufflu.Layouts;assembly=Joufflu.Layouts"
     mc:Ignorable="d"
     MinWidth="300"
     MinHeight="180"
@@ -26,108 +23,111 @@
 
             <StackPanel Orientation="Vertical">
                 <components:MetadataEdit Metadata="{Binding Task.Metadata}" />
+                <tasksComponents:TaskSettingsEdit Margin="0,2,0,0" Settings="{Binding Task.Settings}" />
 
-                <Grid Margin="0,8,0,4">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition />
-                        <ColumnDefinition Width="auto" />
-                    </Grid.ColumnDefinitions>
+                <GroupBox Margin="0,2,0,0" Padding="0">
+                    <GroupBox.Header>
+                        <Grid Margin="8,4,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition />
+                                <ColumnDefinition Width="auto" />
+                            </Grid.ColumnDefinitions>
 
-                    <TextBlock FontWeight="Bold" VerticalAlignment="Center">
-                        Target
-                    </TextBlock>
-                    <Button Grid.Column="1" Click="RemovePackage_Click">
-                        <Button.Style>
-                            <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Task.Target}" Value="{x:Null}">
-                                        <Setter Property="Visibility" Value="Collapsed" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                        <StackPanel Orientation="Horizontal">
-                            <fonts:Icon Text="{x:Static fonts:IconFont.LinkBreak}" />
-                            <TextBlock Margin="4,0,0,0">Remove</TextBlock>
-                        </StackPanel>
-                    </Button>
-                </Grid>
-
-                <Grid>
-                    <GroupBox>
-                        <GroupBox.Style>
-                            <Style TargetType="GroupBox" BasedOn="{StaticResource {x:Type GroupBox}}">
-                                <Setter Property="Visibility" Value="Collapsed" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Task.Target}" Value="{x:Null}">
-                                        <Setter Property="Visibility" Value="Visible" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </GroupBox.Style>
-                        <Button
-                            Click="SelectPackage_Click"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center">
-                            <StackPanel Orientation="Horizontal">
-                                <fonts:Icon Text="{x:Static fonts:IconFont.MagnifyingGlass}" />
-                                <TextBlock Margin="4,0,0,0">
-                                    Select
-                                </TextBlock>
-                            </StackPanel>
-                        </Button>
-                    </GroupBox>
-
-                    <Grid>
-                        <Grid.Style>
-                            <Style TargetType="Grid">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Task.Target}" Value="{x:Null}">
-                                        <Setter Property="Visibility" Value="Collapsed" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Grid.Style>
-
+                            <TextBlock VerticalAlignment="Center">
+                                Target
+                            </TextBlock>
+                            <Button Grid.Column="1" Click="RemovePackage_Click">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Task.Target}" Value="{x:Null}">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <fonts:Icon Text="{x:Static fonts:IconFont.LinkBreak}" />
+                                    <TextBlock Margin="4,0,0,0">Remove</TextBlock>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                    </GroupBox.Header>
+                    <Grid Margin="4">
                         <Grid>
-                            <Grid.Resources>
-                                <DataTemplate DataType="{x:Type models:PackageClassTarget}">
-                                    <packageComponents:TargetPackageSummary TargetPackage="{Binding}" />
-                                </DataTemplate>
-                                <DataTemplate DataType="{x:Type models:ClassTarget}">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition />
-                                            <ColumnDefinition Width="auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition />
-                                            <RowDefinition />
-                                        </Grid.RowDefinitions>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Border
-                                                CornerRadius="2"
-                                                VerticalAlignment="Center"
-                                                Padding="4,0"
-                                                Background="{DynamicResource {x:Static adonisUi:Brushes.Layer1BackgroundBrush}}">
-                                                <TextBlock FontSize="9">Class</TextBlock>
-                                            </Border>
+                            <Grid.Style>
+                                <Style TargetType="Grid">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Task.Target}" Value="{x:Null}">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Grid.Style>
+                            <Button
+                                Click="SelectPackage_Click"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal">
+                                    <fonts:Icon Text="{x:Static fonts:IconFont.MagnifyingGlass}" />
+                                    <TextBlock Margin="4,0,0,0">
+                                        Select
+                                    </TextBlock>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                        <Grid>
+                            <Grid.Style>
+                                <Style TargetType="Grid">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Task.Target}" Value="{x:Null}">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Grid.Style>
+
+                            <Grid>
+                                <Grid.Resources>
+                                    <DataTemplate DataType="{x:Type models:PackageClassTarget}">
+                                        <packageComponents:TargetPackageSummary TargetPackage="{Binding}" />
+                                    </DataTemplate>
+                                    <DataTemplate DataType="{x:Type models:ClassTarget}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition />
+                                                <ColumnDefinition Width="auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition />
+                                                <RowDefinition />
+                                            </Grid.RowDefinitions>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Border
+                                                    CornerRadius="2"
+                                                    VerticalAlignment="Center"
+                                                    Padding="4,0"
+                                                    Background="{DynamicResource {x:Static adonisUi:Brushes.Layer1BackgroundBrush}}">
+                                                    <TextBlock FontSize="9">Class</TextBlock>
+                                                </Border>
+                                                <TextBlock
+                                                    Margin="4,0,0,0"
+                                                    FontWeight="Bold"
+                                                    Text="{Binding TargetClass.Name}" />
+                                            </StackPanel>
                                             <TextBlock
-                                                Margin="4,0,0,0"
-                                                FontWeight="Bold"
-                                                Text="{Binding TargetClass.Name}" />
-                                        </StackPanel>
-                                        <TextBlock
-                                            Grid.Row="1"
-                                            Grid.ColumnSpan="2"
-                                            Text="{Binding TargetClass.Dll}" />
-                                    </Grid>
-                                </DataTemplate>
-                            </Grid.Resources>
-                            <ContentControl Content="{Binding Task.Target}" />
+                                                Grid.Row="1"
+                                                Grid.ColumnSpan="2"
+                                                Text="{Binding TargetClass.Dll}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </Grid.Resources>
+                                <ContentControl Content="{Binding Task.Target}" />
+                            </Grid>
                         </Grid>
                     </Grid>
-                </Grid>
+                </GroupBox>
             </StackPanel>
 
             <StackPanel
@@ -151,7 +151,6 @@
         </Grid>
 
         <Border
-            d:Visibility="Collapsed"
             Opacity="0.8"
             Background="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}"
             Visibility="{Binding Task.Metadata.IsReadOnly, Converter={StaticResource VisibilityConverter}}">
