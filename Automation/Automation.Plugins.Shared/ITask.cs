@@ -1,4 +1,6 @@
-﻿namespace Automation.Plugins.Shared
+﻿using System.Diagnostics.Contracts;
+
+namespace Automation.Plugins.Shared
 {
     public enum EnumTaskNotificationState
     {
@@ -17,10 +19,17 @@
         public string Message { get; set; } = "";
     }
 
+    public class TaskConnector
+    {
+        public Type? Type { get; set; }
+    }
+    
     public interface ITask
     {
-        public Type? InputType { get; }
-        public Type? OutputType { get; }
+        public TaskConnector? Input { get; }
+        
+        // XXX : should handle passing previous to output, pretty complexe to generate schema with that
+        public TaskConnector? Output { get; }
 
         /// <summary>
         /// Execute the task asynchronously and return the result state of the task.
@@ -34,13 +43,13 @@
 
     public abstract class BaseTask<TInput, TOutput> : ITask
     {
-        public Type? InputType => typeof(TInput);
-        public Type? OutputType => typeof(TOutput);
-
+        public TaskConnector? Input { get; } = new TaskConnector() {Type =  typeof(TInput)};
+        public TaskConnector? Output { get; } = new TaskConnector() {Type =  typeof(TOutput)};
+        
         public async Task<object?> DoAsync(object parameters, IProgress<TaskNotification>? progress = null, CancellationToken? cancellation = null)
         {
             if (parameters is not TInput input)
-                throw new ArgumentException($"Parameters are not of expected type '{InputType}'.", nameof(parameters));
+                throw new ArgumentException($"Parameters are not of expected type '{Input!.Type}'.", nameof(parameters));
 
             return await DoAsync(input, progress, cancellation);
         }
@@ -50,13 +59,29 @@
     
     public abstract class BaseTask<TInput> : ITask
     {
-        public Type? InputType => typeof(TInput);
-        public Type? OutputType => null;
+        public TaskConnector? Input { get; } = new TaskConnector() {Type =  typeof(TInput)};
+        public TaskConnector? Output { get; } = new TaskConnector();
 
         public async Task<object?> DoAsync(object parameters, IProgress<TaskNotification>? progress = null, CancellationToken? cancellation = null)
         {
             if (parameters is not TInput input)
-                throw new ArgumentException($"Parameters are not of expected type '{InputType}'.", nameof(parameters));
+                throw new ArgumentException($"Parameters are not of expected type '{Input!.Type}'.", nameof(parameters));
+            await DoAsync(input, progress, cancellation);
+            return null;
+        }
+
+        public abstract Task DoAsync(TInput parameters, IProgress<TaskNotification>? progress = null, CancellationToken? cancellation = null);
+    }
+
+    public abstract class BaseTaskOutputless<TInput> : ITask
+    {
+        public TaskConnector? Input { get; } = new TaskConnector() {Type =  typeof(TInput)};
+        public TaskConnector? Output { get; } = null;
+
+        public async Task<object?> DoAsync(object parameters, IProgress<TaskNotification>? progress = null, CancellationToken? cancellation = null)
+        {
+            if (parameters is not TInput input)
+                throw new ArgumentException($"Parameters are not of expected type '{Input!.Type}'.", nameof(parameters));
             await DoAsync(input, progress, cancellation);
             return null;
         }

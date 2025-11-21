@@ -20,7 +20,7 @@ public class GraphExecutionContext
     /// Generate a sample of the contexts based on the previous tasks.
     /// </summary>
     /// <param name="task"></param>
-    public List<string> GetContextSampleJsonFor(BaseGraphTask task)
+    public List<JToken> GetContextSampleJsonFor(BaseGraphTask task)
     {
         var previousTasks = _graph.GetPreviousFrom(task);
         
@@ -30,21 +30,53 @@ public class GraphExecutionContext
             
         };
         
-        List<string> contexts = [];
+        List<JToken> contexts = [];
         if (task.Settings.IsWaitingAllInputs)
         {
+            Dictionary<string, List<JToken>> previousPotentials = new Dictionary<string, List<JToken>>();
             Dictionary<string, JToken?> previous = new Dictionary<string, JToken?>();
             foreach (var pre in previousTasks)
-                previous.Add(task.Name, pre.OutputSchema?.ToSampleJson());
-            contexts.Add(GenerateContextFrom(previous, data).ToString());
+            {
+                if (pre.Settings.IsPassingThrough)
+                {
+                    var preContexts = GetContextSampleJsonFor(pre);
+                    previousPotentials.Add(pre.Name, preContexts);
+                }
+                else
+                {
+                    previous.Add(pre.Name, pre.OutputSchema?.ToSampleJson());
+                }
+            }
+
+            foreach (var potential in previousPotentials)
+            {
+                foreach (var others in previousPotentials)
+                {
+                    if (potential.Key == others.Key)
+                        continue;
+                    
+                }
+            }
+            
+            previousPotentials.SelectMany(x => x.Value);
+            
+            contexts.Add(GenerateContextFrom(previous, data));
         }
         else
         {
             // XXX : maybe group by TaskId ?
             foreach (var previousTask in previousTasks)
             {
-                data.InputToken = previousTask.OutputSchema?.ToSampleJson();
-                contexts.Add(GenerateContextFrom(data).ToString());
+                if (previousTask.Settings.IsPassingThrough)
+                {
+                    var previousContexts = GetContextSampleJsonFor(previousTask);
+                    contexts.AddRange(previousContexts);
+                }
+                else
+                {
+                    data.InputToken = previousTask.OutputSchema?.ToSampleJson();
+                    contexts.Add(GenerateContextFrom(data)); 
+                }
             }
         }
         return contexts;
@@ -54,9 +86,9 @@ public class GraphExecutionContext
     /// Get context of all the end tasks since they act as one.
     /// </summary>
     /// <returns></returns>
-    public List<string> GetContextSampleForEnd()
+    public List<JToken> GetContextSampleForEnd()
     {
-        List<string> contexts = [];
+        List<JToken> contexts = [];
         var endTasks = _graph.GetEndNodes();
         foreach (var task in endTasks) contexts.AddRange(GetContextSampleJsonFor(task));
         return contexts;

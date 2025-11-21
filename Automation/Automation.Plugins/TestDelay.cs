@@ -7,7 +7,7 @@ public class TestDelayParameters
     public int DelayMs { get; set; } = 500;
 }
 
-public class TestDelay : BaseTask<TestDelayParameters>
+public class TestDelay : BaseTaskOutputless<TestDelayParameters>
 {
     public override async Task DoAsync(TestDelayParameters parameters, IProgress<TaskNotification>? progress = null, CancellationToken? cancellation = null)
     {
