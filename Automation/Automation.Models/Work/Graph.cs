@@ -14,7 +14,7 @@ namespace Automation.Models.Work
     public partial class GraphNode
     {
         public Guid Id { get; set; } = Guid.NewGuid();
-        public string Name { get; set; } = string.Empty;
+        public virtual string Name { get; } = string.Empty;
     }
 
     public class GraphGroup : GraphNode
@@ -28,6 +28,8 @@ namespace Automation.Models.Work
         /// Wait for all inputs to complete before starting the task.
         /// </summary>
         public bool IsWaitingAllInputs { get; set; } = false;
+
+        public bool IsPassingThrough { get; set; } = false;
     }
 
     [JsonDerivedType(typeof(GraphTask), "task")]
@@ -35,12 +37,7 @@ namespace Automation.Models.Work
     [JsonDerivedType(typeof(GraphWorkflow), "workflow")]
     public class BaseGraphTask : GraphNode
     {
-        public new string Name
-        {
-            get => Metadata.Name;
-            set => Metadata.Name = value;
-        }
-
+        public override string Name => Metadata.Name;
         public ScopedMetadata Metadata { get; set; } = new ScopedMetadata();
 
         public Guid TaskId { get; set; }
@@ -49,7 +46,7 @@ namespace Automation.Models.Work
         public List<GraphConnector> Outputs { get; set; } = [];
 
         public string? InputJson { get; set; }
-        public GraphTaskSettings Settings { get; private set; } = new GraphTaskSettings();
+        public GraphTaskSettings Settings { get; set; } = new GraphTaskSettings();
 
         [JsonIgnore]
         public JsonSchema? InputSchema
@@ -83,12 +80,13 @@ namespace Automation.Models.Work
         public BaseGraphTask(BaseAutomationTask task)
         {
             TaskId = task.Id;
-            Metadata = task.Metadata;
+            Metadata = task.Metadata.Clone();
 
             InputSchema = task.InputSchema;
             OutputSchema = task.OutputSchema;
             Inputs = task.InputSchema == null ? [] : [new GraphConnector(this)];
             Outputs = task.OutputSchema == null ? [] : [new GraphConnector(this)];
+            Settings.IsPassingThrough = task.Settings.IsPassingThrough;
         }
     }
 
@@ -242,6 +240,21 @@ namespace Automation.Models.Work
             // Else make sure that all previous task have finished
             var previousTasks = GetPreviousFrom(task);
             return previousTasks.All(previous => task.WaitedInputs.ContainsKey(previous.Name));
+        }
+        
+        public string GetUniqueNodeName(string nodeName)
+        {
+            string uniqueName = nodeName;
+            int count = 1;
+
+            // Check if the name exists; if so, append a number and try again
+            while (Nodes.Any(x => x.Name == uniqueName))
+            {
+                uniqueName = $"{nodeName} {count}";
+                count++;
+            }
+
+            return uniqueName;
         }
         
         #endregion

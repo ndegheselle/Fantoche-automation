@@ -19,6 +19,7 @@ namespace Automation.Dal.Repositories
                 .Include(s => s.Metadata)
                 .Include(s => s.InputSchemaJson)
                 .Include(s => s.OutputSchemaJson)
+                .Include(s => s.Settings)
                 .Include("_t");
             return await _collection.Find(_ => true).Project<BaseAutomationTask>(projection).ToListAsync();
         }

@@ -2,6 +2,7 @@
 using Automation.Shared.Data;
 using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
+using NuGet.Protocol.Core.Types;
 
 namespace Automation.Models.Work
 {

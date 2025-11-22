@@ -42,5 +42,10 @@ namespace Automation.Shared.Data
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+        
+        public ScopedMetadata Clone()
+        {
+            return (ScopedMetadata)this.MemberwiseClone();
+        }
     }
 }

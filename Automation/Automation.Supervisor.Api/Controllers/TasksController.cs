@@ -82,10 +82,7 @@ namespace Automation.Supervisor.Api.Controllers
                 
                 ITask packageTask = loader.CreateInstance(package.TargetClass.Name);
 
-                if (packageTask.Output != null)
-                    updatedTask.OutputSchema = packageTask.Output?.Type == null ? new JsonSchema() : JsonSchema.FromType(packageTask.Output.Type);
-                if (packageTask.Input != null)
-                    updatedTask.InputSchema = packageTask.Input?.Type == null ? new JsonSchema() : JsonSchema.FromType(packageTask.Input.Type);
+                updatedTask.UpdateFromTask(packageTask);
             }
 
             await base.UpdateAsync(id, element);

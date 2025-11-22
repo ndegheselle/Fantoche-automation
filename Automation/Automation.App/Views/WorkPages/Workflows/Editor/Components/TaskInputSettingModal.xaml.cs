@@ -7,56 +7,59 @@ using System.Windows.Controls;
 using Newtonsoft.Json.Linq;
 using Usuel.Shared;
 
-namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
+namespace Automation.App.Views.WorkPages.Workflows.Editor.Components;
+
+/// <summary>
+/// Logique d'interaction pour TaskInputSettingModal.xaml
+/// </summary>
+public partial class TaskInputSettingModal : UserControl, IModalContent, INotifyPropertyChanged
 {
-    /// <summary>
-    /// Logique d'interaction pour TaskInputSettingModal.xaml
-    /// </summary>
-    public partial class TaskInputSettingModal : UserControl, IModalContent, INotifyPropertyChanged
+    public ModalOptions Options { get; private set; } = new();
+    public IModal? ParentLayout { get; set; }
+
+    public BaseGraphTask Task { get; private set; }
+    public Graph Graph { get; private set; }
+    public List<string> ContextSamples { get; private set; }
+
+    public ICustomCommand CancelCommand { get; private set; }
+    public ICustomCommand ValidateCommand { get; private set; }
+
+    private IAlert _alert => this.GetCurrentAlert();
+    private readonly string? _originalSettings;
+
+    public TaskInputSettingModal(BaseGraphTask task, Graph graph)
     {
-        public ModalOptions Options { get; private set; } = new ModalOptions();
-        public IModal? ParentLayout { get; set; }
+        Task = task;
+        Graph = graph;
+        ContextSamples = Graph.Execution.GetContextSampleJsonFor(Task).Select(x => x.ToString()).ToList();
+        _originalSettings = Task.InputJson;
 
-        public BaseGraphTask Task { get; private set; }
-        public Graph Graph { get; private set; }
-        public IEnumerable<string> ContextSamples { get; private set; }
+        if (string.IsNullOrWhiteSpace(Task.InputJson))
+            Task.InputJson = Task.InputSchema?.ToSampleJson().ToString();
+        
+        Options.Title = $"{Task.Name} - settings";
+        CancelCommand = new DelegateCommand(Cancel);
+        ValidateCommand = new DelegateCommand(Validate, () => string.IsNullOrEmpty(Task.InputJson) == false);
+        InitializeComponent();
+    }
 
-        public ICustomCommand CancelCommand { get; private set; }
-        public ICustomCommand ValidateCommand { get; private set; }
+    private void Cancel()
+    {
+        Task.InputJson = _originalSettings;
+        ParentLayout?.Hide();
+    }
 
-        private IAlert _alert => this.GetCurrentAlert();
-        private readonly string? _originalSettings;
+    private void Validate()
+    {
+        if (ContextMappingElement.HasErrors)
+            return;
 
-        public TaskInputSettingModal(BaseGraphTask task, Graph graph) {
-            Task = task;
-            Graph = graph;
-            ContextSamples = Graph.Execution.GetContextSampleJsonFor(Task);
-            _originalSettings = Task.InputJson;
-            
-            Options.Title = $"{Task.Name} - settings";
-            CancelCommand = new DelegateCommand(Cancel);
-            ValidateCommand = new DelegateCommand(Validate, () => string.IsNullOrEmpty(Task.InputJson) == false);
-            InitializeComponent();
-        }
+        _alert.Success("Settings changed !");
+        ParentLayout?.Hide(true);
+    }
 
-        private void Cancel()
-        {
-            Task.InputJson = _originalSettings;
-            ParentLayout?.Hide();
-        }
-
-        private void Validate()
-        {
-            if (ContextMappingElement.HasErrors)
-                return;
-            
-            _alert.Success("Settings changed !");
-            ParentLayout?.Hide(true);
-        }
-
-        private void HandleWaitAllChanged(object sender, RoutedEventArgs e)
-        {
-            ContextSamples = Graph.Execution.GetContextSampleJsonFor(Task);
-        }
+    private void HandleWaitAllChanged(object sender, RoutedEventArgs e)
+    {
+        ContextSamples = Graph.Execution.GetContextSampleJsonFor(Task).Select(x => x.ToString()).ToList();
     }
 }

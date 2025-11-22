@@ -33,34 +33,37 @@ public class GraphExecutionContext
         List<JToken> contexts = [];
         if (task.Settings.IsWaitingAllInputs)
         {
-            Dictionary<string, List<JToken>> previousPotentials = new Dictionary<string, List<JToken>>();
+            Dictionary<string, List<JToken>> previousPassingThrough = new Dictionary<string, List<JToken>>();
             Dictionary<string, JToken?> previous = new Dictionary<string, JToken?>();
             foreach (var pre in previousTasks)
             {
                 if (pre.Settings.IsPassingThrough)
                 {
                     var preContexts = GetContextSampleJsonFor(pre);
-                    previousPotentials.Add(pre.Name, preContexts);
+                    previousPassingThrough.Add(pre.Name, preContexts);
                 }
                 else
                 {
                     previous.Add(pre.Name, pre.OutputSchema?.ToSampleJson());
                 }
             }
-
-            foreach (var potential in previousPotentials)
-            {
-                foreach (var others in previousPotentials)
-                {
-                    if (potential.Key == others.Key)
-                        continue;
-                    
-                }
-            }
             
-            previousPotentials.SelectMany(x => x.Value);
-            
-            contexts.Add(GenerateContextFrom(previous, data));
+            // Create all combinaisons of possibles contexts
+            var allContextCombinations = previousPassingThrough.Aggregate(
+                // Seed: A list containing one dictionary with the fixed 'previous' items
+                new List<Dictionary<string, JToken?>> { new Dictionary<string, JToken?>(previous) }, 
+    
+                // Accumulator Function
+                (currentCombinations, nextTask) => 
+                    currentCombinations.SelectMany(dict => nextTask.Value.Select(token => 
+                    {
+                        // Clone the dictionary and add the new item
+                        var newDict = new Dictionary<string, JToken?>(dict);
+                        newDict[nextTask.Key] = token;
+                        return newDict;
+                    })).ToList()
+            );
+            contexts.AddRange(allContextCombinations.Select(context => GenerateContextFrom(context, data)));
         }
         else
         {
@@ -69,6 +72,7 @@ public class GraphExecutionContext
             {
                 if (previousTask.Settings.IsPassingThrough)
                 {
+                    // Add all the previous
                     var previousContexts = GetContextSampleJsonFor(previousTask);
                     contexts.AddRange(previousContexts);
                 }

@@ -59,6 +59,8 @@ namespace Automation.App.ViewModels.Workflow.Editor.Actions
 
         public void Add(GraphNode node)
         {
+            if (node is BaseGraphTask task)
+                task.Metadata.Name = _editor.Graph.GetUniqueNodeName(task.Metadata.Name);
             AddAllCommand.Execute(new NodeModifyContext() { Nodes = [node] });
         }
 

@@ -92,6 +92,7 @@ namespace Automation.Dal
                 {
                     cm.AutoMap();
                     cm.SetIsRootClass(true);
+                    cm.UnmapMember(m => m.Name);
                     cm.AddKnownType(typeof(GraphTask));
                     cm.AddKnownType(typeof(GraphWorkflow));
                     cm.AddKnownType(typeof(GraphControl));
@@ -102,7 +103,6 @@ namespace Automation.Dal
                 cm =>
                 {
                     cm.AutoMap();
-                    cm.UnmapMember(m => m.Name);
                     cm.UnmapMember(m => m.InputSchema);
                     cm.UnmapMember(m => m.OutputSchema);
                     cm.UnmapMember(m => m.WaitedInputs);
