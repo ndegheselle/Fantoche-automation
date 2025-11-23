@@ -24,12 +24,14 @@ namespace Automation.Realtime.Clients
         private readonly WorkerClientOptions _options;
         private readonly string _workerId;
         public RedisQueue<Guid> Tasks { get; private set; }
-
+        public RedisQueue<Guid> Cancellation { get; private set; }
+        
         public WorkerRealtimeClient(WorkerClientOptions options, string workerId)
         {
             _options = options;
             _workerId = workerId;
             Tasks = new RedisQueue<Guid>(_options.Connection, $"workers:{_workerId}:tasks");
+            Cancellation = new RedisQueue<Guid>(_options.Connection, $"workers:{_workerId}:cancellation");
         }
 
         /// <summary>

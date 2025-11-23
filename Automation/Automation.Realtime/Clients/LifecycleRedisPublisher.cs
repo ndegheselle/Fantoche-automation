@@ -1,5 +1,4 @@
 ﻿using Automation.Realtime.Base;
-using Automation.Realtime.Models;
 using Automation.Shared.Data.Task;
 using StackExchange.Redis;
 
@@ -25,6 +24,7 @@ namespace Automation.Realtime.Clients
         /// <summary>
         /// Wait for a specific state to be reached.
         /// </summary>
+        /// <param name="instanceId"></param>
         /// <param name="targetState"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>

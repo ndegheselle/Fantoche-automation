@@ -65,7 +65,6 @@ namespace Automation.App.Shared.ApiClients
         {
             if (element == null)
                 throw new ArgumentNullException(nameof(element));
-            var test = JsonSerializer.Serialize(element);
             var result = await _client.ExecutePutAsync(new RestRequest($"{_routeBase}/{id}").AddBody(element));
         }
         #endregion

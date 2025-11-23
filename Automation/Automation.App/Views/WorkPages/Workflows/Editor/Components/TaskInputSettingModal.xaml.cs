@@ -49,8 +49,10 @@ public partial class TaskInputSettingModal : UserControl, IModalContent, INotify
         ParentLayout?.Hide();
     }
 
-    private void Validate()
+    // ReSharper disable once AsyncVoidMethod
+    private async void Validate()
     {
+        await ContextMappingElement.HandleSettingsChanged();
         if (ContextMappingElement.HasErrors)
             return;
 

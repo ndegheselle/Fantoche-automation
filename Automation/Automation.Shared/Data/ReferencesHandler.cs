@@ -21,10 +21,15 @@ public class ReferenceReplaceError
 
 public class ReferenceReplaceContext
 {
-    public JToken? ReplacedSetting { get; set; }
+    public JToken ReplacedSetting { get; set; }
     public List<ReferenceReplaceError> Errors { get; } = [];
     public Dictionary<string, JTokenType> ReferencesTypes { get; } = [];
 
+    public ReferenceReplaceContext(JToken replacedSetting)
+    {
+        ReplacedSetting = replacedSetting;
+    }
+    
     public void SetReferenceType(string reference, JTokenType type)
     {
         if (!ReferencesTypes.TryAdd(reference, type))
@@ -42,6 +47,10 @@ public class MultiReferenceReplaceContext
 public static class ReferencesHandler
 {
     private const string ReferenceIdentifier = "$";
+
+    static ReferencesHandler()
+    {
+    }
 
     public static MultiReferenceReplaceContext ReplaceReferences(string settingJson, IEnumerable<string?> contextsJson)
     {
@@ -78,7 +87,7 @@ public static class ReferencesHandler
     public static ReferenceReplaceContext ReplaceReferences(string settingJson, string? contextJson)
     {
         if (string.IsNullOrEmpty(settingJson) || string.IsNullOrEmpty(contextJson))
-            return new ReferenceReplaceContext { ReplacedSetting = settingJson };
+            return new ReferenceReplaceContext(JToken.Parse(settingJson));
 
         var setting = JToken.Parse(settingJson);
         var context = JToken.Parse(contextJson);
@@ -88,7 +97,7 @@ public static class ReferencesHandler
 
     public static ReferenceReplaceContext ReplaceReferences(JToken setting, JToken context)
     {
-        var result = new ReferenceReplaceContext();
+        var result = new ReferenceReplaceContext(setting);
         ReplaceReferences(setting, context, result);
         result.ReplacedSetting = setting;
         return result;
@@ -106,20 +115,20 @@ public static class ReferencesHandler
         var reference = GetReferencePath(token);
         if (!string.IsNullOrEmpty(reference))
         {
-            var contextValue = context.SelectToken(reference);
-            if (contextValue != null)
+            var contextToken = context.SelectToken(reference);
+            if (contextToken != null)
             {
-                token.Replace(contextValue);
-                result.SetReferenceType(reference, contextValue.Type);
+                token.Replace(contextToken);
+                result.SetReferenceType(reference, contextToken.Type);
+                            
+                // Recursive reference
+                if (IsReference(contextToken))
+                    ReplaceReferences(contextToken, context, result);
             }
             else
             {
                 result.Errors.Add(new ReferenceReplaceError(reference, $"[{reference}] not found in context."));
             }
-            
-            // Recursive reference
-            if (IsReference(token))
-                ReplaceReferences(token, context, result);
         }
 
         foreach (var child in token.Children()) ReplaceReferences(child, context, result);

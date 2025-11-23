@@ -51,7 +51,8 @@ namespace Automation.Worker.Executor
         /// <inheritdoc/>
         public async Task<TaskInstance> ExecuteAsync(
             TaskInstance instance,
-            IProgress<TaskInstanceNotification>? progress = null)
+            IProgress<TaskInstanceNotification>? progress = null,
+            CancellationToken? cancellationToken = null)
         {
             instance = await AssignAsync(instance);
             if (progress != null)

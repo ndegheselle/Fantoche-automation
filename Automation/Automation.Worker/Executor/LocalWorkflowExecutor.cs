@@ -69,7 +69,7 @@ public class LocalWorkflowExecutor
         if (string.IsNullOrEmpty(task.InputJson) == false)
             input = ReferencesHandler.ReplaceReferences(JToken.Parse(task.InputJson), context).ReplacedSetting;
 
-        await _executor.ExecuteAsync(subInstance);
+        await _executor.ExecuteAsync(subInstance, null, );
 
         Next(task, instance);
     }

@@ -62,7 +62,7 @@ public partial class ContextMapping : UserControl, INotifyPropertyChanged, INoti
         }
     }
     
-    private async Task HandleSettingsChanged()
+    public async Task HandleSettingsChanged()
     {
         Errors.Clear(nameof(SettingsJson));
         
@@ -74,10 +74,18 @@ public partial class ContextMapping : UserControl, INotifyPropertyChanged, INoti
                 Errors.Add(result.InconsistentReferenceErrors.Select(x => x.ToString()), nameof(SettingsJson));
                 return;
             }
+
+            foreach (ReferenceReplaceContext context in result.Contexts)
+            {
+                if (context.Errors.Any())
+                {
+                    Errors.Add(context.Errors.Select(x => x.ToString()).Distinct(), nameof(SettingsJson));
+                }
+            }
             
             if (DoesSettingUpdateSchema)
             {
-                SchemaJson = JsonSchema.FromSampleJson(SettingsJson).ToJson();
+                SchemaJson = JsonSchema.FromSampleJson(result.Contexts.First().ReplacedSetting.ToString()).ToJson();
             }
             else
             {
