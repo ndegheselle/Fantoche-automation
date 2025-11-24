@@ -9,6 +9,9 @@ namespace Automation.Worker.Executor;
 
 public class LocalWorkflowExecutor
 {
+    private CancellationToken? _cancellation;
+    private readonly CancellationTokenSource _cancellationTokenSource;
+    
     private readonly ScopesRepository _scopesRepo;
 
     private readonly LocalTaskExecutor _executor;
@@ -16,52 +19,64 @@ public class LocalWorkflowExecutor
 
     public LocalWorkflowExecutor(DatabaseConnection connection, LocalTaskExecutor executor, AutomationWorkflow workflow)
     {
+        _cancellationTokenSource = new CancellationTokenSource();
         _workflow = workflow;
         _scopesRepo = new ScopesRepository(connection);
         _executor = executor;
     }
 
     public async Task<TaskInstance> ExecuteAsync(
-        TaskInstance instance,
-        IProgress<TaskInstanceNotification>? progress = null)
+        TaskInstance workflowInstance,
+        IProgress<TaskInstanceNotification>? progress = null,
+        CancellationToken? cancellation = null)
     {
-        await Start(instance);
-        return instance;
+        _cancellation = cancellation;
+        await Start(workflowInstance);
+        return workflowInstance;
     }
 
-    private async Task Start(TaskInstance instance)
+    private async Task Start(TaskInstance workflowInstance)
     {
-        if (instance.Data == null)
-            instance.Data = new TaskInstanceData();
+        if (workflowInstance.Data == null)
+            workflowInstance.Data = new TaskInstanceData();
 
         // Add global context
-        instance.Data.GlobalToken = await _scopesRepo.GetContextFromTree(_workflow.ParentTree);
+        workflowInstance.Data.GlobalToken = await _scopesRepo.GetContextFromTree(_workflow.ParentTree);
 
-        foreach (var start in _workflow.Graph.GetStartNodes()) Next(start, instance);
+        foreach (var start in _workflow.Graph.GetStartNodes()) Next(start, workflowInstance);
     }
 
     private void End()
     {
+        // Stop all tasks that haven't finished
+        _cancellationTokenSource.Cancel();
     }
 
-    private void Next(BaseGraphTask task, TaskInstance instance)
+    private void Next(BaseGraphTask task, TaskInstance workflowInstance)
     {
+        if (_cancellation?.IsCancellationRequested == true)
+        {
+            workflowInstance.State = EnumTaskState.Canceled;
+            _cancellationTokenSource.Cancel();
+            return;
+        }
+        
         var nextTasks = _workflow.Graph.GetNextFrom(task);
         foreach (var next in nextTasks)
         {
             if (next.Settings.IsWaitingAllInputs)
-                next.WaitedInputs.Add(task.Name, instance.Data.InputToken);
+                next.WaitedInputs.Add(task.Name, workflowInstance.Data?.InputToken);
 
             if (_workflow.Graph.CanExecute(next))
-                _ = Execute(next, instance);
+                _ = Execute(next, workflowInstance);
         }
     }
 
-    private async Task Execute(BaseGraphTask task, TaskInstance instance)
+    private async Task Execute(BaseGraphTask task, TaskInstance workflowInstance)
     {
-        var subInstance = new SubTaskInstance(instance.Id, task);
+        var subInstance = new SubTaskInstance(workflowInstance.Id, task);
 
-        var context = _workflow.Graph.Execution.GetContextFor(task, instance.Data);
+        var context = _workflow.Graph.Execution.GetContextFor(task, workflowInstance.Data);
         if (task.Settings.IsWaitingAllInputs)
             task.WaitedInputs.Clear();
 
@@ -69,8 +84,8 @@ public class LocalWorkflowExecutor
         if (string.IsNullOrEmpty(task.InputJson) == false)
             input = ReferencesHandler.ReplaceReferences(JToken.Parse(task.InputJson), context).ReplacedSetting;
 
-        await _executor.ExecuteAsync(subInstance, null, );
+        await _executor.ExecuteAsync(subInstance, null, _cancellationTokenSource.Token);
 
-        Next(task, instance);
+        Next(task, workflowInstance);
     }
 }

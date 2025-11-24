@@ -7,5 +7,6 @@ public interface ITaskExecutor
 {
     Task<TaskInstance> ExecuteAsync(
         TaskInstance instance,
-        IProgress<TaskInstanceNotification>? progress = null);
+        IProgress<TaskInstanceNotification>? progress = null,
+        CancellationToken? cancellation = null);
 }

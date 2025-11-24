@@ -23,12 +23,17 @@ namespace Automation.Supervisor.Api.Controllers
         private readonly TaskIntancesRepository _taskInstanceRepo;
         private readonly DatabaseConnection _connection;
         private readonly RemoteTaskExecutor _executor;
+        /// <summary>
+        /// Local executor to simplify debugging.
+        /// </summary>
+        private readonly LocalTaskExecutor _localExecutor;
         private readonly IPackageManagement _packageManagement;
 
         public TasksController(DatabaseConnection connection, RealtimeClients realtimeClients, IPackageManagement packageManagement) : base(new TasksRepository(connection))
         {
             _connection = connection;
             _taskInstanceRepo = new TaskIntancesRepository(_connection);
+            _localExecutor = new LocalTaskExecutor(_connection, packageManagement);
             _executor = new RemoteTaskExecutor(_connection, realtimeClients);
             _packageManagement = packageManagement;
         }
@@ -90,9 +95,12 @@ namespace Automation.Supervisor.Api.Controllers
 
         [HttpPost]
         [Route("{id:guid}/execute")]
-        public async Task<TaskInstance> ExecuteAsync([FromRoute] Guid id, [FromBody] string input)
+        public async Task<TaskInstance> ExecuteAsync([FromRoute] Guid id, [FromBody] string input, [FromQuery] bool startFromSupervisor = false)
         {
             TaskInstance instance = new TaskInstance(id) {Data = new TaskInstanceData() {InputJson = input}};
+            
+            if (startFromSupervisor)
+                return await _localExecutor.ExecuteAsync(instance);
             return await _executor.ExecuteAsync(instance);
         }
 

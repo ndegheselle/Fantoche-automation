@@ -9,6 +9,12 @@ namespace Automation.Shared.Data.Task
     {
         public Guid InstanceId { get; set; }
         public TaskNotification Data { get; set; }
+
+        public TaskInstanceNotification(Guid instanceId, TaskNotification data)
+        {
+            InstanceId = instanceId;
+            Data = data;
+        }
     }
 
     /// <summary>
