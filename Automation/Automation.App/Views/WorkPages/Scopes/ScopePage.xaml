@@ -4,11 +4,9 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:components="clr-namespace:Automation.App.Views.WorkPages.Components"
     xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Scopes"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
-    xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
-    xmlns:instances="clr-namespace:Automation.App.Views.WorkPages.Tasks.Instances"
+    xmlns:adonisExtensions="clr-namespace:AdonisUI.Extensions;assembly=AdonisUI"
     xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI">
     <Grid>
         <TabControl x:Name="ScopeTabControl" DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:ScopePage}}">
@@ -26,7 +24,9 @@
             Height="24"
             Click="ButtonSettings_Click"
             HorizontalAlignment="Right"
-            VerticalAlignment="Top">
+            VerticalAlignment="Top"
+            BorderThickness="1,1,1,0"
+            adonisExtensions:CornerRadiusExtension.CornerRadius="2,2,0,0">
             <fonts:Icon Text="{x:Static fonts:IconFont.Gear}" />
         </Button>
     </Grid>

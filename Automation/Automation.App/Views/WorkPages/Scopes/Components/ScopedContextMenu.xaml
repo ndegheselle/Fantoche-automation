@@ -11,7 +11,8 @@
     mc:Ignorable="d"
     d:DesignHeight="450"
     d:DesignWidth="800"
-    x:Name="ContainerElement">
+    x:Name="ContainerElement"
+    Style="{StaticResource {x:Type ContextMenu}}">
     <MenuItem Header="Add" DataContext="{Binding ElementName=ContainerElement}">
         <MenuItem.Style>
             <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">

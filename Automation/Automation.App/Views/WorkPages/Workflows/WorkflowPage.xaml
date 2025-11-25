@@ -9,6 +9,7 @@
     xmlns:components="clr-namespace:Automation.App.Views.WorkPages.Components"
     xmlns:instances="clr-namespace:Automation.App.Views.WorkPages.Tasks.Instances"
     xmlns:tasks="clr-namespace:Automation.App.Views.WorkPages.Tasks"
+    xmlns:adonisExtensions="clr-namespace:AdonisUI.Extensions;assembly=AdonisUI"
     xmlns:fonts="clr-namespace:Joufflu.Shared.Resources.Fonts;assembly=Joufflu.Shared"
     mc:Ignorable="d">
     <Grid>
@@ -53,7 +54,9 @@
             Height="27"
             HorizontalAlignment="Right"
             VerticalAlignment="Top"
-            Click="ButtonParameters_Click">
+            Click="ButtonParameters_Click"
+            BorderThickness="1,1,1,0"
+            adonisExtensions:CornerRadiusExtension.CornerRadius="2,2,0,0">
             <fonts:Icon Text="{x:Static fonts:IconFont.Gear}" />
         </Button>
     </Grid>

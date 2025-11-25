@@ -35,7 +35,7 @@ public class GraphExecutionContext
         {
             Dictionary<string, JToken?> previous = new Dictionary<string, JToken?>();
             foreach (var pre in previousTasks)
-                previous.Add(task.Name, pre.OutputSchema?.ToSampleJson());
+                previous.Add(pre.Name, pre.OutputSchema?.ToSampleJson());
             contexts.Add(GenerateContextFrom(previous, data).ToString());
         }
         else
@@ -93,7 +93,8 @@ public class GraphExecutionContext
     public JObject GenerateContextFrom(Dictionary<string, JToken?> previous, TaskInstanceData data)
     {
         JObject context = GenerateContextFrom(data);
-        
+
+        context[PreviousIdentifier] = new JObject();
         foreach (var pre in previous)
         {
             JToken previousContext = context[PreviousIdentifier] ?? new JObject();
