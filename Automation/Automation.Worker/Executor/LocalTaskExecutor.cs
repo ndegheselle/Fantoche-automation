@@ -38,7 +38,20 @@ public class LocalTaskExecutor : ITaskExecutor
         IProgress<TaskInstanceNotification>? progress = null,
         CancellationToken? cancellation = null)
     {
-        BaseAutomationTask baseTask = await _taskRepo.GetByIdAsync(instance.TaskId);
+        var baseTask = await _taskRepo.GetByIdAsync(instance.TaskId);
+
+        if (instance.Data == null)
+        {
+            if (baseTask.InputSchema != null)
+                throw new Exception("The input data doesn't correspond to the task input schema.");
+        }
+        else
+        {
+            var errors = baseTask.InputSchema?.Validate(instance.Data?.InputToken);
+            if (errors?.Count > 0)
+                throw new Exception(string.Join('\n', errors));
+        }
+        
         return baseTask switch
         {
             AutomationControl control => context == null
@@ -58,18 +71,17 @@ public class LocalTaskExecutor : ITaskExecutor
         instance.StartedAt = DateTime.UtcNow;
         try
         {
-            Type controlType = ControlTasks.AvailablesById[automationControl.Id].Type;
-            var typeInstance = Activator.CreateInstance(controlType) ??
-                               throw new Exception($"Could not create a control instance of [{controlType}].");
+            var controlType = ControlTasks.AvailablesById[automationControl.Id].Type;
+            object typeInstance = Activator.CreateInstance(controlType) ??
+                                  throw new Exception($"Could not create a control instance of [{controlType}].");
             var control = (ITaskControl)typeInstance;
-            
+
             IProgress<TaskNotification>? taskProgress = progress == null
                 ? null
                 : new Progress<TaskNotification>(notification =>
                     progress.Report(new TaskInstanceNotification(instance.Id, notification))
                 );
             await control.DoAsync(context, taskProgress, cancellation);
-            
             instance.State = EnumTaskState.Completed;
         }
         catch
@@ -94,9 +106,10 @@ public class LocalTaskExecutor : ITaskExecutor
         instance.StartedAt = DateTime.UtcNow;
         try
         {
-            var dllPath = await _packages.DownloadToLocalIfMissing(target.Package.Identifier, target.Package.Version);
+            string dllPath =
+                await _packages.DownloadToLocalIfMissing(target.Package.Identifier, target.Package.Version);
             using var loader = new TaskLoader(dllPath);
-            ITask task = loader.CreateInstance(target.TargetClass.Name);
+            var task = loader.CreateInstance(target.TargetClass.Name);
 
             IProgress<TaskNotification>? taskProgress = progress == null
                 ? null

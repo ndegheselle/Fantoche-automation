@@ -9,7 +9,6 @@ using Automation.Worker.Executor;
 using Automation.Worker.Packages;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
-using NJsonSchema;
 using System.Globalization;
 using System.Text.Json;
 
@@ -95,9 +94,9 @@ namespace Automation.Supervisor.Api.Controllers
 
         [HttpPost]
         [Route("{id:guid}/execute")]
-        public async Task<TaskInstance> ExecuteAsync([FromRoute] Guid id, [FromBody] string input, [FromQuery] bool startFromSupervisor = false)
+        public async Task<TaskInstance> ExecuteAsync([FromRoute] Guid id, [FromBody] JsonElement input, [FromQuery] bool startFromSupervisor = false)
         {
-            TaskInstance instance = new TaskInstance(id) {Data = new TaskInstanceData() {InputJson = input}};
+            TaskInstance instance = new TaskInstance(id) {Data = new TaskInstanceData() {InputToken = input.GetRawText()}};
             
             if (startFromSupervisor)
                 return await _localExecutor.ExecuteAsync(instance);

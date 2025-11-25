@@ -34,7 +34,7 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
         private async Task LoadFullInstance(Guid instanceId)
         {
             Instance = await _instanceClient.GetByIdAsync(instanceId) ?? throw new ArgumentException("Instance not found");
-            ContextJson = JsonSerializer.Serialize(Instance.Data?.InputJson, new JsonSerializerOptions() { WriteIndented = true });
+            ContextJson = JsonSerializer.Serialize("TODO", new JsonSerializerOptions() { WriteIndented = true });
         }
     }
 }

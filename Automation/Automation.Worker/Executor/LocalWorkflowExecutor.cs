@@ -3,6 +3,7 @@ using Automation.Dal.Repositories;
 using Automation.Models.Work;
 using Automation.Shared.Data;
 using Automation.Shared.Data.Task;
+using Automation.Worker.Control;
 using Newtonsoft.Json.Linq;
 
 namespace Automation.Worker.Executor;
@@ -84,7 +85,9 @@ public class LocalWorkflowExecutor
         if (string.IsNullOrEmpty(task.InputJson) == false)
             input = ReferencesHandler.ReplaceReferences(JToken.Parse(task.InputJson), context).ReplacedSetting;
 
-        await _executor.ExecuteAsync(subInstance, null, _cancellationTokenSource.Token);
+        WorkflowContext workflowContext = new WorkflowContext(_workflow);
+        
+        await _executor.ExecuteAsync(subInstance, workflowContext, null, _cancellationTokenSource.Token);
 
         Next(task, workflowInstance);
     }

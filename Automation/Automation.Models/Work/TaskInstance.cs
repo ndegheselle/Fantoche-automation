@@ -9,38 +9,11 @@ namespace Automation.Models.Work
 {
     public class TaskInstanceData
     {
-        public string? InputJson
-        {
-            get => InputToken?.ToString();
-            set => InputToken = value == null ? null : JToken.Parse(value);
-        }
-        [JsonIgnore]
         public JToken? InputToken { get; set; }
-        
-        public string? GlobalJson
-        {
-            get => GlobalToken?.ToString();
-            set => GlobalToken = value == null ? null : JToken.Parse(value);
-        }
-        [JsonIgnore]
         public JToken? GlobalToken { get; set; }
-        
-        public string? CommonJson
-        {
-            get => CommonToken?.ToString();
-            set => CommonToken = value == null ? null : JToken.Parse(value);
-        }
-        [JsonIgnore]
         public JToken? CommonToken { get; set; }
-        
-        public string? OutputJson
-        {
-            get => OutputToken?.ToString();
-            set => OutputToken = value == null ? null : JToken.Parse(value);
-        }
-        [JsonIgnore]
         public JToken? OutputToken { get; set; }
-        
+    
         public TaskInstanceData Clone()
         {
             return new TaskInstanceData

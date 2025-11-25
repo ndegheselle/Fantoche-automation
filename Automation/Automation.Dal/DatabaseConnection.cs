@@ -6,9 +6,33 @@ using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Bson.Serialization.IdGenerators;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
+using Newtonsoft.Json.Linq;
 
 namespace Automation.Dal
 {
+    public class JTokenSerializer : SerializerBase<JToken>
+    {
+        public override JToken Deserialize(BsonDeserializationContext context, BsonDeserializationArgs args)
+        {
+            var bsonDocument = BsonDocumentSerializer.Instance.Deserialize(context, args);
+            var json = bsonDocument.ToJson();
+            return JToken.Parse(json);
+        }
+
+        public override void Serialize(BsonSerializationContext context, BsonSerializationArgs args, JToken value)
+        {
+            if (value == null)
+            {
+                context.Writer.WriteNull();
+                return;
+            }
+
+            var json = value.ToString();
+            var bsonDocument = BsonDocument.Parse(json);
+            BsonDocumentSerializer.Instance.Serialize(context, args, bsonDocument);
+        }
+    }
+    
     /// <summary>
     /// Convention to set Id
     /// </summary>
@@ -39,6 +63,7 @@ namespace Automation.Dal
             };
 
             ConventionRegistry.Register("CustomConventions", conventionPack, t => true);
+            BsonSerializer.RegisterSerializer(new JTokenSerializer());
             RegisterClassMaps();
             MongoClient client = new MongoClient(connectionString);
             Database = client.GetDatabase(databaseName);
