@@ -19,7 +19,7 @@ namespace Automation.Supervisor.Api.Controllers
     public class TasksController : BaseCrudController<BaseAutomationTask>
     {
         private TasksRepository _taskRepo => (TasksRepository)_crudRepository;
-        private readonly TaskIntancesRepository _taskInstanceRepo;
+        private readonly TaskInstancesRepository _taskInstanceRepo;
         private readonly DatabaseConnection _connection;
         private readonly RemoteTaskExecutor _executor;
         /// <summary>
@@ -31,7 +31,7 @@ namespace Automation.Supervisor.Api.Controllers
         public TasksController(DatabaseConnection connection, RealtimeClients realtimeClients, IPackageManagement packageManagement) : base(new TasksRepository(connection))
         {
             _connection = connection;
-            _taskInstanceRepo = new TaskIntancesRepository(_connection);
+            _taskInstanceRepo = new TaskInstancesRepository(_connection);
             _localExecutor = new LocalTaskExecutor(_connection, packageManagement);
             _executor = new RemoteTaskExecutor(_connection, realtimeClients);
             _packageManagement = packageManagement;
@@ -94,9 +94,13 @@ namespace Automation.Supervisor.Api.Controllers
 
         [HttpPost]
         [Route("{id:guid}/execute")]
-        public async Task<TaskInstance> ExecuteAsync([FromRoute] Guid id, [FromBody] JsonElement input, [FromQuery] bool startFromSupervisor = false)
+        public async Task<TaskInstance> ExecuteAsync([FromRoute] Guid id, [FromBody] JsonElement? input, [FromQuery] bool startFromSupervisor = false)
         {
-            TaskInstance instance = new TaskInstance(id) {Data = new TaskInstanceData() {InputToken = input.GetRawText()}};
+            var data = new TaskInstanceData();
+            if (input != null)
+                data.InputToken = input.Value.GetRawText();
+
+            TaskInstance instance = new TaskInstance(id) {Data = data };
             
             if (startFromSupervisor)
                 return await _localExecutor.ExecuteAsync(instance);

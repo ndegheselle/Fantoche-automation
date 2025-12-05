@@ -14,6 +14,7 @@ namespace Automation.Worker.Executor;
 public class LocalTaskExecutor : ITaskExecutor
 {
     private readonly TasksRepository _taskRepo;
+    private readonly TaskInstancesRepository _taskInstances;
     private readonly IPackageManagement _packages;
     private readonly DatabaseConnection _connection;
 
@@ -21,6 +22,7 @@ public class LocalTaskExecutor : ITaskExecutor
     {
         _connection = connection;
         _taskRepo = new TasksRepository(connection);
+        _taskInstances = new TaskInstancesRepository(connection);
         _packages = packageManagement;
     }
 
@@ -51,8 +53,10 @@ public class LocalTaskExecutor : ITaskExecutor
             if (errors?.Count > 0)
                 throw new Exception(string.Join('\n', errors));
         }
-        
-        return baseTask switch
+
+        _ = _taskInstances.CreateAsync(instance);
+
+        var result = baseTask switch
         {
             AutomationControl control => context == null
                 ? throw new Exception("Control task need the workflow context for execution.")
@@ -61,6 +65,9 @@ public class LocalTaskExecutor : ITaskExecutor
             AutomationWorkflow workflow => await ExecuteWorkflowAsync(workflow, instance, progress, cancellation),
             _ => throw new Exception("Unknown task type.")
         };
+
+        _ = _taskInstances.ReplaceAsync(result.Id, result);
+        return result;
     }
 
     private async Task<TaskInstance> ExecuteControlAsync(AutomationControl automationControl, WorkflowContext context,

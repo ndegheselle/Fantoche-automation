@@ -109,6 +109,9 @@ namespace Automation.Models.Work
 
         public GraphControl(AutomationControl task) : base(task)
         {
+            // End wait for all inputs
+            if (IsEnd())
+                Settings.IsWaitingAllInputs = true;
         }
 
         public bool IsEnd() => TaskId == AutomationControl.EndTaskId;

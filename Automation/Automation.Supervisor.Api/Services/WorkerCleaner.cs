@@ -13,13 +13,13 @@ namespace Automation.Supervisor.Api.Business
     public class WorkerCleaner : BackgroundService
     {
         private readonly TimeSpan _cleaningInterval = TimeSpan.FromSeconds(30);
-        private readonly TaskIntancesRepository _repository;
+        private readonly TaskInstancesRepository _repository;
         private readonly WorkersRealtimeClient _workersClient;
         private readonly RemoteTaskExecutor _executor;
 
         public WorkerCleaner(DatabaseConnection connection, RedisConnectionManager redis, RealtimeClients clients)
         {
-            _repository = new TaskIntancesRepository(connection);
+            _repository = new TaskInstancesRepository(connection);
             _workersClient = new WorkersRealtimeClient(redis.Connection);
             _executor = new RemoteTaskExecutor(connection, clients);
         }

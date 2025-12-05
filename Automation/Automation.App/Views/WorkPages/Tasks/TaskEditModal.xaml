@@ -23,8 +23,6 @@
 
             <StackPanel Orientation="Vertical">
                 <components:MetadataEdit Metadata="{Binding Task.Metadata}" />
-                <tasksComponents:TaskSettingsEdit Margin="0,2,0,0" Settings="{Binding Task.Settings}" />
-
                 <GroupBox Margin="0,2,0,0" Padding="0">
                     <GroupBox.Header>
                         <Grid Margin="8,4,0,4">

@@ -12,7 +12,7 @@ namespace Automation.Worker.Service
 {
     public class Worker : BackgroundService
     {
-        private readonly TaskIntancesRepository _instanceRepo;
+        private readonly TaskInstancesRepository _instanceRepo;
         private readonly LocalTaskExecutor _executor;
         private readonly WorkerRealtimeClient _workerClient;
 
@@ -25,7 +25,7 @@ namespace Automation.Worker.Service
             RedisConnectionManager redis,
             IPackageManagement packageManagement)
         {
-            _instanceRepo = new TaskIntancesRepository(connection);
+            _instanceRepo = new TaskInstancesRepository(connection);
             _executor = new LocalTaskExecutor(connection, packageManagement);
             _workerClient = new WorkersRealtimeClient(redis.Connection).ByWorker(instance.Id);
         }

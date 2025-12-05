@@ -9,7 +9,7 @@ namespace Automation.Supervisor.Api.Controllers
     [Route("instances")]
     public class TasksInstancesController : BaseCrudController<TaskInstance>
     {
-        public TasksInstancesController(DatabaseConnection connection) : base(new TaskIntancesRepository(connection))
+        public TasksInstancesController(DatabaseConnection connection) : base(new TaskInstancesRepository(connection))
         {}
     }
 }

@@ -46,9 +46,7 @@ namespace Automation.Dal.Repositories
         public virtual async Task<Guid> CreateOrReplaceAsync(T element)
         {
             if (element.Id == Guid.Empty)
-            {
                 element.Id = Guid.NewGuid();
-            }
 
             var options = new ReplaceOptions { IsUpsert = true,  };
             await _collection.ReplaceOneAsync(e => e.Id == element.Id, element, options);

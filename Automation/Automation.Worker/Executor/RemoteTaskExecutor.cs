@@ -13,12 +13,12 @@ namespace Automation.Worker.Executor
     public class RemoteTaskExecutor : ITaskExecutor
     {
         private readonly RealtimeClients _realtime;
-        private readonly TaskIntancesRepository _instanceRepo;
+        private readonly TaskInstancesRepository _instanceRepo;
 
         public RemoteTaskExecutor(DatabaseConnection connection, RealtimeClients realtime)
         {
             _realtime = realtime;
-            _instanceRepo = new TaskIntancesRepository(connection);
+            _instanceRepo = new TaskInstancesRepository(connection);
         }
 
         /// <summary>

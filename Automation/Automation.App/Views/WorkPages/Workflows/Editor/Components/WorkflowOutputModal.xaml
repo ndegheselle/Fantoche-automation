@@ -34,9 +34,13 @@
                               Inputs="{Binding ContextSamples}"
                               SchemaJson="{Binding Workflow.OutputSchemaJson, Mode=TwoWay}"
                               SettingsJson="{Binding Workflow.OutputMappingJson, Mode=TwoWay}" />
-        
-        <CheckBox Grid.Row="1" IsChecked="{Binding EndTask.Settings.IsWaitingAllInputs, Mode=TwoWay}" Checked="HandleWaitAllChanged" Unchecked="HandleWaitAllChanged">Wait for all inputs</CheckBox>
 
+        <StackPanel Grid.Row="1" Orientation="Horizontal">
+            <CheckBox IsChecked="{Binding Workflow.WorkflowSettings.IsWaitingForAllEnd, Mode=TwoWay}" Checked="HandleWaitAllChanged" Unchecked="HandleWaitAllChanged">Wait for all inputs</CheckBox>
+            <fonts:Icon Margin="4,0,0,0" Text="{x:Static fonts:IconFont.Info}" 
+                        ToolTipService.InitialShowDelay="0" 
+                        ToolTip="All the current task will be canceled at the first end reached if the end doesn't wait on all inputs." />
+        </StackPanel>
         <StackPanel
             Orientation="Horizontal"
             Grid.Row="1"

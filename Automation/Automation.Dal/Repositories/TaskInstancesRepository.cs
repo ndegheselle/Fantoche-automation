@@ -6,9 +6,9 @@ using MongoDB.Driver;
 
 namespace Automation.Dal.Repositories
 {
-    public sealed class TaskIntancesRepository : BaseCrudRepository<TaskInstance>
+    public sealed class TaskInstancesRepository : BaseCrudRepository<TaskInstance>
     {
-        public TaskIntancesRepository(DatabaseConnection connection) : base(connection, "instances")
+        public TaskInstancesRepository(DatabaseConnection connection) : base(connection, "instances")
         {
         }
 

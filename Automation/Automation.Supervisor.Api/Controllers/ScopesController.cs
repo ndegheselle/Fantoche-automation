@@ -14,11 +14,11 @@ namespace Automation.Supervisor.Api.Controllers
     public class ScopesController : BaseCrudController<Scope>
     {
         private ScopesRepository _repository => (ScopesRepository)_crudRepository;
-        private readonly TaskIntancesRepository _taskInstanceRepo;
+        private readonly TaskInstancesRepository _taskInstanceRepo;
 
         public ScopesController(DatabaseConnection connection) : base(new ScopesRepository(connection))
         {
-            _taskInstanceRepo = new TaskIntancesRepository(connection);
+            _taskInstanceRepo = new TaskInstancesRepository(connection);
         }
 
         [HttpPost]

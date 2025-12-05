@@ -45,8 +45,8 @@ namespace Automation.App.Views.WorkPages.Workflows.Editor.Components
         {
             if (ContextMappingElement.HasErrors)
                 return;
-            
-            // Update all start task OutputSchema
+
+            // Update all start task OutputSchema (make it easier for previous handling)
             var startTasks = Workflow.Graph.GetStartNodes();
             foreach(var task in startTasks)
             {

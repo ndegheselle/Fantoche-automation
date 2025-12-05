@@ -6,13 +6,17 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Workflows"
     xmlns:components="clr-namespace:Automation.App.Views.WorkPages.Components"
-    xmlns:tasksComponents="clr-namespace:Automation.App.Views.WorkPages.Tasks.Components"
     mc:Ignorable="d"
     MinHeight="100"
     MinWidth="250"
     Padding="2">
-    <StackPanel Orientation="Vertical" DataContext="{Binding Workflow, RelativeSource={RelativeSource AncestorType=local:WorkflowEditModal}}">
+    <StackPanel Orientation="Vertical"
+                DataContext="{Binding Workflow, RelativeSource={RelativeSource AncestorType=local:WorkflowEditModal}}">
         <components:MetadataEdit Metadata="{Binding Metadata}" />
-        <tasksComponents:TaskSettingsEdit Margin="0,2,0,0" Settings="{Binding Task.Settings}" />
+        <GroupBox Header="Settings" Margin="0,2,0,0">
+            <StackPanel Margin="4">
+                <CheckBox IsChecked="{Binding IsStoringAllData}">Store all data during execution (for debugging)</CheckBox>
+            </StackPanel>
+        </GroupBox>
     </StackPanel>
 </UserControl>

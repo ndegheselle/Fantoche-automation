@@ -1,19 +1,12 @@
-﻿using Automation.Shared.Data;
-using Newtonsoft.Json.Linq;
+﻿using Automation.Plugins.Shared;
+using Automation.Shared.Data;
 using NJsonSchema;
-using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using Automation.Plugins.Shared;
 
 namespace Automation.Models.Work;
 
 public class TaskSettings
 {
-    /// <summary>
-    /// Store all data (input, output, global, ...) in task instance.
-    /// </summary>
-    public bool IsStoringAllData { get; set; } = false;
-
     public bool IsPassingThrough { get; set; } = false;
 }
 
@@ -42,7 +35,7 @@ public abstract class BaseAutomationTask : ScopedElement
 
     public IEnumerable<Schedule> Schedules { get; set; } = [];
 
-    public TaskSettings Settings { get; set; } = new();
+    public virtual TaskSettings Settings { get; set; } = new();
 
     public BaseAutomationTask(EnumScopedType type) : base(type)
     {
@@ -102,8 +95,20 @@ public class AutomationControl : AutomationTask
     }
 }
 
+public class WorkflowSettings
+{
+    public bool IsWaitingForAllEnd { get; set; }
+}
+
 public class AutomationWorkflow : BaseAutomationTask
 {
+    /// <summary>
+    /// Store all data (input, output, global, ...) in task instance.
+    /// </summary>
+    public bool IsStoringAllData { get; set; } = false;
+
+    public WorkflowSettings WorkflowSettings { get; set; } = new();
+
     public Graph Graph { get; set; } = new();
 
     /// <summary>
