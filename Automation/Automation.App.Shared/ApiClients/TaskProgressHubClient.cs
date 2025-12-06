@@ -8,7 +8,7 @@ namespace Automation.App.Shared.ApiClients
         private readonly HubConnection _connection;
 
         public event Action<TaskInstanceNotification>? NotificationReceived;
-        public event Action<TaskIntanceState>? StateReceived;
+        public event Action<TaskInstanceState>? StateReceived;
 
         public TaskProgressHubClient(string hubUrl)
         {
@@ -22,7 +22,7 @@ namespace Automation.App.Shared.ApiClients
                 NotificationReceived?.Invoke(progress);
             });
 
-            _connection.On<TaskIntanceState>("TaskIntanceState", (instanceState) =>
+            _connection.On<TaskInstanceState>("TaskIntanceState", (instanceState) =>
             {
                 StateReceived?.Invoke(instanceState);
             });

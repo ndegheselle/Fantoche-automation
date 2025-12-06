@@ -18,6 +18,7 @@ public struct TaskNotification
 
     public EnumTaskNotificationState State { get; set; } = EnumTaskNotificationState.Info;
     public string Message { get; set; } = "";
+    public float Progress { get; set; } = 0;
 }
 
 public class TaskConnector

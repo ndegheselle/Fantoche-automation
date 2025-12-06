@@ -7,9 +7,11 @@ namespace Automation.Worker.Control
     public class WorkflowContext
     {
         public AutomationWorkflow Workflow { get; }
-        public WorkflowContext(AutomationWorkflow workflow)
+        public TaskInstance WorkflowInstance { get; }
+        public WorkflowContext(AutomationWorkflow workflow, TaskInstance workflowInstance)
         {
             Workflow = workflow;
+            WorkflowInstance = workflowInstance;
         }
     }
 

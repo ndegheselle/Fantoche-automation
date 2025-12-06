@@ -44,7 +44,7 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
         /// Trigger then the instance lifcycle change
         /// </summary>
         /// <param name="instanceState"></param>
-        private void OnInstanceLifecycleChange(TaskIntanceState instanceState)
+        private void OnInstanceLifecycleChange(TaskInstanceState instanceState)
         {
             if (instanceState.InstanceId != Instance.Id)
                 return;

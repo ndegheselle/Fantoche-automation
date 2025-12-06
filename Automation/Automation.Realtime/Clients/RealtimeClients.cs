@@ -2,14 +2,26 @@
 {
     public class RealtimeClients
     {
+        /// <summary>
+        /// Control workers
+        /// </summary>
         public WorkersRealtimeClient Workers { get; }
-        public LifecycleRedisPublisher Lifecycle { get; }
+
+        /// <summary>
+        /// Get instances state changes
+        /// </summary>
+        public StatesRedisPublisher States { get; }
+
+        /// <summary>
+        /// Get tasks notifications during executions
+        /// </summary>
         public NotificationRedisPublisher Notifications { get; }
 
         public RealtimeClients(RedisConnectionManager connection)
         {
             Workers = new WorkersRealtimeClient(connection.Connection);
-            Lifecycle = new LifecycleRedisPublisher(connection.Connection);
+
+            States = new StatesRedisPublisher(connection.Connection);
             Notifications = new NotificationRedisPublisher(connection.Connection);
         }
     }

@@ -10,7 +10,7 @@ namespace Automation.Supervisor.Api.Hubs
         private readonly RealtimeClients _realtime;
 
         private readonly Progress<TaskInstanceNotification> _onProgress;
-        private readonly Progress<TaskIntanceState> _onLifecycle;
+        private readonly Progress<TaskInstanceState> _onLifecycle;
 
         public TaskProgressHub(RealtimeClients realtime)
         {
@@ -21,23 +21,23 @@ namespace Automation.Supervisor.Api.Hubs
                 _ = SendTaskInstanceNotification(progress);
             });
 
-            _onLifecycle = new Progress<TaskIntanceState>((instanceState) =>
+            _onLifecycle = new Progress<TaskInstanceState>((instanceState) =>
             {
                 _ = SendTaskInstanceStateUpdate(instanceState);
             });
 
             _realtime.Notifications.Subscribe(_onProgress);
-            _realtime.Lifecycle.Subscribe(_onLifecycle);
+            _realtime.States.Subscribe(_onLifecycle);
         }
 
         public new void Dispose()
         {
             base.Dispose();
             _realtime.Notifications.Unsubscribe(_onProgress);
-            _realtime.Lifecycle.Unsubscribe(_onLifecycle);
+            _realtime.States.Unsubscribe(_onLifecycle);
         }
 
-        public async Task SendTaskInstanceStateUpdate(TaskIntanceState instanceState)
+        public async Task SendTaskInstanceStateUpdate(TaskInstanceState instanceState)
         {
             await Clients.All.SendAsync("TaskIntanceState", instanceState);
         }

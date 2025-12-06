@@ -5,8 +5,6 @@ using Automation.Shared.Data;
 using Automation.Shared.Data.Task;
 using Automation.Worker.Control;
 using Newtonsoft.Json.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Automation.Worker.Executor;
 
@@ -32,7 +30,8 @@ public class LocalWorkflowExecutor
 
     public async Task<TaskInstance> ExecuteAsync(
         TaskInstance workflowInstance,
-        IProgress<TaskInstanceNotification>? progress = null,
+        IProgress<TaskInstanceState>? states = null,
+        IProgress<TaskInstanceNotification>? notifications = null,
         CancellationToken? cancellation = null)
     {
         _cancellation = cancellation;
@@ -92,6 +91,7 @@ public class LocalWorkflowExecutor
 
     private async Task ExecuteAsync(BaseGraphTask task, TaskInstance workflowInstance)
     {
+        Console.WriteLine($"Executing [{task.Name}]");
         var subInstance = new SubTaskInstance(workflowInstance.Id, task);
 
         var context = _workflow.Graph.Execution.GetContextFor(task, workflowInstance.Data);
@@ -102,9 +102,9 @@ public class LocalWorkflowExecutor
         if (!string.IsNullOrEmpty(task.InputJson))
             input = ReferencesHandler.ReplaceReferences(JToken.Parse(task.InputJson), context).ReplacedSetting;
 
-        WorkflowContext workflowContext = new WorkflowContext(_workflow);
+        WorkflowContext workflowContext = new WorkflowContext(_workflow, workflowInstance);
 
-        var executorTask = _executor.ExecuteAsync(subInstance, workflowContext, null, _cancellationTokenSource.Token);
+        var executorTask = _executor.ExecuteAsync(subInstance, workflowContext, cancellation: _cancellationTokenSource.Token);
         Track(executorTask);
     }
 

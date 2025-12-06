@@ -5,6 +5,7 @@ using Automation.Plugins.Shared;
 using Automation.Shared.Data.Task;
 using Automation.Worker.Control;
 using Automation.Worker.Packages;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Automation.Worker.Executor;
 
@@ -28,16 +29,18 @@ public class LocalTaskExecutor : ITaskExecutor
 
     public Task<TaskInstance> ExecuteAsync(
         TaskInstance instance,
-        IProgress<TaskInstanceNotification>? progress = null,
+        IProgress<TaskInstanceState>? states = null,
+        IProgress<TaskInstanceNotification>? notifications = null,
         CancellationToken? cancellation = null)
     {
-        return ExecuteAsync(instance, null, progress, cancellation);
+        return ExecuteAsync(instance, null, states, notifications, cancellation);
     }
 
     public async Task<TaskInstance> ExecuteAsync(
         TaskInstance instance,
         WorkflowContext? context,
-        IProgress<TaskInstanceNotification>? progress = null,
+        IProgress<TaskInstanceState>? states = null,
+        IProgress<TaskInstanceNotification>? notifications = null,
         CancellationToken? cancellation = null)
     {
         var baseTask = await _taskRepo.GetByIdAsync(instance.TaskId);
@@ -54,20 +57,37 @@ public class LocalTaskExecutor : ITaskExecutor
                 throw new Exception(string.Join('\n', errors));
         }
 
+        instance.StartedAt = DateTime.UtcNow;
+        instance.State = EnumTaskState.Progressing;
+
         _ = _taskInstances.CreateAsync(instance);
+        states?.Report(new TaskInstanceState(instance.Id, instance.State) { WorkflowInstanceId = context?.Workflow.Id });
 
-        var result = baseTask switch
+        try
         {
-            AutomationControl control => context == null
-                ? throw new Exception("Control task need the workflow context for execution.")
-                : await ExecuteControlAsync(control, context, instance, progress, cancellation),
-            AutomationTask task => await ExecuteTaskAsync(task, instance, progress, cancellation),
-            AutomationWorkflow workflow => await ExecuteWorkflowAsync(workflow, instance, progress, cancellation),
-            _ => throw new Exception("Unknown task type.")
-        };
+            instance = baseTask switch
+            {
+                AutomationControl control => context == null
+                    ? throw new Exception("Control task need the workflow context for execution.")
+                    : await ExecuteControlAsync(control, context, instance, notifications, cancellation),
+                AutomationTask task => await ExecuteTaskAsync(task, instance, notifications, cancellation),
+                AutomationWorkflow workflow => await ExecuteWorkflowAsync(workflow, instance, notifications, cancellation),
+                _ => throw new Exception("Unknown task type.")
+            };
+        }
+        catch
+        {
+            instance.State = EnumTaskState.Failed;
+        }
+        finally
+        {
+            instance.FinishedAt = DateTime.UtcNow;
+        }
 
-        _ = _taskInstances.ReplaceAsync(result.Id, result);
-        return result;
+        _ = _taskInstances.CreateOrReplaceAsync(instance);
+        states?.Report(new TaskInstanceState(instance.Id, instance.State) { WorkflowInstanceId = context?.Workflow.Id });
+
+        return instance;
     }
 
     private async Task<TaskInstance> ExecuteControlAsync(AutomationControl automationControl, WorkflowContext context,
@@ -75,29 +95,18 @@ public class LocalTaskExecutor : ITaskExecutor
         IProgress<TaskInstanceNotification>? progress = null,
         CancellationToken? cancellation = null)
     {
-        instance.StartedAt = DateTime.UtcNow;
-        try
-        {
-            var controlType = ControlTasks.AvailablesById[automationControl.Id].Type;
-            object typeInstance = Activator.CreateInstance(controlType) ??
-                                  throw new Exception($"Could not create a control instance of [{controlType}].");
-            var control = (ITaskControl)typeInstance;
 
-            IProgress<TaskNotification>? taskProgress = progress == null
-                ? null
-                : new Progress<TaskNotification>(notification =>
-                    progress.Report(new TaskInstanceNotification(instance.Id, notification))
-                );
-            await control.DoAsync(context, taskProgress, cancellation);
-            instance.State = EnumTaskState.Completed;
-        }
-        catch
-        {
-            instance.State = EnumTaskState.Failed;
-        }
+        var controlType = ControlTasks.AvailablesById[automationControl.Id].Type;
+        object typeInstance = Activator.CreateInstance(controlType) ??
+                              throw new Exception($"Could not create a control instance of [{controlType}].");
+        var control = (ITaskControl)typeInstance;
 
-        instance.FinishedAt = DateTime.UtcNow;
-
+        IProgress<TaskNotification>? taskProgress = progress == null
+            ? null
+            : new Progress<TaskNotification>(notification =>
+                progress.Report(new TaskInstanceNotification(instance.Id, notification))
+            );
+        instance.State = await control.DoAsync(context, taskProgress, cancellation);
         return instance;
     }
 
@@ -110,28 +119,18 @@ public class LocalTaskExecutor : ITaskExecutor
         if (automationTask.Target is not PackageClassTarget target)
             throw new Exception("Task target is not a package.");
 
-        instance.StartedAt = DateTime.UtcNow;
-        try
-        {
-            string dllPath =
-                await _packages.DownloadToLocalIfMissing(target.Package.Identifier, target.Package.Version);
-            using var loader = new TaskLoader(dllPath);
-            var task = loader.CreateInstance(target.TargetClass.Name);
+        string dllPath =
+            await _packages.DownloadToLocalIfMissing(target.Package.Identifier, target.Package.Version);
+        using var loader = new TaskLoader(dllPath);
+        var task = loader.CreateInstance(target.TargetClass.Name);
 
-            IProgress<TaskNotification>? taskProgress = progress == null
-                ? null
-                : new Progress<TaskNotification>(notification =>
-                    progress.Report(new TaskInstanceNotification(instance.Id, notification))
-                );
-            await task.DoAsync(null, taskProgress, cancellation);
-            instance.State = EnumTaskState.Completed;
-        }
-        catch
-        {
-            instance.State = EnumTaskState.Failed;
-        }
-
-        instance.FinishedAt = DateTime.UtcNow;
+        IProgress<TaskNotification>? taskProgress = progress == null
+            ? null
+            : new Progress<TaskNotification>(notification =>
+                progress.Report(new TaskInstanceNotification(instance.Id, notification))
+            );
+        await task.DoAsync(null, taskProgress, cancellation);
+        instance.State = EnumTaskState.Completed;
 
         return instance;
     }
@@ -142,8 +141,12 @@ public class LocalTaskExecutor : ITaskExecutor
         IProgress<TaskInstanceNotification>? progress = null,
         CancellationToken? cancellation = null)
     {
+        // TODO : set instance state
+        automationWorkflow.Graph.Refresh();
+
         var executor = new LocalWorkflowExecutor(_connection, this, automationWorkflow);
-        await executor.ExecuteAsync(instance, progress, cancellation);
+        await executor.ExecuteAsync(instance, cancellation: cancellation);
+        instance.State = EnumTaskState.Completed;
         return instance;
     }
 }

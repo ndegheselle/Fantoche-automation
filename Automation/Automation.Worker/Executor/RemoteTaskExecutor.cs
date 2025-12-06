@@ -51,14 +51,13 @@ namespace Automation.Worker.Executor
         /// <inheritdoc/>
         public async Task<TaskInstance> ExecuteAsync(
             TaskInstance instance,
-            IProgress<TaskInstanceNotification>? progress = null,
+        IProgress<TaskInstanceState>? states = null,
+        IProgress<TaskInstanceNotification>? notifications = null,
             CancellationToken? cancellationToken = null)
         {
             instance = await AssignAsync(instance);
-            if (progress != null)
-                _realtime.Notifications.Subscribe(instance.Id, progress);
 
-            await _realtime.Lifecycle.WaitStateAsync(instance.Id, EnumTaskState.Finished);
+            await _realtime.States.WaitStateAsync(instance.Id, EnumTaskState.Finished);
             // Get the updated instance from the repository
             return await _instanceRepo.GetByIdAsync(instance.Id) ??
                 throw new Exception($"Unable to find the instance for the id '{instance.Id}'");
