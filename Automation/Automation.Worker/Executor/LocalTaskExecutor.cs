@@ -5,7 +5,6 @@ using Automation.Plugins.Shared;
 using Automation.Shared.Data.Task;
 using Automation.Worker.Control;
 using Automation.Worker.Packages;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Automation.Worker.Executor;
 
@@ -14,16 +13,10 @@ namespace Automation.Worker.Executor;
 /// </summary>
 public class LocalTaskExecutor : ITaskExecutor
 {
-    private readonly TasksRepository _taskRepo;
-    private readonly TaskInstancesRepository _taskInstances;
     private readonly IPackageManagement _packages;
-    private readonly DatabaseConnection _connection;
 
-    public LocalTaskExecutor(DatabaseConnection connection, IPackageManagement packageManagement)
+    public LocalTaskExecutor(IPackageManagement packageManagement)
     {
-        _connection = connection;
-        _taskRepo = new TasksRepository(connection);
-        _taskInstances = new TaskInstancesRepository(connection);
         _packages = packageManagement;
     }
 
@@ -43,8 +36,6 @@ public class LocalTaskExecutor : ITaskExecutor
         IProgress<TaskInstanceNotification>? notifications = null,
         CancellationToken? cancellation = null)
     {
-        var baseTask = await _taskRepo.GetByIdAsync(instance.TaskId);
-
         if (instance.Data == null)
         {
             if (baseTask.InputSchema != null)
@@ -60,7 +51,6 @@ public class LocalTaskExecutor : ITaskExecutor
         instance.StartedAt = DateTime.UtcNow;
         instance.State = EnumTaskState.Progressing;
 
-        _ = _taskInstances.CreateAsync(instance);
         states?.Report(new TaskInstanceState(instance.Id, instance.State) { WorkflowInstanceId = context?.Workflow.Id });
 
         try
@@ -84,7 +74,6 @@ public class LocalTaskExecutor : ITaskExecutor
             instance.FinishedAt = DateTime.UtcNow;
         }
 
-        _ = _taskInstances.CreateOrReplaceAsync(instance);
         states?.Report(new TaskInstanceState(instance.Id, instance.State) { WorkflowInstanceId = context?.Workflow.Id });
 
         return instance;
@@ -144,7 +133,7 @@ public class LocalTaskExecutor : ITaskExecutor
         // TODO : set instance state
         automationWorkflow.Graph.Refresh();
 
-        var executor = new LocalWorkflowExecutor(_connection, this, automationWorkflow);
+        var executor = new LocalWorkflowExecutor(this, automationWorkflow);
         await executor.ExecuteAsync(instance, cancellation: cancellation);
         instance.State = EnumTaskState.Completed;
         return instance;

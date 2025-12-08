@@ -112,6 +112,15 @@ namespace Automation.Dal
                     cm.UnmapMember(m => m.Childrens);
                 });
 
+            BsonClassMap.RegisterClassMap<Graph>(
+                cm =>
+                {
+                    cm.AutoMap();
+                    cm.SetIsRootClass(true);
+                    cm.UnmapMember(m => m.Execution);
+                    cm.UnmapMember(m => m.Tasks);
+                });
+
             BsonClassMap.RegisterClassMap<GraphNode>(
                 cm =>
                 {

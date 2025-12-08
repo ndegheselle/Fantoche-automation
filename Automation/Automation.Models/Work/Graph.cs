@@ -179,6 +179,9 @@ namespace Automation.Models.Work
         [JsonIgnore] 
         public GraphExecutionContext Execution { get; private set; }
 
+        [JsonIgnore]
+        public Dictionary<Guid, BaseAutomationTask>? Tasks { get; set; }
+
         public Graph()
         {
             Execution = new GraphExecutionContext(this);

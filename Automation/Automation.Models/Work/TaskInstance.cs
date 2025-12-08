@@ -7,25 +7,6 @@ using Newtonsoft.Json.Linq;
 
 namespace Automation.Models.Work
 {
-    public class TaskInstanceData
-    {
-        public JToken? InputToken { get; set; }
-        public JToken? GlobalToken { get; set; }
-        public JToken? CommonToken { get; set; }
-        public JToken? OutputToken { get; set; }
-    
-        public TaskInstanceData Clone()
-        {
-            return new TaskInstanceData
-            {
-                InputToken = InputToken?.DeepClone(),
-                GlobalToken = GlobalToken?.DeepClone(),
-                CommonToken = CommonToken?.DeepClone(),
-                OutputToken = OutputToken?.DeepClone()
-            };
-        }
-    }
-    
     /// <summary>
     /// Task instance
     /// </summary>
@@ -38,15 +19,19 @@ namespace Automation.Models.Work
 
         public Guid Id { get; set; }
         public Guid TaskId { get; set; }
+
         public string? WorkerId { get; set; }
-        
-        public TaskInstanceData? Data { get; set; }
-        
+
+        public JToken? InputToken { get; set; }
+        public JToken? ContextToken { get; set; }
+        public JToken? OutputToken { get; set; }
+
         public EnumTaskState State { get; set; }
 
         public DateTime CreatedAt { get; set; }
         public DateTime? StartedAt { get; set; }
         public DateTime? FinishedAt { get; set; }
+
         public TaskInstance(Guid taskId)
         {
             TaskId = taskId;
