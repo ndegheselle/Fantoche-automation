@@ -5,13 +5,13 @@ using Newtonsoft.Json.Linq;
 
 namespace Automation.Worker.Executor;
 
-public class TaskInputs
+public record TaskInput
 {
     public JToken? InputToken { get; set; }
     public JToken? ContextToken { get; set; }
 }
 
-public class TaskOutput
+public record TaskOutput
 {
     public JToken? OutputToken { get; set; }
     public EnumTaskState State { get; set; }
@@ -20,8 +20,8 @@ public class TaskOutput
 public interface ITaskExecutor
 {
     Task<TaskOutput> ExecuteAsync(
-        TaskInputs inputs,
-        IProgress<TaskInstanceState>? states = null,
-        IProgress<TaskInstanceNotification>? notifications = null,
+        TaskInput input,
+        BaseAutomationTask automationTask,
+        IProgress<TaskNotification>? notifications = null,
         CancellationToken? cancellation = null);
 }

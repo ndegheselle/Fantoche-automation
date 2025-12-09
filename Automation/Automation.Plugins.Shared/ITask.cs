@@ -42,7 +42,7 @@ public interface ITask
     /// <param name="progress"></param>
     /// <param name="cancellation"></param>
     /// <returns></returns>
-    public Task<object?> DoAsync(object parameters, IProgress<TaskNotification>? progress = null,
+    public Task<object?> DoAsync(object? parameters, IProgress<TaskNotification>? progress = null,
         CancellationToken? cancellation = null);
 }
 
@@ -51,7 +51,7 @@ public abstract class BaseTask<TInput, TOutput> : ITask
     public TaskConnector? Input { get; } = new() { Type = typeof(TInput) };
     public TaskConnector? Output { get; } = new() { Type = typeof(TOutput) };
 
-    public async Task<object?> DoAsync(object parameters, IProgress<TaskNotification>? progress = null,
+    public async Task<object?> DoAsync(object? parameters, IProgress<TaskNotification>? progress = null,
         CancellationToken? cancellation = null)
     {
         if (parameters is not TInput input)
@@ -69,7 +69,7 @@ public abstract class BaseTask<TInput> : ITask
     public TaskConnector? Input { get; } = new() { Type = typeof(TInput) };
     public TaskConnector? Output { get; } = new();
 
-    public async Task<object?> DoAsync(object parameters, IProgress<TaskNotification>? progress = null,
+    public async Task<object?> DoAsync(object? parameters, IProgress<TaskNotification>? progress = null,
         CancellationToken? cancellation = null)
     {
         if (parameters is not TInput input)
@@ -87,7 +87,7 @@ public abstract class BaseTaskOutputless<TInput> : ITask
     public TaskConnector? Input { get; } = new() { Type = typeof(TInput) };
     public TaskConnector? Output { get; } = null;
 
-    public async Task<object?> DoAsync(object parameters, IProgress<TaskNotification>? progress = null,
+    public async Task<object?> DoAsync(object? parameters, IProgress<TaskNotification>? progress = null,
         CancellationToken? cancellation = null)
     {
         if (parameters is not TInput input)

@@ -1,6 +1,7 @@
 ﻿using Automation.Models.Work;
 using Automation.Plugins.Shared;
 using Automation.Shared.Data.Task;
+using Automation.Worker.Executor;
 
 namespace Automation.Worker.Control
 {
@@ -8,6 +9,7 @@ namespace Automation.Worker.Control
     {
         public AutomationWorkflow Workflow { get; }
         public TaskInstance WorkflowInstance { get; }
+        
         public WorkflowContext(AutomationWorkflow workflow, TaskInstance workflowInstance)
         {
             Workflow = workflow;
