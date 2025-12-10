@@ -8,12 +8,12 @@ namespace Automation.Worker.Control
     public class WorkflowContext
     {
         public AutomationWorkflow Workflow { get; }
-        public TaskInstance WorkflowInstance { get; }
+        public Guid WorkflowInstanceId { get; set; }
         
-        public WorkflowContext(AutomationWorkflow workflow, TaskInstance workflowInstance)
+        public WorkflowContext(AutomationWorkflow workflow, Guid workflowInstanceId)
         {
             Workflow = workflow;
-            WorkflowInstance = workflowInstance;
+            WorkflowInstanceId = workflowInstanceId;
         }
     }
 

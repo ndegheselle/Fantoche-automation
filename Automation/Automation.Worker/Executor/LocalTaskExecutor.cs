@@ -15,10 +15,12 @@ namespace Automation.Worker.Executor;
 public class LocalTaskExecutor : ITaskExecutor
 {
     private readonly IPackageManagement _packages;
+    private readonly ITaskChangeHandler? _changes;
 
-    public LocalTaskExecutor(IPackageManagement packageManagement)
+    public LocalTaskExecutor(IPackageManagement packageManagement, ITaskChangeHandler? changeHandler)
     {
         _packages = packageManagement;
+        _changes = changeHandler;
     }
 
     public Task<TaskOutput> ExecuteAsync(
@@ -29,7 +31,7 @@ public class LocalTaskExecutor : ITaskExecutor
     {
         return ExecuteAsync(automationTask, input, null, notifications, cancellation);
     }
-    
+
     public async Task<TaskOutput> ExecuteAsync(
         BaseAutomationTask automationTask,
         TaskInput input,
@@ -50,10 +52,11 @@ public class LocalTaskExecutor : ITaskExecutor
                 throw new Exception(string.Join('\n', errors));
         }
 
-        TaskOutput output = new TaskOutput();
+        _changes?.OnTaskStart(automationTask, input, workflowContext);
+        TaskOutput output;
         try
         {
-            return automationTask switch
+            output = automationTask switch
             {
                 AutomationControl control => workflowContext == null
                     ? throw new Exception("Control task need the workflow context for execution.")
@@ -65,10 +68,13 @@ public class LocalTaskExecutor : ITaskExecutor
         }
         catch (Exception ex)
         {
+            output = new TaskOutput();
             output.State = EnumTaskState.Failed;
             output.OutputToken = ex.ToString();
-            return output;
         }
+
+        _changes?.OnTaskEnd(automationTask, output, workflowContext);
+        return output;
     }
 
     private async Task<TaskOutput> ExecuteControlAsync(

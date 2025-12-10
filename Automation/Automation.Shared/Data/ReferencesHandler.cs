@@ -95,8 +95,11 @@ public static class ReferencesHandler
         return ReplaceReferences(setting, context);
     }
 
-    public static ReferenceReplaceContext ReplaceReferences(JToken setting, JToken context)
+    public static ReferenceReplaceContext ReplaceReferences(JToken setting, JToken? context)
     {
+        if (context == null)
+            return new ReferenceReplaceContext(setting);
+
         var result = new ReferenceReplaceContext(setting);
         ReplaceReferences(setting, context, result);
         result.ReplacedSetting = setting;
