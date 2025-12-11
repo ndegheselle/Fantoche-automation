@@ -1,9 +1,11 @@
 ﻿using Automation.Dal;
 using Automation.Dal.Repositories;
 using Automation.Models.Work;
+using Automation.Plugins.Shared;
 using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
 using Automation.Shared.Data.Task;
+using Newtonsoft.Json.Linq;
 
 namespace Automation.Worker.Executor
 {
@@ -49,18 +51,22 @@ namespace Automation.Worker.Executor
         }
 
         /// <inheritdoc/>
-        public async Task<TaskInstance> ExecuteAsync(
-            TaskInstance instance,
-            IProgress<TaskInstanceState>? states = null,
-            IProgress<TaskInstanceNotification>? notifications = null,
-            CancellationToken? cancellationToken = null)
+        ///     Task<TaskOutput> ExecuteAsync(
+        public async Task<TaskOutput> ExecuteAsync(
+            BaseAutomationTask automationTask,
+            JToken? input,
+            IProgress<TaskNotification>? notifications = null,
+            CancellationToken? cancellation = null)
         {
+            /*
             instance = await AssignAsync(instance);
 
             await _realtime.States.WaitStateAsync(instance.Id, EnumTaskState.Finished);
             // Get the updated instance from the repository
             return await _instanceRepo.GetByIdAsync(instance.Id) ??
                 throw new Exception($"Unable to find the instance for the id '{instance.Id}'");
+            */
+            throw new NotImplementedException();
         }
     }
 }

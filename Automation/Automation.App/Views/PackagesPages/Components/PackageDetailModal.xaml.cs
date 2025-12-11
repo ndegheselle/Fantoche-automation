@@ -89,9 +89,9 @@ namespace Automation.App.Views.PackagesPages.Components
 
         public PackageInfos Package { get; set; }
         public IEnumerable<Version> Versions { get; set; } = [];
-        public IEnumerable<ClassIdentifier> PackageClasses { get; set; } = [];
+        public IEnumerable<string> PackageClasses { get; set; } = [];
         public Version SelectedVersion { get; set; }
-        public ClassIdentifier? SelectedClass { get; set; }
+        public string? SelectedClass { get; set; }
 
         private readonly PackagesClient _packagesClient;
 
@@ -152,5 +152,4 @@ namespace Automation.App.Views.PackagesPages.Components
         #endregion
 
     }
-
 }

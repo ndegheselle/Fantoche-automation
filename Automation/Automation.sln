@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.9.34723.18
+# Visual Studio Version 18
+VisualStudioVersion = 18.1.11304.174
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Base", "Base", "{5A3373EB-AB17-4713-85EF-071F9AB50EFA}"
 EndProject
@@ -51,8 +51,6 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Automation.Models", "Automa
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Automation.Worker.Tests", "Automation.Worker.Tests\Automation.Worker.Tests.csproj", "{1C594923-7FD9-419E-A7AA-6D3DAC8C4179}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Automation.Client.Local", "Automation.Client.Local\Automation.Client.Local.csproj", "{80092D78-CA6E-3179-137F-F42DDC74EDDB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Automation.Client.Remote", "Automation.Client.Remote\Automation.Client.Remote.csproj", "{43CC1575-6DD0-4DA1-004C-95CF4312A544}"
@@ -60,6 +58,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Client", "Client", "{96D252A8-3FB5-489B-9296-EB8B030C1B4F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Usuel.History", "..\..\wpf-components\Usuel.History\Usuel.History.csproj", "{CB987A51-66CE-982C-57AC-891072F9D83F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Automation.Worker.Console", "Automation.Worker.Console\Automation.Worker.Console.csproj", "{22D5CBB3-F90F-E518-E886-25CCD68BD4A9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -135,10 +135,6 @@ Global
 		{4D63C0FD-0817-4AF4-8C53-D1BC035B58FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4D63C0FD-0817-4AF4-8C53-D1BC035B58FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4D63C0FD-0817-4AF4-8C53-D1BC035B58FC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1C594923-7FD9-419E-A7AA-6D3DAC8C4179}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1C594923-7FD9-419E-A7AA-6D3DAC8C4179}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1C594923-7FD9-419E-A7AA-6D3DAC8C4179}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1C594923-7FD9-419E-A7AA-6D3DAC8C4179}.Release|Any CPU.Build.0 = Release|Any CPU
 		{80092D78-CA6E-3179-137F-F42DDC74EDDB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{80092D78-CA6E-3179-137F-F42DDC74EDDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{80092D78-CA6E-3179-137F-F42DDC74EDDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -151,6 +147,10 @@ Global
 		{CB987A51-66CE-982C-57AC-891072F9D83F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CB987A51-66CE-982C-57AC-891072F9D83F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CB987A51-66CE-982C-57AC-891072F9D83F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{22D5CBB3-F90F-E518-E886-25CCD68BD4A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{22D5CBB3-F90F-E518-E886-25CCD68BD4A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{22D5CBB3-F90F-E518-E886-25CCD68BD4A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{22D5CBB3-F90F-E518-E886-25CCD68BD4A9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -175,10 +175,10 @@ Global
 		{9601ADEA-958A-4710-86CD-1D398A365595} = {128D718D-1656-4F30-98A5-3764D87E87C4}
 		{4D63C0FD-0817-4AF4-8C53-D1BC035B58FC} = {128D718D-1656-4F30-98A5-3764D87E87C4}
 		{68F873E1-6840-40B0-BB35-B8BAE408B09C} = {5A3373EB-AB17-4713-85EF-071F9AB50EFA}
-		{1C594923-7FD9-419E-A7AA-6D3DAC8C4179} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{80092D78-CA6E-3179-137F-F42DDC74EDDB} = {96D252A8-3FB5-489B-9296-EB8B030C1B4F}
 		{43CC1575-6DD0-4DA1-004C-95CF4312A544} = {96D252A8-3FB5-489B-9296-EB8B030C1B4F}
 		{CB987A51-66CE-982C-57AC-891072F9D83F} = {22EF0554-5D93-41BE-A54F-D331C311226C}
+		{22D5CBB3-F90F-E518-E886-25CCD68BD4A9} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AFEC477D-0D28-4C5A-9622-5F97F806819C}

@@ -11,12 +11,13 @@ namespace Automation.Worker.Control
         /// <summary>
         /// Shared context between task, initalized with workflow parent context.
         /// </summary>
-        public JToken? Shared { get; }
+        public JToken? SharedToken { get; }
+        public JToken? OutputToken { get; set; }
 
         public WorkflowContext(AutomationWorkflow workflow)
         {
             Workflow = workflow;
-            Shared = Workflow.ParentContext;
+            SharedToken = Workflow.ParentContext;
         }
     }
 

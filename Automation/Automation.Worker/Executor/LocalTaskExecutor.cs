@@ -104,7 +104,7 @@ public class LocalTaskExecutor : ITaskExecutor
         string dllPath =
             await _packages.DownloadToLocalIfMissing(target.Package.Identifier, target.Package.Version);
         using var loader = new TaskLoader(dllPath);
-        var task = loader.CreateInstance(target.TargetClass.Name);
+        var task = loader.CreateInstance(target.ClassFullName);
 
         object? parameter = null;
         if (input != null && task.Input?.Type != null)
@@ -127,8 +127,8 @@ public class LocalTaskExecutor : ITaskExecutor
         CancellationToken? cancellation = null)
     {
         TaskOutput output = new TaskOutput();
-        var executor = new LocalWorkflowExecutor(this, automationWorkflow);
-        await executor.ExecuteAsync(instance, cancellation: cancellation);
+        var executor = new LocalWorkflowExecutor(this);
+        await executor.ExecuteAsync(automationWorkflow, input, progress, cancellation);
         output.State = EnumTaskState.Completed;
         return output;
     }

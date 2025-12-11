@@ -18,9 +18,9 @@ namespace Automation.App.Views.PackagesPages.Components
             Title = "Select package"
         };
 
-        protected override void OnTargetSelected(PackageInfos package, ClassIdentifier targetClass)
+        protected override void OnTargetSelected(PackageInfos package, string className)
         {
-            base.OnTargetSelected(package, targetClass);
+            base.OnTargetSelected(package, className);
             ParentLayout?.Hide(true);
         }
     }
@@ -96,10 +96,10 @@ namespace Automation.App.Views.PackagesPages.Components
             }
         }
 
-        protected virtual void OnTargetSelected(PackageInfos package, ClassIdentifier targetClass)
+        protected virtual void OnTargetSelected(PackageInfos package, string className)
         {
             SelectedInfos = package;
-            SelectedTarget = new PackageClassTarget(SelectedInfos.Identifier, targetClass);
+            SelectedTarget = new PackageClassTarget(SelectedInfos.Identifier, className);
         }
     }
     #endregion

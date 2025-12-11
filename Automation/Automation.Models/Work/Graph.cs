@@ -1,9 +1,10 @@
 ﻿using Automation.Shared.Data;
+using Newtonsoft.Json.Linq;
 using NJsonSchema;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Text.Json.Serialization;
-using Newtonsoft.Json.Linq;
+using System.Threading.Tasks;
 
 namespace Automation.Models.Work
 {
@@ -192,7 +193,7 @@ namespace Automation.Models.Work
         /// Simplify the graph resolution.
         /// </summary>
         /// <param name="force">Force the refresh even if the graph is already refreshed.</param>
-        public void Refresh(bool force = false, Dictionary<Guid, BaseAutomationTask>? tasks = null)
+        public void Refresh(Dictionary<Guid, BaseAutomationTask>? tasks = null, bool force = false)
         {
             if (IsRefreshed && !force)
                 return;
@@ -268,10 +269,20 @@ namespace Automation.Models.Work
 
             return uniqueName;
         }
-        
+
         #endregion
-        
+
         #region Connections
+
+        /// <summary>
+        /// Connect two tasks with their first connectors.
+        /// </summary>
+        /// <param name="task"></param>
+        /// <param name="task2"></param>
+        public void Connect(BaseGraphTask task, BaseGraphTask task2)
+        {
+            Connections.Add(new GraphConnection(task.Outputs.First(), task2.Inputs.First()));
+        }
 
         /// <summary>
         /// Get all previous tasks.

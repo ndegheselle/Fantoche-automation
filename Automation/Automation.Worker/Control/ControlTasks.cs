@@ -15,7 +15,7 @@ namespace Automation.Worker.Control
             Id = Guid.Parse("00000000-0000-0000-0000-100000000000")
         };
 
-        public static Dictionary<ClassIdentifier, AutomationControl> Availables { get; } = new Dictionary<ClassIdentifier, AutomationControl>();
+        public static Dictionary<string, AutomationControl> Availables { get; } = new Dictionary<string, AutomationControl>();
         public static Dictionary<Guid, AutomationControl> AvailablesById { get; } = new Dictionary<Guid, AutomationControl>();
 
         static ControlTasks()
@@ -29,11 +29,11 @@ namespace Automation.Worker.Control
             if (AvailablesById.ContainsKey(task.Id))
                 throw new Exception($"The key '{task.Id}' is already registered by task '{AvailablesById[task.Id].Metadata.Name}'.");
 
-            ClassTarget target = new ClassTarget(new ClassIdentifier() { Dll = "internal.controls", Name = typeof(T).Name, });
+            ClassTarget target = new ClassTarget() { ClassFullName = typeof(T).FullName ?? "" };
             task.Target = target;
             task.Type = typeof(T);
             ControlScope.AddChild(task);
-            Availables.Add(target.TargetClass, task);
+            Availables.Add(target.ClassFullName, task);
             AvailablesById.Add(task.Id, task);
             return task;
         }

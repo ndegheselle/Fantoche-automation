@@ -2,7 +2,6 @@
 using Automation.Plugins.Shared;
 using Automation.Shared.Data;
 using Automation.Shared.Data.Task;
-using Newtonsoft.Json.Schema;
 using NJsonSchema;
 
 namespace Automation.Worker.Control.Flow

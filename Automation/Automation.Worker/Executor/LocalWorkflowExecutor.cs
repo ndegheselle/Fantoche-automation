@@ -16,14 +16,11 @@ public class LocalWorkflowExecutor
     }
 
     public async Task<TaskOutput> ExecuteAsync(
-        BaseAutomationTask automationTask,
+        AutomationWorkflow workflow,
         JToken? input,
         IProgress<TaskNotification>? notifications = null,
         CancellationToken? cancellation = null)
     {
-        if (automationTask is not AutomationWorkflow workflow)
-            throw new Exception("Task is not a workflow.");
-
         if (workflow.Graph.IsRefreshed == false)
             throw new Exception("The workflow graph should be refreshed before being executed.");
         
@@ -38,11 +35,19 @@ public class LocalWorkflowExecutor
             tasks.Add(NextAsync(start, context, input, cancellation));
 
         await Task.WhenAll(tasks);
-        return await EndAsync(workflow);
+        return await EndAsync(context);
     }
 
-    private async Task<TaskOutput> EndAsync(AutomationWorkflow workflow)
+    private async Task<TaskOutput> EndAsync(WorkflowContext context)
     {
+        if (context.Workflow.OutputSchema != null && context.OutputToken == null)
+            throw new Exception("Reached end of workflow without data.");
+
+        return new TaskOutput()
+        {
+            OutputToken = context.OutputToken,
+            State = Shared.Data.Task.EnumTaskState.Completed
+        };
     }
 
     private async Task NextAsync(BaseGraphTask task, WorkflowContext context, JToken? previous, CancellationToken? cancellation)
@@ -72,7 +77,7 @@ public class LocalWorkflowExecutor
 
     private async Task<TaskOutput> ExecuteNodeAsync(BaseGraphTask task, WorkflowContext context, JToken? previous, CancellationToken? cancellation)
     {
-        var taskContext = context.Workflow.Graph.Execution.GetContextFor(task, previous, context.Shared);
+        var taskContext = context.Workflow.Graph.Execution.GetContextFor(task, previous, context.SharedToken);
         if (task.Settings.IsWaitingAllInputs)
             task.WaitedInputs.Clear();
 

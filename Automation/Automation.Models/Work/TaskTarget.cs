@@ -10,24 +10,21 @@ namespace Automation.Models.Work
 
     public class ClassTarget : TaskTarget
     {
-        public ClassIdentifier TargetClass { get; set; }
-        public ClassTarget(ClassIdentifier targetClass)
-        {
-            TargetClass = targetClass;
-        }
+        public string ClassFullName { get; set; } = "";
     }
 
     public class PackageClassTarget : ClassTarget
     {
         public PackageIdentifier Package { get; set; }
-        public PackageClassTarget() : base(new ClassIdentifier())
+        public PackageClassTarget()
         {
             Package = new PackageIdentifier();
         }
 
-        public PackageClassTarget(PackageIdentifier identifier, ClassIdentifier targetClass) : base(targetClass)
+        public PackageClassTarget(PackageIdentifier identifier, string classFullName)
         {
             Package = identifier;
+            ClassFullName = classFullName;
         }
     }
 }

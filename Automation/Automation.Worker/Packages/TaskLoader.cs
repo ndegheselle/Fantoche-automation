@@ -63,9 +63,9 @@ public class PluginLoader<TPlugin>: AssemblyLoadContext, IDisposable where TPlug
             .Where(t => typeof(TPlugin).IsAssignableFrom(t) && t is { IsInterface: false, IsAbstract: false });
     }
 
-    public IEnumerable<ClassIdentifier> GetClasses()
+    public IEnumerable<string> GetClasses()
     {
-        return GetTypes().Select(t => new ClassIdentifier(_pluginPath, t.FullName ?? ""));
+        return GetTypes().Select(t => t.FullName ?? "");
     }
 
     public void Dispose() => Unload();

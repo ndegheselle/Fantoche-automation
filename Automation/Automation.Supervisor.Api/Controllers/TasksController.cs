@@ -32,7 +32,7 @@ namespace Automation.Supervisor.Api.Controllers
         {
             _connection = connection;
             _taskInstanceRepo = new TaskInstancesRepository(_connection);
-            _localExecutor = new LocalTaskExecutor(_connection, packageManagement);
+            _localExecutor = new LocalTaskExecutor();
             _executor = new RemoteTaskExecutor(_connection, realtimeClients);
             _packageManagement = packageManagement;
         }
@@ -84,7 +84,7 @@ namespace Automation.Supervisor.Api.Controllers
                 string dllPath = await _packageManagement.DownloadToLocalIfMissing(package.Package.Identifier, package.Package.Version);
                 using TaskLoader loader = new TaskLoader(dllPath);
                 
-                ITask packageTask = loader.CreateInstance(package.TargetClass.Name);
+                ITask packageTask = loader.CreateInstance(package.ClassFullName);
 
                 updatedTask.UpdateFromTask(packageTask);
             }
