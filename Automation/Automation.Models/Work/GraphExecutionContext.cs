@@ -5,8 +5,7 @@ namespace Automation.Models.Work;
 public class GraphExecutionContext
 {
     private const string PreviousIdentifier = "previous";
-    private const string GlobalIdentifier = "global";
-    private const string CommonIdentifier = "common";
+    private const string ContextIdentifier = "context";
     private readonly Graph _graph;
 
     public GraphExecutionContext(Graph graph)
@@ -25,10 +24,7 @@ public class GraphExecutionContext
         var previousTasks = _graph.GetPreviousFrom(task);
         
         // TODO : get the global and common token samples
-        var data = new TaskInstanceData()
-        {
-            
-        };
+        JToken? context = null;
         
         List<string> contexts = [];
         if (task.Settings.IsWaitingAllInputs)
@@ -36,15 +32,15 @@ public class GraphExecutionContext
             Dictionary<string, JToken?> previous = new Dictionary<string, JToken?>();
             foreach (var pre in previousTasks)
                 previous.Add(pre.Name, pre.OutputSchema?.ToSampleJson());
-            contexts.Add(GenerateContextFrom(previous, data).ToString());
+            contexts.Add(GenerateContextFrom(previous, context).ToString());
         }
         else
         {
             // XXX : maybe group by TaskId ?
             foreach (var previousTask in previousTasks)
             {
-                data.InputToken = previousTask.OutputSchema?.ToSampleJson();
-                contexts.Add(GenerateContextFrom(data).ToString());
+                var input = previousTask.OutputSchema?.ToSampleJson();
+                contexts.Add(GenerateContextFrom(input, context).ToString());
             }
         }
         return contexts;
@@ -63,11 +59,11 @@ public class GraphExecutionContext
     }
     #endregion
 
-    public JObject GetContextFor(BaseGraphTask task, TaskInstanceData? data)
+    public JObject GetContextFor(BaseGraphTask task, JToken? previous, JToken? context)
     {
-        if (data == null)
+        if (previous == null && context == null)
             return GenerateEmptyContext();
-        return task.Settings.IsWaitingAllInputs ? GenerateContextFrom(task.WaitedInputs, data) : GenerateContextFrom(data);
+        return task.Settings.IsWaitingAllInputs ? GenerateContextFrom(task.WaitedInputs, context) : GenerateContextFrom(previous, context);
     }
     
     public JObject GenerateEmptyContext()
@@ -75,33 +71,31 @@ public class GraphExecutionContext
         return new JObject
         {
             [PreviousIdentifier] = null,
-            [GlobalIdentifier] = null,
-            [CommonIdentifier] = null
+            [ContextIdentifier] = null
         };
     }
     
-    public JObject GenerateContextFrom(TaskInstanceData data)
+    public JObject GenerateContextFrom(JToken? previous, JToken? context)
     {
         return new JObject
         {
-            [PreviousIdentifier] = data.InputToken,
-            [GlobalIdentifier] = data.GlobalToken,
-            [CommonIdentifier] = data.CommonToken
+            [PreviousIdentifier] = previous,
+            [ContextIdentifier] = context,
         };
     }
 
-    public JObject GenerateContextFrom(Dictionary<string, JToken?> previous, TaskInstanceData data)
+    public JObject GenerateContextFrom(Dictionary<string, JToken?> previous, JToken? context)
     {
-        JObject context = GenerateContextFrom(data);
+        JObject ctxt = GenerateEmptyContext();
 
-        context[PreviousIdentifier] = new JObject();
+        ctxt[ContextIdentifier] = context;
         foreach (var pre in previous)
         {
-            JToken previousContext = context[PreviousIdentifier] ?? new JObject();
+            JToken previousContext = ctxt[PreviousIdentifier] ?? new JObject();
             previousContext[pre.Key] = pre.Value;
-            context[PreviousIdentifier] ??= previousContext;
+            ctxt[PreviousIdentifier] ??= previousContext;
         }
         
-        return context;
+        return ctxt;
     }
 }

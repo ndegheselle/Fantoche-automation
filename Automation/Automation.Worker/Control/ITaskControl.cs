@@ -1,19 +1,22 @@
 ﻿using Automation.Models.Work;
 using Automation.Plugins.Shared;
 using Automation.Shared.Data.Task;
-using Automation.Worker.Executor;
+using Newtonsoft.Json.Linq;
 
 namespace Automation.Worker.Control
 {
     public class WorkflowContext
     {
         public AutomationWorkflow Workflow { get; }
-        public Guid WorkflowInstanceId { get; set; }
-        
-        public WorkflowContext(AutomationWorkflow workflow, Guid workflowInstanceId)
+        /// <summary>
+        /// Shared context between task, initalized with workflow parent context.
+        /// </summary>
+        public JToken? Shared { get; }
+
+        public WorkflowContext(AutomationWorkflow workflow)
         {
             Workflow = workflow;
-            WorkflowInstanceId = workflowInstanceId;
+            Shared = Workflow.ParentContext;
         }
     }
 

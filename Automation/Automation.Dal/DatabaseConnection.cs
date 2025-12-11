@@ -84,6 +84,7 @@ namespace Automation.Dal
                     cm.AddKnownType(typeof(AutomationControl));
                     cm.AddKnownType(typeof(AutomationWorkflow));
                     cm.UnmapMember(m => m.Parent);
+                    cm.UnmapMember(m => m.ParentContext);
                 });
 
             BsonClassMap.RegisterClassMap<BaseAutomationTask>(
@@ -118,7 +119,6 @@ namespace Automation.Dal
                     cm.AutoMap();
                     cm.SetIsRootClass(true);
                     cm.UnmapMember(m => m.Execution);
-                    cm.UnmapMember(m => m.Tasks);
                 });
 
             BsonClassMap.RegisterClassMap<GraphNode>(
@@ -140,6 +140,7 @@ namespace Automation.Dal
                     cm.UnmapMember(m => m.InputSchema);
                     cm.UnmapMember(m => m.OutputSchema);
                     cm.UnmapMember(m => m.WaitedInputs);
+                    cm.UnmapMember(m => m.AutomationTask);
                 });
 
             BsonClassMap.RegisterClassMap<GraphConnector>(
@@ -163,15 +164,6 @@ namespace Automation.Dal
                     cm.AutoMap();
                     cm.SetIsRootClass(true);
                     cm.AddKnownType(typeof(SubTaskInstance));
-                });
-            BsonClassMap.RegisterClassMap<TaskInstanceData>(
-                cm =>
-                {
-                    cm.AutoMap();
-                    cm.UnmapMember(m => m.InputToken);
-                    cm.UnmapMember(m => m.GlobalToken);
-                    cm.UnmapMember(m => m.CommonToken);
-                    cm.UnmapMember(m => m.OutputToken);
                 });
 
             BsonClassMap.RegisterClassMap<TaskTarget>(

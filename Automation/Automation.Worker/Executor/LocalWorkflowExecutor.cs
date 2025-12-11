@@ -1,9 +1,6 @@
-﻿using Automation.Dal;
-using Automation.Dal.Repositories;
-using Automation.Models.Work;
+﻿using Automation.Models.Work;
 using Automation.Plugins.Shared;
 using Automation.Shared.Data;
-using Automation.Shared.Data.Task;
 using Automation.Worker.Control;
 using Newtonsoft.Json.Linq;
 
@@ -20,22 +17,25 @@ public class LocalWorkflowExecutor
 
     public async Task<TaskOutput> ExecuteAsync(
         BaseAutomationTask automationTask,
-        TaskInput input,
+        JToken? input,
         IProgress<TaskNotification>? notifications = null,
         CancellationToken? cancellation = null)
     {
         if (automationTask is not AutomationWorkflow workflow)
             throw new Exception("Task is not a workflow.");
 
-        return await StartAsync(workflow, input, notifications, cancellation);
+        if (workflow.Graph.IsRefreshed == false)
+            throw new Exception("The workflow graph should be refreshed before being executed.");
+        
+        return await StartAsync(workflow, input, cancellation);
     }
 
-    private async Task<TaskOutput> StartAsync(AutomationWorkflow workflow, TaskInput input,
-        IProgress<TaskNotification>? notifications, CancellationToken? cancellation)
+    private async Task<TaskOutput> StartAsync(AutomationWorkflow workflow, JToken? input, CancellationToken? cancellation)
     {
+        WorkflowContext context = new WorkflowContext(workflow);
         var tasks = new List<Task>();
         foreach (var start in workflow.Graph.GetStartNodes())
-            tasks.Add(NextAsync(start, workflow, input, notifications, cancellation));
+            tasks.Add(NextAsync(start, context, input, cancellation));
 
         await Task.WhenAll(tasks);
         return await EndAsync(workflow);
@@ -45,26 +45,24 @@ public class LocalWorkflowExecutor
     {
     }
 
-    private async Task NextAsync(BaseGraphTask task, AutomationWorkflow workflow, TaskInput input,
-        IProgress<TaskNotification>? notifications, CancellationToken? cancellation)
+    private async Task NextAsync(BaseGraphTask task, WorkflowContext context, JToken? previous, CancellationToken? cancellation)
     {
-        var nextTasks = workflow.Graph.GetNextFrom(task);
+        var nextTasks = context.Workflow.Graph.GetNextFrom(task);
         var tasks = new List<Task>();
     
         foreach (var next in nextTasks)
         {
             if (next.Settings.IsWaitingAllInputs)
-                next.WaitedInputs.Add(task.Name, input.InputToken);
+                next.WaitedInputs.Add(task.Name, previous);
     
-            if (workflow.Graph.CanExecute(next))
+            if (context.Workflow.Graph.CanExecute(next))
             {
                 // Capture 'next' for the async closure
                 var nextTask = next;
                 tasks.Add(Task.Run(async () =>
                 {
-                    var output = await ExecuteNodeAsync(nextTask, workflow, input, notifications, cancellation);
-                    var nextInput = new TaskInput { ContextToken = input.ContextToken, InputToken = output.OutputToken };
-                    await NextAsync(nextTask, workflow, nextInput, notifications, cancellation);
+                    var output = await ExecuteNodeAsync(nextTask, context, previous, cancellation);
+                    await NextAsync(nextTask, context, output.OutputToken, cancellation);
                 }));
             }
         }
@@ -72,40 +70,16 @@ public class LocalWorkflowExecutor
         await Task.WhenAll(tasks);
     }
 
-    private async Task<TaskOutput> ExecuteNodeAsync(BaseGraphTask task, AutomationWorkflow workflow, TaskInput input,
-        IProgress<TaskNotification>? notifications, CancellationToken? cancellation)
+    private async Task<TaskOutput> ExecuteNodeAsync(BaseGraphTask task, WorkflowContext context, JToken? previous, CancellationToken? cancellation)
     {
-        var context = workflow.Graph.Execution.GetContextFor(task, workflowInstance.Data);
+        var taskContext = context.Workflow.Graph.Execution.GetContextFor(task, previous, context.Shared);
         if (task.Settings.IsWaitingAllInputs)
             task.WaitedInputs.Clear();
 
+        JToken? input = null;
         if (!string.IsNullOrEmpty(task.InputJson))
-            input.InputToken = ReferencesHandler.ReplaceReferences(task.InputJson, input.ContextToken).ReplacedSetting;
+            input = ReferencesHandler.ReplaceReferences(task.InputJson, taskContext).ReplacedSetting;
 
-        var workflowContext = new WorkflowContext(workflow, workflowInstance);
-
-        var executorTask =
-            _executor.ExecuteAsync(subInstance, workflowContext, cancellation: _cancellationTokenSource.Token);
-        Track(executorTask);
-    }
-
-    /// <summary>
-    /// Track the running tasks.
-    /// </summary>
-    /// <param name="task"></param>
-    private void Track(Task task)
-    {
-        lock (_lock)
-        {
-            _runningTasks.Add(task);
-        }
-
-        task.ContinueWith(t =>
-        {
-            lock (_lock)
-            {
-                _runningTasks.Remove(t);
-            }
-        }, TaskContinuationOptions.ExecuteSynchronously);
+        return await _executor.ExecuteAsync(task.AutomationTask ?? throw new Exception("Workflow tasks are not loaded."), input, context, null, cancellation);
     }
 }

@@ -1,8 +1,9 @@
 ﻿using Automation.Shared.Base;
 using Automation.Shared.Data;
+using Newtonsoft.Json.Linq;
+using NuGet.Protocol.Core.Types;
 using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
-using NuGet.Protocol.Core.Types;
 
 namespace Automation.Models.Work
 {
@@ -13,11 +14,15 @@ namespace Automation.Models.Work
     public abstract partial class ScopedElement : IIdentifier
     {
         public Guid Id { get; set; }
-        [JsonIgnore]
-        public Scope? Parent { get; set; }
+
         public List<Guid> ParentTree { get; set; } = [];
         public Guid? ParentId { get; set; }
-        public ScopedMetadata Metadata { get; set; } 
+        public ScopedMetadata Metadata { get; set; }
+
+        [JsonIgnore]
+        public Scope? Parent { get; set; }
+        [JsonIgnore]
+        public JToken? ParentContext { get; set; }
 
         public ScopedElement(EnumScopedType type)
         {

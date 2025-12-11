@@ -6,12 +6,6 @@ using Newtonsoft.Json.Linq;
 
 namespace Automation.Worker.Executor;
 
-public record TaskInput
-{
-    public JToken? InputToken { get; set; }
-    public JToken? ContextToken { get; set; }
-}
-
 public record TaskOutput
 {
     public JToken? OutputToken { get; set; }
@@ -22,7 +16,7 @@ public interface ITaskExecutor
 {
     Task<TaskOutput> ExecuteAsync(
         BaseAutomationTask automationTask,
-        TaskInput input,
+        JToken? input,
         IProgress<TaskNotification>? notifications = null,
         CancellationToken? cancellation = null);
 }
@@ -31,7 +25,7 @@ public interface ITaskChangeHandler
 {
     void OnTaskStart(
         BaseAutomationTask automationTask,
-        TaskInput input,
+        JToken? input,
         WorkflowContext? workflowContext);
     void OnTaskEnd(
         BaseAutomationTask automationTask,

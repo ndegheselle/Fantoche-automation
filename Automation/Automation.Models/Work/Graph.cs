@@ -42,6 +42,9 @@ namespace Automation.Models.Work
 
         public Guid TaskId { get; set; }
 
+        [JsonIgnore]
+        public BaseAutomationTask? AutomationTask { get; set; }
+
         public List<GraphConnector> Inputs { get; set; } = [];
         public List<GraphConnector> Outputs { get; set; } = [];
 
@@ -174,13 +177,10 @@ namespace Automation.Models.Work
         public ObservableCollection<GraphConnection> Connections { get; set; } = [];
         public ObservableCollection<GraphNode> Nodes { get; set; } = [];
 
-        private bool _isRefreshed;
+        public bool IsRefreshed { get; private set; } = false;
 
         [JsonIgnore] 
         public GraphExecutionContext Execution { get; private set; }
-
-        [JsonIgnore]
-        public Dictionary<Guid, BaseAutomationTask>? Tasks { get; set; }
 
         public Graph()
         {
@@ -192,9 +192,9 @@ namespace Automation.Models.Work
         /// Simplify the graph resolution.
         /// </summary>
         /// <param name="force">Force the refresh even if the graph is already refreshed.</param>
-        public void Refresh(bool force = false)
+        public void Refresh(bool force = false, Dictionary<Guid, BaseAutomationTask>? tasks = null)
         {
-            if (_isRefreshed && !force)
+            if (IsRefreshed && !force)
                 return;
 
             var connectors = new Dictionary<Guid, GraphConnector>();
@@ -203,12 +203,18 @@ namespace Automation.Models.Work
                 if (node is not BaseGraphTask taskNode)
                     continue;
 
+                // Refresh node target task
+                if (tasks != null)
+                    taskNode.AutomationTask = tasks[taskNode.TaskId];
+
+                // Refresh inputs parent
                 foreach (GraphConnector connector in taskNode.Inputs)
                 {
                     connectors.Add(connector.Id, connector);
                     connector.Parent = taskNode;
                 }
 
+                // Refresh output parent
                 foreach (GraphConnector connector in taskNode.Outputs)
                 {
                     connectors.Add(connector.Id, connector);
@@ -224,7 +230,7 @@ namespace Automation.Models.Work
                 connection.Connect(source, target);
             }
 
-            _isRefreshed = true;
+            IsRefreshed = true;
         }
 
         #region Nodes

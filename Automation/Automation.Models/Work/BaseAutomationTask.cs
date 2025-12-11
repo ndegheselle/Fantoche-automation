@@ -1,5 +1,6 @@
 ﻿using Automation.Plugins.Shared;
 using Automation.Shared.Data;
+using Newtonsoft.Json.Linq;
 using NJsonSchema;
 using System.Text.Json.Serialization;
 

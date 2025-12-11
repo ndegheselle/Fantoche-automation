@@ -1,6 +1,4 @@
-﻿using Automation.Dal;
-using Automation.Dal.Repositories;
-using Automation.Models.Work;
+﻿using Automation.Models.Work;
 using Automation.Plugins.Shared;
 using Automation.Shared.Data.Task;
 using Automation.Worker.Control;
@@ -25,7 +23,7 @@ public class LocalTaskExecutor : ITaskExecutor
 
     public Task<TaskOutput> ExecuteAsync(
         BaseAutomationTask automationTask,
-        TaskInput input,
+        JToken? input,
         IProgress<TaskNotification>? notifications = null,
         CancellationToken? cancellation = null)
     {
@@ -34,20 +32,19 @@ public class LocalTaskExecutor : ITaskExecutor
 
     public async Task<TaskOutput> ExecuteAsync(
         BaseAutomationTask automationTask,
-        TaskInput input,
+        JToken? input,
         WorkflowContext? workflowContext,
         IProgress<TaskNotification>? notifications = null,
         CancellationToken? cancellation = null)
     {
-        
-        if (input.InputToken == null)
+        if (input == null)
         {
             if (automationTask.InputSchema != null)
                 throw new Exception("The input data doesn't correspond to the task input schema.");
         }
         else
         {
-            var errors = automationTask.InputSchema?.Validate(input.InputToken);
+            var errors = automationTask.InputSchema?.Validate(input);
             if (errors?.Count > 0)
                 throw new Exception(string.Join('\n', errors));
         }
@@ -79,7 +76,7 @@ public class LocalTaskExecutor : ITaskExecutor
 
     private async Task<TaskOutput> ExecuteControlAsync(
         AutomationControl automationControl, 
-        TaskInput input,
+        JToken? input,
         WorkflowContext context,
         IProgress<TaskNotification>? notifications = null,
         CancellationToken? cancellation = null)
@@ -97,7 +94,7 @@ public class LocalTaskExecutor : ITaskExecutor
 
     private async Task<TaskOutput> ExecuteTaskAsync(
         AutomationTask automationTask,
-        TaskInput input,
+        JToken? input,
         IProgress<TaskNotification>? notifications = null,
         CancellationToken? cancellation = null)
     {
@@ -110,8 +107,8 @@ public class LocalTaskExecutor : ITaskExecutor
         var task = loader.CreateInstance(target.TargetClass.Name);
 
         object? parameter = null;
-        if (input.InputToken != null && task.Input?.Type != null)
-            parameter = input.InputToken.ToObject(task.Input.Type);
+        if (input != null && task.Input?.Type != null)
+            parameter = input.ToObject(task.Input.Type);
         
         var result = await task.DoAsync(parameter, notifications, cancellation);
         
@@ -125,13 +122,10 @@ public class LocalTaskExecutor : ITaskExecutor
 
     private async Task<TaskOutput> ExecuteWorkflowAsync(
         AutomationWorkflow automationWorkflow,
-        TaskInput input,
+        JToken? input,
         IProgress<TaskNotification>? progress = null,
         CancellationToken? cancellation = null)
     {
-        // TODO : set instance state
-        automationWorkflow.Graph.Refresh();
-
         TaskOutput output = new TaskOutput();
         var executor = new LocalWorkflowExecutor(this, automationWorkflow);
         await executor.ExecuteAsync(instance, cancellation: cancellation);
