@@ -58,11 +58,12 @@ public partial class WorkflowOutputModal : UserControl, IModalContent, INotifyPr
         if (ContextMappingElement.HasErrors)
             return;
 
-        // Update all end task (doesn't need to update schema since it stored on the workflow)
+        // Update all end task
         var endTasks = Workflow.Graph.GetEndNodes();
         foreach (var task in endTasks)
         {
             task.Settings.IsWaitingAllInputs = Workflow.WorkflowSettings.IsWaitingForAllEnd;
+            task.InputJson = Workflow.OutputMappingJson;
         }
 
         _alert.Success("Settings changed !");

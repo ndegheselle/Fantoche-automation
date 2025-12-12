@@ -37,22 +37,23 @@ public class LocalTaskExecutor : ITaskExecutor
         IProgress<TaskNotification>? notifications = null,
         CancellationToken? cancellation = null)
     {
-        if (input == null)
-        {
-            if (automationTask.InputSchema != null)
-                throw new Exception("The input data doesn't correspond to the task input schema.");
-        }
-        else
-        {
-            var errors = automationTask.InputSchema?.Validate(input);
-            if (errors?.Count > 0)
-                throw new Exception(string.Join('\n', errors));
-        }
-
+        TaskOutput output = new TaskOutput();
         _changes?.OnTaskStart(automationTask, input, workflowContext);
-        TaskOutput output;
+
         try
         {
+            if (input == null)
+            {
+                if (automationTask.InputSchema != null)
+                    throw new Exception("Input is required for this task.");
+            }
+            else
+            {
+                var errors = automationTask.InputSchema?.Validate(input);
+                if (errors?.Count > 0)
+                    throw new Exception("Input doesn't correspond to schema.");
+            }
+
             output = automationTask switch
             {
                 AutomationControl control => workflowContext == null
@@ -62,12 +63,15 @@ public class LocalTaskExecutor : ITaskExecutor
                 AutomationWorkflow workflow => await ExecuteWorkflowAsync(workflow, input, notifications, cancellation),
                 _ => throw new Exception("Unknown task type.")
             };
+
         }
         catch (Exception ex)
         {
-            output = new TaskOutput();
-            output.State = EnumTaskState.Failed;
-            output.OutputToken = ex.ToString();
+            output = new TaskOutput()
+            {
+                State = EnumTaskState.Failed,
+                OutputToken = ex.ToString()
+            };
         }
 
         _changes?.OnTaskEnd(automationTask, output, workflowContext);
@@ -75,7 +79,7 @@ public class LocalTaskExecutor : ITaskExecutor
     }
 
     private async Task<TaskOutput> ExecuteControlAsync(
-        AutomationControl automationControl, 
+        AutomationControl automationControl,
         JToken? input,
         WorkflowContext context,
         IProgress<TaskNotification>? notifications = null,
@@ -109,9 +113,9 @@ public class LocalTaskExecutor : ITaskExecutor
         object? parameter = null;
         if (input != null && task.Input?.Type != null)
             parameter = input.ToObject(task.Input.Type);
-        
+
         var result = await task.DoAsync(parameter, notifications, cancellation);
-        
+
         TaskOutput output = new TaskOutput();
         if (result != null)
             output.OutputToken = JToken.FromObject(result);

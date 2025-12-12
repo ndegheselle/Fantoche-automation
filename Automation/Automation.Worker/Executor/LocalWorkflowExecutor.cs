@@ -1,6 +1,7 @@
 ﻿using Automation.Models.Work;
 using Automation.Plugins.Shared;
 using Automation.Shared.Data;
+using Automation.Shared.Data.Task;
 using Automation.Worker.Control;
 using Newtonsoft.Json.Linq;
 
@@ -46,7 +47,7 @@ public class LocalWorkflowExecutor
         return new TaskOutput()
         {
             OutputToken = context.OutputToken,
-            State = Shared.Data.Task.EnumTaskState.Completed
+            State = EnumTaskState.Completed
         };
     }
 
@@ -67,7 +68,8 @@ public class LocalWorkflowExecutor
                 tasks.Add(Task.Run(async () =>
                 {
                     var output = await ExecuteNodeAsync(nextTask, context, previous, cancellation);
-                    await NextAsync(nextTask, context, output.OutputToken, cancellation);
+                    if (output.State == EnumTaskState.Completed)
+                        await NextAsync(nextTask, context, output.OutputToken, cancellation);
                 }));
             }
         }
@@ -83,7 +85,7 @@ public class LocalWorkflowExecutor
 
         JToken? input = null;
         if (!string.IsNullOrEmpty(task.InputJson))
-            input = ReferencesHandler.ReplaceReferences(task.InputJson, taskContext).ReplacedSetting;
+            input = ReferencesHandler.ReplaceReferences(JToken.Parse(task.InputJson), taskContext).ReplacedSetting;
 
         return await _executor.ExecuteAsync(task.AutomationTask ?? throw new Exception("Workflow tasks are not loaded."), input, context, null, cancellation);
     }

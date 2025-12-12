@@ -8,12 +8,12 @@ namespace Automation.Worker.Executor
     {
         public void OnTaskEnd(BaseAutomationTask automationTask, TaskOutput output, WorkflowContext? workflowContext)
         {
-            Console.WriteLine($"{DateTime.Now.ToString("HH:mm:ss.fff")} - End {automationTask.Metadata.Name}");
+            Console.WriteLine($"{DateTime.Now.ToString("HH:mm:ss.fff")} - {automationTask.Metadata.Name} - {output.State} - {output.OutputToken?.ToString()}");
         }
 
         public void OnTaskStart(BaseAutomationTask automationTask, JToken? input, WorkflowContext? workflowContext)
         {
-            Console.WriteLine($"{DateTime.Now.ToString("HH:mm:ss.fff")} - Start {automationTask.Metadata.Name}");
+            Console.WriteLine($"{DateTime.Now.ToString("HH:mm:ss.fff")} - {automationTask.Metadata.Name} - Start");
         }
     }
 }
