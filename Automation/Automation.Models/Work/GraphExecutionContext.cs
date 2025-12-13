@@ -70,8 +70,8 @@ public class GraphExecutionContext
     {
         return new JObject
         {
-            [PreviousIdentifier] = null,
-            [ContextIdentifier] = null
+            [PreviousIdentifier] = new JObject(),
+            [ContextIdentifier] = new JObject()
         };
     }
     

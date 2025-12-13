@@ -89,6 +89,7 @@ GraphControl end = new GraphControl(EndTask.AutomationTask)
 {
     Metadata = new ScopedMetadata() { Name = "End" },
     TaskId = EndTask.AutomationTask.Id,
+    InputJson = "{'test': '$previous.Value'}"
 };
 
 
@@ -98,16 +99,19 @@ workflow.Graph.Nodes.Add(test1);
 workflow.Graph.Nodes.Add(test2);
 workflow.Graph.Nodes.Add(end);
 
+/*
 workflow.Graph.Connect(start, delay);
 workflow.Graph.Connect(delay, test1);
 workflow.Graph.Connect(test1, end);
+*/
 
 workflow.Graph.Connect(start, test2);
 workflow.Graph.Connect(test2, end);
 
 workflow.Graph.Refresh(tasks);
 
-LocalPackageManagement packages = new LocalPackageManagement("./nugetlocal");
+string nuggetLocalPath = Path.Join(Directory.GetCurrentDirectory(), "nugetlocal");
+LocalPackageManagement packages = new LocalPackageManagement(nuggetLocalPath);
 LocalTaskExecutor executor = new LocalTaskExecutor(packages, new TaskChangeToConsole());
 
 // TODO : change how workflow control task are handled so that it can change flow and state of the workflow
