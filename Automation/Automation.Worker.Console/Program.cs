@@ -109,4 +109,6 @@ workflow.Graph.Refresh(tasks);
 
 LocalPackageManagement packages = new LocalPackageManagement("./nugetlocal");
 LocalTaskExecutor executor = new LocalTaskExecutor(packages, new TaskChangeToConsole());
+
+// TODO : change how workflow control task are handled so that it can change flow and state of the workflow
 await executor.ExecuteAsync(workflow, null);
