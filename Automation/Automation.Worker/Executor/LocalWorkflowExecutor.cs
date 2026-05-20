@@ -39,7 +39,7 @@ public class LocalWorkflowExecutor
         foreach (var start in workflow.Graph.GetStartNodes())
         {
             _changes?.OnTaskStart(start, input, context);
-            tasks.Add(NextAsync(start, context, input, cancellation));
+            tasks.Add(NextAsync(start, context, input, null, cancellation));
         }
 
         await Task.WhenAll(tasks);
@@ -58,36 +58,41 @@ public class LocalWorkflowExecutor
         };
     }
 
-    private async Task NextAsync(BaseGraphTask task, WorkflowContext context, JToken? previous, CancellationToken? cancellation)
+    private async Task NextAsync(BaseGraphTask task, WorkflowContext context, JToken? previous, HashSet<Guid>? activeOutputConnectorIds, CancellationToken? cancellation)
     {
-        var nextTasks = context.Workflow.Graph.GetNextFrom(task);
+        var nextPairs = context.Workflow.Graph.GetNext(task);
+
+        // When a control task activates only specific outputs, skip the rest
+        if (activeOutputConnectorIds != null)
+            nextPairs = nextPairs.Where(x => activeOutputConnectorIds.Contains(x.SourceConnector.Id));
+
         var outputs = new List<Task>();
 
-        foreach (var next in nextTasks)
+        foreach (var next in nextPairs)
         {
-            if (next.Settings.IsWaitingAllInputs)
-                next.WaitedInputs.Add(task.Name, previous);
-    
-            if (context.Workflow.Graph.CanExecute(next))
+            if (next.Task.Settings.IsWaitingAllInputs)
+                next.Task.WaitedInputs.Add(task.Name, previous);
+
+            if (context.Workflow.Graph.CanExecute(next.Task))
             {
                 // Capture 'next' for the async closure
                 var nextTask = next;
                 outputs.Add(Task.Run(async () =>
                 {
-                    var taskContext = context.Workflow.Graph.Execution.GetContextFor(next, previous, context.SharedToken);
-                    if (next.Settings.IsWaitingAllInputs)
-                        next.WaitedInputs.Clear();
+                    var taskContext = context.Workflow.Graph.Execution.GetContextFor(next.Task, previous, context.SharedToken);
+                    if (next.Task.Settings.IsWaitingAllInputs)
+                        next.Task.WaitedInputs.Clear();
 
                     JToken? input = null;
-                    if (!string.IsNullOrEmpty(next.InputJson))
-                        input = ReferencesHandler.ReplaceReferences(JToken.Parse(next.InputJson), taskContext).ReplacedSetting;
+                    if (!string.IsNullOrEmpty(next.Task.InputJson))
+                        input = ReferencesHandler.ReplaceReferences(JToken.Parse(next.Task.InputJson), taskContext).ReplacedSetting;
 
-                    _changes?.OnTaskStart(next, previous, context);
-                    var output = await _executor.ExecuteAsync(next.AutomationTask ?? throw new Exception("Workflow tasks are not loaded."), input, context, null, cancellation);
+                    _changes?.OnTaskStart(next.Task, previous, context);
+                    var output = await _executor.ExecuteAsync(next.Task.AutomationTask ?? throw new Exception("Workflow tasks are not loaded."), input, context, next.Task, null, cancellation);
                     _changes?.OnTaskEnd(next, output, context);
 
                     if (output.State == EnumTaskState.Completed)
-                        await NextAsync(nextTask, context, output.OutputToken, cancellation);
+                        await NextAsync(nextTask, context, output.OutputToken, output.ActiveOutputConnectorIds, cancellation);
                 }));
             }
         }

@@ -21,8 +21,42 @@ namespace Automation.Worker.Control
         }
     }
 
+    public class ControlOutput
+    {
+        public EnumTaskState State { get; set; } = EnumTaskState.Completed;
+        /// <summary>
+        /// When set, only these output connector IDs will be followed. null means all outputs active.
+        /// </summary>
+        public HashSet<Guid>? ActiveOutputConnectorIds { get; set; }
+    }
+
     public interface ITaskControl : ITask
     {
-        public Task<EnumTaskState> DoAsync(WorkflowContext context, IProgress<TaskNotification>? progress = null, CancellationToken? cancellation = null);
+        Task<ControlOutput> DoAsync(
+            WorkflowContext context,
+            BaseGraphTask currentNode,
+            JToken? input,
+            IProgress<TaskNotification>? progress = null,
+            CancellationToken? cancellation = null);
+    }
+
+    /// <summary>
+    /// Base class for control tasks. Control execution goes through ITaskControl.DoAsync,
+    /// not through the plugin ITask.DoAsync path.
+    /// </summary>
+    public abstract class BaseControlTask : ITaskControl
+    {
+        public TaskConnector? Input => null;
+        public TaskConnector? Output => null;
+
+        public Task<object?> DoAsync(object? parameters, IProgress<TaskNotification>? progress = null, CancellationToken? cancellation = null)
+            => throw new NotSupportedException("Control tasks are executed via ITaskControl.DoAsync().");
+
+        public abstract Task<ControlOutput> DoAsync(
+            WorkflowContext context,
+            BaseGraphTask currentNode,
+            JToken? input,
+            IProgress<TaskNotification>? progress = null,
+            CancellationToken? cancellation = null);
     }
 }

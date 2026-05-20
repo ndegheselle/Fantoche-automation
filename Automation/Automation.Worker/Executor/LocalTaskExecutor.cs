@@ -37,6 +37,17 @@ public class LocalTaskExecutor : ITaskExecutor
         IProgress<TaskNotification>? notifications = null,
         CancellationToken? cancellation = null)
     {
+        return await ExecuteAsync(automationTask, input, workflowContext, null, notifications, cancellation);
+    }
+
+    public async Task<TaskOutput> ExecuteAsync(
+        BaseAutomationTask automationTask,
+        JToken? input,
+        WorkflowContext? workflowContext,
+        BaseGraphTask? graphNode,
+        IProgress<TaskNotification>? notifications = null,
+        CancellationToken? cancellation = null)
+    {
         TaskOutput output = new TaskOutput();
 
         try
@@ -55,9 +66,9 @@ public class LocalTaskExecutor : ITaskExecutor
 
             output = automationTask switch
             {
-                AutomationControl control => workflowContext == null
-                    ? throw new Exception("Control task need the workflow context for execution.")
-                    : await ExecuteControlAsync(control, input, workflowContext, notifications, cancellation),
+                AutomationControl control => workflowContext == null || graphNode == null
+                    ? throw new Exception("Control task need the workflow context and graph node for execution.")
+                    : await ExecuteControlAsync(control, input, workflowContext, graphNode, notifications, cancellation),
                 AutomationTask task => await ExecuteTaskAsync(task, input, notifications, cancellation),
                 AutomationWorkflow workflow => await ExecuteWorkflowAsync(workflow, input, notifications, cancellation),
                 _ => throw new Exception("Unknown task type.")
@@ -80,18 +91,21 @@ public class LocalTaskExecutor : ITaskExecutor
         AutomationControl automationControl,
         JToken? input,
         WorkflowContext context,
+        BaseGraphTask graphNode,
         IProgress<TaskNotification>? notifications = null,
         CancellationToken? cancellation = null)
     {
-
         var controlType = ControlTasks.AvailablesById[automationControl.Id].Type;
         object typeInstance = Activator.CreateInstance(controlType) ??
                               throw new Exception($"Could not create a control instance of [{controlType}].");
         var control = (ITaskControl)typeInstance;
 
-        TaskOutput output = new TaskOutput();
-        output.State = await control.DoAsync(context, notifications, cancellation);
-        return output;
+        var controlOutput = await control.DoAsync(context, graphNode, input, notifications, cancellation);
+        return new TaskOutput
+        {
+            State = controlOutput.State,
+            ActiveOutputConnectorIds = controlOutput.ActiveOutputConnectorIds
+        };
     }
 
     private async Task<TaskOutput> ExecuteTaskAsync(

@@ -173,6 +173,20 @@ namespace Automation.Models.Work
         }
     }
 
+    /// <summary>
+    /// A task with the source downstream source of the task.
+    /// </summary>
+    public class GraphSource
+    {
+        public BaseGraphTask Task { get; set; }
+        public GraphConnector SourceConnector { get; set; }
+        public GraphSource(BaseGraphTask task, GraphConnector sourceConnector)
+        {
+            Task = task;
+            SourceConnector = sourceConnector;
+        }
+    }
+
     public class Graph
     {
         public ObservableCollection<GraphConnection> Connections { get; set; } = [];
@@ -296,14 +310,13 @@ namespace Automation.Models.Work
         }
         
         /// <summary>
-        /// Get all next tasks.
+        /// Get all next tasks paired with the source connector they are reachable from.
         /// </summary>
         /// <param name="task">Task to get the previous tasks from</param>
-        /// <returns></returns>
-        public IEnumerable<BaseGraphTask> GetNextFrom(BaseGraphTask task)
+        public IEnumerable<GraphSource> GetNext(BaseGraphTask task)
         {
-            var connections = GetOutputsConnectionsFrom(task);
-            return connections.Select(x => x.Target!.Parent!);
+            return GetOutputsConnectionsFrom(task)
+                .Select(c => new GraphSource(c.Target!.Parent!, c.Source!));
         }
         
         /// <summary>

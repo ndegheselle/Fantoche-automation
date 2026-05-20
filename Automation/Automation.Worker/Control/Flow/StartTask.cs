@@ -2,11 +2,12 @@
 using Automation.Plugins.Shared;
 using Automation.Shared.Data;
 using Automation.Shared.Data.Task;
+using Newtonsoft.Json.Linq;
 using NJsonSchema;
 
 namespace Automation.Worker.Control.Flow
 {
-    public class StartTask : BaseTask<WorkflowContext, EnumTaskState>, ITaskControl
+    public class StartTask : BaseControlTask
     {
         public static readonly AutomationControl AutomationTask =
             new AutomationControl(typeof(StartTask))
@@ -18,9 +19,9 @@ namespace Automation.Worker.Control.Flow
                 OutputSchema = new JsonSchema(),
             };
 
-        public override Task<EnumTaskState> DoAsync(WorkflowContext parameters, IProgress<TaskNotification>? progress = null, CancellationToken? cancellation = null)
+        public override Task<ControlOutput> DoAsync(WorkflowContext context, BaseGraphTask currentNode, JToken? input, IProgress<TaskNotification>? progress = null, CancellationToken? cancellation = null)
         {
-            return Task.FromResult(EnumTaskState.Completed);
+            return Task.FromResult(new ControlOutput());
         }
     }
 }
