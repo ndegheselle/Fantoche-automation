@@ -89,10 +89,10 @@ public class LocalWorkflowExecutor
 
                     _changes?.OnTaskStart(next.Task, previous, context);
                     var output = await _executor.ExecuteAsync(next.Task.AutomationTask ?? throw new Exception("Workflow tasks are not loaded."), input, context, next.Task, null, cancellation);
-                    _changes?.OnTaskEnd(next, output, context);
+                    _changes?.OnTaskEnd(next.Task, output, context);
 
                     if (output.State == EnumTaskState.Completed)
-                        await NextAsync(nextTask, context, output.OutputToken, output.ActiveOutputConnectorIds, cancellation);
+                        await NextAsync(nextTask.Task, context, output.OutputToken, output.ActiveOutputConnectorIds, cancellation);
                 }));
             }
         }
