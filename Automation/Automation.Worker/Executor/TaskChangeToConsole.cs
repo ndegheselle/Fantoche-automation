@@ -6,14 +6,14 @@ namespace Automation.Worker.Executor
 {
     public class TaskChangeToConsole : ITaskChangeHandler
     {
-        public void OnTaskEnd(BaseAutomationTask automationTask, TaskOutput output, WorkflowContext? workflowContext)
+        public void OnTaskEnd(BaseGraphTask graphTask, TaskOutput output, WorkflowContext? workflowContext)
         {
-            Console.WriteLine($"{DateTime.Now.ToString("HH:mm:ss.fff")} - {automationTask.Metadata.Name} - {output.State} - {output.OutputToken?.ToString()}");
+            Console.WriteLine($"{DateTime.Now.ToString("HH:mm:ss.fff")} - {graphTask.Metadata.Name} - {output.State} - {output.OutputToken?.ToString()}");
         }
 
-        public void OnTaskStart(BaseAutomationTask automationTask, JToken? input, WorkflowContext? workflowContext)
+        public void OnTaskStart(BaseGraphTask graphTask, JToken? input, WorkflowContext? workflowContext)
         {
-            Console.WriteLine($"{DateTime.Now.ToString("HH:mm:ss.fff")} - {automationTask.Metadata.Name} - Start");
+            Console.WriteLine($"{DateTime.Now.ToString("HH:mm:ss.fff")} - {graphTask.Metadata.Name} - Start");
         }
     }
 }

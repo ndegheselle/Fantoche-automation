@@ -38,7 +38,6 @@ public class LocalTaskExecutor : ITaskExecutor
         CancellationToken? cancellation = null)
     {
         TaskOutput output = new TaskOutput();
-        _changes?.OnTaskStart(automationTask, input, workflowContext);
 
         try
         {
@@ -74,7 +73,6 @@ public class LocalTaskExecutor : ITaskExecutor
             };
         }
 
-        _changes?.OnTaskEnd(automationTask, output, workflowContext);
         return output;
     }
 
@@ -131,7 +129,7 @@ public class LocalTaskExecutor : ITaskExecutor
         CancellationToken? cancellation = null)
     {
         TaskOutput output = new TaskOutput();
-        var executor = new LocalWorkflowExecutor(this);
+        var executor = new LocalWorkflowExecutor(this, _changes);
         await executor.ExecuteAsync(automationWorkflow, input, progress, cancellation);
         output.State = EnumTaskState.Completed;
         return output;

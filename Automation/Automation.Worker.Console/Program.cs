@@ -99,11 +99,9 @@ workflow.Graph.Nodes.Add(test1);
 workflow.Graph.Nodes.Add(test2);
 workflow.Graph.Nodes.Add(end);
 
-/*
 workflow.Graph.Connect(start, delay);
 workflow.Graph.Connect(delay, test1);
 workflow.Graph.Connect(test1, end);
-*/
 
 workflow.Graph.Connect(start, test2);
 workflow.Graph.Connect(test2, end);

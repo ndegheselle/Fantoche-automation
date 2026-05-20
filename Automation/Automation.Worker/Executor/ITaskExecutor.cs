@@ -24,11 +24,11 @@ public interface ITaskExecutor
 public interface ITaskChangeHandler
 {
     void OnTaskStart(
-        BaseAutomationTask automationTask,
+        BaseGraphTask automationTask,
         JToken? input,
         WorkflowContext? workflowContext);
     void OnTaskEnd(
-        BaseAutomationTask automationTask,
+        BaseGraphTask automationTask,
         TaskOutput output,
         WorkflowContext? workflowContext);
 }

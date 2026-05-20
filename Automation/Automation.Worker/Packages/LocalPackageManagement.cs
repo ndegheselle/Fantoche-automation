@@ -8,6 +8,7 @@ using NuGet.Packaging.Core;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
+using System.Collections.Concurrent;
 using System.Reflection;
 using System.Runtime.Versioning;
 
@@ -21,6 +22,7 @@ public class LocalPackageManagement : IPackageManagement
     private readonly SourceCacheContext _cacheContext;
     private readonly ILogger _logger;
     private readonly NuGetFramework _frameworkVersion;
+    private readonly ConcurrentDictionary<string, SemaphoreSlim> _downloadLocks = new();
 
     public LocalPackageManagement(string folder)
     {
@@ -120,28 +122,38 @@ public class LocalPackageManagement : IPackageManagement
 
     public async Task<string> DownloadPackageAsync(string id, Version version)
     {
-        // Get package by id resource
-        var findPackageByIdResource = await _repository.GetResourceAsync<FindPackageByIdResource>();
-        var nugetVersion = new NuGetVersion(version);
+        try
+        {
+            // Get package by id resource
+            var findPackageByIdResource = await _repository.GetResourceAsync<FindPackageByIdResource>();
+            var nugetVersion = new NuGetVersion(version);
 
-        using var packageStream = new MemoryStream();
-        await findPackageByIdResource.CopyNupkgToStreamAsync(
-            id,
-            nugetVersion,
-            packageStream,
-            _cacheContext,
-            _logger,
-            CancellationToken.None);
+            using var packageStream = new MemoryStream();
+            bool found = await findPackageByIdResource.CopyNupkgToStreamAsync(
+                id,
+                nugetVersion,
+                packageStream,
+                _cacheContext,
+                _logger,
+                CancellationToken.None);
 
-        packageStream.Position = 0;
-        using var packageReader = new PackageArchiveReader(packageStream);
-        var nearestFramework = GetNearestFramework(packageReader);
-        var lib = packageReader.GetLibItems().FirstOrDefault(x => x.TargetFramework == nearestFramework);
+            if (!found || packageStream.Length == 0)
+                throw new PackageDownloadException($"Package not found in repository [id:{id}][version:{nugetVersion}]");
 
-        var extractedFiles = await packageReader.CopyFilesAsync(_localFolder, lib.Items,
-            (source, target, stream) => ExtractFile(id, version, target, stream), _logger, CancellationToken.None);
+            packageStream.Position = 0;
+            using var packageReader = new PackageArchiveReader(packageStream);
+            var nearestFramework = GetNearestFramework(packageReader);
+            var lib = packageReader.GetLibItems().First(x => x.TargetFramework == nearestFramework);
 
-        return GetLocalDllPath(id, version) ?? throw new Exception($"Could not find dll for [id:{id}][version:{version}] in downloaded package.");
+            var extractedFiles = await packageReader.CopyFilesAsync(_localFolder, lib.Items,
+                (source, target, stream) => ExtractFile(id, version, target, stream), _logger, CancellationToken.None);
+
+            return GetLocalDllPath(id, version) ?? throw new PackageDownloadException($"Could not find dll for [id:{id}][version:{version}] in downloaded package.");
+        }
+        catch (Exception ex)
+        {
+            throw new PackageDownloadException($"Failed to download package [id:{id}][version:{version}]: {ex.Message}", ex);
+        }
     }
 
     private string ExtractFile(string id, Version version, string targetPath, Stream fileStream)
@@ -160,7 +172,24 @@ public class LocalPackageManagement : IPackageManagement
         string? path = GetLocalDllPath(id, version);
         if (string.IsNullOrEmpty(path) == false)
             return path;
-        return await DownloadPackageAsync(id, version);
+
+        string key = $"{id}.{version}";
+        var semaphore = _downloadLocks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
+
+        await semaphore.WaitAsync();
+        try
+        {
+            // Re-check after acquiring the lock — the first task may have already downloaded it
+            path = GetLocalDllPath(id, version);
+            if (string.IsNullOrEmpty(path) == false)
+                return path;
+
+            return await DownloadPackageAsync(id, version);
+        }
+        finally
+        {
+            semaphore.Release();
+        }
     }
 
     public string? GetLocalDllPath(string id, Version version)

@@ -2,9 +2,18 @@
 using Automation.Plugins.Shared;
 using Automation.Shared.Base;
 using Automation.Shared.Data;
+using NuGet.Versioning;
 
 namespace Automation.Worker.Packages
 {
+    public class PackageDownloadException : Exception
+    {
+        public PackageDownloadException(string message) : base(message)
+        { }
+        public PackageDownloadException(string message, Exception ex) : base(message, ex)
+        { }
+    }
+
     public interface IPackageManagement
     {
         /// <summary>

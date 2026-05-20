@@ -27,7 +27,7 @@ namespace Automation.Worker.Control
         public static AutomationControl Register<T>(AutomationControl task) where T : ITaskControl
         {
             if (AvailablesById.ContainsKey(task.Id))
-                throw new Exception($"The key '{task.Id}' is already registered by task '{AvailablesById[task.Id].Metadata.Name}'.");
+                throw new Exception($"The key '{task.Id}' is already registered by the task '{AvailablesById[task.Id].Metadata.Name}'.");
 
             ClassTarget target = new ClassTarget() { ClassFullName = typeof(T).FullName ?? "" };
             task.Target = target;

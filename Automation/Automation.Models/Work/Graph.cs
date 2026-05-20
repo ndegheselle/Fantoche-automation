@@ -75,7 +75,7 @@ namespace Automation.Models.Work
         /// Token are regrouped by node name.
         /// </summary>
         [JsonIgnore]
-        public Dictionary<string, JToken?> WaitedInputs { get; private set; } = new Dictionary<string, JToken?>();
+        public Dictionary<string, JToken?> WaitedInputs { get; private set; } = [];
         
         public BaseGraphTask()
         {
