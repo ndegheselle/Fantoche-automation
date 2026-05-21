@@ -1,6 +1,6 @@
 using Automation.Models.Work;
 using Automation.Plugins.Shared;
-using Automation.Shared.Data;
+using Automation.Shared.Data.Scoped;
 using Automation.Shared.Data.Task;
 using Newtonsoft.Json.Linq;
 using NJsonSchema;

@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.Contracts;
-
-namespace Automation.Plugins.Shared;
+﻿namespace Automation.Plugins.Shared;
 
 public enum EnumTaskNotificationState
 {

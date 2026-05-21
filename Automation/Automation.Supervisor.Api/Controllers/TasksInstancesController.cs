@@ -1,6 +1,7 @@
 using Automation.Dal;
 using Automation.Dal.Repositories;
 using Automation.Models.Work;
+using Automation.Shared.Data.Execution;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Automation.Supervisor.Api.Controllers

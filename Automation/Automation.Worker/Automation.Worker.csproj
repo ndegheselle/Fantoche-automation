@@ -7,11 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Automation.Dal\Automation.Dal.csproj" />
-    <ProjectReference Include="..\Automation.Plugins.Shared\Automation.Plugins.Shared.csproj" />
     <ProjectReference Include="..\Automation.Plugins\Automation.Plugins.csproj" />
-    <ProjectReference Include="..\Automation.Realtime\Automation.Realtime.csproj" />
     <ProjectReference Include="..\Automation.Shared\Automation.Shared.csproj" />
   </ItemGroup>
+
+  <Import Project="..\Automation.Models\Automation.Models.projitems" Label="Shared" />
 
 </Project>

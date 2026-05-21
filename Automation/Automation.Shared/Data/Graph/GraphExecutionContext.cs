@@ -1,20 +1,20 @@
 ﻿using Newtonsoft.Json.Linq;
 
-namespace Automation.Models.Work;
+namespace Automation.Shared.Data.Graph;
 
 public class GraphExecutionContext
 {
     private const string PreviousIdentifier = "previous";
     private const string ContextIdentifier = "context";
-    private readonly Graph _graph;
+    private readonly TasksGraph _graph;
 
-    public GraphExecutionContext(Graph graph)
+    public GraphExecutionContext(TasksGraph graph)
     {
         _graph = graph;
     }
 
     #region Samples
-    
+
     /// <summary>
     /// Generate a sample of the contexts based on the previous tasks.
     /// </summary>
@@ -22,10 +22,10 @@ public class GraphExecutionContext
     public List<string> GetContextSampleJsonFor(BaseGraphTask task)
     {
         var previousTasks = _graph.GetPreviousFrom(task);
-        
+
         // TODO : get the global and common token samples
         JToken? context = null;
-        
+
         List<string> contexts = [];
         if (task.Settings.IsWaitingAllInputs)
         {
@@ -65,7 +65,7 @@ public class GraphExecutionContext
             return GenerateEmptyContext();
         return task.Settings.IsWaitingAllInputs ? GenerateContextFrom(task.WaitedInputs, context) : GenerateContextFrom(previous, context);
     }
-    
+
     public JObject GenerateEmptyContext()
     {
         return new JObject
@@ -74,7 +74,7 @@ public class GraphExecutionContext
             [ContextIdentifier] = new JObject()
         };
     }
-    
+
     public JObject GenerateContextFrom(JToken? previous, JToken? context)
     {
         return new JObject
@@ -95,7 +95,7 @@ public class GraphExecutionContext
             previousContext[pre.Key] = pre.Value;
             ctxt[PreviousIdentifier] ??= previousContext;
         }
-        
+
         return ctxt;
     }
 }

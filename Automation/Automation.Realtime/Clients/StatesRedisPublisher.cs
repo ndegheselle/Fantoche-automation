@@ -1,4 +1,5 @@
 ﻿using Automation.Realtime.Base;
+using Automation.Shared.Data.Execution;
 using Automation.Shared.Data.Task;
 using StackExchange.Redis;
 

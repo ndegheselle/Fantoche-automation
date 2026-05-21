@@ -3,7 +3,7 @@ using Automation.App.Views.WorkPages.Scopes;
 using Automation.App.Views.WorkPages.Tasks;
 using Automation.App.Views.WorkPages.Workflows;
 using Automation.Models.Work;
-using Automation.Shared.Data;
+using Automation.Shared.Data.Scoped;
 using Joufflu.Shared.Navigation;
 using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;

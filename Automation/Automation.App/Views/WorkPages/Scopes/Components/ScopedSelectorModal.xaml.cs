@@ -1,6 +1,7 @@
 ﻿using Automation.App.Shared.ApiClients;
 using Automation.Models;
 using Automation.Models.Work;
+using Automation.Shared.Data.Scoped;
 using Joufflu.Popups;
 using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;
@@ -32,8 +33,8 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
             SelectCommand = new DelegateCommand(
                 () => ParentLayout?.Hide(true),
                 () => Selected != null &&
-                    (Selected.Metadata.Type == Automation.Shared.Data.EnumScopedType.Workflow ||
-                        Selected.Metadata.Type == Automation.Shared.Data.EnumScopedType.Task));
+                    (Selected.Metadata.Type == EnumScopedType.Workflow ||
+                        Selected.Metadata.Type == EnumScopedType.Task));
 
             InitializeComponent();
         }

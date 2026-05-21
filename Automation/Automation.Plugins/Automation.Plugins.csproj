@@ -8,8 +8,4 @@
     <PackageIcon></PackageIcon>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Automation.Plugins.Shared\Automation.Plugins.Shared.csproj" />
-  </ItemGroup>
-
 </Project>

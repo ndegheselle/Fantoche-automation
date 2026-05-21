@@ -9,11 +9,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Interface", "Interface", "{
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Automation.App", "Automation.App\Automation.App.csproj", "{49316AB7-9056-4BD4-9D39-8672AADA4128}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugins", "Plugins", "{2F8AA1CC-245F-4240-B392-B4B8E128E319}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Worker", "Worker", "{2F8AA1CC-245F-4240-B392-B4B8E128E319}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Automation.Plugins", "Automation.Plugins\Automation.Plugins.csproj", "{FDD42281-CB13-4EFB-81A2-E651DE67EBD4}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Automation.Plugins.Shared", "Automation.Plugins.Shared\Automation.Plugins.Shared.csproj", "{15238586-7055-4F0F-83CA-4F4265C15615}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Automation.Shared", "Automation.Shared\Automation.Shared.csproj", "{A07395ED-D082-46CC-B614-656178B3EF8E}"
 EndProject
@@ -47,8 +45,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Automation.Worker", "Automa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Automation.Worker.Service", "Automation.Worker.Service\Automation.Worker.Service.csproj", "{4D63C0FD-0817-4AF4-8C53-D1BC035B58FC}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Automation.Models", "Automation.Models\Automation.Models.shproj", "{68F873E1-6840-40B0-BB35-B8BAE408B09C}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Automation.Client.Local", "Automation.Client.Local\Automation.Client.Local.csproj", "{80092D78-CA6E-3179-137F-F42DDC74EDDB}"
@@ -60,6 +56,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Usuel.History", "..\..\wpf-components\Usuel.History\Usuel.History.csproj", "{CB987A51-66CE-982C-57AC-891072F9D83F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Automation.Worker.Console", "Automation.Worker.Console\Automation.Worker.Console.csproj", "{22D5CBB3-F90F-E518-E886-25CCD68BD4A9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Automation.Plugins.Control", "Automation.Plugins.Control\Automation.Plugins.Control.csproj", "{B7EE2556-5744-4AD9-8F4B-CF7DE07C0E14}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -75,10 +73,6 @@ Global
 		{FDD42281-CB13-4EFB-81A2-E651DE67EBD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FDD42281-CB13-4EFB-81A2-E651DE67EBD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FDD42281-CB13-4EFB-81A2-E651DE67EBD4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{15238586-7055-4F0F-83CA-4F4265C15615}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{15238586-7055-4F0F-83CA-4F4265C15615}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{15238586-7055-4F0F-83CA-4F4265C15615}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{15238586-7055-4F0F-83CA-4F4265C15615}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A07395ED-D082-46CC-B614-656178B3EF8E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A07395ED-D082-46CC-B614-656178B3EF8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A07395ED-D082-46CC-B614-656178B3EF8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -151,6 +145,10 @@ Global
 		{22D5CBB3-F90F-E518-E886-25CCD68BD4A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{22D5CBB3-F90F-E518-E886-25CCD68BD4A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{22D5CBB3-F90F-E518-E886-25CCD68BD4A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7EE2556-5744-4AD9-8F4B-CF7DE07C0E14}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7EE2556-5744-4AD9-8F4B-CF7DE07C0E14}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7EE2556-5744-4AD9-8F4B-CF7DE07C0E14}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7EE2556-5744-4AD9-8F4B-CF7DE07C0E14}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -158,7 +156,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{49316AB7-9056-4BD4-9D39-8672AADA4128} = {3D73906E-1336-48AD-B5FA-34B251926611}
 		{FDD42281-CB13-4EFB-81A2-E651DE67EBD4} = {2F8AA1CC-245F-4240-B392-B4B8E128E319}
-		{15238586-7055-4F0F-83CA-4F4265C15615} = {2F8AA1CC-245F-4240-B392-B4B8E128E319}
 		{A07395ED-D082-46CC-B614-656178B3EF8E} = {5A3373EB-AB17-4713-85EF-071F9AB50EFA}
 		{2D725B75-E2D2-4AC4-8B92-75C5DBDC2E82} = {22EF0554-5D93-41BE-A54F-D331C311226C}
 		{FEF94722-65CA-474A-872A-975D54BD31AA} = {22EF0554-5D93-41BE-A54F-D331C311226C}
@@ -172,20 +169,20 @@ Global
 		{22EF0554-5D93-41BE-A54F-D331C311226C} = {3D73906E-1336-48AD-B5FA-34B251926611}
 		{5D94A06D-4DA7-4489-9909-4573202B1805} = {128D718D-1656-4F30-98A5-3764D87E87C4}
 		{43F5C9CF-77B2-4C9A-B18A-11F62027F9C7} = {22EF0554-5D93-41BE-A54F-D331C311226C}
-		{9601ADEA-958A-4710-86CD-1D398A365595} = {128D718D-1656-4F30-98A5-3764D87E87C4}
+		{9601ADEA-958A-4710-86CD-1D398A365595} = {2F8AA1CC-245F-4240-B392-B4B8E128E319}
 		{4D63C0FD-0817-4AF4-8C53-D1BC035B58FC} = {128D718D-1656-4F30-98A5-3764D87E87C4}
-		{68F873E1-6840-40B0-BB35-B8BAE408B09C} = {5A3373EB-AB17-4713-85EF-071F9AB50EFA}
 		{80092D78-CA6E-3179-137F-F42DDC74EDDB} = {96D252A8-3FB5-489B-9296-EB8B030C1B4F}
 		{43CC1575-6DD0-4DA1-004C-95CF4312A544} = {96D252A8-3FB5-489B-9296-EB8B030C1B4F}
 		{CB987A51-66CE-982C-57AC-891072F9D83F} = {22EF0554-5D93-41BE-A54F-D331C311226C}
 		{22D5CBB3-F90F-E518-E886-25CCD68BD4A9} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{B7EE2556-5744-4AD9-8F4B-CF7DE07C0E14} = {2F8AA1CC-245F-4240-B392-B4B8E128E319}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AFEC477D-0D28-4C5A-9622-5F97F806819C}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		Automation.Models\Automation.Models.projitems*{68f873e1-6840-40b0-bb35-b8bae408b09c}*SharedItemsImports = 13
 		Automation.Models\Automation.Models.projitems*{6b894e7d-4ebe-4bf3-9d80-b1a948d2837f}*SharedItemsImports = 5
+		Automation.Models\Automation.Models.projitems*{9601adea-958a-4710-86cd-1d398a365595}*SharedItemsImports = 5
 		Automation.Models\Automation.Models.projitems*{f455c5bd-19bf-4d15-b53e-4c1a51b3d50a}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal

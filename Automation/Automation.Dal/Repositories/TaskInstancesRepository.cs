@@ -1,7 +1,7 @@
 ﻿using Automation.Models;
 using Automation.Models.Work;
 using Automation.Shared.Base;
-using Automation.Shared.Data.Task;
+using Automation.Shared.Data.Execution;
 using MongoDB.Driver;
 
 namespace Automation.Dal.Repositories

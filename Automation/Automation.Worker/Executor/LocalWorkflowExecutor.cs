@@ -1,11 +1,9 @@
 ﻿using Automation.Models.Work;
 using Automation.Plugins.Shared;
 using Automation.Shared.Data;
-using Automation.Shared.Data.Task;
+using Automation.Shared.Data.Execution;
 using Automation.Worker.Control;
 using Newtonsoft.Json.Linq;
-using System.Collections;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Automation.Worker.Executor;
 
@@ -28,7 +26,7 @@ public class LocalWorkflowExecutor
     {
         if (workflow.Graph.IsRefreshed == false)
             throw new Exception("The workflow graph should be refreshed before being executed.");
-        
+
         return await StartAsync(workflow, input, cancellation);
     }
 
@@ -38,7 +36,6 @@ public class LocalWorkflowExecutor
         var tasks = new List<Task>();
         foreach (var start in workflow.Graph.GetStartNodes())
         {
-            _changes?.OnTaskStart(start, input, context);
             tasks.Add(NextAsync(start, context, input, null, cancellation));
         }
 

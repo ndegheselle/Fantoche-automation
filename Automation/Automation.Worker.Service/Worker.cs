@@ -4,6 +4,7 @@ using Automation.Models.Work;
 using Automation.Realtime;
 using Automation.Realtime.Clients;
 using Automation.Realtime.Models;
+using Automation.Shared.Data.Execution;
 using Automation.Shared.Data.Task;
 using Automation.Worker.Executor;
 using Automation.Worker.Packages;

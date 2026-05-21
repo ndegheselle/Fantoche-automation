@@ -1,7 +1,7 @@
 ﻿using Automation.Models;
 using Automation.Dal.Repositories;
-using Automation.Shared.Data;
 using Automation.Models.Work;
+using Automation.Shared.Data.Scoped;
 
 namespace Automation.Dal
 {

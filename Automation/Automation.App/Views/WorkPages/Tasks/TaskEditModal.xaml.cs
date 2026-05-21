@@ -3,7 +3,7 @@ using Automation.App.Shared.ApiClients;
 using Automation.App.Views.PackagesPages.Components;
 using Automation.Models.Work;
 using Automation.Shared.Base;
-using Automation.Shared.Data;
+using Automation.Shared.Data.Scoped;
 using Joufflu.Popups;
 using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;

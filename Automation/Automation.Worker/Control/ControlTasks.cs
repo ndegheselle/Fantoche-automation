@@ -1,5 +1,5 @@
 ﻿using Automation.Models.Work;
-using Automation.Shared.Data;
+using Automation.Shared.Data.Execution;
 using Automation.Worker.Control.Flow;
 
 namespace Automation.Worker.Control

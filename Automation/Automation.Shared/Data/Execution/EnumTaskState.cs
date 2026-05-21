@@ -1,5 +1,8 @@
-﻿namespace Automation.Shared.Data.Task
+﻿namespace Automation.Shared.Data.Execution
 {
+    /// <summary>
+    /// State of a task instance
+    /// </summary>
     [Flags]
     public enum EnumTaskState
     {

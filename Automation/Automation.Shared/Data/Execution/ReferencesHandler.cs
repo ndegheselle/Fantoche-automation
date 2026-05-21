@@ -2,6 +2,9 @@
 
 namespace Automation.Shared.Data;
 
+/// <summary>
+/// Error of a replacement of references
+/// </summary>
 public class ReferenceReplaceError
 {
     public string Reference { get; }
@@ -29,7 +32,7 @@ public class ReferenceReplaceContext
     {
         ReplacedSetting = replacedSetting;
     }
-    
+
     public void SetReferenceType(string reference, JTokenType type)
     {
         if (!ReferencesTypes.TryAdd(reference, type))
@@ -123,7 +126,7 @@ public static class ReferencesHandler
             {
                 token.Replace(contextToken);
                 result.SetReferenceType(reference, contextToken.Type);
-                            
+
                 // Recursive reference
                 if (IsReference(contextToken))
                     ReplaceReferences(contextToken, context, result);
@@ -153,7 +156,7 @@ public static class ReferencesHandler
             return false;
         return true;
     }
-    
+
     /// <summary>
     /// Get the reference path if the token contain a reference.
     /// </summary>

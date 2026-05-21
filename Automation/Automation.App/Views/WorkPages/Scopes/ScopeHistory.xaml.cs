@@ -1,6 +1,8 @@
 ﻿using Automation.App.Shared.ApiClients;
 using Automation.Models.Work;
 using Automation.Shared.Base;
+using Automation.Shared.Data.Execution;
+using Automation.Shared.Data.Scoped;
 using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;
 using System.Windows;

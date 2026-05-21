@@ -7,6 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Media.Animation;
 using Newtonsoft.Json.Linq;
 using Usuel.Shared;
+using Automation.Shared.Data.Scoped;
 
 namespace Automation.App.Views.WorkPages.Workflows.Editor.Components;
 

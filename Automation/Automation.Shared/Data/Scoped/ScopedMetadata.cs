@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace Automation.Shared.Data
+namespace Automation.Shared.Data.Scoped
 {
     [Flags]
     public enum EnumScopedType
@@ -42,7 +42,7 @@ namespace Automation.Shared.Data
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-        
+
         public ScopedMetadata Clone()
         {
             return (ScopedMetadata)this.MemberwiseClone();

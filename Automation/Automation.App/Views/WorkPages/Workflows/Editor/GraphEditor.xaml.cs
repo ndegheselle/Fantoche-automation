@@ -1,6 +1,7 @@
 ﻿using Automation.App.Shared.ApiClients;
 using Automation.App.ViewModels.Workflow.Editor;
 using Automation.Models.Work;
+using Automation.Shared.Data.Scoped;
 using Joufflu.Data.DnD;
 using Joufflu.Popups;
 using Microsoft.Extensions.DependencyInjection;

@@ -1,4 +1,4 @@
-﻿using Automation.Shared.Data;
+﻿using Automation.Shared.Data.Scoped;
 using Joufflu.Shared.Resources.Fonts;
 using System.Windows;
 using System.Windows.Media;

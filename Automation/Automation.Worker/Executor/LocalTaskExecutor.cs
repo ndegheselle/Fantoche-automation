@@ -1,6 +1,6 @@
 ﻿using Automation.Models.Work;
 using Automation.Plugins.Shared;
-using Automation.Shared.Data.Task;
+using Automation.Shared.Data.Execution;
 using Automation.Worker.Control;
 using Automation.Worker.Packages;
 using Newtonsoft.Json.Linq;

@@ -1,6 +1,7 @@
 ﻿using Automation.Models.Work;
-using Automation.Plugins;
+using Automation.Plugins.Tasks;
 using Automation.Shared.Data;
+using Automation.Shared.Data.Scoped;
 using Automation.Worker.Control.Flow;
 using Automation.Worker.Executor;
 using Automation.Worker.Packages;
@@ -12,7 +13,7 @@ AutomationTask delayTask = new AutomationTask()
     Id = Guid.NewGuid(),
     Target = new PackageClassTarget()
     {
-        ClassFullName = "Automation.Plugins.TestDelay",
+        ClassFullName = "Automation.Plugins.Tasks.TestDelay",
         Package = new PackageIdentifier()
         {
             Identifier = "Automation.Plugins",
@@ -31,7 +32,7 @@ AutomationTask testTask = new AutomationTask()
     Id = Guid.NewGuid(),
     Target = new PackageClassTarget()
     {
-        ClassFullName = "Automation.Plugins.TestTask",
+        ClassFullName = "Automation.Plugins.Tasks.TestTask",
         Package = new PackageIdentifier()
         {
             Identifier = "Automation.Plugins",
@@ -63,14 +64,15 @@ AutomationWorkflow workflow = new AutomationWorkflow()
     }
 };
 
-GraphControl start = new GraphControl(StartTask.AutomationTask) { 
+GraphControl start = new GraphControl(StartTask.AutomationTask)
+{
     Metadata = new ScopedMetadata() { Name = "Start" },
 };
 
 GraphTask delay = new GraphTask(delayTask)
 {
     Metadata = new ScopedMetadata() { Name = "Delay" },
-    InputJson = JsonConvert.SerializeObject(new TestDelayParameters() { DelayMs = 5000})
+    InputJson = JsonConvert.SerializeObject(new TestDelayParameters() { DelayMs = 5000 })
 };
 
 GraphTask test1 = new GraphTask(testTask)
@@ -88,10 +90,8 @@ GraphTask test2 = new GraphTask(testTask)
 GraphControl end = new GraphControl(EndTask.AutomationTask)
 {
     Metadata = new ScopedMetadata() { Name = "End" },
-    TaskId = EndTask.AutomationTask.Id,
     InputJson = "{'test': '$previous.Value'}"
 };
-
 
 workflow.Graph.Nodes.Add(start);
 workflow.Graph.Nodes.Add(delay);

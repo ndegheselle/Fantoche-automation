@@ -2,10 +2,11 @@ using Automation.Dal;
 using Automation.Models;
 using Automation.Dal.Repositories;
 using Automation.Shared.Base;
-using Automation.Shared.Data;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 using Automation.Models.Work;
+using Automation.Shared.Data.Execution;
+using Automation.Shared.Data.Scoped;
 
 namespace Automation.Supervisor.Api.Controllers
 {

@@ -1,11 +1,9 @@
-﻿using Automation.Shared.Base;
-using Automation.Shared.Data;
-using Newtonsoft.Json.Linq;
-using NuGet.Protocol.Core.Types;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
+using Automation.Shared.Base;
+using Newtonsoft.Json.Linq;
 
-namespace Automation.Models.Work
+namespace Automation.Shared.Data.Scoped
 {
     [JsonDerivedType(typeof(Scope), "scope")]
     [JsonDerivedType(typeof(AutomationTask), "task")]
@@ -45,15 +43,15 @@ namespace Automation.Models.Work
     public partial class Scope : ScopedElement
     {
         public static readonly Guid ROOT_SCOPE_ID = new Guid("00000000-0000-0000-0000-000000000001");
-        
+
         public string? ContextJson { get; set; }
-        
+
         public ObservableCollection<ScopedElement> Childrens { get; set; } = [];
 
         public Scope() : base(EnumScopedType.Scope)
         { }
 
-        public Scope(string name, List<Guid> parentTree) : base(new ScopedMetadata(name, EnumScopedType.Scope) { IsReadOnly = true})
+        public Scope(string name, List<Guid> parentTree) : base(new ScopedMetadata(name, EnumScopedType.Scope) { IsReadOnly = true })
         {
             ParentTree = parentTree;
             ParentId = parentTree.LastOrDefault();

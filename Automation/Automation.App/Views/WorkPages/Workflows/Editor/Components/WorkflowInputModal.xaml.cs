@@ -1,4 +1,5 @@
 ﻿using Automation.Models.Work;
+using Automation.Shared.Data.Scoped;
 using Joufflu.Popups;
 using System.Windows.Controls;
 using Usuel.Shared;

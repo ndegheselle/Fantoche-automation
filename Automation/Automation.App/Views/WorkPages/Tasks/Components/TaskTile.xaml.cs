@@ -1,4 +1,5 @@
 ﻿using Automation.Models.Work;
+using Automation.Shared.Data.Scoped;
 using System.Windows;
 using System.Windows.Controls;
 

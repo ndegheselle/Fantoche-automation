@@ -1,5 +1,6 @@
 ﻿using Automation.App.Views.WorkPages.Workflows.Editor.Components;
 using Automation.Models.Work;
+using Automation.Shared.Data.Scoped;
 using Usuel.History;
 using Usuel.Shared;
 

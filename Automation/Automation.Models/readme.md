@@ -1,1 +1,0 @@
-Shared project between the backend and the frontend to have an identical but separated data structure.
