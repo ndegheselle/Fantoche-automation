@@ -20,6 +20,7 @@ public class WorkflowContext
     /// </summary>
     public Dictionary<Guid, List<NodeInstance>> NodeInstances { get; } = [];
 
+    private readonly HashSet<Guid> _claimedWaitAll = [];
     private readonly object _lock = new();
 
     public WorkflowContext(AutomationWorkflow workflow, JToken? sharedToken = null)
@@ -39,15 +40,21 @@ public class WorkflowContext
     }
 
     /// <summary>
-    /// True when every previous graph node of <paramref name="node"/> has at least one instance.
-    /// Used to gate tasks that wait for all their inputs.
+    /// Atomically check that every previous graph node of <paramref name="node"/> has at
+    /// least one instance and claim the right to launch the node. Returns true to exactly
+    /// one caller so concurrent predecessors can't fire a wait-all node twice.
     /// </summary>
-    public bool HasInstancesForAllPrevious(BaseGraphTask node)
+    public bool TryClaimWaitAll(BaseGraphTask node)
     {
         var previous = Workflow.Graph.GetPreviousFrom(node);
         lock (_lock)
         {
-            return previous.All(p => NodeInstances.TryGetValue(p.Id, out var list) && list.Count > 0);
+            if (_claimedWaitAll.Contains(node.Id))
+                return false;
+            if (!previous.All(p => NodeInstances.TryGetValue(p.Id, out var list) && list.Count > 0))
+                return false;
+            _claimedWaitAll.Add(node.Id);
+            return true;
         }
     }
 
@@ -115,8 +122,8 @@ public class LocalWorkflowExecutor
         {
             var next = pair.Task;
 
-            // Gate wait-all nodes: every previous graph node must have produced at least one instance
-            if (next.Settings.IsWaitingAllInputs && !context.HasInstancesForAllPrevious(next))
+            // Gate wait-all nodes: only the predecessor that completes the set fires it
+            if (next.Settings.IsWaitingAllInputs && !context.TryClaimWaitAll(next))
                 continue;
 
             branches.Add(Task.Run(() => RunBranchAsync(next, currentInstance, context, cancellation)));
