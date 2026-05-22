@@ -1,22 +1,28 @@
-﻿using Automation.Models.Work;
+﻿using Automation.Shared.Data.Graph;
 
 namespace Automation.Shared.Data.Scoped
 {
-    public class WorkflowSettings
+    public class WorkflowSettings : TaskSettings
     {
-        public bool IsWaitingForAllEnd { get; set; }
+        /// <summary>
+        /// Store all data (input, output, global, ...) in task instance. Can be used to track data change precisely but data will be duplicated for each node.
+        /// </summary>
+        public bool IsStoringAllData { get; set; } = false;
+
+        /// <summary>
+        /// If there is multiple end nodes, stop at the first one encoutered (and kill all unfinished tasks).
+        /// </summary>
+        public bool StopAtFirstEnd { get; set; } = false;
     }
 
     public class AutomationWorkflow : BaseAutomationTask
     {
-        /// <summary>
-        /// Store all data (input, output, global, ...) in task instance.
-        /// </summary>
-        public bool IsStoringAllData { get; set; } = false;
+
+
+        public TasksGraph Graph { get; set; } = new();
+
 
         public WorkflowSettings WorkflowSettings { get; set; } = new();
-
-        public Graph Graph { get; set; } = new();
 
         /// <summary>
         /// Mapping for the output of the workflow.

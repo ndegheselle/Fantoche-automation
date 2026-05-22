@@ -19,8 +19,6 @@ namespace Automation.Shared.Data.Scoped
 
         [JsonIgnore]
         public Scope? Parent { get; set; }
-        [JsonIgnore]
-        public JToken? ParentContext { get; set; }
 
         public ScopedElement(EnumScopedType type)
         {

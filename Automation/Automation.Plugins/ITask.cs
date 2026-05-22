@@ -62,7 +62,7 @@ public abstract class BaseTask<TInput, TOutput> : ITask
         CancellationToken? cancellation = null);
 }
 
-public abstract class BaseTask<TInput> : ITask
+public abstract class BasePassThroughTask<TInput> : ITask
 {
     public TaskConnector? Input { get; } = new() { Type = typeof(TInput) };
     public TaskConnector? Output { get; } = new();
@@ -73,7 +73,7 @@ public abstract class BaseTask<TInput> : ITask
         if (parameters is not TInput input)
             throw new ArgumentException($"Parameters are not of expected type '{Input!.Type}'.", nameof(parameters));
         await DoAsync(input, progress, cancellation);
-        return null;
+        return parameters;
     }
 
     public abstract Task DoAsync(TInput parameters, IProgress<TaskNotification>? progress = null,

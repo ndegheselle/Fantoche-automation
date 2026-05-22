@@ -1,7 +1,7 @@
-﻿using Automation.Models.Work;
-using Automation.Plugins.Shared;
+﻿using Automation.Plugins.Shared;
 using Automation.Shared.Data.Execution;
-using Automation.Worker.Control;
+using Automation.Shared.Data.Graph;
+using Automation.Shared.Data.Scoped;
 using Newtonsoft.Json.Linq;
 
 namespace Automation.Worker.Executor;
@@ -10,6 +10,7 @@ public record TaskOutput
 {
     public JToken? OutputToken { get; set; }
     public EnumTaskState State { get; set; }
+
     /// <summary>
     /// When set, only these output connector IDs will be followed. null means all outputs active.
     /// </summary>
@@ -23,16 +24,4 @@ public interface ITaskExecutor
         JToken? input,
         IProgress<TaskNotification>? notifications = null,
         CancellationToken? cancellation = null);
-}
-
-public interface ITaskChangeHandler
-{
-    void OnTaskStart(
-        BaseGraphTask automationTask,
-        JToken? input,
-        WorkflowContext? workflowContext);
-    void OnTaskEnd(
-        BaseGraphTask automationTask,
-        TaskOutput output,
-        WorkflowContext? workflowContext);
 }

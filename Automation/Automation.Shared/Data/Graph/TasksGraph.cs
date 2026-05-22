@@ -38,7 +38,14 @@ namespace Automation.Shared.Data.Graph
 
                 // Refresh node target task
                 if (tasks != null)
-                    taskNode.AutomationTask = tasks[taskNode.TaskId];
+                {
+                    if (taskNode.TaskId == AutomationControl.StartTask.Id)
+                        taskNode.AutomationTask = AutomationControl.StartTask;
+                    if (taskNode.TaskId == AutomationControl.EndTask.Id)
+                        taskNode.AutomationTask = AutomationControl.EndTask;
+                    else
+                        taskNode.AutomationTask = tasks[taskNode.TaskId];
+                }
 
                 // Refresh inputs parent
                 foreach (GraphConnector connector in taskNode.Inputs)

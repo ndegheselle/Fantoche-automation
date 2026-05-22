@@ -35,7 +35,7 @@ public abstract class BaseAutomationTask : ScopedElement
 
     public IEnumerable<Schedule> Schedules { get; set; } = [];
 
-    public virtual TaskSettings Settings { get; set; } = new();
+    public TaskSettings Settings { get; set; } = new();
 
     public BaseAutomationTask(EnumScopedType type) : base(type)
     {
@@ -73,15 +73,21 @@ public class AutomationTask : BaseAutomationTask
 
 public class AutomationControl : AutomationTask
 {
-    /// <summary>
-    /// Id of the start task.
-    /// </summary>
-    public static readonly Guid StartTaskId = Guid.Parse("00000000-0000-0000-0000-100000000001");
-
-    /// <summary>
-    /// Id of the end task.
-    /// </summary>
-    public static readonly Guid EndTaskId = Guid.Parse("00000000-0000-0000-0000-100000000002");
+    // Start and end task are special cases
+    public static readonly AutomationControl StartTask = new AutomationControl(typeof(AutomationControl))
+    {
+        Id = Guid.Parse("00000000-0000-0000-0000-100000000001"),
+        Metadata = new ScopedMetadata(EnumScopedType.Task) { Tags = ["Control"], Name = "Start", Icon = "\uE3D2", IsReadOnly = true },
+        InputSchema = null,
+        OutputSchema = new JsonSchema(),
+    };
+    public static readonly AutomationControl EndTask = new AutomationControl(typeof(AutomationControl))
+    {
+        Id = Guid.Parse("00000000-0000-0000-0000-100000000002"),
+        Metadata = new ScopedMetadata(EnumScopedType.Task) { Tags = ["Control"], Name = "End", Icon = "\uE244", IsReadOnly = true },
+        InputSchema = new JsonSchema(),
+        OutputSchema = null
+    };
 
     /// <summary>
     /// Type of the class that the target point on

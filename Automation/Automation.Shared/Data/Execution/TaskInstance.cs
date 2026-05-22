@@ -1,57 +1,23 @@
-﻿using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Text.Json.Serialization;
-using Automation.Plugins.Shared;
-using Automation.Shared.Base;
-using Automation.Shared.Data.Graph;
-using Newtonsoft.Json.Linq;
+﻿using Automation.Plugins.Shared;
 
 namespace Automation.Shared.Data.Execution
 {
     /// <summary>
-    /// Task instance (task that have been executed)
+    /// Node instance (task that have been executed)
     /// </summary>
-    [JsonDerivedType(typeof(SubTaskInstance), "sub")]
-    public class TaskInstance : IIdentifier, INotifyPropertyChanged
+    public class NodeInstance
     {
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected void NotifyPropertyChanged([CallerMemberName] string? propertyName = "")
-        { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
-
-        public Guid Id { get; set; }
-        public Guid TaskId { get; set; }
-
-        public string? WorkerId { get; set; }
-
-        public JToken? InputToken { get; set; }
-        public JToken? ContextToken { get; set; }
-        public JToken? OutputToken { get; set; }
+        public List<NodeInstance> Previous { get; set; } = [];
+        public List<NodeInstance> Nexts { get; set; } = [];
 
         public EnumTaskState State { get; set; }
 
         public DateTime CreatedAt { get; set; }
-        public DateTime? StartedAt { get; set; }
         public DateTime? FinishedAt { get; set; }
 
-        public TaskInstance(Guid taskId)
+        public NodeInstance()
         {
-            TaskId = taskId;
             CreatedAt = DateTime.UtcNow;
-        }
-    }
-
-    /// <summary>
-    /// Task instance created from a graph (with reference to the specific workflow and graph node)
-    /// </summary>
-    public class SubTaskInstance : TaskInstance
-    {
-        public Guid WorkflowInstanceId { get; set; }
-        public Guid GraphNodeId { get; set; }
-
-        public SubTaskInstance(Guid workflowInstanceId, BaseGraphTask node) : base(node.TaskId)
-        {
-            WorkflowInstanceId = workflowInstanceId;
-            GraphNodeId = node.Id;
         }
     }
 

@@ -78,13 +78,6 @@ namespace Automation.Shared.Data.Graph
 
         public string? OutputSchemaJson { get; set; }
 
-        /// <summary>
-        /// For Settings.WaitAll, we list inputs that are done to know then to start the task.
-        /// Token are regrouped by node name.
-        /// </summary>
-        [JsonIgnore]
-        public Dictionary<string, JToken?> WaitedInputs { get; private set; } = [];
-
         public BaseGraphTask()
         {
         }
@@ -131,8 +124,8 @@ namespace Automation.Shared.Data.Graph
                 Settings.IsWaitingAllInputs = true;
         }
 
-        public bool IsEnd() => TaskId == AutomationControl.EndTaskId;
-        public bool IsStart() => TaskId == AutomationControl.StartTaskId;
+        public bool IsStart() => TaskId == AutomationControl.StartTask.Id;
+        public bool IsEnd() => TaskId == AutomationControl.EndTask.Id;
     }
 
     /// <summary>
