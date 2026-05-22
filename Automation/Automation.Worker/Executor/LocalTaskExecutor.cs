@@ -10,7 +10,6 @@ namespace Automation.Worker.Executor;
 public class ExecutionContext
 {
     public JToken? Input { get; set; }
-    public WorkflowContext? WorkflowContext { get; set; }
     public BaseGraphTask? GraphNode { get; set; }
 }
 
