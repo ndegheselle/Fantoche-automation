@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Automation.Shared.Data.Execution;
+using Newtonsoft.Json.Linq;
 
 namespace Automation.Shared.Data.Graph;
 
@@ -59,11 +60,26 @@ public class GraphExecutionContext
     }
     #endregion
 
-    public JObject GetContextFor(BaseGraphTask task, JToken? previous, JToken? context)
+    /// <summary>
+    /// Build the context for a task from its previous instances.
+    /// If the task waits for all inputs the context is keyed by previous node name,
+    /// otherwise the single previous output is used as-is.
+    /// </summary>
+    public JObject GetContextFor(BaseGraphTask task, IReadOnlyList<NodeInstance> previousInstances, JToken? context)
     {
-        if (previous == null && context == null)
+        if (previousInstances.Count == 0 && context == null)
             return GenerateEmptyContext();
-        return task.Settings.IsWaitingAllInputs ? GenerateContextFrom(task.WaitedInputs, context) : GenerateContextFrom(previous, context);
+
+        if (task.Settings.IsWaitingAllInputs)
+        {
+            var byName = new Dictionary<string, JToken?>();
+            foreach (var instance in previousInstances)
+                byName[instance.Name] = instance.Output;
+            return GenerateContextFrom(byName, context);
+        }
+
+        var single = previousInstances.Count > 0 ? previousInstances[0].Output : null;
+        return GenerateContextFrom(single, context);
     }
 
     public JObject GenerateEmptyContext()

@@ -78,22 +78,6 @@ namespace Automation.Shared.Data.Graph
         public IEnumerable<GraphControl> GetStartNodes() => Nodes.OfType<GraphControl>().Where(x => x.IsStart());
         public IEnumerable<GraphControl> GetEndNodes() => Nodes.OfType<GraphControl>().Where(x => x.IsEnd());
 
-        /// <summary>
-        /// Check if a task can execute (if all previous are completed for WaitAll)
-        /// </summary>
-        /// <param name="task"></param>
-        /// <returns></returns>
-        public bool CanExecute(BaseGraphTask task)
-        {
-            // If we don't wait we can start the task immediately
-            if (task.Settings.IsWaitingAllInputs == false)
-                return true;
-
-            // Else make sure that all previous task have finished
-            var previousTasks = GetPreviousFrom(task);
-            return previousTasks.All(previous => task.WaitedInputs.ContainsKey(previous.Name));
-        }
-
         public string GetUniqueNodeName(string nodeName)
         {
             string uniqueName = nodeName;

@@ -115,10 +115,7 @@ public class LocalTaskExecutor : ITaskExecutor
         IProgress<TaskNotification>? progress = null,
         CancellationToken? cancellation = null)
     {
-        TaskOutput output = new TaskOutput();
-        var executor = new LocalWorkflowExecutor(this, _changes);
-        await executor.ExecuteAsync(automationWorkflow, context, progress, cancellation);
-        output.State = EnumTaskState.Completed;
-        return output;
+        var executor = new LocalWorkflowExecutor(this);
+        return await executor.ExecuteAsync(automationWorkflow, context.Input, null, progress, cancellation);
     }
 }
