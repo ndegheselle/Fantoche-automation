@@ -42,6 +42,12 @@ namespace Automation.Shared.Data.Execution
         {
             CreatedAt = DateTime.UtcNow;
         }
+
+        public void Link(NodeInstance previous)
+        {
+            this.Previous.Add(previous);
+            previous.Nexts.Add(this);
+        }
     }
 
     /// <summary>

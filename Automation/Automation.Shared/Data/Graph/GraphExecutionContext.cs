@@ -1,4 +1,5 @@
 ﻿using Automation.Shared.Data.Execution;
+using Automation.Shared.Data.Scoped;
 using Newtonsoft.Json.Linq;
 
 namespace Automation.Shared.Data.Graph;
@@ -22,7 +23,7 @@ public class GraphExecutionContext
     /// <param name="task"></param>
     public List<string> GetContextSampleJsonFor(BaseGraphTask task)
     {
-        var previousTasks = _graph.GetPreviousFrom(task);
+        var previousTasks = _graph.GetPrevious(task);
 
         // TODO : get the global and common token samples
         JToken? context = null;
@@ -57,6 +58,34 @@ public class GraphExecutionContext
         var endTasks = _graph.GetEndNodes();
         foreach (var task in endTasks) contexts.AddRange(GetContextSampleJsonFor(task));
         return contexts;
+    }
+
+    /// <summary>
+    /// Combine the outputs of all reached end node instances into a single workflow output token.
+    /// </summary>
+    public JToken? CombineEndOutputs(IReadOnlyList<NodeInstance> endInstances, WorkflowSettings settings)
+    {
+        if (endInstances.Count == 0)
+            return null;
+
+        // Each end instance carries its input as its output (see RunBranchAsync)
+        // TODO : cancel all other current tasks (store cancelation token in instance ?)
+        if (settings.StopAtFirstEnd)
+            return endInstances.OrderBy(x => x.FinishedAt ?? x.CreatedAt).First().Output;
+
+        if (endInstances.Count == 1)
+            return endInstances[0].Output;
+
+        // Merge object outputs together, fall back to an array for heterogeneous tokens
+        if (endInstances.All(x => x.Output is JObject))
+        {
+            var merged = new JObject();
+            foreach (var inst in endInstances)
+                merged.Merge(inst.Output, new JsonMergeSettings { MergeArrayHandling = MergeArrayHandling.Concat });
+            return merged;
+        }
+
+        return new JArray(endInstances.Select(x => x.Output).Where(x => x != null));
     }
     #endregion
 

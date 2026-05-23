@@ -1,6 +1,8 @@
 ﻿using Automation.Models.Work;
 using Automation.Plugins.Tasks;
 using Automation.Shared.Data;
+using Automation.Shared.Data.Execution;
+using Automation.Shared.Data.Graph;
 using Automation.Shared.Data.Scoped;
 using Automation.Worker.Control.Flow;
 using Automation.Worker.Executor;
@@ -110,7 +112,7 @@ workflow.Graph.Refresh(tasks);
 
 string nuggetLocalPath = Path.Join(Directory.GetCurrentDirectory(), "nugetlocal");
 LocalPackageManagement packages = new LocalPackageManagement(nuggetLocalPath);
-LocalTaskExecutor executor = new LocalTaskExecutor(packages, new TaskChangeToConsole());
+LocalTaskExecutor executor = new LocalTaskExecutor(packages);
 
 // TODO : change how workflow control task are handled so that it can change flow and state of the workflow
 await executor.ExecuteAsync(workflow, null);

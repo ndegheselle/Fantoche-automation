@@ -11,6 +11,4 @@
     <ProjectReference Include="..\Automation.Shared\Automation.Shared.csproj" />
   </ItemGroup>
 
-  <Import Project="..\Automation.Models\Automation.Models.projitems" Label="Shared" />
-
 </Project>

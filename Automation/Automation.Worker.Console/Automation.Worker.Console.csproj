@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Automation.Worker\Automation.Worker.csproj" />
+    <ProjectReference Include="..\Automation\Automation.Worker\Automation.Worker.csproj" />
   </ItemGroup>
 
 </Project>

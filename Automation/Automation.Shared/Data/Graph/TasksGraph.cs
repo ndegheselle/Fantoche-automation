@@ -25,7 +25,7 @@ namespace Automation.Shared.Data.Graph
         /// Simplify the graph resolution.
         /// </summary>
         /// <param name="force">Force the refresh even if the graph is already refreshed.</param>
-        public void Refresh(Dictionary<Guid, AutomationTask>? tasks = null, bool force = false)
+        public void Refresh(Dictionary<Guid, BaseAutomationTask>? tasks = null, bool force = false)
         {
             if (IsRefreshed && !force)
                 return;
@@ -112,10 +112,9 @@ namespace Automation.Shared.Data.Graph
         /// </summary>
         /// <param name="task">Task to get the previous tasks from</param>
         /// <returns></returns>
-        public IEnumerable<BaseGraphTask> GetPreviousFrom(BaseGraphTask task)
+        public IEnumerable<BaseGraphTask> GetPrevious(BaseGraphTask task)
         {
-            var connections = GetInputsConnectionsFrom(task);
-            return connections.Select(x => x.Source!.Parent!);
+            return GetInputsConnectionsFrom(task).Select(x => x.Source!.Parent!);
         }
 
         /// <summary>
@@ -126,6 +125,11 @@ namespace Automation.Shared.Data.Graph
         {
             return GetOutputsConnectionsFrom(task)
                 .Select(c => new GraphSource(c.Target!.Parent!, c.Source!));
+        }
+
+        public bool WithMultipleInputsConnections(BaseGraphTask task)
+        {
+            return GetInputsConnectionsFrom(task).Count() > 1;
         }
 
         /// <summary>

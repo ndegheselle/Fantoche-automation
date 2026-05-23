@@ -19,12 +19,12 @@ public class ExecutionContext
 public class LocalTaskExecutor : ITaskExecutor
 {
     private readonly IPackageManagement _packages;
-    private readonly ITaskChangeHandler? _changes;
+    private readonly LocalWorkflowExecutor _workflowExecutor;
 
-    public LocalTaskExecutor(IPackageManagement packageManagement, ITaskChangeHandler? changeHandler)
+    public LocalTaskExecutor(IPackageManagement packageManagement)
     {
+        _workflowExecutor = new LocalWorkflowExecutor(this);
         _packages = packageManagement;
-        _changes = changeHandler;
     }
 
     public Task<TaskOutput> ExecuteAsync(
@@ -115,7 +115,6 @@ public class LocalTaskExecutor : ITaskExecutor
         IProgress<TaskNotification>? progress = null,
         CancellationToken? cancellation = null)
     {
-        var executor = new LocalWorkflowExecutor(this);
-        return await executor.ExecuteAsync(automationWorkflow, context.Input, null, progress, cancellation);
+        return await _workflowExecutor.ExecuteAsync(automationWorkflow, context.Input, null, progress, cancellation);
     }
 }

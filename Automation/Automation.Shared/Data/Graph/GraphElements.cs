@@ -52,7 +52,7 @@ namespace Automation.Shared.Data.Graph
         public Guid TaskId { get; set; }
 
         [JsonIgnore]
-        public AutomationTask? AutomationTask { get; set; }
+        public BaseAutomationTask? AutomationTask { get; set; }
 
         public List<GraphConnector> Inputs { get; set; } = [];
         public List<GraphConnector> Outputs { get; set; } = [];
