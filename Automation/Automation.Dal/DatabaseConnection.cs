@@ -139,7 +139,6 @@ namespace Automation.Dal
                     cm.AutoMap();
                     cm.UnmapMember(m => m.InputSchema);
                     cm.UnmapMember(m => m.OutputSchema);
-                    cm.UnmapMember(m => m.WaitedInputs);
                     cm.UnmapMember(m => m.AutomationTask);
                 });
 

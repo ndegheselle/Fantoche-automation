@@ -1,12 +1,35 @@
-﻿using Automation.Plugins.Shared;
+using Automation.Plugins.Shared;
+using Newtonsoft.Json.Linq;
 
 namespace Automation.Shared.Data.Execution
 {
     /// <summary>
-    /// Node instance (task that have been executed)
+    /// Instance of a task that has been executed. Can stand alone (single task) or
+    /// be linked to siblings via <see cref="Previous"/>/<see cref="Nexts"/> to form
+    /// the execution tree of a workflow.
     /// </summary>
     public class NodeInstance
     {
+        public Guid Id { get; set; } = Guid.NewGuid();
+
+        /// <summary>
+        /// Id of the executed task definition.
+        /// </summary>
+        public Guid TaskId { get; set; }
+
+        /// <summary>
+        /// Id of the graph node when the instance comes from a workflow, null when standalone.
+        /// </summary>
+        public Guid? GraphNodeId { get; set; }
+
+        /// <summary>
+        /// Name of the node (used as key when building contexts).
+        /// </summary>
+        public string Name { get; set; } = string.Empty;
+
+        public JToken? Input { get; set; }
+        public JToken? Output { get; set; }
+
         public List<NodeInstance> Previous { get; set; } = [];
         public List<NodeInstance> Nexts { get; set; } = [];
 
