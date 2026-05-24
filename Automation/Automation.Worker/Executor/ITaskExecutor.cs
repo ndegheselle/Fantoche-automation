@@ -1,6 +1,5 @@
 ﻿using Automation.Plugins.Shared;
 using Automation.Shared.Data.Execution;
-using Automation.Shared.Data.Graph;
 using Automation.Shared.Data.Scoped;
 using Newtonsoft.Json.Linq;
 

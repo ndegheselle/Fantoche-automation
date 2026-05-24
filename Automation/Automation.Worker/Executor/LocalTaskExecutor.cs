@@ -7,7 +7,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Automation.Worker.Executor;
 
-public class ExecutionContext
+public class LocalExecutionContext
 {
     public JToken? Input { get; set; }
     public BaseGraphTask? GraphNode { get; set; }
@@ -33,7 +33,7 @@ public class LocalTaskExecutor : ITaskExecutor
         IProgress<TaskNotification>? notifications = null,
         CancellationToken? cancellation = null)
     {
-        return ExecuteAsync(automationTask, new ExecutionContext()
+        return ExecuteAsync(automationTask, new LocalExecutionContext()
         {
             Input = input,
         }, notifications, cancellation);
@@ -41,7 +41,7 @@ public class LocalTaskExecutor : ITaskExecutor
 
     public async Task<TaskOutput> ExecuteAsync(
         BaseAutomationTask automationTask,
-        ExecutionContext context,
+        LocalExecutionContext context,
         IProgress<TaskNotification>? notifications = null,
         CancellationToken? cancellation = null)
     {
@@ -83,7 +83,7 @@ public class LocalTaskExecutor : ITaskExecutor
 
     private async Task<TaskOutput> ExecuteTaskAsync(
         AutomationTask automationTask,
-        ExecutionContext context,
+        LocalExecutionContext context,
         IProgress<TaskNotification>? notifications = null,
         CancellationToken? cancellation = null)
     {
@@ -111,7 +111,7 @@ public class LocalTaskExecutor : ITaskExecutor
 
     private async Task<TaskOutput> ExecuteWorkflowAsync(
         AutomationWorkflow automationWorkflow,
-        ExecutionContext context,
+        LocalExecutionContext context,
         IProgress<TaskNotification>? progress = null,
         CancellationToken? cancellation = null)
     {

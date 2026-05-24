@@ -1,10 +1,7 @@
-﻿using Automation.Models.Work;
-using Automation.Plugins.Tasks;
-using Automation.Shared.Data;
+﻿using Automation.Plugins.Tasks;
 using Automation.Shared.Data.Execution;
 using Automation.Shared.Data.Graph;
 using Automation.Shared.Data.Scoped;
-using Automation.Worker.Control.Flow;
 using Automation.Worker.Executor;
 using Automation.Worker.Packages;
 using Newtonsoft.Json;
@@ -51,10 +48,10 @@ AutomationTask testTask = new AutomationTask()
 
 Dictionary<Guid, BaseAutomationTask> tasks = new Dictionary<Guid, BaseAutomationTask>()
 {
-    { StartTask.AutomationTask.Id, StartTask.AutomationTask },
+    { AutomationControl.StartTask.Id, AutomationControl.StartTask },
     { delayTask.Id, delayTask },
     { testTask.Id, testTask },
-    { EndTask.AutomationTask.Id, EndTask.AutomationTask },
+    { AutomationControl.EndTask.Id, AutomationControl.EndTask },
 };
 
 AutomationWorkflow workflow = new AutomationWorkflow()
@@ -66,7 +63,7 @@ AutomationWorkflow workflow = new AutomationWorkflow()
     }
 };
 
-GraphControl start = new GraphControl(StartTask.AutomationTask)
+GraphControl start = new GraphControl(AutomationControl.StartTask)
 {
     Metadata = new ScopedMetadata() { Name = "Start" },
 };
@@ -89,7 +86,7 @@ GraphTask test2 = new GraphTask(testTask)
     InputJson = JsonConvert.SerializeObject(new TestParameters() { Add = 20, Value = 2 })
 };
 
-GraphControl end = new GraphControl(EndTask.AutomationTask)
+GraphControl end = new GraphControl(AutomationControl.EndTask)
 {
     Metadata = new ScopedMetadata() { Name = "End" },
     InputJson = "{'test': '$previous.Value'}"
@@ -115,4 +112,4 @@ LocalPackageManagement packages = new LocalPackageManagement(nuggetLocalPath);
 LocalTaskExecutor executor = new LocalTaskExecutor(packages);
 
 // TODO : change how workflow control task are handled so that it can change flow and state of the workflow
-await executor.ExecuteAsync(workflow, null);
+await executor.ExecuteAsync(workflow, new LocalExecutionContext());
