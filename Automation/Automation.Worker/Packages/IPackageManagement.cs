@@ -61,7 +61,7 @@ namespace Automation.Worker.Packages
         /// <param name="version">Target package version</param>
         Task RemoveAsync(string id, Version version);
 
-        Task<string> DownloadToLocalIfMissing(string id, Version version);
-        string? GetLocalDllPath(string id, Version version);
+        Task<string> DownloadToLocalIfMissing(string id, Version version, string dll);
+        string? GetLocalDllPath(string id, Version version, string dll);
     }
 }

@@ -97,7 +97,7 @@ public class LocalPackageManagement : IPackageManagement
 
     public async Task<PackageInfos> CreateFromStreamAsync(Stream stream)
     {
-        var packageReader = new PackageArchiveReader(stream);
+        using var packageReader = new PackageArchiveReader(stream);
         var identity = await packageReader.GetIdentityAsync(CancellationToken.None);
 
         string packagePath = Path.Combine(_folder, $"{identity.Id}.{identity.Version}.nupkg");
@@ -120,7 +120,7 @@ public class LocalPackageManagement : IPackageManagement
         return Task.CompletedTask;
     }
 
-    public async Task<string> DownloadPackageAsync(string id, Version version)
+    public async Task<string> DownloadPackageAsync(string id, Version version, string dll)
     {
         try
         {
@@ -143,12 +143,15 @@ public class LocalPackageManagement : IPackageManagement
             packageStream.Position = 0;
             using var packageReader = new PackageArchiveReader(packageStream);
             var nearestFramework = GetNearestFramework(packageReader);
-            var lib = packageReader.GetLibItems().First(x => x.TargetFramework == nearestFramework);
+            var lib = packageReader.GetLibItems().FirstOrDefault(x => x.TargetFramework == nearestFramework);
+
+            if (lib == null)
+                throw new PackageDownloadException($"Could not find compatilbe nearest framework [nearest:{nearestFramework}]");
 
             var extractedFiles = await packageReader.CopyFilesAsync(_localFolder, lib.Items,
                 (source, target, stream) => ExtractFile(id, version, target, stream), _logger, CancellationToken.None);
 
-            return GetLocalDllPath(id, version) ?? throw new PackageDownloadException($"Could not find dll for [id:{id}][version:{version}] in downloaded package.");
+            return GetLocalDllPath(id, version, dll) ?? throw new PackageDownloadException($"Could not find dll for [id:{id}][version:{version}] in downloaded package.");
         }
         catch (Exception ex)
         {
@@ -167,9 +170,9 @@ public class LocalPackageManagement : IPackageManagement
         return path;
     }
 
-    public async Task<string> DownloadToLocalIfMissing(string id, Version version)
+    public async Task<string> DownloadToLocalIfMissing(string id, Version version, string dll)
     {
-        string? path = GetLocalDllPath(id, version);
+        string? path = GetLocalDllPath(id, version, dll);
         if (string.IsNullOrEmpty(path) == false)
             return path;
 
@@ -180,21 +183,22 @@ public class LocalPackageManagement : IPackageManagement
         try
         {
             // Re-check after acquiring the lock — the first task may have already downloaded it
-            path = GetLocalDllPath(id, version);
+            path = GetLocalDllPath(id, version, dll);
             if (string.IsNullOrEmpty(path) == false)
                 return path;
 
-            return await DownloadPackageAsync(id, version);
+            return await DownloadPackageAsync(id, version, dll);
         }
         finally
         {
             semaphore.Release();
+            _downloadLocks.TryRemove(key, out _);
         }
     }
 
-    public string? GetLocalDllPath(string id, Version version)
+    public string? GetLocalDllPath(string id, Version version, string dll)
     {
-        string path = Path.Combine(GetLocalFolderPath(id, version), $"{id}.dll");
+        string path = Path.Combine(GetLocalFolderPath(id, version), $"{dll}.dll");
         return File.Exists(path) == false ? null : path;
     }
 

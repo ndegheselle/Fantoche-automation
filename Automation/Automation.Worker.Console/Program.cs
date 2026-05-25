@@ -12,6 +12,7 @@ AutomationTask delayTask = new AutomationTask()
     Id = Guid.NewGuid(),
     Target = new PackageClassTarget()
     {
+        Dll = "Automation.Plugins",
         ClassFullName = "Automation.Plugins.Tasks.TestDelay",
         Package = new PackageIdentifier()
         {
@@ -31,6 +32,7 @@ AutomationTask testTask = new AutomationTask()
     Id = Guid.NewGuid(),
     Target = new PackageClassTarget()
     {
+        Dll = "Automation.Plugins",
         ClassFullName = "Automation.Plugins.Tasks.TestTask",
         Package = new PackageIdentifier()
         {

@@ -16,15 +16,25 @@ public class LocalExecutionContext
 /// <summary>
 /// Execute a task localy
 /// </summary>
-public class LocalTaskExecutor : ITaskExecutor
+public class LocalTaskExecutor : ITaskExecutor, IDisposable
 {
     private readonly IPackageManagement _packages;
     private readonly LocalWorkflowExecutor _workflowExecutor;
+    /// <summary>
+    /// Task loader cached by DLL path
+    /// </summary>
+    private readonly Dictionary<string, TaskLoader> _cachedTaskLoaders = [];
 
     public LocalTaskExecutor(IPackageManagement packageManagement)
     {
         _workflowExecutor = new LocalWorkflowExecutor(this);
         _packages = packageManagement;
+    }
+
+    public void Dispose()
+    {
+        foreach (var loader in _cachedTaskLoaders)
+            loader.Value.Dispose();
     }
 
     public Task<TaskOutput> ExecuteAsync(
@@ -58,7 +68,7 @@ public class LocalTaskExecutor : ITaskExecutor
             {
                 var errors = automationTask.InputSchema?.Validate(context.Input);
                 if (errors?.Count > 0)
-                    throw new Exception("Input doesn't correspond to schema.");
+                    throw new Exception($"Input doesn't correspond to schema : {string.Join(", ", errors)}");
             }
 
             output = automationTask switch
@@ -68,6 +78,13 @@ public class LocalTaskExecutor : ITaskExecutor
                 _ => throw new Exception("Unknown task type.")
             };
 
+        }
+        catch(OperationCanceledException)
+        {
+            output = new TaskOutput()
+            {
+                State = EnumTaskState.Canceled,
+            };
         }
         catch (Exception ex)
         {
@@ -91,8 +108,19 @@ public class LocalTaskExecutor : ITaskExecutor
             throw new Exception("Task target is not a package.");
 
         string dllPath =
-            await _packages.DownloadToLocalIfMissing(target.Package.Identifier, target.Package.Version);
-        using var loader = new TaskLoader(dllPath);
+            await _packages.DownloadToLocalIfMissing(target.Package.Identifier, target.Package.Version, target.Dll);
+
+        TaskLoader loader;
+        if (_cachedTaskLoaders.TryGetValue(dllPath, out TaskLoader? cached))
+        {
+            loader = cached;
+        }
+        else
+        {
+            loader = new TaskLoader(dllPath);
+            _cachedTaskLoaders.Add(dllPath, loader);
+        }
+
         var task = loader.CreateInstance(target.ClassFullName);
 
         object? parameter = null;
@@ -109,12 +137,12 @@ public class LocalTaskExecutor : ITaskExecutor
         return output;
     }
 
-    private async Task<TaskOutput> ExecuteWorkflowAsync(
+    private Task<TaskOutput> ExecuteWorkflowAsync(
         AutomationWorkflow automationWorkflow,
         LocalExecutionContext context,
         IProgress<TaskNotification>? progress = null,
         CancellationToken? cancellation = null)
     {
-        return await _workflowExecutor.ExecuteAsync(automationWorkflow, context.Input, null, progress, cancellation);
+        return _workflowExecutor.ExecuteAsync(automationWorkflow, context.Input, null, progress, cancellation);
     }
 }

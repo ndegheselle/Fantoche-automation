@@ -71,9 +71,25 @@ public class LocalWorkflowContext
 
     public NodeInstance? GetLastNodeInstance(BaseGraphTask node, EnumTaskState state)
     {
-        NodeInstances.TryGetValue(node.Id, out var list);
-        var lastInstance = list?.OrderBy(x => x.FinishedAt).FirstOrDefault(i => (i.State & state) == 0);
-        return lastInstance;
+        lock (_lock)
+        {
+            NodeInstances.TryGetValue(node.Id, out var list);
+            return list?.OrderByDescending(x => x.FinishedAt).FirstOrDefault(i => i.State == state);
+        }
+    }
+
+    public NodeInstance GetOrCreateWaitingInstance(BaseGraphTask node, NodeInstance previousInstance)
+    {
+        lock (_lock)
+        {
+            NodeInstances.TryGetValue(node.Id, out var list);
+            var existing = list?.OrderByDescending(x => x.FinishedAt)
+                                 .FirstOrDefault(i => i.State == EnumTaskState.Waiting);
+            if (existing != null)
+                return existing;
+            // CreateInstance also takes _lock — reentrant, no deadlock
+            return CreateInstance(node, null, EnumTaskState.Waiting, previousInstance);
+        }
     }
 
     /// <summary>
@@ -97,18 +113,6 @@ public class LocalWorkflowContext
             }
 
             return previousInstances;
-        }
-    }
-
-    public IReadOnlyList<NodeInstance> GetPreviousInstances(BaseGraphTask node)
-    {
-        var previous = Workflow.Graph.GetPrevious(node);
-        lock (_lock)
-        {
-            return previous
-                .Where(p => NodeInstances.ContainsKey(p.Id))
-                .SelectMany(p => NodeInstances[p.Id])
-                .ToList();
         }
     }
 }
@@ -179,7 +183,7 @@ public class LocalWorkflowExecutor
                 continue;
             }
 
-            branches.Add(Task.Run(() => RunBranchAsync(next, currentInstance, context, cancellation)));
+            branches.Add(RunBranchAsync(next, currentInstance, context, cancellation));
         }
 
         if (branches.Count > 0)
@@ -203,12 +207,11 @@ public class LocalWorkflowExecutor
         // If the task wait for all inputs but only have one we treat it like other tasks and skip this part
         if (task.Settings.IsWaitingAllInputs && context.Workflow.Graph.WithMultipleInputsConnections(task))
         {
-            existingInstance = context.GetLastNodeInstance(task, EnumTaskState.Waiting) ??
-                context.CreateInstance(task, null, EnumTaskState.Waiting, previousInstance);
-
+            existingInstance = context.GetOrCreateWaitingInstance(task, previousInstance);
             previousInstances = context.TryGetAllPrevious(task);
+
             // All previous are not ready yet
-            if (previousInstances == null || previousInstances.Count() == 0)
+            if (previousInstances == null || previousInstances.Count == 0)
                 return [];
 
             foreach (var prev in previousInstances)

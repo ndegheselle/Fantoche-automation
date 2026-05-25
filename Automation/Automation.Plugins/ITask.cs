@@ -80,7 +80,7 @@ public abstract class BasePassThroughTask<TInput> : ITask
         CancellationToken? cancellation = null);
 }
 
-public abstract class BaseTaskOutputless<TInput> : ITask
+public abstract class BaseOutputlessTask<TInput> : ITask
 {
     public TaskConnector? Input { get; } = new() { Type = typeof(TInput) };
     public TaskConnector? Output { get; } = null;

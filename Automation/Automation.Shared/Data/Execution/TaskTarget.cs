@@ -16,6 +16,7 @@ namespace Automation.Shared.Data.Execution
     public class ClassTarget : TaskTarget
     {
         public string ClassFullName { get; set; } = "";
+        public string Dll { get; set; } = "";
     }
 
     /// <summary>
