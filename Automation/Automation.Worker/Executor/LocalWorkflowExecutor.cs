@@ -19,6 +19,12 @@ public class LocalWorkflowContext
     public AutomationWorkflow Workflow { get; }
 
     /// <summary>
+    /// Unique identifier for this workflow execution. All node instances created during
+    /// this execution share this id.
+    /// </summary>
+    public Guid WorkflowInstanceId { get; }
+
+    /// <summary>
     /// Shared context between tasks, initialized with the workflow parent context.
     /// </summary>
     public JToken? SharedToken { get; }
@@ -33,10 +39,11 @@ public class LocalWorkflowContext
     private readonly object _lock = new();
     private readonly WorkflowChanges? _changes;
 
-    public LocalWorkflowContext(AutomationWorkflow workflow, JToken? sharedToken = null, WorkflowChanges? changes = null)
+    public LocalWorkflowContext(AutomationWorkflow workflow, Guid? workflowInstanceId = null, JToken? sharedToken = null, WorkflowChanges? changes = null)
     {
         _changes = changes;
         Workflow = workflow;
+        WorkflowInstanceId = workflowInstanceId ?? Guid.NewGuid();
         SharedToken = sharedToken;
     }
 
@@ -45,6 +52,7 @@ public class LocalWorkflowContext
         var instance = new NodeInstance
         {
             GraphNodeId = node.Id,
+            WorkflowInstanceId = WorkflowInstanceId,
             TaskId = node.TaskId,
             Name = node.Name,
             Input = input,
@@ -140,13 +148,14 @@ public class LocalWorkflowExecutor
         AutomationWorkflow workflow,
         JToken? input,
         JToken? sharedToken = null,
+        Guid? workflowInstanceId = null,
         IProgress<TaskNotification>? notifications = null,
         CancellationToken? cancellation = null)
     {
         if (workflow.Graph.IsRefreshed == false)
             throw new Exception("The workflow graph should be refreshed before being executed.");
 
-        var context = new LocalWorkflowContext(workflow, sharedToken, changes: _changes);
+        var context = new LocalWorkflowContext(workflow, workflowInstanceId, sharedToken, changes: _changes);
 
         // Combine external cancellation with workflow's own CTS (used for StopAtFirstEnd)
         using var linkedCts = cancellation.HasValue
