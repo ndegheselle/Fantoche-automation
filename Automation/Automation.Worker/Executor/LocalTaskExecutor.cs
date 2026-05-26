@@ -1,4 +1,4 @@
-﻿using Automation.Plugins.Control;
+using Automation.Plugins.Control;
 using Automation.Plugins.Shared;
 using Automation.Shared.Data.Execution;
 using Automation.Shared.Data.Graph;
@@ -12,17 +12,36 @@ public class LocalExecutionContext
 {
     public JToken? Input { get; set; }
     public BaseGraphTask? GraphNode { get; set; }
+    public Guid? WorkflowInstanceId { get; set; }
+    /// <summary>
+    /// Pre-created Waiting instance to adopt instead of creating a new one (wait-all-inputs nodes).
+    /// </summary>
+    public NodeInstance? ExistingInstance { get; set; }
+    /// <summary>
+    /// Predecessor instances used for Previous/Nexts linking and context building.
+    /// </summary>
+    public IReadOnlyList<NodeInstance>? PreviousInstances { get; set; }
+    /// <summary>
+    /// Called whenever the node instance is created or its state changes.
+    /// </summary>
+    public Action<NodeInstance>? OnInstanceChange { get; set; }
+}
+
+public readonly struct NodeTaskOutput
+{
+    public TaskOutput Output { get; init; }
+    public NodeInstance? Instance { get; init; }
 }
 
 /// <summary>
-/// Execute a task localy
+/// Execute a task locally.
 /// </summary>
 public class LocalTaskExecutor : ITaskExecutor, IDisposable
 {
     private readonly IPackageManagement _packages;
     private readonly LocalWorkflowExecutor _workflowExecutor;
     /// <summary>
-    /// Task loader cached by DLL path
+    /// Task loaders cached by DLL path.
     /// </summary>
     private readonly Dictionary<string, TaskLoader> _cachedTaskLoaders = [];
 
@@ -38,26 +57,48 @@ public class LocalTaskExecutor : ITaskExecutor, IDisposable
             loader.Value.Dispose();
     }
 
-    public Task<TaskOutput> ExecuteAsync(
+    public async Task<TaskOutput> ExecuteAsync(
         BaseAutomationTask automationTask,
         JToken? input,
         IProgress<TaskNotification>? notifications = null,
         CancellationToken? cancellation = null)
     {
-        return ExecuteAsync(automationTask, new LocalExecutionContext()
-        {
-            Input = input,
-        }, notifications, cancellation);
+        var result = await ExecuteAsync(
+            automationTask,
+            new LocalExecutionContext { Input = input },
+            notifications,
+            cancellation);
+        return result.Output;
     }
 
-    public async Task<TaskOutput> ExecuteAsync(
+    public async Task<NodeTaskOutput> ExecuteAsync(
         BaseAutomationTask automationTask,
         LocalExecutionContext context,
         IProgress<TaskNotification>? notifications = null,
         CancellationToken? cancellation = null)
     {
-        TaskOutput output = new TaskOutput();
+        NodeInstance? instance = null;
 
+        if (context.GraphNode != null)
+        {
+            instance = context.ExistingInstance ?? new NodeInstance
+            {
+                GraphNodeId = context.GraphNode.Id,
+                WorkflowInstanceId = context.WorkflowInstanceId,
+                TaskId = context.GraphNode.TaskId,
+                Name = context.GraphNode.Name,
+            };
+
+            if (context.PreviousInstances != null)
+                foreach (var prev in context.PreviousInstances)
+                    instance.Link(prev);
+
+            instance.Input = context.Input;
+            instance.State = EnumTaskState.Progressing;
+            context.OnInstanceChange?.Invoke(instance);
+        }
+
+        TaskOutput output = new TaskOutput();
         try
         {
             if (context.Input == null)
@@ -78,25 +119,26 @@ public class LocalTaskExecutor : ITaskExecutor, IDisposable
                 AutomationWorkflow workflow => await ExecuteWorkflowAsync(workflow, context, notifications, cancellation),
                 _ => throw new Exception("Unknown task type.")
             };
-
         }
         catch (OperationCanceledException)
         {
-            output = new TaskOutput()
-            {
-                State = EnumTaskState.Canceled,
-            };
+            output = new TaskOutput { State = EnumTaskState.Canceled };
         }
         catch (Exception ex)
         {
-            output = new TaskOutput()
-            {
-                State = EnumTaskState.Failed,
-                OutputToken = ex.ToString()
-            };
+            output = new TaskOutput { State = EnumTaskState.Failed, OutputToken = JToken.FromObject(ex.ToString()) };
         }
 
-        return output;
+        if (instance != null)
+        {
+            instance.Output = output.OutputToken;
+            instance.State = output.State;
+            if ((output.State & EnumTaskState.Finished) != 0)
+                instance.FinishedAt = DateTime.UtcNow;
+            context.OnInstanceChange?.Invoke(instance);
+        }
+
+        return new NodeTaskOutput { Output = output, Instance = instance };
     }
 
     private async Task<TaskOutput> ExecuteTaskAsync(
@@ -113,9 +155,7 @@ public class LocalTaskExecutor : ITaskExecutor, IDisposable
 
         TaskLoader loader;
         if (_cachedTaskLoaders.TryGetValue(dllPath, out TaskLoader? cached))
-        {
             loader = cached;
-        }
         else
         {
             loader = new TaskLoader(dllPath);
