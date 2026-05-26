@@ -23,6 +23,11 @@ namespace Automation.Shared.Data.Execution
         public Guid? GraphNodeId { get; set; }
 
         /// <summary>
+        /// Id of the workflow instance that contains this node, null when standalone.
+        /// </summary>
+        public Guid? WorkflowInstanceId { get; set; }
+
+        /// <summary>
         /// Name of the node (used as key when building contexts).
         /// </summary>
         public string Name { get; set; } = string.Empty;
