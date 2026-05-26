@@ -1,12 +1,18 @@
+using System.Collections.Concurrent;
 using Automation.Plugins.Shared;
 using Automation.Shared.Data;
 using Automation.Shared.Data.Execution;
 using Automation.Shared.Data.Graph;
 using Automation.Shared.Data.Scoped;
 using Newtonsoft.Json.Linq;
-using System.Collections.Concurrent;
 
 namespace Automation.Worker.Executor;
+
+public struct WorkflowChanges
+{
+    public delegate void InstanceChangeDelegate(NodeInstance instance);
+    public InstanceChangeDelegate OnInstanceChange { get; set; }
+}
 
 public class LocalWorkflowContext
 {
@@ -25,9 +31,11 @@ public class LocalWorkflowContext
     public CancellationTokenSource WorkflowCts { get; } = new();
 
     private readonly object _lock = new();
+    private readonly WorkflowChanges? _changes;
 
-    public LocalWorkflowContext(AutomationWorkflow workflow, JToken? sharedToken = null)
+    public LocalWorkflowContext(AutomationWorkflow workflow, JToken? sharedToken = null, WorkflowChanges? changes = null)
     {
+        _changes = changes;
         Workflow = workflow;
         SharedToken = sharedToken;
     }
@@ -54,7 +62,7 @@ public class LocalWorkflowContext
             list.Add(instance);
         }
 
-        // TODO : call event to notify instance change
+        _changes?.OnInstanceChange(instance);
 
         return instance;
     }
@@ -65,7 +73,7 @@ public class LocalWorkflowContext
         instance.Output = output;
         instance.State = state;
 
-        // TODO : call event to notify instance change
+        _changes?.OnInstanceChange(instance);
         return instance;
     }
 
@@ -103,7 +111,7 @@ public class LocalWorkflowContext
         lock (_lock)
         {
             List<NodeInstance> previousInstances = [];
-            foreach(var p in previous)
+            foreach (var p in previous)
             {
                 var previousInstance = GetLastNodeInstance(p, EnumTaskState.Completed);
                 // If one of the previous doesn't have a completed node instance we stop there
@@ -120,10 +128,12 @@ public class LocalWorkflowContext
 public class LocalWorkflowExecutor
 {
     private readonly LocalTaskExecutor _executor;
+    private readonly WorkflowChanges? _changes;
 
-    public LocalWorkflowExecutor(LocalTaskExecutor executor)
+    public LocalWorkflowExecutor(LocalTaskExecutor executor, WorkflowChanges? changes)
     {
         _executor = executor;
+        _changes = changes;
     }
 
     public async Task<TaskOutput> ExecuteAsync(
@@ -136,7 +146,7 @@ public class LocalWorkflowExecutor
         if (workflow.Graph.IsRefreshed == false)
             throw new Exception("The workflow graph should be refreshed before being executed.");
 
-        var context = new LocalWorkflowContext(workflow, sharedToken);
+        var context = new LocalWorkflowContext(workflow, sharedToken, changes: _changes);
 
         // Combine external cancellation with workflow's own CTS (used for StopAtFirstEnd)
         using var linkedCts = cancellation.HasValue
@@ -257,6 +267,7 @@ public class LocalWorkflowExecutor
 
     private TaskOutput EndAsync(LocalWorkflowContext context, IReadOnlyList<NodeInstance> endInstances)
     {
+        // TODO : return failed and handle task instance on the level of the workflow
         if (context.Workflow.OutputSchema != null && endInstances.Count == 0)
             throw new Exception("Reached end of workflow without data.");
 

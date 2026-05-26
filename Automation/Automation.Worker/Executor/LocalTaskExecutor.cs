@@ -25,9 +25,9 @@ public class LocalTaskExecutor : ITaskExecutor, IDisposable
     /// </summary>
     private readonly Dictionary<string, TaskLoader> _cachedTaskLoaders = [];
 
-    public LocalTaskExecutor(IPackageManagement packageManagement)
+    public LocalTaskExecutor(IPackageManagement packageManagement, WorkflowChanges? changes)
     {
-        _workflowExecutor = new LocalWorkflowExecutor(this);
+        _workflowExecutor = new LocalWorkflowExecutor(this, changes);
         _packages = packageManagement;
     }
 
@@ -79,7 +79,7 @@ public class LocalTaskExecutor : ITaskExecutor, IDisposable
             };
 
         }
-        catch(OperationCanceledException)
+        catch (OperationCanceledException)
         {
             output = new TaskOutput()
             {

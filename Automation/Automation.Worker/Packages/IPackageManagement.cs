@@ -1,8 +1,5 @@
-﻿using Automation.Models.Work;
-using Automation.Plugins.Shared;
-using Automation.Shared.Base;
+﻿using Automation.Shared.Base;
 using Automation.Shared.Data.Execution;
-using NuGet.Versioning;
 
 namespace Automation.Worker.Packages
 {
