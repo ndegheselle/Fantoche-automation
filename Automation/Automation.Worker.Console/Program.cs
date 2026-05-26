@@ -1,4 +1,4 @@
-﻿using Automation.Plugins.Tasks;
+﻿using Automation.Plugins;
 using Automation.Shared.Data.Execution;
 using Automation.Shared.Data.Graph;
 using Automation.Shared.Data.Scoped;
@@ -13,7 +13,7 @@ AutomationTask delayTask = new AutomationTask()
     Target = new PackageClassTarget()
     {
         Dll = "Automation.Plugins",
-        ClassFullName = "Automation.Plugins.Tasks.TestDelay",
+        ClassFullName = "Automation.Plugins.TestDelay",
         Package = new PackageIdentifier()
         {
             Identifier = "Automation.Plugins",
@@ -33,7 +33,7 @@ AutomationTask testTask = new AutomationTask()
     Target = new PackageClassTarget()
     {
         Dll = "Automation.Plugins",
-        ClassFullName = "Automation.Plugins.Tasks.TestTask",
+        ClassFullName = "Automation.Plugins.TestTask",
         Package = new PackageIdentifier()
         {
             Identifier = "Automation.Plugins",

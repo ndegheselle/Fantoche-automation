@@ -1,7 +1,6 @@
-﻿using System.Reflection;
+﻿using Automation.Plugins.Shared;
+using System.Reflection;
 using System.Runtime.Loader;
-using Automation.Plugins.Shared;
-using Automation.Shared.Data;
 
 namespace Automation.Worker.Packages;
 
@@ -18,9 +17,11 @@ public class PluginLoader<TPlugin>: AssemblyLoadContext, IDisposable where TPlug
 
     protected override Assembly? Load(AssemblyName assemblyName)
     {
-        // Force shared assemblies to load from the default context
+        // Force shared assemblies to load from the default context so that
+        // interface types (e.g. ITask) are identical to the host's copies.
         if (assemblyName.Name == "System.Runtime" ||
-            assemblyName.Name?.StartsWith("System.") == true)
+            assemblyName.Name?.StartsWith("System.") == true ||
+            Default.Assemblies.Any(a => a.GetName().Name == assemblyName.Name))
             return null; // Fall back to default context
         
         // Let the resolver find the dependency path
@@ -45,7 +46,7 @@ public class PluginLoader<TPlugin>: AssemblyLoadContext, IDisposable where TPlug
         Type type = assembly.GetType(className) ?? throw new Exception($"Could not get type [{className}].");
 
         if (!typeof(TPlugin).IsAssignableFrom(type))
-            throw new Exception($"Type [{className}] does not implement [{nameof(TPlugin)}] interface.");
+            throw new Exception($"Type [{className}] does not implement [{typeof(TPlugin)}] interface.");
 
         TPlugin instance = (Activator.CreateInstance(type) as TPlugin)
                           ?? throw new Exception($"Failed to create instance of type [{className}].");

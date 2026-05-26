@@ -1,6 +1,6 @@
 ﻿using Automation.Plugins.Shared;
 
-namespace Automation.Plugins.Tasks;
+namespace Automation.Plugins;
 
 public class TestDelayParameters
 {
