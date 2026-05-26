@@ -17,14 +17,14 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
     {
         public IModal? ParentLayout { get; set; }
         public ModalOptions Options { get; } = new ModalOptions() { Title = "Instance detail" };
-        public TaskInstance Instance { get; private set; }
+        public NodeInstance Instance { get; private set; }
 
         public string ContextJson { get; set; } = "";
         public string ResultJson { get; set; } = "";
 
         private readonly TaskInstancesClient _instanceClient;
 
-        public InstanceDetailModal(TaskInstance instance)
+        public InstanceDetailModal(NodeInstance instance)
         {
             _instanceClient = Services.Provider.GetRequiredService<TaskInstancesClient>();
             Instance = instance;

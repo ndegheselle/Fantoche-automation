@@ -26,7 +26,7 @@ namespace Automation.Supervisor.Api.Controllers
         /// <summary>
         /// Local executor to simplify debugging.
         /// </summary>
-        private readonly LocalTaskExecutor _localExecutor;
+        private readonly LocalNodeExecutor _localExecutor;
         private readonly IPackageManagement _packageManagement;
 
         public TasksController(DatabaseConnection connection, RealtimeClients realtimeClients, IPackageManagement packageManagement) : base(new TasksRepository(connection))
@@ -95,13 +95,13 @@ namespace Automation.Supervisor.Api.Controllers
 
         [HttpPost]
         [Route("{id:guid}/execute")]
-        public async Task<TaskInstance> ExecuteAsync([FromRoute] Guid id, [FromBody] JsonElement? input, [FromQuery] bool startFromSupervisor = false)
+        public async Task<NodeInstance> ExecuteAsync([FromRoute] Guid id, [FromBody] JsonElement? input, [FromQuery] bool startFromSupervisor = false)
         {
             var data = new TaskInstanceData();
             if (input != null)
                 data.InputToken = input.Value.GetRawText();
 
-            TaskInstance instance = new TaskInstance(id) {Data = data };
+            NodeInstance instance = new NodeInstance(id) {Data = data };
             
             if (startFromSupervisor)
                 return await _localExecutor.ExecuteAsync(instance);
@@ -110,7 +110,7 @@ namespace Automation.Supervisor.Api.Controllers
 
         [HttpGet]
         [Route("{id:guid}/instances")]
-        public async Task<ListPageWrapper<TaskInstance>> GetInstancesAsync([FromRoute] Guid id, [FromQuery] int page, [FromQuery] int pageSize)
+        public async Task<ListPageWrapper<NodeInstance>> GetInstancesAsync([FromRoute] Guid id, [FromQuery] int page, [FromQuery] int pageSize)
         {
             return await _taskInstanceRepo.GetByTaskAsync(id, page, pageSize);
         }

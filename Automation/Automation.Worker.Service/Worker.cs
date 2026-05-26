@@ -14,7 +14,7 @@ namespace Automation.Worker.Service
     public class Worker : BackgroundService
     {
         private readonly TaskInstancesRepository _instanceRepo;
-        private readonly LocalTaskExecutor _executor;
+        private readonly LocalNodeExecutor _executor;
         private readonly WorkerRealtimeClient _workerClient;
 
         private TaskCompletionSource? _waitingForTask;
@@ -43,7 +43,7 @@ namespace Automation.Worker.Service
                     taskId = await _workerClient.Tasks.DequeueAsync();
                     if (taskId != null)
                     {
-                        TaskInstance instance = await _instanceRepo.GetByIdAsync(taskId.Value);
+                        NodeInstance instance = await _instanceRepo.GetByIdAsync(taskId.Value);
                         await _executor.ExecuteAsync(instance);
                     }
                 } while (taskId != null);

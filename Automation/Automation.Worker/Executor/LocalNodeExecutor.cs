@@ -11,32 +11,14 @@ namespace Automation.Worker.Executor;
 public class LocalExecutionContext
 {
     public JToken? Input { get; set; }
-    public BaseGraphTask? GraphNode { get; set; }
-    public Guid? WorkflowInstanceId { get; set; }
-    /// <summary>
-    /// Pre-created Waiting instance to adopt instead of creating a new one (wait-all-inputs nodes).
-    /// </summary>
-    public NodeInstance? ExistingInstance { get; set; }
-    /// <summary>
-    /// Predecessor instances used for Previous/Nexts linking and context building.
-    /// </summary>
-    public IReadOnlyList<NodeInstance>? PreviousInstances { get; set; }
-    /// <summary>
-    /// Called whenever the node instance is created or its state changes.
-    /// </summary>
-    public Action<NodeInstance>? OnInstanceChange { get; set; }
-}
-
-public readonly struct NodeTaskOutput
-{
-    public TaskOutput Output { get; init; }
-    public NodeInstance? Instance { get; init; }
+    public JToken? Shared { get; set; }
+    public BaseGraphTask? CurrentNode { get; set; }
 }
 
 /// <summary>
-/// Execute a task locally.
+/// Handle the concrete execution of a task
 /// </summary>
-public class LocalTaskExecutor : ITaskExecutor, IDisposable
+public class LocalNodeExecutor : IDisposable
 {
     private readonly IPackageManagement _packages;
     private readonly LocalWorkflowExecutor _workflowExecutor;
@@ -45,9 +27,9 @@ public class LocalTaskExecutor : ITaskExecutor, IDisposable
     /// </summary>
     private readonly Dictionary<string, TaskLoader> _cachedTaskLoaders = [];
 
-    public LocalTaskExecutor(IPackageManagement packageManagement, WorkflowChanges? changes)
+    public LocalNodeExecutor(IPackageManagement packageManagement, LocalWorkflowExecutor workflowExecutor)
     {
-        _workflowExecutor = new LocalWorkflowExecutor(this, changes);
+        _workflowExecutor = workflowExecutor;
         _packages = packageManagement;
     }
 
@@ -57,48 +39,25 @@ public class LocalTaskExecutor : ITaskExecutor, IDisposable
             loader.Value.Dispose();
     }
 
-    public async Task<TaskOutput> ExecuteAsync(
+    public Task<TaskOutput> ExecuteAsync(
         BaseAutomationTask automationTask,
         JToken? input,
         IProgress<TaskNotification>? notifications = null,
         CancellationToken? cancellation = null)
     {
-        var result = await ExecuteAsync(
+        return ExecuteAsync(
             automationTask,
             new LocalExecutionContext { Input = input },
             notifications,
             cancellation);
-        return result.Output;
     }
 
-    public async Task<NodeTaskOutput> ExecuteAsync(
+    public async Task<TaskOutput> ExecuteAsync(
         BaseAutomationTask automationTask,
         LocalExecutionContext context,
         IProgress<TaskNotification>? notifications = null,
         CancellationToken? cancellation = null)
     {
-        NodeInstance? instance = null;
-
-        if (context.GraphNode != null)
-        {
-            instance = context.ExistingInstance ?? new NodeInstance
-            {
-                GraphNodeId = context.GraphNode.Id,
-                WorkflowInstanceId = context.WorkflowInstanceId,
-                TaskId = context.GraphNode.TaskId,
-                Name = context.GraphNode.Name,
-            };
-
-            if (context.PreviousInstances != null)
-                foreach (var prev in context.PreviousInstances)
-                    instance.Link(prev);
-
-            instance.Input = context.Input;
-            instance.State = EnumTaskState.Progressing;
-            context.OnInstanceChange?.Invoke(instance);
-        }
-
-        TaskOutput output = new TaskOutput();
         try
         {
             if (context.Input == null)
@@ -113,7 +72,7 @@ public class LocalTaskExecutor : ITaskExecutor, IDisposable
                     throw new Exception($"Input doesn't correspond to schema : {string.Join(", ", errors)}");
             }
 
-            output = automationTask switch
+            return automationTask switch
             {
                 AutomationTask task => await ExecuteTaskAsync(task, context, notifications, cancellation),
                 AutomationWorkflow workflow => await ExecuteWorkflowAsync(workflow, context, notifications, cancellation),
@@ -122,23 +81,12 @@ public class LocalTaskExecutor : ITaskExecutor, IDisposable
         }
         catch (OperationCanceledException)
         {
-            output = new TaskOutput { State = EnumTaskState.Canceled };
+            return new TaskOutput { State = EnumTaskState.Canceled };
         }
         catch (Exception ex)
         {
-            output = new TaskOutput { State = EnumTaskState.Failed, OutputToken = JToken.FromObject(ex.ToString()) };
+            return new TaskOutput { State = EnumTaskState.Failed, OutputToken = JToken.FromObject(ex.ToString()) };
         }
-
-        if (instance != null)
-        {
-            instance.Output = output.OutputToken;
-            instance.State = output.State;
-            if ((output.State & EnumTaskState.Finished) != 0)
-                instance.FinishedAt = DateTime.UtcNow;
-            context.OnInstanceChange?.Invoke(instance);
-        }
-
-        return new NodeTaskOutput { Output = output, Instance = instance };
     }
 
     private async Task<TaskOutput> ExecuteTaskAsync(
@@ -168,8 +116,8 @@ public class LocalTaskExecutor : ITaskExecutor, IDisposable
         if (context.Input != null && task.Input?.Type != null)
             parameter = context.Input.ToObject(task.Input.Type);
 
-        if (task is ITaskControl && context.GraphNode != null)
-            parameter = new ControlContext(context.GraphNode, parameter);
+        if (task is ITaskControl && context.CurrentNode != null)
+            parameter = new ControlContext(context.CurrentNode, parameter);
 
         var result = await task.DoAsync(parameter, notifications, cancellation);
 
@@ -194,6 +142,6 @@ public class LocalTaskExecutor : ITaskExecutor, IDisposable
         IProgress<TaskNotification>? progress = null,
         CancellationToken? cancellation = null)
     {
-        return _workflowExecutor.ExecuteAsync(automationWorkflow, context.Input, null, progress, cancellation);
+        return _workflowExecutor.ExecuteAsync(automationWorkflow, context.Input, context.Shared, progress, cancellation);
     }
 }

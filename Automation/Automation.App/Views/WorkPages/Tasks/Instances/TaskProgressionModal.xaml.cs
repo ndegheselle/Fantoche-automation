@@ -18,13 +18,13 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
         
         private readonly TaskProgressHubClient _taskProgressHubClient;
 
-        public TaskInstance Instance { get; private set; }
+        public NodeInstance Instance { get; private set; }
         public ObservableCollection<TaskInstanceNotification> ProgressMessages { get; private set; } = [];
 
         public IModal? ParentLayout { get; set; }
         public ModalOptions Options { get; private set; } = new ModalOptions() { Title = "Task progression" };
 
-        public TaskProgressionModal(TaskInstance instance)
+        public TaskProgressionModal(NodeInstance instance)
         {
             _taskProgressHubClient = Services.Provider.GetRequiredService<TaskProgressHubClient>();
 

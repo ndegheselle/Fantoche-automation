@@ -20,17 +20,16 @@ namespace Automation.Shared.Data.Execution
         /// <summary>
         /// Id of the graph node when the instance comes from a workflow, null when standalone.
         /// </summary>
-        public Guid? GraphNodeId { get; set; }
-
+        public Guid? NodeId { get; set; }
         /// <summary>
         /// Id of the workflow instance that contains this node, null when standalone.
         /// </summary>
-        public Guid? WorkflowInstanceId { get; set; }
+        public Guid? ParentInstanceId { get; set; }
 
         /// <summary>
         /// Name of the node (used as key when building contexts).
         /// </summary>
-        public string Name { get; set; } = string.Empty;
+        public string NodeName { get; set; } = string.Empty;
 
         public JToken? Input { get; set; }
         public JToken? Output { get; set; }

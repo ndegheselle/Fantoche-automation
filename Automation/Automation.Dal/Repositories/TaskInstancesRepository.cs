@@ -6,7 +6,7 @@ using MongoDB.Driver;
 
 namespace Automation.Dal.Repositories
 {
-    public sealed class TaskInstancesRepository : BaseCrudRepository<TaskInstance>
+    public sealed class TaskInstancesRepository : BaseCrudRepository<NodeInstance>
     {
         public TaskInstancesRepository(DatabaseConnection connection) : base(connection, "instances")
         {
@@ -17,25 +17,25 @@ namespace Automation.Dal.Repositories
         /// </summary>
         /// <param name="activeWorkersId">Ids of the active workers</param>
         /// <returns>List of task instance than are ynhandled</returns>
-        public async Task<IEnumerable<TaskInstance>> GetUnhandledAsync(IEnumerable<string> activeWorkersId)
+        public async Task<IEnumerable<NodeInstance>> GetUnhandledAsync(IEnumerable<string> activeWorkersId)
         {
-            var filter = Builders<TaskInstance>.Filter
+            var filter = Builders<NodeInstance>.Filter
                 .And(
-                    Builders<TaskInstance>.Filter.Nin(x => x.WorkerId, activeWorkersId),
+                    Builders<NodeInstance>.Filter.Nin(x => x.WorkerId, activeWorkersId),
                     // XXX : reassign task in progress ? Atomicity of the task data (database, file, ...) ?
-                    Builders<TaskInstance>.Filter.In(x => x.State, [EnumTaskState.Pending, EnumTaskState.Waiting, EnumTaskState.Progressing]));
+                    Builders<NodeInstance>.Filter.In(x => x.State, [EnumTaskState.Pending, EnumTaskState.Waiting, EnumTaskState.Progressing]));
 
             return await _collection.Find(filter).ToListAsync();
         }
 
-        public async Task<ListPageWrapper<TaskInstance>> GetByTaskAsync(Guid taskId, int page, int pageSize)
+        public async Task<ListPageWrapper<NodeInstance>> GetByTaskAsync(Guid taskId, int page, int pageSize)
         {
             var instances = await _collection.Find(e => e.TaskId == taskId)
                 .Skip(page * pageSize)
                 .Limit(pageSize)
                 .ToListAsync();
 
-            return new ListPageWrapper<TaskInstance>()
+            return new ListPageWrapper<NodeInstance>()
             {
                 Data = instances,
                 Page = page,
@@ -51,19 +51,19 @@ namespace Automation.Dal.Repositories
         /// <param name="page"></param>
         /// <param name="pageSize"></param>
         /// <returns></returns>
-        public async Task<ListPageWrapper<TaskInstance>> GetByScopeAsync(Guid scopeId, int page, int pageSize)
+        public async Task<ListPageWrapper<NodeInstance>> GetByScopeAsync(Guid scopeId, int page, int pageSize)
         {
             TasksRepository taskRepo = new TasksRepository(_connection);
             var tasks = await taskRepo.GetByAnyParentScopeAsync(scopeId);
 
-            var filter = Builders<TaskInstance>.Filter.In(x => x.TaskId, tasks.Select(x => x.Id));
+            var filter = Builders<NodeInstance>.Filter.In(x => x.TaskId, tasks.Select(x => x.Id));
             // We don't load context and result since it may be quite expensive
             var instances = await _collection.Find(filter)
                 .Skip(page * pageSize)
                 .Limit(pageSize)
                 .ToListAsync();
 
-            return new ListPageWrapper<TaskInstance>()
+            return new ListPageWrapper<NodeInstance>()
             {
                 Data = instances,
                 Page = page,

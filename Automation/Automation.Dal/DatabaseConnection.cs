@@ -157,7 +157,7 @@ namespace Automation.Dal
                     cm.UnmapMember(m => m.Target);
                 });
 
-            BsonClassMap.RegisterClassMap<TaskInstance>(
+            BsonClassMap.RegisterClassMap<NodeInstance>(
                 cm =>
                 {
                     cm.AutoMap();

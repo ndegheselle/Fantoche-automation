@@ -103,7 +103,7 @@ public class GraphExecutionContext
         {
             var byName = new Dictionary<string, JToken?>();
             foreach (var instance in previousInstances)
-                byName[instance.Name] = instance.Output;
+                byName[instance.NodeName] = instance.Output;
             return GenerateContextFrom(byName, context);
         }
 

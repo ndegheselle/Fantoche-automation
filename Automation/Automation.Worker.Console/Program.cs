@@ -112,9 +112,9 @@ workflow.Graph.Refresh(tasks);
 string nuggetLocalPath = Path.Join(Directory.GetCurrentDirectory(), "nugetlocal");
 LocalPackageManagement packages = new LocalPackageManagement(nuggetLocalPath);
 
-LocalTaskExecutor executor = new LocalTaskExecutor(packages, new WorkflowChanges()
+LocalNodeExecutor executor = new LocalNodeExecutor(packages, new WorkflowChanges()
 {
-    OnInstanceChange = (instance) => Console.WriteLine($"{instance.Name} {instance.State} {instance.Output}")
+    OnInstanceChange = (instance) => Console.WriteLine($"{instance.NodeName} {instance.State} {instance.Output}")
 });
 
 // TODO : change how workflow control task are handled so that it can change flow and state of the workflow
