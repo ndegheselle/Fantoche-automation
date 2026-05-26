@@ -255,7 +255,7 @@ public class LocalWorkflowExecutor
         {
             var output = await _executor.ExecuteAsync(
                 task.AutomationTask ?? throw new Exception("Workflow tasks are not loaded (is the graph refreshed?)."),
-                input,
+                new LocalExecutionContext { Input = input, GraphNode = task },
                 null,
                 cancellation);
 

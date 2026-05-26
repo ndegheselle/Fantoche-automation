@@ -1,4 +1,5 @@
-﻿using Automation.Plugins.Shared;
+﻿using Automation.Plugins.Control;
+using Automation.Plugins.Shared;
 using Automation.Shared.Data.Execution;
 using Automation.Shared.Data.Graph;
 using Automation.Shared.Data.Scoped;
@@ -127,12 +128,22 @@ public class LocalTaskExecutor : ITaskExecutor, IDisposable
         if (context.Input != null && task.Input?.Type != null)
             parameter = context.Input.ToObject(task.Input.Type);
 
+        if (task is ITaskControl && context.GraphNode != null)
+            parameter = new ControlContext(context.GraphNode, parameter);
+
         var result = await task.DoAsync(parameter, notifications, cancellation);
 
-        TaskOutput output = new TaskOutput();
-        if (result != null)
+        TaskOutput output = new TaskOutput { State = EnumTaskState.Completed };
+        if (result is ControlOutput controlOutput)
+        {
+            if (controlOutput.Result != null)
+                output.OutputToken = JToken.FromObject(controlOutput.Result);
+            output.ActiveOutputConnectorIds = controlOutput.ActiveOutputConnectorIds;
+        }
+        else if (result != null)
+        {
             output.OutputToken = JToken.FromObject(result);
-        output.State = EnumTaskState.Completed;
+        }
 
         return output;
     }
