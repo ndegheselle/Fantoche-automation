@@ -26,11 +26,11 @@ namespace Automation.App.Views.WorkPages.Tasks
 
         public AutomationTask Task { get { return (AutomationTask)GetValue(TaskProperty); } set { SetValue(TaskProperty, value); } }
 
-        public ListPageWrapper<NodeInstance> Instances
+        public ListPageWrapper<TaskInstance> Instances
         {
             get;
             set;
-        } = new ListPageWrapper<NodeInstance>() { PageSize = 50, Page = 1 };
+        } = new ListPageWrapper<TaskInstance>() { PageSize = 50, Page = 1 };
 
         private bool _isAlreadyLoaded = false;
         

@@ -95,13 +95,13 @@ namespace Automation.Supervisor.Api.Controllers
 
         [HttpPost]
         [Route("{id:guid}/execute")]
-        public async Task<NodeInstance> ExecuteAsync([FromRoute] Guid id, [FromBody] JsonElement? input, [FromQuery] bool startFromSupervisor = false)
+        public async Task<TaskInstance> ExecuteAsync([FromRoute] Guid id, [FromBody] JsonElement? input, [FromQuery] bool startFromSupervisor = false)
         {
             var data = new TaskInstanceData();
             if (input != null)
                 data.InputToken = input.Value.GetRawText();
 
-            NodeInstance instance = new NodeInstance(id) {Data = data };
+            TaskInstance instance = new TaskInstance(id) {Data = data };
             
             if (startFromSupervisor)
                 return await _localExecutor.ExecuteAsync(instance);
@@ -110,7 +110,7 @@ namespace Automation.Supervisor.Api.Controllers
 
         [HttpGet]
         [Route("{id:guid}/instances")]
-        public async Task<ListPageWrapper<NodeInstance>> GetInstancesAsync([FromRoute] Guid id, [FromQuery] int page, [FromQuery] int pageSize)
+        public async Task<ListPageWrapper<TaskInstance>> GetInstancesAsync([FromRoute] Guid id, [FromQuery] int page, [FromQuery] int pageSize)
         {
             return await _taskInstanceRepo.GetByTaskAsync(id, page, pageSize);
         }

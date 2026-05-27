@@ -63,7 +63,7 @@ public class GraphExecutionContext
     /// <summary>
     /// Combine the outputs of all reached end node instances into a single workflow output token.
     /// </summary>
-    public JToken? CombineEndOutputs(IReadOnlyList<NodeInstance> endInstances, WorkflowSettings settings)
+    public JToken? CombineEndOutputs(IReadOnlyList<TaskInstance> endInstances, WorkflowSettings settings)
     {
         if (endInstances.Count == 0)
             return null;
@@ -94,7 +94,7 @@ public class GraphExecutionContext
     /// If the task waits for all inputs the context is keyed by previous node name,
     /// otherwise the single previous output is used as-is.
     /// </summary>
-    public JObject GetContextFor(BaseGraphTask task, IReadOnlyList<NodeInstance> previousInstances, JToken? context)
+    public JObject GetContextFor(BaseGraphTask task, IReadOnlyList<TaskInstance> previousInstances, JToken? context)
     {
         if (previousInstances.Count == 0 && context == null)
             return GenerateEmptyContext();

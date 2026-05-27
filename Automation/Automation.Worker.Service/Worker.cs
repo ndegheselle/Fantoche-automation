@@ -43,7 +43,7 @@ namespace Automation.Worker.Service
                     taskId = await _workerClient.Tasks.DequeueAsync();
                     if (taskId != null)
                     {
-                        NodeInstance instance = await _instanceRepo.GetByIdAsync(taskId.Value);
+                        TaskInstance instance = await _instanceRepo.GetByIdAsync(taskId.Value);
                         await _executor.ExecuteAsync(instance);
                     }
                 } while (taskId != null);

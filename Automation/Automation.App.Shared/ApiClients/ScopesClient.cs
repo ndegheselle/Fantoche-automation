@@ -21,13 +21,13 @@ namespace Automation.App.Shared.ApiClients
                 throw new ApiException("Could not get the parents scopes.");
         }
 
-        public async Task<ListPageWrapper<NodeInstance>> GetInstancesAsync(Guid scopeId, int page, int pageSize)
+        public async Task<ListPageWrapper<TaskInstance>> GetInstancesAsync(Guid scopeId, int page, int pageSize)
         {
-            return await _client.GetAsync<ListPageWrapper<NodeInstance>>(
+            return await _client.GetAsync<ListPageWrapper<TaskInstance>>(
                     new RestRequest($"{_routeBase}/{scopeId}/instances")
                 .AddParameter("page", page)
                 .AddParameter("pageSize", pageSize)) ??
-                new ListPageWrapper<NodeInstance>();
+                new ListPageWrapper<TaskInstance>();
         }
     }
 }

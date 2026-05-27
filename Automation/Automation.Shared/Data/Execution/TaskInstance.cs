@@ -8,7 +8,7 @@ namespace Automation.Shared.Data.Execution
     /// be linked to siblings via <see cref="Previous"/>/<see cref="Nexts"/> to form
     /// the execution tree of a workflow.
     /// </summary>
-    public class NodeInstance
+    public class TaskInstance
     {
         public Guid Id { get; set; } = Guid.NewGuid();
 
@@ -34,20 +34,20 @@ namespace Automation.Shared.Data.Execution
         public JToken? Input { get; set; }
         public JToken? Output { get; set; }
 
-        public List<NodeInstance> Previous { get; set; } = [];
-        public List<NodeInstance> Nexts { get; set; } = [];
+        public List<TaskInstance> Previous { get; set; } = [];
+        public List<TaskInstance> Nexts { get; set; } = [];
 
         public EnumTaskState State { get; set; }
 
         public DateTime CreatedAt { get; set; }
         public DateTime? FinishedAt { get; set; }
 
-        public NodeInstance()
+        public TaskInstance()
         {
             CreatedAt = DateTime.UtcNow;
         }
 
-        public void Link(NodeInstance previous)
+        public void Link(TaskInstance previous)
         {
             this.Previous.Add(previous);
             previous.Nexts.Add(this);

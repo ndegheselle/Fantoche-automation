@@ -31,7 +31,7 @@ namespace Automation.App.Views.WorkPages.Tasks.Instances
 
         private async void ButtonExecute_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            NodeInstance instance = await _taskClient.ExecuteAsync(Task.Id, JsonSettings);
+            TaskInstance instance = await _taskClient.ExecuteAsync(Task.Id, JsonSettings);
             ParentLayout?.Hide(true);
             ParentLayout?.Show(new TaskProgressionModal(instance));
         }

@@ -11,7 +11,7 @@ namespace Automation.Worker.Executor;
 
 public struct WorkflowChanges
 {
-    public delegate void InstanceChangeDelegate(NodeInstance instance);
+    public delegate void InstanceChangeDelegate(TaskInstance instance);
     public InstanceChangeDelegate OnInstanceChange { get; set; }
 }
 
@@ -19,7 +19,7 @@ public class LocalWorkflowContext
 {
     public AutomationWorkflow Workflow { get; }
 
-    public NodeInstance WorkflowInstance { get; }
+    public TaskInstance WorkflowInstance { get; }
 
     /// <summary>
     /// Shared context between tasks, initialized with the workflow parent context.
@@ -29,7 +29,7 @@ public class LocalWorkflowContext
     /// <summary>
     /// Instances created during this workflow execution, indexed by graph node id.
     /// </summary>
-    public ConcurrentDictionary<Guid, List<NodeInstance>> NodeInstances { get; } = [];
+    public ConcurrentDictionary<Guid, List<TaskInstance>> NodeInstances { get; } = [];
 
     public CancellationTokenSource WorkflowCts { get; } = new();
 
@@ -41,19 +41,19 @@ public class LocalWorkflowContext
         _changes = changes;
         Workflow = workflow;
         SharedToken = sharedToken;
-        WorkflowInstance = new NodeInstance()
+        WorkflowInstance = new TaskInstance()
         {
             ParentInstanceId = parentWorkflowInstanceId,
             TaskId = workflow.Id,
-            State = EnumTaskState.Progressing
+            State = EnumTaskState.Progressing,
         };
 
         _changes?.OnInstanceChange(WorkflowInstance);
     }
 
-    public NodeInstance CreateInstance(BaseGraphTask node, JToken? input, EnumTaskState state = EnumTaskState.Pending, NodeInstance? previous = null)
+    public TaskInstance CreateInstance(BaseGraphTask node, JToken? input, EnumTaskState state = EnumTaskState.Pending, TaskInstance? previous = null)
     {
-        var instance = new NodeInstance
+        var instance = new TaskInstance
         {
             ParentInstanceId = WorkflowInstance.Id,
             TaskId = node.TaskId,
@@ -79,7 +79,7 @@ public class LocalWorkflowContext
         return instance;
     }
 
-    public NodeInstance UpdateInstance(NodeInstance instance, JToken? input, JToken? output, EnumTaskState state)
+    public TaskInstance UpdateInstance(TaskInstance instance, JToken? input, JToken? output, EnumTaskState state)
     {
         instance.Input = input;
         instance.Output = output;
@@ -89,7 +89,7 @@ public class LocalWorkflowContext
         return instance;
     }
 
-    public NodeInstance? GetLastNodeInstance(BaseGraphTask node, EnumTaskState state)
+    public TaskInstance? GetLastNodeInstance(BaseGraphTask node, EnumTaskState state)
     {
         lock (_lock)
         {
@@ -98,7 +98,7 @@ public class LocalWorkflowContext
         }
     }
 
-    public NodeInstance GetOrCreateWaitingInstance(BaseGraphTask node, NodeInstance previousInstance)
+    public TaskInstance GetOrCreateWaitingInstance(BaseGraphTask node, TaskInstance previousInstance)
     {
         lock (_lock)
         {
@@ -117,12 +117,12 @@ public class LocalWorkflowContext
     /// (transitions to Progressing) when all predecessors have run. Returns the claimed instance
     /// to exactly one caller; all others get null.
     /// </summary>
-    public IReadOnlyList<NodeInstance>? TryGetAllPrevious(BaseGraphTask node)
+    public IReadOnlyList<TaskInstance>? TryGetAllPrevious(BaseGraphTask node)
     {
         var previous = Workflow.Graph.GetPrevious(node);
         lock (_lock)
         {
-            List<NodeInstance> previousInstances = [];
+            List<TaskInstance> previousInstances = [];
             foreach (var p in previous)
             {
                 var previousInstance = GetLastNodeInstance(p, EnumTaskState.Completed);
@@ -166,7 +166,7 @@ public class LocalWorkflowExecutor
             : null;
         var token = (CancellationToken?)(linkedCts?.Token ?? context.WorkflowCts.Token);
 
-        var startTasks = new List<Task<IReadOnlyList<NodeInstance>>>();
+        var startTasks = new List<Task<IReadOnlyList<TaskInstance>>>();
         foreach (var start in workflow.Graph.GetStartNodes())
         {
             startTasks.Add(NextAsync(start, startInstance, context, null, token));
@@ -177,9 +177,9 @@ public class LocalWorkflowExecutor
         return EndAsync(context, endInstances);
     }
 
-    private async Task<IReadOnlyList<NodeInstance>> NextAsync(
+    private async Task<IReadOnlyList<TaskInstance>> NextAsync(
         BaseGraphTask current,
-        NodeInstance currentInstance,
+        TaskInstance currentInstance,
         LocalWorkflowContext context,
         HashSet<Guid>? activeOutputConnectorIds,
         CancellationToken? cancellation)
@@ -190,8 +190,8 @@ public class LocalWorkflowExecutor
         if (activeOutputConnectorIds != null)
             nextPairs = nextPairs.Where(x => activeOutputConnectorIds.Contains(x.SourceConnector.Id));
 
-        var endInstances = new List<NodeInstance>();
-        var branches = new List<Task<IReadOnlyList<NodeInstance>>>();
+        var endInstances = new List<TaskInstance>();
+        var branches = new List<Task<IReadOnlyList<TaskInstance>>>();
         foreach (var pair in nextPairs)
         {
             var next = pair.Task;
@@ -217,14 +217,14 @@ public class LocalWorkflowExecutor
         return endInstances;
     }
 
-    private async Task<IReadOnlyList<NodeInstance>> RunBranchAsync(
+    private async Task<IReadOnlyList<TaskInstance>> RunBranchAsync(
         BaseGraphTask node,
-        NodeInstance previousInstance,
+        TaskInstance previousInstance,
         LocalWorkflowContext context,
         CancellationToken? cancellation)
     {
-        NodeInstance? existingInstance = null;
-        IReadOnlyList<NodeInstance>? previousInstances = null;
+        TaskInstance? existingInstance = null;
+        IReadOnlyList<TaskInstance>? previousInstances = null;
         // If the task wait for all inputs but only have one we treat it like other tasks and skip this part
         if (node.Settings.IsWaitingAllInputs && context.Workflow.Graph.WithMultipleInputsConnections(node))
         {
@@ -276,7 +276,7 @@ public class LocalWorkflowExecutor
         }
     }
 
-    private TaskOutput EndAsync(LocalWorkflowContext context, IReadOnlyList<NodeInstance> endInstances)
+    private TaskOutput EndAsync(LocalWorkflowContext context, IReadOnlyList<TaskInstance> endInstances)
     {
         // TODO : return failed and handle task instance on the level of the workflow
         if (context.Workflow.OutputSchema != null && endInstances.Count == 0)
