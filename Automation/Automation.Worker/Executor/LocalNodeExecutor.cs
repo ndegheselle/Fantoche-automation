@@ -1,19 +1,11 @@
 using Automation.Plugins.Control;
 using Automation.Plugins.Shared;
 using Automation.Shared.Data.Execution;
-using Automation.Shared.Data.Graph;
 using Automation.Shared.Data.Scoped;
 using Automation.Worker.Packages;
 using Newtonsoft.Json.Linq;
 
 namespace Automation.Worker.Executor;
-
-public class LocalExecutionContext
-{
-    public JToken? Input { get; set; }
-    public JToken? Shared { get; set; }
-    public BaseGraphTask? CurrentNode { get; set; }
-}
 
 /// <summary>
 /// Handle the concrete execution of a task
@@ -39,43 +31,30 @@ public class LocalNodeExecutor : IDisposable
             loader.Value.Dispose();
     }
 
-    public Task<TaskOutput> ExecuteAsync(
-        BaseAutomationTask automationTask,
-        JToken? input,
-        IProgress<TaskNotification>? notifications = null,
-        CancellationToken? cancellation = null)
-    {
-        return ExecuteAsync(
-            automationTask,
-            new LocalExecutionContext { Input = input },
-            notifications,
-            cancellation);
-    }
-
     public async Task<TaskOutput> ExecuteAsync(
         BaseAutomationTask automationTask,
-        LocalExecutionContext context,
+        TaskInstance instance,
         IProgress<TaskNotification>? notifications = null,
         CancellationToken? cancellation = null)
     {
         try
         {
-            if (context.Input == null)
+            if (instance.Input == null)
             {
                 if (automationTask.InputSchema != null)
                     throw new Exception("Input is required for this task.");
             }
             else
             {
-                var errors = automationTask.InputSchema?.Validate(context.Input);
+                var errors = automationTask.InputSchema?.Validate(instance.Input);
                 if (errors?.Count > 0)
                     throw new Exception($"Input doesn't correspond to schema : {string.Join(", ", errors)}");
             }
 
             return automationTask switch
             {
-                AutomationTask task => await ExecuteTaskAsync(task, context, notifications, cancellation),
-                AutomationWorkflow workflow => await ExecuteWorkflowAsync(workflow, context, notifications, cancellation),
+                AutomationTask task => await ExecuteTaskAsync(task, instance, notifications, cancellation),
+                AutomationWorkflow workflow => await ExecuteWorkflowAsync(workflow, instance, notifications, cancellation),
                 _ => throw new Exception("Unknown task type.")
             };
         }
@@ -91,7 +70,7 @@ public class LocalNodeExecutor : IDisposable
 
     private async Task<TaskOutput> ExecuteTaskAsync(
         AutomationTask automationTask,
-        LocalExecutionContext context,
+        TaskInstance instance,
         IProgress<TaskNotification>? notifications = null,
         CancellationToken? cancellation = null)
     {
@@ -113,11 +92,11 @@ public class LocalNodeExecutor : IDisposable
         var task = loader.CreateInstance(target.ClassFullName);
 
         object? parameter = null;
-        if (context.Input != null && task.Input?.Type != null)
-            parameter = context.Input.ToObject(task.Input.Type);
+        if (instance.Input != null && task.Input?.Type != null)
+            parameter = instance.Input.ToObject(task.Input.Type);
 
-        if (task is ITaskControl && context.CurrentNode != null)
-            parameter = new ControlContext(context.CurrentNode, parameter);
+        if (task is ITaskControl && instance.Node != null)
+            parameter = new ControlContext(instance.Node, parameter);
 
         var result = await task.DoAsync(parameter, notifications, cancellation);
 
@@ -138,10 +117,16 @@ public class LocalNodeExecutor : IDisposable
 
     private Task<TaskOutput> ExecuteWorkflowAsync(
         AutomationWorkflow automationWorkflow,
-        LocalExecutionContext context,
+        TaskInstance instance,
         IProgress<TaskNotification>? progress = null,
         CancellationToken? cancellation = null)
     {
-        return _workflowExecutor.ExecuteAsync(automationWorkflow, context.Input, context.Shared, progress, cancellation);
+        return _workflowExecutor.ExecuteAsync(
+            automationWorkflow,
+            instance.Input,
+            instance.ParentWorkflow?.SharedToken,
+            instance.Id,
+            progress,
+            cancellation);
     }
 }

@@ -1,4 +1,6 @@
+using System.Text.Json.Serialization;
 using Automation.Plugins.Shared;
+using Automation.Shared.Data.Graph;
 using Newtonsoft.Json.Linq;
 
 namespace Automation.Shared.Data.Execution
@@ -42,6 +44,22 @@ namespace Automation.Shared.Data.Execution
         public DateTime CreatedAt { get; set; }
         public DateTime? FinishedAt { get; set; }
 
+        /// <summary>
+        /// Graph node currently being executed. Only set while the instance is being driven
+        /// by an executor — not persisted.
+        /// </summary>
+        [JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
+        public BaseGraphTask? Node { get; set; }
+
+        /// <summary>
+        /// Parent workflow instance when this task is executed as a node of a workflow.
+        /// Not persisted — re-populated by the executor when running.
+        /// </summary>
+        [JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
+        public WorkflowInstance? ParentWorkflow { get; set; }
+
         public TaskInstance()
         {
             CreatedAt = DateTime.UtcNow;
@@ -51,39 +69,6 @@ namespace Automation.Shared.Data.Execution
         {
             this.Previous.Add(previous);
             previous.Nexts.Add(this);
-        }
-    }
-
-    /// <summary>
-    /// Notification of a task instance, used to report the progress of a task execution.
-    /// </summary>
-    public class TaskInstanceNotification
-    {
-        public Guid? WorkflowInstanceId { get; set; }
-        public Guid InstanceId { get; set; }
-        public TaskNotification Notification { get; set; }
-
-        public TaskInstanceNotification(Guid instanceId, TaskNotification data)
-        {
-            InstanceId = instanceId;
-            Notification = data;
-        }
-    }
-
-    /// <summary>
-    /// State of a task instance, used to track the lifecycle of a task.
-    /// </summary>
-    public class TaskInstanceState
-    {
-        public Guid? WorkflowInstanceId { get; set; }
-        public Guid InstanceId { get; set; }
-
-        public EnumTaskState State { get; set; }
-
-        public TaskInstanceState(Guid instanceId, EnumTaskState state)
-        {
-            InstanceId = instanceId;
-            State = state;
         }
     }
 }
