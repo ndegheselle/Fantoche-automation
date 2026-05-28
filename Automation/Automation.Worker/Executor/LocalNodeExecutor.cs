@@ -1,5 +1,4 @@
 using Automation.Plugins.Control;
-using Automation.Plugins.Shared;
 using Automation.Shared.Data.Execution;
 using Automation.Shared.Data.Scoped;
 using Automation.Worker.Packages;
@@ -31,10 +30,10 @@ public class LocalNodeExecutor : IDisposable
             loader.Value.Dispose();
     }
 
-    public async Task<TaskOutput> ExecuteAsync(
+    public async Task<TaskInstance> ExecuteAsync(
         BaseAutomationTask automationTask,
         TaskInstance instance,
-        IProgress<TaskNotification>? notifications = null,
+        TaskInstancesProgress? progress = null,
         CancellationToken? cancellation = null)
     {
         try
@@ -51,27 +50,32 @@ public class LocalNodeExecutor : IDisposable
                     throw new Exception($"Input doesn't correspond to schema : {string.Join(", ", errors)}");
             }
 
-            return automationTask switch
+            instance = automationTask switch
             {
-                AutomationTask task => await ExecuteTaskAsync(task, instance, notifications, cancellation),
-                AutomationWorkflow workflow => await ExecuteWorkflowAsync(workflow, instance, notifications, cancellation),
+                AutomationTask task => await ExecuteTaskAsync(task, instance, progress, cancellation),
+                AutomationWorkflow workflow => await ExecuteWorkflowAsync(workflow, instance, progress, cancellation),
                 _ => throw new Exception("Unknown task type.")
             };
         }
         catch (OperationCanceledException)
         {
-            return new TaskOutput { State = EnumTaskState.Canceled };
+            instance.State = EnumTaskState.Canceled;
         }
         catch (Exception ex)
         {
-            return new TaskOutput { State = EnumTaskState.Failed, OutputToken = JToken.FromObject(ex.ToString()) };
+            instance.State = EnumTaskState.Failed;
+            instance.Output = JToken.FromObject(ex.ToString());
         }
+
+        instance.State = EnumTaskState.Completed;
+
+        return instance;
     }
 
-    private async Task<TaskOutput> ExecuteTaskAsync(
+    private async Task<TaskInstance> ExecuteTaskAsync(
         AutomationTask automationTask,
         TaskInstance instance,
-        IProgress<TaskNotification>? notifications = null,
+        TaskInstancesProgress? progress = null,
         CancellationToken? cancellation = null)
     {
         if (automationTask.Target is not PackageClassTarget target)
@@ -98,27 +102,26 @@ public class LocalNodeExecutor : IDisposable
         if (task is ITaskControl && instance.Node != null)
             parameter = new ControlContext(instance.Node, parameter);
 
-        var result = await task.DoAsync(parameter, notifications, cancellation);
+        var result = await task.DoAsync(parameter, progress?.Notifications, cancellation);
 
-        TaskOutput output = new TaskOutput { State = EnumTaskState.Completed };
         if (result is ControlOutput controlOutput)
         {
             if (controlOutput.Result != null)
-                output.OutputToken = JToken.FromObject(controlOutput.Result);
-            output.ActiveOutputConnectorIds = controlOutput.ActiveOutputConnectorIds;
+                instance.Output = JToken.FromObject(controlOutput.Result);
+            instance.ActiveOutputConnectorIds = controlOutput.ActiveOutputConnectorIds;
         }
         else if (result != null)
         {
-            output.OutputToken = JToken.FromObject(result);
+            instance.Output = JToken.FromObject(result);
         }
 
-        return output;
+        return instance;
     }
 
-    private Task<TaskOutput> ExecuteWorkflowAsync(
+    private Task<TaskInstance> ExecuteWorkflowAsync(
         AutomationWorkflow automationWorkflow,
         TaskInstance instance,
-        IProgress<TaskNotification>? progress = null,
+        TaskInstancesProgress? progress = null,
         CancellationToken? cancellation = null)
     {
         return _workflowExecutor.ExecuteAsync(

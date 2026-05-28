@@ -1,9 +1,9 @@
+using System.Collections.Concurrent;
+using System.Text.Json.Serialization;
 using Automation.Plugins.Shared;
 using Automation.Shared.Data.Graph;
 using Automation.Shared.Data.Scoped;
 using Newtonsoft.Json.Linq;
-using System.Collections.Concurrent;
-using System.Text.Json.Serialization;
 
 namespace Automation.Shared.Data.Execution;
 
@@ -49,22 +49,18 @@ public class WorkflowInstance : TaskInstance
     public CancellationTokenSource WorkflowCts { get; } = new();
 
     private readonly object _lock = new();
-    private readonly TaskInstancesProgress? _progress;
 
     public WorkflowInstance(
         AutomationWorkflow workflow,
         Guid? parentInstanceId = null,
-        JToken? sharedToken = null,
-        TaskInstancesProgress? progresses = null)
+        JToken? sharedToken = null)
     {
         Workflow = workflow;
         SharedToken = sharedToken;
         ParentInstanceId = parentInstanceId;
         TaskId = workflow.Id;
+        NodeName = workflow.Metadata.Name;
         State = EnumTaskState.Progressing;
-        _progress = progresses;
-
-        _progress?.StateChanges?.Report(this);
     }
 
     public TaskInstance CreateInstance(BaseGraphTask node, JToken? input, EnumTaskState state = EnumTaskState.Pending, TaskInstance? previous = null)
@@ -78,8 +74,7 @@ public class WorkflowInstance : TaskInstance
             NodeName = node.Name,
             Node = node,
             Input = input,
-            State = state,
-            FinishedAt = (state & EnumTaskState.Finished) != 0 ? DateTime.UtcNow : null,
+            State = state
         };
 
         if (previous != null)
@@ -92,20 +87,6 @@ public class WorkflowInstance : TaskInstance
             list.Add(instance);
         }
 
-        _progress?.StateChanges?.Report(instance);
-
-        return instance;
-    }
-
-    public TaskInstance UpdateInstance(TaskInstance instance, JToken? input, JToken? output, EnumTaskState state)
-    {
-        instance.Input = input;
-        instance.Output = output;
-        instance.State = state;
-        if ((state & EnumTaskState.Finished) != 0)
-            instance.FinishedAt = DateTime.UtcNow;
-
-        _progress?.StateChanges?.Report(instance);
         return instance;
     }
 

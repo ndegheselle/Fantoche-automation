@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using Automation.Plugins.Shared;
 using Automation.Shared.Data.Graph;
 using Newtonsoft.Json.Linq;
 
@@ -39,10 +38,25 @@ namespace Automation.Shared.Data.Execution
         public List<TaskInstance> Previous { get; set; } = [];
         public List<TaskInstance> Nexts { get; set; } = [];
 
-        public EnumTaskState State { get; set; }
+        private EnumTaskState _state;
+        public EnumTaskState State
+        {
+            get => _state;
+            set
+            {
+                if ((_state & EnumTaskState.Finished) == 0)
+                    FinishedAt = DateTime.UtcNow;
+                _state = value;
+            }
+        }
 
         public DateTime CreatedAt { get; set; }
         public DateTime? FinishedAt { get; set; }
+
+        /// <summary>
+        /// When set, only these output connector IDs will be followed. null means all outputs active.
+        /// </summary>
+        public HashSet<Guid>? ActiveOutputConnectorIds { get; set; }
 
         /// <summary>
         /// Graph node currently being executed. Only set while the instance is being driven

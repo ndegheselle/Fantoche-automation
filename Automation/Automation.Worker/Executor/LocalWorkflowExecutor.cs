@@ -1,4 +1,3 @@
-using Automation.Plugins.Shared;
 using Automation.Shared.Data;
 using Automation.Shared.Data.Execution;
 using Automation.Shared.Data.Graph;
@@ -17,7 +16,7 @@ public class LocalWorkflowExecutor
         _executor = new LocalNodeExecutor(packageManagement, this);
     }
 
-    public Task<TaskOutput> ExecuteAsync(
+    public Task<TaskInstance> ExecuteAsync(
         AutomationWorkflow workflow,
         JToken? input,
         JToken? sharedToken = null,
@@ -28,15 +27,16 @@ public class LocalWorkflowExecutor
         if (workflow.Graph.IsRefreshed == false)
             throw new Exception("The workflow graph should be refreshed before being executed.");
 
-        var workflowInstance = new WorkflowInstance(workflow, parentInstanceId, sharedToken, progress)
+        var workflowInstance = new WorkflowInstance(workflow, parentInstanceId, sharedToken)
         {
             Input = input
         };
+        progress?.StateChanges?.Report(workflowInstance);
 
         return ExecuteAsync(workflowInstance, progress, cancellation);
     }
 
-    public async Task<TaskOutput> ExecuteAsync(
+    public async Task<TaskInstance> ExecuteAsync(
         WorkflowInstance workflowInstance,
         TaskInstancesProgress? progress = null,
         CancellationToken? cancellation = null)
@@ -52,12 +52,14 @@ public class LocalWorkflowExecutor
         {
             var startInstance = workflowInstance.CreateInstance(start, workflowInstance.Input, EnumTaskState.Completed);
             startInstance.Output = workflowInstance.Input;
+
+            progress?.StateChanges?.Report(startInstance);
             startTasks.Add(NextAsync(start, startInstance, workflowInstance, null, progress, token));
         }
 
         var results = await Task.WhenAll(startTasks);
         var endInstances = results.SelectMany(r => r).ToList();
-        return EndAsync(workflowInstance, endInstances);
+        return EndAsync(workflowInstance, endInstances, progress);
     }
 
     private async Task<IReadOnlyList<TaskInstance>> NextAsync(
@@ -101,6 +103,16 @@ public class LocalWorkflowExecutor
         return endInstances;
     }
 
+    /// <summary>
+    /// Run a branch of the workflow, return the next branches instances. The next branches instances can be empty if the task fail, is canceled or doesn't have outputs connections.
+    /// </summary>
+    /// <param name="node"></param>
+    /// <param name="previousInstance"></param>
+    /// <param name="workflowInstance"></param>
+    /// <param name="progress"></param>
+    /// <param name="cancellation"></param>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
     private async Task<IReadOnlyList<TaskInstance>> RunBranchAsync(
         BaseGraphTask node,
         TaskInstance previousInstance,
@@ -122,6 +134,8 @@ public class LocalWorkflowExecutor
 
             foreach (var prev in previousInstances)
                 existingInstance.Link(prev);
+
+            progress?.StateChanges?.Report(existingInstance);
         }
 
         previousInstances ??= [previousInstance];
@@ -136,41 +150,33 @@ public class LocalWorkflowExecutor
         if (existingInstance == null)
             existingInstance = workflowInstance.CreateInstance(node, input, EnumTaskState.Progressing, previousInstance);
         else
-            existingInstance = workflowInstance.UpdateInstance(existingInstance, input, null, EnumTaskState.Progressing);
-
-        try
         {
-            var output = await _executor.ExecuteAsync(
-                node.AutomationTask ?? throw new Exception("Workflow tasks are not loaded (is the graph refreshed?)."),
-                existingInstance,
-                progress?.Notifications,
-                cancellation);
-
-            // Set the end state of the instance
-            existingInstance = workflowInstance.UpdateInstance(existingInstance, input, output.OutputToken, output.State);
-
-            if (output.State == EnumTaskState.Completed)
-                return await NextAsync(node, existingInstance, workflowInstance, output.ActiveOutputConnectorIds, progress, cancellation);
-
-            return [];
+            existingInstance.State = EnumTaskState.Progressing;
         }
-        catch (OperationCanceledException)
-        {
-            workflowInstance.UpdateInstance(existingInstance, existingInstance.Input, null, EnumTaskState.Canceled);
-            return [];
-        }
+
+        progress?.StateChanges?.Report(existingInstance);
+        var output = await _executor.ExecuteAsync(
+            node.AutomationTask ?? throw new Exception("Workflow tasks are not loaded (is the graph refreshed?)."),
+            existingInstance,
+            progress,
+            cancellation);
+        progress?.StateChanges?.Report(existingInstance);
+
+        if (output.State == EnumTaskState.Completed)
+            return await NextAsync(node, existingInstance, workflowInstance, output.ActiveOutputConnectorIds, progress, cancellation);
+
+        return [];
     }
 
-    private TaskOutput EndAsync(WorkflowInstance workflowInstance, IReadOnlyList<TaskInstance> endInstances)
+    private TaskInstance EndAsync(WorkflowInstance workflowInstance, IReadOnlyList<TaskInstance> endInstances, TaskInstancesProgress? progress = null)
     {
         // TODO : return failed and handle task instance on the level of the workflow
         if (workflowInstance.Workflow.OutputSchema != null && endInstances.Count == 0)
             throw new Exception("Reached end of workflow without data.");
 
-        return new TaskOutput
-        {
-            OutputToken = workflowInstance.Workflow.Graph.Execution.CombineEndOutputs(endInstances, workflowInstance.Workflow.WorkflowSettings),
-            State = EnumTaskState.Completed
-        };
+        workflowInstance.State = EnumTaskState.Completed;
+        workflowInstance.Output = workflowInstance.Workflow.Graph.Execution.CombineEndOutputs(endInstances, workflowInstance.Workflow.WorkflowSettings);
+        progress?.StateChanges?.Report(workflowInstance);
+        return workflowInstance;
     }
 }

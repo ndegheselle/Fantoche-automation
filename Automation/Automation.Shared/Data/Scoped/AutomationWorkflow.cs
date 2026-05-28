@@ -13,14 +13,16 @@ namespace Automation.Shared.Data.Scoped
         /// If there is multiple end nodes, stop at the first one encoutered (and kill all unfinished tasks).
         /// </summary>
         public bool StopAtFirstEnd { get; set; } = false;
+
+        /// <summary>
+        /// Stop the whole workflow if any task fail
+        /// </summary>
+        public bool StopIfAnyTaskFail { get; set; } = false;
     }
 
     public class AutomationWorkflow : BaseAutomationTask
     {
-
-
         public TasksGraph Graph { get; set; } = new();
-
 
         public WorkflowSettings WorkflowSettings { get; set; } = new();
 
