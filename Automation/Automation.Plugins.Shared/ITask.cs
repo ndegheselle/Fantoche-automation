@@ -41,13 +41,6 @@ public interface ITask
     public TaskConnector? Output { get; }
 
     /// <summary>
-    /// Named output slots the task can selectively activate via <see cref="ITaskRuntime.ActivateOutputs"/>.
-    /// Empty (the default) means a single, always-active output connector. Multiple branches
-    /// are how condition/split/router-style tasks describe their fan-out to the graph editor.
-    /// </summary>
-    public IReadOnlyList<string> OutputBranches => [];
-
-    /// <summary>
     /// Execute the task asynchronously.
     /// </summary>
     /// <param name="parameters">Resolved parameters of the task (the node's parameters template with context references replaced).</param>

@@ -54,7 +54,7 @@ public class LocalWorkflowExecutor
             startInstance.Output = workflowInstance.Parameters;
 
             progress?.StateChanges?.Report(startInstance);
-            startTasks.Add(NextAsync(start, startInstance, workflowInstance, null, progress, token));
+            startTasks.Add(NextAsync(start, startInstance, workflowInstance, progress, token));
         }
 
         var results = await Task.WhenAll(startTasks);
@@ -66,15 +66,10 @@ public class LocalWorkflowExecutor
         BaseGraphTask current,
         TaskInstance currentInstance,
         WorkflowInstance workflowInstance,
-        HashSet<Guid>? activeOutputConnectorIds,
         TaskInstancesProgress? progress,
         CancellationToken? cancellation)
     {
         var nextPairs = workflowInstance.Workflow.Graph.GetNext(current);
-
-        // When a control task activates only specific outputs, skip the rest
-        if (activeOutputConnectorIds != null)
-            nextPairs = nextPairs.Where(x => activeOutputConnectorIds.Contains(x.SourceConnector.Id));
 
         var endInstances = new List<TaskInstance>();
         var branches = new List<Task<IReadOnlyList<TaskInstance>>>();
@@ -163,7 +158,7 @@ public class LocalWorkflowExecutor
         progress?.StateChanges?.Report(existingInstance);
 
         if (output.State == EnumTaskState.Completed)
-            return await NextAsync(node, existingInstance, workflowInstance, output.ActiveOutputConnectorIds, progress, cancellation);
+            return await NextAsync(node, existingInstance, workflowInstance, progress, cancellation);
 
         return [];
     }

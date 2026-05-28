@@ -106,15 +106,11 @@ public class LocalNodeExecutor : IDisposable
         if (instance.Parameters != null && task.Input?.Type != null)
             parameter = instance.Parameters.ToObject(task.Input.Type);
 
-        var runtime = new TaskRuntime(instance.Node, progress?.Notifications);
+        var runtime = new TaskRuntime(progress?.Notifications);
         var result = await task.DoAsync(parameter, runtime, cancellation);
 
         if (result != null)
             instance.Output = JToken.FromObject(result);
-
-        // Translate the branch names the plugin asked for into connector ids the
-        // workflow executor will filter downstream connections against.
-        instance.ActiveOutputConnectorIds = runtime.ResolveActivatedConnectorIds();
 
         return instance;
     }

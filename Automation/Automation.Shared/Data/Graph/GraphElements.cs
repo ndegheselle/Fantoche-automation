@@ -1,7 +1,6 @@
 ﻿using System.Drawing;
 using System.Text.Json.Serialization;
 using Automation.Shared.Data.Scoped;
-using Newtonsoft.Json.Linq;
 using NJsonSchema;
 
 namespace Automation.Shared.Data.Graph
@@ -101,10 +100,8 @@ namespace Automation.Shared.Data.Graph
             // when the task didn't declare any. Tasks with no OutputSchema have no outputs.
             if (task.OutputSchema == null)
                 Outputs = [];
-            else if (task.OutputBranches.Count == 0)
-                Outputs = [new GraphConnector(this)];
             else
-                Outputs = task.OutputBranches.Select(name => new GraphConnector(this, name)).ToList();
+                Outputs = [new GraphConnector(this)];
         }
     }
 

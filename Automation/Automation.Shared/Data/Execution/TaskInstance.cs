@@ -59,11 +59,6 @@ namespace Automation.Shared.Data.Execution
         public DateTime? FinishedAt { get; set; }
 
         /// <summary>
-        /// When set, only these output connector IDs will be followed. null means all outputs active.
-        /// </summary>
-        public HashSet<Guid>? ActiveOutputConnectorIds { get; set; }
-
-        /// <summary>
         /// Graph node currently being executed. Only set while the instance is being driven
         /// by an executor — not persisted.
         /// </summary>
