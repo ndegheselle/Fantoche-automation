@@ -9,7 +9,7 @@ public class TestDelayParameters
 
 public class TestDelay : BasePassThroughTask<TestDelayParameters>
 {
-    public override async Task DoAsync(TestDelayParameters parameters, IProgress<TaskNotification>? progress = null, CancellationToken? cancellation = null)
+    public override async Task DoAsync(TestDelayParameters parameters, ITaskRuntime runtime, CancellationToken? cancellation = null)
     {
         await Task.Delay(parameters.DelayMs, cancellation ?? CancellationToken.None);
     }

@@ -1,4 +1,4 @@
-using Automation.Plugins.Control;
+using Automation.Plugins.Shared;
 using Automation.Shared.Data.Execution;
 using Automation.Shared.Data.Scoped;
 using Automation.Worker.Packages;
@@ -38,16 +38,18 @@ public class LocalNodeExecutor : IDisposable
     {
         try
         {
-            if (instance.Input == null)
+            if (instance.Parameters == null)
             {
-                if (automationTask.InputSchema != null)
-                    throw new Exception("Input is required for this task.");
+                // Pass-through tasks may legitimately run with no parameters (no template),
+                // since they don't transform anything — only the context walks past them.
+                if (automationTask.InputSchema != null && automationTask.Settings.IsPassingThrough == false)
+                    throw new Exception("Parameters are required for this task.");
             }
             else
             {
-                var errors = automationTask.InputSchema?.Validate(instance.Input);
+                var errors = automationTask.InputSchema?.Validate(instance.Parameters);
                 if (errors?.Count > 0)
-                    throw new Exception($"Input doesn't correspond to schema : {string.Join(", ", errors)}");
+                    throw new Exception($"Parameters don't correspond to schema : {string.Join(", ", errors)}");
             }
 
             instance = automationTask switch
@@ -95,25 +97,24 @@ public class LocalNodeExecutor : IDisposable
 
         var task = loader.CreateInstance(target.ClassFullName);
 
+        // Pass-through with no parameters: nothing to deserialize, nothing for the plugin
+        // to do — short-circuit before forcing a TInput-typed conversion that would throw.
+        if (task.IsPassThrough() && instance.Parameters == null)
+            return instance;
+
         object? parameter = null;
-        if (instance.Input != null && task.Input?.Type != null)
-            parameter = instance.Input.ToObject(task.Input.Type);
+        if (instance.Parameters != null && task.Input?.Type != null)
+            parameter = instance.Parameters.ToObject(task.Input.Type);
 
-        if (task is ITaskControl && instance.Node != null)
-            parameter = new ControlContext(instance.Node, parameter);
+        var runtime = new TaskRuntime(instance.Node, progress?.Notifications);
+        var result = await task.DoAsync(parameter, runtime, cancellation);
 
-        var result = await task.DoAsync(parameter, progress?.Notifications, cancellation);
-
-        if (result is ControlOutput controlOutput)
-        {
-            if (controlOutput.Result != null)
-                instance.Output = JToken.FromObject(controlOutput.Result);
-            instance.ActiveOutputConnectorIds = controlOutput.ActiveOutputConnectorIds;
-        }
-        else if (result != null)
-        {
+        if (result != null)
             instance.Output = JToken.FromObject(result);
-        }
+
+        // Translate the branch names the plugin asked for into connector ids the
+        // workflow executor will filter downstream connections against.
+        instance.ActiveOutputConnectorIds = runtime.ResolveActivatedConnectorIds();
 
         return instance;
     }
@@ -126,7 +127,7 @@ public class LocalNodeExecutor : IDisposable
     {
         return _workflowExecutor.ExecuteAsync(
             automationWorkflow,
-            instance.Input,
+            instance.Parameters,
             instance.ParentWorkflow?.SharedToken,
             instance.Id,
             progress,

@@ -63,7 +63,7 @@ public class WorkflowInstance : TaskInstance
         State = EnumTaskState.Progressing;
     }
 
-    public TaskInstance CreateInstance(BaseGraphTask node, JToken? input, EnumTaskState state = EnumTaskState.Pending, TaskInstance? previous = null)
+    public TaskInstance CreateInstance(BaseGraphTask node, JToken? parameters, EnumTaskState state = EnumTaskState.Pending, TaskInstance? previous = null)
     {
         var instance = new TaskInstance
         {
@@ -73,7 +73,7 @@ public class WorkflowInstance : TaskInstance
             NodeId = node.Id,
             NodeName = node.Name,
             Node = node,
-            Input = input,
+            Parameters = parameters,
             State = state
         };
 

@@ -32,20 +32,20 @@ public partial class TaskInputSettingModal : UserControl, IModalContent, INotify
         Task = task;
         Graph = graph;
         ContextSamples = Graph.Execution.GetContextSampleJsonFor(Task).Select(x => x.ToString()).ToList();
-        _originalSettings = Task.InputJson;
+        _originalSettings = Task.ParametersJson;
 
-        if (string.IsNullOrWhiteSpace(Task.InputJson))
-            Task.InputJson = Task.InputSchema?.ToSampleJson().ToString();
+        if (string.IsNullOrWhiteSpace(Task.ParametersJson))
+            Task.ParametersJson = Task.InputSchema?.ToSampleJson().ToString();
         
         Options.Title = $"{Task.Name} - settings";
         CancelCommand = new DelegateCommand(Cancel);
-        ValidateCommand = new DelegateCommand(Validate, () => string.IsNullOrEmpty(Task.InputJson) == false);
+        ValidateCommand = new DelegateCommand(Validate, () => string.IsNullOrEmpty(Task.ParametersJson) == false);
         InitializeComponent();
     }
 
     private void Cancel()
     {
-        Task.InputJson = _originalSettings;
+        Task.ParametersJson = _originalSettings;
         ParentLayout?.Hide();
     }
 

@@ -64,7 +64,7 @@ public partial class WorkflowOutputModal : UserControl, IModalContent, INotifyPr
         foreach (var task in endTasks)
         {
             task.Settings.IsWaitingAllInputs = Workflow.WorkflowSettings.IsWaitingForAllEnd;
-            task.InputJson = Workflow.OutputMappingJson;
+            task.ParametersJson = Workflow.OutputMappingJson;
         }
 
         _alert.Success("Settings changed !");

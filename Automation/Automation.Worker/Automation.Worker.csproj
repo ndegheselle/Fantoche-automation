@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Automation.Plugins.Shared\Automation.Plugins.Shared.csproj" />
-    <ProjectReference Include="..\Automation.Plugins.Control\Automation.Plugins.Control.csproj" />
     <ProjectReference Include="..\Automation.Shared\Automation.Shared.csproj" />
   </ItemGroup>
 

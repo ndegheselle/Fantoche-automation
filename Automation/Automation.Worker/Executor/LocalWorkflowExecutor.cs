@@ -18,7 +18,7 @@ public class LocalWorkflowExecutor
 
     public Task<TaskInstance> ExecuteAsync(
         AutomationWorkflow workflow,
-        JToken? input,
+        JToken? parameters,
         JToken? sharedToken = null,
         Guid? parentInstanceId = null,
         TaskInstancesProgress? progress = null,
@@ -29,7 +29,7 @@ public class LocalWorkflowExecutor
 
         var workflowInstance = new WorkflowInstance(workflow, parentInstanceId, sharedToken)
         {
-            Input = input
+            Parameters = parameters
         };
         progress?.StateChanges?.Report(workflowInstance);
 
@@ -50,8 +50,8 @@ public class LocalWorkflowExecutor
         var startTasks = new List<Task<IReadOnlyList<TaskInstance>>>();
         foreach (var start in workflowInstance.Workflow.Graph.GetStartNodes())
         {
-            var startInstance = workflowInstance.CreateInstance(start, workflowInstance.Input, EnumTaskState.Completed);
-            startInstance.Output = workflowInstance.Input;
+            var startInstance = workflowInstance.CreateInstance(start, workflowInstance.Parameters, EnumTaskState.Completed);
+            startInstance.Output = workflowInstance.Parameters;
 
             progress?.StateChanges?.Report(startInstance);
             startTasks.Add(NextAsync(start, startInstance, workflowInstance, null, progress, token));
@@ -139,16 +139,16 @@ public class LocalWorkflowExecutor
         }
 
         previousInstances ??= [previousInstance];
-        JToken? input = null;
-        if (!string.IsNullOrEmpty(node.InputJson))
+        JToken? parameters = null;
+        if (!string.IsNullOrEmpty(node.ParametersJson))
         {
             var taskContext = workflowInstance.Workflow.Graph.Execution.GetContextFor(node, previousInstances, workflowInstance.SharedToken);
-            input = ReferencesHandler.ReplaceReferences(JToken.Parse(node.InputJson), taskContext).ReplacedSetting;
+            parameters = ReferencesHandler.ReplaceReferences(JToken.Parse(node.ParametersJson), taskContext).ReplacedSetting;
         }
 
         // Set the instance as progressing
         if (existingInstance == null)
-            existingInstance = workflowInstance.CreateInstance(node, input, EnumTaskState.Progressing, previousInstance);
+            existingInstance = workflowInstance.CreateInstance(node, parameters, EnumTaskState.Progressing, previousInstance);
         else
         {
             existingInstance.State = EnumTaskState.Progressing;

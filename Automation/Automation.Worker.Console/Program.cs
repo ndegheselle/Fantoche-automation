@@ -73,25 +73,25 @@ GraphControl start = new GraphControl(AutomationControl.StartTask)
 GraphTask delay = new GraphTask(delayTask)
 {
     Metadata = new ScopedMetadata() { Name = "Delay" },
-    InputJson = JsonConvert.SerializeObject(new TestDelayParameters() { DelayMs = 5000 })
+    ParametersJson = JsonConvert.SerializeObject(new TestDelayParameters() { DelayMs = 5000 })
 };
 
 GraphTask test1 = new GraphTask(testTask)
 {
     Metadata = new ScopedMetadata() { Name = "Test 1" },
-    InputJson = JsonConvert.SerializeObject(new TestParameters() { Add = 10, Value = 1 })
+    ParametersJson = JsonConvert.SerializeObject(new TestParameters() { Add = 10, Value = 1 })
 };
 
 GraphTask test2 = new GraphTask(testTask)
 {
     Metadata = new ScopedMetadata() { Name = "Test 2" },
-    InputJson = JsonConvert.SerializeObject(new TestParameters() { Add = 20, Value = 2 })
+    ParametersJson = JsonConvert.SerializeObject(new TestParameters() { Add = 20, Value = 2 })
 };
 
 GraphControl end = new GraphControl(AutomationControl.EndTask)
 {
     Metadata = new ScopedMetadata() { Name = "End" },
-    InputJson = "{'test': '$previous.Value'}"
+    ParametersJson = "{'test': '$previous.Value'}"
 };
 
 workflow.Graph.Nodes.Add(start);
@@ -115,7 +115,7 @@ LocalPackageManagement packages = new LocalPackageManagement(nuggetLocalPath);
 LocalWorkflowExecutor executor = new LocalWorkflowExecutor(packages);
 TaskInstancesProgress progress = new TaskInstancesProgress()
 {
-    StateChanges = new Progress<TaskInstance>((instance) => Console.WriteLine($"{instance.CreatedAt} {instance.NodeName} {instance.State} {instance.FinishedAt} Input: {instance.Input}  Output: {instance.Output}"))
+    StateChanges = new Progress<TaskInstance>((instance) => Console.WriteLine($"{instance.CreatedAt} {instance.NodeName} {instance.State} {instance.FinishedAt} Parameters: {instance.Parameters}  Output: {instance.Output}"))
 };
 
 await executor.ExecuteAsync(workflow, null, progress: progress);

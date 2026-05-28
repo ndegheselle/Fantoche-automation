@@ -32,7 +32,12 @@ namespace Automation.Shared.Data.Execution
         /// </summary>
         public string NodeName { get; set; } = string.Empty;
 
-        public JToken? Input { get; set; }
+        /// <summary>
+        /// Resolved parameters of the task — i.e. the node's <see cref="Automation.Shared.Data.Graph.BaseGraphTask.ParametersJson"/>
+        /// template with context references replaced. This is NOT the data flowing in from
+        /// upstream tasks (that lives in the context as <c>previous.*</c>).
+        /// </summary>
+        public JToken? Parameters { get; set; }
         public JToken? Output { get; set; }
 
         public List<TaskInstance> Previous { get; set; } = [];

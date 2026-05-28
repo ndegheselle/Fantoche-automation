@@ -33,6 +33,13 @@ public abstract class BaseAutomationTask : ScopedElement
 
     public string? OutputSchemaJson { get; set; }
 
+    /// <summary>
+    /// Named output branches the task can selectively activate (e.g. "true"/"false"
+    /// for a condition). Empty when the task has a single default output.
+    /// Mirrors <see cref="Automation.Plugins.Shared.ITask.OutputBranches"/>.
+    /// </summary>
+    public List<string> OutputBranches { get; set; } = [];
+
     public IEnumerable<Schedule> Schedules { get; set; } = [];
 
     public TaskSettings Settings { get; set; } = new();
@@ -68,6 +75,8 @@ public class AutomationTask : BaseAutomationTask
             InputSchema = packageTask.Input?.Type == null
                 ? new JsonSchema()
                 : JsonSchema.FromType(packageTask.Input.Type);
+
+        OutputBranches = packageTask.OutputBranches.ToList();
     }
 }
 

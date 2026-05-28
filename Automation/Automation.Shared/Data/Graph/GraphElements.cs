@@ -57,7 +57,13 @@ namespace Automation.Shared.Data.Graph
         public List<GraphConnector> Inputs { get; set; } = [];
         public List<GraphConnector> Outputs { get; set; } = [];
 
-        public string? InputJson { get; set; }
+        /// <summary>
+        /// Parameters template for the task — JSON with context references (e.g.
+        /// <c>{{previous.X}}</c>, <c>{{context.Y}}</c>) that the executor resolves
+        /// at runtime to populate <see cref="Execution.TaskInstance.Parameters"/>.
+        /// Not the data flowing in from upstream tasks — that lives in the context.
+        /// </summary>
+        public string? ParametersJson { get; set; }
         public GraphTaskSettings Settings { get; set; } = new GraphTaskSettings();
 
         [JsonIgnore]
@@ -90,7 +96,15 @@ namespace Automation.Shared.Data.Graph
             InputSchema = task.InputSchema;
             OutputSchema = task.OutputSchema;
             Inputs = task.InputSchema == null ? [] : [new GraphConnector(this)];
-            Outputs = task.OutputSchema == null ? [] : [new GraphConnector(this)];
+
+            // One connector per declared output branch, or a single default connector
+            // when the task didn't declare any. Tasks with no OutputSchema have no outputs.
+            if (task.OutputSchema == null)
+                Outputs = [];
+            else if (task.OutputBranches.Count == 0)
+                Outputs = [new GraphConnector(this)];
+            else
+                Outputs = task.OutputBranches.Select(name => new GraphConnector(this, name)).ToList();
         }
     }
 
@@ -148,12 +162,25 @@ namespace Automation.Shared.Data.Graph
     public partial class GraphConnector
     {
         public Guid Id { get; set; } = Guid.NewGuid();
+
+        /// <summary>
+        /// Branch name for output connectors — corresponds to one of
+        /// <see cref="Automation.Plugins.Shared.ITask.OutputBranches"/>.
+        /// Empty for the default single output / for inputs.
+        /// </summary>
+        public string Name { get; set; } = string.Empty;
+
         [JsonIgnore] public bool IsConnected { get; set; }
         [JsonIgnore] public BaseGraphTask? Parent { get; set; }
 
         public GraphConnector(BaseGraphTask parent)
         {
             Parent = parent;
+        }
+
+        public GraphConnector(BaseGraphTask parent, string name) : this(parent)
+        {
+            Name = name;
         }
     }
 

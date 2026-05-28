@@ -19,6 +19,8 @@ public class GraphExecutionContext
 
     /// <summary>
     /// Generate a sample of the contexts based on the previous tasks.
+    /// Pass-through predecessors are transparently walked over: the sample is built
+    /// from the nearest non-pass-through upstream node(s).
     /// </summary>
     /// <param name="task"></param>
     public List<string> GetContextSampleJsonFor(BaseGraphTask task)
@@ -33,7 +35,8 @@ public class GraphExecutionContext
         {
             Dictionary<string, JToken?> previous = new Dictionary<string, JToken?>();
             foreach (var pre in previousTasks)
-                previous.Add(pre.Name, pre.OutputSchema?.ToSampleJson());
+                foreach (var effective in ResolveEffectivePreviousTasks(pre))
+                    previous[effective.Name] = effective.OutputSchema?.ToSampleJson();
             contexts.Add(GenerateContextFrom(previous, context).ToString());
         }
         else
@@ -41,11 +44,44 @@ public class GraphExecutionContext
             // XXX : maybe group by TaskId ?
             foreach (var previousTask in previousTasks)
             {
-                var input = previousTask.OutputSchema?.ToSampleJson();
-                contexts.Add(GenerateContextFrom(input, context).ToString());
+                foreach (var effective in ResolveEffectivePreviousTasks(previousTask))
+                {
+                    var input = effective.OutputSchema?.ToSampleJson();
+                    contexts.Add(GenerateContextFrom(input, context).ToString());
+                }
             }
         }
         return contexts;
+    }
+
+    /// <summary>
+    /// Walk back through pass-through nodes to the nearest non-pass-through ancestor(s).
+    /// A pass-through doesn't contribute its own output to downstream contexts — the
+    /// previous slot reads from whatever feeds it instead. Falls back to the node
+    /// itself when it has no predecessors.
+    /// </summary>
+    private IEnumerable<BaseGraphTask> ResolveEffectivePreviousTasks(BaseGraphTask task, HashSet<Guid>? visited = null)
+    {
+        if (task.AutomationTask?.Settings.IsPassingThrough != true)
+        {
+            yield return task;
+            yield break;
+        }
+
+        visited ??= [];
+        if (!visited.Add(task.Id))
+            yield break; // cycle guard
+
+        var upstream = _graph.GetPrevious(task).ToList();
+        if (upstream.Count == 0)
+        {
+            yield return task;
+            yield break;
+        }
+
+        foreach (var pre in upstream)
+            foreach (var resolved in ResolveEffectivePreviousTasks(pre, visited))
+                yield return resolved;
     }
 
     /// <summary>
@@ -93,6 +129,8 @@ public class GraphExecutionContext
     /// Build the context for a task from its previous instances.
     /// If the task waits for all inputs the context is keyed by previous node name,
     /// otherwise the single previous output is used as-is.
+    /// Pass-through predecessors are transparently walked over: their output is skipped
+    /// and the context reads from the nearest non-pass-through upstream instance(s).
     /// </summary>
     public JObject GetContextFor(BaseGraphTask task, IReadOnlyList<TaskInstance> previousInstances, JToken? context)
     {
@@ -103,12 +141,44 @@ public class GraphExecutionContext
         {
             var byName = new Dictionary<string, JToken?>();
             foreach (var instance in previousInstances)
-                byName[instance.NodeName] = instance.Output;
+                foreach (var effective in ResolveEffectivePreviousInstances(instance))
+                    byName[effective.NodeName] = effective.Output;
             return GenerateContextFrom(byName, context);
         }
 
-        var single = previousInstances.Count > 0 ? previousInstances[0].Output : null;
-        return GenerateContextFrom(single, context);
+        // Keep the single-output shape: take the first resolved ancestor of the first
+        // previous instance. Pass-through never changes the consumer's context shape.
+        TaskInstance? single = previousInstances.Count > 0
+            ? ResolveEffectivePreviousInstances(previousInstances[0]).FirstOrDefault()
+            : null;
+        return GenerateContextFrom(single?.Output, context);
+    }
+
+    /// <summary>
+    /// Walk back through pass-through task instances to the nearest non-pass-through
+    /// ancestor(s). Mirrors <see cref="ResolveEffectivePreviousTasks"/> but at runtime.
+    /// </summary>
+    private static IEnumerable<TaskInstance> ResolveEffectivePreviousInstances(TaskInstance instance, HashSet<Guid>? visited = null)
+    {
+        if (instance.Node?.AutomationTask?.Settings.IsPassingThrough != true)
+        {
+            yield return instance;
+            yield break;
+        }
+
+        visited ??= [];
+        if (!visited.Add(instance.Id))
+            yield break; // cycle guard
+
+        if (instance.Previous.Count == 0)
+        {
+            yield return instance;
+            yield break;
+        }
+
+        foreach (var prev in instance.Previous)
+            foreach (var resolved in ResolveEffectivePreviousInstances(prev, visited))
+                yield return resolved;
     }
 
     public JObject GenerateEmptyContext()
