@@ -146,6 +146,7 @@ public class LocalWorkflowExecutor
             existingInstance = workflowInstance.CreateInstance(node, parameters, EnumTaskState.Progressing, previousInstance);
         else
         {
+            existingInstance.Parameters = parameters;
             existingInstance.State = EnumTaskState.Progressing;
         }
 
