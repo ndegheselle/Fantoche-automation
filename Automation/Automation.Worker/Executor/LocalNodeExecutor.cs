@@ -111,6 +111,11 @@ public class LocalNodeExecutor : IDisposable
 
         if (result != null)
             instance.Output = JToken.FromObject(result);
+        else
+            instance.Output = new JObject();
+
+        if (runtime.IsOutputDeactivated)
+            instance.Output = null;
 
         return instance;
     }

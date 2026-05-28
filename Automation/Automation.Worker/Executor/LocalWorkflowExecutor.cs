@@ -150,15 +150,15 @@ public class LocalWorkflowExecutor
         }
 
         progress?.StateChanges?.Report(existingInstance);
-        var output = await _executor.ExecuteAsync(
+        var instance = await _executor.ExecuteAsync(
             node.AutomationTask ?? throw new Exception("Workflow tasks are not loaded (is the graph refreshed?)."),
             existingInstance,
             progress,
             cancellation);
-        progress?.StateChanges?.Report(existingInstance);
+        progress?.StateChanges?.Report(instance);
 
-        if (output.State == EnumTaskState.Completed)
-            return await NextAsync(node, existingInstance, workflowInstance, progress, cancellation);
+        if (instance.State == EnumTaskState.Completed && instance.Output != null)
+            return await NextAsync(node, instance, workflowInstance, progress, cancellation);
 
         return [];
     }
@@ -169,6 +169,7 @@ public class LocalWorkflowExecutor
         if (workflowInstance.Workflow.OutputSchema != null && endInstances.Count == 0)
             throw new Exception("Reached end of workflow without data.");
 
+        // TODO return at least empty object
         workflowInstance.State = EnumTaskState.Completed;
         workflowInstance.Output = workflowInstance.Workflow.Graph.Execution.CombineEndOutputs(endInstances, workflowInstance.Workflow.WorkflowSettings);
         progress?.StateChanges?.Report(workflowInstance);

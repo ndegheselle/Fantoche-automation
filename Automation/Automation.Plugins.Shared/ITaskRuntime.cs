@@ -12,4 +12,9 @@ public interface ITaskRuntime
     /// Progress sink — notifications are forwarded to the executor's progress listener.
     /// </summary>
     IProgress<TaskNotification>? Progress { get; }
+
+    /// <summary>
+    /// Deactivate the output (even if the task is completed it )
+    /// </summary>
+    public void DeactivateOutput(bool deactivate = true);
 }
