@@ -1,3 +1,5 @@
+using Automation.App.Services.Abstractions;
+using Automation.App.Services.Stubs;
 using Automation.App.Shared.ApiClients;
 using Avalonia;
 using Avalonia.Controls;
@@ -10,7 +12,7 @@ using RestSharp;
 
 namespace Automation.App
 {
-    public class Services
+    public class AppServices
     {
         private static readonly Lazy<IServiceProvider> lazy = new(() => ConfigureServices(new ServiceCollection()));
         public static IServiceProvider Provider => lazy.Value;
@@ -40,6 +42,10 @@ namespace Automation.App
             services.AddSingleton<ShadUI.DialogManager>();
             services.AddSingleton<ShadUI.ToastManager>();
 
+            // Domain services: the UI depends on these abstractions, not the API clients.
+            // Stub implementations for now; swapped for SQLite/worker/API in the data rework.
+            services.AddSingleton<IScopesService, NotImplementedScopesService>();
+
             // TODO (Phase 4): re-register ParametersViewModel once it is ported to ShadUI theming.
             services.AddSingleton<RestClient>(new RestClient(apiUrl));
             services.AddSingleton<TaskProgressHubClient>(new TaskProgressHubClient(apiUrl));
@@ -65,7 +71,7 @@ namespace Automation.App
 
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                desktop.MainWindow = Services.Provider.GetRequiredService<MainWindow>();
+                desktop.MainWindow = AppServices.Provider.GetRequiredService<MainWindow>();
             }
 
             base.OnFrameworkInitializationCompleted();
