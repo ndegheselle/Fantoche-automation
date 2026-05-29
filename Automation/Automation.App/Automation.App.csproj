@@ -54,6 +54,22 @@
     <None Remove="Components\Inputs\TextBoxDialogViewModel.cs" />
     <Compile Include="Components\Inputs\TextBoxDialog.axaml.cs" />
     <Compile Include="Components\Inputs\TextBoxDialogViewModel.cs" />
+    <!-- Input dialogs: color / icon / file picker -->
+    <None Remove="Components\Inputs\SelectColorDialog.axaml" />
+    <None Remove="Components\Inputs\SelectIconDialog.axaml" />
+    <None Remove="Components\Inputs\FilePickerDialog.axaml" />
+    <None Remove="Components\Inputs\SelectColorDialog.axaml.cs" />
+    <None Remove="Components\Inputs\SelectIconDialog.axaml.cs" />
+    <None Remove="Components\Inputs\FilePickerDialog.axaml.cs" />
+    <None Remove="Components\Inputs\SelectColorDialogViewModel.cs" />
+    <None Remove="Components\Inputs\SelectIconDialogViewModel.cs" />
+    <None Remove="Components\Inputs\FilePickerDialogViewModel.cs" />
+    <Compile Include="Components\Inputs\SelectColorDialog.axaml.cs" />
+    <Compile Include="Components\Inputs\SelectIconDialog.axaml.cs" />
+    <Compile Include="Components\Inputs\FilePickerDialog.axaml.cs" />
+    <Compile Include="Components\Inputs\SelectColorDialogViewModel.cs" />
+    <Compile Include="Components\Inputs\SelectIconDialogViewModel.cs" />
+    <Compile Include="Components\Inputs\FilePickerDialogViewModel.cs" />
     <!-- Scoped-element view-model wrappers (UI state + tree around the domain models) -->
     <None Remove="ViewModels\Scoped\*.cs" />
     <Compile Include="ViewModels\Scoped\*.cs" />
@@ -64,6 +80,7 @@
     <PackageReference Include="Avalonia.Desktop" Version="12.0.4" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.4" />
     <PackageReference Include="Avalonia.Fonts.Inter" Version="12.0.4" />
+    <PackageReference Include="Avalonia.Controls.ColorPicker" Version="12.0.4" />
     <PackageReference Include="ShadUI" Version="0.2.3" />
     <PackageReference Include="NodifyAvalonia" Version="6.6.0" />
     <PackageReference Include="Lucide.Avalonia" Version="0.2.8" />
