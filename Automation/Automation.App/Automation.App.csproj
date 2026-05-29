@@ -127,6 +127,20 @@
     <Compile Include="Views\WorkPages\Tasks\TaskHistoryViewModel.cs" />
     <Compile Include="Views\WorkPages\Tasks\TaskEditDialog.axaml.cs" />
     <Compile Include="Views\WorkPages\Tasks\TaskEditDialogViewModel.cs" />
+    <!-- Packages area -->
+    <None Remove="Views\PackagesPages\PackagesMainPage.axaml" />
+    <None Remove="Views\PackagesPages\PackagesMainPage.axaml.cs" />
+    <None Remove="Views\PackagesPages\PackagesMainPageViewModel.cs" />
+    <None Remove="Views\PackagesPages\Components\PackageSummary.axaml" />
+    <None Remove="Views\PackagesPages\Components\PackageSummary.axaml.cs" />
+    <None Remove="Views\PackagesPages\Components\PackageDetailDialog.axaml" />
+    <None Remove="Views\PackagesPages\Components\PackageDetailDialog.axaml.cs" />
+    <None Remove="Views\PackagesPages\Components\PackageDetailDialogViewModel.cs" />
+    <Compile Include="Views\PackagesPages\PackagesMainPage.axaml.cs" />
+    <Compile Include="Views\PackagesPages\PackagesMainPageViewModel.cs" />
+    <Compile Include="Views\PackagesPages\Components\PackageSummary.axaml.cs" />
+    <Compile Include="Views\PackagesPages\Components\PackageDetailDialog.axaml.cs" />
+    <Compile Include="Views\PackagesPages\Components\PackageDetailDialogViewModel.cs" />
   </ItemGroup>
 
   <ItemGroup>

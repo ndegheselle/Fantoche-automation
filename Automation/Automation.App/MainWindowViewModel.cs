@@ -54,7 +54,7 @@ namespace Automation.App
         private void OpenPackages()
         {
             CurrentRoute = "packages";
-            SelectedPage = Placeholder("Packages — to be ported in Phase 4");
+            SelectedPage = _services.GetRequiredService<Views.PackagesPages.PackagesMainPageViewModel>();
         }
 
         private static Control Placeholder(string text) => new TextBlock
