@@ -32,6 +32,13 @@ namespace Automation.App
                 config["RedisConnectionString"] ?? throw new Exception("Missing 'RedisConnectionString' in appsettings.json");
 
             services.AddTransient<MainWindow>();
+
+            // ShadUI overlay services: modal dialogs via DialogManager + <DialogHost>, transient
+            // notifications via ToastManager + <ToastHost> (replaces the old Joufflu Modal/Alert).
+            // Hosted in MainWindow (Phase 3); injected into view-models that raise dialogs/toasts.
+            services.AddSingleton<ShadUI.DialogManager>();
+            services.AddSingleton<ShadUI.ToastManager>();
+
             // TODO (Phase 4): re-register ParametersViewModel once it is ported to ShadUI theming.
             services.AddSingleton<RestClient>(new RestClient(apiUrl));
             services.AddSingleton<TaskProgressHubClient>(new TaskProgressHubClient(apiUrl));
@@ -44,9 +51,6 @@ namespace Automation.App
         }
     }
 
-    // PropertyChanged.Fody must not weave Avalonia UI types (they already implement
-    // INotifyPropertyChanged via the framework). Fody is reserved for the view-models.
-    [PropertyChanged.DoNotNotify]
     public partial class App : Application
     {
         public override void Initialize() => AvaloniaXamlLoader.Load(this);
