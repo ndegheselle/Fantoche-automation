@@ -48,6 +48,12 @@
     <None Remove="Views\WorkPages\Scopes\Components\ScopedBreadcrumbViewModel.cs" />
     <Compile Include="Views\WorkPages\Scopes\Components\ScopedBreadcrumb.axaml.cs" />
     <Compile Include="Views\WorkPages\Scopes\Components\ScopedBreadcrumbViewModel.cs" />
+    <!-- ScopedSelector -->
+    <None Remove="Views\WorkPages\Scopes\Components\ScopedSelector.axaml" />
+    <None Remove="Views\WorkPages\Scopes\Components\ScopedSelector.axaml.cs" />
+    <None Remove="Views\WorkPages\Scopes\Components\ScopedSelectorViewModel.cs" />
+    <Compile Include="Views\WorkPages\Scopes\Components\ScopedSelector.axaml.cs" />
+    <Compile Include="Views\WorkPages\Scopes\Components\ScopedSelectorViewModel.cs" />
     <!-- TextBoxDialog (ShadUI dialog content) -->
     <None Remove="Components\Inputs\TextBoxDialog.axaml" />
     <None Remove="Components\Inputs\TextBoxDialog.axaml.cs" />

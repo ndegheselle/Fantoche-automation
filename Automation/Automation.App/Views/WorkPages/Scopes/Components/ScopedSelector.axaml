@@ -1,0 +1,26 @@
+<UserControl
+    x:Class="Automation.App.Views.WorkPages.Scopes.Components.ScopedSelector"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="clr-namespace:Automation.App.Views.WorkPages.Scopes.Components"
+    xmlns:scopedVm="clr-namespace:Automation.App.ViewModels.Scoped"
+    xmlns:components="clr-namespace:Automation.App.Views.WorkPages.Components"
+    xmlns:shadui="clr-namespace:ShadUI;assembly=ShadUI"
+    x:DataType="vm:ScopedSelectorViewModel">
+    <!-- TODO (Scopes vertical): add ScopedContextMenu (add/remove) once the create-modals are ported. -->
+    <shadui:BusyArea IsBusy="{Binding IsBusy}">
+        <ListBox
+            ItemsSource="{Binding CurrentScope.Children}"
+            SelectedItem="{Binding Selected, Mode=TwoWay}"
+            DoubleTapped="ListBox_DoubleTapped">
+            <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="scopedVm:ScopedElementViewModel">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <components:ScopedIcon Metadata="{Binding Metadata}" />
+                        <TextBlock Text="{Binding Metadata.Name}" VerticalAlignment="Center" />
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </shadui:BusyArea>
+</UserControl>
