@@ -42,6 +42,12 @@
   <ItemGroup Label="Ported to Avalonia">
     <None Remove="Views\WorkPages\Components\ScopedIcon.cs" />
     <Compile Include="Views\WorkPages\Components\ScopedIcon.cs" />
+    <!-- ScopedBreadcrumb (.axaml is auto-included by Avalonia; only the .cs need re-including). -->
+    <None Remove="Views\WorkPages\Scopes\Components\ScopedBreadcrumb.axaml" />
+    <None Remove="Views\WorkPages\Scopes\Components\ScopedBreadcrumb.axaml.cs" />
+    <None Remove="Views\WorkPages\Scopes\Components\ScopedBreadcrumbViewModel.cs" />
+    <Compile Include="Views\WorkPages\Scopes\Components\ScopedBreadcrumb.axaml.cs" />
+    <Compile Include="Views\WorkPages\Scopes\Components\ScopedBreadcrumbViewModel.cs" />
   </ItemGroup>
 
   <ItemGroup>
