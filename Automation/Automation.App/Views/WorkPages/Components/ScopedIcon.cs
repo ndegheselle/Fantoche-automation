@@ -1,67 +1,68 @@
-﻿using Automation.Shared.Data.Scoped;
-using Joufflu.Shared.Resources.Fonts;
-using System.Windows;
-using System.Windows.Media;
+using System.ComponentModel;
+using Automation.Shared.Data.Scoped;
+using Avalonia;
+using Avalonia.Media;
+using Lucide.Avalonia;
 
 namespace Automation.App.Views.WorkPages.Components
 {
-    internal class ScopedIcon : Icon
+    /// <summary>
+    /// MIGRATION (WPF -> Avalonia): was a Joufflu icon-font TextBlock whose Text was a Phosphor
+    /// glyph. Now derives from Lucide.Avalonia's LucideIcon and drives its Kind (+ Foreground)
+    /// from the bound ScopedMetadata. Stored Metadata.Icon (dev/test data only) is interpreted as
+    /// a LucideIconKind name; otherwise the icon defaults by scoped type.
+    /// </summary>
+    internal class ScopedIcon : LucideIcon
     {
-        #region Dependency Properties
-        public static readonly DependencyProperty MetadataProperty = DependencyProperty.Register(
-            nameof(Metadata),
-            typeof(ScopedMetadata),
-            typeof(ScopedIcon),
-            new PropertyMetadata(null, (d, e) => ((ScopedIcon)d).OnMetadataChanged()));
+        public static readonly StyledProperty<ScopedMetadata?> MetadataProperty =
+            AvaloniaProperty.Register<ScopedIcon, ScopedMetadata?>(nameof(Metadata));
 
-        #endregion
-
-        public ScopedMetadata Metadata
+        public ScopedMetadata? Metadata
         {
-            get { return (ScopedMetadata)GetValue(MetadataProperty); }
-            set { SetValue(MetadataProperty, value); }
+            get => GetValue(MetadataProperty);
+            set => SetValue(MetadataProperty, value);
         }
 
         private ScopedMetadata? _previousMetadata;
 
-        public void OnMetadataChanged()
+        protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
         {
-            Text = null;
+            base.OnPropertyChanged(change);
+            if (change.Property == MetadataProperty)
+                OnMetadataChanged();
+        }
+
+        private void OnMetadataChanged()
+        {
             if (_previousMetadata != null)
                 _previousMetadata.PropertyChanged -= Metadata_PropertyChanged;
 
             if (Metadata == null)
                 return;
 
+            Metadata.PropertyChanged += Metadata_PropertyChanged;
 
-            Metadata.PropertyChanged +=Metadata_PropertyChanged;
-            if (Metadata.Icon == null)
-            {
-                switch (Metadata.Type)
-                {
-                    case EnumScopedType.Scope:
-                        Text = IconFont.Folder; break;
-                    case EnumScopedType.Workflow:
-                        Text = IconFont.TreeStructure; break;
-                    default:
-                        Text = IconFont.FlowArrow; break;
-                }
-            }
-            else
-            {
-                Text = Metadata.Icon;
-            }
+            Kind = ResolveKind(Metadata);
 
-
-            if (string.IsNullOrEmpty(Metadata.Color) == false)
-                Foreground = new BrushConverter().ConvertFrom(Metadata.Color) as SolidColorBrush;
+            if (!string.IsNullOrEmpty(Metadata.Color) && Color.TryParse(Metadata.Color, out var color))
+                Foreground = new SolidColorBrush(color);
 
             _previousMetadata = Metadata;
         }
 
-        private void Metadata_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private static LucideIconKind ResolveKind(ScopedMetadata metadata)
         {
-            OnMetadataChanged();
+            if (!string.IsNullOrEmpty(metadata.Icon) && Enum.TryParse<LucideIconKind>(metadata.Icon, out var stored))
+                return stored;
+
+            return metadata.Type switch
+            {
+                EnumScopedType.Scope => LucideIconKind.Folder,
+                EnumScopedType.Workflow => LucideIconKind.Network,
+                _ => LucideIconKind.Waypoints,
+            };
         }
+
+        private void Metadata_PropertyChanged(object? sender, PropertyChangedEventArgs e) => OnMetadataChanged();
     }
 }

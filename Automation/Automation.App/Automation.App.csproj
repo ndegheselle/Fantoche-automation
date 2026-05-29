@@ -35,6 +35,15 @@
     <None Include="MainWindow.xaml.cs" />
   </ItemGroup>
 
+  <!--
+    Files migrated to Avalonia are re-included here (removed from the legacy globs above).
+    Add each ported file as it is migrated; XAML views move to .axaml.
+  -->
+  <ItemGroup Label="Ported to Avalonia">
+    <None Remove="Views\WorkPages\Components\ScopedIcon.cs" />
+    <Compile Include="Views\WorkPages\Components\ScopedIcon.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="12.0.4" />
     <PackageReference Include="Avalonia.Desktop" Version="12.0.4" />
