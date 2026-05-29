@@ -14,12 +14,7 @@
                         <TextBlock Text="Execution History" />
                     </StackPanel>
                 </TabItem.Header>
-                <!-- TODO (Scopes/Tasks vertical): host ScopeHistory once TaskInstanceList + a Paging
-                     control are ported (the history tab lists task instances for this scope). -->
-                <TextBlock
-                    Margin="16"
-                    Foreground="{DynamicResource MutedColor}"
-                    Text="Execution history — pending TaskInstanceList + paging port." />
+                <vm:ScopeHistory Scope="{Binding Scope.Model}" />
             </TabItem>
         </TabControl>
         <Button

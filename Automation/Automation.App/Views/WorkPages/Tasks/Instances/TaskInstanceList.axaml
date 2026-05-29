@@ -1,0 +1,45 @@
+<UserControl
+    x:Class="Automation.App.Views.WorkPages.Tasks.Instances.TaskInstanceList"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:Automation.App.Views.WorkPages.Tasks.Instances"
+    xmlns:lucide="clr-namespace:Lucide.Avalonia;assembly=Lucide.Avalonia"
+    xmlns:conv="clr-namespace:Automation.App.Infrastructure.Converters"
+    xmlns:exec="clr-namespace:Automation.Shared.Data.Execution;assembly=Automation.Shared"
+    x:Name="Root"
+    x:DataType="local:TaskInstanceList">
+    <Grid RowDefinitions="Auto *">
+        <!-- Header -->
+        <Grid Grid.Row="0" Margin="8,4" ColumnDefinitions="2* 2* 2* 2* Auto">
+            <TextBlock Grid.Column="0" Classes="Caption" Text="Task" />
+            <TextBlock Grid.Column="1" Classes="Caption" Text="Node" />
+            <TextBlock Grid.Column="2" Classes="Caption" Text="Created" />
+            <TextBlock Grid.Column="3" Classes="Caption" Text="Finished" />
+            <TextBlock Grid.Column="4" Classes="Caption" Text="Status" Width="120" />
+        </Grid>
+        <ListBox
+            Grid.Row="1"
+            ItemsSource="{Binding Instances, ElementName=Root}"
+            DoubleTapped="ListBox_DoubleTapped">
+            <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="exec:TaskInstance">
+                    <Grid ColumnDefinitions="2* 2* 2* 2* Auto">
+                        <TextBlock Grid.Column="0" Text="{Binding TaskId}" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Grid.Column="1" Text="{Binding NodeName}" />
+                        <TextBlock Grid.Column="2" Text="{Binding CreatedAt}" />
+                        <TextBlock Grid.Column="3" Text="{Binding FinishedAt}" />
+                        <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="4" Width="120">
+                            <lucide:LucideIcon
+                                Size="14"
+                                Kind="{Binding State, Converter={x:Static conv:TaskStateToIconConverter.Instance}}"
+                                Foreground="{Binding State, Converter={x:Static conv:TaskStateToBrushConverter.Instance}}" />
+                            <TextBlock
+                                Text="{Binding State}"
+                                Foreground="{Binding State, Converter={x:Static conv:TaskStateToBrushConverter.Instance}}" />
+                        </StackPanel>
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </Grid>
+</UserControl>
