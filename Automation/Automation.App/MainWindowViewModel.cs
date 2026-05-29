@@ -47,7 +47,7 @@ namespace Automation.App
         private void OpenServers()
         {
             CurrentRoute = "servers";
-            SelectedPage = Placeholder("Servers / Workers — to be ported in Phase 4");
+            SelectedPage = _services.GetRequiredService<Views.WorkersPages.WorkerMainPageViewModel>();
         }
 
         [RelayCommand]
@@ -56,12 +56,5 @@ namespace Automation.App
             CurrentRoute = "packages";
             SelectedPage = _services.GetRequiredService<Views.PackagesPages.PackagesMainPageViewModel>();
         }
-
-        private static Control Placeholder(string text) => new TextBlock
-        {
-            Text = text,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-        };
     }
 }

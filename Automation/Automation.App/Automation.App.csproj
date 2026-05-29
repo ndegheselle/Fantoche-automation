@@ -141,6 +141,12 @@
     <Compile Include="Views\PackagesPages\Components\PackageSummary.axaml.cs" />
     <Compile Include="Views\PackagesPages\Components\PackageDetailDialog.axaml.cs" />
     <Compile Include="Views\PackagesPages\Components\PackageDetailDialogViewModel.cs" />
+    <!-- Servers / Workers page -->
+    <None Remove="Views\ServersPages\WorkerMainPage.axaml" />
+    <None Remove="Views\ServersPages\WorkerMainPage.axaml.cs" />
+    <None Remove="Views\ServersPages\WorkerMainPageViewModel.cs" />
+    <Compile Include="Views\ServersPages\WorkerMainPage.axaml.cs" />
+    <Compile Include="Views\ServersPages\WorkerMainPageViewModel.cs" />
   </ItemGroup>
 
   <ItemGroup>

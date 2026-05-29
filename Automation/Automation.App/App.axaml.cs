@@ -37,6 +37,7 @@ namespace Automation.App
             services.AddTransient<MainWindowViewModel>();
             services.AddTransient<Views.WorkPages.TasksMainPageViewModel>();
             services.AddTransient<Views.PackagesPages.PackagesMainPageViewModel>();
+            services.AddTransient<Views.WorkersPages.WorkerMainPageViewModel>();
 
             // ShadUI overlay services: modal dialogs via DialogManager + <DialogHost>, transient
             // notifications via ToastManager + <ToastHost> (replaces the old Joufflu Modal/Alert).
