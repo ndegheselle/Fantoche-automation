@@ -3,7 +3,13 @@
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:themes="clr-namespace:ShadUI;assembly=ShadUI"
+    xmlns:infra="clr-namespace:Automation.App.Infrastructure"
     RequestedThemeVariant="Dark">
+
+    <Application.DataTemplates>
+        <!-- Resolves view-model instances to views (dialogs, content hosts). -->
+        <infra:ViewLocator />
+    </Application.DataTemplates>
 
     <Application.Styles>
         <themes:ShadTheme />
