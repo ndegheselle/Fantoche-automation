@@ -45,6 +45,10 @@ namespace Automation.App
             // Domain services: the UI depends on these abstractions, not the API clients.
             // Stub implementations for now; swapped for SQLite/worker/API in the data rework.
             services.AddSingleton<IScopesService, NotImplementedScopesService>();
+            services.AddSingleton<ITasksService, NotImplementedTasksService>();
+            services.AddSingleton<ITaskInstancesService, NotImplementedTaskInstancesService>();
+            services.AddSingleton<IPackagesService, NotImplementedPackagesService>();
+            services.AddSingleton<ITaskProgressService, NotImplementedTaskProgressService>();
 
             // TODO (Phase 4): re-register ParametersViewModel once it is ported to ShadUI theming.
             services.AddSingleton<RestClient>(new RestClient(apiUrl));

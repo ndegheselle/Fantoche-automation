@@ -1,3 +1,5 @@
+using Automation.Shared.Base;
+using Automation.Shared.Data.Execution;
 using Automation.Shared.Data.Scoped;
 
 namespace Automation.App.Services.Abstractions
@@ -23,5 +25,8 @@ namespace Automation.App.Services.Abstractions
         Task UpdateAsync(Guid id, ScopedElement element);
 
         Task DeleteAsync(Guid id);
+
+        /// <summary>Task instances executed within the given scope (paged).</summary>
+        Task<ListPageWrapper<TaskInstance>> GetInstancesAsync(Guid scopeId, int page, int pageSize);
     }
 }

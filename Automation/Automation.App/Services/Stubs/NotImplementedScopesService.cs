@@ -1,4 +1,6 @@
 using Automation.App.Services.Abstractions;
+using Automation.Shared.Base;
+using Automation.Shared.Data.Execution;
 using Automation.Shared.Data.Scoped;
 
 namespace Automation.App.Services.Stubs
@@ -22,5 +24,7 @@ namespace Automation.App.Services.Stubs
         public Task UpdateAsync(Guid id, ScopedElement element) => throw new NotImplementedException(Pending);
 
         public Task DeleteAsync(Guid id) => throw new NotImplementedException(Pending);
+
+        public Task<ListPageWrapper<TaskInstance>> GetInstancesAsync(Guid scopeId, int page, int pageSize) => throw new NotImplementedException(Pending);
     }
 }
