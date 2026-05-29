@@ -1,0 +1,35 @@
+<UserControl
+    x:Class="Automation.App.Controls.Paging"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ctrl="clr-namespace:Automation.App.Controls"
+    xmlns:lucide="clr-namespace:Lucide.Avalonia;assembly=Lucide.Avalonia"
+    x:Name="Root"
+    x:DataType="ctrl:Paging">
+    <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center" DataContext="{Binding #Root}">
+        <Button Classes="Ghost" Padding="6" Click="First_Click" ToolTip.Tip="First">
+            <lucide:LucideIcon Kind="ChevronFirst" Size="14" />
+        </Button>
+        <Button Classes="Ghost" Padding="6" Click="Previous_Click" ToolTip.Tip="Previous">
+            <lucide:LucideIcon Kind="ChevronLeft" Size="14" />
+        </Button>
+        <TextBlock VerticalAlignment="Center" Margin="6,0"
+                   Text="{Binding IntervalMin, StringFormat='{}{0}'}" />
+        <TextBlock VerticalAlignment="Center" Text="–" />
+        <TextBlock VerticalAlignment="Center"
+                   Text="{Binding IntervalMax, StringFormat='{}{0}'}" />
+        <TextBlock VerticalAlignment="Center" Margin="2,0" Text="/" />
+        <TextBlock VerticalAlignment="Center" Text="{Binding Total}" />
+        <Button Classes="Ghost" Padding="6" Click="Next_Click" ToolTip.Tip="Next">
+            <lucide:LucideIcon Kind="ChevronRight" Size="14" />
+        </Button>
+        <Button Classes="Ghost" Padding="6" Click="Last_Click" ToolTip.Tip="Last">
+            <lucide:LucideIcon Kind="ChevronLast" Size="14" />
+        </Button>
+        <ComboBox
+            Margin="8,0,0,0"
+            ItemsSource="{Binding AvailableCapacities}"
+            SelectedItem="{Binding Capacity, Mode=TwoWay}"
+            SelectionChanged="Capacity_SelectionChanged" />
+    </StackPanel>
+</UserControl>
