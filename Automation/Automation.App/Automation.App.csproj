@@ -42,6 +42,10 @@
   <ItemGroup Label="Ported to Avalonia">
     <None Remove="Views\WorkPages\Components\ScopedIcon.cs" />
     <Compile Include="Views\WorkPages\Components\ScopedIcon.cs" />
+    <!-- MetadataEdit -->
+    <None Remove="Views\WorkPages\Components\MetadataEdit.axaml" />
+    <None Remove="Views\WorkPages\Components\MetadataEdit.axaml.cs" />
+    <Compile Include="Views\WorkPages\Components\MetadataEdit.axaml.cs" />
     <!-- ScopedBreadcrumb (.axaml is auto-included by Avalonia; only the .cs need re-including). -->
     <None Remove="Views\WorkPages\Scopes\Components\ScopedBreadcrumb.axaml" />
     <None Remove="Views\WorkPages\Scopes\Components\ScopedBreadcrumb.axaml.cs" />
@@ -54,6 +58,12 @@
     <None Remove="Views\WorkPages\Scopes\Components\ScopedSelectorViewModel.cs" />
     <Compile Include="Views\WorkPages\Scopes\Components\ScopedSelector.axaml.cs" />
     <Compile Include="Views\WorkPages\Scopes\Components\ScopedSelectorViewModel.cs" />
+    <!-- ScopeEditDialog -->
+    <None Remove="Views\WorkPages\Scopes\ScopeEditDialog.axaml" />
+    <None Remove="Views\WorkPages\Scopes\ScopeEditDialog.axaml.cs" />
+    <None Remove="Views\WorkPages\Scopes\ScopeEditDialogViewModel.cs" />
+    <Compile Include="Views\WorkPages\Scopes\ScopeEditDialog.axaml.cs" />
+    <Compile Include="Views\WorkPages\Scopes\ScopeEditDialogViewModel.cs" />
     <!-- TextBoxDialog (ShadUI dialog content) -->
     <None Remove="Components\Inputs\TextBoxDialog.axaml" />
     <None Remove="Components\Inputs\TextBoxDialog.axaml.cs" />
