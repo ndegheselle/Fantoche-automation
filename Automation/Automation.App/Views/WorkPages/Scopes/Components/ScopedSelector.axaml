@@ -5,14 +5,43 @@
     xmlns:vm="clr-namespace:Automation.App.Views.WorkPages.Scopes.Components"
     xmlns:scopedVm="clr-namespace:Automation.App.ViewModels.Scoped"
     xmlns:components="clr-namespace:Automation.App.Views.WorkPages.Components"
+    xmlns:lucide="clr-namespace:Lucide.Avalonia;assembly=Lucide.Avalonia"
     xmlns:shadui="clr-namespace:ShadUI;assembly=ShadUI"
     x:DataType="vm:ScopedSelectorViewModel">
-    <!-- TODO (Scopes vertical): add ScopedContextMenu (add/remove) once the create-modals are ported. -->
     <shadui:BusyArea IsBusy="{Binding IsBusy}">
         <ListBox
             ItemsSource="{Binding CurrentScope.Children}"
             SelectedItem="{Binding Selected, Mode=TwoWay}"
             DoubleTapped="ListBox_DoubleTapped">
+            <ListBox.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Add" IsVisible="{Binding CanAddChild}">
+                        <MenuItem.Icon>
+                            <lucide:LucideIcon Kind="Plus" Size="14" />
+                        </MenuItem.Icon>
+                        <MenuItem Header="Add scope" Command="{Binding AddScopeCommand}">
+                            <MenuItem.Icon>
+                                <lucide:LucideIcon Kind="Folder" Size="14" />
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Header="Add workflow" Command="{Binding AddWorkflowCommand}">
+                            <MenuItem.Icon>
+                                <lucide:LucideIcon Kind="Network" Size="14" />
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Header="Add task" Command="{Binding AddTaskCommand}">
+                            <MenuItem.Icon>
+                                <lucide:LucideIcon Kind="Waypoints" Size="14" />
+                            </MenuItem.Icon>
+                        </MenuItem>
+                    </MenuItem>
+                    <MenuItem Header="Remove" Command="{Binding RemoveSelectedCommand}">
+                        <MenuItem.Icon>
+                            <lucide:LucideIcon Kind="Trash2" Size="14" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </ContextMenu>
+            </ListBox.ContextMenu>
             <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="scopedVm:ScopedElementViewModel">
                     <StackPanel Orientation="Horizontal" Spacing="4">

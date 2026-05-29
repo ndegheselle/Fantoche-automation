@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using Microsoft.Extensions.DependencyInjection;
+using ShadUI;
 
 namespace Automation.App.Views.WorkPages.Scopes.Components
 {
@@ -22,7 +23,12 @@ namespace Automation.App.Views.WorkPages.Scopes.Components
 
         public ScopedSelector()
         {
-            _viewModel = new ScopedSelectorViewModel(AppServices.Provider.GetRequiredService<IScopesService>());
+            IServiceProvider provider = AppServices.Provider;
+            _viewModel = new ScopedSelectorViewModel(
+                provider.GetRequiredService<IScopesService>(),
+                provider.GetRequiredService<ITasksService>(),
+                provider.GetRequiredService<DialogManager>(),
+                provider.GetRequiredService<ToastManager>());
             _viewModel.SelectionChanged += element => SelectionChanged?.Invoke(element);
             DataContext = _viewModel;
             InitializeComponent();
