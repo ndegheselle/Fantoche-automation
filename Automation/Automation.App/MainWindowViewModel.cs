@@ -1,7 +1,9 @@
+using Automation.App.Views.WorkPages;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.DependencyInjection;
 using ShadUI;
 
 namespace Automation.App
@@ -23,20 +25,22 @@ namespace Automation.App
         [ObservableProperty]
         private string _currentRoute = "work";
 
-        public MainWindowViewModel(DialogManager dialogManager, ToastManager toastManager)
+        private readonly IServiceProvider _services;
+
+        public MainWindowViewModel(DialogManager dialogManager, ToastManager toastManager, IServiceProvider services)
         {
             DialogManager = dialogManager;
             ToastManager = toastManager;
+            _services = services;
             OpenWork();
         }
 
-        // MIGRATION: real pages (TasksMainPage / WorkerMainPage / PackagesMainPage) are ported in
-        // Phase 4. Until then each route shows a placeholder so the shell + navigation are testable.
+        // MIGRATION: Servers / Packages pages are ported later in Phase 4 (placeholders for now).
         [RelayCommand]
         private void OpenWork()
         {
             CurrentRoute = "work";
-            SelectedPage = Placeholder("Work (Tasks) — to be ported in Phase 4");
+            SelectedPage = _services.GetRequiredService<TasksMainPageViewModel>();
         }
 
         [RelayCommand]

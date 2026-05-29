@@ -105,6 +105,12 @@
     <!-- Scoped-element view-model wrappers (UI state + tree around the domain models) -->
     <None Remove="ViewModels\Scoped\*.cs" />
     <Compile Include="ViewModels\Scoped\*.cs" />
+    <!-- TasksMainPage (Work page) -->
+    <None Remove="Views\WorkPages\TasksMainPage.axaml" />
+    <None Remove="Views\WorkPages\TasksMainPage.axaml.cs" />
+    <None Remove="Views\WorkPages\TasksMainPageViewModel.cs" />
+    <Compile Include="Views\WorkPages\TasksMainPage.axaml.cs" />
+    <Compile Include="Views\WorkPages\TasksMainPageViewModel.cs" />
   </ItemGroup>
 
   <ItemGroup>
