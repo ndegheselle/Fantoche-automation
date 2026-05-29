@@ -64,6 +64,12 @@
     <None Remove="Views\WorkPages\Scopes\ScopeEditDialogViewModel.cs" />
     <Compile Include="Views\WorkPages\Scopes\ScopeEditDialog.axaml.cs" />
     <Compile Include="Views\WorkPages\Scopes\ScopeEditDialogViewModel.cs" />
+    <!-- ScopePage -->
+    <None Remove="Views\WorkPages\Scopes\ScopePage.axaml" />
+    <None Remove="Views\WorkPages\Scopes\ScopePage.axaml.cs" />
+    <None Remove="Views\WorkPages\Scopes\ScopePageViewModel.cs" />
+    <Compile Include="Views\WorkPages\Scopes\ScopePage.axaml.cs" />
+    <Compile Include="Views\WorkPages\Scopes\ScopePageViewModel.cs" />
     <!-- TextBoxDialog (ShadUI dialog content) -->
     <None Remove="Components\Inputs\TextBoxDialog.axaml" />
     <None Remove="Components\Inputs\TextBoxDialog.axaml.cs" />
