@@ -54,6 +54,9 @@
     <None Remove="Components\Inputs\TextBoxDialogViewModel.cs" />
     <Compile Include="Components\Inputs\TextBoxDialog.axaml.cs" />
     <Compile Include="Components\Inputs\TextBoxDialogViewModel.cs" />
+    <!-- Scoped-element view-model wrappers (UI state + tree around the domain models) -->
+    <None Remove="ViewModels\Scoped\*.cs" />
+    <Compile Include="ViewModels\Scoped\*.cs" />
   </ItemGroup>
 
   <ItemGroup>
