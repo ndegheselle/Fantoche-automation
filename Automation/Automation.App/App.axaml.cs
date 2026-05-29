@@ -32,6 +32,7 @@ namespace Automation.App
                 config["RedisConnectionString"] ?? throw new Exception("Missing 'RedisConnectionString' in appsettings.json");
 
             services.AddTransient<MainWindow>();
+            services.AddTransient<MainWindowViewModel>();
 
             // ShadUI overlay services: modal dialogs via DialogManager + <DialogHost>, transient
             // notifications via ToastManager + <ToastHost> (replaces the old Joufflu Modal/Alert).
