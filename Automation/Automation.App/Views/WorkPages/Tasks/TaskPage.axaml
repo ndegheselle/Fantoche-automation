@@ -1,0 +1,70 @@
+<UserControl
+    x:Class="Automation.App.Views.WorkPages.Tasks.TaskPage"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="clr-namespace:Automation.App.Views.WorkPages.Tasks"
+    xmlns:lucide="clr-namespace:Lucide.Avalonia;assembly=Lucide.Avalonia"
+    x:DataType="vm:TaskPageViewModel">
+    <Grid>
+        <TabControl SelectedIndex="1">
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <lucide:LucideIcon Kind="Calendar" Size="16" />
+                        <TextBlock Text="Schedules" />
+                    </StackPanel>
+                </TabItem.Header>
+                <!-- TODO: TaskSchedules / ScheduleEditModal port. -->
+                <TextBlock Margin="16" Foreground="{DynamicResource MutedColor}" Text="Schedules — to be ported." />
+            </TabItem>
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <lucide:LucideIcon Kind="Clock" Size="16" />
+                        <TextBlock Text="Executions history" />
+                    </StackPanel>
+                </TabItem.Header>
+                <vm:TaskHistory Task="{Binding Task.Model}" />
+            </TabItem>
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <lucide:LucideIcon Kind="ListTree" Size="16" />
+                        <TextBlock Text="Schema" />
+                    </StackPanel>
+                </TabItem.Header>
+                <!-- TODO: SchemaEdit port (JSON schema editor). -->
+                <TextBlock Margin="16" Foreground="{DynamicResource MutedColor}" Text="Schema editor — to be ported." />
+            </TabItem>
+        </TabControl>
+
+        <!-- "Not configured" overlay (task without a target). -->
+        <Grid IsVisible="{Binding !IsConfigured}">
+            <Border Background="{DynamicResource BackgroundColor}" Opacity="0.8" />
+            <Border
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center"
+                BorderThickness="1"
+                Padding="12"
+                CornerRadius="{DynamicResource LgCornerRadius}"
+                Background="{DynamicResource BackgroundColor}"
+                BorderBrush="{DynamicResource BorderColor}">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <lucide:LucideIcon Kind="CircleAlert" Size="18" />
+                    <TextBlock Text="The task is not fully configured yet." VerticalAlignment="Center" />
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <Button
+            Command="{Binding OpenSettingsCommand}"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Top"
+            Margin="0,4,4,0"
+            Classes="Ghost"
+            Padding="6"
+            ToolTip.Tip="Task settings">
+            <lucide:LucideIcon Kind="Settings" Size="16" />
+        </Button>
+    </Grid>
+</UserControl>

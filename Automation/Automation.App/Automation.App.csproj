@@ -111,6 +111,22 @@
     <None Remove="Views\WorkPages\TasksMainPageViewModel.cs" />
     <Compile Include="Views\WorkPages\TasksMainPage.axaml.cs" />
     <Compile Include="Views\WorkPages\TasksMainPageViewModel.cs" />
+    <!-- Tasks area: TaskPage, TaskHistory, TaskEditDialog -->
+    <None Remove="Views\WorkPages\Tasks\TaskPage.axaml" />
+    <None Remove="Views\WorkPages\Tasks\TaskPage.axaml.cs" />
+    <None Remove="Views\WorkPages\Tasks\TaskPageViewModel.cs" />
+    <None Remove="Views\WorkPages\Tasks\TaskHistory.axaml" />
+    <None Remove="Views\WorkPages\Tasks\TaskHistory.axaml.cs" />
+    <None Remove="Views\WorkPages\Tasks\TaskHistoryViewModel.cs" />
+    <None Remove="Views\WorkPages\Tasks\TaskEditDialog.axaml" />
+    <None Remove="Views\WorkPages\Tasks\TaskEditDialog.axaml.cs" />
+    <None Remove="Views\WorkPages\Tasks\TaskEditDialogViewModel.cs" />
+    <Compile Include="Views\WorkPages\Tasks\TaskPage.axaml.cs" />
+    <Compile Include="Views\WorkPages\Tasks\TaskPageViewModel.cs" />
+    <Compile Include="Views\WorkPages\Tasks\TaskHistory.axaml.cs" />
+    <Compile Include="Views\WorkPages\Tasks\TaskHistoryViewModel.cs" />
+    <Compile Include="Views\WorkPages\Tasks\TaskEditDialog.axaml.cs" />
+    <Compile Include="Views\WorkPages\Tasks\TaskEditDialogViewModel.cs" />
   </ItemGroup>
 
   <ItemGroup>
