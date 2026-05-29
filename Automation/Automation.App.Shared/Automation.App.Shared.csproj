@@ -1,11 +1,21 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0-windows7.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <UseWPF>true</UseWPF>
   </PropertyGroup>
+
+  <!--
+    DRIFT (abandoned layer): the model partials in Partials\** extend base types from the
+    deleted "Automation.Models" shared project and no longer compile against the current
+    Automation.Shared. They are excluded until the planned rework (app -> Automation.Worker
+    + SQLite). The original ApiClient method bodies are preserved in git history.
+  -->
+  <ItemGroup Label="Drifted model partials (excluded pending worker/SQLite rework)">
+    <Compile Remove="Partials\**\*.cs" />
+    <None Include="Partials\**\*.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.8" />
@@ -20,5 +30,4 @@
     <ProjectReference Include="..\Automation.Shared\Automation.Shared.csproj" />
   </ItemGroup>
 
-  <Import Project="..\Automation.Models\Automation.Models.projitems" Label="Shared" />
 </Project>

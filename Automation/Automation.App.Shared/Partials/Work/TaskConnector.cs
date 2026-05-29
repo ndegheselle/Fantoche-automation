@@ -1,6 +1,6 @@
 ﻿using Automation.Shared.Data;
 using System.Text.Json.Serialization;
-using System.Windows;
+using Avalonia;
 
 namespace Automation.Models.Work
 {

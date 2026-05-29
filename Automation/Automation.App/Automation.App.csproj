@@ -1,72 +1,63 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows7.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UseWPF>true</UseWPF>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Compile Remove="Views\SupervisorPages\**" />
-    <EmbeddedResource Remove="Views\SupervisorPages\**" />
-    <None Remove="Views\SupervisorPages\**" />
-    <Page Remove="Views\SupervisorPages\**" />
-    <Page Update="Views\WorkPages\Workflows\Editor\Components\WorkflowOutputModal.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <XamlRuntime>Wpf</XamlRuntime>
-      <SubType>Designer</SubType>
-    </Page>
+  <!--
+    MIGRATION (WPF -> Avalonia): the views/view-models/converters/resources below are
+    still WPF and are excluded from the build until ported. As each file is migrated to
+    Avalonia, remove it from these Remove globs (and rename .xaml -> .axaml).
+    See git history (pre-'avalonia-migration' branch) for the original WPF sources.
+  -->
+  <ItemGroup Label="Legacy WPF sources (not yet ported)">
+    <Compile Remove="Views\**\*.cs" />
+    <Compile Remove="Components\**\*.cs" />
+    <Compile Remove="ViewModels\**\*.cs" />
+    <Compile Remove="Converters\**\*.cs" />
+    <Compile Remove="MainWindow.xaml.cs" />
+    <AvaloniaXaml Remove="Views\**\*.xaml" />
+    <AvaloniaXaml Remove="Components\**\*.xaml" />
+    <AvaloniaXaml Remove="Resources\**\*.xaml" />
+    <AvaloniaXaml Remove="MainWindow.xaml" />
+    <!-- Keep legacy files visible in the IDE as porting reference -->
+    <None Include="Views\**\*.*" />
+    <None Include="Components\**\*.*" />
+    <None Include="ViewModels\**\*.cs" />
+    <None Include="Converters\**\*.cs" />
+    <None Include="Resources\Styles\**\*.xaml" />
+    <None Include="MainWindow.xaml" />
+    <None Include="MainWindow.xaml.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Resources\Fonts\Font Awesome 6 Brands-Regular-400.otf" />
-    <None Remove="Resources\Fonts\Font Awesome 6 Free-Regular-400.otf" />
-    <None Remove="Resources\Fonts\FontAwesomeSolid.otf" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="AdonisUI" Version="1.17.1" />
-    <PackageReference Include="AdonisUI.ClassicTheme" Version="1.17.1" />
+    <PackageReference Include="Avalonia" Version="12.0.4" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.0.4" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.4" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.0.4" />
+    <PackageReference Include="ShadUI" Version="0.2.3" />
+    <PackageReference Include="NodifyAvalonia" Version="6.6.0" />
+    <PackageReference Include="Lucide.Avalonia" Version="0.2.8" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.8" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.8" />
-    <PackageReference Include="Nodify" Version="7.3.0" />
     <PackageReference Include="PropertyChanged.Fody" Version="4.1.0" PrivateAssets="All" />
-    <PackageReference Include="System.Text.Json" Version="10.0.8" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\wpf-components\Joufflu.Data\Joufflu.Data.csproj" />
-    <ProjectReference Include="..\..\..\wpf-components\Joufflu.Inputs\Joufflu.Inputs.csproj" />
-    <ProjectReference Include="..\..\..\wpf-components\Joufflu.Layouts\Joufflu.Layouts.csproj" />
-    <ProjectReference Include="..\..\..\wpf-components\Joufflu.Popups\Joufflu.Popups.csproj" />
-    <ProjectReference Include="..\..\..\wpf-components\Joufflu.Shared\Joufflu.Shared.csproj" />
-    <ProjectReference Include="..\..\..\wpf-components\Usuel.History\Usuel.History.csproj" />
-    <ProjectReference Include="..\..\..\wpf-components\Usuel.Shared\Usuel.Shared.csproj" />
     <ProjectReference Include="..\Automation.App.Shared\Automation.App.Shared.csproj" />
     <ProjectReference Include="..\Automation.Shared\Automation.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="Resources\Fonts\Font Awesome 6 Brands-Regular-400.otf">
+    <Content Include="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\Fonts\Font Awesome 6 Free-Regular-400.otf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\Fonts\FontAwesomeSolid.otf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="Components\Inputs\TextBoxModal.xaml.cs">
-      <SubType>Code</SubType>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EditorConfigFiles Remove="D:\Perso\Informatique\_git\MeApollo-automation\Automation\Automation.App\.editorconfig" />
+    </Content>
   </ItemGroup>
 
 </Project>

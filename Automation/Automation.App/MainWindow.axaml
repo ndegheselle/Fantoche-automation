@@ -1,0 +1,30 @@
+<Window
+    x:Class="Automation.App.MainWindow"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lucide="clr-namespace:Lucide.Avalonia;assembly=Lucide.Avalonia"
+    Title="Automation"
+    Width="1600"
+    Height="800"
+    WindowStartupLocation="CenterScreen">
+
+    <!--
+        MIGRATION (Phase 1): minimal bootstrap shell. Phase 3 replaces this with the real
+        shell (ShadUI window chrome, TopMenu / NavigationSideMenu / Footer, content host,
+        and the Modal / Loading / Alert overlays). See the old MainWindow.xaml for reference.
+    -->
+    <StackPanel
+        HorizontalAlignment="Center"
+        VerticalAlignment="Center"
+        Orientation="Vertical"
+        Spacing="16">
+        <lucide:LucideIcon
+            Kind="Workflow"
+            Size="48" />
+        <TextBlock
+            HorizontalAlignment="Center"
+            Text="Avalonia bootstrap OK"
+            Theme="{DynamicResource TitleLargeTextBlock}" />
+        <Button HorizontalAlignment="Center" Content="ShadUI button" />
+    </StackPanel>
+</Window>
