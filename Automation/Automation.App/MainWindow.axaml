@@ -1,0 +1,64 @@
+<shadui:Window
+    x:Class="Automation.App.MainWindow"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:shadui="clr-namespace:ShadUI;assembly=ShadUI"
+    xmlns:lucide="clr-namespace:Lucide.Avalonia;assembly=Lucide.Avalonia"
+    xmlns:app="clr-namespace:Automation.App"
+    x:DataType="app:MainWindowViewModel"
+    x:Name="Window"
+    Title="Automation"
+    Width="1600"
+    Height="800"
+    WindowStartupLocation="CenterScreen">
+
+    <!-- Modal dialogs render here (replaces the old Joufflu Modal overlay). -->
+    <shadui:Window.Hosts>
+        <shadui:DialogHost Manager="{Binding DialogManager}" x:Name="PART_DialogHost" />
+    </shadui:Window.Hosts>
+
+    <Panel>
+        <Grid ColumnDefinitions="Auto *">
+            <!-- Navigation (replaces the old custom NavigationSideMenu). -->
+            <shadui:Sidebar
+                Grid.Column="0"
+                CurrentRoute="{Binding CurrentRoute}"
+                MinWidth="60"
+                Width="220">
+                <StackPanel Spacing="4">
+                    <shadui:SidebarItem
+                        Command="{Binding OpenWorkCommand}"
+                        Content="Work"
+                        IsChecked="True"
+                        Route="work">
+                        <shadui:SidebarItem.Icon>
+                            <lucide:LucideIcon Kind="Network" Size="18" />
+                        </shadui:SidebarItem.Icon>
+                    </shadui:SidebarItem>
+                    <shadui:SidebarItem
+                        Command="{Binding OpenServersCommand}"
+                        Content="Servers"
+                        Route="servers">
+                        <shadui:SidebarItem.Icon>
+                            <lucide:LucideIcon Kind="Server" Size="18" />
+                        </shadui:SidebarItem.Icon>
+                    </shadui:SidebarItem>
+                    <shadui:SidebarItem
+                        Command="{Binding OpenPackagesCommand}"
+                        Content="Packages"
+                        Route="packages">
+                        <shadui:SidebarItem.Icon>
+                            <lucide:LucideIcon Kind="Package" Size="18" />
+                        </shadui:SidebarItem.Icon>
+                    </shadui:SidebarItem>
+                </StackPanel>
+            </shadui:Sidebar>
+
+            <!-- Page host (replaces MainWindow's ContentPresenter + ILayout.Show). -->
+            <TransitioningContentControl Grid.Column="1" Content="{Binding SelectedPage}" />
+        </Grid>
+
+        <!-- Transient notifications render here (replaces the old Joufflu Alert overlay). -->
+        <shadui:ToastHost Manager="{Binding ToastManager}" />
+    </Panel>
+</shadui:Window>

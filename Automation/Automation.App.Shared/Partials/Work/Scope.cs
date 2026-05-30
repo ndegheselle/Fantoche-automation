@@ -1,8 +1,7 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
-using System.Windows;
-using System.Windows.Data;
+using Avalonia;
 using Usuel.Shared;
 
 namespace Automation.Models.Work
@@ -31,8 +30,13 @@ namespace Automation.Models.Work
 
     public partial class Scope : ScopedElement
     {
+        // MIGRATION (WPF -> Avalonia): replaced WPF's ListCollectionView / CollectionViewSource
+        // (System.Windows.Data, not available in Avalonia) with a plain sorted snapshot.
+        // TODO (Phase 4 - Scopes views): this no longer re-sorts live on Childrens changes.
+        // If live sorting is needed, reconcile with an Avalonia approach (e.g. sort in the
+        // view, or DataGridCollectionView) when porting the Scopes UI.
         [JsonIgnore]
-        public ListCollectionView? SortedChildrens { get; set; }
+        public IReadOnlyList<ScopedElement>? SortedChildrens { get; set; }
 
         public void Refresh()
         {
@@ -42,9 +46,11 @@ namespace Automation.Models.Work
                 if (child is Scope subScope)
                     subScope.Refresh();
             }
-            SortedChildrens = (ListCollectionView)CollectionViewSource.GetDefaultView(Childrens);
-            SortedChildrens.SortDescriptions.Add(new SortDescription($"{nameof(Metadata)}.{nameof(Metadata.Type)}", ListSortDirection.Ascending));
-            SortedChildrens.SortDescriptions.Add(new SortDescription($"{nameof(Metadata)}.{nameof(Metadata.Name)}", ListSortDirection.Ascending));
+            SortedChildrens = Childrens
+                .OrderBy(c => c.Metadata.Type)
+                .ThenBy(c => c.Metadata.Name)
+                .ToList();
+            RaisePropertyChanged(nameof(SortedChildrens));
         }
     }
 }

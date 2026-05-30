@@ -1,0 +1,26 @@
+<Application
+    x:Class="Automation.App.App"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:themes="clr-namespace:ShadUI;assembly=ShadUI"
+    xmlns:infra="clr-namespace:Automation.App.Infrastructure"
+    RequestedThemeVariant="Dark">
+
+    <Application.DataTemplates>
+        <!-- Resolves view-model instances to views (dialogs, content hosts). -->
+        <infra:ViewLocator />
+    </Application.DataTemplates>
+
+    <Application.Styles>
+        <themes:ShadTheme />
+    </Application.Styles>
+
+    <!--
+        MIGRATION: app-wide converters and resources from the old WPF App.xaml will be
+        re-added here (as Avalonia converters / ResourceDictionary entries) during Phase 2.
+    -->
+    <Application.Resources>
+        <ResourceDictionary />
+    </Application.Resources>
+
+</Application>
