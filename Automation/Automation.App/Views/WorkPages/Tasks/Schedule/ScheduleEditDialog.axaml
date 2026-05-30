@@ -1,0 +1,37 @@
+<UserControl
+    x:Class="Automation.App.Views.WorkPages.Tasks.Schedules.ScheduleEditDialog"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="clr-namespace:Automation.App.Views.WorkPages.Tasks.Schedules"
+    xmlns:lucide="clr-namespace:Lucide.Avalonia;assembly=Lucide.Avalonia"
+    xmlns:shadui="clr-namespace:ShadUI;assembly=ShadUI"
+    x:DataType="vm:ScheduleEditDialogViewModel"
+    MinWidth="360">
+    <StackPanel Margin="24" Spacing="12">
+        <TextBlock Classes="h4" Text="Edit schedule" />
+        <TextBox
+            Text="{Binding Schedule.CronExpression, Mode=TwoWay}"
+            Watermark="* * * * *"
+            shadui:ControlAssist.Label="Cron" />
+        <TextBox
+            Text="{Binding Schedule.JsonSettings, Mode=TwoWay}"
+            AcceptsReturn="True"
+            Height="120"
+            TextWrapping="Wrap"
+            shadui:ControlAssist.Label="Settings (JSON)" />
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+            <Button Classes="Outline" Command="{Binding CancelCommand}">
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <lucide:LucideIcon Kind="X" Size="14" />
+                    <TextBlock Text="Cancel" />
+                </StackPanel>
+            </Button>
+            <Button Classes="Primary" Command="{Binding SaveCommand}">
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <lucide:LucideIcon Kind="Save" Size="14" />
+                    <TextBlock Text="Save" />
+                </StackPanel>
+            </Button>
+        </StackPanel>
+    </StackPanel>
+</UserControl>

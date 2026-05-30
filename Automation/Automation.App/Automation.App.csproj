@@ -147,6 +147,17 @@
     <None Remove="Views\ServersPages\WorkerMainPageViewModel.cs" />
     <Compile Include="Views\ServersPages\WorkerMainPage.axaml.cs" />
     <Compile Include="Views\ServersPages\WorkerMainPageViewModel.cs" />
+    <!-- Tasks: schedules -->
+    <None Remove="Views\WorkPages\Tasks\Schedule\TaskSchedules.axaml" />
+    <None Remove="Views\WorkPages\Tasks\Schedule\TaskSchedules.axaml.cs" />
+    <None Remove="Views\WorkPages\Tasks\Schedule\TaskSchedulesViewModel.cs" />
+    <None Remove="Views\WorkPages\Tasks\Schedule\ScheduleEditDialog.axaml" />
+    <None Remove="Views\WorkPages\Tasks\Schedule\ScheduleEditDialog.axaml.cs" />
+    <None Remove="Views\WorkPages\Tasks\Schedule\ScheduleEditDialogViewModel.cs" />
+    <Compile Include="Views\WorkPages\Tasks\Schedule\TaskSchedules.axaml.cs" />
+    <Compile Include="Views\WorkPages\Tasks\Schedule\TaskSchedulesViewModel.cs" />
+    <Compile Include="Views\WorkPages\Tasks\Schedule\ScheduleEditDialog.axaml.cs" />
+    <Compile Include="Views\WorkPages\Tasks\Schedule\ScheduleEditDialogViewModel.cs" />
   </ItemGroup>
 
   <ItemGroup>
