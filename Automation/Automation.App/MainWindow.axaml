@@ -13,14 +13,17 @@
                 BorderBrush="{DynamicResource BorderColor30}"
                 BorderThickness="0,0,1,0"
                 Grid.Column="0"
-                MinWidth="60"
-                Width="220">
+                Expanded="{Binding #Toggler.IsChecked}"
+                MinWidth="48"
+                Width="220"
+                Padding="4">
                 <shadui:Sidebar.ExpandEasing>
                     <shadui:EaseInOutBack BounceIntensity="Strong" />
                 </shadui:Sidebar.ExpandEasing>
                 <shadui:Sidebar.Header>
                     <ToggleButton
                         CornerRadius="{DynamicResource LgCornerRadius}"
+                        HorizontalAlignment="Right"
                         Height="32"
                         Name="Toggler"
                         Padding="8"
@@ -29,6 +32,42 @@
                         <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.PanelRight}" />
                     </ToggleButton>
                 </shadui:Sidebar.Header>
+
+                <StackPanel Spacing="2">
+                    <shadui:SidebarItemLabel AsSeparator="True" Text="Work" />
+                    <shadui:SidebarItem
+                        Content="Workflow"
+                        IsChecked="True"
+                        Route="dashboard"
+                        ToolTip.Tip="{Binding $parent[shadui:Sidebar].Expanded, ConverterParameter='Workflow'}">
+                        <shadui:SidebarItem.Icon>
+                            <TextBlock
+                                Classes="LucideIcon"
+                                Text="{x:Static fonts:LucideIconFont.Workflow}" />
+                        </shadui:SidebarItem.Icon>
+                    </shadui:SidebarItem>
+                    <shadui:SidebarItem
+                        Content="Packages"
+                        Route="dashboard"
+                        ToolTip.Tip="{Binding $parent[shadui:Sidebar].Expanded, ConverterParameter='Packages'}">
+                        <shadui:SidebarItem.Icon>
+                            <TextBlock
+                                Classes="LucideIcon"
+                                Text="{x:Static fonts:LucideIconFont.PackageOpen}" />
+                        </shadui:SidebarItem.Icon>
+                    </shadui:SidebarItem>
+                    <shadui:SidebarItem
+                        Content="History"
+                        Route="dashboard"
+                        ToolTip.Tip="{Binding $parent[shadui:Sidebar].Expanded, ConverterParameter='Packages'}">
+                        <shadui:SidebarItem.Icon>
+                            <TextBlock
+                                Classes="LucideIcon"
+                                Text="{x:Static fonts:LucideIconFont.Logs}" />
+                        </shadui:SidebarItem.Icon>
+                    </shadui:SidebarItem>
+                    <shadui:SidebarItemLabel AsSeparator="True" Text="Get Started" />
+                </StackPanel>
             </shadui:Sidebar>
         </Grid>
     </Panel>
