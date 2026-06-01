@@ -1,0 +1,35 @@
+<shadui:Window xmlns="https://github.com/avaloniaui"
+               xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+               xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+               xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+               mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+               x:Class="Automation.App.MainWindow"
+               xmlns:shadui="clr-namespace:ShadUI;assembly=ShadUI"
+               xmlns:fonts="clr-namespace:Automation.App.Assets.Fonts"
+               Title="Automation.App">
+    <Panel>
+        <Grid ColumnDefinitions="Auto *">
+            <shadui:Sidebar
+                BorderBrush="{DynamicResource BorderColor30}"
+                BorderThickness="0,0,1,0"
+                Grid.Column="0"
+                MinWidth="60"
+                Width="220">
+                <shadui:Sidebar.ExpandEasing>
+                    <shadui:EaseInOutBack BounceIntensity="Strong" />
+                </shadui:Sidebar.ExpandEasing>
+                <shadui:Sidebar.Header>
+                    <ToggleButton
+                        CornerRadius="{DynamicResource LgCornerRadius}"
+                        Height="32"
+                        Name="Toggler"
+                        Padding="8"
+                        Theme="{DynamicResource SideTogglerTheme}"
+                        Width="32">
+                        <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.PanelRight}" />
+                    </ToggleButton>
+                </shadui:Sidebar.Header>
+            </shadui:Sidebar>
+        </Grid>
+    </Panel>
+</shadui:Window>

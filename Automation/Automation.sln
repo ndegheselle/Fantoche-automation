@@ -31,6 +31,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Automation.Worker.Console",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Automation.Plugins.Shared", "Automation.Plugins.Shared\Automation.Plugins.Shared.csproj", "{53DBD48F-C24F-4DB4-B989-6B9D1E60D453}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Automation.App", "Automation.App\Automation.App.csproj", "{91313CFE-255E-446C-A33B-FC3D31F34495}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -73,6 +75,10 @@ Global
 		{53DBD48F-C24F-4DB4-B989-6B9D1E60D453}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{53DBD48F-C24F-4DB4-B989-6B9D1E60D453}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{53DBD48F-C24F-4DB4-B989-6B9D1E60D453}.Release|Any CPU.Build.0 = Release|Any CPU
+		{91313CFE-255E-446C-A33B-FC3D31F34495}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{91313CFE-255E-446C-A33B-FC3D31F34495}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{91313CFE-255E-446C-A33B-FC3D31F34495}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{91313CFE-255E-446C-A33B-FC3D31F34495}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -87,6 +93,7 @@ Global
 		{4D63C0FD-0817-4AF4-8C53-D1BC035B58FC} = {128D718D-1656-4F30-98A5-3764D87E87C4}
 		{2EB7B16E-3567-4EE9-B220-B2CA1D9B1EB2} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{53DBD48F-C24F-4DB4-B989-6B9D1E60D453} = {2F8AA1CC-245F-4240-B392-B4B8E128E319}
+		{91313CFE-255E-446C-A33B-FC3D31F34495} = {3D73906E-1336-48AD-B5FA-34B251926611}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AFEC477D-0D28-4C5A-9622-5F97F806819C}

@@ -1,0 +1,13 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Automation.App.App"
+             xmlns:shadui="clr-namespace:ShadUI;assembly=ShadUI"
+             RequestedThemeVariant="Default">
+    <Application.Resources>
+        <FontFamily x:Key="LucideIcon">avares://Automation.App/Assets/Fonts#lucide</FontFamily>
+    </Application.Resources>
+    <Application.Styles>
+        <shadui:ShadTheme />
+        <StyleInclude Source="avares://Automation.App/Styles/Index.axaml" />
+    </Application.Styles>
+</Application>
