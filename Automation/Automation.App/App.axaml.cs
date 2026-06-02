@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using ShadUI;
 
 namespace Automation.App
 {
@@ -13,11 +14,11 @@ namespace Automation.App
 
         public override void OnFrameworkInitializationCompleted()
         {
-            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-            {
-                desktop.MainWindow = new MainWindow();
-            }
-
+            if (ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop) return;
+            
+            ServiceProvider.Themes.Value.Initialize();
+            desktop.MainWindow = new MainWindow(ServiceProvider.Settings.Value);
+            
             base.OnFrameworkInitializationCompleted();
         }
     }

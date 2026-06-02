@@ -6,8 +6,23 @@
                x:Class="Automation.App.MainWindow"
                xmlns:shadui="clr-namespace:ShadUI;assembly=ShadUI"
                xmlns:fonts="clr-namespace:Automation.App.Assets.Fonts"
+               xmlns:root="clr-namespace:Automation.App"
                xmlns:converters="clr-namespace:Automation.App.Converters"
+               x:DataType="root:SettingsViewModel"
                Title="Automation.App">
+    <shadui:Window.RightWindowTitleBarContent>
+        <StackPanel Orientation="Horizontal" Spacing="8">
+            <Button
+                Command="{Binding SwitchThemeCommand}"
+                CornerRadius="{DynamicResource MdCornerRadius}"
+                Height="30"
+                Width="30"
+                ToolTip.Tip="Switch Theme">
+                <TextBlock Classes="LucideIcon"
+                           Text="{Binding CurrentTheme, Converter={x:Static converters:ThemeModeConverters.ToLucideIcon}}" />
+            </Button>
+        </StackPanel>
+    </shadui:Window.RightWindowTitleBarContent>
     <Panel>
         <Grid ColumnDefinitions="Auto *">
             <shadui:Sidebar
@@ -18,18 +33,6 @@
                 MinWidth="48"
                 Width="220"
                 Padding="4">
-                    <shadui:Window.RightWindowTitleBarContent>
-        <StackPanel Orientation="Horizontal" Spacing="8">
-            <Button
-                Command="{Binding SwitchThemeCommand}"
-                CornerRadius="{DynamicResource MdCornerRadius}"
-                Height="30"
-                Width="30"
-                ToolTip.Tip="Switch Theme">
-                <TextBlock Classes="LucideIcon" Text="{Binding CurrentTheme, Converter={x:Static converters:ThemeModeConverters.ToLucideIcon}}" />
-            </Button>
-        </StackPanel>
-    </shadui:Window.RightWindowTitleBarContent>
                 <shadui:Sidebar.ExpandEasing>
                     <shadui:EaseInOutBack BounceIntensity="Strong" />
                 </shadui:Sidebar.ExpandEasing>

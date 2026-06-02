@@ -3,8 +3,15 @@ using CommunityToolkit.Mvvm.Input;
 using ShadUI;
 namespace Automation.App;
 
-internal class SettingsViewModel : ViewModelBase
+public partial class SettingsViewModel : ViewModelBase
 {
+    private readonly ThemeWatcher _themeWatcher;
+    
+    public SettingsViewModel(ThemeWatcher themeWatcher)
+    {
+        _themeWatcher = themeWatcher;
+    }
+
     private ThemeMode _currentTheme;
     public ThemeMode CurrentTheme
     {

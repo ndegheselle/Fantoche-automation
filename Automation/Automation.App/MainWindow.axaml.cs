@@ -4,8 +4,9 @@ namespace Automation.App;
 
 public partial class MainWindow : Window
 {
-    public MainWindow()
+    public MainWindow(SettingsViewModel settingsViewModel)
     {
         InitializeComponent();
+        DataContext = settingsViewModel;
     }
 }
