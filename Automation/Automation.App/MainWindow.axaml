@@ -6,6 +6,7 @@
                x:Class="Automation.App.MainWindow"
                xmlns:shadui="clr-namespace:ShadUI;assembly=ShadUI"
                xmlns:fonts="clr-namespace:Automation.App.Assets.Fonts"
+               xmlns:converters="clr-namespace:Automation.App.Converters"
                Title="Automation.App">
     <Panel>
         <Grid ColumnDefinitions="Auto *">
@@ -17,6 +18,18 @@
                 MinWidth="48"
                 Width="220"
                 Padding="4">
+                    <shadui:Window.RightWindowTitleBarContent>
+        <StackPanel Orientation="Horizontal" Spacing="8">
+            <Button
+                Command="{Binding SwitchThemeCommand}"
+                CornerRadius="{DynamicResource MdCornerRadius}"
+                Height="30"
+                Width="30"
+                ToolTip.Tip="Switch Theme">
+                <TextBlock Classes="LucideIcon" Text="{Binding CurrentTheme, Converter={x:Static converters:ThemeModeConverters.ToLucideIcon}}" />
+            </Button>
+        </StackPanel>
+    </shadui:Window.RightWindowTitleBarContent>
                 <shadui:Sidebar.ExpandEasing>
                     <shadui:EaseInOutBack BounceIntensity="Strong" />
                 </shadui:Sidebar.ExpandEasing>
@@ -36,10 +49,12 @@
                 <StackPanel Spacing="2">
                     <shadui:SidebarItemLabel AsSeparator="True" Text="Work" />
                     <shadui:SidebarItem
-                        Content="Workflow"
+                        Content="Workflows"
                         IsChecked="True"
                         Route="dashboard"
-                        ToolTip.Tip="{Binding $parent[shadui:Sidebar].Expanded, ConverterParameter='Workflow'}">
+                        ToolTip.Tip="{Binding $parent[shadui:Sidebar].Expanded, 
+                            Converter={x:Static converters:BooleanConverters.NullOrString}, 
+                            ConverterParameter='Workflows'}">
                         <shadui:SidebarItem.Icon>
                             <TextBlock
                                 Classes="LucideIcon"
@@ -49,7 +64,9 @@
                     <shadui:SidebarItem
                         Content="Packages"
                         Route="dashboard"
-                        ToolTip.Tip="{Binding $parent[shadui:Sidebar].Expanded, ConverterParameter='Packages'}">
+                        ToolTip.Tip="{Binding $parent[shadui:Sidebar].Expanded, 
+                            Converter={x:Static converters:BooleanConverters.NullOrString}, 
+                            ConverterParameter='Packages'}">
                         <shadui:SidebarItem.Icon>
                             <TextBlock
                                 Classes="LucideIcon"
@@ -59,14 +76,41 @@
                     <shadui:SidebarItem
                         Content="History"
                         Route="dashboard"
-                        ToolTip.Tip="{Binding $parent[shadui:Sidebar].Expanded, ConverterParameter='Packages'}">
+                        ToolTip.Tip="{Binding $parent[shadui:Sidebar].Expanded, 
+                            Converter={x:Static converters:BooleanConverters.NullOrString}, 
+                            ConverterParameter='History'}">
                         <shadui:SidebarItem.Icon>
                             <TextBlock
                                 Classes="LucideIcon"
                                 Text="{x:Static fonts:LucideIconFont.Logs}" />
                         </shadui:SidebarItem.Icon>
                     </shadui:SidebarItem>
-                    <shadui:SidebarItemLabel AsSeparator="True" Text="Get Started" />
+
+                    <shadui:SidebarItemLabel AsSeparator="True" Text="Executions" />
+                    <shadui:SidebarItem
+                        Content="Workers"
+                        Route="dashboard"
+                        ToolTip.Tip="{Binding $parent[shadui:Sidebar].Expanded, 
+                            Converter={x:Static converters:BooleanConverters.NullOrString}, 
+                            ConverterParameter='Workers'}">
+                        <shadui:SidebarItem.Icon>
+                            <TextBlock
+                                Classes="LucideIcon"
+                                Text="{x:Static fonts:LucideIconFont.Server}" />
+                        </shadui:SidebarItem.Icon>
+                    </shadui:SidebarItem>
+                    <shadui:SidebarItem
+                        Content="Storage"
+                        Route="dashboard"
+                        ToolTip.Tip="{Binding $parent[shadui:Sidebar].Expanded, 
+                            Converter={x:Static converters:BooleanConverters.NullOrString}, 
+                            ConverterParameter='Storage'}">
+                        <shadui:SidebarItem.Icon>
+                            <TextBlock
+                                Classes="LucideIcon"
+                                Text="{x:Static fonts:LucideIconFont.Database}" />
+                        </shadui:SidebarItem.Icon>
+                    </shadui:SidebarItem>
                 </StackPanel>
             </shadui:Sidebar>
         </Grid>
