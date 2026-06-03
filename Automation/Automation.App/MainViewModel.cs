@@ -1,15 +1,22 @@
 ﻿using Automation.App.Base;
+using Automation.App.Features.Test;
+using Automation.App.Services;
 using CommunityToolkit.Mvvm.Input;
 using ShadUI;
 namespace Automation.App;
 
-public partial class SettingsViewModel : ViewModelBase
+internal partial class MainViewModel : ViewModelBase
 {
     private readonly ThemeWatcher _themeWatcher;
-    
-    public SettingsViewModel(ThemeWatcher themeWatcher)
+
+    public NavigationManager Navigation { get; private set; }
+    public ToastManager ToastManager { get; private set; }
+
+    public MainViewModel(ThemeWatcher themeWatcher, NavigationManager navigation, ToastManager toastManager)
     {
         _themeWatcher = themeWatcher;
+        Navigation = navigation;
+        ToastManager = toastManager;
     }
 
     private ThemeMode _currentTheme;
@@ -31,4 +38,12 @@ public partial class SettingsViewModel : ViewModelBase
 
         _themeWatcher.SwitchTheme(CurrentTheme);
     }
+
+    #region Navigation
+    [RelayCommand]
+    private void OpenTest()
+    {
+        Navigation.Navigate(new TestViewModel(ServiceProvider.Toasts.Value));
+    }
+    #endregion
 }

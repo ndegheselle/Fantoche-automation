@@ -8,7 +8,8 @@
                xmlns:fonts="clr-namespace:Automation.App.Assets.Fonts"
                xmlns:root="clr-namespace:Automation.App"
                xmlns:converters="clr-namespace:Automation.App.Converters"
-               x:DataType="root:SettingsViewModel"
+               xmlns:test="clr-namespace:Automation.App.Features.Test"
+               x:DataType="root:MainViewModel"
                Title="Automation.App">
     <shadui:Window.RightWindowTitleBarContent>
         <StackPanel Orientation="Horizontal" Spacing="8">
@@ -54,7 +55,6 @@
                     <shadui:SidebarItem
                         Content="Workflows"
                         IsChecked="True"
-                        Route="dashboard"
                         ToolTip.Tip="{Binding $parent[shadui:Sidebar].Expanded, 
                             Converter={x:Static converters:BooleanConverters.NullOrString}, 
                             ConverterParameter='Workflows'}">
@@ -65,8 +65,8 @@
                         </shadui:SidebarItem.Icon>
                     </shadui:SidebarItem>
                     <shadui:SidebarItem
+                                Command="{Binding OpenTestCommand}"
                         Content="Packages"
-                        Route="dashboard"
                         ToolTip.Tip="{Binding $parent[shadui:Sidebar].Expanded, 
                             Converter={x:Static converters:BooleanConverters.NullOrString}, 
                             ConverterParameter='Packages'}">
@@ -78,7 +78,6 @@
                     </shadui:SidebarItem>
                     <shadui:SidebarItem
                         Content="History"
-                        Route="dashboard"
                         ToolTip.Tip="{Binding $parent[shadui:Sidebar].Expanded, 
                             Converter={x:Static converters:BooleanConverters.NullOrString}, 
                             ConverterParameter='History'}">
@@ -92,7 +91,6 @@
                     <shadui:SidebarItemLabel AsSeparator="True" Text="Executions" />
                     <shadui:SidebarItem
                         Content="Workers"
-                        Route="dashboard"
                         ToolTip.Tip="{Binding $parent[shadui:Sidebar].Expanded, 
                             Converter={x:Static converters:BooleanConverters.NullOrString}, 
                             ConverterParameter='Workers'}">
@@ -104,7 +102,6 @@
                     </shadui:SidebarItem>
                     <shadui:SidebarItem
                         Content="Storage"
-                        Route="dashboard"
                         ToolTip.Tip="{Binding $parent[shadui:Sidebar].Expanded, 
                             Converter={x:Static converters:BooleanConverters.NullOrString}, 
                             ConverterParameter='Storage'}">
@@ -116,6 +113,14 @@
                     </shadui:SidebarItem>
                 </StackPanel>
             </shadui:Sidebar>
+            <TransitioningContentControl Content="{Binding Navigation.CurrentPage}" Grid.Column="1">
+				<TransitioningContentControl.DataTemplates>
+					<DataTemplate DataType="{x:Type test:TestViewModel}">
+                        <test:TestPage/>
+                    </DataTemplate>
+                </TransitioningContentControl.DataTemplates>
+            </TransitioningContentControl>
         </Grid>
+        <shadui:ToastHost Manager="{Binding ToastManager}" />
     </Panel>
 </shadui:Window>

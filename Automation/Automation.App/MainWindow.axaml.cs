@@ -2,9 +2,9 @@ using ShadUI;
 
 namespace Automation.App;
 
-public partial class MainWindow : Window
+internal partial class MainWindow : Window
 {
-    public MainWindow(SettingsViewModel settingsViewModel)
+    public MainWindow(MainViewModel settingsViewModel)
     {
         InitializeComponent();
         DataContext = settingsViewModel;
