@@ -9,6 +9,7 @@
                xmlns:root="clr-namespace:Automation.App"
                xmlns:converters="clr-namespace:Automation.App.Converters"
                xmlns:test="clr-namespace:Automation.App.Features.Test"
+               xmlns:packages="clr-namespace:Automation.App.Features.Packages"
                x:DataType="root:MainViewModel"
                Title="Automation.App">
     <shadui:Window.RightWindowTitleBarContent>
@@ -49,10 +50,10 @@
                         <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.PanelRight}" />
                     </ToggleButton>
                 </shadui:Sidebar.Header>
-
                 <StackPanel Spacing="2">
                     <shadui:SidebarItemLabel AsSeparator="True" Text="Work" />
                     <shadui:SidebarItem
+                        Command="{Binding OpenTestCommand}"
                         Content="Workflows"
                         IsChecked="True"
                         ToolTip.Tip="{Binding $parent[shadui:Sidebar].Expanded, 
@@ -65,7 +66,7 @@
                         </shadui:SidebarItem.Icon>
                     </shadui:SidebarItem>
                     <shadui:SidebarItem
-                                Command="{Binding OpenTestCommand}"
+                        Command="{Binding OpenPackagesCommand}"
                         Content="Packages"
                         ToolTip.Tip="{Binding $parent[shadui:Sidebar].Expanded, 
                             Converter={x:Static converters:BooleanConverters.NullOrString}, 
@@ -114,9 +115,12 @@
                 </StackPanel>
             </shadui:Sidebar>
             <TransitioningContentControl Content="{Binding Navigation.CurrentPage}" Grid.Column="1">
-				<TransitioningContentControl.DataTemplates>
-					<DataTemplate DataType="{x:Type test:TestViewModel}">
-                        <test:TestPage/>
+                <TransitioningContentControl.DataTemplates>
+                    <DataTemplate DataType="{x:Type test:TestViewModel}">
+                        <test:TestPage />
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type packages:PackagesViewModel}">
+                        <packages:PackagesPage />
                     </DataTemplate>
                 </TransitioningContentControl.DataTemplates>
             </TransitioningContentControl>

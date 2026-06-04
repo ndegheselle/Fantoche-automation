@@ -27,4 +27,10 @@
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="ShadUI" Version="0.2.3" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Features\Test\TestPage.axaml.cs">
+      <DependentUpon>TestPage.axaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
 </Project>

@@ -1,0 +1,32 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:fonts="clr-namespace:Automation.App.Assets.Fonts"
+             xmlns:shadui="clr-namespace:ShadUI;assembly=ShadUI"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Automation.App.Features.Packages.PackagesPage">
+    <Grid RowDefinitions="auto *" RowSpacing="2" Margin="4">
+        <Grid ColumnSpacing="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" MaxWidth="400" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBox
+                Classes="Clearable"
+                HorizontalAlignment="Stretch"
+                PlaceholderText="Search...">
+                <TextBox.InnerRightContent>
+                    <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.Search}" />
+                </TextBox.InnerRightContent>
+            </TextBox>
+            <Button Grid.Column="2" Classes="Outline">
+                <shadui:ButtonAssist.Icon>
+                    <TextBlock Margin="0,0,4,0" Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.Plus}" />
+                </shadui:ButtonAssist.Icon>
+                Add
+            </Button>
+        </Grid>
+    </Grid>
+</UserControl>

@@ -1,4 +1,5 @@
 ﻿using Automation.App.Base;
+using Automation.App.Features.Packages;
 using Automation.App.Features.Test;
 using Automation.App.Services;
 using CommunityToolkit.Mvvm.Input;
@@ -44,6 +45,12 @@ internal partial class MainViewModel : ViewModelBase
     private void OpenTest()
     {
         Navigation.Navigate(new TestViewModel(ServiceProvider.Toasts.Value));
+    }
+    
+    [RelayCommand]
+    private void OpenPackages()
+    {
+        Navigation.Navigate(new PackagesViewModel());
     }
     #endregion
 }
