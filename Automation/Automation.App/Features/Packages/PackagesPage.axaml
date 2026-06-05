@@ -3,16 +3,12 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:fonts="clr-namespace:Automation.App.Assets.Fonts"
+             xmlns:data="clr-namespace:Automation.App.Components.Data"
              xmlns:shadui="clr-namespace:ShadUI;assembly=ShadUI"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="850" d:DesignHeight="450"
              x:Class="Automation.App.Features.Packages.PackagesPage">
-    <Grid RowDefinitions="auto *" RowSpacing="2" Margin="4">
-        <Grid ColumnSpacing="2">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" MaxWidth="400" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
+    <Grid RowDefinitions="auto * Auto" RowSpacing="2" Margin="4">
+        <Grid ColumnDefinitions="* auto" ColumnSpacing="2">
             <TextBox
                 Classes="Clearable"
                 HorizontalAlignment="Stretch"
@@ -21,12 +17,64 @@
                     <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.Search}" />
                 </TextBox.InnerRightContent>
             </TextBox>
-            <Button Grid.Column="2" Classes="Outline">
+            <Button Grid.Column="1" Classes="Outline">
                 <shadui:ButtonAssist.Icon>
                     <TextBlock Margin="0,0,4,0" Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.Plus}" />
                 </shadui:ButtonAssist.Icon>
                 Add
             </Button>
         </Grid>
+
+        <DataGrid Grid.Row="1"
+                  CanUserReorderColumns="False"
+                  CanUserSortColumns="False"
+                  GridLinesVisibility="Horizontal"
+                  SelectionMode="Single"
+                  IsReadOnly="True">
+
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Id" />
+                <DataGridTextColumn Header="Last version" />
+                <DataGridTextColumn Header="Description" Width="*" />
+                <DataGridTemplateColumn CanUserResize="False" CanUserSort="False">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <shadui:SimpleDropdown
+                                Classes="Icon Grid"
+                                CornerRadius="{DynamicResource MdCornerRadius}"
+                                HorizontalAlignment="Center"
+                                PopupPlacement="BottomEdgeAlignedLeft"
+                                PopupWidth="190"
+                                VerticalAlignment="Center">
+                                <shadui:SimpleDropdown.TriggerContent>
+                                    <TextBlock Margin="0,0,4,0" Classes="LucideIcon"
+                                               Text="{x:Static fonts:LucideIconFont.Ellipsis}" />
+                                </shadui:SimpleDropdown.TriggerContent>
+                                <shadui:SimpleDropdown.MenuLabel>
+                                    <TextBlock Classes="Caption Muted" Text="Actions" />
+                                </shadui:SimpleDropdown.MenuLabel>
+                                <Separator />
+                                <Button>
+                                    <shadui:ButtonAssist.Icon>
+                                        <TextBlock Margin="0,0,4,0" Classes="LucideIcon"
+                                                   Text="{x:Static fonts:LucideIconFont.Edit}" />
+                                    </shadui:ButtonAssist.Icon>
+                                    Edit
+                                </Button>
+                                <Button Classes="Destructive">
+                                    <shadui:ButtonAssist.Icon>
+                                        <TextBlock Margin="0,0,4,0" Classes="LucideIcon"
+                                                   Text="{x:Static fonts:LucideIconFont.Trash}" />
+                                    </shadui:ButtonAssist.Icon>
+                                    Remove
+                                </Button>
+                            </shadui:SimpleDropdown>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <data:Pagination Grid.Row="2" />
     </Grid>
 </UserControl>
