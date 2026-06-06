@@ -36,5 +36,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Automation.Shared\Automation.Shared.csproj" />
+    <ProjectReference Include="..\Automation.Worker\Automation.Worker.csproj" />
   </ItemGroup>
 </Project>

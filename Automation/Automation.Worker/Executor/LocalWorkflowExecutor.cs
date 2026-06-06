@@ -11,7 +11,7 @@ public class LocalWorkflowExecutor
 {
     private readonly LocalNodeExecutor _executor;
 
-    public LocalWorkflowExecutor(IPackageManagement packageManagement)
+    public LocalWorkflowExecutor(LocalPackageManagement packageManagement)
     {
         _executor = new LocalNodeExecutor(packageManagement, this);
     }

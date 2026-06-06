@@ -11,6 +11,7 @@ using NuGet.Versioning;
 using System.Collections.Concurrent;
 using System.Reflection;
 using System.Runtime.Versioning;
+using Automation.Shared.Services;
 
 namespace Automation.Worker.Packages;
 
@@ -22,7 +23,7 @@ public class PackageDownloadException : Exception
     { }
 }
 
-public class LocalPackageManagement
+public class LocalPackageManagement : IPackagesService
 {
     private readonly string _folder;
     private readonly string _localFolder;
@@ -37,6 +38,9 @@ public class LocalPackageManagement
         _frameworkVersion = GetCurrentFramework();
         _localFolder = Path.Combine(Directory.GetCurrentDirectory(), "packages");
         _folder = folder;
+        if (Directory.Exists(_folder) == false)
+            throw new DirectoryNotFoundException($"Package folder [{_folder}] not found");
+        
         var packageSource = new PackageSource(folder);
         _repository = Repository.Factory.GetCoreV3(packageSource);
         _cacheContext = new SourceCacheContext();

@@ -1,8 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Automation.Shared.Base;
 using Automation.Shared.Data.Execution;
+using Automation.Shared.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -10,13 +12,14 @@ namespace Automation.App.Features.Packages;
 
 public partial class PackagesPageViewModel : ObservableObject, INavigable
 {
-    private readonly List<PackageInfos> _all = new();
-    private List<PackageInfos> _filtered = new();
+    private readonly IPackagesService _packagesService;
 
-    public PackagesPageViewModel()
+    private bool _suppressReload;
+    private CancellationTokenSource? _cts;
+
+    public PackagesPageViewModel(IPackagesService packagesService)
     {
-        _all = Load().ToList();
-        ApplyFilter();
+        _packagesService = packagesService;
     }
 
     public ObservableCollection<PackageInfos> Items { get; } = new();
@@ -25,7 +28,7 @@ public partial class PackagesPageViewModel : ObservableObject, INavigable
     private string _searchText = string.Empty;
 
     [ObservableProperty]
-    private int _totalItems;
+    private long _totalItems;
 
     [ObservableProperty]
     private int _currentPage = 1;
@@ -33,60 +36,92 @@ public partial class PackagesPageViewModel : ObservableObject, INavigable
     [ObservableProperty]
     private int _pageSize = 100;
 
-    partial void OnSearchTextChanged(string value)
+    [ObservableProperty]
+    private bool _isLoading;
+
+    public void OnShow() => _ = RefreshAsync();
+
+    public void OnHide() => _cts?.Cancel();
+
+    partial void OnSearchTextChanged(string value) => ResetToFirstPageAndReload();
+
+    partial void OnPageSizeChanged(int value) => ResetToFirstPageAndReload();
+
+    partial void OnCurrentPageChanged(int value)
     {
-        CurrentPage = 1;
-        ApplyFilter();
+        if (_suppressReload)
+            return;
+        _ = RefreshAsync();
     }
 
-    partial void OnCurrentPageChanged(int value) => UpdatePageItems();
-
-    partial void OnPageSizeChanged(int value)
+    private void ResetToFirstPageAndReload()
     {
+        // Setting CurrentPage = 1 would normally fire OnCurrentPageChanged and
+        // reload; suppress that so we only fetch once below.
+        _suppressReload = true;
         CurrentPage = 1;
-        ApplyFilter();
+        _suppressReload = false;
+
+        _ = RefreshAsync();
     }
 
-    private void ApplyFilter()
+    private async Task RefreshAsync()
     {
-        var query = _all.AsEnumerable();
+        // Cancel any in-flight refresh so a slow earlier response can't
+        // overwrite a newer one.
+        _cts?.Cancel();
+        var cts = new CancellationTokenSource();
+        _cts = cts;
+        var token = cts.Token;
 
-        if (!string.IsNullOrWhiteSpace(SearchText))
+        try
         {
-            var term = SearchText.Trim();
-            query = query.Where(p =>
-                p.Identifier.Identifier.Contains(term, StringComparison.OrdinalIgnoreCase) ||
-                p.Description.Contains(term, StringComparison.OrdinalIgnoreCase));
+            IsLoading = true;
+
+            var options = new PaginationOptions
+            {
+                Page = CurrentPage,
+                PageSize = PageSize,
+            };
+
+            var result = await _packagesService.SearchAsync(SearchText?.Trim() ?? string.Empty, options);
+
+            // SearchAsync has no CancellationToken, so we can't abort the call
+            // itself — just discard the result if a newer request superseded us.
+            if (token.IsCancellationRequested)
+                return;
+
+            TotalItems = result.Total;
+
+            Items.Clear();
+            foreach (var p in result.Items)
+                Items.Add(p);
         }
-
-        _filtered = query.ToList();
-        TotalItems = _filtered.Count;
-        UpdatePageItems();
+        finally
+        {
+            // Only the most recent refresh clears the flag.
+            if (ReferenceEquals(_cts, cts))
+                IsLoading = false;
+        }
     }
 
-    private void UpdatePageItems()
+    [RelayCommand]
+    private async Task Add()
     {
-        var page = _filtered
-            .Skip((CurrentPage - 1) * PageSize)
-            .Take(PageSize);
-
-        Items.Clear();
-        foreach (var p in page)
-            Items.Add(p);
+        // open add dialog...
+        await RefreshAsync();
     }
 
     [RelayCommand]
-    private void Add() { /* open add dialog, then ApplyFilter() */ }
-
-    [RelayCommand]
-    private void Edit(PackageInfos package) { /* edit selected */ }
-
-    [RelayCommand]
-    private void Remove(PackageInfos package)
+    private void Edit(PackageInfos package)
     {
-        _all.Remove(package);
-        ApplyFilter();
+        // edit selected...
     }
 
-    private static IEnumerable<PackageInfos> Load() => Enumerable.Empty<PackageInfos>();
+    [RelayCommand]
+    private async Task Remove(PackageInfos package)
+    {
+        await _packagesService.RemoveAsync(package.Identifier.Identifier, package.Identifier.Version);
+        await RefreshAsync();
+    }
 }

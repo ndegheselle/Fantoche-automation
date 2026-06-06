@@ -22,60 +22,64 @@
             </Button>
         </Grid>
 
-        <DataGrid Grid.Row="1"
-                  x:Name="PackagesList"
-                  ItemsSource="{Binding Items}"
-                  CanUserReorderColumns="False"
-                  CanUserSortColumns="False"
-                  GridLinesVisibility="Horizontal"
-                  SelectionMode="Single"
-                  IsReadOnly="True">
+        <Panel Grid.Row="1">
+            <DataGrid
+                x:Name="PackagesList"
+                ItemsSource="{Binding Items}"
+                CanUserReorderColumns="False"
+                CanUserSortColumns="False"
+                GridLinesVisibility="Horizontal"
+                SelectionMode="Single"
+                IsReadOnly="True">
 
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Id" Binding="{Binding Identifier.Identifier}" />
-                <DataGridTextColumn Header="Last version" Binding="{Binding Identifier.Version}" />
-                <DataGridTextColumn Header="Description" Width="*" Binding="{Binding Description}" />
-                <DataGridTemplateColumn CanUserResize="False" CanUserSort="False">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <shadui:SimpleDropdown
-                                Classes="Icon Grid"
-                                CornerRadius="{DynamicResource MdCornerRadius}"
-                                HorizontalAlignment="Center"
-                                PopupPlacement="BottomEdgeAlignedLeft"
-                                PopupWidth="190"
-                                VerticalAlignment="Center">
-                                <shadui:SimpleDropdown.TriggerContent>
-                                    <TextBlock Margin="0,0,4,0" Classes="LucideIcon"
-                                               Text="{x:Static fonts:LucideIconFont.Ellipsis}" />
-                                </shadui:SimpleDropdown.TriggerContent>
-                                <shadui:SimpleDropdown.MenuLabel>
-                                    <TextBlock Classes="Caption Muted" Text="Actions" />
-                                </shadui:SimpleDropdown.MenuLabel>
-                                <Separator />
-                                <Button Command="{Binding #PackagesList.((packages:PackagesPageViewModel)DataContext).EditCommand}"
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Identifier" Binding="{Binding Identifier.Identifier}" />
+                    <DataGridTextColumn Header="Last version" Binding="{Binding Identifier.Version}" />
+                    <DataGridTextColumn Header="Description" Width="*" Binding="{Binding Description}" />
+                    <DataGridTemplateColumn CanUserResize="False" CanUserSort="False">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <shadui:SimpleDropdown
+                                    Classes="Icon Grid"
+                                    CornerRadius="{DynamicResource MdCornerRadius}"
+                                    HorizontalAlignment="Center"
+                                    PopupPlacement="BottomEdgeAlignedLeft"
+                                    PopupWidth="190"
+                                    VerticalAlignment="Center">
+                                    <shadui:SimpleDropdown.TriggerContent>
+                                        <TextBlock Classes="LucideIcon"
+                                                   Text="{x:Static fonts:LucideIconFont.Ellipsis}" />
+                                    </shadui:SimpleDropdown.TriggerContent>
+                                    <shadui:SimpleDropdown.MenuLabel>
+                                        <TextBlock Classes="Caption Muted" Text="Actions" />
+                                    </shadui:SimpleDropdown.MenuLabel>
+                                    <Separator />
+                                    <Button
+                                        Command="{Binding #PackagesList.((packages:PackagesPageViewModel)DataContext).EditCommand}"
                                         CommandParameter="{Binding}">
-                                    <shadui:ButtonAssist.Icon>
-                                        <TextBlock Margin="0,0,4,0" Classes="LucideIcon"
-                                                   Text="{x:Static fonts:LucideIconFont.Edit}" />
-                                    </shadui:ButtonAssist.Icon>
-                                    Edit
-                                </Button>
-                                <Button Classes="Destructive"
-                                        Command="{Binding #PackagesList.((packages:PackagesPageViewModel)DataContext).RemoveCommand }"
-                                        CommandParameter="{Binding}">
-                                    <shadui:ButtonAssist.Icon>
-                                        <TextBlock Margin="0,0,4,0" Classes="LucideIcon"
-                                                   Text="{x:Static fonts:LucideIconFont.Trash}" />
-                                    </shadui:ButtonAssist.Icon>
-                                    Remove
-                                </Button>
-                            </shadui:SimpleDropdown>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-            </DataGrid.Columns>
-        </DataGrid>
+                                        <shadui:ButtonAssist.Icon>
+                                            <TextBlock Margin="0,0,4,0" Classes="LucideIcon"
+                                                       Text="{x:Static fonts:LucideIconFont.Edit}" />
+                                        </shadui:ButtonAssist.Icon>
+                                        Edit
+                                    </Button>
+                                    <Button Classes="Destructive"
+                                            Command="{Binding #PackagesList.((packages:PackagesPageViewModel)DataContext).RemoveCommand }"
+                                            CommandParameter="{Binding}">
+                                        <shadui:ButtonAssist.Icon>
+                                            <TextBlock Margin="0,0,4,0" Classes="LucideIcon"
+                                                       Text="{x:Static fonts:LucideIconFont.Trash}" />
+                                        </shadui:ButtonAssist.Icon>
+                                        Remove
+                                    </Button>
+                                </shadui:SimpleDropdown>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+            <shadui:BusyArea IsBusy="{Binding IsLoading}" />
+        </Panel>
 
         <data:Pagination Grid.Row="2"
                          Total="{Binding TotalItems}"

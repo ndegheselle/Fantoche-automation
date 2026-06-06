@@ -1,6 +1,8 @@
 ﻿using System;
+using System.IO;
 using Automation.App.Services.UI;
 using Automation.Shared.Services;
+using Automation.Worker.Packages;
 using Avalonia;
 using ShadUI;
 
@@ -19,7 +21,14 @@ internal static class ServiceProvider
     #region Transient
     public static MainViewModel Settings => new MainViewModel(Themes.Value, Navigation.Value, _toastManager);
 
-    public static IPackagesService Packages => throw new NotImplementedException();
+    public static IPackagesService Packages
+    {
+        get
+        {
+            string nuggetLocalPath = Path.Join(Directory.GetCurrentDirectory(), "nugetlocal");
+            return new LocalPackageManagement(nuggetLocalPath);
+        }
+    }
 
     #endregion
 }

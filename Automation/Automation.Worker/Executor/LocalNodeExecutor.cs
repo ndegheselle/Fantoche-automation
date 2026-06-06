@@ -11,14 +11,14 @@ namespace Automation.Worker.Executor;
 /// </summary>
 public class LocalNodeExecutor : IDisposable
 {
-    private readonly IPackageManagement _packages;
+    private readonly LocalPackageManagement _packages;
     private readonly LocalWorkflowExecutor _workflowExecutor;
     /// <summary>
     /// Task loaders cached by DLL path.
     /// </summary>
     private readonly Dictionary<string, TaskLoader> _cachedTaskLoaders = [];
 
-    public LocalNodeExecutor(IPackageManagement packageManagement, LocalWorkflowExecutor workflowExecutor)
+    public LocalNodeExecutor(LocalPackageManagement packageManagement, LocalWorkflowExecutor workflowExecutor)
     {
         _workflowExecutor = workflowExecutor;
         _packages = packageManagement;

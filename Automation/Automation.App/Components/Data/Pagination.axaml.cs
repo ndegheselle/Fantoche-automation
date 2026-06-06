@@ -62,10 +62,9 @@ public partial class Pagination : UserControl
     {
         get
         {
-            if (Total == 0) return "0-0 of 0";
             var from = (CurrentPage - 1) * PageSize + 1;
-            var to = Math.Min(CurrentPage * PageSize, Total);
-            return $"{from}-{to} of {Total}";
+            var to = Total <= 0 ? CurrentPage * PageSize : Math.Min(CurrentPage * PageSize, Total);
+            return Total <= 0 ? $"{from}-{to}" : $"{from}-{to} of {Total}";
         }
     }
 
