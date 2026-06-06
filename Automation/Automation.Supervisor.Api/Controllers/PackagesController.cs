@@ -17,7 +17,7 @@ namespace Automation.Supervisor.Api.Controllers
         { return _packages.GetInfosAsync(id, null); }
 
         [HttpGet("search")]
-        public Task<ListPageWrapper<PackageInfos>> Search(
+        public Task<Paginated<PackageInfos>> Search(
             [FromQuery]string? searchValue,
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 50)

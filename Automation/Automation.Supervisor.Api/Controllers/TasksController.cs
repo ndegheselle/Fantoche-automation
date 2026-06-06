@@ -110,7 +110,7 @@ namespace Automation.Supervisor.Api.Controllers
 
         [HttpGet]
         [Route("{id:guid}/instances")]
-        public async Task<ListPageWrapper<TaskInstance>> GetInstancesAsync([FromRoute] Guid id, [FromQuery] int page, [FromQuery] int pageSize)
+        public async Task<Paginated<TaskInstance>> GetInstancesAsync([FromRoute] Guid id, [FromQuery] int page, [FromQuery] int pageSize)
         {
             return await _taskInstanceRepo.GetByTaskAsync(id, page, pageSize);
         }

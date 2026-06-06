@@ -14,7 +14,15 @@ using System.Runtime.Versioning;
 
 namespace Automation.Worker.Packages;
 
-public class LocalPackageManagement : IPackageManagement
+public class PackageDownloadException : Exception
+{
+    public PackageDownloadException(string message) : base(message)
+    { }
+    public PackageDownloadException(string message, Exception ex) : base(message, ex)
+    { }
+}
+
+public class LocalPackageManagement
 {
     private readonly string _folder;
     private readonly string _localFolder;
@@ -35,23 +43,22 @@ public class LocalPackageManagement : IPackageManagement
         _logger = NullLogger.Instance;
     }
 
-    public async Task<ListPageWrapper<PackageInfos>> SearchAsync(string name = "", int page = 1, int pageSize = 50)
+    public async Task<Paginated<PackageInfos>> SearchAsync(string name = "", PaginationOptions options = default)
     {
         // XXX : difference with LocalPackageSearchResource ?
         var resource = _repository.GetResource<PackageSearchResource>();
         var packages = await resource.SearchAsync(
             name,
             new SearchFilter(false),
-            page - 1,
-            pageSize,
+            options.Page - 1,
+            options.PageSize,
             NullLogger.Instance,
             CancellationToken.None);
-        return new ListPageWrapper<PackageInfos>
+        return new Paginated<PackageInfos>
         {
-            Page = page,
-            PageSize = pageSize,
+            Options = options,
             Total = -1,
-            Data = packages.Select(x => x.ToPackageInfos()).ToList()
+            Items = packages.Select(x => x.ToPackageInfos()).ToList()
         };
     }
 

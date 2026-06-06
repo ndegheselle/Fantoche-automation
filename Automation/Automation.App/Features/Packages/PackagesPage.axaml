@@ -62,7 +62,7 @@
                                     Edit
                                 </Button>
                                 <Button Classes="Destructive"
-                                        Command="{Binding#PackagesList.((packages:PackagesPageViewModel)DataContext).RemoveCommand }"
+                                        Command="{Binding #PackagesList.((packages:PackagesPageViewModel)DataContext).RemoveCommand }"
                                         CommandParameter="{Binding}">
                                     <shadui:ButtonAssist.Icon>
                                         <TextBlock Margin="0,0,4,0" Classes="LucideIcon"

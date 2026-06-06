@@ -1,5 +1,6 @@
 ﻿using System;
 using Automation.App.Services.UI;
+using Automation.Shared.Services;
 using Avalonia;
 using ShadUI;
 
@@ -17,5 +18,8 @@ internal static class ServiceProvider
 
     #region Transient
     public static MainViewModel Settings => new MainViewModel(Themes.Value, Navigation.Value, _toastManager);
+
+    public static IPackagesService Packages => throw new NotImplementedException();
+
     #endregion
 }
