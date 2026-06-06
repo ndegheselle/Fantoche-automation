@@ -4,6 +4,7 @@ using Automation.App.Features.Test;
 using Automation.App.Services;
 using CommunityToolkit.Mvvm.Input;
 using ShadUI;
+
 namespace Automation.App;
 
 internal partial class MainViewModel : ViewModelBase
@@ -50,7 +51,7 @@ internal partial class MainViewModel : ViewModelBase
     [RelayCommand]
     private void OpenPackages()
     {
-        Navigation.Navigate(new PackagesViewModel());
+        Navigation.Navigate(new PackagesPageViewModel());
     }
     #endregion
 }

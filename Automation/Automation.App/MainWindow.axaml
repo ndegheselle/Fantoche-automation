@@ -119,7 +119,7 @@
                     <DataTemplate DataType="{x:Type test:TestViewModel}">
                         <test:TestPage />
                     </DataTemplate>
-                    <DataTemplate DataType="{x:Type packages:PackagesViewModel}">
+                    <DataTemplate DataType="{x:Type packages:PackagesPageViewModel}">
                         <packages:PackagesPage />
                     </DataTemplate>
                 </TransitioningContentControl.DataTemplates>

@@ -33,4 +33,8 @@
       <DependentUpon>TestPage.axaml</DependentUpon>
     </Compile>
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Automation.Shared\Automation.Shared.csproj" />
+  </ItemGroup>
 </Project>

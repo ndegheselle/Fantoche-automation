@@ -5,19 +5,16 @@
              xmlns:fonts="clr-namespace:Automation.App.Assets.Fonts"
              xmlns:data="clr-namespace:Automation.App.Components.Data"
              xmlns:shadui="clr-namespace:ShadUI;assembly=ShadUI"
+             xmlns:inputs="clr-namespace:Automation.App.Components.Inputs"
+             xmlns:packages="clr-namespace:Automation.App.Features.Packages"
+             x:DataType="packages:PackagesPageViewModel"
              mc:Ignorable="d" d:DesignWidth="850" d:DesignHeight="450"
              x:Class="Automation.App.Features.Packages.PackagesPage">
     <Grid RowDefinitions="auto * Auto" RowSpacing="2" Margin="4">
         <Grid ColumnDefinitions="* auto" ColumnSpacing="2">
-            <TextBox
-                Classes="Clearable"
-                HorizontalAlignment="Stretch"
-                PlaceholderText="Search...">
-                <TextBox.InnerRightContent>
-                    <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.Search}" />
-                </TextBox.InnerRightContent>
-            </TextBox>
-            <Button Grid.Column="1" Classes="Outline">
+            <inputs:DebouncedSearch Grid.Column="0"
+                                    Search="{Binding SearchText, Mode=TwoWay}" />
+            <Button Grid.Column="1" Classes="Outline" Command="{Binding AddCommand}">
                 <shadui:ButtonAssist.Icon>
                     <TextBlock Margin="0,0,4,0" Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.Plus}" />
                 </shadui:ButtonAssist.Icon>
@@ -26,6 +23,8 @@
         </Grid>
 
         <DataGrid Grid.Row="1"
+                  x:Name="PackagesList"
+                  ItemsSource="{Binding Items}"
                   CanUserReorderColumns="False"
                   CanUserSortColumns="False"
                   GridLinesVisibility="Horizontal"
@@ -33,9 +32,9 @@
                   IsReadOnly="True">
 
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Id" />
-                <DataGridTextColumn Header="Last version" />
-                <DataGridTextColumn Header="Description" Width="*" />
+                <DataGridTextColumn Header="Id" Binding="{Binding Identifier.Identifier}" />
+                <DataGridTextColumn Header="Last version" Binding="{Binding Identifier.Version}" />
+                <DataGridTextColumn Header="Description" Width="*" Binding="{Binding Description}" />
                 <DataGridTemplateColumn CanUserResize="False" CanUserSort="False">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
@@ -54,14 +53,17 @@
                                     <TextBlock Classes="Caption Muted" Text="Actions" />
                                 </shadui:SimpleDropdown.MenuLabel>
                                 <Separator />
-                                <Button>
+                                <Button Command="{Binding #PackagesList.((packages:PackagesPageViewModel)DataContext).EditCommand}"
+                                        CommandParameter="{Binding}">
                                     <shadui:ButtonAssist.Icon>
                                         <TextBlock Margin="0,0,4,0" Classes="LucideIcon"
                                                    Text="{x:Static fonts:LucideIconFont.Edit}" />
                                     </shadui:ButtonAssist.Icon>
                                     Edit
                                 </Button>
-                                <Button Classes="Destructive">
+                                <Button Classes="Destructive"
+                                        Command="{Binding#PackagesList.((packages:PackagesPageViewModel)DataContext).RemoveCommand }"
+                                        CommandParameter="{Binding}">
                                     <shadui:ButtonAssist.Icon>
                                         <TextBlock Margin="0,0,4,0" Classes="LucideIcon"
                                                    Text="{x:Static fonts:LucideIconFont.Trash}" />
@@ -75,6 +77,9 @@
             </DataGrid.Columns>
         </DataGrid>
 
-        <data:Pagination Grid.Row="2" />
+        <data:Pagination Grid.Row="2"
+                         Total="{Binding TotalItems}"
+                         CurrentPage="{Binding CurrentPage, Mode=TwoWay}"
+                         PageSize="{Binding PageSize, Mode=TwoWay}" />
     </Grid>
 </UserControl>

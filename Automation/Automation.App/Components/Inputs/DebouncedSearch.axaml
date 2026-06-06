@@ -1,0 +1,16 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:fonts="clr-namespace:Automation.App.Assets.Fonts"
+             x:Class="Automation.App.Components.Inputs.DebouncedSearch">
+    <TextBox x:Name="SearchInput"
+             Classes="Clearable"
+             HorizontalAlignment="Stretch"
+             PlaceholderText="Search...">
+        <TextBox.InnerRightContent>
+            <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.Search}" />
+        </TextBox.InnerRightContent>
+    </TextBox>
+</UserControl>
