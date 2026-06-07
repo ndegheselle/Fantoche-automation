@@ -125,6 +125,41 @@
                 </TransitioningContentControl.DataTemplates>
             </TransitioningContentControl>
         </Grid>
+        <!-- Modal stack overlay: each modal dims the background and centers its content -->
+        <ItemsControl ItemsSource="{Binding Navigation.ModalStack}"
+                      IsVisible="{Binding Navigation.HasModals}"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Stretch">
+            <ItemsControl.Styles>
+                <Style Selector="ItemsControl > ContentPresenter">
+                    <Setter Property="HorizontalAlignment" Value="Stretch" />
+                    <Setter Property="VerticalAlignment" Value="Stretch" />
+                </Style>
+            </ItemsControl.Styles>
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Panel />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <!-- x:CompileBindings="False" because the item type is INavigable (interface) -->
+            <ItemsControl.ItemTemplate>
+                <DataTemplate x:CompileBindings="False">
+                    <Panel>
+                        <Rectangle Fill="#80000000" />
+                        <ContentPresenter Content="{Binding}"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center">
+                            <ContentPresenter.DataTemplates>
+                                <!-- Register modal page DataTemplates here -->
+                                <DataTemplate DataType="{x:Type test:TestModalViewModel}">
+                                    <test:TestModalPage />
+                                </DataTemplate>
+                            </ContentPresenter.DataTemplates>
+                        </ContentPresenter>
+                    </Panel>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
         <shadui:ToastHost Manager="{Binding ToastManager}" />
     </Panel>
 </shadui:Window>

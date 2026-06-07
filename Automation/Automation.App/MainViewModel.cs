@@ -45,7 +45,7 @@ internal partial class MainViewModel : ViewModelBase
     [RelayCommand]
     private void OpenTest()
     {
-        Navigation.Navigate(new TestViewModel(ServiceProvider.Toasts.Value));
+        Navigation.Navigate(new TestViewModel(ServiceProvider.Toasts.Value, Navigation));
     }
     
     [RelayCommand]

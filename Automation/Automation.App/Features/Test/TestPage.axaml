@@ -6,8 +6,9 @@
              xmlns:test="clr-namespace:Automation.App.Features.Test"
                x:DataType="test:TestViewModel"
              x:Class="Automation.App.Features.Test.TestPage">
-    <StackPanel>
-    <TextBlock Text="{Binding Tata}"></TextBlock>
+    <StackPanel Spacing="8" Margin="16">
+        <TextBlock Text="{Binding Tata}" />
         <Button Command="{Binding TestToastCommand}">Toast</Button>
+        <Button Command="{Binding OpenModalCommand}">Open Modal</Button>
     </StackPanel>
 </UserControl>

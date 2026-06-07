@@ -32,6 +32,9 @@
     <Compile Update="Features\Test\TestPage.axaml.cs">
       <DependentUpon>TestPage.axaml</DependentUpon>
     </Compile>
+    <Compile Update="Features\Test\TestModalPage.axaml.cs">
+      <DependentUpon>TestModalPage.axaml</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>
