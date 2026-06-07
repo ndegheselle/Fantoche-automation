@@ -29,6 +29,5 @@ internal static class ServiceProvider
             return new LocalPackageManagement(nuggetLocalPath);
         }
     }
-
     #endregion
 }
