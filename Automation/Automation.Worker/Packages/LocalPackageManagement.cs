@@ -27,7 +27,7 @@ public class LocalPackageManagement : IPackagesService
 {
     private readonly string _folder;
     private readonly string _localFolder;
-    private readonly SourceRepository _repository;
+    private readonly Task<SourceRepository> _repositoryTask;
     private readonly SourceCacheContext _cacheContext;
     private readonly ILogger _logger;
     private readonly NuGetFramework _frameworkVersion;
@@ -40,9 +40,9 @@ public class LocalPackageManagement : IPackagesService
         _folder = folder;
         if (Directory.Exists(_folder) == false)
             throw new DirectoryNotFoundException($"Package folder [{_folder}] not found");
-        
+
         var packageSource = new PackageSource(folder);
-        _repository = Repository.Factory.GetCoreV3(packageSource);
+        _repositoryTask = Task.Run(() => Repository.Factory.GetCoreV3(packageSource));
         _cacheContext = new SourceCacheContext();
         _logger = NullLogger.Instance;
     }
@@ -50,7 +50,7 @@ public class LocalPackageManagement : IPackagesService
     public async Task<Paginated<PackageInfos>> SearchAsync(string name = "", PaginationOptions options = default)
     {
         // XXX : difference with LocalPackageSearchResource ?
-        var resource = _repository.GetResource<PackageSearchResource>();
+        var resource = (await _repositoryTask).GetResource<PackageSearchResource>();
         var packages = await resource.SearchAsync(
             name,
             new SearchFilter(false),
@@ -68,7 +68,7 @@ public class LocalPackageManagement : IPackagesService
 
     public async Task<PackageInfos> GetInfosAsync(string packageId, Version? version)
     {
-        var resource = await _repository.GetResourceAsync<PackageMetadataResource>();
+        var resource = await (await _repositoryTask).GetResourceAsync<PackageMetadataResource>();
         IPackageSearchMetadata metadata;
         if (version != null)
         {
@@ -96,7 +96,7 @@ public class LocalPackageManagement : IPackagesService
 
     public async Task<IEnumerable<Version>> GetVersionsAsync(string packageId)
     {
-        var resource = await _repository.GetResourceAsync<FindPackageByIdResource>();
+        var resource = await (await _repositoryTask).GetResourceAsync<FindPackageByIdResource>();
         // Get all versions of the package
         IEnumerable<NuGetVersion> versions = await resource.GetAllVersionsAsync(
             packageId,
@@ -136,7 +136,7 @@ public class LocalPackageManagement : IPackagesService
         try
         {
             // Get package by id resource
-            var findPackageByIdResource = await _repository.GetResourceAsync<FindPackageByIdResource>();
+            var findPackageByIdResource = await (await _repositoryTask).GetResourceAsync<FindPackageByIdResource>();
             var nugetVersion = new NuGetVersion(version);
 
             using var packageStream = new MemoryStream();
