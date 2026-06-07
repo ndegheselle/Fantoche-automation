@@ -18,17 +18,13 @@ internal static class ServiceProvider
     public static readonly Lazy<ToastDisplay> Toasts = new Lazy<ToastDisplay>(() => new ToastDisplay(_toastManager));
     #endregion
 
+    public static readonly Lazy<IPackagesService> Packages = new Lazy<IPackagesService>(() =>
+    {
+        string nuggetLocalPath = Path.Join(Directory.GetCurrentDirectory(), "nugetlocal");
+        return new LocalPackageManagement(nuggetLocalPath);
+    });
+
     #region Transient
     public static MainViewModel Settings => new MainViewModel(Themes.Value, Navigation.Value, _toastManager);
-
-    public static IPackagesService Packages
-    {
-        get
-        {
-            string nuggetLocalPath = Path.Join(Directory.GetCurrentDirectory(), "nugetlocal");
-            return new LocalPackageManagement(nuggetLocalPath);
-        }
-    }
-
     #endregion
 }
