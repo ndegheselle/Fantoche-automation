@@ -8,13 +8,15 @@
              x:DataType="packages:PackageEditVM"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Automation.App.Features.Packages.PackageEditOverlay">
-    <Grid RowDefinitions="auto *" Margin="4" RowSpacing="2" Background="{DynamicResource BackgroundColor}">
-        <Button Grid.Column="2" Command="{Binding Close}" Classes="Secondary" HorizontalAlignment="Left">
-            <shadui:ButtonAssist.Icon>
-                <TextBlock Margin="0,0,4,0" Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.ArrowLeft}" />
-            </shadui:ButtonAssist.Icon>
-            Back to packages
-        </Button>
-        <TextBlock Grid.Row="1">Fafa fafa</TextBlock>
+    <Grid RowDefinitions="auto *" Margin="4" RowSpacing="2" Background="{DynamicResource DialogBackgroundColor}">
+        <Grid ColumnDefinitions="* auto" ColumnSpacing="4">
+            <TextBlock Classes="h2">Add new package</TextBlock>
+            <Button Grid.Column="1" Command="{Binding Close}" Classes="Secondary" HorizontalAlignment="Left">
+                <shadui:ButtonAssist.Icon>
+                    <TextBlock Margin="0,0,4,0" Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.ArrowLeft}" />
+                </shadui:ButtonAssist.Icon>
+                Back to packages
+            </Button>
+        </Grid>
     </Grid>
 </UserControl>

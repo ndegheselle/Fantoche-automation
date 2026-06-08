@@ -114,7 +114,6 @@
             </shadui:Sidebar>
             <TransitioningContentControl Content="{Binding Navigation.CurrentPage}" Grid.Column="1">
                 <TransitioningContentControl.DataTemplates>
-
                     <DataTemplate DataType="{x:Type packages:PackagesPageVM}">
                         <packages:PackagesPage />
                     </DataTemplate>
@@ -125,17 +124,17 @@
                           HorizontalAlignment="Stretch"
                           VerticalAlignment="Stretch"
                           Grid.Column="1">
+                <ItemsControl.DataTemplates>
+                    <!-- Register overlays here -->
+                    <DataTemplate DataType="{x:Type packages:PackageEditVM}">
+                        <packages:PackageEditOverlay />
+                    </DataTemplate>
+                </ItemsControl.DataTemplates>
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <Panel />
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <!-- Register overlays here -->
-                    <DataTemplate DataType="{x:Type packages:PackageEditVM}">
-                        <packages:PackageEditOverlay />
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
             </ItemsControl>
         </Grid>
         <shadui:ToastHost Manager="{Binding ToastManager}" />

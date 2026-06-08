@@ -24,9 +24,12 @@ internal partial class NavigationManager : ObservableObject
         Overlays.CollectionChanged += (_, _) => HasOverlays = Overlays.Count > 0;
     }
 
-
     public void Navigate(INavigable page)
     {
+        // Close all overlays on navigation
+        foreach (var overlay in Overlays)
+            Close(overlay);
+        
         if (page == CurrentPage)
             return;
 
