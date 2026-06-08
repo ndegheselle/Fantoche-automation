@@ -38,40 +38,16 @@
                     <DataGridTemplateColumn CanUserResize="False" CanUserSort="False">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <shadui:SimpleDropdown
-                                    Classes="Icon Grid"
-                                    CornerRadius="{DynamicResource MdCornerRadius}"
-                                    HorizontalAlignment="Center"
-                                    PopupPlacement="BottomEdgeAlignedLeft"
-                                    PopupWidth="190"
-                                    VerticalAlignment="Center">
-                                    <shadui:SimpleDropdown.TriggerContent>
-                                        <TextBlock Classes="LucideIcon"
-                                                   Text="{x:Static fonts:LucideIconFont.Ellipsis}" />
-                                    </shadui:SimpleDropdown.TriggerContent>
-                                    <shadui:SimpleDropdown.MenuLabel>
-                                        <TextBlock Classes="Caption Muted" Text="Actions" />
-                                    </shadui:SimpleDropdown.MenuLabel>
-                                    <Separator />
-                                    <Button
-                                        Command="{Binding #PackagesList.((packages:PackagesPageVM)DataContext).EditCommand}"
+                                <Button Classes="Icon Destructive"
+                                        CornerRadius="{DynamicResource MdCornerRadius}"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        ToolTip.Tip="Remove"
+                                        Command="{Binding #PackagesList.((packages:PackagesPageVM)DataContext).RemoveCommand}"
                                         CommandParameter="{Binding}">
-                                        <shadui:ButtonAssist.Icon>
-                                            <TextBlock Margin="0,0,4,0" Classes="LucideIcon"
-                                                       Text="{x:Static fonts:LucideIconFont.Edit}" />
-                                        </shadui:ButtonAssist.Icon>
-                                        Edit
-                                    </Button>
-                                    <Button Classes="Destructive"
-                                            Command="{Binding #PackagesList.((packages:PackagesPageVM)DataContext).RemoveCommand }"
-                                            CommandParameter="{Binding}">
-                                        <shadui:ButtonAssist.Icon>
-                                            <TextBlock Margin="0,0,4,0" Classes="LucideIcon"
-                                                       Text="{x:Static fonts:LucideIconFont.Trash}" />
-                                        </shadui:ButtonAssist.Icon>
-                                        Remove
-                                    </Button>
-                                </shadui:SimpleDropdown>
+                                    <TextBlock Classes="LucideIcon"
+                                               Text="{x:Static fonts:LucideIconFont.Trash}" />
+                                </Button>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>

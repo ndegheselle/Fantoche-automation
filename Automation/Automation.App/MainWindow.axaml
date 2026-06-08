@@ -11,6 +11,9 @@
                xmlns:packages="clr-namespace:Automation.App.Features.Packages"
                x:DataType="root:MainViewModel"
                Title="Automation.App">
+    <shadui:Window.Hosts>
+        <shadui:DialogHost Manager="{Binding DialogManager}" x:Name="PART_DialogHost" />
+    </shadui:Window.Hosts>
     <shadui:Window.RightWindowTitleBarContent>
         <StackPanel Orientation="Horizontal" Spacing="8">
             <Button

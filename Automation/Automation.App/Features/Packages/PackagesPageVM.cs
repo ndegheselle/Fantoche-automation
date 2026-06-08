@@ -9,6 +9,7 @@ using Automation.Shared.Data.Execution;
 using Automation.Shared.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using ShadUI;
 
 namespace Automation.App.Features.Packages;
 
@@ -19,11 +20,13 @@ internal partial class PackagesPageVM : ObservableObject, INavigable
     private bool _suppressReload;
     private CancellationTokenSource? _cts;
     private readonly NavigationManager _navigation;
+    private readonly DialogManager _dialogManager;
 
-    public PackagesPageVM(IPackagesService packagesService, NavigationManager navigation)
+    public PackagesPageVM(IPackagesService packagesService, NavigationManager navigation, DialogManager dialogManager)
     {
         _navigation =  navigation;
         _packagesService = packagesService;
+        _dialogManager = dialogManager;
 
         GroupedItems = new DataGridCollectionView(Items);
         GroupedItems.GroupDescriptions.Add(new DataGridPathGroupDescription("Identifier.Identifier"));
@@ -131,13 +134,21 @@ internal partial class PackagesPageVM : ObservableObject, INavigable
     }
 
     [RelayCommand]
-    private void Edit(PackageInfos package)
+    private void Remove(PackageInfos package)
     {
-        // edit selected...
+        _dialogManager
+            .CreateDialog(
+                "Are you absolutely sure?",
+                $"This action cannot be undone. This will permanently remove the package " +
+                $"\"{package.Identifier.Identifier}\" (version {package.Identifier.Version}).")
+            .WithPrimaryButton("Remove", () => _ = RemoveConfirmedAsync(package), DialogButtonStyle.Destructive)
+            .WithCancelButton("Cancel")
+            .WithMaxWidth(512)
+            .Dismissible()
+            .Show();
     }
 
-    [RelayCommand]
-    private async Task Remove(PackageInfos package)
+    private async Task RemoveConfirmedAsync(PackageInfos package)
     {
         await _packagesService.RemoveAsync(package.Identifier.Identifier, package.Identifier.Version);
         await RefreshAsync();

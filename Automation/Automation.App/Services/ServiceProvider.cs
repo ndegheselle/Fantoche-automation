@@ -12,6 +12,9 @@ internal static class ServiceProvider
 {
     #region Singletons
     private static readonly ToastManager _toastManager = new ToastManager();
+    private static readonly DialogManager _dialogManager = new DialogManager();
+
+    public static DialogManager Dialogs => _dialogManager;
 
     public static readonly Lazy<ThemeWatcher> Themes = new Lazy<ThemeWatcher>(() => new ThemeWatcher(Application.Current!));
     public static readonly Lazy<NavigationManager> Navigation = new Lazy<NavigationManager>(() => new NavigationManager());
@@ -19,7 +22,7 @@ internal static class ServiceProvider
     #endregion
 
     #region Transient
-    public static MainViewModel Settings => new MainViewModel(Themes.Value, Navigation.Value, _toastManager);
+    public static MainViewModel Settings => new MainViewModel(Themes.Value, Navigation.Value, _toastManager, _dialogManager);
 
     public static IPackagesService Packages
     {
