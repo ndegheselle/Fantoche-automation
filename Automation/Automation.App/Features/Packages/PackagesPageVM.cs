@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
@@ -115,6 +116,18 @@ internal partial class PackagesPageVM : ObservableObject, INavigable
             if (ReferenceEquals(_cts, cts))
                 IsLoading = false;
         }
+    }
+
+    [RelayCommand]
+    private async Task AddPackages(IReadOnlyList<string>? files)
+    {
+        if (files is null || files.Count == 0)
+            return;
+
+        foreach (var file in files)
+            await _packagesService.AddAsync(file);
+
+        await RefreshAsync();
     }
 
     [RelayCommand]

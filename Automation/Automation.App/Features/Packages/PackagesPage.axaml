@@ -10,7 +10,7 @@
              x:DataType="packages:PackagesPageVM"
              mc:Ignorable="d" d:DesignWidth="850" d:DesignHeight="450"
              x:Class="Automation.App.Features.Packages.PackagesPage">
-    <Grid RowDefinitions="auto * Auto" RowSpacing="2" Margin="4">
+    <Grid RowDefinitions="auto * auto Auto" RowSpacing="2" Margin="4">
         <Grid ColumnDefinitions="*" ColumnSpacing="2">
             <inputs:DebouncedSearch Grid.Column="0"
                                     Search="{Binding SearchText, Mode=TwoWay}" />
@@ -80,7 +80,13 @@
             <shadui:BusyArea IsBusy="{Binding IsLoading}" />
         </Panel>
 
-        <data:Pagination Grid.Row="2"
+        <inputs:FilePicker Grid.Row="2"
+                           Margin="0,4,0,0"
+                           FileFormat="*.nupkg"
+                           Description="Add new packages (.nupkg)"
+                           Command="{Binding AddPackagesCommand}" />
+
+        <data:Pagination Grid.Row="3"
                          Total="{Binding TotalItems}"
                          CurrentPage="{Binding CurrentPage, Mode=TwoWay}"
                          PageSize="{Binding PageSize, Mode=TwoWay}" />

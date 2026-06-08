@@ -6,5 +6,6 @@ namespace Automation.Shared.Services;
 public interface IPackagesService
 {
     public Task<Paginated<PackageInfos>> SearchAsync(string search = "", PaginationOptions options = default);
+    public Task<PackageInfos> AddAsync(string filePath);
     public Task RemoveAsync(string id, Version version);
 }

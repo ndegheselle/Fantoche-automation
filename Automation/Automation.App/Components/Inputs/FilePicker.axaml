@@ -1,0 +1,38 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="160"
+             xmlns:fonts="clr-namespace:Automation.App.Assets.Fonts"
+             x:Name="Root"
+             x:Class="Automation.App.Components.Inputs.FilePicker">
+    <Panel x:Name="DropZone" Background="Transparent" Cursor="Hand" MinHeight="140">
+        <Rectangle RadiusX="8" RadiusY="8"
+                   StrokeThickness="2"
+                   StrokeDashArray="4,4"
+                   StrokeLineCap="Round"
+                   Stroke="{DynamicResource BorderColor}" />
+
+        <StackPanel HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Spacing="6"
+                    Margin="16">
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        Spacing="8">
+                <TextBlock Classes="LucideIcon"
+                           VerticalAlignment="Center"
+                           FontSize="24" Width="24" Height="24"
+                           Text="{x:Static fonts:LucideIconFont.CloudUpload}" />
+                <TextBlock Classes="Lead"
+                           VerticalAlignment="Center"
+                           Text="Drop a file here" />
+            </StackPanel>
+            <TextBlock Classes="Small"
+                       HorizontalAlignment="Center"
+                       TextAlignment="Center"
+                       TextWrapping="Wrap"
+                       Text="{Binding #Root.Description}" />
+        </StackPanel>
+    </Panel>
+</UserControl>
