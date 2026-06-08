@@ -106,6 +106,12 @@ public class LocalPackageManagement : IPackagesService
         return versions.Select(x => x.Version).Reverse();
     }
 
+    public async Task<PackageInfos> AddAsync(string filePath)
+    {
+        await using var stream = File.OpenRead(filePath);
+        return await CreateFromStreamAsync(stream);
+    }
+
     public async Task<PackageInfos> CreateFromStreamAsync(Stream stream)
     {
         using var packageReader = new PackageArchiveReader(stream);

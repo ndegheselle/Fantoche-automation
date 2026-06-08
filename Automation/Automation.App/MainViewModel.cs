@@ -12,12 +12,14 @@ internal partial class MainViewModel : ViewModelBase
 
     public NavigationManager Navigation { get; private set; }
     public ToastManager ToastManager { get; private set; }
+    public DialogManager DialogManager { get; private set; }
 
-    public MainViewModel(ThemeWatcher themeWatcher, NavigationManager navigation, ToastManager toastManager)
+    public MainViewModel(ThemeWatcher themeWatcher, NavigationManager navigation, ToastManager toastManager, DialogManager dialogManager)
     {
         _themeWatcher = themeWatcher;
         Navigation = navigation;
         ToastManager = toastManager;
+        DialogManager = dialogManager;
     }
 
     private ThemeMode _currentTheme;
@@ -44,7 +46,7 @@ internal partial class MainViewModel : ViewModelBase
     [RelayCommand]
     private void OpenPackages()
     {
-        Navigation.Navigate(new PackagesPageVM(ServiceProvider.Packages, Navigation));
+        Navigation.Navigate(new PackagesPageVM(ServiceProvider.Packages, Navigation, ServiceProvider.Dialogs));
     }
     #endregion
 }
