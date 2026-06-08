@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia.Collections;
 using Automation.Shared.Base;
 using Automation.Shared.Data.Execution;
 using Automation.Shared.Services;
@@ -22,9 +23,18 @@ internal partial class PackagesPageVM : ObservableObject, INavigable
     {
         _navigation =  navigation;
         _packagesService = packagesService;
+
+        GroupedItems = new DataGridCollectionView(Items);
+        GroupedItems.GroupDescriptions.Add(new DataGridPathGroupDescription("Identifier.Identifier"));
     }
 
     public ObservableCollection<PackageInfos> Items { get; } = new();
+
+    /// <summary>
+    /// Grouped view over <see cref="Items"/> that groups packages by their
+    /// identifier so that each identifier exposes its list of versions.
+    /// </summary>
+    public DataGridCollectionView GroupedItems { get; }
 
     [ObservableProperty]
     private string _searchText = string.Empty;
@@ -105,14 +115,6 @@ internal partial class PackagesPageVM : ObservableObject, INavigable
             if (ReferenceEquals(_cts, cts))
                 IsLoading = false;
         }
-    }
-
-    [RelayCommand]
-    private void Add()
-    {
-        _navigation.Overlay(new PackageEditVM(_navigation));
-        // open add dialog...
-        // await RefreshAsync();
     }
 
     [RelayCommand]
