@@ -7,7 +7,7 @@
              xmlns:shadui="clr-namespace:ShadUI;assembly=ShadUI"
              xmlns:inputs="clr-namespace:Automation.App.Components.Inputs"
              xmlns:packages="clr-namespace:Automation.App.Features.Packages"
-             x:DataType="packages:PackagesPageViewModel"
+             x:DataType="packages:PackagesPageVM"
              mc:Ignorable="d" d:DesignWidth="850" d:DesignHeight="450"
              x:Class="Automation.App.Features.Packages.PackagesPage">
     <Grid RowDefinitions="auto * Auto" RowSpacing="2" Margin="4">
@@ -55,7 +55,7 @@
                                     </shadui:SimpleDropdown.MenuLabel>
                                     <Separator />
                                     <Button
-                                        Command="{Binding #PackagesList.((packages:PackagesPageViewModel)DataContext).EditCommand}"
+                                        Command="{Binding #PackagesList.((packages:PackagesPageVM)DataContext).EditCommand}"
                                         CommandParameter="{Binding}">
                                         <shadui:ButtonAssist.Icon>
                                             <TextBlock Margin="0,0,4,0" Classes="LucideIcon"
@@ -64,7 +64,7 @@
                                         Edit
                                     </Button>
                                     <Button Classes="Destructive"
-                                            Command="{Binding #PackagesList.((packages:PackagesPageViewModel)DataContext).RemoveCommand }"
+                                            Command="{Binding #PackagesList.((packages:PackagesPageVM)DataContext).RemoveCommand }"
                                             CommandParameter="{Binding}">
                                         <shadui:ButtonAssist.Icon>
                                             <TextBlock Margin="0,0,4,0" Classes="LucideIcon"

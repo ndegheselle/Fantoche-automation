@@ -10,15 +10,17 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace Automation.App.Features.Packages;
 
-public partial class PackagesPageViewModel : ObservableObject, INavigable
+internal partial class PackagesPageVM : ObservableObject, INavigable
 {
     private readonly IPackagesService _packagesService;
 
     private bool _suppressReload;
     private CancellationTokenSource? _cts;
+    private readonly NavigationManager _navigation;
 
-    public PackagesPageViewModel(IPackagesService packagesService)
+    public PackagesPageVM(IPackagesService packagesService, NavigationManager navigation)
     {
+        _navigation =  navigation;
         _packagesService = packagesService;
     }
 
@@ -106,10 +108,11 @@ public partial class PackagesPageViewModel : ObservableObject, INavigable
     }
 
     [RelayCommand]
-    private async Task Add()
+    private void Add()
     {
+        _navigation.Overlay(new PackageEditVM(_navigation));
         // open add dialog...
-        await RefreshAsync();
+        // await RefreshAsync();
     }
 
     [RelayCommand]

@@ -8,7 +8,6 @@
                xmlns:fonts="clr-namespace:Automation.App.Assets.Fonts"
                xmlns:root="clr-namespace:Automation.App"
                xmlns:converters="clr-namespace:Automation.App.Converters"
-               xmlns:test="clr-namespace:Automation.App.Features.Test"
                xmlns:packages="clr-namespace:Automation.App.Features.Packages"
                x:DataType="root:MainViewModel"
                Title="Automation.App">
@@ -53,7 +52,6 @@
                 <StackPanel Spacing="2">
                     <shadui:SidebarItemLabel AsSeparator="True" Text="Work" />
                     <shadui:SidebarItem
-                        Command="{Binding OpenTestCommand}"
                         Content="Workflows"
                         IsChecked="True"
                         ToolTip.Tip="{Binding $parent[shadui:Sidebar].Expanded, 
@@ -116,14 +114,29 @@
             </shadui:Sidebar>
             <TransitioningContentControl Content="{Binding Navigation.CurrentPage}" Grid.Column="1">
                 <TransitioningContentControl.DataTemplates>
-                    <DataTemplate DataType="{x:Type test:TestViewModel}">
-                        <test:TestPage />
-                    </DataTemplate>
-                    <DataTemplate DataType="{x:Type packages:PackagesPageViewModel}">
+
+                    <DataTemplate DataType="{x:Type packages:PackagesPageVM}">
                         <packages:PackagesPage />
                     </DataTemplate>
                 </TransitioningContentControl.DataTemplates>
             </TransitioningContentControl>
+            <ItemsControl ItemsSource="{Binding Navigation.Overlays}"
+                          IsVisible="{Binding Navigation.HasOverlays}"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch"
+                          Grid.Column="1">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <Panel />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <!-- Register overlays here -->
+                    <DataTemplate DataType="{x:Type packages:PackageEditVM}">
+                        <packages:PackageEditOverlay />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
         </Grid>
         <shadui:ToastHost Manager="{Binding ToastManager}" />
     </Panel>

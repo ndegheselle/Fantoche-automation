@@ -1,6 +1,5 @@
 ﻿using Automation.App.Base;
 using Automation.App.Features.Packages;
-using Automation.App.Features.Test;
 using Automation.App.Services;
 using CommunityToolkit.Mvvm.Input;
 using ShadUI;
@@ -43,15 +42,9 @@ internal partial class MainViewModel : ViewModelBase
 
     #region Navigation
     [RelayCommand]
-    private void OpenTest()
-    {
-        Navigation.Navigate(new TestViewModel(ServiceProvider.Toasts.Value));
-    }
-    
-    [RelayCommand]
     private void OpenPackages()
     {
-        Navigation.Navigate(new PackagesPageViewModel(ServiceProvider.Packages));
+        Navigation.Navigate(new PackagesPageVM(ServiceProvider.Packages, Navigation));
     }
     #endregion
 }
