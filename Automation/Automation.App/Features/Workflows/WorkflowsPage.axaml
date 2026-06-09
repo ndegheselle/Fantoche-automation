@@ -1,0 +1,59 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:fonts="clr-namespace:Automation.App.Assets.Fonts"
+             xmlns:inputs="clr-namespace:Automation.App.Components.Inputs"
+             xmlns:shadui="clr-namespace:ShadUI;assembly=ShadUI"
+             xmlns:workflows="clr-namespace:Automation.App.Features.Workflows"
+             xmlns:scoped="clr-namespace:Automation.Shared.Data.Scoped;assembly=Automation.Shared"
+             x:DataType="workflows:WorkflowsPageVM"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Automation.App.Features.Workflows.WorkflowsPage">
+    <Design.DataContext>
+        <workflows:WorkflowsPageVMDesign />
+    </Design.DataContext>
+    <Grid Margin="4" ColumnSpacing="2">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200" MinWidth="100" />
+            <ColumnDefinition Width="2" />
+            <ColumnDefinition Width="*" MinWidth="200" />
+        </Grid.ColumnDefinitions>
+        <Grid Grid.Column="0" RowDefinitions="auto *" RowSpacing="2">
+            <inputs:DebouncedSearch Grid.Row="0"
+                                    Search="{Binding SearchText, Mode=TwoWay}" />
+
+            <Panel Grid.Row="1">
+                <TreeView ItemsSource="{Binding Items}" BorderThickness="0">
+                    <TreeView.DataTemplates>
+                        <TreeDataTemplate DataType="scoped:Scope" ItemsSource="{Binding Childrens}">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <TextBlock Classes="LucideIcon"
+                                           Text="{x:Static fonts:LucideIconFont.Folder}" />
+                                <TextBlock VerticalAlignment="Center" Text="{Binding Metadata.Name}" />
+                            </StackPanel>
+                        </TreeDataTemplate>
+
+                        <DataTemplate DataType="scoped:AutomationWorkflow">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <TextBlock Classes="LucideIcon"
+                                           Text="{x:Static fonts:LucideIconFont.StickyNotes}" />
+                                <TextBlock VerticalAlignment="Center"  Text="{Binding Metadata.Name}" />
+                            </StackPanel>
+                        </DataTemplate>
+
+                        <DataTemplate DataType="scoped:AutomationTask">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <TextBlock Classes="LucideIcon"
+                                           Text="{x:Static fonts:LucideIconFont.StickyNote}" />
+                                <TextBlock VerticalAlignment="Center"  Text="{Binding Metadata.Name}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </TreeView.DataTemplates>
+                </TreeView>
+                <shadui:BusyArea IsBusy="{Binding IsLoading}" />
+            </Panel>
+        </Grid>
+        <GridSplitter Grid.Column="1" Background="{DynamicResource GhostColor}" />
+    </Grid>
+</UserControl>

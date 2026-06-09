@@ -17,7 +17,7 @@ namespace Automation.App
             if (ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop) return;
 
             ServiceProvider.Themes.Value.Initialize();
-            desktop.MainWindow = new MainWindow(ServiceProvider.Settings);
+            desktop.MainWindow = new MainWindow(ServiceProvider.Main);
 
             base.OnFrameworkInitializationCompleted();
         }

@@ -9,7 +9,8 @@
                xmlns:root="clr-namespace:Automation.App"
                xmlns:converters="clr-namespace:Automation.App.Converters"
                xmlns:packages="clr-namespace:Automation.App.Features.Packages"
-               x:DataType="root:MainViewModel"
+               xmlns:workflows="clr-namespace:Automation.App.Features.Workflows"
+               x:DataType="root:MainVM"
                Title="Automation.App">
     <shadui:Window.Hosts>
         <shadui:DialogHost Manager="{Binding DialogManager}" x:Name="PART_DialogHost" />
@@ -55,6 +56,7 @@
                 <StackPanel Spacing="2">
                     <shadui:SidebarItemLabel AsSeparator="True" Text="Work" />
                     <shadui:SidebarItem
+                        Command="{Binding OpenWorkflowsCommand}"
                         Content="Workflows"
                         IsChecked="True"
                         ToolTip.Tip="{Binding $parent[shadui:Sidebar].Expanded, 
@@ -119,6 +121,9 @@
                 <TransitioningContentControl.DataTemplates>
                     <DataTemplate DataType="{x:Type packages:PackagesPageVM}">
                         <packages:PackagesPage />
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type workflows:WorkflowsPageVM}">
+                        <workflows:WorkflowsPage />
                     </DataTemplate>
                 </TransitioningContentControl.DataTemplates>
             </TransitioningContentControl>

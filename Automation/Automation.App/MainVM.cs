@@ -1,12 +1,13 @@
 ﻿using Automation.App.Base;
 using Automation.App.Features.Packages;
+using Automation.App.Features.Workflows;
 using Automation.App.Services;
 using CommunityToolkit.Mvvm.Input;
 using ShadUI;
 
 namespace Automation.App;
 
-internal partial class MainViewModel : ViewModelBase
+internal partial class MainVM : ViewModelBase
 {
     private readonly ThemeWatcher _themeWatcher;
 
@@ -14,12 +15,14 @@ internal partial class MainViewModel : ViewModelBase
     public ToastManager ToastManager { get; private set; }
     public DialogManager DialogManager { get; private set; }
 
-    public MainViewModel(ThemeWatcher themeWatcher, NavigationManager navigation, ToastManager toastManager, DialogManager dialogManager)
+    public MainVM(ThemeWatcher themeWatcher, NavigationManager navigation, ToastManager toastManager, DialogManager dialogManager)
     {
         _themeWatcher = themeWatcher;
         Navigation = navigation;
         ToastManager = toastManager;
         DialogManager = dialogManager;
+        
+        OpenWorkflows();
     }
 
     private ThemeMode _currentTheme;
@@ -47,6 +50,12 @@ internal partial class MainViewModel : ViewModelBase
     private void OpenPackages()
     {
         Navigation.Navigate(new PackagesPageVM(ServiceProvider.Packages, ServiceProvider.Dialogs, ServiceProvider.Toasts.Value));
+    }
+    
+    [RelayCommand]
+    private void OpenWorkflows()
+    {
+        Navigation.Navigate(new WorkflowsPageVM(ServiceProvider.Scoped));
     }
     #endregion
 }

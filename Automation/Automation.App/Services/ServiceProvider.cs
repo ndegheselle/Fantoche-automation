@@ -31,7 +31,7 @@ internal static class ServiceProvider
     #endregion
 
     #region Transient
-    public static MainViewModel Settings => new MainViewModel(Themes.Value, Navigation.Value, _toastManager, _dialogManager);
+    public static MainVM Main => new MainVM(Themes.Value, Navigation.Value, _toastManager, _dialogManager);
 
     public static IPackagesService Packages
     {
@@ -41,5 +41,7 @@ internal static class ServiceProvider
             return new LocalPackagesService(nuggetLocalPath);
         }
     }
+
+    public static IScopedService Scoped => new LocalScopedService();
     #endregion
 }
