@@ -146,6 +146,19 @@ internal partial class PackagesPageVM : ObservableObject, INavigable
     }
 
     [RelayCommand]
+    private void ShowDetails(PackageInfos package)
+    {
+        var detailsVm = new PackageDetailsVM(_packagesService);
+        detailsVm.Initialize(package);
+
+        _dialogManager
+            .CreateDialog(detailsVm)
+            .WithMaxWidth(700)
+            .Dismissible()
+            .Show();
+    }
+
+    [RelayCommand]
     private void Remove(PackageInfos package)
     {
         _dialogManager

@@ -36,18 +36,25 @@
                 </DataGrid.RowGroupTheme>
 
                 <DataGrid.Columns>
-                    <DataGridTextColumn x:DataType="execution:PackageInfos" Header="Version"
-                                        Binding="{Binding Identifier.Version}" />
+                    <DataGridTemplateColumn Header="Version">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate DataType="execution:PackageInfos">
+                                <shadui:Badge Content="{Binding Identifier.Version}" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
                     <DataGridTextColumn x:DataType="execution:PackageInfos" Header="Description" Width="*"
                                         Binding="{Binding Description}" />
                     <DataGridTemplateColumn CanUserResize="False" CanUserSort="False">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal" Spacing="2">
-                                    
+
                                     <Button Classes="Icon"
                                             CornerRadius="{DynamicResource MdCornerRadius}"
-                                            ToolTip.Tip="Details">
+                                            ToolTip.Tip="Details"
+                                            Command="{Binding #PackagesList.((packages:PackagesPageVM)DataContext).ShowDetailsCommand}"
+                                            CommandParameter="{Binding}">
                                         <TextBlock Classes="LucideIcon"
                                                    Text="{x:Static fonts:LucideIconFont.Eye}" />
                                     </Button>

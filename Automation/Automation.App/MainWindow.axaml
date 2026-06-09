@@ -129,9 +129,6 @@
                           Grid.Column="1">
                 <ItemsControl.DataTemplates>
                     <!-- Register overlays here -->
-                    <DataTemplate DataType="{x:Type packages:PackageEditVM}">
-                        <packages:PackageEditOverlay />
-                    </DataTemplate>
                 </ItemsControl.DataTemplates>
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>

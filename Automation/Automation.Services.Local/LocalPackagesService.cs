@@ -47,4 +47,21 @@ public class LocalPackagesService : IPackagesService
     {
         return _packages.RemoveAsync(id, version);
     }
+
+    public async Task<List<ClassTarget>> GetClassesAsync(string id, Version version)
+    {
+        var identifier = new PackageIdentifier { Id = id, Version = version };
+        var dllsPaths = await _packages.DownloadAllDllsIfMissing(id, version);
+
+        List<ClassTarget> targets = [];
+        foreach (var path in dllsPaths)
+        {
+            string dll = Path.GetFileName(path);
+            using TaskLoader loader = new TaskLoader(path);
+            foreach (var className in loader.GetClasses())
+                targets.Add(new PackageClassTarget(identifier, className) { Dll = dll });
+        }
+
+        return targets;
+    }
 }
