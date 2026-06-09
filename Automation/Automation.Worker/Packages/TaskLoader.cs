@@ -64,6 +64,10 @@ public class PluginLoader<TPlugin>: AssemblyLoadContext, IDisposable where TPlug
             .Where(t => typeof(TPlugin).IsAssignableFrom(t) && t is { IsInterface: false, IsAbstract: false });
     }
 
+    /// <summary>
+    /// Get all classes names that implements <see cref="TPlugin"/>
+    /// </summary>
+    /// <returns></returns>
     public IEnumerable<string> GetClasses()
     {
         return GetTypes().Select(t => t.FullName ?? "");

@@ -1,13 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
 using Avalonia.Platform.Storage;
 
 namespace Automation.App.Components.Inputs;
@@ -46,18 +44,7 @@ public partial class FilePicker : UserControl
     public static readonly RoutedEvent<FilesSelectedEventArgs> FilesSelectedEvent =
         RoutedEvent.Register<FilePicker, FilesSelectedEventArgs>(
             nameof(FilesSelected), RoutingStrategies.Bubble);
-
-    public FilePicker()
-    {
-        InitializeComponent();
-
-        DropZone.PointerReleased += OnPointerReleased;
-
-        DragDrop.SetAllowDrop(DropZone, true);
-        DropZone.AddHandler(DragDrop.DragOverEvent, OnDragOver);
-        DropZone.AddHandler(DragDrop.DropEvent, OnDrop);
-    }
-
+    
     public string? Description
     {
         get => GetValue(DescriptionProperty);
@@ -88,6 +75,17 @@ public partial class FilePicker : UserControl
         remove => RemoveHandler(FilesSelectedEvent, value);
     }
 
+    public FilePicker()
+    {
+        InitializeComponent();
+
+        DropZone.PointerReleased += OnPointerReleased;
+
+        DragDrop.SetAllowDrop(DropZone, true);
+        DropZone.AddHandler(DragDrop.DragOverEvent, OnDragOver);
+        DropZone.AddHandler(DragDrop.DropEvent, OnDrop);
+    }
+
     private async void OnPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
         var storage = TopLevel.GetTopLevel(this)?.StorageProvider;
@@ -106,17 +104,20 @@ public partial class FilePicker : UserControl
 
     private void OnDragOver(object? sender, DragEventArgs e)
     {
-        e.DragEffects = e.Data.Contains(DataFormats.Files)
+        e.DragEffects = e.DataTransfer.Contains(DataFormat.File)
             ? DragDropEffects.Copy
             : DragDropEffects.None;
     }
 
     private void OnDrop(object? sender, DragEventArgs e)
     {
-        var files = e.Data.GetFiles()?.OfType<IStorageFile>().ToList();
-        if (files is null || files.Count == 0)
+        if (e.DataTransfer.Formats.Contains(DataFormat.File) == false)
             return;
 
+        var files = e.DataTransfer.TryGetFiles().OfType<IStorageFile>().ToList();
+        if (files == null)
+            return;
+        
         if (!AllowMultiple)
             files = files.Take(1).ToList();
 
@@ -141,31 +142,26 @@ public partial class FilePicker : UserControl
 
     private List<FilePickerFileType>? BuildFileTypes()
     {
-        var format = FileFormat?.Trim();
+        string? format = FileFormat?.Trim();
         if (string.IsNullOrEmpty(format))
             return null;
 
         var patterns = format
-            .Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Split([',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .ToList();
 
         if (patterns.Count == 0)
             return null;
 
-        return new List<FilePickerFileType>
-        {
-            new("Accepted files") { Patterns = patterns },
-        };
+        return
+        [
+            new("Accepted files") { Patterns = patterns }
+        ];
     }
 }
 
-public sealed class FilesSelectedEventArgs : RoutedEventArgs
+public sealed class FilesSelectedEventArgs(RoutedEvent routedEvent, IReadOnlyList<string> files)
+    : RoutedEventArgs(routedEvent)
 {
-    public FilesSelectedEventArgs(RoutedEvent routedEvent, IReadOnlyList<string> files)
-        : base(routedEvent)
-    {
-        Files = files;
-    }
-
-    public IReadOnlyList<string> Files { get; }
+    public IReadOnlyList<string> Files { get; } = files;
 }

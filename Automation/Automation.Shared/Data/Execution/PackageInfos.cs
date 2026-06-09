@@ -5,8 +5,13 @@
     /// </summary>
     public class PackageIdentifier
     {
-        public string Identifier { get; set; } = "";
+        public string Id { get; set; } = "";
         public Version Version { get; set; } = new Version();
+
+        public override string ToString()
+        {
+            return $"'{Id}' (version {Version})";
+        }
     }
 
     /// <summary>

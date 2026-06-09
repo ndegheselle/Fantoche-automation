@@ -84,7 +84,7 @@ public class LocalNodeExecutor : IDisposable
             throw new Exception("Task target is not a package.");
 
         string dllPath =
-            await _packages.DownloadToLocalIfMissing(target.Package.Identifier, target.Package.Version, target.Dll);
+            await _packages.DownloadToLocalIfMissing(target.Package.Id, target.Package.Version, target.Dll);
 
         TaskLoader loader;
         if (_cachedTaskLoaders.TryGetValue(dllPath, out TaskLoader? cached))

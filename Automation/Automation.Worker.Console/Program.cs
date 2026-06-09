@@ -22,7 +22,7 @@ AutomationTask MakeTask(string className, string name, JsonSchema? input, JsonSc
             ClassFullName = className,
             Package = new PackageIdentifier()
             {
-                Identifier = "Automation.Plugins",
+                Id = "Automation.Plugins",
                 Version = new Version("1.0.0.0")
             }
         },

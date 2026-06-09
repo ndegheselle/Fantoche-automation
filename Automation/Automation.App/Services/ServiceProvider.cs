@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using Automation.App.Services.UI;
+using Automation.Services.Local;
 using Automation.Shared.Services;
 using Automation.Worker.Packages;
 using Avalonia;
@@ -29,7 +30,7 @@ internal static class ServiceProvider
         get
         {
             string nuggetLocalPath = Path.Join(Directory.GetCurrentDirectory(), "nugetlocal");
-            return new LocalPackageManagement(nuggetLocalPath);
+            return new LocalPackagesService(nuggetLocalPath);
         }
     }
     #endregion

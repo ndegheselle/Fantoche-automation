@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <ImplicitUsings>disable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Assets\Fonts\lucide.ttf" />
@@ -29,7 +30,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Automation.Services.Local\Automation.Services.Local.csproj" />
     <ProjectReference Include="..\Automation.Shared\Automation.Shared.csproj" />
-    <ProjectReference Include="..\Automation.Worker\Automation.Worker.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Components\Inputs\FilePicker.axaml.cs">
+      <DependentUpon>FilePicker.axaml</DependentUpon>
+    </Compile>
   </ItemGroup>
 </Project>

@@ -10,8 +10,16 @@
         <Rectangle RadiusX="8" RadiusY="8"
                    StrokeThickness="2"
                    StrokeDashArray="4,4"
-                   StrokeLineCap="Round"
-                   Stroke="{DynamicResource BorderColor}" />
+                   StrokeLineCap="Round">
+            <Rectangle.Styles>
+                <Style Selector="Rectangle">
+                    <Setter Property="Stroke" Value="{DynamicResource BorderColor}" />
+                </Style>
+                <Style Selector="Panel#DropZone:pointerover Rectangle">
+                    <Setter Property="Stroke" Value="{DynamicResource PrimaryColor}" />
+                </Style>
+            </Rectangle.Styles>
+        </Rectangle>
 
         <StackPanel HorizontalAlignment="Center"
                     VerticalAlignment="Center"

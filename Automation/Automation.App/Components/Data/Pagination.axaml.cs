@@ -18,7 +18,7 @@ public partial class Pagination : UserControl
 
     public static readonly StyledProperty<int> PageSizeProperty =
         AvaloniaProperty.Register<Pagination, int>(
-            nameof(PageSize), defaultValue: 100,
+            nameof(PageSize), defaultValue: 50,
             defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
 
     public IReadOnlyList<int> PageSizes { get; } = [10, 25, 50, 100, 200];

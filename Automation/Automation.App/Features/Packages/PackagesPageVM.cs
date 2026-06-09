@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Automation.App.Services.UI;
 using Avalonia.Collections;
 using Automation.Shared.Base;
 using Automation.Shared.Data.Execution;
@@ -19,17 +21,19 @@ internal partial class PackagesPageVM : ObservableObject, INavigable
 
     private bool _suppressReload;
     private CancellationTokenSource? _cts;
-    private readonly NavigationManager _navigation;
     private readonly DialogManager _dialogManager;
+    private readonly ToastDisplay _toasts;
 
-    public PackagesPageVM(IPackagesService packagesService, NavigationManager navigation, DialogManager dialogManager)
+    public PackagesPageVM(IPackagesService packagesService, 
+        DialogManager dialogManager,
+        ToastDisplay toastManager)
     {
-        _navigation =  navigation;
+        _toasts = toastManager;
         _packagesService = packagesService;
         _dialogManager = dialogManager;
 
         GroupedItems = new DataGridCollectionView(Items);
-        GroupedItems.GroupDescriptions.Add(new DataGridPathGroupDescription("Identifier.Identifier"));
+        GroupedItems.GroupDescriptions.Add(new DataGridPathGroupDescription("Identifier.Id"));
     }
 
     public ObservableCollection<PackageInfos> Items { get; } = new();
@@ -38,22 +42,17 @@ internal partial class PackagesPageVM : ObservableObject, INavigable
     /// Grouped view over <see cref="Items"/> that groups packages by their
     /// identifier so that each identifier exposes its list of versions.
     /// </summary>
-    public DataGridCollectionView GroupedItems { get; }
+    public DataGridCollectionView GroupedItems { get; protected set; }
 
-    [ObservableProperty]
-    private string _searchText = string.Empty;
+    [ObservableProperty] private string _searchText = string.Empty;
 
-    [ObservableProperty]
-    private long _totalItems;
+    [ObservableProperty] private long _totalItems;
 
-    [ObservableProperty]
-    private int _currentPage = 1;
+    [ObservableProperty] private int _currentPage = 1;
 
-    [ObservableProperty]
-    private int _pageSize = 100;
+    [ObservableProperty] private int _pageSize = 100;
 
-    [ObservableProperty]
-    private bool _isLoading;
+    [ObservableProperty] private bool _isLoading;
 
     public void OnShow() => _ = RefreshAsync();
 
@@ -128,7 +127,20 @@ internal partial class PackagesPageVM : ObservableObject, INavigable
             return;
 
         foreach (var file in files)
-            await _packagesService.AddAsync(file);
+        {
+            try
+            {
+                var added = await _packagesService.AddAsync(file);
+                if (added.Warnings.Count > 0)
+                    _toasts.Warning("Package created",  string.Join('\n', added.Warnings.Select(x => x.Message)));
+                else
+                    _toasts.Success("Package created successfully", $"The package {added.Infos.Identifier} has been created.");
+            }
+            catch (PackageValidationException ex)
+            {
+                _toasts.Error("Could not add the package", ex.Message);
+            }
+        }
 
         await RefreshAsync();
     }
@@ -139,8 +151,7 @@ internal partial class PackagesPageVM : ObservableObject, INavigable
         _dialogManager
             .CreateDialog(
                 "Are you absolutely sure?",
-                $"This action cannot be undone. This will permanently remove the package " +
-                $"\"{package.Identifier.Identifier}\" (version {package.Identifier.Version}).")
+                $"This action cannot be undone. This will permanently remove the package " + package.Identifier)
             .WithPrimaryButton("Remove", () => _ = RemoveConfirmedAsync(package), DialogButtonStyle.Destructive)
             .WithCancelButton("Cancel")
             .WithMaxWidth(512)
@@ -150,7 +161,45 @@ internal partial class PackagesPageVM : ObservableObject, INavigable
 
     private async Task RemoveConfirmedAsync(PackageInfos package)
     {
-        await _packagesService.RemoveAsync(package.Identifier.Identifier, package.Identifier.Version);
+        await _packagesService.RemoveAsync(package.Identifier.Id, package.Identifier.Version);
+        _toasts.Success("Removed successfully", $"The package {package.Identifier} have been removed.");
         await RefreshAsync();
+    }
+}
+
+/// <summary>
+/// Design class for [PackagesPageVM]
+/// </summary>
+internal class PackagesPageVMDesign : PackagesPageVM
+{
+    public PackagesPageVMDesign() : base(null!, null!, null!)
+    {
+        Items.Add(new PackageInfos
+        {
+            Identifier = new PackageIdentifier { Id = "MyCompany.Utils", Version = new Version("1.0.0") },
+            Description = "Utility helpers"
+        });
+        Items.Add(new PackageInfos
+        {
+            Identifier = new PackageIdentifier { Id = "MyCompany.Utils", Version = new Version("1.1.0") },
+            Description = "Utility helpers"
+        });
+        Items.Add(new PackageInfos
+        {
+            Identifier = new PackageIdentifier { Id = "MyCompany.Http", Version = new Version("2.0.0") },
+            Description = "HTTP client wrappers"
+        });
+        Items.Add(new PackageInfos
+        {
+            Identifier = new PackageIdentifier { Id = "MyCompany.Logging", Version = new Version("3.1.4") },
+            Description = "Structured logging"
+        });
+        
+        // Rebuild the view AFTER items are added
+        GroupedItems = new DataGridCollectionView(Items);
+        GroupedItems.GroupDescriptions.Add(new DataGridPathGroupDescription("Identifier.Identifier"));
+
+        TotalItems = 4;
+        IsLoading = false;
     }
 }

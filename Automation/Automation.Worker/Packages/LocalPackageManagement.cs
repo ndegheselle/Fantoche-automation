@@ -15,16 +15,20 @@ using Automation.Shared.Services;
 
 namespace Automation.Worker.Packages;
 
+#region Exceptions
+
 public class PackageDownloadException : Exception
 {
-    public PackageDownloadException(string message) : base(message)
-    { }
-    public PackageDownloadException(string message, Exception ex) : base(message, ex)
-    { }
+    public PackageDownloadException(string message) : base(message) { }
+    public PackageDownloadException(string message, Exception ex) : base(message, ex) { }
 }
 
-public class LocalPackageManagement : IPackagesService
+#endregion
+
+public class LocalPackageManagement
 {
+    #region Fields
+
     private readonly string _folder;
     private readonly string _localFolder;
     private readonly Task<SourceRepository> _repositoryTask;
@@ -33,11 +37,21 @@ public class LocalPackageManagement : IPackagesService
     private readonly NuGetFramework _frameworkVersion;
     private readonly ConcurrentDictionary<string, SemaphoreSlim> _downloadLocks = new();
 
+    #endregion
+
+    #region Constructor
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="LocalPackageManagement"/>.
+    /// </summary>
+    /// <param name="folder">Path to the local NuGet package source folder.</param>
+    /// <exception cref="DirectoryNotFoundException">Thrown if <paramref name="folder"/> does not exist.</exception>
     public LocalPackageManagement(string folder)
     {
         _frameworkVersion = GetCurrentFramework();
         _localFolder = Path.Combine(Directory.GetCurrentDirectory(), "packages");
         _folder = folder;
+
         if (Directory.Exists(_folder) == false)
             throw new DirectoryNotFoundException($"Package folder [{_folder}] not found");
 
@@ -47,6 +61,16 @@ public class LocalPackageManagement : IPackagesService
         _logger = NullLogger.Instance;
     }
 
+    #endregion
+
+    #region Search
+
+    /// <summary>
+    /// Searches for packages in the repository by name with pagination support.
+    /// </summary>
+    /// <param name="name">The search term to filter packages by name. Defaults to empty (returns all).</param>
+    /// <param name="options">Pagination options (page number and page size).</param>
+    /// <returns>A paginated list of matching <see cref="PackageInfos"/>.</returns>
     public async Task<Paginated<PackageInfos>> SearchAsync(string name = "", PaginationOptions options = default)
     {
         // XXX : difference with LocalPackageSearchResource ?
@@ -58,6 +82,7 @@ public class LocalPackageManagement : IPackagesService
             options.PageSize,
             NullLogger.Instance,
             CancellationToken.None);
+
         return new Paginated<PackageInfos>
         {
             Options = options,
@@ -66,59 +91,96 @@ public class LocalPackageManagement : IPackagesService
         };
     }
 
+    /// <summary>
+    /// Retrieves metadata for a specific package.
+    /// If <paramref name="version"/> is <c>null</c>, returns the latest available version.
+    /// </summary>
+    /// <param name="packageId">The NuGet package identifier.</param>
+    /// <param name="version">The requested version, or <c>null</c> to get the latest.</param>
+    /// <returns>The <see cref="PackageInfos"/> for the resolved package.</returns>
+    /// <exception cref="Exception">Thrown if no package is found for the given identifier.</exception>
     public async Task<PackageInfos> GetInfosAsync(string packageId, Version? version)
     {
         var resource = await (await _repositoryTask).GetResourceAsync<PackageMetadataResource>();
         IPackageSearchMetadata metadata;
+
         if (version != null)
         {
-            metadata = await resource.GetMetadataAsync(new PackageIdentity(packageId, new NuGetVersion(version)),
+            metadata = await resource.GetMetadataAsync(
+                new PackageIdentity(packageId, new NuGetVersion(version)),
                 _cacheContext, _logger, CancellationToken.None);
         }
         else
         {
-            IEnumerable<IPackageSearchMetadata> versions = await resource.GetMetadataAsync(packageId, true, false,
-                _cacheContext, _logger, CancellationToken.None);
+            IEnumerable<IPackageSearchMetadata> versions = await resource.GetMetadataAsync(
+                packageId, true, false, _cacheContext, _logger, CancellationToken.None);
 
-            var latestVersion = versions.MaxBy(x => x.Identity.Version) ??
-                                throw new Exception($"No package found for the id {packageId}");
-            metadata = latestVersion;
+            metadata = versions.MaxBy(x => x.Identity.Version)
+                ?? throw new Exception($"No package found for the id {packageId}");
         }
 
         return metadata.ToPackageInfos();
     }
 
-    public PackageInfos GetInfosFromStream(Stream stream)
-    {
-        using var packageReader = new PackageArchiveReader(stream);
-        return packageReader.NuspecReader.ToPackageInfos();
-    }
-
+    /// <summary>
+    /// Returns all available versions for a given package, sorted from newest to oldest.
+    /// </summary>
+    /// <param name="packageId">The NuGet package identifier.</param>
+    /// <returns>An enumerable of <see cref="Version"/> sorted in descending order.</returns>
     public async Task<IEnumerable<Version>> GetVersionsAsync(string packageId)
     {
         var resource = await (await _repositoryTask).GetResourceAsync<FindPackageByIdResource>();
-        // Get all versions of the package
+
         IEnumerable<NuGetVersion> versions = await resource.GetAllVersionsAsync(
             packageId,
             _cacheContext,
             _logger,
             CancellationToken.None);
+
         return versions.Select(x => x.Version).Reverse();
     }
 
+    #endregion
+
+    #region Add / Create
+
+    /// <summary>
+    /// Adds a package to the repository from a file on disk.
+    /// </summary>
+    /// <param name="filePath">Absolute path to the <c>.nupkg</c> file to add.</param>
+    /// <returns>The <see cref="PackageInfos"/> of the added package.</returns>
+    /// <exception cref="PackageValidationException">Thrown if the file is not a valid NuGet package, or if it already exists in the repository.</exception>
     public async Task<PackageInfos> AddAsync(string filePath)
     {
         await using var stream = File.OpenRead(filePath);
         return await CreateFromStreamAsync(stream);
     }
 
+    /// <summary>
+    /// Adds a package to the repository from a stream.
+    /// The stream must represent a valid <c>.nupkg</c> archive.
+    /// </summary>
+    /// <param name="stream">The stream containing the NuGet package data.</param>
+    /// <returns>The <see cref="PackageInfos"/> of the newly added package.</returns>
+    /// <exception cref="PackageValidationException">
+    /// Thrown if the stream is not a valid NuGet package, or if the package version already exists in the repository.
+    /// </exception>
     public async Task<PackageInfos> CreateFromStreamAsync(Stream stream)
     {
+        if (!IsValidNugetPackage(stream))
+            throw new PackageValidationException("Invalid nuget package.");
+
+        stream.Position = 0;
+
         using var packageReader = new PackageArchiveReader(stream);
         var identity = await packageReader.GetIdentityAsync(CancellationToken.None);
 
         string packagePath = Path.Combine(_folder, $"{identity.Id}.{identity.Version}.nupkg");
-        using (var fileStream = File.Create(packagePath))
+
+        if (File.Exists(packagePath))
+            throw new PackageValidationException($"The package '{identity.Id}' (version {identity.Version}) already exists.");
+
+        await using (var fileStream = File.Create(packagePath))
         {
             stream.Position = 0;
             await stream.CopyToAsync(fileStream);
@@ -127,21 +189,47 @@ public class LocalPackageManagement : IPackagesService
         return packageReader.NuspecReader.ToPackageInfos();
     }
 
+    #endregion
+
+    #region Remove
+
+    /// <summary>
+    /// Removes a package from the repository.
+    /// If the corresponding <c>.nupkg</c> file does not exist, the operation is silently skipped.
+    /// </summary>
+    /// <param name="id">The NuGet package identifier.</param>
+    /// <param name="version">The version of the package to remove.</param>
     public Task RemoveAsync(string id, Version version)
     {
         var nugetVersion = new NuGetVersion(version);
-        string packagePath = Path.Combine(_folder, $"{id}.{nugetVersion}.nupkg");
+        string packagePath = Path.Combine(_folder, $"{id}.{nugetVersion.ToNormalizedString()}.nupkg");
 
-        if (File.Exists(packagePath)) File.Delete(packagePath);
+        if (File.Exists(packagePath))
+            File.Delete(packagePath);
 
         return Task.CompletedTask;
     }
 
-    public async Task<string> DownloadPackageAsync(string id, Version version, string dll)
+    #endregion
+
+    #region Download
+
+    /// <summary>
+    /// Downloads a package from the repository and extracts all compatible DLL files
+    /// to the local packages folder, then returns the paths of every extracted DLL.
+    /// This is the core download implementation shared by all public download methods.
+    /// </summary>
+    /// <param name="id">The NuGet package identifier.</param>
+    /// <param name="version">The version of the package to download.</param>
+    /// <returns>An enumerable of absolute paths to every extracted <c>.dll</c> file.</returns>
+    /// <exception cref="PackageDownloadException">
+    /// Thrown if the package is not found, no compatible framework is available,
+    /// or any other download error occurs.
+    /// </exception>
+    private async Task<IEnumerable<string>> DownloadPackageDllsAsync(string id, Version version)
     {
         try
         {
-            // Get package by id resource
             var findPackageByIdResource = await (await _repositoryTask).GetResourceAsync<FindPackageByIdResource>();
             var nugetVersion = new NuGetVersion(version);
 
@@ -163,12 +251,16 @@ public class LocalPackageManagement : IPackagesService
             var lib = packageReader.GetLibItems().FirstOrDefault(x => x.TargetFramework == nearestFramework);
 
             if (lib == null)
-                throw new PackageDownloadException($"Could not find compatilbe nearest framework [nearest:{nearestFramework}]");
+                throw new PackageDownloadException($"Could not find compatible nearest framework [nearest:{nearestFramework}]");
 
-            var extractedFiles = await packageReader.CopyFilesAsync(_localFolder, lib.Items,
-                (source, target, stream) => ExtractFile(id, version, target, stream), _logger, CancellationToken.None);
+            await packageReader.CopyFilesAsync(
+                _localFolder,
+                lib.Items,
+                (source, target, stream) => ExtractFile(id, version, target, stream),
+                _logger,
+                CancellationToken.None);
 
-            return GetLocalDllPath(id, version, dll) ?? throw new PackageDownloadException($"Could not find dll for [id:{id}][version:{version}] in downloaded package.");
+            return GetLocalDllPaths(id, version);
         }
         catch (Exception ex)
         {
@@ -176,21 +268,38 @@ public class LocalPackageManagement : IPackagesService
         }
     }
 
-    private string ExtractFile(string id, Version version, string targetPath, Stream fileStream)
+    /// <summary>
+    /// Downloads a package from the repository and returns the path of a specific DLL.
+    /// Delegates extraction to <see cref="DownloadPackageDllsAsync"/> then resolves the requested entry.
+    /// </summary>
+    /// <param name="id">The NuGet package identifier.</param>
+    /// <param name="version">The version of the package to download.</param>
+    /// <param name="dll">The name of the DLL (without extension) expected inside the package.</param>
+    /// <returns>The full local path to the extracted DLL.</returns>
+    /// <exception cref="PackageDownloadException">
+    /// Thrown if the package is not found, no compatible framework is available,
+    /// the expected DLL is missing, or any other download error occurs.
+    /// </exception>
+    public async Task<string> DownloadPackageAsync(string id, Version version, string dll)
     {
-        string fileName = Path.GetFileName(targetPath);
-        string folderPath = GetLocalFolderPath(id, version);
-        string path = Path.Combine(folderPath, fileName);
-        Directory.CreateDirectory(folderPath);
-        using var targetStream = File.Create(path);
-        fileStream.CopyTo(targetStream);
-        return path;
+        await DownloadPackageDllsAsync(id, version);
+        return GetLocalDllPath(id, version, dll)
+            ?? throw new PackageDownloadException($"Could not find dll for [id:{id}][version:{version}] in downloaded package.");
     }
 
+    /// <summary>
+    /// Returns the path of a specific DLL if it is already cached locally,
+    /// otherwise downloads the package first.
+    /// Uses a per-package semaphore to prevent concurrent duplicate downloads.
+    /// </summary>
+    /// <param name="id">The NuGet package identifier.</param>
+    /// <param name="version">The version of the package.</param>
+    /// <param name="dll">The name of the DLL (without extension) to locate.</param>
+    /// <returns>The full local path to the DLL.</returns>
     public async Task<string> DownloadToLocalIfMissing(string id, Version version, string dll)
     {
         string? path = GetLocalDllPath(id, version, dll);
-        if (string.IsNullOrEmpty(path) == false)
+        if (!string.IsNullOrEmpty(path))
             return path;
 
         string key = $"{id}.{version}";
@@ -199,9 +308,9 @@ public class LocalPackageManagement : IPackagesService
         await semaphore.WaitAsync();
         try
         {
-            // Re-check after acquiring the lock — the first task may have already downloaded it
+            // Re-check after acquiring the lock — another task may have already downloaded it.
             path = GetLocalDllPath(id, version, dll);
-            if (string.IsNullOrEmpty(path) == false)
+            if (!string.IsNullOrEmpty(path))
                 return path;
 
             return await DownloadPackageAsync(id, version, dll);
@@ -213,23 +322,148 @@ public class LocalPackageManagement : IPackagesService
         }
     }
 
+    /// <summary>
+    /// Returns all DLL paths for a package if already cached locally,
+    /// otherwise downloads the package first.
+    /// Uses a per-package semaphore to prevent concurrent duplicate downloads.
+    /// </summary>
+    /// <param name="id">The NuGet package identifier.</param>
+    /// <param name="version">The version of the package.</param>
+    /// <returns>An enumerable of absolute paths to every <c>.dll</c> file in the package.</returns>
+    public async Task<IEnumerable<string>> DownloadAllDllsIfMissing(string id, Version version)
+    {
+        var paths = GetLocalDllPaths(id, version);
+        if (paths.Any())
+            return paths;
+
+        string key = $"{id}.{version}";
+        var semaphore = _downloadLocks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
+
+        await semaphore.WaitAsync();
+        try
+        {
+            // Re-check after acquiring the lock — another task may have already downloaded it.
+            paths = GetLocalDllPaths(id, version);
+            if (paths.Any())
+                return paths;
+
+            return await DownloadPackageDllsAsync(id, version);
+        }
+        finally
+        {
+            semaphore.Release();
+            _downloadLocks.TryRemove(key, out _);
+        }
+    }
+
+    /// <summary>
+    /// Extracts a single file from a package archive to the local versioned folder.
+    /// </summary>
+    /// <param name="id">The NuGet package identifier (used to build the destination path).</param>
+    /// <param name="version">The package version (used to build the destination path).</param>
+    /// <param name="targetPath">The relative target path as declared inside the archive.</param>
+    /// <param name="fileStream">The stream for the file to extract.</param>
+    /// <returns>The full path where the file was written.</returns>
+    private string ExtractFile(string id, Version version, string targetPath, Stream fileStream)
+    {
+        string fileName = Path.GetFileName(targetPath);
+        string folderPath = GetLocalFolderPath(id, version);
+        string path = Path.Combine(folderPath, fileName);
+        Directory.CreateDirectory(folderPath);
+        using var targetStream = File.Create(path);
+        fileStream.CopyTo(targetStream);
+        return path;
+    }
+
+    #endregion
+
+    #region Local File Resolution
+
+    /// <summary>
+    /// Returns the full path to a DLL in the local package cache, or <c>null</c> if it has not been extracted yet.
+    /// </summary>
+    /// <param name="id">The NuGet package identifier.</param>
+    /// <param name="version">The package version.</param>
+    /// <param name="dll">The name of the DLL (without extension).</param>
+    /// <returns>The full path if the file exists; otherwise <c>null</c>.</returns>
     public string? GetLocalDllPath(string id, Version version, string dll)
     {
         string path = Path.Combine(GetLocalFolderPath(id, version), $"{dll}.dll");
-        return File.Exists(path) == false ? null : path;
+        return File.Exists(path) ? path : null;
     }
-
-    private string GetLocalFolderPath(string id, Version version)
-    {
-        return Path.Combine(_localFolder, id, version.ToString());
-    }
-
 
     /// <summary>
-    /// Get the nearest framework to the current assembly
+    /// Returns the full paths of all DLLs extracted for a given package version in the local cache.
+    /// Returns an empty enumerable if the package has not been downloaded yet.
     /// </summary>
-    /// <param name="packageReader"></param>
-    /// <returns></returns>
+    /// <param name="id">The NuGet package identifier.</param>
+    /// <param name="version">The package version.</param>
+    /// <returns>An enumerable of absolute paths to every <c>.dll</c> file found in the local package folder.</returns>
+    public IEnumerable<string> GetLocalDllPaths(string id, Version version)
+    {
+        string folder = GetLocalFolderPath(id, version);
+        if (!Directory.Exists(folder))
+            return Enumerable.Empty<string>();
+
+        return Directory.EnumerateFiles(folder, "*.dll");
+    }
+
+    /// <summary>
+    /// Builds the local folder path for a specific package version in the cache.
+    /// </summary>
+    /// <param name="id">The NuGet package identifier.</param>
+    /// <param name="version">The package version.</param>
+    /// <returns>The absolute folder path for the package version.</returns>
+    private string GetLocalFolderPath(string id, Version version)
+    {
+        var nugetVersion = new NuGetVersion(version);
+        return Path.Combine(_localFolder, id, nugetVersion.ToNormalizedString());
+    }
+
+    #endregion
+
+    #region Validation
+
+    /// <summary>
+    /// Reads package metadata from a stream and returns it.
+    /// Used internally to validate and inspect a <c>.nupkg</c> archive.
+    /// </summary>
+    /// <param name="stream">The stream to read from.</param>
+    /// <returns>The <see cref="PackageInfos"/> extracted from the archive.</returns>
+    private PackageInfos GetInfosFromStream(Stream stream)
+    {
+        using var packageReader = new PackageArchiveReader(stream, leaveStreamOpen: true);
+        return packageReader.NuspecReader.ToPackageInfos();
+    }
+
+    /// <summary>
+    /// Determines whether the given stream represents a valid NuGet package archive.
+    /// </summary>
+    /// <param name="stream">The stream to validate.</param>
+    /// <returns><c>true</c> if the stream is a readable NuGet package; otherwise <c>false</c>.</returns>
+    private bool IsValidNugetPackage(Stream stream)
+    {
+        try
+        {
+            _ = GetInfosFromStream(stream);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    #endregion
+
+    #region Framework Resolution
+
+    /// <summary>
+    /// Selects the target framework from the package that is nearest to the current runtime framework.
+    /// </summary>
+    /// <param name="packageReader">The archive reader for the package being inspected.</param>
+    /// <returns>The best matching <see cref="NuGetFramework"/>.</returns>
+    /// <exception cref="Exception">Thrown if no compatible framework can be found in the package.</exception>
     private NuGetFramework GetNearestFramework(PackageArchiveReader packageReader)
     {
         var frameworks = packageReader.GetLibItems()
@@ -238,50 +472,63 @@ public class LocalPackageManagement : IPackagesService
             .ToList();
 
         return NuGetFrameworkUtility.GetNearest(frameworks, _frameworkVersion, f => f)
-               ?? throw new Exception("Can't find the nearest framework.");
+            ?? throw new Exception("Can't find the nearest framework.");
     }
 
     /// <summary>
-    /// Get the current assembly framework version.
+    /// Resolves the <see cref="NuGetFramework"/> of the currently running application
+    /// by reading the <see cref="TargetFrameworkAttribute"/> on the entry assembly.
     /// </summary>
-    /// <returns></returns>
-    /// <exception cref="Exception"></exception>
+    /// <returns>The <see cref="NuGetFramework"/> matching the current runtime.</returns>
+    /// <exception cref="Exception">Thrown if the target framework attribute is not found on the entry assembly.</exception>
     private NuGetFramework GetCurrentFramework()
     {
         return NuGetFramework.Parse(
             Assembly
                 .GetEntryAssembly()?
                 .GetCustomAttribute<TargetFrameworkAttribute>()?
-                .FrameworkName ??
-            throw new Exception("Cannot determine the current version of .net"));
+                .FrameworkName
+            ?? throw new Exception("Cannot determine the current version of .net"));
     }
+
+    #endregion
 }
 
 /// <summary>
-/// Extension method to convert to PackageInfos (you'll need to implement this based on your PackageInfos class)
+/// Extension methods to map NuGet metadata types to <see cref="PackageInfos"/>.
 /// </summary>
 public static class PackageExtensions
 {
+    /// <summary>
+    /// Converts a <see cref="IPackageSearchMetadata"/> result to a <see cref="PackageInfos"/> instance.
+    /// </summary>
+    /// <param name="package">The search metadata to convert.</param>
+    /// <returns>A populated <see cref="PackageInfos"/>.</returns>
     public static PackageInfos ToPackageInfos(this IPackageSearchMetadata package)
     {
         return new PackageInfos
         {
             Identifier = new PackageIdentifier
             {
-                Identifier = package.Identity.Id,
+                Id = package.Identity.Id,
                 Version = package.Identity.Version.Version
             },
             Description = package.Description
         };
     }
 
+    /// <summary>
+    /// Converts a <see cref="NuspecReader"/> to a <see cref="PackageInfos"/> instance.
+    /// </summary>
+    /// <param name="reader">The nuspec reader to convert.</param>
+    /// <returns>A populated <see cref="PackageInfos"/>.</returns>
     public static PackageInfos ToPackageInfos(this NuspecReader reader)
     {
         return new PackageInfos
         {
             Identifier = new PackageIdentifier
             {
-                Identifier = reader.GetId(),
+                Id = reader.GetId(),
                 Version = reader.GetVersion().Version
             },
             Description = reader.GetDescription()
