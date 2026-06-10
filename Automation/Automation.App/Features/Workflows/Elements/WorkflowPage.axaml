@@ -4,7 +4,7 @@
              xmlns:components="clr-namespace:Automation.App.Features.Workflows.Components"
              x:DataType="elements:WorkflowVM"
              x:Class="Automation.App.Features.Workflows.Elements.WorkflowPage">
-    <StackPanel Margin="16" Spacing="8">
+    <StackPanel Margin="4" Spacing="8">
         <components:ElementHeader />
         <TextBlock Classes="Muted" Text="The workflow editor will be displayed here." />
     </StackPanel>

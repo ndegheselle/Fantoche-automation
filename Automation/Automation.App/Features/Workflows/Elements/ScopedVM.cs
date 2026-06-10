@@ -10,7 +10,7 @@ namespace Automation.App.Features.Workflows.Elements;
 /// <summary>
 /// Base view model wrapping a <see cref="ScopedElement"/> displayed in the workflows page.
 /// </summary>
-internal abstract class ScopedVM : ObservableObject
+internal abstract partial class ScopedVM : ObservableObject
 {
     protected readonly IScopedService _scopedService;
     public ScopedElement Element { get; }

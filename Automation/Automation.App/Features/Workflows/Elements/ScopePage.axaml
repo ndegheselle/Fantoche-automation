@@ -4,7 +4,7 @@
              xmlns:elements="clr-namespace:Automation.App.Features.Workflows.Elements"
              x:DataType="elements:ScopeVM"
              x:Class="Automation.App.Features.Workflows.Elements.ScopePage">
-    <StackPanel Margin="16" Spacing="8">
+    <StackPanel Margin="4" Spacing="8">
         <components:ElementHeader />
         <TextBlock Classes="Muted" Text="{Binding Children.Count, StringFormat='Contains {0} element(s).'}" />
     </StackPanel>

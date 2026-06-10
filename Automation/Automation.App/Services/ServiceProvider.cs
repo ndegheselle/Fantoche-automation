@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using Automation.App.Features.Packages;
+using Automation.App.Features.Workflows.Elements;
 using Automation.App.Services.UI;
 using Automation.Services.Local;
 using Automation.Shared.Services;
@@ -22,6 +23,7 @@ internal static class ServiceProvider
     {
         var manager = new DialogManager();
         manager.Register<PackageDetailsDialog, PackageDetailsVM>();
+        manager.Register<MetadataEditDialog, ScopedVM>();
         return manager;
     }
 

@@ -6,20 +6,6 @@
              x:DataType="elements:ScopedVM"
              x:Class="Automation.App.Features.Workflows.Components.ElementLabel">
     <StackPanel Orientation="Horizontal" Spacing="6">
-        <StackPanel.ContextMenu>
-			<ContextMenu>
-				<MenuItem Command="{Binding EditCommand}" Header="Edit">
-				<MenuItem.Icon>
-                      <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.Pencil}" />
-                </MenuItem.Icon>
-                </MenuItem>
-                				<MenuItem Command="{Binding RemoveCommand}" Header="Remove">
-				<MenuItem.Icon>
-                      <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.Trash}" />
-                </MenuItem.Icon>
-                </MenuItem>
-            </ContextMenu>
-        </StackPanel.ContextMenu>
         <TextBlock Classes="LucideIcon"
                    Text="{Binding Metadata.Type, Converter={x:Static converters:ScopedTypeConverters.ToLucideIcon}}" />
         <TextBlock VerticalAlignment="Center" Text="{Binding Metadata.Name}" />

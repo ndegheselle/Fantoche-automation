@@ -10,27 +10,27 @@
         <TextBlock Classes="LucideIcon"
                    FontSize="24" Width="24" Height="24"
                    Text="{Binding Metadata.Type, Converter={x:Static converters:ScopedTypeConverters.ToLucideIcon}}" />
-        <TextBlock Grid.Column="2" Classes="h4" VerticalAlignment="Center" Text="{Binding Metadata.Name}" />
-        <shadui:Badge Grid.Column="3" VerticalAlignment="Center" Content="{Binding Metadata.Type}" />
-            <shadui:SimpleDropdown
-        Classes="Icon">
-                <shadui:SimpleDropdown.TriggerContent>
-					
+        <TextBlock Grid.Column="1" Classes="h4" VerticalAlignment="Center" Text="{Binding Metadata.Name}" />
+        <shadui:Badge HorizontalAlignment="Left" Grid.Column="2" VerticalAlignment="Center" Content="{Binding Metadata.Type}" />
+        <shadui:SimpleDropdown Grid.Column="3"
+            Classes="Icon">
+            <shadui:SimpleDropdown.TriggerContent>
+
                 <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.Settings}" />
-                </shadui:SimpleDropdown.TriggerContent>
-        <shadui:SimpleDropdown.MenuLabel>
-            <TextBlock Classes="Caption Muted" Text="Actions" />
-        </shadui:SimpleDropdown.MenuLabel>
-        <Button Content="Edit" Command="{Binding EditCommand}">
-            <shadui:ButtonAssist.Icon>
-                <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.Pencil}" />
-            </shadui:ButtonAssist.Icon>
-        </Button>
-        <Button Classes="DestructiveMenu" Content="Delete">
-            <shadui:ButtonAssist.Icon>
-                <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.Trash}" />
-            </shadui:ButtonAssist.Icon>
-        </Button>
-    </shadui:SimpleDropdown>
+            </shadui:SimpleDropdown.TriggerContent>
+            <shadui:SimpleDropdown.MenuLabel>
+                <TextBlock Classes="Caption Muted" Text="Actions" />
+            </shadui:SimpleDropdown.MenuLabel>
+            <Button Content="Edit" Command="{Binding EditCommand}">
+                <shadui:ButtonAssist.Icon>
+                    <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.Pencil}" />
+                </shadui:ButtonAssist.Icon>
+            </Button>
+            <Button Classes="DestructiveMenu" Content="Delete">
+                <shadui:ButtonAssist.Icon>
+                    <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.Trash}" />
+                </shadui:ButtonAssist.Icon>
+            </Button>
+        </shadui:SimpleDropdown>
     </Grid>
 </UserControl>

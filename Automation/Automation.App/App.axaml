@@ -4,7 +4,14 @@
              xmlns:shadui="clr-namespace:ShadUI;assembly=ShadUI"
              RequestedThemeVariant="Default">
     <Application.Resources>
-        <FontFamily x:Key="LucideIcon">avares://Automation.App/Assets/Fonts#lucide</FontFamily>
+        <ResourceDictionary>
+            <FontFamily x:Key="LucideIcon">avares://Automation.App/Assets/Fonts#lucide</FontFamily>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://Automation.App/Styles/ContextMenu.axaml" />
+                <ResourceInclude Source="avares://Automation.App/Styles/TreeView.axaml" />
+                <ResourceInclude Source="avares://Automation.App/Styles/ListBox.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </Application.Resources>
     <Application.Styles>
         <shadui:ShadTheme />

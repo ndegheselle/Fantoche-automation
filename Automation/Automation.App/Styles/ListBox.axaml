@@ -1,20 +1,8 @@
-<Styles xmlns="https://github.com/avaloniaui"
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:converters="using:Avalonia.Controls.Converters"
         xmlns:fonts="clr-namespace:Automation.App.Assets.Fonts"
         x:CompileBindings="False">
-    <Design.PreviewWith>
-            <ListBox SelectedIndex="1"
-                     Width="250">
-                <ListBoxItem>Dashboard</ListBoxItem>
-                <ListBoxItem>Projects</ListBoxItem>
-                <ListBoxItem>Tasks</ListBoxItem>
-                <ListBoxItem>Settings</ListBoxItem>
-                <ListBoxItem>Profile</ListBoxItem>
-            </ListBox>
-    </Design.PreviewWith>
-    
-    <Styles.Resources>
 
 <ControlTheme x:Key="{x:Type ListBox}"
               TargetType="ListBox">
@@ -39,5 +27,4 @@
         <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundColor}"/>
     </Style>
 </ControlTheme>
-    </Styles.Resources>
-</Styles>
+</ResourceDictionary>

@@ -1,10 +1,9 @@
-<Styles xmlns="https://github.com/avaloniaui"
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:converters="using:Avalonia.Controls.Converters"
         xmlns:fonts="clr-namespace:Automation.App.Assets.Fonts"
         x:CompileBindings="False">
 
-    <Styles.Resources>
         <x:Double x:Key="TreeViewItemIndent">12</x:Double>
 
         <!-- Expand / collapse button using a lucide chevron rotating when expanded -->
@@ -42,14 +41,13 @@
 
         <ControlTheme x:Key="{x:Type TreeViewItem}" TargetType="TreeViewItem">
             <Setter Property="Padding" Value="4,0" />
-            <Setter Property="Background" Value="Transparent" />
             <Setter Property="MinHeight" Value="30" />
             <Setter Property="CornerRadius" Value="{DynamicResource MdCornerRadius}" />
             <Setter Property="Foreground" Value="{DynamicResource ForegroundColor}" />
             <Setter Property="Template">
                 <ControlTemplate>
                     <StackPanel>
-                        <Border Name="PART_LayoutRoot"
+                        <Border Name="PART_LayoutRootTest"
                                 Margin="0,1"
                                 Background="{TemplateBinding Background}"
                                 CornerRadius="{TemplateBinding CornerRadius}"
@@ -95,13 +93,13 @@
                 </ControlTemplate>
             </Setter>
 
-            <Style Selector="^ /template/ Border#PART_LayoutRoot:pointerover">
+            <Style Selector="^ /template/ Border#PART_LayoutRootTest:pointerover">
                 <Setter Property="Background" Value="{DynamicResource GhostHoverColor}" />
             </Style>
-            <Style Selector="^:selected /template/ Border#PART_LayoutRoot">
+            <Style Selector="^:selected /template/ Border#PART_LayoutRootTest">
                 <Setter Property="Background" Value="{DynamicResource GhostColor}" />
             </Style>
-            <Style Selector="^:selected /template/ Border#PART_LayoutRoot:pointerover">
+            <Style Selector="^:selected /template/ Border#PART_LayoutRootTest:pointerover">
                 <Setter Property="Background" Value="{DynamicResource GhostColor}" />
             </Style>
             <Style Selector="^:disabled">
@@ -116,5 +114,4 @@
                 <Setter Property="Width" Value="20" />
             </Style>
         </ControlTheme>
-    </Styles.Resources>
-</Styles>
+</ResourceDictionary>

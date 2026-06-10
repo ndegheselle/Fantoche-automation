@@ -31,7 +31,10 @@ public class LocalScopedService : IScopedService
 
     public Task<List<ScopedElement>> GetChildrens(Guid scopeId)
     {
-        throw new NotImplementedException();
+        var children = _elements.Where(x => x.Value.ParentId == scopeId)
+            .Select(x => x.Value)
+            .ToList();
+        return Task.FromResult(children);
     }
 
     public Task<ScopedElement> RemoveAsync(ScopedElement element)
