@@ -6,6 +6,7 @@
              xmlns:inputs="clr-namespace:Automation.App.Components.Inputs"
              xmlns:shadui="clr-namespace:ShadUI;assembly=ShadUI"
              xmlns:workflows="clr-namespace:Automation.App.Features.Workflows"
+             xmlns:components="clr-namespace:Automation.App.Features.Workflows.Components"
              xmlns:elements="clr-namespace:Automation.App.Features.Workflows.Elements"
              xmlns:scoped="clr-namespace:Automation.Shared.Data.Scoped;assembly=Automation.Shared"
              x:DataType="workflows:WorkflowsPageVM"
@@ -33,7 +34,7 @@
                         <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.Plus}" />
                     </shadui:SimpleDropdown.TriggerContent>
                     <shadui:SimpleDropdown.MenuLabel>
-                        <TextBlock Classes="Small" Text="Create" />
+                        <TextBlock Classes="Caption Muted" Text="Create" />
                     </shadui:SimpleDropdown.MenuLabel>
 
                     <Button Content="Scope"
@@ -66,15 +67,15 @@
                           BorderThickness="0">
                     <TreeView.DataTemplates>
                         <TreeDataTemplate DataType="scoped:Scope" ItemsSource="{Binding Childrens}">
-                            <elements:ElementLabel />
+                            <components:ElementLabel />
                         </TreeDataTemplate>
 
                         <DataTemplate DataType="scoped:AutomationWorkflow">
-                            <elements:ElementLabel />
+                            <components:ElementLabel />
                         </DataTemplate>
 
                         <DataTemplate DataType="scoped:AutomationTask">
-                            <elements:ElementLabel />
+                            <components:ElementLabel />
                         </DataTemplate>
                     </TreeView.DataTemplates>
                 </TreeView>

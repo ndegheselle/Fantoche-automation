@@ -1,11 +1,12 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:elements="clr-namespace:Automation.App.Features.Workflows.Elements"
+             xmlns:components="clr-namespace:Automation.App.Features.Workflows.Components"
              xmlns:scoped="clr-namespace:Automation.Shared.Data.Scoped;assembly=Automation.Shared"
              x:DataType="scoped:AutomationWorkflow"
              x:Class="Automation.App.Features.Workflows.Elements.WorkflowPage">
     <StackPanel Margin="16" Spacing="8">
-        <elements:ElementHeader />
+        <components:ElementHeader />
         <TextBlock Classes="Muted" Text="The workflow editor will be displayed here." />
     </StackPanel>
 </UserControl>

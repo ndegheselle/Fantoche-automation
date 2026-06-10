@@ -38,5 +38,13 @@
     <Compile Update="Components\Inputs\FilePicker.axaml.cs">
       <DependentUpon>FilePicker.axaml</DependentUpon>
     </Compile>
+    <Compile Update="Features\Workflows\Components\ElementHeader.axaml.cs">
+      <DependentUpon>ElementHeader.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Features\Workflows\Components\ElementLabel.axaml.cs">
+      <DependentUpon>ElementLabel.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
 </Project>

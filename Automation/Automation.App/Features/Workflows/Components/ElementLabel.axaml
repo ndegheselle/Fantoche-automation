@@ -3,7 +3,7 @@
              xmlns:converters="clr-namespace:Automation.App.Converters"
              xmlns:scoped="clr-namespace:Automation.Shared.Data.Scoped;assembly=Automation.Shared"
              x:DataType="scoped:ScopedElement"
-             x:Class="Automation.App.Features.Workflows.Elements.ElementLabel">
+             x:Class="Automation.App.Features.Workflows.Components.ElementLabel">
     <StackPanel Orientation="Horizontal" Spacing="6">
         <TextBlock Classes="LucideIcon"
                    Text="{Binding Metadata.Type, Converter={x:Static converters:ScopedTypeConverters.ToLucideIcon}}" />
