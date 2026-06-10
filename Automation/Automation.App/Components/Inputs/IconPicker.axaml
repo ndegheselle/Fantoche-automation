@@ -1,0 +1,39 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="320" d:DesignHeight="60"
+             xmlns:fonts="clr-namespace:Automation.App.Assets.Fonts"
+             x:Name="Root"
+             x:Class="Automation.App.Components.Inputs.IconPicker">
+    <Button x:Name="TriggerButton" Classes="Outline" HorizontalAlignment="Stretch"
+            HorizontalContentAlignment="Left">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+            <TextBlock Classes="LucideIcon"
+                       VerticalAlignment="Center"
+                       IsVisible="{Binding SelectedIcon, ElementName=Root, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                       Text="{Binding SelectedIcon, ElementName=Root}" />
+            <TextBlock VerticalAlignment="Center" Text="Select an icon" />
+        </StackPanel>
+        <Button.Flyout>
+            <Flyout Placement="Bottom">
+                <Grid RowDefinitions="Auto *" RowSpacing="8" Width="280" Height="320">
+                    <TextBox x:Name="SearchBox" Grid.Row="0" Watermark="Search icons..." />
+                    <ListBox x:Name="IconList" Grid.Row="1"
+                             SelectionMode="Single"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="fonts:LucideIconItem">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Classes="LucideIcon" VerticalAlignment="Center"
+                                               Text="{Binding Glyph}" />
+                                    <TextBlock VerticalAlignment="Center" Text="{Binding Name}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </Flyout>
+        </Button.Flyout>
+    </Button>
+</UserControl>

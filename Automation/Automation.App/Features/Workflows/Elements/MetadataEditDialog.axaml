@@ -1,8 +1,73 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="460" d:DesignHeight="600"
+             xmlns:shadui="clr-namespace:ShadUI;assembly=ShadUI"
+             xmlns:converters="clr-namespace:Automation.App.Converters"
+             xmlns:inputs="clr-namespace:Automation.App.Components.Inputs"
+             xmlns:elements="clr-namespace:Automation.App.Features.Workflows.Elements"
+             xmlns:fonts="clr-namespace:Automation.App.Assets.Fonts"
+             x:DataType="elements:MetadataEditVM"
+             x:Name="Root"
              x:Class="Automation.App.Features.Workflows.Elements.MetadataEditDialog">
-    Welcome to Avalonia!
+    <StackPanel Width="440" Spacing="16" Margin="4">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+            <TextBlock Classes="LucideIcon" FontSize="20"
+                       VerticalAlignment="Center"
+                       Text="{Binding Type, Converter={x:Static converters:ScopedTypeConverters.ToLucideIcon}}" />
+            <TextBlock Classes="h4" VerticalAlignment="Center" Text="Edit metadata" />
+            <shadui:Badge VerticalAlignment="Center" Content="{Binding Type}" />
+        </StackPanel>
+
+        <TextBox shadui:ControlAssist.Label="Name"
+                 PlaceholderText="Name"
+                 Text="{Binding Name}" />
+
+        <inputs:IconPicker shadui:ControlAssist.Label="Icon" SelectedIcon="{Binding SelectedIcon, Mode=TwoWay}" />
+
+        <ColorPicker
+            Color="{Binding SelectedColor, Converter={x:Static converters:StringToColor.Instance}, Mode=TwoWay}"
+            HorizontalAlignment="Stretch"
+            shadui:ControlAssist.Label="Select a color" />
+
+        <StackPanel Spacing="8">
+            <TextBlock Classes="Caption Muted" Text="Tags" />
+            <ItemsControl ItemsSource="{Binding Tags}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                        <shadui:Badge Margin="0,0,4,4">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <TextBlock VerticalAlignment="Center" Text="{Binding}" />
+                                <Button Classes="Icon Ghost" Padding="2"
+                                        Command="{Binding ((elements:MetadataEditVM)DataContext).RemoveTagCommand, ElementName=Root}"
+                                        CommandParameter="{Binding}">
+                                    <TextBlock Classes="LucideIcon" FontSize="12"
+                                               Text="{x:Static fonts:LucideIconFont.CircleX}" />
+                                </Button>
+                            </StackPanel>
+                        </shadui:Badge>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <Grid ColumnSpacing="4" ColumnDefinitions="* auto">
+                <TextBox PlaceholderText="Add a tag" Text="{Binding NewTag}" />
+                <Button Grid.Column="1" Classes="Icon" Command="{Binding AddTagCommand}" ToolTip.Tip="Add a tag">
+                    <shadui:ButtonAssist.Icon>
+                        <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.Plus}" />
+                    </shadui:ButtonAssist.Icon>
+                </Button>
+            </Grid>
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+            <Button Classes="Outline" Content="Cancel" Command="{Binding CancelCommand}" />
+            <Button Classes="Primary" Content="Save" Command="{Binding ConfirmCommand}" />
+        </StackPanel>
+    </StackPanel>
 </UserControl>

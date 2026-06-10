@@ -23,7 +23,7 @@ internal static class ServiceProvider
     {
         var manager = new DialogManager();
         manager.Register<PackageDetailsDialog, PackageDetailsVM>();
-        manager.Register<MetadataEditDialog, ScopedVM>();
+        manager.Register<MetadataEditDialog, MetadataEditVM>();
         return manager;
     }
 

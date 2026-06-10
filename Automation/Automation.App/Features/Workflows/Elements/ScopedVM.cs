@@ -1,9 +1,11 @@
 using System;
+using System.Threading.Tasks;
 using Automation.App.Services;
 using Automation.Shared.Data.Scoped;
 using Automation.Shared.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using ShadUI;
 
 namespace Automation.App.Features.Workflows.Elements;
 
@@ -32,7 +34,21 @@ internal abstract partial class ScopedVM : ObservableObject
     [RelayCommand]
     public void Edit()
     {
+        // Edit a copy so the changes are discarded if the dialog is cancelled.
+        var editVm = new MetadataEditVM(Metadata.Clone());
+        ServiceProvider.Dialogs
+            .CreateDialog(editVm)
+            .WithSuccessCallback(() => ApplyEditAsync(editVm))
+            .Dismissible()
+            .WithMaxWidth(480)
+            .Show();
+    }
 
+    private async Task ApplyEditAsync(MetadataEditVM editVm)
+    {
+        Element.Metadata = editVm.Build();
+        OnPropertyChanged(nameof(Metadata));
+        await _scopedService.EditAsync(Element);
     }
 
     /// <summary>
