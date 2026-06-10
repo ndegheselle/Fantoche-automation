@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Automation.Shared.Data.Scoped;
 using Automation.Shared.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 
 namespace Automation.App.Features.Workflows;
 
@@ -26,11 +27,40 @@ internal partial class WorkflowsPageVM : ObservableObject, INavigable
 
     [ObservableProperty] private bool _isLoading;
 
+    /// <summary>
+    /// Element currently selected in the tree.
+    /// </summary>
+    [ObservableProperty] private ScopedElement? _selected;
+
     public void OnShow() => _ = RefreshAsync();
 
     public void OnHide() => _cts?.Cancel();
 
     partial void OnSearchTextChanged(string value) => _ = RefreshAsync();
+
+    /// <summary>
+    /// Create a new element of the given [type], inside the selected scope if any.
+    /// </summary>
+    [RelayCommand]
+    private async Task AddAsync(EnumScopedType type)
+    {
+        ScopedElement element = type switch
+        {
+            EnumScopedType.Workflow => new AutomationWorkflow(),
+            EnumScopedType.Task => new AutomationTask(),
+            _ => new Scope()
+        };
+        element.Metadata.Name = $"New {type.ToString().ToLowerInvariant()}";
+
+        Scope? parent = Selected as Scope ?? Selected?.Parent;
+        await _scopedService.CreateAsync(element, parent);
+
+        // Childrens of a scope are observable, only root elements need to be added manually
+        if (parent == null)
+            Items.Add(element);
+
+        Selected = element;
+    }
 
     private async Task RefreshAsync()
     {

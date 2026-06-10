@@ -6,6 +6,7 @@
              xmlns:inputs="clr-namespace:Automation.App.Components.Inputs"
              xmlns:shadui="clr-namespace:ShadUI;assembly=ShadUI"
              xmlns:workflows="clr-namespace:Automation.App.Features.Workflows"
+             xmlns:elements="clr-namespace:Automation.App.Features.Workflows.Elements"
              xmlns:scoped="clr-namespace:Automation.Shared.Data.Scoped;assembly=Automation.Shared"
              x:DataType="workflows:WorkflowsPageVM"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
@@ -20,34 +21,60 @@
             <ColumnDefinition Width="*" MinWidth="200" />
         </Grid.ColumnDefinitions>
         <Grid Grid.Column="0" RowDefinitions="auto *" RowSpacing="2">
-            <inputs:DebouncedSearch Grid.Row="0"
-                                    Search="{Binding SearchText, Mode=TwoWay}" />
+            <Grid Grid.Row="0" ColumnDefinitions="* auto" ColumnSpacing="2">
+                <inputs:DebouncedSearch Grid.Column="0"
+                                        Search="{Binding SearchText, Mode=TwoWay}" />
+                <shadui:SimpleDropdown Grid.Column="1"
+                                       Classes="Outline"
+                                       Padding="8,4"
+                                       PopupPlacement="BottomEdgeAlignedRight"
+                                       ToolTip.Tip="Add a new element">
+                    <shadui:SimpleDropdown.TriggerContent>
+                        <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.Plus}" />
+                    </shadui:SimpleDropdown.TriggerContent>
+                    <shadui:SimpleDropdown.MenuLabel>
+                        <TextBlock Classes="Small" Text="Create" />
+                    </shadui:SimpleDropdown.MenuLabel>
+
+                    <Button Content="Scope"
+                            Command="{Binding AddCommand}"
+                            CommandParameter="{x:Static scoped:EnumScopedType.Scope}">
+                        <shadui:ButtonAssist.Icon>
+                            <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.Folder}" />
+                        </shadui:ButtonAssist.Icon>
+                    </Button>
+                    <Button Content="Workflow"
+                            Command="{Binding AddCommand}"
+                            CommandParameter="{x:Static scoped:EnumScopedType.Workflow}">
+                        <shadui:ButtonAssist.Icon>
+                            <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.StickyNotes}" />
+                        </shadui:ButtonAssist.Icon>
+                    </Button>
+                    <Button Content="Task"
+                            Command="{Binding AddCommand}"
+                            CommandParameter="{x:Static scoped:EnumScopedType.Task}">
+                        <shadui:ButtonAssist.Icon>
+                            <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.StickyNote}" />
+                        </shadui:ButtonAssist.Icon>
+                    </Button>
+                </shadui:SimpleDropdown>
+            </Grid>
 
             <Panel Grid.Row="1">
-                <TreeView ItemsSource="{Binding Items}" BorderThickness="0">
+                <TreeView ItemsSource="{Binding Items}"
+                          SelectedItem="{Binding Selected, Mode=TwoWay}"
+                          BorderThickness="0">
                     <TreeView.DataTemplates>
                         <TreeDataTemplate DataType="scoped:Scope" ItemsSource="{Binding Childrens}">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <TextBlock Classes="LucideIcon"
-                                           Text="{x:Static fonts:LucideIconFont.Folder}" />
-                                <TextBlock VerticalAlignment="Center" Text="{Binding Metadata.Name}" />
-                            </StackPanel>
+                            <elements:ElementLabel />
                         </TreeDataTemplate>
 
                         <DataTemplate DataType="scoped:AutomationWorkflow">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <TextBlock Classes="LucideIcon"
-                                           Text="{x:Static fonts:LucideIconFont.StickyNotes}" />
-                                <TextBlock VerticalAlignment="Center"  Text="{Binding Metadata.Name}" />
-                            </StackPanel>
+                            <elements:ElementLabel />
                         </DataTemplate>
 
                         <DataTemplate DataType="scoped:AutomationTask">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <TextBlock Classes="LucideIcon"
-                                           Text="{x:Static fonts:LucideIconFont.StickyNote}" />
-                                <TextBlock VerticalAlignment="Center"  Text="{Binding Metadata.Name}" />
-                            </StackPanel>
+                            <elements:ElementLabel />
                         </DataTemplate>
                     </TreeView.DataTemplates>
                 </TreeView>
@@ -55,5 +82,25 @@
             </Panel>
         </Grid>
         <GridSplitter Grid.Column="1" Background="{DynamicResource GhostColor}" />
+        <Panel Grid.Column="2">
+            <TextBlock Classes="Muted"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Text="Select an element in the tree to display it."
+                       IsVisible="{Binding Selected, Converter={x:Static ObjectConverters.IsNull}}" />
+            <ContentControl Content="{Binding Selected}">
+                <ContentControl.DataTemplates>
+                    <DataTemplate DataType="scoped:Scope">
+                        <elements:ScopePage />
+                    </DataTemplate>
+                    <DataTemplate DataType="scoped:AutomationWorkflow">
+                        <elements:WorkflowPage />
+                    </DataTemplate>
+                    <DataTemplate DataType="scoped:AutomationTask">
+                        <elements:TaskPage />
+                    </DataTemplate>
+                </ContentControl.DataTemplates>
+            </ContentControl>
+        </Panel>
     </Grid>
 </UserControl>
