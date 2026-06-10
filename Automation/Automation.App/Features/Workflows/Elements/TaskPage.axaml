@@ -1,8 +1,8 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:components="clr-namespace:Automation.App.Features.Workflows.Components"
-             xmlns:scoped="clr-namespace:Automation.Shared.Data.Scoped;assembly=Automation.Shared"
-             x:DataType="scoped:AutomationTask"
+             xmlns:elements="clr-namespace:Automation.App.Features.Workflows.Elements"
+             x:DataType="elements:TaskVM"
              x:Class="Automation.App.Features.Workflows.Elements.TaskPage">
     <StackPanel Margin="16" Spacing="8">
         <components:ElementHeader />

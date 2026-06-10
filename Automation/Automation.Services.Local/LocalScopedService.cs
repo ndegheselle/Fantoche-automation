@@ -6,33 +6,41 @@ namespace Automation.Services.Local;
 public class LocalScopedService : IScopedService
 {
     // In-memory store shared across instances until a real persistence layer exists
-    private static readonly List<ScopedElement> _roots = [];
+    private static readonly Dictionary<Guid, ScopedElement> _elements = [];
 
-    public Task<List<ScopedElement>> GetTreeAsync(string search = "")
+    static LocalScopedService()
     {
-        if (string.IsNullOrWhiteSpace(search))
-            return Task.FromResult(_roots.ToList());
+        var scope = new Scope { Id = Guid.NewGuid(), Metadata = new ScopedMetadata("Ingestion", EnumScopedType.Scope) };
+        var workflow = new AutomationWorkflow { Id = Guid.NewGuid(), ParentId = Scope.ROOT_SCOPE_ID, Metadata = new ScopedMetadata("Daily import", EnumScopedType.Workflow) };
+        var task = new AutomationTask { Id = Guid.NewGuid(), ParentId = scope.Id, Metadata = new ScopedMetadata("Fetch files", EnumScopedType.Task) };
 
-        return Task.FromResult(_roots.Where(element => Matches(element, search)).ToList());
+        _elements.Add(scope.Id, scope);
+        _elements.Add(workflow.Id, workflow);
+        _elements.Add(task.Id, task);
     }
 
-    public Task<ScopedElement> CreateAsync(ScopedElement element, Scope? parent = null)
+    public Task<ScopedElement> CreateAsync(ScopedElement element)
     {
-        element.Id = Guid.NewGuid();
-        if (parent == null)
-            _roots.Add(element);
-        else
-            parent.AddChild(element);
-        return Task.FromResult(element);
+        throw new NotImplementedException();
     }
 
-    /// <summary>
-    /// An element matches if its name contains [search] or if any of its descendants does.
-    /// </summary>
-    private static bool Matches(ScopedElement element, string search)
+    public Task<ScopedElement> EditAsync(ScopedElement element)
     {
-        if (element.Metadata.Name.Contains(search, StringComparison.OrdinalIgnoreCase))
-            return true;
-        return element is Scope scope && scope.Childrens.Any(child => Matches(child, search));
+        throw new NotImplementedException();
+    }
+
+    public Task<List<ScopedElement>> GetChildrens(Guid scopeId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<ScopedElement> RemoveAsync(ScopedElement element)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<List<BaseAutomationTask>> Search(string search = "")
+    {
+        throw new NotImplementedException();
     }
 }

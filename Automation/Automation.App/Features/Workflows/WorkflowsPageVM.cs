@@ -1,6 +1,6 @@
-using System.Collections.ObjectModel;
-using System.Threading;
+using System;
 using System.Threading.Tasks;
+using Automation.App.Features.Workflows.Elements;
 using Automation.Shared.Data.Scoped;
 using Automation.Shared.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -11,99 +11,46 @@ namespace Automation.App.Features.Workflows;
 internal partial class WorkflowsPageVM : ObservableObject, INavigable
 {
     private readonly IScopedService _scopedService;
-    private CancellationTokenSource? _cts;
 
     public WorkflowsPageVM(IScopedService scopedService)
     {
         _scopedService = scopedService;
+        _root = new ScopeVM(new() { Id = Scope.ROOT_SCOPE_ID, Metadata = new ScopedMetadata("Home", EnumScopedType.Scope) { IsReadOnly = true } });
     }
 
+    #region Properties
+
     /// <summary>
-    /// Top-level scoped elements (scopes, workflows and tasks) shown in the tree.
+    /// Virtual root scope, its childrens are the top-level elements returned by the service.
     /// </summary>
-    public ObservableCollection<ScopedElement> Items { get; } = new();
+    [ObservableProperty]
+    private ScopeVM _root;
 
     [ObservableProperty] private string _searchText = string.Empty;
 
     [ObservableProperty] private bool _isLoading;
 
     /// <summary>
-    /// Element currently selected in the tree.
+    /// Element currently selected in the list.
     /// </summary>
-    [ObservableProperty] private ScopedElement? _selected;
+    [ObservableProperty] private ScopedVM? _selected;
+    #endregion
 
-    public void OnShow() => _ = RefreshAsync();
+    #region Events
+    public void OnShow() => _ = Root.LoadChildren();
 
-    public void OnHide() => _cts?.Cancel();
-
-    partial void OnSearchTextChanged(string value) => _ = RefreshAsync();
+    partial void OnSearchTextChanged(string value)
+    {
+        // TODO : on search should display a list of result instead of the treeview
+        throw new NotImplementedException();
+    }
+    #endregion
 
     /// <summary>
-    /// Create a new element of the given [type], inside the selected scope if any.
+    /// Create a new element of the given [type] inside the current scope.
     /// </summary>
     [RelayCommand]
     private async Task AddAsync(EnumScopedType type)
     {
-        ScopedElement element = type switch
-        {
-            EnumScopedType.Workflow => new AutomationWorkflow(),
-            EnumScopedType.Task => new AutomationTask(),
-            _ => new Scope()
-        };
-        element.Metadata.Name = $"New {type.ToString().ToLowerInvariant()}";
-
-        Scope? parent = Selected as Scope ?? Selected?.Parent;
-        await _scopedService.CreateAsync(element, parent);
-
-        // Childrens of a scope are observable, only root elements need to be added manually
-        if (parent == null)
-            Items.Add(element);
-
-        Selected = element;
-    }
-
-    private async Task RefreshAsync()
-    {
-        _cts?.Cancel();
-        var cts = new CancellationTokenSource();
-        _cts = cts;
-        var token = cts.Token;
-
-        try
-        {
-            IsLoading = true;
-            var tree = await _scopedService.GetTreeAsync(SearchText?.Trim() ?? string.Empty);
-
-            if (token.IsCancellationRequested)
-                return;
-
-            Items.Clear();
-            foreach (var element in tree)
-                Items.Add(element);
-        }
-        finally
-        {
-            if (ReferenceEquals(_cts, cts))
-                IsLoading = false;
-        }
-    }
-}
-
-/// <summary>
-/// Design class for [WorkflowsPageVM]
-/// </summary>
-internal class WorkflowsPageVMDesign : WorkflowsPageVM
-{
-    public WorkflowsPageVMDesign() : base(null!)
-    {
-        var scope = new Scope { Metadata = new ScopedMetadata("Ingestion", EnumScopedType.Scope) };
-        scope.AddChild(new AutomationWorkflow { Metadata = new ScopedMetadata("Daily import", EnumScopedType.Workflow) });
-        scope.AddChild(new AutomationTask { Metadata = new ScopedMetadata("Fetch files", EnumScopedType.Task) });
-
-        Items.Add(scope);
-        Items.Add(new AutomationWorkflow { Metadata = new ScopedMetadata("Weekly report", EnumScopedType.Workflow) });
-        Items.Add(new AutomationTask { Metadata = new ScopedMetadata("Cleanup temp", EnumScopedType.Task) });
-
-        IsLoading = false;
     }
 }

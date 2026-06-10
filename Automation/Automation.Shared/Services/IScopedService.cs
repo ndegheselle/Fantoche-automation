@@ -5,12 +5,27 @@ namespace Automation.Shared.Services;
 public interface IScopedService
 {
     /// <summary>
-    /// Get the tree of scoped elements, filtered by [search] on the elements names.
+    /// Get the childrens of a scope based on a [scopeId]
     /// </summary>
-    public Task<List<ScopedElement>> GetTreeAsync(string search = "");
+    public Task<List<ScopedElement>> GetChildrens(Guid scopeId);
 
     /// <summary>
-    /// Create a new element inside [parent], or at the root if no parent is given.
+    /// Search in all tasks.
     /// </summary>
-    public Task<ScopedElement> CreateAsync(ScopedElement element, Scope? parent = null);
+    public Task<List<BaseAutomationTask>> Search(string search = "");
+
+    /// <summary>
+    /// Create a new element.
+    /// </summary>
+    public Task<ScopedElement> CreateAsync(ScopedElement element);
+
+    /// <summary>
+    /// Edit an existing element.
+    /// </summary>
+    public Task<ScopedElement> EditAsync(ScopedElement element);
+
+    /// <summary>
+    /// Remove an existing element.
+    /// </summary>
+    public Task<ScopedElement> RemoveAsync(ScopedElement element);
 }

@@ -1,7 +1,5 @@
-﻿using System.Collections.ObjectModel;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 using Automation.Shared.Base;
-using Newtonsoft.Json.Linq;
 
 namespace Automation.Shared.Data.Scoped
 {
@@ -13,12 +11,8 @@ namespace Automation.Shared.Data.Scoped
     {
         public Guid Id { get; set; }
 
-        public List<Guid> ParentTree { get; set; } = [];
         public Guid? ParentId { get; set; }
         public ScopedMetadata Metadata { get; set; }
-
-        [JsonIgnore]
-        public Scope? Parent { get; set; }
 
         public ScopedElement(EnumScopedType type)
         {
@@ -29,13 +23,6 @@ namespace Automation.Shared.Data.Scoped
         {
             Metadata = metadata;
         }
-
-        public void ChangeParent(Scope parent)
-        {
-            Parent = parent;
-            ParentId = Parent.Id;
-            ParentTree = [.. Parent.ParentTree, Parent.Id];
-        }
     }
 
     public partial class Scope : ScopedElement
@@ -44,22 +31,17 @@ namespace Automation.Shared.Data.Scoped
 
         public string? ContextJson { get; set; }
 
-        public ObservableCollection<ScopedElement> Childrens { get; set; } = [];
-
         public Scope() : base(EnumScopedType.Scope)
         { }
 
-        public Scope(string name, List<Guid> parentTree) : base(new ScopedMetadata(name, EnumScopedType.Scope) { IsReadOnly = true })
+        public Scope(string name, Guid parentId) : base(new ScopedMetadata(name, EnumScopedType.Scope) { IsReadOnly = true })
         {
-            ParentTree = parentTree;
-            ParentId = parentTree.LastOrDefault();
+            ParentId = parentId;
         }
 
-        public Scope AddChild(ScopedElement element)
+        public void LoadChildren()
         {
-            element.ChangeParent(this);
-            Childrens.Add(element);
-            return this;
+            throw new NotImplementedException();
         }
     }
 }

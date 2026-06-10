@@ -12,9 +12,6 @@
              x:DataType="workflows:WorkflowsPageVM"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Automation.App.Features.Workflows.WorkflowsPage">
-    <Design.DataContext>
-        <workflows:WorkflowsPageVMDesign />
-    </Design.DataContext>
     <Grid Margin="4" ColumnSpacing="2">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="200" MinWidth="100" />
@@ -62,19 +59,19 @@
             </Grid>
 
             <Panel Grid.Row="1">
-                <TreeView ItemsSource="{Binding Items}"
+                <TreeView ItemsSource="{Binding Root.Children}"
                           SelectedItem="{Binding Selected, Mode=TwoWay}"
                           BorderThickness="0">
                     <TreeView.DataTemplates>
-                        <TreeDataTemplate DataType="scoped:Scope" ItemsSource="{Binding Childrens}">
+                        <TreeDataTemplate DataType="elements:ScopeVM" ItemsSource="{Binding Children}">
                             <components:ElementLabel />
                         </TreeDataTemplate>
 
-                        <DataTemplate DataType="scoped:AutomationWorkflow">
+                        <DataTemplate DataType="elements:WorkflowVM">
                             <components:ElementLabel />
                         </DataTemplate>
 
-                        <DataTemplate DataType="scoped:AutomationTask">
+                        <DataTemplate DataType="elements:TaskVM">
                             <components:ElementLabel />
                         </DataTemplate>
                     </TreeView.DataTemplates>
@@ -91,13 +88,13 @@
                        IsVisible="{Binding Selected, Converter={x:Static ObjectConverters.IsNull}}" />
             <ContentControl Content="{Binding Selected}">
                 <ContentControl.DataTemplates>
-                    <DataTemplate DataType="scoped:Scope">
+                    <DataTemplate DataType="elements:ScopeVM">
                         <elements:ScopePage />
                     </DataTemplate>
-                    <DataTemplate DataType="scoped:AutomationWorkflow">
+                    <DataTemplate DataType="elements:TaskVM">
                         <elements:WorkflowPage />
                     </DataTemplate>
-                    <DataTemplate DataType="scoped:AutomationTask">
+                    <DataTemplate DataType="elements:WorkflowVM">
                         <elements:TaskPage />
                     </DataTemplate>
                 </ContentControl.DataTemplates>
