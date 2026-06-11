@@ -114,7 +114,7 @@ public partial class FilePicker : UserControl
         if (e.DataTransfer.Formats.Contains(DataFormat.File) == false)
             return;
 
-        var files = e.DataTransfer.TryGetFiles().OfType<IStorageFile>().ToList();
+        var files = e.DataTransfer.TryGetFiles()?.OfType<IStorageFile>().ToList();
         if (files == null)
             return;
         

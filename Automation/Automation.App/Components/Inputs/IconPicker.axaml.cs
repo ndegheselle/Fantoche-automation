@@ -4,6 +4,7 @@ using Automation.App.Assets.Fonts;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 
 namespace Automation.App.Components.Inputs;
@@ -32,7 +33,6 @@ public partial class IconPicker : UserControl
         InitializeComponent();
         
         IconList.ItemsSource = LucideIconCatalog.All;
-        IconList.SelectionChanged += OnSelectionChanged;
         SearchBox.TextChanged += OnSearchChanged;
     }
 
@@ -45,28 +45,26 @@ public partial class IconPicker : UserControl
     private void OnSearchChanged(object? sender, TextChangedEventArgs e)
     {
         string search = SearchBox.Text?.Trim() ?? string.Empty;
-        IconList.ItemsSource = string.IsNullOrEmpty(search)
+        IReadOnlyList<LucideIconItem> icons = string.IsNullOrEmpty(search)
             ? LucideIconCatalog.All
             : LucideIconCatalog.All
                 .Where(icon => icon.Name.Contains(search, System.StringComparison.OrdinalIgnoreCase))
                 .ToList();
+
+        IconList.ItemsSource = icons;
+        EmptyPlaceholder.IsVisible = icons.Count == 0;
     }
 
-    private void OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    private void OnIconTapped(object? sender, TappedEventArgs e)
     {
-        if (IconList.SelectedItem is LucideIconItem item)
+        if (sender is Control { DataContext: LucideIconItem item })
         {
             SelectedIcon = item.Glyph;
-            // Close the flyout once an icon has been chosen.
             TriggerButton.Flyout?.Hide();
         }
     }
 
     private void SyncSelectionFromValue()
     {
-        IconList.SelectedItem = SelectedIcon is null
-            ? null
-            : ((IEnumerable<LucideIconItem>)IconList.ItemsSource!)
-                .FirstOrDefault(icon => icon.Glyph == SelectedIcon);
     }
 }

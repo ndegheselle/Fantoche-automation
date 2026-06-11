@@ -7,7 +7,8 @@
              x:Class="Automation.App.Features.Scoped.Components.ElementLabel">
     <StackPanel Orientation="Horizontal" Spacing="6">
         <TextBlock Classes="LucideIcon"
-                   Text="{Binding Metadata.Type, Converter={x:Static converters:ScopedTypeConverters.ToLucideIcon}}" />
+                   Foreground="{Binding Metadata.Color, Converter={x:Static converters:StringToBrush.Instance}}"
+                   Text="{Binding Metadata, Converter={x:Static converters:ScopedTypeConverters.ToIcon}}" />
         <TextBlock VerticalAlignment="Center" Text="{Binding Metadata.Name}" />
     </StackPanel>
 </UserControl>

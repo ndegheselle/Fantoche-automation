@@ -1,30 +1,26 @@
-<ResourceDictionary xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:converters="using:Avalonia.Controls.Converters"
-        xmlns:fonts="clr-namespace:Automation.App.Assets.Fonts"
-        x:CompileBindings="False">
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-<ControlTheme x:Key="{x:Type ListBox}"
-              TargetType="ListBox">
-    <Setter Property="Background" Value="{DynamicResource BackgroundColor}"/>
-    <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}"/>
-    <Setter Property="BorderThickness" Value="1"/>
-    <Setter Property="CornerRadius" Value="{DynamicResource MdCornerRadius}"/>
-</ControlTheme>
+    <Style Selector="ListBox">
+        <Setter Property="Background" Value="{DynamicResource BackgroundColor}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="{DynamicResource MdCornerRadius}"/>
+    </Style>
 
-<ControlTheme x:Key="{x:Type ListBoxItem}" TargetType="ListBoxItem">
-    <Setter Property="Background" Value="{DynamicResource BackgroundColor}"/>
-    <Setter Property="Foreground" Value="{DynamicResource ForegroundColor}"/>
-    <Setter Property="Padding" Value="12,8"/>
-    <Setter Property="CornerRadius" Value="{DynamicResource MdCornerRadius}"/>
+    <Style Selector="ListBoxItem">
+        <Setter Property="Background" Value="{DynamicResource BackgroundColor}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundColor}"/>
+        <Setter Property="Padding" Value="12,8"/>
+        <Setter Property="CornerRadius" Value="{DynamicResource MdCornerRadius}"/>
+    </Style>
 
-    <Style Selector="^:pointerover">
+    <Style Selector="ListBoxItem:pointerover">
         <Setter Property="Background" Value="{DynamicResource OutlineColor}"/>
     </Style>
 
-    <Style Selector="^:selected">
+    <Style Selector="ListBoxItem:selected">
         <Setter Property="Background" Value="{DynamicResource PrimaryColor}"/>
         <Setter Property="Foreground" Value="{DynamicResource PrimaryForegroundColor}"/>
     </Style>
-</ControlTheme>
-</ResourceDictionary>
+</Styles>

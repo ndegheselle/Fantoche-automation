@@ -24,6 +24,8 @@
             <ColorPicker
                 Color="{Binding SelectedColor, Converter={x:Static converters:StringToColor.Instance}, Mode=TwoWay}"
                 HorizontalAlignment="Stretch" />
+            
+            <TextBlock Classes="LucideIcon" Text="{Binding SelectedIcon}" />
             <inputs:IconPicker shadui:ControlAssist.Label="Icon" 
                                SelectedIcon="{Binding SelectedIcon, Mode=TwoWay}" />
         </UniformGrid>

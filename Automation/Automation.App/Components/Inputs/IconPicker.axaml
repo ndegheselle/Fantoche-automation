@@ -17,21 +17,34 @@
         </StackPanel>
         <Button.Flyout>
             <Flyout Placement="Bottom">
-                <Grid RowDefinitions="Auto *" RowSpacing="8" Width="280" Height="320" Margin="8">
+                <Grid RowDefinitions="Auto *" RowSpacing="4" Width="280" Height="320" Margin="8">
                     <TextBox x:Name="SearchBox" Grid.Row="0" PlaceholderText="Search icons..." />
-                    <ListBox x:Name="IconList" Grid.Row="1"
-                             SelectionMode="Single"
-                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate x:DataType="fonts:LucideIconItem">
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <TextBlock Classes="LucideIcon" VerticalAlignment="Center"
-                                               Text="{Binding Glyph}" />
-                                    <TextBlock VerticalAlignment="Center" Text="{Binding Name}" />
-                                </StackPanel>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
+                    <Panel Grid.Row="1">
+                        <TextBlock x:Name="EmptyPlaceholder"
+                                   Classes="Muted"
+                                   Text="No icons found"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   IsVisible="False" />
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <ItemsRepeater x:Name="IconList">
+                                <ItemsRepeater.Layout>
+                                    <UniformGridLayout
+                                        MinItemWidth="34"
+                                        MinItemHeight="34"
+                                        MinRowSpacing="4"
+                                        MinColumnSpacing="4" />
+                                </ItemsRepeater.Layout>
+                                <ItemsRepeater.ItemTemplate>
+                                    <DataTemplate x:DataType="fonts:LucideIconItem">
+                                        <TextBlock Classes="LucideIcon" Text="{Binding Glyph}"
+                                                   Cursor="Hand"
+                                                   Tapped="OnIconTapped" />
+                                    </DataTemplate>
+                                </ItemsRepeater.ItemTemplate>
+                            </ItemsRepeater>
+                        </ScrollViewer>
+                    </Panel>
                 </Grid>
             </Flyout>
         </Button.Flyout>

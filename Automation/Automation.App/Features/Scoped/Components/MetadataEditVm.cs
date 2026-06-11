@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using Automation.App.Converters;
 using Automation.App.Services;
 using Automation.Shared.Data.Scoped;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -41,7 +42,12 @@ internal partial class MetadataEditVm : ObservableObject
         _metadata = metadata;
         _name = metadata.Name;
         _selectedColor = metadata.Color;
-        _selectedIcon = metadata.Icon;
+        
+        var icon = metadata.Icon;
+        if (icon == null)
+            ScopedTypeConverters.Icons.TryGetValue(metadata.Type, out icon);
+        
+        _selectedIcon = icon;
         _isReadOnly = metadata.IsReadOnly;
         Tags = new ObservableCollection<string>(metadata.Tags);
     }

@@ -10,12 +10,12 @@
                 <ResourceInclude Source="avares://Automation.App/Styles/ContextMenu.axaml" />
                 <ResourceInclude Source="avares://Automation.App/Styles/Flyout.axaml" />
                 <ResourceInclude Source="avares://Automation.App/Styles/TreeView.axaml" />
-                <ResourceInclude Source="avares://Automation.App/Styles/ListBox.axaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>
     <Application.Styles>
         <shadui:ShadTheme />
         <StyleInclude Source="avares://Automation.App/Styles/Index.axaml" />
+        <StyleInclude Source="avares://Automation.App/Styles/ListBox.axaml" />
     </Application.Styles>
 </Application>

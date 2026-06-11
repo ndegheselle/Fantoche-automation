@@ -12,7 +12,6 @@ namespace Automation.App.Base;
 public abstract class ViewModelBase : ObservableObject, INotifyDataErrorInfo
 {
     private readonly Dictionary<string, List<string>> _errors = new();
-    private bool _disposed;
 
     public bool HasErrors => _errors.Count != 0;
 

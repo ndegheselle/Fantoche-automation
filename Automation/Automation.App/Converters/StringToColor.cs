@@ -27,3 +27,26 @@ public class StringToColor : IValueConverter
         return null;
     }
 }
+
+/// <summary>
+/// Converts a hex color string (e.g. <c>#FF3366</c>) to an Avalonia <see cref="IBrush"/>, returning
+/// <c>null</c> when the string is empty or invalid so the target falls back to its inherited value.
+/// </summary>
+public class StringToBrush : IValueConverter
+{
+    public static readonly StringToBrush Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is string text && Color.TryParse(text, out var color))
+            return new SolidColorBrush(color);
+        return null;
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is ISolidColorBrush brush)
+            return brush.Color.ToString();
+        return null;
+    }
+}
