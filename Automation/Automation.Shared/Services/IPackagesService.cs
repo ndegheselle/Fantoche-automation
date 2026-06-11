@@ -27,7 +27,12 @@ public interface IPackagesService
     /// <exception cref="PackageValidationException">If the package is no valid</exception>
     public Task<PackageAdded> AddAsync(string filePath);
 
-    public Task RemoveAsync(string id, Version version);
+    public Task RemoveAsync(string id, Version? version);
+
+    /// <summary>
+    /// Get all available versions of a package, sorted from newest to oldest.
+    /// </summary>
+    public Task<IEnumerable<Version>> GetVersionsAsync(string id);
 
     /// <summary>
     /// Get the task classes contained in a package, one <see cref="ClassTarget"/> per class.

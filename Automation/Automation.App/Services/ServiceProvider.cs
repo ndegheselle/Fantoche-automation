@@ -1,13 +1,13 @@
 ﻿using System;
 using System.IO;
 using Automation.App.Features.Packages;
-using Automation.App.Features.Workflows.Elements;
+using Automation.App.Features.Scoped.Components;
 using Automation.App.Services.UI;
 using Automation.Services.Local;
 using Automation.Shared.Services;
-using Automation.Worker.Packages;
 using Avalonia;
 using ShadUI;
+using MetadataEditDialog = Automation.App.Features.Scoped.Components.MetadataEditDialog;
 
 namespace Automation.App.Services;
 
@@ -22,8 +22,7 @@ internal static class ServiceProvider
     private static DialogManager CreateDialogManager()
     {
         var manager = new DialogManager();
-        manager.Register<PackageDetailsDialog, PackageDetailsVM>();
-        manager.Register<MetadataEditDialog, MetadataEditVM>();
+        manager.Register<MetadataEditDialog, MetadataEditVm>();
         return manager;
     }
 
@@ -33,7 +32,7 @@ internal static class ServiceProvider
     #endregion
 
     #region Transient
-    public static MainVM Main => new MainVM(Themes.Value, Navigation.Value, _toastManager, _dialogManager);
+    public static MainVm Main => new MainVm(Themes.Value, Navigation.Value, _toastManager, _dialogManager);
 
     public static IPackagesService Packages
     {

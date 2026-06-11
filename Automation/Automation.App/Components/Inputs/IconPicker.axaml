@@ -17,8 +17,8 @@
         </StackPanel>
         <Button.Flyout>
             <Flyout Placement="Bottom">
-                <Grid RowDefinitions="Auto *" RowSpacing="8" Width="280" Height="320">
-                    <TextBox x:Name="SearchBox" Grid.Row="0" Watermark="Search icons..." />
+                <Grid RowDefinitions="Auto *" RowSpacing="8" Width="280" Height="320" Margin="8">
+                    <TextBox x:Name="SearchBox" Grid.Row="0" PlaceholderText="Search icons..." />
                     <ListBox x:Name="IconList" Grid.Row="1"
                              SelectionMode="Single"
                              ScrollViewer.HorizontalScrollBarVisibility="Disabled">

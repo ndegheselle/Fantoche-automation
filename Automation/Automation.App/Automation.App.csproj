@@ -43,5 +43,21 @@
       <DependentUpon>ElementLabel.axaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Features\Scoped\Workflows\WorkflowPage.axaml.cs">
+      <DependentUpon>WorkflowPage.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Features\Scoped\Tasks\TaskPage.axaml.cs">
+      <DependentUpon>TaskPage.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Features\Scoped\Scopes\ScopePage.axaml.cs">
+      <DependentUpon>ScopePage.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Features\Scoped\Components\MetadataEditDialog.axaml.cs">
+      <DependentUpon>MetadataEditDialog.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
 </Project>

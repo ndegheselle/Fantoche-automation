@@ -53,7 +53,7 @@ public class LocalPackageManagement
         _folder = folder;
 
         if (Directory.Exists(_folder) == false)
-            throw new DirectoryNotFoundException($"Package folder [{_folder}] not found");
+            Directory.CreateDirectory(_folder);
 
         var packageSource = new PackageSource(folder);
         _repositoryTask = Task.Run(() => Repository.Factory.GetCoreV3(packageSource));
@@ -195,17 +195,26 @@ public class LocalPackageManagement
 
     /// <summary>
     /// Removes a package from the repository.
+    /// If <paramref name="version"/> is <c>null</c>, all versions of the package are removed.
     /// If the corresponding <c>.nupkg</c> file does not exist, the operation is silently skipped.
     /// </summary>
     /// <param name="id">The NuGet package identifier.</param>
-    /// <param name="version">The version of the package to remove.</param>
-    public Task RemoveAsync(string id, Version version)
+    /// <param name="version">The version of the package to remove, or <c>null</c> to remove all versions.</param>
+    public Task RemoveAsync(string id, Version? version)
     {
-        var nugetVersion = new NuGetVersion(version);
-        string packagePath = Path.Combine(_folder, $"{id}.{nugetVersion.ToNormalizedString()}.nupkg");
+        if (version is null)
+        {
+            foreach (string packagePath in Directory.EnumerateFiles(_folder, $"{id}.*.nupkg"))
+                File.Delete(packagePath);
+        }
+        else
+        {
+            var nugetVersion = new NuGetVersion(version);
+            string packagePath = Path.Combine(_folder, $"{id}.{nugetVersion.ToNormalizedString()}.nupkg");
 
-        if (File.Exists(packagePath))
-            File.Delete(packagePath);
+            if (File.Exists(packagePath))
+                File.Delete(packagePath);
+        }
 
         return Task.CompletedTask;
     }
@@ -531,7 +540,7 @@ public static class PackageExtensions
                 Id = reader.GetId(),
                 Version = reader.GetVersion().Version
             },
-            Description = reader.GetDescription()
+            Description = reader.GetDescription(),
         };
     }
 }

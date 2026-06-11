@@ -8,6 +8,7 @@
             <FontFamily x:Key="LucideIcon">avares://Automation.App/Assets/Fonts#lucide</FontFamily>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceInclude Source="avares://Automation.App/Styles/ContextMenu.axaml" />
+                <ResourceInclude Source="avares://Automation.App/Styles/Flyout.axaml" />
                 <ResourceInclude Source="avares://Automation.App/Styles/TreeView.axaml" />
                 <ResourceInclude Source="avares://Automation.App/Styles/ListBox.axaml" />
             </ResourceDictionary.MergedDictionaries>

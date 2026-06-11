@@ -15,7 +15,7 @@ using ShadUI;
 
 namespace Automation.App.Features.Packages;
 
-internal partial class PackagesPageVM : ObservableObject, INavigable
+internal partial class PackagesPageVm : ObservableObject, INavigable
 {
     private readonly IPackagesService _packagesService;
 
@@ -23,27 +23,21 @@ internal partial class PackagesPageVM : ObservableObject, INavigable
     private CancellationTokenSource? _cts;
     private readonly DialogManager _dialogManager;
     private readonly ToastDisplay _toasts;
+    private readonly NavigationManager _navigation;
 
-    public PackagesPageVM(IPackagesService packagesService, 
+    public PackagesPageVm(IPackagesService packagesService,
         DialogManager dialogManager,
-        ToastDisplay toastManager)
+        ToastDisplay toastManager,
+        NavigationManager navigation)
     {
         _toasts = toastManager;
         _packagesService = packagesService;
         _dialogManager = dialogManager;
-
-        GroupedItems = new DataGridCollectionView(Items);
-        GroupedItems.GroupDescriptions.Add(new DataGridPathGroupDescription("Identifier.Id"));
+        _navigation = navigation;
     }
 
     public ObservableCollection<PackageInfos> Items { get; } = new();
-
-    /// <summary>
-    /// Grouped view over <see cref="Items"/> that groups packages by their
-    /// identifier so that each identifier exposes its list of versions.
-    /// </summary>
-    public DataGridCollectionView GroupedItems { get; protected set; }
-
+    
     [ObservableProperty] private string _searchText = string.Empty;
 
     [ObservableProperty] private long _totalItems;
@@ -148,50 +142,20 @@ internal partial class PackagesPageVM : ObservableObject, INavigable
     [RelayCommand]
     private void ShowDetails(PackageInfos package)
     {
-        var detailsVm = new PackageDetailsVM(_packagesService);
-        detailsVm.Initialize(package);
+        var detailsVm = new PackageDetailsVM(_packagesService, _navigation, _dialogManager, _toasts);
+        detailsVm.Initialize(package, () => _ = RefreshAsync());
 
-        _dialogManager
-            .CreateDialog(detailsVm)
-            .WithMaxWidth(700)
-            .Dismissible()
-            .Show();
-    }
-
-    [RelayCommand]
-    private void Remove(PackageInfos package)
-    {
-        _dialogManager
-            .CreateDialog(
-                "Are you absolutely sure?",
-                $"This action cannot be undone. This will permanently remove the package " + package.Identifier)
-            .WithPrimaryButton("Remove", () => _ = RemoveConfirmedAsync(package), DialogButtonStyle.Destructive)
-            .WithCancelButton("Cancel")
-            .WithMaxWidth(512)
-            .Dismissible()
-            .Show();
-    }
-
-    private async Task RemoveConfirmedAsync(PackageInfos package)
-    {
-        await _packagesService.RemoveAsync(package.Identifier.Id, package.Identifier.Version);
-        _toasts.Success("Removed successfully", $"The package {package.Identifier} have been removed.");
-        await RefreshAsync();
+        _navigation.Overlay(detailsVm);
     }
 }
 
 /// <summary>
 /// Design class for [PackagesPageVM]
 /// </summary>
-internal class PackagesPageVMDesign : PackagesPageVM
+internal class PackagesPageVMDesign : PackagesPageVm
 {
-    public PackagesPageVMDesign() : base(null!, null!, null!)
+    public PackagesPageVMDesign() : base(null!, null!, null!, null!)
     {
-        Items.Add(new PackageInfos
-        {
-            Identifier = new PackageIdentifier { Id = "MyCompany.Utils", Version = new Version("1.0.0") },
-            Description = "Utility helpers"
-        });
         Items.Add(new PackageInfos
         {
             Identifier = new PackageIdentifier { Id = "MyCompany.Utils", Version = new Version("1.1.0") },
@@ -207,10 +171,6 @@ internal class PackagesPageVMDesign : PackagesPageVM
             Identifier = new PackageIdentifier { Id = "MyCompany.Logging", Version = new Version("3.1.4") },
             Description = "Structured logging"
         });
-        
-        // Rebuild the view AFTER items are added
-        GroupedItems = new DataGridCollectionView(Items);
-        GroupedItems.GroupDescriptions.Add(new DataGridPathGroupDescription("Identifier.Identifier"));
 
         TotalItems = 4;
         IsLoading = false;

@@ -1,9 +1,9 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:elements="clr-namespace:Automation.App.Features.Workflows.Elements"
-             xmlns:components="clr-namespace:Automation.App.Features.Workflows.Components"
-             x:DataType="elements:WorkflowVM"
-             x:Class="Automation.App.Features.Workflows.Elements.WorkflowPage">
+             xmlns:workflows="clr-namespace:Automation.App.Features.Scoped.Workflows"
+             xmlns:components="clr-namespace:Automation.App.Features.Scoped.Components"
+             x:DataType="workflows:WorkflowVm"
+             x:Class="Automation.App.Features.Scoped.Workflows.WorkflowPage">
     <StackPanel Margin="4" Spacing="8">
         <components:ElementHeader />
         <TextBlock Classes="Muted" Text="The workflow editor will be displayed here." />

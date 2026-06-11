@@ -1,5 +1,8 @@
 using System;
 using System.Threading.Tasks;
+using Automation.App.Features.Scoped.Scopes;
+using Automation.App.Features.Scoped.Tasks;
+using Automation.App.Features.Scoped.Workflows;
 using Automation.App.Services;
 using Automation.Shared.Data.Scoped;
 using Automation.Shared.Services;
@@ -7,19 +10,19 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ShadUI;
 
-namespace Automation.App.Features.Workflows.Elements;
+namespace Automation.App.Features.Scoped;
 
 /// <summary>
 /// Base view model wrapping a <see cref="ScopedElement"/> displayed in the workflows page.
 /// </summary>
-internal abstract partial class ScopedVM : ObservableObject
+internal abstract partial class ScopedVm : ObservableObject
 {
     protected readonly IScopedService _scopedService;
     public ScopedElement Element { get; }
 
     public ScopedMetadata Metadata => Element.Metadata;
 
-    protected ScopedVM(ScopedElement element)
+    protected ScopedVm(ScopedElement element)
     {
         _scopedService = ServiceProvider.Scoped;
         Element = element;
@@ -35,7 +38,7 @@ internal abstract partial class ScopedVM : ObservableObject
     public void Edit()
     {
         // Edit a copy so the changes are discarded if the dialog is cancelled.
-        var editVm = new MetadataEditVM(Metadata.Clone());
+        var editVm = new Scoped.Components.MetadataEditVm(Metadata.Clone());
         ServiceProvider.Dialogs
             .CreateDialog(editVm)
             .WithSuccessCallback(() => ApplyEditAsync(editVm))
@@ -44,7 +47,7 @@ internal abstract partial class ScopedVM : ObservableObject
             .Show();
     }
 
-    private async Task ApplyEditAsync(MetadataEditVM editVm)
+    private async Task ApplyEditAsync(Scoped.Components.MetadataEditVm editVm)
     {
         Element.Metadata = editVm.Build();
         OnPropertyChanged(nameof(Metadata));
@@ -54,11 +57,11 @@ internal abstract partial class ScopedVM : ObservableObject
     /// <summary>
     /// Wrap [element] into its dedicated view model.
     /// </summary>
-    public static ScopedVM From(ScopedElement element) => element switch
+    public static ScopedVm From(ScopedElement element) => element switch
     {
-        Scope scope => new ScopeVM(scope),
-        AutomationWorkflow workflow => new WorkflowVM(workflow),
-        AutomationTask task => new TaskVM(task),
+        Scope scope => new ScopeVm(scope),
+        AutomationWorkflow workflow => new WorkflowVm(workflow),
+        AutomationTask task => new TaskVm(task),
         _ => throw new NotSupportedException($"No view model for scoped element '{element.GetType().Name}'.")
     };
 }

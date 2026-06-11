@@ -1,9 +1,9 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:components="clr-namespace:Automation.App.Features.Workflows.Components"
-             xmlns:elements="clr-namespace:Automation.App.Features.Workflows.Elements"
-             x:DataType="elements:ScopeVM"
-             x:Class="Automation.App.Features.Workflows.Elements.ScopePage">
+             xmlns:scopes="clr-namespace:Automation.App.Features.Scoped.Scopes"
+             xmlns:components="clr-namespace:Automation.App.Features.Scoped.Components"
+             x:DataType="scopes:ScopeVm"
+             x:Class="Automation.App.Features.Scoped.Scopes.ScopePage">
     <StackPanel Margin="4" Spacing="8">
         <components:ElementHeader />
         <TextBlock Classes="Muted" Text="{Binding Children.Count, StringFormat='Contains {0} element(s).'}" />

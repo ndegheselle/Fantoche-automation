@@ -1,10 +1,10 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:converters="clr-namespace:Automation.App.Converters"
-             xmlns:elements="clr-namespace:Automation.App.Features.Workflows.Elements"
              xmlns:fonts="clr-namespace:Automation.App.Assets.Fonts"
-             x:DataType="elements:ScopedVM"
-             x:Class="Automation.App.Features.Workflows.Components.ElementLabel">
+             xmlns:scoped="clr-namespace:Automation.App.Features.Scoped"
+             x:DataType="scoped:ScopedVm"
+             x:Class="Automation.App.Features.Scoped.Components.ElementLabel">
     <StackPanel Orientation="Horizontal" Spacing="6">
         <TextBlock Classes="LucideIcon"
                    Text="{Binding Metadata.Type, Converter={x:Static converters:ScopedTypeConverters.ToLucideIcon}}" />

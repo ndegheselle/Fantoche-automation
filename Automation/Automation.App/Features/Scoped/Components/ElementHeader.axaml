@@ -2,10 +2,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:shadui="clr-namespace:ShadUI;assembly=ShadUI"
              xmlns:converters="clr-namespace:Automation.App.Converters"
-             xmlns:elements="clr-namespace:Automation.App.Features.Workflows.Elements"
              xmlns:fonts="clr-namespace:Automation.App.Assets.Fonts"
-             x:DataType="elements:ScopedVM"
-             x:Class="Automation.App.Features.Workflows.Components.ElementHeader">
+             xmlns:scoped="clr-namespace:Automation.App.Features.Scoped"
+             x:DataType="scoped:ScopedVm"
+             x:Class="Automation.App.Features.Scoped.Components.ElementHeader">
     <Grid ColumnDefinitions="auto auto * auto" ColumnSpacing="8">
         <TextBlock Classes="LucideIcon"
                    FontSize="24" Width="24" Height="24"
@@ -13,7 +13,7 @@
         <TextBlock Grid.Column="1" Classes="h4" VerticalAlignment="Center" Text="{Binding Metadata.Name}" />
         <shadui:Badge HorizontalAlignment="Left" Grid.Column="2" VerticalAlignment="Center" Content="{Binding Metadata.Type}" />
         <shadui:SimpleDropdown Grid.Column="3"
-            Classes="Icon">
+            Classes="Icon" PopupPlacement="BottomEdgeAlignedRight">
             <shadui:SimpleDropdown.TriggerContent>
 
                 <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.Settings}" />

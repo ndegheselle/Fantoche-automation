@@ -1,9 +1,9 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:components="clr-namespace:Automation.App.Features.Workflows.Components"
-             xmlns:elements="clr-namespace:Automation.App.Features.Workflows.Elements"
-             x:DataType="elements:TaskVM"
-             x:Class="Automation.App.Features.Workflows.Elements.TaskPage">
+             xmlns:tasks="clr-namespace:Automation.App.Features.Scoped.Tasks"
+             xmlns:components="clr-namespace:Automation.App.Features.Scoped.Components"
+             x:DataType="tasks:TaskVm"
+             x:Class="Automation.App.Features.Scoped.Tasks.TaskPage">
     <StackPanel Margin="4" Spacing="8">
         <components:ElementHeader />
         <TextBlock Classes="Muted" Text="The task editor will be displayed here." />

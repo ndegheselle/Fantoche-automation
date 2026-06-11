@@ -1,15 +1,15 @@
 using Automation.Shared.Data.Scoped;
 
-namespace Automation.App.Features.Workflows.Elements;
+namespace Automation.App.Features.Scoped.Tasks;
 
 /// <summary>
 /// View model wrapping an <see cref="AutomationTask"/>, displayed by <see cref="TaskPage"/>.
 /// </summary>
-internal class TaskVM : ScopedVM
+internal class TaskVm : ScopedVm
 {
     public AutomationTask Task => (AutomationTask)Element;
 
-    public TaskVM(AutomationTask task) : base(task)
+    public TaskVm(AutomationTask task) : base(task)
     {
     }
 }

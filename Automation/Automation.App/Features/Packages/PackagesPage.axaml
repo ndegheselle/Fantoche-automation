@@ -8,7 +8,7 @@
              xmlns:inputs="clr-namespace:Automation.App.Components.Inputs"
              xmlns:packages="clr-namespace:Automation.App.Features.Packages"
              xmlns:execution="clr-namespace:Automation.Shared.Data.Execution;assembly=Automation.Shared"
-             x:DataType="packages:PackagesPageVM"
+             x:DataType="packages:PackagesPageVm"
              mc:Ignorable="d" d:DesignWidth="850" d:DesignHeight="450"
              x:Class="Automation.App.Features.Packages.PackagesPage">
     <Design.DataContext>
@@ -21,21 +21,15 @@
         <Panel Grid.Row="1">
             <DataGrid
                 x:Name="PackagesList"
-                ItemsSource="{Binding GroupedItems}"
+                ItemsSource="{Binding Items}"
                 CanUserReorderColumns="False"
                 CanUserSortColumns="False"
                 GridLinesVisibility="Horizontal"
                 SelectionMode="Single"
                 IsReadOnly="True">
-
-                <DataGrid.RowGroupTheme>
-                    <ControlTheme TargetType="DataGridRowGroupHeader"
-                                  BasedOn="{StaticResource {x:Type DataGridRowGroupHeader}}">
-                        <Setter Property="IsItemCountVisible" Value="True" />
-                    </ControlTheme>
-                </DataGrid.RowGroupTheme>
-
                 <DataGrid.Columns>
+                    <DataGridTextColumn x:DataType="execution:PackageInfos" Header="Identifier"
+                                        Binding="{Binding Identifier.Id}" />
                     <DataGridTemplateColumn Header="Version">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate DataType="execution:PackageInfos">
@@ -48,25 +42,14 @@
                     <DataGridTemplateColumn CanUserResize="False" CanUserSort="False">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <StackPanel Orientation="Horizontal" Spacing="2">
-
-                                    <Button Classes="Icon"
-                                            CornerRadius="{DynamicResource MdCornerRadius}"
-                                            ToolTip.Tip="Details"
-                                            Command="{Binding #PackagesList.((packages:PackagesPageVM)DataContext).ShowDetailsCommand}"
-                                            CommandParameter="{Binding}">
-                                        <TextBlock Classes="LucideIcon"
-                                                   Text="{x:Static fonts:LucideIconFont.Eye}" />
-                                    </Button>
-                                    <Button Classes="DestructiveIcon"
-                                            CornerRadius="{DynamicResource MdCornerRadius}"
-                                            ToolTip.Tip="Remove"
-                                            Command="{Binding #PackagesList.((packages:PackagesPageVM)DataContext).RemoveCommand}"
-                                            CommandParameter="{Binding}">
-                                        <TextBlock Classes="LucideIcon"
-                                                   Text="{x:Static fonts:LucideIconFont.Trash}" />
-                                    </Button>
-                                </StackPanel>
+                                <Button Classes="Icon"
+                                        CornerRadius="{DynamicResource MdCornerRadius}"
+                                        ToolTip.Tip="Details"
+                                        Command="{Binding #PackagesList.((packages:PackagesPageVm)DataContext).ShowDetailsCommand}"
+                                        CommandParameter="{Binding}">
+                                    <TextBlock Classes="LucideIcon"
+                                               Text="{x:Static fonts:LucideIconFont.ArrowRight}" />
+                                </Button>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>

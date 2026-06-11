@@ -10,7 +10,8 @@
                xmlns:converters="clr-namespace:Automation.App.Converters"
                xmlns:packages="clr-namespace:Automation.App.Features.Packages"
                xmlns:workflows="clr-namespace:Automation.App.Features.Workflows"
-               x:DataType="root:MainVM"
+               xmlns:scoped="clr-namespace:Automation.App.Features.Scoped"
+               x:DataType="root:MainVm"
                Title="Automation.App">
     <shadui:Window.Hosts>
         <shadui:DialogHost Manager="{Binding DialogManager}" x:Name="PART_DialogHost" />
@@ -57,7 +58,7 @@
                     <shadui:SidebarItemLabel AsSeparator="True" Text="Work" />
                     <shadui:SidebarItem
                         Command="{Binding OpenWorkflowsCommand}"
-                        Content="Workflows"
+                        Content="Tasks and workflows"
                         IsChecked="True"
                         ToolTip.Tip="{Binding $parent[shadui:Sidebar].Expanded, 
                             Converter={x:Static converters:BooleanConverters.NullOrString}, 
@@ -119,10 +120,10 @@
             </shadui:Sidebar>
             <TransitioningContentControl Content="{Binding Navigation.CurrentPage}" Grid.Column="1">
                 <TransitioningContentControl.DataTemplates>
-                    <DataTemplate DataType="{x:Type packages:PackagesPageVM}">
+                    <DataTemplate DataType="{x:Type packages:PackagesPageVm}">
                         <packages:PackagesPage />
                     </DataTemplate>
-                    <DataTemplate DataType="{x:Type workflows:WorkflowsPageVM}">
+                    <DataTemplate DataType="{x:Type scoped:WorkflowsPageVm}">
                         <workflows:WorkflowsPage />
                     </DataTemplate>
                 </TransitioningContentControl.DataTemplates>
@@ -134,6 +135,9 @@
                           Grid.Column="1">
                 <ItemsControl.DataTemplates>
                     <!-- Register overlays here -->
+                    <DataTemplate DataType="{x:Type packages:PackageDetailsVM}">
+                        <packages:PackageDetailsOverlay />
+                    </DataTemplate>
                 </ItemsControl.DataTemplates>
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>

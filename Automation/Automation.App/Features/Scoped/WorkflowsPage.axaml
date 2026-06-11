@@ -5,11 +5,13 @@
              xmlns:fonts="clr-namespace:Automation.App.Assets.Fonts"
              xmlns:inputs="clr-namespace:Automation.App.Components.Inputs"
              xmlns:shadui="clr-namespace:ShadUI;assembly=ShadUI"
-             xmlns:workflows="clr-namespace:Automation.App.Features.Workflows"
-             xmlns:components="clr-namespace:Automation.App.Features.Workflows.Components"
-             xmlns:elements="clr-namespace:Automation.App.Features.Workflows.Elements"
              xmlns:scoped="clr-namespace:Automation.Shared.Data.Scoped;assembly=Automation.Shared"
-             x:DataType="workflows:WorkflowsPageVM"
+             xmlns:tasks="clr-namespace:Automation.App.Features.Scoped.Tasks"
+             xmlns:scopes="clr-namespace:Automation.App.Features.Scoped.Scopes"
+             xmlns:workflows="clr-namespace:Automation.App.Features.Scoped.Workflows"
+             xmlns:components="clr-namespace:Automation.App.Features.Scoped.Components"
+             xmlns:scopedUi="clr-namespace:Automation.App.Features.Scoped"
+             x:DataType="scopedUi:WorkflowsPageVm"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Automation.App.Features.Workflows.WorkflowsPage">
     <Grid Margin="4" ColumnSpacing="2">
@@ -63,15 +65,15 @@
                           SelectedItem="{Binding Selected, Mode=TwoWay}"
                           BorderThickness="0">
                     <TreeView.DataTemplates>
-                        <TreeDataTemplate DataType="elements:ScopeVM" ItemsSource="{Binding Children}">
+                        <TreeDataTemplate DataType="scopes:ScopeVm" ItemsSource="{Binding Children}">
                             <components:ElementLabel />
                         </TreeDataTemplate>
 
-                        <DataTemplate DataType="elements:WorkflowVM">
+                        <DataTemplate DataType="workflows:WorkflowVm">
                             <components:ElementLabel />
                         </DataTemplate>
 
-                        <DataTemplate DataType="elements:TaskVM">
+                        <DataTemplate DataType="tasks:TaskVm">
                             <components:ElementLabel />
                         </DataTemplate>
                     </TreeView.DataTemplates>
@@ -88,14 +90,14 @@
                        IsVisible="{Binding Selected, Converter={x:Static ObjectConverters.IsNull}}" />
             <ContentControl Content="{Binding Selected}">
                 <ContentControl.DataTemplates>
-                    <DataTemplate DataType="elements:ScopeVM">
-                        <elements:ScopePage />
+                    <DataTemplate DataType="scopes:ScopeVm">
+                        <scopes:ScopePage />
                     </DataTemplate>
-                    <DataTemplate DataType="elements:TaskVM">
-                        <elements:WorkflowPage />
+                    <DataTemplate DataType="tasks:TaskVm">
+                        <workflows:WorkflowPage />
                     </DataTemplate>
-                    <DataTemplate DataType="elements:WorkflowVM">
-                        <elements:TaskPage />
+                    <DataTemplate DataType="workflows:WorkflowVm">
+                        <tasks:TaskPage />
                     </DataTemplate>
                 </ContentControl.DataTemplates>
             </ContentControl>

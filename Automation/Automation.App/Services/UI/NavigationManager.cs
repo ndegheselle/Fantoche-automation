@@ -27,14 +27,17 @@ internal partial class NavigationManager : ObservableObject
     public void Navigate(INavigable page)
     {
         // Close all overlays on navigation
-        foreach (var overlay in Overlays)
-            Close(overlay);
+        for (int i = Overlays.Count - 1; i >= 0; i--)
+        {
+            INavigable overlay = Overlays[i];
+            Overlays.RemoveAt(i);
+            overlay.OnHide();
+        }
         
         if (page == CurrentPage)
             return;
 
-        if (CurrentPage != null)
-            CurrentPage.OnHide();
+        CurrentPage?.OnHide();
 
         CurrentPage = page;
         CurrentPage.OnShow();
@@ -52,11 +55,10 @@ internal partial class NavigationManager : ObservableObject
     public void Close(INavigable page)
     {
         int overlayIndex = Overlays.IndexOf(page);
-        if (overlayIndex != -1)
-        {
-            Overlays.RemoveAt(overlayIndex);
-            page.OnHide();
-        }
+        if (overlayIndex == -1) return;
+        
+        Overlays.RemoveAt(overlayIndex);
+        page.OnHide();
     }
 
     /// <summary>

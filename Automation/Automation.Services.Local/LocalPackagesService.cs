@@ -43,9 +43,14 @@ public class LocalPackagesService : IPackagesService
         };
     }
 
-    public Task RemoveAsync(string id, Version version)
+    public Task RemoveAsync(string id, Version? version)
     {
         return _packages.RemoveAsync(id, version);
+    }
+
+    public Task<IEnumerable<Version>> GetVersionsAsync(string id)
+    {
+        return _packages.GetVersionsAsync(id);
     }
 
     public async Task<List<ClassTarget>> GetClassesAsync(string id, Version version)

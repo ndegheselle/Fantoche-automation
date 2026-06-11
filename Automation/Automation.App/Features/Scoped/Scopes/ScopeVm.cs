@@ -2,18 +2,18 @@ using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using Automation.Shared.Data.Scoped;
 
-namespace Automation.App.Features.Workflows.Elements;
+namespace Automation.App.Features.Scoped.Scopes;
 
 /// <summary>
 /// View model wrapping a <see cref="Scope"/>, displayed by <see cref="ScopePage"/>.
 /// </summary>
-internal class ScopeVM : ScopedVM
+internal class ScopeVm : ScopedVm
 {
     public Scope Scope => (Scope)Element;
 
-    public ObservableCollection<ScopedVM> Children { get; set; } = [];
+    public ObservableCollection<ScopedVm> Children { get; set; } = [];
 
-    public ScopeVM(Scope scope) : base(scope)
+    public ScopeVm(Scope scope) : base(scope)
     {
     }
 
@@ -23,7 +23,7 @@ internal class ScopeVM : ScopedVM
         Children.Clear();
         foreach (var child in children)
         {
-            Children.Add(ScopedVM.From(child));
+            Children.Add(ScopedVm.From(child));
         }
     }
 }

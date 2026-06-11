@@ -1,8 +1,6 @@
-﻿using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
+﻿using Avalonia.Controls;
 
-namespace Automation.App.Features.Workflows.Elements;
+namespace Automation.App.Features.Scoped.Components;
 
 public partial class MetadataEditDialog : UserControl
 {

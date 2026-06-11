@@ -4,7 +4,7 @@ namespace Automation.App;
 
 internal partial class MainWindow : Window
 {
-    public MainWindow(MainVM mainVm)
+    public MainWindow(MainVm mainVm)
     {
         InitializeComponent();
         DataContext = mainVm;

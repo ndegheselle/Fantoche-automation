@@ -1,6 +1,6 @@
 ﻿using Avalonia.Controls;
 
-namespace Automation.App.Features.Workflows.Elements;
+namespace Automation.App.Features.Scoped.Tasks;
 
 public partial class TaskPage : UserControl
 {

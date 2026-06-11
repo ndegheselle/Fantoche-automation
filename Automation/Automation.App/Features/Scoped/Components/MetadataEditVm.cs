@@ -5,14 +5,14 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ShadUI;
 
-namespace Automation.App.Features.Workflows.Elements;
+namespace Automation.App.Features.Scoped.Components;
 
 /// <summary>
 /// View model backing <see cref="MetadataEditDialog"/>. It edits a working copy of a
 /// <see cref="ScopedMetadata"/>; the changes are only applied to the original element once the
-/// dialog is confirmed (see <see cref="ScopedVM.Edit"/>).
+/// dialog is confirmed (see <see cref="ScopedVm.Edit"/>).
 /// </summary>
-internal partial class MetadataEditVM : ObservableObject
+internal partial class MetadataEditVm : ObservableObject
 {
     private readonly ScopedMetadata _metadata;
 
@@ -36,7 +36,7 @@ internal partial class MetadataEditVM : ObservableObject
     /// <summary>Type of the edited element, displayed as a non editable header.</summary>
     public EnumScopedType Type => _metadata.Type;
 
-    public MetadataEditVM(ScopedMetadata metadata)
+    public MetadataEditVm(ScopedMetadata metadata)
     {
         _metadata = metadata;
         _name = metadata.Name;

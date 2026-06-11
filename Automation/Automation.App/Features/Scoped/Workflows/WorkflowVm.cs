@@ -1,15 +1,15 @@
 using Automation.Shared.Data.Scoped;
 
-namespace Automation.App.Features.Workflows.Elements;
+namespace Automation.App.Features.Scoped.Workflows;
 
 /// <summary>
 /// View model wrapping an <see cref="AutomationWorkflow"/>, displayed by <see cref="WorkflowPage"/>.
 /// </summary>
-internal class WorkflowVM : ScopedVM
+internal class WorkflowVm : ScopedVm
 {
     public AutomationWorkflow Workflow => (AutomationWorkflow)Element;
 
-    public WorkflowVM(AutomationWorkflow workflow) : base(workflow)
+    public WorkflowVm(AutomationWorkflow workflow) : base(workflow)
     {
     }
 }

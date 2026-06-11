@@ -1,6 +1,6 @@
 ﻿using Avalonia.Controls;
 
-namespace Automation.App.Features.Workflows.Components;
+namespace Automation.App.Features.Scoped.Components;
 
 /// <summary>
 /// Compact icon + name display of a <see cref="Automation.Shared.Data.Scoped.ScopedElement"/>, used in the tree.

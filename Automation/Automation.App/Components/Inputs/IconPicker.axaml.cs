@@ -30,7 +30,7 @@ public partial class IconPicker : UserControl
     public IconPicker()
     {
         InitializeComponent();
-
+        
         IconList.ItemsSource = LucideIconCatalog.All;
         IconList.SelectionChanged += OnSelectionChanged;
         SearchBox.TextChanged += OnSearchChanged;

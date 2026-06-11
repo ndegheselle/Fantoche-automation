@@ -1,21 +1,21 @@
 using System;
 using System.Threading.Tasks;
-using Automation.App.Features.Workflows.Elements;
+using Automation.App.Features.Scoped.Scopes;
 using Automation.Shared.Data.Scoped;
 using Automation.Shared.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
-namespace Automation.App.Features.Workflows;
+namespace Automation.App.Features.Scoped;
 
-internal partial class WorkflowsPageVM : ObservableObject, INavigable
+internal partial class WorkflowsPageVm : ObservableObject, INavigable
 {
     private readonly IScopedService _scopedService;
 
-    public WorkflowsPageVM(IScopedService scopedService)
+    public WorkflowsPageVm(IScopedService scopedService)
     {
         _scopedService = scopedService;
-        _root = new ScopeVM(new() { Id = Scope.ROOT_SCOPE_ID, Metadata = new ScopedMetadata("Home", EnumScopedType.Scope) { IsReadOnly = true } });
+        _root = new ScopeVm(new() { Id = Scope.ROOT_SCOPE_ID, Metadata = new ScopedMetadata("Home", EnumScopedType.Scope) { IsReadOnly = true } });
     }
 
     #region Properties
@@ -24,7 +24,7 @@ internal partial class WorkflowsPageVM : ObservableObject, INavigable
     /// Virtual root scope, its childrens are the top-level elements returned by the service.
     /// </summary>
     [ObservableProperty]
-    private ScopeVM _root;
+    private ScopeVm _root;
 
     [ObservableProperty] private string _searchText = string.Empty;
 
@@ -33,7 +33,7 @@ internal partial class WorkflowsPageVM : ObservableObject, INavigable
     /// <summary>
     /// Element currently selected in the list.
     /// </summary>
-    [ObservableProperty] private ScopedVM? _selected;
+    [ObservableProperty] private ScopedVm? _selected;
     #endregion
 
     #region Events
