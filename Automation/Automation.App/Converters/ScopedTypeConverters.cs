@@ -14,20 +14,17 @@ public static class ScopedTypeConverters
         { EnumScopedType.Task, LucideIconFont.StickyNote }
     };
 
-    public static readonly IValueConverter ToLucideIcon =
-        new FuncValueConverter<EnumScopedType, string>(type => Icons.TryGetValue(type, out var icon) ? icon : string.Empty);
-
     /// <summary>
-    /// Resolves the glyph to display for a metadata: the custom <see cref="ScopedMetadata.Icon"/>
-    /// when set, otherwise the default icon for its <see cref="ScopedMetadata.Type"/>.
+    /// Resolves the glyph to display: accepts either an <see cref="EnumScopedType"/> (returns the
+    /// default icon) or a <see cref="ScopedMetadata"/> (returns the custom icon when set, otherwise
+    /// the default icon for its type).
     /// </summary>
     public static readonly IValueConverter ToIcon =
-        new FuncValueConverter<ScopedMetadata, string>(metadata =>
+        new FuncValueConverter<object, string>(input => input switch
         {
-            if (metadata is null)
-                return string.Empty;
-            if (!string.IsNullOrEmpty(metadata.Icon))
-                return metadata.Icon;
-            return Icons.TryGetValue(metadata.Type, out var icon) ? icon : string.Empty;
+            ScopedMetadata { Icon: { Length: > 0 } icon } => icon,
+            ScopedMetadata metadata => Icons.TryGetValue(metadata.Type, out var icon) ? icon : string.Empty,
+            EnumScopedType type => Icons.TryGetValue(type, out var icon) ? icon : string.Empty,
+            _ => string.Empty
         });
 }
