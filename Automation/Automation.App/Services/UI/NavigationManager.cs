@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -11,22 +12,12 @@ internal interface INavigable
     public void OnHide() { }
 }
 
-internal interface IOverlay : INavigable
-{
-    Action? OnEnd { get; set; }
-
-    IOverlay WithOnEnd(Action onEnd)
-    {
-        OnEnd = onEnd;
-        return this;
-    }
-}
-
 internal partial class NavigationManager : ObservableObject
 {
     [ObservableProperty]
     private INavigable? _currentPage;
     
+    private Dictionary<INavigable, Action> _onHiddenCallbacks = [];
     public ObservableCollection<INavigable> Overlays { get; } = [];
     [ObservableProperty]
     private bool _hasOverlays;
@@ -44,7 +35,6 @@ internal partial class NavigationManager : ObservableObject
             INavigable overlay = Overlays[i];
             Overlays.RemoveAt(i);
             overlay.OnHide();
-            (overlay as IOverlay)?.OnEnd?.Invoke();
         }
         
         if (page == CurrentPage)
@@ -56,9 +46,11 @@ internal partial class NavigationManager : ObservableObject
         CurrentPage.OnShow();
     }
     
-    public void Overlay(INavigable page)
+    public void Overlay(INavigable page, Action? onHidden = null)
     {
         Overlays.Add(page);
+        if (onHidden != null)
+            _onHiddenCallbacks[page] = onHidden;
         page.OnShow();
     }
     
@@ -72,7 +64,12 @@ internal partial class NavigationManager : ObservableObject
 
         Overlays.RemoveAt(overlayIndex);
         page.OnHide();
-        (page as IOverlay)?.OnEnd?.Invoke();
+        
+        if (_onHiddenCallbacks.TryGetValue(page, out Action? callback))
+        {
+            callback?.Invoke();
+            _onHiddenCallbacks.Remove(page);
+        }
     }
 
     /// <summary>
@@ -82,10 +79,6 @@ internal partial class NavigationManager : ObservableObject
     {
         if (Overlays.Count <= 0)
             return;
-
-        INavigable page = Overlays.Last();
-        Overlays.RemoveAt(Overlays.Count - 1);
-        page.OnHide();
-        (page as IOverlay)?.OnEnd?.Invoke();
+        Close(Overlays.Last());
     }
 }

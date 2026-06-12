@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using Avalonia;
+using Avalonia.Data;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 
@@ -41,13 +42,13 @@ public class StringToBrush : IValueConverter
     {
         if (value is string text && Color.TryParse(text, out var color))
             return new SolidColorBrush(color);
-        return AvaloniaProperty.UnsetValue;
+        return BindingOperations.DoNothing;
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value is ISolidColorBrush brush)
             return brush.Color.ToString();
-        return AvaloniaProperty.UnsetValue;
+        return BindingOperations.DoNothing;
     }
 }

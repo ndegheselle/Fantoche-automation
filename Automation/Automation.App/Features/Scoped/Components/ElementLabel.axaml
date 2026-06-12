@@ -10,8 +10,10 @@
     </Design.DataContext>
     <StackPanel Orientation="Horizontal" Spacing="6">
         <TextBlock Classes="LucideIcon"
-                   Foreground="{Binding Metadata.Color, Converter={x:Static converters:StringToBrush.Instance}}"
-                   Text="{Binding Metadata, Converter={x:Static converters:ScopedTypeConverters.ToIcon}}" />
+                   Foreground="{Binding Metadata.Color, 
+                   Converter={x:Static converters:StringToBrush.Instance}}"
+                   Text="{Binding Metadata, Converter={x:Static converters:ScopedTypeConverters.ToIcon}}">
+        </TextBlock>
         <TextBlock VerticalAlignment="Center" Text="{Binding Metadata.Name}" />
     </StackPanel>
 </UserControl>

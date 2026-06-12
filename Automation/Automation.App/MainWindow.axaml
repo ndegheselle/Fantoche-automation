@@ -135,7 +135,7 @@
                           Grid.Column="1">
                 <ItemsControl.DataTemplates>
                     <!-- Register overlays here -->
-                    <DataTemplate DataType="{x:Type packages:PackageDetailsVM}">
+                    <DataTemplate DataType="{x:Type packages:PackageDetailsVm}">
                         <packages:PackageDetailsOverlay />
                     </DataTemplate>
                 </ItemsControl.DataTemplates>

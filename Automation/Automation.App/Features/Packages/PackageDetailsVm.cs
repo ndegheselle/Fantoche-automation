@@ -11,14 +11,14 @@ using ShadUI;
 
 namespace Automation.App.Features.Packages;
 
-internal partial class PackageDetailsVM : ObservableObject, IOverlay
+internal partial class PackageDetailsVm : ObservableObject, INavigable
 {
     private readonly IPackagesService _packagesService;
     private readonly NavigationManager _navigation;
     private readonly DialogManager _dialogManager;
     private readonly ToastDisplay _toasts;
 
-    public PackageDetailsVM(IPackagesService packagesService,
+    public PackageDetailsVm(IPackagesService packagesService,
         NavigationManager navigation,
         DialogManager dialogManager,
         ToastDisplay toasts,
@@ -34,8 +34,6 @@ internal partial class PackageDetailsVM : ObservableObject, IOverlay
         GroupedClasses = new DataGridCollectionView(Classes);
         GroupedClasses.GroupDescriptions.Add(new DataGridPathGroupDescription("Dll"));
     }
-
-    public Action? OnEnd { get; set; }
 
     [ObservableProperty] private PackageInfos _package = new();
 
@@ -123,7 +121,7 @@ internal partial class PackageDetailsVM : ObservableObject, IOverlay
 /// <summary>
 /// Design class for [PackageDetailsVM]
 /// </summary>
-internal class PackageDetailsVMDesign : PackageDetailsVM
+internal class PackageDetailsVMDesign : PackageDetailsVm
 {
     public PackageDetailsVMDesign() : base(null!, null!, null!, null!, new PackageInfos
     {

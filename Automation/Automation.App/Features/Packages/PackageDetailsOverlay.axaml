@@ -6,7 +6,7 @@
              xmlns:fonts="clr-namespace:Automation.App.Assets.Fonts"
              xmlns:packages="clr-namespace:Automation.App.Features.Packages"
              xmlns:execution="clr-namespace:Automation.Shared.Data.Execution;assembly=Automation.Shared"
-             x:DataType="packages:PackageDetailsVM"
+             x:DataType="packages:PackageDetailsVm"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              Background="{DynamicResource BackgroundColor}"
              x:Class="Automation.App.Features.Packages.PackageDetailsOverlay">
@@ -60,7 +60,7 @@
                                 <Button Classes="DestructiveIcon"
                                         CornerRadius="{DynamicResource MdCornerRadius}"
                                         ToolTip.Tip="Remove"
-                                        Command="{Binding #VersionsList.((packages:PackageDetailsVM)DataContext).RemoveVersionCommand}"
+                                        Command="{Binding #VersionsList.((packages:PackageDetailsVm)DataContext).RemoveVersionCommand}"
                                         CommandParameter="{Binding}">
                                     <TextBlock Classes="LucideIcon"
                                                Text="{x:Static fonts:LucideIconFont.Trash}" />
