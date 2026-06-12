@@ -46,39 +46,8 @@
         <TextBox PlaceholderText="Name"
                  Text="{Binding Name}" />
 
-        <StackPanel Spacing="8">
-            <ItemsControl ItemsSource="{Binding Tags}">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <WrapPanel />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="x:String">
-                        <shadui:Badge Margin="0,0,4,4">
-                            <StackPanel Orientation="Horizontal" Spacing="4">
-                                <TextBlock VerticalAlignment="Center" Text="{Binding}" />
-                                <Button Classes="Icon Ghost" Padding="2"
-                                        Command="{Binding ((components:MetadataEditVm)DataContext).RemoveTagCommand, ElementName=Root}"
-                                        CommandParameter="{Binding}">
-                                    <TextBlock Classes="LucideIcon" FontSize="12"
-                                               Text="{x:Static fonts:LucideIconFont.CircleX}" />
-                                </Button>
-                            </StackPanel>
-                        </shadui:Badge>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-            <Grid ColumnSpacing="4" ColumnDefinitions="* auto">
-                <TextBox PlaceholderText="Add a tag" Text="{Binding NewTag}" />
-                <Button Grid.Column="1" Classes="Icon" Command="{Binding AddTagCommand}" ToolTip.Tip="Add a tag">
-                    <shadui:ButtonAssist.Icon>
-                        <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.Plus}" />
-                    </shadui:ButtonAssist.Icon>
-                </Button>
-            </Grid>
-        </StackPanel>
-
+        <inputs:TagsSelector Tags="{Binding Tags}" PlaceholderText="Add a tag" />
+        
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
             <Button Classes="Outline" Content="Cancel" Command="{Binding CancelCommand}" />
             <Button Classes="Primary" Content="Save" Command="{Binding ConfirmCommand}" />

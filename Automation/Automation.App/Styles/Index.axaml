@@ -1,3 +1,21 @@
-﻿<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <StyleInclude Source="avares://Automation.App/Styles/TextBlock.axaml" />
+﻿<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <StyleInclude Source="avares://Automation.App/Styles/Default/ListBox.axaml" />
+    <StyleInclude Source="avares://Automation.App/Styles/Default/TextBlock.axaml" />
+
+    <!-- Resources -->
+    <Styles.Resources>
+        <ResourceDictionary>
+            <FontFamily x:Key="LucideIcon">avares://Automation.App/Assets/Fonts#lucide</FontFamily>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://Automation.App/Styles/Default/ContextMenu.axaml" />
+                <ResourceInclude Source="avares://Automation.App/Styles/Default/Flyout.axaml" />
+                <ResourceInclude Source="avares://Automation.App/Styles/Default/TreeView.axaml" />
+                
+                <!-- Templated controls -->
+                <ResourceInclude Source="avares://Automation.App/Components/Inputs/TagsSelector.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Styles.Resources>
 </Styles>

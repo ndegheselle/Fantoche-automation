@@ -6,7 +6,7 @@
              xmlns:fonts="clr-namespace:Automation.App.Assets.Fonts"
              x:Name="Root"
              x:Class="Automation.App.Components.Inputs.IconPicker">
-    <Button x:Name="TriggerButton" Classes="Icon" HorizontalAlignment="Stretch">
+    <Button x:Name="TriggerButton" Classes="Icon" BorderBrush="{DynamicResource BorderColor}" BorderThickness="1">
         <TextBlock Classes="LucideIcon"
                    Text="{Binding SelectedIcon, ElementName=Root}" />
         <Button.Flyout>

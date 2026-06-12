@@ -7,5 +7,6 @@
         <Setter Property="FontFamily" Value="{StaticResource LucideIcon}" />
         <Setter Property="FontSize" Value="18" />
         <Setter Property="FontWeight" Value="ExtraLight" />
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundColor}" />
     </Style>
 </Styles>

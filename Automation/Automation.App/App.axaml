@@ -3,19 +3,8 @@
              x:Class="Automation.App.App"
              xmlns:shadui="clr-namespace:ShadUI;assembly=ShadUI"
              RequestedThemeVariant="Default">
-    <Application.Resources>
-        <ResourceDictionary>
-            <FontFamily x:Key="LucideIcon">avares://Automation.App/Assets/Fonts#lucide</FontFamily>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceInclude Source="avares://Automation.App/Styles/ContextMenu.axaml" />
-                <ResourceInclude Source="avares://Automation.App/Styles/Flyout.axaml" />
-                <ResourceInclude Source="avares://Automation.App/Styles/TreeView.axaml" />
-            </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>
-    </Application.Resources>
     <Application.Styles>
         <shadui:ShadTheme />
         <StyleInclude Source="avares://Automation.App/Styles/Index.axaml" />
-        <StyleInclude Source="avares://Automation.App/Styles/ListBox.axaml" />
     </Application.Styles>
 </Application>

@@ -1,0 +1,49 @@
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:shadUi="clr-namespace:ShadUI;assembly=ShadUI"
+                    xmlns:controls="clr-namespace:Automation.App.Components.Inputs"
+                    xmlns:fonts="clr-namespace:Automation.App.Assets.Fonts">
+    <ControlTheme x:Key="{x:Type controls:TagsSelector}" TargetType="controls:TagsSelector">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <StackPanel Spacing="4">
+                    <Grid ColumnSpacing="4" ColumnDefinitions="* auto">
+                        <TextBox x:Name="PART_NewTagTextBox"
+                                 PlaceholderText="{TemplateBinding PlaceholderText}"
+                                 Text="{Binding NewTag, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" />
+                        <Button Grid.Column="1" Classes="Icon"
+                                BorderBrush="{DynamicResource BorderColor}"
+                                BorderThickness="1"
+                                Command="{Binding AddTagCommand, RelativeSource={RelativeSource TemplatedParent}}">
+                            <TextBlock Classes="LucideIcon"
+                                       Text="{x:Static fonts:LucideIconFont.Plus}" />
+                        </Button>
+                    </Grid>
+                    
+                    <ItemsControl ItemsSource="{TemplateBinding Tags}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel ItemSpacing="2" LineSpacing="2" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                                <shadUi:Badge Classes="Outline rounded-full">
+                                    <StackPanel Orientation="Horizontal" Spacing="2">
+                                        <TextBlock VerticalAlignment="Center" Text="{Binding}" />
+                                        <Button Background="Transparent" BorderThickness="0" Command="{Binding $parent[controls:TagsSelector].RemoveTagCommand}"
+                                                CommandParameter="{Binding}">
+                                            <TextBlock Classes="LucideIcon"
+                                                       FontSize="10"
+                                                       Text="{x:Static fonts:LucideIconFont.x}" />
+                                        </Button>
+                                    </StackPanel>
+                                </shadUi:Badge>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </ControlTemplate>
+        </Setter>
+    </ControlTheme>
+</ResourceDictionary>
