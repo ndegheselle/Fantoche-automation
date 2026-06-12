@@ -11,28 +11,31 @@ using ShadUI;
 
 namespace Automation.App.Features.Packages;
 
-internal partial class PackageDetailsVM : ObservableObject, INavigable
+internal partial class PackageDetailsVM : ObservableObject, IOverlay
 {
     private readonly IPackagesService _packagesService;
     private readonly NavigationManager _navigation;
     private readonly DialogManager _dialogManager;
     private readonly ToastDisplay _toasts;
 
-    private Action? _onChanged;
-
     public PackageDetailsVM(IPackagesService packagesService,
         NavigationManager navigation,
         DialogManager dialogManager,
-        ToastDisplay toasts)
+        ToastDisplay toasts,
+        PackageInfos package)
     {
         _packagesService = packagesService;
         _navigation = navigation;
         _dialogManager = dialogManager;
         _toasts = toasts;
 
+        Package = package;
+
         GroupedClasses = new DataGridCollectionView(Classes);
         GroupedClasses.GroupDescriptions.Add(new DataGridPathGroupDescription("Dll"));
     }
+
+    public Action? OnEnd { get; set; }
 
     [ObservableProperty] private PackageInfos _package = new();
 
@@ -52,15 +55,6 @@ internal partial class PackageDetailsVM : ObservableObject, INavigable
     public DataGridCollectionView GroupedClasses { get; }
 
     public ObservableCollection<Version> Versions { get; } = new();
-
-    /// <param name="onChanged">
-    /// Invoked when a version is removed so the caller can refresh its own listing.
-    /// </param>
-    public void Initialize(PackageInfos package, Action? onChanged = null)
-    {
-        Package = package;
-        _onChanged = onChanged;
-    }
 
     public void OnShow() => _ = LoadAsync();
 
@@ -111,15 +105,18 @@ internal partial class PackageDetailsVM : ObservableObject, INavigable
     private async Task RemoveVersionConfirmedAsync(Version version)
     {
         await _packagesService.RemoveAsync(Package.Identifier.Id, version);
-        _toasts.Success("Removed successfully", $"The version {version} of {Package.Identifier.Id} has been removed.");
-
-        _onChanged?.Invoke();
 
         Versions.Remove(version);
 
-        // No version left means the package no longer exists, close the overlay.
         if (Versions.Count == 0)
+        {
+            _toasts.Warning("Package removed", $"All versions of {Package.Identifier.Id} have been removed. The package no longer exists.");
             _navigation.Close(this);
+        }
+        else
+        {
+            _toasts.Success("Removed successfully", $"The version {version} of {Package.Identifier.Id} has been removed.");
+        }
     }
 }
 
@@ -128,13 +125,12 @@ internal partial class PackageDetailsVM : ObservableObject, INavigable
 /// </summary>
 internal class PackageDetailsVMDesign : PackageDetailsVM
 {
-    public PackageDetailsVMDesign() : base(null!, null!, null!, null!)
+    public PackageDetailsVMDesign() : base(null!, null!, null!, null!, new PackageInfos
     {
-        Package = new PackageInfos
-        {
-            Identifier = new PackageIdentifier { Id = "MyCompany.Utils", Version = new System.Version("1.0.0") },
-            Description = "Utility helpers"
-        };
+        Identifier = new PackageIdentifier { Id = "MyCompany.Utils", Version = new System.Version("1.0.0") },
+        Description = "Utility helpers"
+    })
+    {
 
         Classes.Add(new PackageClassTarget(Package.Identifier, "MyCompany.Utils.HttpTask") { Dll = "MyCompany.Utils.dll" });
         Classes.Add(new PackageClassTarget(Package.Identifier, "MyCompany.Utils.FileTask") { Dll = "MyCompany.Utils.dll" });

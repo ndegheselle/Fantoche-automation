@@ -142,9 +142,7 @@ internal partial class PackagesPageVm : ObservableObject, INavigable
     [RelayCommand]
     private void ShowDetails(PackageInfos package)
     {
-        var detailsVm = new PackageDetailsVM(_packagesService, _navigation, _dialogManager, _toasts);
-        detailsVm.Initialize(package, () => _ = RefreshAsync());
-
+        var detailsVm = new PackageDetailsVM(_packagesService, _navigation, _dialogManager, _toasts, package);
         _navigation.Overlay(detailsVm);
     }
 }
