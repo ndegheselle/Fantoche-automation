@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 
@@ -17,14 +18,14 @@ public class StringToColor : IValueConverter
     {
         if (value is string text && Color.TryParse(text, out var color))
             return color;
-        return Colors.Transparent;
+        return AvaloniaProperty.UnsetValue;
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value is Color color)
             return color.ToString();
-        return null;
+        return AvaloniaProperty.UnsetValue;
     }
 }
 
@@ -40,13 +41,13 @@ public class StringToBrush : IValueConverter
     {
         if (value is string text && Color.TryParse(text, out var color))
             return new SolidColorBrush(color);
-        return null;
+        return AvaloniaProperty.UnsetValue;
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value is ISolidColorBrush brush)
             return brush.Color.ToString();
-        return null;
+        return AvaloniaProperty.UnsetValue;
     }
 }

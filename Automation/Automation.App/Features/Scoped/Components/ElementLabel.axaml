@@ -5,6 +5,9 @@
              xmlns:scoped="clr-namespace:Automation.App.Features.Scoped"
              x:DataType="scoped:ScopedVm"
              x:Class="Automation.App.Features.Scoped.Components.ElementLabel">
+    <Design.DataContext>
+        <scoped:ScopedVmDesign />
+    </Design.DataContext>
     <StackPanel Orientation="Horizontal" Spacing="6">
         <TextBlock Classes="LucideIcon"
                    Foreground="{Binding Metadata.Color, Converter={x:Static converters:StringToBrush.Instance}}"

@@ -65,3 +65,11 @@ internal abstract partial class ScopedVm : ObservableObject
         _ => throw new NotSupportedException($"No view model for scoped element '{element.GetType().Name}'.")
     };
 }
+
+internal class ScopedVmDesign : ScopedVm
+{
+    public ScopedVmDesign() : base(new AutomationTask())
+    {
+        Metadata.Name = "Design";
+    }
+}

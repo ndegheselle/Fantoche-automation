@@ -4,19 +4,26 @@
              xmlns:converters="clr-namespace:Automation.App.Converters"
              xmlns:fonts="clr-namespace:Automation.App.Assets.Fonts"
              xmlns:scoped="clr-namespace:Automation.App.Features.Scoped"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="320"
              x:DataType="scoped:ScopedVm"
              x:Class="Automation.App.Features.Scoped.Components.ElementHeader">
+    <Design.DataContext>
+        <scoped:ScopedVmDesign />
+    </Design.DataContext>
     <Grid ColumnDefinitions="auto auto * auto" ColumnSpacing="8">
         <TextBlock Classes="LucideIcon"
                    FontSize="24" Width="24" Height="24"
-                   Foreground="{Binding Metadata.Color, Converter={x:Static converters:StringToBrush.Instance}}"
+                   Foreground="{Binding Metadata.Color, 
+                   Converter={x:Static converters:StringToBrush.Instance}}"
                    Text="{Binding Metadata, Converter={x:Static converters:ScopedTypeConverters.ToIcon}}" />
         <TextBlock Grid.Column="1" Classes="h4" VerticalAlignment="Center" Text="{Binding Metadata.Name}" />
-        <shadui:Badge HorizontalAlignment="Left" Grid.Column="2" VerticalAlignment="Center" Content="{Binding Metadata.Type}" />
+        <shadui:Badge HorizontalAlignment="Left" Grid.Column="2" VerticalAlignment="Center"
+                      Content="{Binding Metadata.Type}" />
         <shadui:SimpleDropdown Grid.Column="3"
-            Classes="Icon" PopupPlacement="BottomEdgeAlignedRight">
+                               Classes="Icon" PopupPlacement="BottomEdgeAlignedRight">
             <shadui:SimpleDropdown.TriggerContent>
-
                 <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.Settings}" />
             </shadui:SimpleDropdown.TriggerContent>
             <shadui:SimpleDropdown.MenuLabel>
