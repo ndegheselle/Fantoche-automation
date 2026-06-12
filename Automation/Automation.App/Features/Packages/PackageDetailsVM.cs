@@ -11,7 +11,7 @@ using ShadUI;
 
 namespace Automation.App.Features.Packages;
 
-internal partial class PackageDetailsVM : ObservableObject, INavigable
+internal partial class PackageDetailsVM : ObservableObject, IOverlay
 {
     private readonly IPackagesService _packagesService;
     private readonly NavigationManager _navigation;
@@ -34,6 +34,8 @@ internal partial class PackageDetailsVM : ObservableObject, INavigable
         GroupedClasses = new DataGridCollectionView(Classes);
         GroupedClasses.GroupDescriptions.Add(new DataGridPathGroupDescription("Dll"));
     }
+
+    public Action? OnEnd { get; set; }
 
     [ObservableProperty] private PackageInfos _package = new();
 
