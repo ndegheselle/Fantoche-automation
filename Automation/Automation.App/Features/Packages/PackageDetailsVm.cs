@@ -44,7 +44,7 @@ internal partial class PackageDetailsVm : ObservableObject, INavigable
     /// </summary>
     [ObservableProperty] private bool _isEmpty;
 
-    public ObservableCollection<TaskTarget> Classes { get; } = new();
+    public ObservableCollection<ClassTarget> Classes { get; } = new();
 
     /// <summary>
     /// Grouped view over <see cref="Classes"/> that groups the package classes by

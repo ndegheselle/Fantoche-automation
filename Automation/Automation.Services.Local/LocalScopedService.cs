@@ -10,7 +10,7 @@ public class LocalScopedService : IScopedService
 
     static LocalScopedService()
     {
-        var scope = new Scope { Id = Guid.NewGuid(), Metadata = new ScopedMetadata("Ingestion", EnumScopedType.Scope) };
+        var scope = new Scope { Id = Guid.NewGuid(), ParentId = Scope.ROOT_SCOPE_ID, Metadata = new ScopedMetadata("Ingestion", EnumScopedType.Scope) };
         var workflow = new AutomationWorkflow { Id = Guid.NewGuid(), ParentId = Scope.ROOT_SCOPE_ID, Metadata = new ScopedMetadata("Daily import", EnumScopedType.Workflow) };
         var task = new AutomationTask { Id = Guid.NewGuid(), ParentId = scope.Id, Metadata = new ScopedMetadata("Fetch files", EnumScopedType.Task) };
 

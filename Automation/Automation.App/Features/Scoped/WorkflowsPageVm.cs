@@ -46,6 +46,13 @@ internal partial class WorkflowsPageVm : ObservableObject, INavigable
         // TODO : on search should display a list of result instead of the treeview
         throw new NotImplementedException();
     }
+
+    partial void OnSelectedChanged(ScopedVm? value)
+    {
+        if (value is not ScopeVm scopeVm)
+            return;
+        _ = scopeVm.LoadChildren();
+    }
     #endregion
 
     /// <summary>

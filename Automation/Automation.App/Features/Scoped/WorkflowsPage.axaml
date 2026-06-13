@@ -93,10 +93,10 @@
                     <DataTemplate DataType="scopes:ScopeVm">
                         <scopes:ScopePage />
                     </DataTemplate>
-                    <DataTemplate DataType="tasks:TaskVm">
+                    <DataTemplate DataType="workflows:WorkflowVm">
                         <workflows:WorkflowPage />
                     </DataTemplate>
-                    <DataTemplate DataType="workflows:WorkflowVm">
+                    <DataTemplate DataType="tasks:TaskVm">
                         <tasks:TaskPage />
                     </DataTemplate>
                 </ContentControl.DataTemplates>

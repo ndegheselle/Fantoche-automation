@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using Automation.App.Features.Packages;
+using Automation.App.Features.Packages.Components;
 using Automation.App.Features.Scoped.Components;
 using Automation.App.Services.UI;
 using Automation.Services.Local;
@@ -23,6 +24,7 @@ internal static class ServiceProvider
     {
         var manager = new DialogManager();
         manager.Register<MetadataEditDialog, MetadataEditVm>();
+        manager.Register<TaskTargetPickerDialog, TaskTargetPickerVm>();
         return manager;
     }
 

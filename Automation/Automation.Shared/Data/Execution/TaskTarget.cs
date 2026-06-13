@@ -3,17 +3,9 @@
 namespace Automation.Shared.Data.Execution
 {
     /// <summary>
-    /// Base class for a task target
-    /// </summary>
-    [JsonDerivedType(typeof(ClassTarget), "class")]
-    [JsonDerivedType(typeof(PackageClassTarget), "package")]
-    public abstract class TaskTarget
-    { }
-
-    /// <summary>
     /// Class task target, a simple task target is internal to the automation project
     /// </summary>
-    public class ClassTarget : TaskTarget
+    public class ClassTarget
     {
         public string ClassFullName { get; set; } = "";
         public string Dll { get; set; } = "";

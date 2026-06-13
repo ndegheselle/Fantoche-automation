@@ -48,7 +48,7 @@ public abstract class BaseAutomationTask : ScopedElement
 
 public class AutomationTask : BaseAutomationTask
 {
-    public TaskTarget? Target { get; set; }
+    public PackageClassTarget? Target { get; set; }
 
     public AutomationTask() : base(EnumScopedType.Task)
     {

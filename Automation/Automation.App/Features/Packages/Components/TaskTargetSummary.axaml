@@ -1,0 +1,24 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:execution="clr-namespace:Automation.Shared.Data.Execution;assembly=Automation.Shared"
+             xmlns:shadui="clr-namespace:ShadUI;assembly=ShadUI"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="execution:PackageClassTarget"
+             x:Class="Automation.App.Features.Packages.Components.TaskTargetSummary">
+    <shadui:Card
+        Margin="4">
+        <shadui:Card.Header>
+            <StackPanel>
+                <shadui:CardTitle>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="{Binding Package.Id}" />
+                        <shadui:Badge Content="{Binding Package.Version}" />
+                    </StackPanel>
+                </shadui:CardTitle>
+                <shadui:CardDescription Content="{Binding ClassFullName}" />
+            </StackPanel>
+        </shadui:Card.Header>
+    </shadui:Card>
+</UserControl>
