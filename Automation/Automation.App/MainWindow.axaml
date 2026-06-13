@@ -10,6 +10,7 @@
                xmlns:converters="clr-namespace:Automation.App.Converters"
                xmlns:packages="clr-namespace:Automation.App.Features.Packages"
                xmlns:workflows="clr-namespace:Automation.App.Features.Workflows"
+               xmlns:history="clr-namespace:Automation.App.Features.History"
                xmlns:scoped="clr-namespace:Automation.App.Features.Scoped"
                x:DataType="root:MainVm"
                Title="Automation.App">
@@ -82,8 +83,9 @@
                         </shadui:SidebarItem.Icon>
                     </shadui:SidebarItem>
                     <shadui:SidebarItem
+                        Command="{Binding OpenHistoryCommand}"
                         Content="History"
-                        ToolTip.Tip="{Binding $parent[shadui:Sidebar].Expanded, 
+                        ToolTip.Tip="{Binding $parent[shadui:Sidebar].Expanded,
                             Converter={x:Static converters:BooleanConverters.NullOrString}, 
                             ConverterParameter='History'}">
                         <shadui:SidebarItem.Icon>
@@ -125,6 +127,9 @@
                     </DataTemplate>
                     <DataTemplate DataType="{x:Type scoped:WorkflowsPageVm}">
                         <workflows:WorkflowsPage />
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type history:HistoryPageVm}">
+                        <history:HistoryPage />
                     </DataTemplate>
                 </TransitioningContentControl.DataTemplates>
             </TransitioningContentControl>

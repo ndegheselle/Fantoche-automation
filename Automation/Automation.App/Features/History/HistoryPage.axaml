@@ -1,0 +1,99 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:data="clr-namespace:Automation.App.Components.Data"
+             xmlns:shadui="clr-namespace:ShadUI;assembly=ShadUI"
+             xmlns:converters="clr-namespace:Automation.App.Converters"
+             xmlns:history="clr-namespace:Automation.App.Features.History"
+             xmlns:execution="clr-namespace:Automation.Shared.Data.Execution;assembly=Automation.Shared"
+             xmlns:fonts="clr-namespace:Automation.App.Assets.Fonts"
+             x:DataType="history:HistoryPageVm"
+             mc:Ignorable="d" d:DesignWidth="850" d:DesignHeight="450"
+             x:Class="Automation.App.Features.History.HistoryPage">
+    <UserControl.Styles>
+        <Style Selector="shadui|Badge[Tag=Pending]">
+            <Setter Property="Background" Value="{DynamicResource SecondaryColor}" />
+            <Style Selector="^ TextBlock.LucideIcon">
+                <Setter Property="Text" Value="{x:Static fonts:LucideIconFont.CircleDashed}"/>
+            </Style>
+        </Style>
+        <Style Selector="shadui|Badge[Tag=Waiting]">
+            <Setter Property="Background" Value="{DynamicResource SecondaryColor}" />
+            <Style Selector="^ TextBlock.LucideIcon">
+                <Setter Property="Text" Value="{x:Static fonts:LucideIconFont.CirclePause}"/>
+            </Style>
+        </Style>
+        <Style Selector="shadui|Badge[Tag=Progressing]">
+            <Setter Property="Background" Value="{DynamicResource InfoColor}" />
+            <Style Selector="^ TextBlock.LucideIcon">
+                <Setter Property="Text" Value="{x:Static fonts:LucideIconFont.CircleFadingArrowUp}"/>
+            </Style>
+        </Style>
+        <Style Selector="shadui|Badge[Tag=Completed]">
+            <Setter Property="Background" Value="{DynamicResource SuccessColor}" />
+            <Style Selector="^ TextBlock.LucideIcon">
+                <Setter Property="Text" Value="{x:Static fonts:LucideIconFont.CheckCircle}"/>
+            </Style>
+        </Style>
+        <Style Selector="shadui|Badge[Tag=Failed]">
+            <Setter Property="Background" Value="{DynamicResource ErrorColor}" />
+            <Style Selector="^ TextBlock.LucideIcon">
+                <Setter Property="Text" Value="{x:Static fonts:LucideIconFont.CircleX}"/>
+            </Style>
+        </Style>
+        <Style Selector="shadui|Badge[Tag=Canceled]">
+            <Setter Property="Background" Value="{DynamicResource WarningColor}" />
+            <Style Selector="^ TextBlock.LucideIcon">
+                <Setter Property="Text" Value="{x:Static fonts:LucideIconFont.CircleSlash}"/>
+            </Style>
+        </Style>
+    </UserControl.Styles>
+    <Design.DataContext>
+        <history:HistoryPageVMDesign />
+    </Design.DataContext>
+    <Grid RowDefinitions="* auto" RowSpacing="4" Margin="4">
+        <Panel Grid.Row="0">
+            <DataGrid
+                x:Name="HistoryList"
+                ItemsSource="{Binding Items}"
+                CanUserReorderColumns="False"
+                CanUserSortColumns="False"
+                GridLinesVisibility="Horizontal"
+                SelectionMode="Single"
+                IsReadOnly="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn x:DataType="execution:TaskInstance" Header="Task" Width="*"
+                                        Binding="{Binding NodeName}" />
+                    <DataGridTemplateColumn Header="State">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate DataType="execution:TaskInstance">
+                                <shadui:Badge Tag="{Binding State}" HorizontalAlignment="Center">
+                                    <StackPanel Orientation="Horizontal" Spacing="2">
+                                        <TextBlock
+                                            Classes="LucideIcon"
+                                            FontSize="12"
+                                            Height="13"
+                                            VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding State}" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </shadui:Badge>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn x:DataType="execution:TaskInstance" Header="Started"
+                                        Binding="{Binding CreatedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}" />
+                    <DataGridTextColumn x:DataType="execution:TaskInstance" Header="Finished"
+                                        Binding="{Binding FinishedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}" />
+                </DataGrid.Columns>
+            </DataGrid>
+            <shadui:BusyArea IsBusy="{Binding IsLoading}" />
+        </Panel>
+
+        <data:Pagination
+            Grid.Row="1"
+            Total="{Binding TotalItems}"
+            CurrentPage="{Binding CurrentPage, Mode=TwoWay}"
+            PageSize="{Binding PageSize, Mode=TwoWay}" />
+    </Grid>
+</UserControl>

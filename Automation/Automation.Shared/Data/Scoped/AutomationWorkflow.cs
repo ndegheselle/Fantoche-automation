@@ -39,5 +39,10 @@ namespace Automation.Shared.Data.Scoped
         public AutomationWorkflow() : base(EnumScopedType.Workflow)
         {
         }
+        
+        public AutomationWorkflow(string name, Guid parentId) : base(new ScopedMetadata(name, EnumScopedType.Workflow))
+        {
+            ParentId = parentId;
+        }
     }
 }

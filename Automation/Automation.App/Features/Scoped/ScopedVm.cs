@@ -37,8 +37,7 @@ internal abstract partial class ScopedVm : ObservableObject
     [RelayCommand]
     public void Edit()
     {
-        // Edit a copy so the changes are discarded if the dialog is cancelled.
-        var editVm = new Scoped.Components.MetadataEditVm(Metadata.Clone());
+        var editVm = new Scoped.Components.MetadataEditVm(Element);
         ServiceProvider.Dialogs
             .CreateDialog(editVm)
             .WithSuccessCallback(() => ApplyEditAsync(editVm))

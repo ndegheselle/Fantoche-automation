@@ -29,6 +29,9 @@ internal static class ServiceProvider
     public static readonly Lazy<ThemeWatcher> Themes = new Lazy<ThemeWatcher>(() => new ThemeWatcher(Application.Current!));
     public static readonly Lazy<NavigationManager> Navigation = new Lazy<NavigationManager>(() => new NavigationManager());
     public static readonly Lazy<ToastDisplay> Toasts = new Lazy<ToastDisplay>(() => new ToastDisplay(_toastManager));
+
+    // History keeps in-memory state and raises events, so it must stay a single instance.
+    public static readonly Lazy<IHistoryService> History = new Lazy<IHistoryService>(() => new LocalHistoryService());
     #endregion
 
     #region Transient

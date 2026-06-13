@@ -23,7 +23,13 @@ internal class ScopeVm : ScopedVm
         Children.Clear();
         foreach (var child in children)
         {
-            Children.Add(ScopedVm.From(child));
+            Children.Add(From(child));
         }
+    }
+
+    public async Task AddChild(ScopedElement child)
+    {
+        child = await _scopedService.CreateAsync(child);
+        Children.Add(From(child));
     }
 }

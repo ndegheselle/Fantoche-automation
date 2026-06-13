@@ -1,4 +1,5 @@
 ﻿using Automation.App.Base;
+using Automation.App.Features.History;
 using Automation.App.Features.Packages;
 using Automation.App.Features.Scoped;
 using Automation.App.Features.Workflows;
@@ -57,6 +58,12 @@ internal partial class MainVm : ViewModelBase
     private void OpenWorkflows()
     {
         Navigation.Navigate(new WorkflowsPageVm(ServiceProvider.Scoped));
+    }
+
+    [RelayCommand]
+    private void OpenHistory()
+    {
+        Navigation.Navigate(new HistoryPageVm(ServiceProvider.History.Value));
     }
     #endregion
 }

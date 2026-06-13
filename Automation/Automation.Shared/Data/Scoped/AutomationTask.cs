@@ -53,6 +53,11 @@ public class AutomationTask : BaseAutomationTask
     public AutomationTask() : base(EnumScopedType.Task)
     {
     }
+    
+    public AutomationTask(string name, Guid parentId) : base(new ScopedMetadata(name, EnumScopedType.Task))
+    {
+        ParentId = parentId;
+    }
 
     public void UpdateFromTask(ITask packageTask)
     {

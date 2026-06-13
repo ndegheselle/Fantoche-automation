@@ -1,10 +1,12 @@
 using System;
 using System.Threading.Tasks;
 using Automation.App.Features.Scoped.Scopes;
+using Automation.App.Services;
 using Automation.Shared.Data.Scoped;
 using Automation.Shared.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using ShadUI;
 
 namespace Automation.App.Features.Scoped;
 
@@ -50,7 +52,29 @@ internal partial class WorkflowsPageVm : ObservableObject, INavigable
     /// Create a new element of the given [type] inside the current scope.
     /// </summary>
     [RelayCommand]
-    private async Task AddAsync(EnumScopedType type)
+    private void Add(EnumScopedType type)
     {
+        var parent = (Selected as ScopeVm) ?? Root;
+        ScopedElement element = type switch
+        {
+            EnumScopedType.Scope => new Scope("New scope", parent.Scope.Id),
+            EnumScopedType.Workflow => new AutomationWorkflow("New workflow", parent.Scope.Id),
+            EnumScopedType.Task => new AutomationTask("New task", parent.Scope.Id),
+            _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+        };
+
+        var editVm = new Scoped.Components.MetadataEditVm(element);
+        ServiceProvider.Dialogs
+            .CreateDialog(editVm)
+            .WithSuccessCallback(() => ApplyAddAsync(editVm, element, parent))
+            .Dismissible()
+            .WithMaxWidth(480)
+            .Show();
+    }
+
+    private async Task ApplyAddAsync(Scoped.Components.MetadataEditVm editVm, ScopedElement element, ScopeVm parent)
+    {
+        element.Metadata = editVm.Build();
+        await parent.AddChild(element);
     }
 }

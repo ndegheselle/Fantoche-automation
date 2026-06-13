@@ -28,4 +28,10 @@ public interface IScopedService
     /// Remove an existing element.
     /// </summary>
     public Task<ScopedElement> RemoveAsync(ScopedElement element);
+
+    /// <summary>
+    /// Check whether [name] is unique among the direct children of the scope [parentId].
+    /// The element [excludeId] (if provided) is ignored, so an element keeping its own name stays valid.
+    /// </summary>
+    public Task<bool> IsNameUniqueAsync(Guid parentId, string name, Guid? excludeId = null);
 }

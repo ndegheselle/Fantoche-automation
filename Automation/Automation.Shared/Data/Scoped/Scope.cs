@@ -34,14 +34,9 @@ namespace Automation.Shared.Data.Scoped
         public Scope() : base(EnumScopedType.Scope)
         { }
 
-        public Scope(string name, Guid parentId) : base(new ScopedMetadata(name, EnumScopedType.Scope) { IsReadOnly = true })
+        public Scope(string name, Guid parentId) : base(new ScopedMetadata(name, EnumScopedType.Scope))
         {
             ParentId = parentId;
-        }
-
-        public void LoadChildren()
-        {
-            throw new NotImplementedException();
         }
     }
 }

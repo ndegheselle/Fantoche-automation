@@ -21,12 +21,17 @@ public class LocalScopedService : IScopedService
 
     public Task<ScopedElement> CreateAsync(ScopedElement element)
     {
-        throw new NotImplementedException();
+        element.Id = Guid.NewGuid();
+        _elements.Add(element.Id, element);
+        return Task.FromResult(element);
     }
 
     public Task<ScopedElement> EditAsync(ScopedElement element)
     {
-        throw new NotImplementedException();
+        if (!_elements.ContainsKey(element.Id))
+            throw new KeyNotFoundException();
+        _elements[element.Id] = element;
+        return Task.FromResult(element);
     }
 
     public Task<List<ScopedElement>> GetChildrens(Guid scopeId)
@@ -45,5 +50,14 @@ public class LocalScopedService : IScopedService
     public Task<List<BaseAutomationTask>> Search(string search = "")
     {
         throw new NotImplementedException();
+    }
+
+    public Task<bool> IsNameUniqueAsync(Guid parentId, string name, Guid? excludeId = null)
+    {
+        bool unique = !_elements.Values.Any(x =>
+            x.ParentId == parentId &&
+            x.Id != excludeId &&
+            string.Equals(x.Metadata.Name, name, StringComparison.OrdinalIgnoreCase));
+        return Task.FromResult(unique);
     }
 }
