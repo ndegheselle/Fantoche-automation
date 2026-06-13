@@ -34,12 +34,14 @@
                         </Border>
                         <Panel
                             IsVisible="{Binding !WithoutTarget}">
-                            <packagesComponents:TaskTargetSummary DataContext="{Binding Task.Target}" />
+                            <packagesComponents:TaskTargetSummary DataContext="{Binding Target}" />
                             <Button
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Top"
                                 Classes="DestructiveIcon"
-                                CornerRadius="{StaticResource FullCornerRadius}">
+                                CornerRadius="{StaticResource FullCornerRadius}"
+                                ToolTip.Tip="Remove target"
+                                Command="{Binding RemoveTargetCommand}">
                                 <shadUi:ButtonAssist.Icon>
                                     <TextBlock
                                         Classes="LucideIcon"

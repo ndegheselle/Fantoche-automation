@@ -7,18 +7,15 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="execution:PackageClassTarget"
              x:Class="Automation.App.Features.Packages.Components.TaskTargetSummary">
-    <shadui:Card
-        Margin="4">
-        <shadui:Card.Header>
-            <StackPanel>
-                <shadui:CardTitle>
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <TextBlock Text="{Binding Package.Id}" />
-                        <shadui:Badge Content="{Binding Package.Version}" />
-                    </StackPanel>
-                </shadui:CardTitle>
-                <shadui:CardDescription Content="{Binding ClassFullName}" />
+    <Border BorderBrush="{DynamicResource BorderColor}" BorderThickness="1"
+            CornerRadius="{StaticResource LgCornerRadius}" Background="{DynamicResource CardBackgroundColor}"
+            Padding="16,8">
+        <StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Classes="h4" Text="{Binding Package.Id}" />
+                <shadui:Badge Content="{Binding Package.Version}" VerticalAlignment="Center" />
             </StackPanel>
-        </shadui:Card.Header>
-    </shadui:Card>
+            <TextBlock Text="{Binding ClassFullName}" />
+        </StackPanel>
+    </Border>
 </UserControl>

@@ -1,5 +1,7 @@
+using System.Threading.Tasks;
 using Automation.App.Features.Packages.Components;
 using Automation.App.Services;
+using Automation.Shared.Data.Execution;
 using Automation.Shared.Data.Scoped;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -16,10 +18,25 @@ internal partial class TaskVm : ScopedVm
 
     public TaskVm(AutomationTask task) : base(task)
     {
-        WithoutTarget = Task.Target == null;
+        _target = task.Target;
     }
 
-    [ObservableProperty] private bool _withoutTarget;
+    /// <summary>
+    /// Current task target. This is the observable source of truth the view binds to; the
+    /// change is written back onto <see cref="AutomationTask.Target"/> in <see cref="OnTargetChanged"/>.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(WithoutTarget))]
+    private PackageClassTarget? _target;
+
+    /// <summary>True when no target is set, used to toggle the empty placeholder.</summary>
+    public bool WithoutTarget => Target == null;
+
+    partial void OnTargetChanged(PackageClassTarget? value)
+    {
+        Task.Target = value;
+        _ = _scopedService.EditAsync(Element);
+    }
 
     [RelayCommand]
     private void SelectTarget()
@@ -37,8 +54,9 @@ internal partial class TaskVm : ScopedVm
         if (pickerVm.SelectedTarget == null)
             return;
 
-        Task.Target = pickerVm.SelectedTarget;
-        WithoutTarget = false;
-        OnPropertyChanged(nameof(Task));
+        Target = pickerVm.SelectedTarget;
     }
+
+    [RelayCommand]
+    private void RemoveTarget() => Target = null;
 }
