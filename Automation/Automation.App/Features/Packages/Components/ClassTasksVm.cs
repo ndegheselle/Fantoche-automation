@@ -124,14 +124,6 @@ internal partial class ClassTasksVm : ObservableObject, INavigable
         if (toUpdate.Count == 0 && toCreate.Count == 0)
             return;
 
-        if (toUpdate.Count > 0 && toCreate.Count > 0)
-        {
-            _toasts.Warning(
-                "Mixed selection",
-                "Select either classes that already have tasks (to update them) or classes without tasks (to create them) — not both at once.");
-            return;
-        }
-
         if (toUpdate.Count > 0)
         {
             int taskCount = toUpdate.Sum(r => r.ExistingTasks.Count);
@@ -141,23 +133,35 @@ internal partial class ClassTasksVm : ObservableObject, INavigable
 
             ServiceProvider.Dialogs
                 .CreateDialog("Update existing tasks?", body)
-                .WithPrimaryButton("Update", () => _ = UpdateAsync(toUpdate), DialogButtonStyle.Destructive)
+                .WithPrimaryButton("Update", () => PickScopeAndExecute(toCreate, toUpdate), DialogButtonStyle.Destructive)
                 .WithCancelButton("Cancel")
                 .WithMaxWidth(480)
                 .Show();
         }
         else
         {
-            var scopeVm = new ScopeSelectorVm(_scopedService);
-            ServiceProvider.Dialogs
-                .CreateDialog(scopeVm)
-                .WithSuccessCallback(() => _ = CreateAsync(toCreate, scopeVm.SelectedScope!))
-                .WithMaxWidth(520)
-                .Show();
+            PickScopeAndExecute(toCreate, []);
         }
     }
 
-    private async Task UpdateAsync(List<ClassTaskRow> toUpdate)
+    private void PickScopeAndExecute(List<ClassTaskRow> toCreate, List<ClassTaskRow> toUpdate)
+    {
+        if (toCreate.Count > 0)
+        {
+            var scopeVm = new ScopeSelectorVm(_scopedService);
+            ServiceProvider.Dialogs
+                .CreateDialog(scopeVm)
+                .WithSuccessCallback(() => _ = ExecuteAsync(toCreate, toUpdate, scopeVm.SelectedScope!))
+                .WithMaxWidth(520)
+                .Show();
+        }
+        else
+        {
+            _ = ExecuteAsync([], toUpdate, null);
+        }
+    }
+
+    private async Task ExecuteAsync(List<ClassTaskRow> toCreate, List<ClassTaskRow> toUpdate, Scope? targetScope)
     {
         foreach (var row in toUpdate)
         {
@@ -166,15 +170,10 @@ internal partial class ClassTasksVm : ObservableObject, INavigable
             row.IsSelected = false;
         }
 
-        _toasts.Success("Tasks updated", $"Updated {toUpdate.Sum(r => r.ExistingTasks.Count)} task(s).");
-    }
-
-    private async Task CreateAsync(List<ClassTaskRow> toCreate, Scope targetScope)
-    {
         foreach (var row in toCreate)
         {
             string shortName = row.ClassTarget.ClassFullName.Split('.').Last();
-            var task = new AutomationTask(shortName, targetScope.Id)
+            var task = new AutomationTask(shortName, targetScope!.Id)
             {
                 Target = new PackageClassTarget(_packageIdentifier, row.ClassTarget.ClassFullName)
                 {
@@ -186,7 +185,10 @@ internal partial class ClassTasksVm : ObservableObject, INavigable
             row.IsSelected = false;
         }
 
-        _toasts.Success("Tasks created", $"Created {toCreate.Count} task(s) in '{targetScope.Metadata.Name}'.");
+        var parts = new List<string>();
+        if (toUpdate.Count > 0) parts.Add($"{toUpdate.Sum(r => r.ExistingTasks.Count)} updated");
+        if (toCreate.Count > 0) parts.Add($"{toCreate.Count} created");
+        _toasts.Success("Tasks applied", string.Join(", ", parts) + ".");
     }
 
     [RelayCommand]
