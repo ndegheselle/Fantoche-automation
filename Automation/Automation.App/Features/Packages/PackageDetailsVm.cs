@@ -88,11 +88,8 @@ internal partial class PackageDetailsVm : ObservableObject, INavigable
     [RelayCommand]
     private void ManageTasks()
     {
-        var vm = new ClassTasksVm(ServiceProvider.Scoped, Package.Identifier, Classes);
-        _dialogManager
-            .CreateDialog(vm)
-            .WithSuccessCallback(() => _toasts.Success("Tasks updated", "Tasks have been successfully created or updated."))
-            .Show();
+        var vm = new ClassTasksVm(ServiceProvider.Scoped, _navigation, _toasts, Package.Identifier, Classes);
+        _navigation.Overlay(vm);
     }
 
     [RelayCommand]

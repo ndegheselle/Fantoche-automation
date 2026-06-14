@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using Automation.App.Base;
 using Automation.App.Features.Scoped.Components;
 using Automation.App.Services;
+using Automation.App.Services.UI;
 using Automation.Shared.Data.Execution;
 using Automation.Shared.Data.Scoped;
 using Automation.Shared.Services;
@@ -43,13 +43,17 @@ internal partial class ClassTaskRow : ObservableObject
 }
 
 /// <summary>
-/// View model for <see cref="ClassTasksDialog"/>. Lets the user select package classes and
-/// create or update <see cref="AutomationTask"/> entries for them.
+/// View model for <see cref="ClassTasksOverlay"/>. Displayed through the navigation overlay
+/// system, it lets the user select package classes and create or update
+/// <see cref="AutomationTask"/> entries for them.
 /// </summary>
-internal partial class ClassTasksVm : ViewModelBase
+internal partial class ClassTasksVm : ObservableObject, INavigable
 {
     private readonly IScopedService _scopedService;
+    private readonly NavigationManager _navigation;
+    private readonly ToastDisplay _toasts;
     private readonly PackageIdentifier _packageIdentifier;
+    private readonly IReadOnlyList<ClassTarget> _classes;
 
     public ObservableCollection<ClassTaskRow> Rows { get; } = new();
 
@@ -58,19 +62,25 @@ internal partial class ClassTasksVm : ViewModelBase
 
     [ObservableProperty] private bool _isLoading;
 
-    public ClassTasksVm(IScopedService? scopedService, PackageIdentifier packageIdentifier, IEnumerable<ClassTarget> classes)
+    public ClassTasksVm(IScopedService scopedService,
+        NavigationManager navigation,
+        ToastDisplay toasts,
+        PackageIdentifier packageIdentifier,
+        IEnumerable<ClassTarget> classes)
     {
-        _scopedService = scopedService!;
+        _scopedService = scopedService;
+        _navigation = navigation;
+        _toasts = toasts;
         _packageIdentifier = packageIdentifier;
+        _classes = classes.ToList();
 
         GroupedRows = new DataGridCollectionView(Rows);
         GroupedRows.GroupDescriptions.Add(new DataGridPathGroupDescription(nameof(ClassTaskRow.Dll)));
-
-        if (scopedService != null)
-            _ = LoadAsync(classes);
     }
 
-    private async Task LoadAsync(IEnumerable<ClassTarget> classes)
+    public void OnShow() => _ = LoadAsync();
+
+    private async Task LoadAsync()
     {
         IsLoading = true;
         try
@@ -79,7 +89,7 @@ internal partial class ClassTasksVm : ViewModelBase
                 _packageIdentifier.Id, _packageIdentifier.Version);
 
             Rows.Clear();
-            foreach (var cls in classes)
+            foreach (var cls in _classes)
             {
                 var existing = existingTasks.FirstOrDefault(t =>
                     string.Equals(t.Target?.ClassFullName, cls.ClassFullName, StringComparison.Ordinal));
@@ -160,16 +170,16 @@ internal partial class ClassTasksVm : ViewModelBase
             row.IsSelected = false;
         }
 
-        ServiceProvider.Dialogs.Close(this, new CloseDialogOptions { Success = true });
+        _toasts.Success("Tasks updated", "Tasks have been successfully created or updated.");
     }
 
     [RelayCommand]
-    private void Cancel() => ServiceProvider.Dialogs.Close(this);
+    private void Back() => _navigation.Close(this);
 }
 
 internal class ClassTasksVmDesign : ClassTasksVm
 {
-    public ClassTasksVmDesign() : base(null, new PackageIdentifier { Id = "MyCompany.Utils", Version = new Version("1.0.0") }, [])
+    public ClassTasksVmDesign() : base(null!, null!, null!, new PackageIdentifier { Id = "MyCompany.Utils", Version = new Version("1.0.0") }, [])
     {
         var identifier = new PackageIdentifier { Id = "MyCompany.Utils", Version = new Version("1.0.0") };
 

@@ -9,6 +9,7 @@
                xmlns:root="clr-namespace:Automation.App"
                xmlns:converters="clr-namespace:Automation.App.Converters"
                xmlns:packages="clr-namespace:Automation.App.Features.Packages"
+               xmlns:packageComponents="clr-namespace:Automation.App.Features.Packages.Components"
                xmlns:workflows="clr-namespace:Automation.App.Features.Workflows"
                xmlns:history="clr-namespace:Automation.App.Features.History"
                xmlns:scoped="clr-namespace:Automation.App.Features.Scoped"
@@ -142,6 +143,9 @@
                     <!-- Register overlays here -->
                     <DataTemplate DataType="{x:Type packages:PackageDetailsVm}">
                         <packages:PackageDetailsOverlay />
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type packageComponents:ClassTasksVm}">
+                        <packageComponents:ClassTasksOverlay />
                     </DataTemplate>
                 </ItemsControl.DataTemplates>
                 <ItemsControl.ItemsPanel>
