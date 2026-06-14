@@ -51,7 +51,7 @@ internal partial class MainVm : ViewModelBase
     [RelayCommand]
     private void OpenPackages()
     {
-        Navigation.Navigate(new PackagesPageVm(ServiceProvider.Packages, ServiceProvider.Tasks, ServiceProvider.Dialogs, ServiceProvider.Toasts.Value, ServiceProvider.Navigation.Value));
+        Navigation.Navigate(new PackagesPageVm(ServiceProvider.Packages, ServiceProvider.Tasks, ServiceProvider.Scoped, ServiceProvider.Dialogs, ServiceProvider.Toasts.Value, ServiceProvider.Navigation.Value));
     }
     
     [RelayCommand]

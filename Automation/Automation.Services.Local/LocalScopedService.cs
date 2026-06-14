@@ -34,6 +34,12 @@ public class LocalScopedService : IScopedService
         return Task.FromResult(element);
     }
 
+    public Task<List<Scope>> GetScopesAsync()
+    {
+        var scopes = _elements.Values.OfType<Scope>().ToList();
+        return Task.FromResult(scopes);
+    }
+
     public Task<List<ScopedElement>> GetChildrens(Guid scopeId)
     {
         var children = _elements.Where(x => x.Value.ParentId == scopeId)

@@ -1,0 +1,42 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="80"
+             xmlns:fonts="clr-namespace:Automation.App.Assets.Fonts"
+             xmlns:converters="clr-namespace:Automation.App.Converters"
+             xmlns:scoped="clr-namespace:Automation.Shared.Data.Scoped;assembly=Automation.Shared"
+             x:Name="Root"
+             x:Class="Automation.App.Components.Inputs.ScopeSelector">
+    <StackPanel Spacing="4">
+        <ComboBox HorizontalAlignment="Stretch"
+                  PlaceholderText="{Binding #Root.PlaceholderText}"
+                  ItemsSource="{Binding #Root.Scopes}"
+                  SelectedItem="{Binding #Root.SelectedScope, Mode=TwoWay}">
+            <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="scoped:Scope">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Classes="LucideIcon"
+                                   VerticalAlignment="Center"
+                                   Text="{Binding Metadata, Converter={x:Static converters:ScopedTypeConverters.ToIcon}}" />
+                        <TextBlock VerticalAlignment="Center" Text="{Binding Metadata.Name}" />
+                    </StackPanel>
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
+
+        <Grid ColumnSpacing="4" ColumnDefinitions="* auto">
+            <TextBox x:Name="PART_NewScope"
+                     PlaceholderText="New scope name"
+                     Text="{Binding #Root.NewScopeName, Mode=TwoWay}" />
+            <Button Grid.Column="1" Classes="Icon"
+                    BorderBrush="{DynamicResource BorderColor}"
+                    BorderThickness="1"
+                    ToolTip.Tip="Create scope"
+                    Command="{Binding #Root.AddScopeCommand}">
+                <TextBlock Classes="LucideIcon"
+                           Text="{x:Static fonts:LucideIconFont.Plus}" />
+            </Button>
+        </Grid>
+    </StackPanel>
+</UserControl>

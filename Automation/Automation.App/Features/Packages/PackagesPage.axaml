@@ -14,7 +14,7 @@
     <Design.DataContext>
         <packages:PackagesPageVMDesign />
     </Design.DataContext>
-    <Grid RowDefinitions="auto * auto auto" RowSpacing="4" Margin="4">
+    <Grid RowDefinitions="auto * auto auto auto" RowSpacing="4" Margin="4">
         <inputs:DebouncedSearch Grid.Row="0"
                                 Search="{Binding SearchText, Mode=TwoWay}" />
 
@@ -64,8 +64,16 @@
             CurrentPage="{Binding CurrentPage, Mode=TwoWay}"
             PageSize="{Binding PageSize, Mode=TwoWay}" />
 
+        <StackPanel Grid.Row="3" Spacing="4">
+            <TextBlock Classes="Small" Text="Target scope for the package tasks" />
+            <inputs:ScopeSelector
+                Scopes="{Binding Scopes}"
+                SelectedScope="{Binding SelectedScope, Mode=TwoWay}"
+                CreateScopeCommand="{Binding CreateScopeCommand}" />
+        </StackPanel>
+
         <inputs:FilePicker
-            Grid.Row="3"
+            Grid.Row="4"
             FileFormat="*.nupkg"
             Description="Add new packages (.nupkg)"
             Command="{Binding AddPackagesCommand}" />

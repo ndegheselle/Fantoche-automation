@@ -10,6 +10,11 @@ public interface IScopedService
     public Task<List<ScopedElement>> GetChildrens(Guid scopeId);
 
     /// <summary>
+    /// Get every scope (flattened), so callers can let the user pick one.
+    /// </summary>
+    public Task<List<Scope>> GetScopesAsync();
+
+    /// <summary>
     /// Search in all tasks.
     /// </summary>
     public Task<List<BaseAutomationTask>> Search(string search = "");

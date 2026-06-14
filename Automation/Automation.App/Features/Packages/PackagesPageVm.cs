@@ -8,6 +8,7 @@ using Automation.App.Services.UI;
 using Avalonia.Collections;
 using Automation.Shared.Base;
 using Automation.Shared.Data.Execution;
+using Automation.Shared.Data.Scoped;
 using Automation.Shared.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -19,6 +20,7 @@ internal partial class PackagesPageVm : ObservableObject, INavigable
 {
     private readonly IPackagesService _packagesService;
     private readonly ITasksService _tasksService;
+    private readonly IScopedService _scopedService;
 
     private bool _suppressReload;
     private CancellationTokenSource? _cts;
@@ -28,6 +30,7 @@ internal partial class PackagesPageVm : ObservableObject, INavigable
 
     public PackagesPageVm(IPackagesService packagesService,
         ITasksService tasksService,
+        IScopedService scopedService,
         DialogManager dialogManager,
         ToastDisplay toastManager,
         NavigationManager navigation)
@@ -35,11 +38,18 @@ internal partial class PackagesPageVm : ObservableObject, INavigable
         _toasts = toastManager;
         _packagesService = packagesService;
         _tasksService = tasksService;
+        _scopedService = scopedService;
         _dialogManager = dialogManager;
         _navigation = navigation;
     }
 
     public ObservableCollection<PackageInfos> Items { get; } = new();
+
+    /// <summary>Scopes the user can drop the generated catalog tasks into.</summary>
+    public ObservableCollection<Scope> Scopes { get; } = new();
+
+    /// <summary>Scope the catalog tasks of newly added packages are created under.</summary>
+    [ObservableProperty] private Scope? _selectedScope;
     
     [ObservableProperty] private string _searchText = string.Empty;
 
@@ -51,7 +61,35 @@ internal partial class PackagesPageVm : ObservableObject, INavigable
 
     [ObservableProperty] private bool _isLoading;
 
-    public void OnShow() => _ = RefreshAsync();
+    public void OnShow()
+    {
+        _ = RefreshAsync();
+        _ = LoadScopesAsync();
+    }
+
+    private async Task LoadScopesAsync()
+    {
+        var previousId = SelectedScope?.Id;
+        var scopes = await _scopedService.GetScopesAsync();
+        Scopes.Clear();
+        foreach (var scope in scopes)
+            Scopes.Add(scope);
+
+        // Clearing the list resets the bound selection, so restore it (or default).
+        SelectedScope = Scopes.FirstOrDefault(s => s.Id == previousId) ?? Scopes.FirstOrDefault();
+    }
+
+    [RelayCommand]
+    private async Task CreateScope(string name)
+    {
+        name = name?.Trim() ?? string.Empty;
+        if (string.IsNullOrEmpty(name))
+            return;
+
+        var created = (Scope)await _scopedService.CreateAsync(new Scope(name, Scope.ROOT_SCOPE_ID));
+        Scopes.Add(created);
+        SelectedScope = created;
+    }
 
     public void OnHide() => _cts?.Cancel();
 
@@ -123,6 +161,9 @@ internal partial class PackagesPageVm : ObservableObject, INavigable
         if (files is null || files.Count == 0)
             return;
 
+        // Catalog tasks of the added packages are created under the chosen scope.
+        Guid scopeId = SelectedScope?.Id ?? Scope.ROOT_SCOPE_ID;
+
         foreach (var file in files)
         {
             try
@@ -131,7 +172,7 @@ internal partial class PackagesPageVm : ObservableObject, INavigable
 
                 // Building the read-only catalog tasks loads the package once; reuse the
                 // result to tell whether it exposed any compatible task.
-                var tasks = await _tasksService.SyncPackageAsync(added.Infos.Identifier.Id);
+                var tasks = await _tasksService.SyncPackageAsync(added.Infos.Identifier.Id, scopeId);
 
                 var warnings = added.Warnings.Select(x => x.Message).ToList();
                 if (tasks.Count == 0)
@@ -164,8 +205,12 @@ internal partial class PackagesPageVm : ObservableObject, INavigable
 /// </summary>
 internal class PackagesPageVMDesign : PackagesPageVm
 {
-    public PackagesPageVMDesign() : base(null!, null!, null!, null!, null!)
+    public PackagesPageVMDesign() : base(null!, null!, null!, null!, null!, null!)
     {
+        Scopes.Add(new Scope("Ingestion", Scope.ROOT_SCOPE_ID));
+        Scopes.Add(new Scope("Reporting", Scope.ROOT_SCOPE_ID));
+        SelectedScope = Scopes[0];
+
         Items.Add(new PackageInfos
         {
             Identifier = new PackageIdentifier { Id = "MyCompany.Utils", Version = new Version("1.1.0") },

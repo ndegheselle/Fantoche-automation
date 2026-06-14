@@ -16,8 +16,8 @@ namespace Automation.Services.Local;
 public class LocalTasksService : ITasksService
 {
     /// <summary>
-    /// Well-known scope the generated catalog tasks are parented to, so they can be
-    /// listed/picked separately from user-authored elements.
+    /// Fallback scope the generated catalog tasks are parented to when the caller did not
+    /// pick one (e.g. re-syncing after a version removal of a package added before).
     /// </summary>
     public static readonly Guid CATALOG_SCOPE_ID = new("00000000-0000-0000-0000-000000000002");
 
@@ -45,7 +45,7 @@ public class LocalTasksService : ITasksService
         }
     }
 
-    public async Task<List<AutomationTask>> SyncPackageAsync(string packageId)
+    public async Task<List<AutomationTask>> SyncPackageAsync(string packageId, Guid scopeId)
     {
         var latest = (await _packages.GetVersionsAsync(packageId)).FirstOrDefault();
         if (latest == null)
@@ -67,7 +67,7 @@ public class LocalTasksService : ITasksService
             // re-resolving each class by name (loading the assembly is the heavy part).
             foreach (var type in loader.GetTypes())
             {
-                var task = BuildCatalogTask(identifier, type.FullName ?? "", dll);
+                var task = BuildCatalogTask(identifier, type.FullName ?? "", dll, scopeId);
                 TryApplySchema(type, task);
                 generated.Add(task);
             }
@@ -94,18 +94,23 @@ public class LocalTasksService : ITasksService
     {
         var remaining = (await _packages.GetVersionsAsync(packageId)).ToList();
         if (remaining.Count == 0)
+        {
             RemovePackageTasks(packageId);
-        else
-            // A version was removed; repoint the catalog at the new latest version.
-            await SyncPackageAsync(packageId);
+            return;
+        }
+
+        // A version was removed; repoint the catalog at the new latest version, keeping
+        // the scope the user originally chose for the package.
+        Guid scopeId = ExistingScope(packageId);
+        await SyncPackageAsync(packageId, scopeId);
     }
 
-    private static AutomationTask BuildCatalogTask(PackageIdentifier identifier, string className, string dll)
+    private static AutomationTask BuildCatalogTask(PackageIdentifier identifier, string className, string dll, Guid scopeId)
     {
         return new AutomationTask
         {
             Id = DeterministicId(identifier.Id, className),
-            ParentId = CATALOG_SCOPE_ID,
+            ParentId = scopeId,
             Target = new PackageClassTarget(identifier, className) { Dll = dll },
             Metadata = new ScopedMetadata(ShortName(className), EnumScopedType.Task)
             {
@@ -125,6 +130,19 @@ public class LocalTasksService : ITasksService
         catch
         {
             // A single class that fails to instantiate must not break the whole sync.
+        }
+    }
+
+    /// <summary>
+    /// Scope the package's catalog tasks currently live in, falling back to
+    /// <see cref="CATALOG_SCOPE_ID"/> when none exist yet.
+    /// </summary>
+    private static Guid ExistingScope(string packageId)
+    {
+        lock (_lock)
+        {
+            var existing = _catalog.Values.FirstOrDefault(x => x.Target?.Package.Id == packageId);
+            return existing?.ParentId ?? CATALOG_SCOPE_ID;
         }
     }
 

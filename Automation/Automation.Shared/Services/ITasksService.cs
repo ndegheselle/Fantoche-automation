@@ -18,15 +18,15 @@ public interface ITasksService
     public Task<List<AutomationTask>> GetPackageTasksAsync(string packageId = "");
 
     /// <summary>
-    /// Upsert the read-only catalog tasks for a package, repointing them at the latest
-    /// available version and refreshing their input/output schemas. Call this when a
-    /// package is added or when a new version is published. Catalog tasks for classes
-    /// that no longer exist in the latest version are removed.
+    /// Upsert the read-only catalog tasks for a package under the scope [scopeId],
+    /// repointing them at the latest available version and refreshing their input/output
+    /// schemas. Call this when a package is added or when a new version is published.
+    /// Catalog tasks for classes that no longer exist in the latest version are removed.
     /// This is the single place that loads the package assemblies, so callers that just
     /// added a package should rely on the returned tasks instead of loading it again
     /// (e.g. an empty result means the package exposes no compatible task).
     /// </summary>
-    public Task<List<AutomationTask>> SyncPackageAsync(string packageId);
+    public Task<List<AutomationTask>> SyncPackageAsync(string packageId, Guid scopeId);
 
     /// <summary>
     /// Reconcile the catalog after a version was removed. If no version remains the
