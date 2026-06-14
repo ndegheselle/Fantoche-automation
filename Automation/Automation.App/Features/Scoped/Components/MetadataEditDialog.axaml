@@ -20,7 +20,12 @@
             <shadui:Badge VerticalAlignment="Center" Content="{Binding Type}" />
         </StackPanel>
 
-        <Grid ColumnSpacing="4" ColumnDefinitions="auto *">
+        <TextBlock Classes="Small Muted"
+                   IsVisible="{Binding IsReadOnly}"
+                   Text="This element is read-only and cannot be edited." />
+
+        <Grid ColumnSpacing="4" ColumnDefinitions="auto *"
+              IsEnabled="{Binding IsEditable}">
             <inputs:IconPicker SelectedIcon="{Binding SelectedIcon, Mode=TwoWay}" />
 
             <ColorPicker Grid.Column="1" 
@@ -44,9 +49,11 @@
         </Grid>
 
         <TextBox PlaceholderText="Name"
+                 IsEnabled="{Binding IsEditable}"
                  Text="{Binding Name}" />
 
-        <inputs:TagsSelector Tags="{Binding Tags}" PlaceholderText="Add a tag" />
+        <inputs:TagsSelector Tags="{Binding Tags}" PlaceholderText="Add a tag"
+                             IsEnabled="{Binding IsEditable}" />
         
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
             <Button Classes="Outline" Content="Cancel" Command="{Binding CancelCommand}" />

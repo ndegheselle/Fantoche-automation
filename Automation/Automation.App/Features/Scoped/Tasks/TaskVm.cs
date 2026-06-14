@@ -32,13 +32,23 @@ internal partial class TaskVm : ScopedVm
     /// <summary>True when no target is set, used to toggle the empty placeholder.</summary>
     public bool WithoutTarget => Target == null;
 
+    /// <summary>
+    /// Read-only tasks (e.g. the package catalog tasks) expose a fixed target that cannot
+    /// be reassigned or removed.
+    /// </summary>
+    public bool CanEditTarget => !Element.Metadata.IsReadOnly;
+
     partial void OnTargetChanged(PackageClassTarget? value)
     {
+        // Defensive: read-only tasks never reach here since the commands are disabled.
+        if (!CanEditTarget)
+            return;
+
         Task.Target = value;
         _ = _scopedService.EditAsync(Element);
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanEditTarget))]
     private void SelectTarget()
     {
         var pickerVm = new TaskTargetPickerVm(ServiceProvider.Packages);
@@ -57,6 +67,6 @@ internal partial class TaskVm : ScopedVm
         Target = pickerVm.SelectedTarget;
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanEditTarget))]
     private void RemoveTarget() => Target = null;
 }

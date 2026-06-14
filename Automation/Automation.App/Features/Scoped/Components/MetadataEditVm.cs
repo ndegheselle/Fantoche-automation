@@ -34,6 +34,12 @@ internal partial class MetadataEditVm : ViewModelBase
     [ObservableProperty]
     private bool _isReadOnly;
 
+    /// <summary>
+    /// True when the edited element is read-only: the dialog can be opened to inspect the
+    /// metadata but the values cannot be changed or saved.
+    /// </summary>
+    public bool IsEditable => !IsReadOnly;
+
     [ObservableProperty]
     private string _newTag = "";
 
@@ -74,7 +80,7 @@ internal partial class MetadataEditVm : ViewModelBase
 
     partial void OnNameChanged(string value) => ClearErrors(nameof(Name));
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(IsEditable))]
     private void AddTag()
     {
         string tag = NewTag.Trim();
@@ -85,12 +91,16 @@ internal partial class MetadataEditVm : ViewModelBase
         NewTag = "";
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(IsEditable))]
     private void RemoveTag(string tag) => Tags.Remove(tag);
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(IsEditable))]
     private async Task Confirm()
     {
+        // Read-only elements cannot be saved; the command is disabled but guard anyway.
+        if (IsReadOnly)
+            return;
+
         Name = Name.Trim();
 
         bool isUnique = await _scopedService.IsNameUniqueAsync(

@@ -48,6 +48,10 @@ internal abstract partial class ScopedVm : ObservableObject
 
     private async Task ApplyEditAsync(Scoped.Components.MetadataEditVm editVm)
     {
+        // Read-only elements can be inspected but not saved.
+        if (Element.Metadata.IsReadOnly)
+            return;
+
         Element.Metadata = editVm.Build();
         OnPropertyChanged(nameof(Metadata));
         await _scopedService.EditAsync(Element);
