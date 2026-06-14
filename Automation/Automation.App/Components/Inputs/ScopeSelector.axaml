@@ -2,28 +2,37 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="80"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="200"
              xmlns:fonts="clr-namespace:Automation.App.Assets.Fonts"
              xmlns:converters="clr-namespace:Automation.App.Converters"
-             xmlns:scoped="clr-namespace:Automation.Shared.Data.Scoped;assembly=Automation.Shared"
+             xmlns:inputs="clr-namespace:Automation.App.Components.Inputs"
              x:Name="Root"
              x:Class="Automation.App.Components.Inputs.ScopeSelector">
     <StackPanel Spacing="4">
-        <ComboBox HorizontalAlignment="Stretch"
-                  PlaceholderText="{Binding #Root.PlaceholderText}"
-                  ItemsSource="{Binding #Root.Scopes}"
-                  SelectedItem="{Binding #Root.SelectedScope, Mode=TwoWay}">
-            <ComboBox.ItemTemplate>
-                <DataTemplate x:DataType="scoped:Scope">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <TextBlock Classes="LucideIcon"
-                                   VerticalAlignment="Center"
-                                   Text="{Binding Metadata, Converter={x:Static converters:ScopedTypeConverters.ToIcon}}" />
-                        <TextBlock VerticalAlignment="Center" Text="{Binding Metadata.Name}" />
-                    </StackPanel>
-                </DataTemplate>
-            </ComboBox.ItemTemplate>
-        </ComboBox>
+        <Border BorderBrush="{DynamicResource BorderColor}"
+                BorderThickness="1"
+                CornerRadius="{DynamicResource MdCornerRadius}"
+                MaxHeight="220">
+            <TreeView ItemsSource="{Binding #Root.Roots}"
+                      SelectedItem="{Binding #Root.SelectedNode, Mode=TwoWay}"
+                      BorderThickness="0">
+                <TreeView.Styles>
+                    <Style Selector="TreeViewItem" x:DataType="inputs:ScopeNode">
+                        <Setter Property="IsExpanded" Value="{Binding IsExpanded}" />
+                    </Style>
+                </TreeView.Styles>
+                <TreeView.DataTemplates>
+                    <TreeDataTemplate DataType="inputs:ScopeNode" ItemsSource="{Binding Children}">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Classes="LucideIcon"
+                                       VerticalAlignment="Center"
+                                       Text="{Binding Scope.Metadata, Converter={x:Static converters:ScopedTypeConverters.ToIcon}}" />
+                            <TextBlock VerticalAlignment="Center" Text="{Binding Scope.Metadata.Name}" />
+                        </StackPanel>
+                    </TreeDataTemplate>
+                </TreeView.DataTemplates>
+            </TreeView>
+        </Border>
 
         <Grid ColumnSpacing="4" ColumnDefinitions="* auto">
             <TextBox x:Name="PART_NewScope"
@@ -32,7 +41,7 @@
             <Button Grid.Column="1" Classes="Icon"
                     BorderBrush="{DynamicResource BorderColor}"
                     BorderThickness="1"
-                    ToolTip.Tip="Create scope"
+                    ToolTip.Tip="Create a scope inside the selected one"
                     Command="{Binding #Root.AddScopeCommand}">
                 <TextBlock Classes="LucideIcon"
                            Text="{x:Static fonts:LucideIconFont.Plus}" />

@@ -86,7 +86,9 @@ internal partial class PackagesPageVm : ObservableObject, INavigable
         if (string.IsNullOrEmpty(name))
             return;
 
-        var created = (Scope)await _scopedService.CreateAsync(new Scope(name, Scope.ROOT_SCOPE_ID));
+        // Create the new scope inside the currently selected one (root when none).
+        Guid parentId = SelectedScope?.Id ?? Scope.ROOT_SCOPE_ID;
+        var created = (Scope)await _scopedService.CreateAsync(new Scope(name, parentId));
         Scopes.Add(created);
         SelectedScope = created;
     }
