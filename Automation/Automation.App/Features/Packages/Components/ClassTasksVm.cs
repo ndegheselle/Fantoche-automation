@@ -17,8 +17,9 @@ using ShadUI;
 namespace Automation.App.Features.Packages.Components;
 
 /// <summary>
-/// Represents one row in the class/task management grid: a package class with its
-/// optional already-existing <see cref="AutomationTask"/>.
+/// Represents one row in the class/task management grid: a package class together with
+/// every <see cref="AutomationTask"/> that already targets it (same package + version +
+/// class name). Zero entries means no task exists yet.
 /// </summary>
 internal partial class ClassTaskRow : ObservableObject
 {
@@ -31,14 +32,22 @@ internal partial class ClassTaskRow : ObservableObject
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasTask))]
-    private AutomationTask? _existingTask;
+    [NotifyPropertyChangedFor(nameof(TaskStatusLabel))]
+    private IReadOnlyList<AutomationTask> _existingTasks;
 
-    public bool HasTask => ExistingTask != null;
+    public bool HasTask => ExistingTasks.Count > 0;
 
-    public ClassTaskRow(ClassTarget classTarget, AutomationTask? existingTask)
+    public string TaskStatusLabel => ExistingTasks.Count switch
+    {
+        0 => "",
+        1 => "1 task",
+        _ => $"{ExistingTasks.Count} tasks"
+    };
+
+    public ClassTaskRow(ClassTarget classTarget, IReadOnlyList<AutomationTask> existingTasks)
     {
         ClassTarget = classTarget;
-        _existingTask = existingTask;
+        _existingTasks = existingTasks;
     }
 }
 
@@ -88,12 +97,16 @@ internal partial class ClassTasksVm : ObservableObject, INavigable
             var existingTasks = await _scopedService.GetTasksByTargetAsync(
                 _packageIdentifier.Id, _packageIdentifier.Version);
 
+            var tasksByClass = existingTasks
+                .Where(t => t.Target != null)
+                .GroupBy(t => t.Target!.ClassFullName, StringComparer.Ordinal)
+                .ToDictionary(g => g.Key, g => (IReadOnlyList<AutomationTask>)g.ToList());
+
             Rows.Clear();
             foreach (var cls in _classes)
             {
-                var existing = existingTasks.FirstOrDefault(t =>
-                    string.Equals(t.Target?.ClassFullName, cls.ClassFullName, StringComparison.Ordinal));
-                Rows.Add(new ClassTaskRow(cls, existing));
+                tasksByClass.TryGetValue(cls.ClassFullName, out var tasks);
+                Rows.Add(new ClassTaskRow(cls, tasks ?? []));
             }
         }
         finally
@@ -111,48 +124,57 @@ internal partial class ClassTasksVm : ObservableObject, INavigable
         if (toUpdate.Count == 0 && toCreate.Count == 0)
             return;
 
+        if (toUpdate.Count > 0 && toCreate.Count > 0)
+        {
+            _toasts.Warning(
+                "Mixed selection",
+                "Select either classes that already have tasks (to update them) or classes without tasks (to create them) — not both at once.");
+            return;
+        }
+
         if (toUpdate.Count > 0)
         {
-            string body = toUpdate.Count == 1
+            int taskCount = toUpdate.Sum(r => r.ExistingTasks.Count);
+            string body = taskCount == 1
                 ? "This will update 1 existing task."
-                : $"This will update {toUpdate.Count} existing tasks.";
+                : $"This will update {taskCount} existing tasks.";
 
             ServiceProvider.Dialogs
                 .CreateDialog("Update existing tasks?", body)
-                .WithPrimaryButton("Update", () => PickScopeAndApply(toCreate, toUpdate), DialogButtonStyle.Destructive)
+                .WithPrimaryButton("Update", () => _ = UpdateAsync(toUpdate), DialogButtonStyle.Destructive)
                 .WithCancelButton("Cancel")
                 .WithMaxWidth(480)
                 .Show();
         }
         else
         {
-            PickScopeAndApply(toCreate, []);
-        }
-    }
-
-    private void PickScopeAndApply(List<ClassTaskRow> toCreate, List<ClassTaskRow> toUpdate)
-    {
-        if (toCreate.Count > 0)
-        {
             var scopeVm = new ScopeSelectorVm(_scopedService);
             ServiceProvider.Dialogs
                 .CreateDialog(scopeVm)
-                .WithSuccessCallback(() => _ = ExecuteAsync(toCreate, toUpdate, scopeVm.SelectedScope!))
+                .WithSuccessCallback(() => _ = CreateAsync(toCreate, scopeVm.SelectedScope!))
                 .WithMaxWidth(520)
                 .Show();
         }
-        else
-        {
-            _ = ExecuteAsync([], toUpdate, null);
-        }
     }
 
-    private async Task ExecuteAsync(List<ClassTaskRow> toCreate, List<ClassTaskRow> toUpdate, Scope? targetScope)
+    private async Task UpdateAsync(List<ClassTaskRow> toUpdate)
+    {
+        foreach (var row in toUpdate)
+        {
+            foreach (var task in row.ExistingTasks)
+                await _scopedService.EditAsync(task);
+            row.IsSelected = false;
+        }
+
+        _toasts.Success("Tasks updated", $"Updated {toUpdate.Sum(r => r.ExistingTasks.Count)} task(s).");
+    }
+
+    private async Task CreateAsync(List<ClassTaskRow> toCreate, Scope targetScope)
     {
         foreach (var row in toCreate)
         {
             string shortName = row.ClassTarget.ClassFullName.Split('.').Last();
-            var task = new AutomationTask(shortName, targetScope!.Id)
+            var task = new AutomationTask(shortName, targetScope.Id)
             {
                 Target = new PackageClassTarget(_packageIdentifier, row.ClassTarget.ClassFullName)
                 {
@@ -160,17 +182,11 @@ internal partial class ClassTasksVm : ObservableObject, INavigable
                 }
             };
             var created = (AutomationTask)await _scopedService.CreateAsync(task);
-            row.ExistingTask = created;
+            row.ExistingTasks = [..row.ExistingTasks, created];
             row.IsSelected = false;
         }
 
-        foreach (var row in toUpdate)
-        {
-            await _scopedService.EditAsync(row.ExistingTask!);
-            row.IsSelected = false;
-        }
-
-        _toasts.Success("Tasks updated", "Tasks have been successfully created or updated.");
+        _toasts.Success("Tasks created", $"Created {toCreate.Count} task(s) in '{targetScope.Metadata.Name}'.");
     }
 
     [RelayCommand]
@@ -182,20 +198,17 @@ internal class ClassTasksVmDesign : ClassTasksVm
     public ClassTasksVmDesign() : base(null!, null!, null!, new PackageIdentifier { Id = "MyCompany.Utils", Version = new Version("1.0.0") }, [])
     {
         var identifier = new PackageIdentifier { Id = "MyCompany.Utils", Version = new Version("1.0.0") };
+        var target = new PackageClassTarget(identifier, "MyCompany.Utils.HttpTask") { Dll = "MyCompany.Utils.dll" };
 
-        var existingTask = new AutomationTask("HttpTask", Guid.NewGuid())
-        {
-            Target = new PackageClassTarget(identifier, "MyCompany.Utils.HttpTask") { Dll = "MyCompany.Utils.dll" }
-        };
-
-        Rows.Add(new ClassTaskRow(
-            new PackageClassTarget(identifier, "MyCompany.Utils.HttpTask") { Dll = "MyCompany.Utils.dll" },
-            existingTask));
+        Rows.Add(new ClassTaskRow(target, [
+            new AutomationTask("HttpTask", Guid.NewGuid()) { Target = target },
+            new AutomationTask("HttpTask (copy)", Guid.NewGuid()) { Target = target }
+        ]));
         Rows.Add(new ClassTaskRow(
             new PackageClassTarget(identifier, "MyCompany.Utils.FileTask") { Dll = "MyCompany.Utils.dll" },
-            null));
+            []));
         Rows.Add(new ClassTaskRow(
             new PackageClassTarget(identifier, "MyCompany.Utils.Extra.MailTask") { Dll = "MyCompany.Utils.Extra.dll" },
-            null));
+            []));
     }
 }

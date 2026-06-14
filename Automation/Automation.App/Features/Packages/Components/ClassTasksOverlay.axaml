@@ -67,7 +67,7 @@
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate DataType="components:ClassTaskRow">
                                     <shadui:Badge IsVisible="{Binding HasTask}"
-                                                 Content="Task exists"
+                                                 Content="{Binding TaskStatusLabel}"
                                                  HorizontalAlignment="Left"
                                                  VerticalAlignment="Center" />
                                 </DataTemplate>
