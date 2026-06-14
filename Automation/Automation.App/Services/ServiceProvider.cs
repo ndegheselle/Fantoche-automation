@@ -49,5 +49,14 @@ internal static class ServiceProvider
     }
 
     public static IScopedService Scoped => new LocalScopedService();
+
+    public static ITasksService Tasks
+    {
+        get
+        {
+            string nuggetLocalPath = Path.Join(Directory.GetCurrentDirectory(), "nugetlocal");
+            return new LocalTasksService(nuggetLocalPath);
+        }
+    }
     #endregion
 }

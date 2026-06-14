@@ -18,6 +18,7 @@ namespace Automation.App.Features.Packages;
 internal partial class PackagesPageVm : ObservableObject, INavigable
 {
     private readonly IPackagesService _packagesService;
+    private readonly ITasksService _tasksService;
 
     private bool _suppressReload;
     private CancellationTokenSource? _cts;
@@ -26,12 +27,14 @@ internal partial class PackagesPageVm : ObservableObject, INavigable
     private readonly NavigationManager _navigation;
 
     public PackagesPageVm(IPackagesService packagesService,
+        ITasksService tasksService,
         DialogManager dialogManager,
         ToastDisplay toastManager,
         NavigationManager navigation)
     {
         _toasts = toastManager;
         _packagesService = packagesService;
+        _tasksService = tasksService;
         _dialogManager = dialogManager;
         _navigation = navigation;
     }
@@ -125,6 +128,10 @@ internal partial class PackagesPageVm : ObservableObject, INavigable
             try
             {
                 var added = await _packagesService.AddAsync(file);
+
+                // Keep the read-only catalog tasks in sync with the latest version.
+                await _tasksService.SyncPackageAsync(added.Infos.Identifier.Id);
+
                 if (added.Warnings.Count > 0)
                     _toasts.Warning("Package created",  string.Join('\n', added.Warnings.Select(x => x.Message)));
                 else
@@ -142,7 +149,7 @@ internal partial class PackagesPageVm : ObservableObject, INavigable
     [RelayCommand]
     private void ShowDetails(PackageInfos package)
     {
-        var detailsVm = new PackageDetailsVm(_packagesService, _navigation, _dialogManager, _toasts, package);
+        var detailsVm = new PackageDetailsVm(_packagesService, _tasksService, _navigation, _dialogManager, _toasts, package);
         _navigation.Overlay(detailsVm, () => _ = RefreshAsync());
     }
 }
@@ -152,7 +159,7 @@ internal partial class PackagesPageVm : ObservableObject, INavigable
 /// </summary>
 internal class PackagesPageVMDesign : PackagesPageVm
 {
-    public PackagesPageVMDesign() : base(null!, null!, null!, null!)
+    public PackagesPageVMDesign() : base(null!, null!, null!, null!, null!)
     {
         Items.Add(new PackageInfos
         {

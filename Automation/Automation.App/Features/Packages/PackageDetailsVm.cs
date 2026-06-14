@@ -14,17 +14,20 @@ namespace Automation.App.Features.Packages;
 internal partial class PackageDetailsVm : ObservableObject, INavigable
 {
     private readonly IPackagesService _packagesService;
+    private readonly ITasksService _tasksService;
     private readonly NavigationManager _navigation;
     private readonly DialogManager _dialogManager;
     private readonly ToastDisplay _toasts;
 
     public PackageDetailsVm(IPackagesService packagesService,
+        ITasksService tasksService,
         NavigationManager navigation,
         DialogManager dialogManager,
         ToastDisplay toasts,
         PackageInfos package)
     {
         _packagesService = packagesService;
+        _tasksService = tasksService;
         _navigation = navigation;
         _dialogManager = dialogManager;
         _toasts = toasts;
@@ -104,6 +107,10 @@ internal partial class PackageDetailsVm : ObservableObject, INavigable
     {
         await _packagesService.RemoveAsync(Package.Identifier.Id, version);
 
+        // Repoint the read-only catalog tasks at the new latest version (or drop them
+        // entirely when the package no longer has any version).
+        await _tasksService.RemovePackageVersionAsync(Package.Identifier.Id, version);
+
         Versions.Remove(version);
 
         if (Versions.Count == 0)
@@ -123,7 +130,7 @@ internal partial class PackageDetailsVm : ObservableObject, INavigable
 /// </summary>
 internal class PackageDetailsVMDesign : PackageDetailsVm
 {
-    public PackageDetailsVMDesign() : base(null!, null!, null!, null!, new PackageInfos
+    public PackageDetailsVMDesign() : base(null!, null!, null!, null!, null!, new PackageInfos
     {
         Identifier = new PackageIdentifier { Id = "MyCompany.Utils", Version = new System.Version("1.0.0") },
         Description = "Utility helpers"
