@@ -1,6 +1,8 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
+using Automation.App.Features.Packages.Components;
+using Automation.App.Services;
 using Automation.App.Services.UI;
 using Automation.Shared.Data.Execution;
 using Automation.Shared.Services;
@@ -81,6 +83,16 @@ internal partial class PackageDetailsVm : ObservableObject, INavigable
         {
             IsLoading = false;
         }
+    }
+
+    [RelayCommand]
+    private void ManageTasks()
+    {
+        var vm = new ClassTasksVm(ServiceProvider.Scoped, Package.Identifier, Classes);
+        _dialogManager
+            .CreateDialog(vm)
+            .WithSuccessCallback(() => _toasts.Success("Tasks updated", "Tasks have been successfully created or updated."))
+            .Show();
     }
 
     [RelayCommand]

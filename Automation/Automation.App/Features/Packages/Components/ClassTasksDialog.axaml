@@ -1,0 +1,80 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:shadui="clr-namespace:ShadUI;assembly=ShadUI"
+             xmlns:fonts="clr-namespace:Automation.App.Assets.Fonts"
+             xmlns:components="clr-namespace:Automation.App.Features.Packages.Components"
+             x:DataType="components:ClassTasksVm"
+             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="480"
+             x:Class="Automation.App.Features.Packages.Components.ClassTasksDialog">
+    <Design.DataContext>
+        <components:ClassTasksVmDesign />
+    </Design.DataContext>
+
+    <Grid RowDefinitions="auto * auto" RowSpacing="8" Margin="16" Width="600" Height="480">
+
+        <StackPanel Spacing="2">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Classes="LucideIcon" VerticalAlignment="Center"
+                           Text="{x:Static fonts:LucideIconFont.ListCheck}" />
+                <TextBlock Classes="h4" VerticalAlignment="Center" Text="Manage tasks" />
+            </StackPanel>
+            <TextBlock Classes="Caption"
+                       Foreground="{DynamicResource MutedColor}"
+                       Text="Select classes to create or update their associated tasks." />
+        </StackPanel>
+
+        <Panel Grid.Row="1">
+            <DataGrid
+                x:Name="ClassesList"
+                ItemsSource="{Binding GroupedRows}"
+                CanUserReorderColumns="False"
+                CanUserSortColumns="False"
+                GridLinesVisibility="Horizontal"
+                SelectionMode="Single">
+
+                <DataGrid.RowGroupTheme>
+                    <ControlTheme TargetType="DataGridRowGroupHeader"
+                                  BasedOn="{StaticResource {x:Type DataGridRowGroupHeader}}">
+                        <Setter Property="IsItemCountVisible" Value="True" />
+                    </ControlTheme>
+                </DataGrid.RowGroupTheme>
+
+                <DataGrid.Columns>
+                    <DataGridCheckBoxColumn x:DataType="components:ClassTaskRow"
+                                           Width="44" CanUserResize="False"
+                                           Binding="{Binding IsSelected}" />
+
+                    <DataGridTextColumn x:DataType="components:ClassTaskRow"
+                                        Header="Class" Width="*"
+                                        IsReadOnly="True"
+                                        Binding="{Binding ClassTarget.ClassFullName}" />
+
+                    <DataGridTemplateColumn Header="Status" Width="130" CanUserResize="False">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate DataType="components:ClassTaskRow">
+                                <shadui:Badge IsVisible="{Binding HasTask}"
+                                             Content="Task exists"
+                                             HorizontalAlignment="Left"
+                                             VerticalAlignment="Center" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <shadui:BusyArea IsBusy="{Binding IsLoading}" />
+        </Panel>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+            <Button Classes="Outline" Content="Cancel" Command="{Binding CancelCommand}" />
+            <Button Classes="Primary" Content="Apply" Command="{Binding ApplyCommand}">
+                <shadui:ButtonAssist.Icon>
+                    <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.Wand}" />
+                </shadui:ButtonAssist.Icon>
+            </Button>
+        </StackPanel>
+
+    </Grid>
+</UserControl>

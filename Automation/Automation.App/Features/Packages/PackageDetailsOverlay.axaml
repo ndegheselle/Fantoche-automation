@@ -71,7 +71,19 @@
                 </DataGrid.Columns>
             </DataGrid>
 
-            <Panel Grid.Row="2">
+            <Grid Grid.Row="2" RowDefinitions="auto *" RowSpacing="4">
+                <Button Grid.Row="0"
+                        Classes="Outline"
+                        HorizontalAlignment="Right"
+                        IsVisible="{Binding !IsEmpty}"
+                        Command="{Binding ManageTasksCommand}"
+                        Content="Manage tasks">
+                    <shadui:ButtonAssist.Icon>
+                        <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.ListCheck}" />
+                    </shadui:ButtonAssist.Icon>
+                </Button>
+
+            <Panel Grid.Row="1">
                 <Border IsVisible="{Binding IsEmpty}"
                         BorderBrush="{DynamicResource WarningColor20}"
                         BorderThickness="1"
@@ -112,6 +124,7 @@
                 </DataGrid>
             </Panel>
 
+            </Grid>
 
         </Grid>
         <shadui:BusyArea IsBusy="{Binding IsLoading}" />
