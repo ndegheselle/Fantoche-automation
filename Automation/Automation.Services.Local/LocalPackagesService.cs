@@ -22,24 +22,13 @@ public class LocalPackagesService : IPackagesService
     public async Task<PackageAdded> AddAsync(string filePath)
     {
         var infos = await _packages.AddAsync(filePath);
-        
-        // Check if the package contain tasks
-        var dllsPaths = await _packages.DownloadAllDllsIfMissing(infos.Identifier.Id, infos.Identifier.Version);
-        List<string> classes = [];
-        foreach (var path in dllsPaths)
-        {
-            using TaskLoader loader = new TaskLoader(path);
-            classes.AddRange(loader.GetClasses());
-        }
 
-        List<Warning> warnings = [];
-        if (classes.Count == 0)
-            warnings = [new Warning("packages.add.warnings.noTasks", "This package doesn't contain any compatible task.")];
-        
+        // The package assemblies are loaded (and validated for tasks) once by the tasks
+        // service when it builds the catalog tasks, so we don't enumerate them here.
         return new PackageAdded()
         {
             Infos = infos,
-            Warnings = warnings,
+            Warnings = [],
         };
     }
 

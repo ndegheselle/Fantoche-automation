@@ -45,14 +45,14 @@ public class LocalTasksService : ITasksService
         }
     }
 
-    public async Task SyncPackageAsync(string packageId)
+    public async Task<List<AutomationTask>> SyncPackageAsync(string packageId)
     {
         var latest = (await _packages.GetVersionsAsync(packageId)).FirstOrDefault();
         if (latest == null)
         {
             // Nothing published anymore, drop whatever was generated for it.
             RemovePackageTasks(packageId);
-            return;
+            return [];
         }
 
         var identifier = new PackageIdentifier { Id = packageId, Version = latest };
@@ -63,10 +63,12 @@ public class LocalTasksService : ITasksService
         {
             string dll = Path.GetFileName(path);
             using TaskLoader loader = new TaskLoader(path);
-            foreach (var className in loader.GetClasses())
+            // Enumerate the types once and instantiate from the resolved Type instead of
+            // re-resolving each class by name (loading the assembly is the heavy part).
+            foreach (var type in loader.GetTypes())
             {
-                var task = BuildCatalogTask(identifier, className, dll);
-                TryApplySchema(loader, className, task);
+                var task = BuildCatalogTask(identifier, type.FullName ?? "", dll);
+                TryApplySchema(type, task);
                 generated.Add(task);
             }
         }
@@ -84,6 +86,8 @@ public class LocalTasksService : ITasksService
             foreach (var task in generated)
                 _catalog[task.Id] = task;
         }
+
+        return generated;
     }
 
     public async Task RemovePackageVersionAsync(string packageId, Version version)
@@ -111,12 +115,12 @@ public class LocalTasksService : ITasksService
         };
     }
 
-    private static void TryApplySchema(TaskLoader loader, string className, AutomationTask task)
+    private static void TryApplySchema(Type type, AutomationTask task)
     {
         try
         {
-            ITask packageTask = loader.CreateInstance(className);
-            task.UpdateFromTask(packageTask);
+            if (Activator.CreateInstance(type) is ITask packageTask)
+                task.UpdateFromTask(packageTask);
         }
         catch
         {

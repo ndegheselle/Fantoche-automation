@@ -129,11 +129,16 @@ internal partial class PackagesPageVm : ObservableObject, INavigable
             {
                 var added = await _packagesService.AddAsync(file);
 
-                // Keep the read-only catalog tasks in sync with the latest version.
-                await _tasksService.SyncPackageAsync(added.Infos.Identifier.Id);
+                // Building the read-only catalog tasks loads the package once; reuse the
+                // result to tell whether it exposed any compatible task.
+                var tasks = await _tasksService.SyncPackageAsync(added.Infos.Identifier.Id);
 
-                if (added.Warnings.Count > 0)
-                    _toasts.Warning("Package created",  string.Join('\n', added.Warnings.Select(x => x.Message)));
+                var warnings = added.Warnings.Select(x => x.Message).ToList();
+                if (tasks.Count == 0)
+                    warnings.Add("This package doesn't contain any compatible task.");
+
+                if (warnings.Count > 0)
+                    _toasts.Warning("Package created", string.Join('\n', warnings));
                 else
                     _toasts.Success("Package created successfully", $"The package {added.Infos.Identifier} has been created.");
             }
