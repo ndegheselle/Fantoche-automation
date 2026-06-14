@@ -1,4 +1,5 @@
-﻿using Automation.Shared.Data.Scoped;
+﻿using Automation.Shared.Data.Execution;
+using Automation.Shared.Data.Scoped;
 using Automation.Shared.Services;
 
 namespace Automation.Services.Local;
@@ -59,5 +60,16 @@ public class LocalScopedService : IScopedService
             x.Id != excludeId &&
             string.Equals(x.Metadata.Name, name, StringComparison.OrdinalIgnoreCase));
         return Task.FromResult(unique);
+    }
+
+    public Task<List<AutomationTask>> GetTasksByTargetAsync(string packageId, Version version)
+    {
+        var tasks = _elements.Values
+            .OfType<AutomationTask>()
+            .Where(t => t.Target is PackageClassTarget pct &&
+                        pct.Package.Id == packageId &&
+                        pct.Package.Version == version)
+            .ToList();
+        return Task.FromResult(tasks);
     }
 }

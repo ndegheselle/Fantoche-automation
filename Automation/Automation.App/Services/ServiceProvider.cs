@@ -25,6 +25,7 @@ internal static class ServiceProvider
         var manager = new DialogManager();
         manager.Register<MetadataEditDialog, MetadataEditVm>();
         manager.Register<TaskTargetPickerDialog, TaskTargetPickerVm>();
+        manager.Register<ScopeSelectorDialog, ScopeSelectorVm>();
         return manager;
     }
 

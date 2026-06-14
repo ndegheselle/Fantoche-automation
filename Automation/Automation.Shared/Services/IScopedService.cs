@@ -1,4 +1,5 @@
-﻿using Automation.Shared.Data.Scoped;
+﻿using Automation.Shared.Data.Execution;
+using Automation.Shared.Data.Scoped;
 
 namespace Automation.Shared.Services;
 
@@ -13,6 +14,11 @@ public interface IScopedService
     /// Search in all tasks.
     /// </summary>
     public Task<List<BaseAutomationTask>> Search(string search = "");
+
+    /// <summary>
+    /// Get all <see cref="AutomationTask"/> whose target points at [packageId] / [version].
+    /// </summary>
+    public Task<List<AutomationTask>> GetTasksByTargetAsync(string packageId, Version version);
 
     /// <summary>
     /// Create a new element.
