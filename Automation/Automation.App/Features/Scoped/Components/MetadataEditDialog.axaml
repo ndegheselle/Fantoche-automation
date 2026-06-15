@@ -21,9 +21,11 @@
         </StackPanel>
 
         <Grid ColumnSpacing="4" ColumnDefinitions="auto *">
-            <inputs:IconPicker SelectedIcon="{Binding SelectedIcon, Mode=TwoWay}" />
+            <inputs:IconPicker SelectedIcon="{Binding SelectedIcon, Mode=TwoWay}"
+                               IsReadOnly="{Binding IsReadOnly}" />
 
-            <ColorPicker Grid.Column="1" 
+            <ColorPicker Grid.Column="1"
+                         IsVisible="{Binding !IsReadOnly}"
                          Color="{Binding SelectedColor, Converter={x:Static converters:StringToColor.Instance}, Mode=TwoWay}"
                          HorizontalAlignment="Stretch">
                 <StackPanel Orientation="Horizontal" Spacing="8">
@@ -41,16 +43,55 @@
                         VerticalAlignment="Center" />
                 </StackPanel>
             </ColorPicker>
+
+            <Border Grid.Column="1" IsVisible="{Binding IsReadOnly}"
+                    BorderBrush="{DynamicResource BorderColor}" BorderThickness="1"
+                    CornerRadius="{StaticResource LgCornerRadius}"
+                    Padding="6,4">
+                <Panel VerticalAlignment="Center">
+                    <!-- Explicit color set on the element. -->
+                    <StackPanel IsVisible="{Binding SelectedColor, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                Orientation="Horizontal" Spacing="8">
+                        <Border
+                            Background="{Binding SelectedColor,
+                                             Converter={x:Static converters:StringToBrush.Instance}}"
+                            CornerRadius="{DynamicResource SmCornerRadius}"
+                            Height="20"
+                            Width="20" />
+                        <TextBlock
+                            Classes="Small"
+                            Text="{Binding SelectedColor}"
+                            VerticalAlignment="Center" />
+                    </StackPanel>
+
+                    <!-- No color: fall back to the theme foreground, like the icon does. -->
+                    <StackPanel IsVisible="{Binding SelectedColor, Converter={x:Static ObjectConverters.IsNull}}"
+                                Orientation="Horizontal" Spacing="8">
+                        <Border
+                            Background="{DynamicResource ForegroundColor}"
+                            CornerRadius="{DynamicResource SmCornerRadius}"
+                            Height="20"
+                            Width="20" />
+                        <TextBlock
+                            Classes="Small Muted"
+                            Text="Default"
+                            VerticalAlignment="Center" />
+                    </StackPanel>
+                </Panel>
+            </Border>
         </Grid>
 
         <TextBox PlaceholderText="Name"
-                 Text="{Binding Name}" />
+                 Text="{Binding Name}"
+                 IsReadOnly="{Binding IsReadOnly}" />
 
-        <inputs:TagsSelector Tags="{Binding Tags}" PlaceholderText="Add a tag" />
-        
+        <inputs:TagsSelector Tags="{Binding Tags}" PlaceholderText="Add a tag"
+                             IsReadOnly="{Binding IsReadOnly}" />
+
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
             <Button Classes="Outline" Content="Cancel" Command="{Binding CancelCommand}" />
-            <Button Classes="Primary" Content="Save" Command="{Binding ConfirmCommand}" />
+            <Button Classes="Primary" Content="Save" Command="{Binding ConfirmCommand}"
+                    IsEnabled="{Binding !IsReadOnly}" />
         </StackPanel>
     </StackPanel>
 </UserControl>

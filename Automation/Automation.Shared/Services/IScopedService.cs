@@ -16,9 +16,10 @@ public interface IScopedService
     public Task<List<BaseAutomationTask>> Search(string search = "");
 
     /// <summary>
-    /// Get all <see cref="AutomationTask"/> whose target points at [packageId] / [version].
+    /// Get all <see cref="AutomationTask"/> whose target points at the package [packageId],
+    /// regardless of the targeted version.
     /// </summary>
-    public Task<List<AutomationTask>> GetTasksByTargetAsync(string packageId, Version version);
+    public Task<List<AutomationTask>> GetTasksByPackageAsync(string packageId);
 
     /// <summary>
     /// Create a new element.

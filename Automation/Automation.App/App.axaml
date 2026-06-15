@@ -3,6 +3,18 @@
              x:Class="Automation.App.App"
              xmlns:shadui="clr-namespace:ShadUI;assembly=ShadUI"
              RequestedThemeVariant="Default">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Light">
+                    <Color x:Key="BackgroundColor">#FFFFFF</Color>
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Dark">
+                    <Color x:Key="BackgroundColor">#000000</Color>
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
     <Application.Styles>
         <shadui:ShadTheme />
         <StyleInclude Source="avares://Automation.App/Styles/Index.axaml" />

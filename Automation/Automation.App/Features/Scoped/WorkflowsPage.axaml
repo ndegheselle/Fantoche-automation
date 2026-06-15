@@ -13,7 +13,7 @@
              xmlns:scopedUi="clr-namespace:Automation.App.Features.Scoped"
              x:DataType="scopedUi:WorkflowsPageVm"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="Automation.App.Features.Workflows.WorkflowsPage">
+             x:Class="Automation.App.Features.Scoped.WorkflowsPage">
     <Grid Margin="4" ColumnSpacing="2">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="200" MinWidth="100" />
@@ -62,8 +62,7 @@
 
             <Panel Grid.Row="1">
                 <TreeView ItemsSource="{Binding Root.Children}"
-                          SelectedItem="{Binding Selected, Mode=TwoWay}"
-                          BorderThickness="0">
+                          SelectedItem="{Binding Selected, Mode=TwoWay}">
                     <TreeView.DataTemplates>
                         <TreeDataTemplate DataType="scopes:ScopeVm" ItemsSource="{Binding Children}">
                             <components:ElementLabel />

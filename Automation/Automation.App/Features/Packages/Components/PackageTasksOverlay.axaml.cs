@@ -2,9 +2,9 @@ using Avalonia.Controls;
 
 namespace Automation.App.Features.Packages.Components;
 
-public partial class ClassTasksOverlay : UserControl
+public partial class PackageTasksOverlay : UserControl
 {
-    public ClassTasksOverlay()
+    public PackageTasksOverlay()
     {
         InitializeComponent();
     }

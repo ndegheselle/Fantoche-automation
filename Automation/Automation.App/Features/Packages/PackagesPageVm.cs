@@ -4,6 +4,8 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Automation.App.Features.Packages.Components;
+using Automation.App.Services;
 using Automation.App.Services.UI;
 using Avalonia.Collections;
 using Automation.Shared.Base;
@@ -129,6 +131,11 @@ internal partial class PackagesPageVm : ObservableObject, INavigable
                     _toasts.Warning("Package created",  string.Join('\n', added.Warnings.Select(x => x.Message)));
                 else
                     _toasts.Success("Package created successfully", $"The package {added.Infos.Identifier} has been created.");
+
+                // Let the user create or update tasks for the freshly added package.
+                var tasksVm = new PackageTasksVm(
+                    ServiceProvider.Scoped, _packagesService, _navigation, _toasts, added.Infos);
+                _navigation.Overlay(tasksVm);
             }
             catch (PackageValidationException ex)
             {

@@ -1,0 +1,164 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:shadui="clr-namespace:ShadUI;assembly=ShadUI"
+             xmlns:fonts="clr-namespace:Automation.App.Assets.Fonts"
+             xmlns:inputs="clr-namespace:Automation.App.Components.Inputs"
+             xmlns:components="clr-namespace:Automation.App.Features.Packages.Components"
+             x:DataType="components:PackageTasksVm"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             Background="{DynamicResource BackgroundColor}"
+             x:Class="Automation.App.Features.Packages.Components.PackageTasksOverlay">
+    <Design.DataContext>
+        <components:PackageTasksVmDesign />
+    </Design.DataContext>
+    <Panel Background="{DynamicResource CardBackgroundColor}">
+        <Grid RowDefinitions="auto * auto" RowSpacing="8" Margin="8">
+
+            <Grid ColumnDefinitions="* auto">
+                <StackPanel Spacing="2">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Classes="LucideIcon" VerticalAlignment="Center"
+                                   Text="{x:Static fonts:LucideIconFont.ListCheck}" />
+                        <TextBlock Classes="h4" VerticalAlignment="Center" Text="Set up tasks" />
+                    </StackPanel>
+                    <TextBlock Classes="Caption"
+                               Foreground="{DynamicResource MutedColor}"
+                               Text="Create tasks for new classes or update existing ones to the new version." />
+                </StackPanel>
+                <Button Grid.Column="1"
+                        Classes="Ghost"
+                        CornerRadius="{DynamicResource MdCornerRadius}"
+                        Command="{Binding BackCommand}"
+                        Content="Back">
+                    <shadui:ButtonAssist.Icon>
+                        <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.ArrowLeft}" />
+                    </shadui:ButtonAssist.Icon>
+                </Button>
+            </Grid>
+
+            <ScrollViewer Grid.Row="1">
+                <StackPanel Spacing="16">
+
+                    <!-- Empty state -->
+                    <Border IsVisible="{Binding IsEmpty}"
+                            BorderBrush="{DynamicResource WarningColor20}"
+                            BorderThickness="1"
+                            CornerRadius="{DynamicResource MdCornerRadius}"
+                            Padding="16">
+                        <StackPanel Orientation="Horizontal" Spacing="8"
+                                    HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock Classes="LucideIcon"
+                                       Foreground="{DynamicResource WarningColor}"
+                                       VerticalAlignment="Center"
+                                       Text="{x:Static fonts:LucideIconFont.AlertTriangle}" />
+                            <TextBlock Text="This package has no task classes."
+                                       Foreground="{DynamicResource WarningColor60}"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- New classes: create tasks -->
+                    <StackPanel Spacing="8" IsVisible="{Binding HasNewClasses}">
+                        <TextBlock Classes="h4" Text="New classes" />
+
+                        <Grid ColumnDefinitions="auto *" ColumnSpacing="8">
+                            <TextBlock VerticalAlignment="Center" Text="Create in" />
+                            <inputs:ScopeSelectorInput Grid.Column="1"
+                                                       SelectedScope="{Binding SelectedScope, Mode=TwoWay}" />
+                        </Grid>
+
+                        <DataGrid x:Name="NewClassesGrid"
+                                  ItemsSource="{Binding NewClasses}"
+                                  CanUserReorderColumns="False"
+                                  CanUserSortColumns="False"
+                                  GridLinesVisibility="Horizontal"
+                                  SelectionMode="Single">
+                            <DataGrid.Columns>
+                                <DataGridCheckBoxColumn x:DataType="components:NewClassRow"
+                                                        Width="44" CanUserResize="False" CanUserSort="False"
+                                                        Binding="{Binding IsSelected}">
+                                    <DataGridCheckBoxColumn.Header>
+                                        <CheckBox x:Name="NewClassesSelectToggler"
+                                                  Command="{Binding #NewClassesGrid.((components:PackageTasksVm)DataContext).ToggleNewClassesSelectionCommand}"
+                                                  CommandParameter="{Binding #NewClassesSelectToggler.IsChecked}"
+                                                  IsChecked="{Binding #NewClassesGrid.((components:PackageTasksVm)DataContext).SelectAllNewClasses}" />
+                                    </DataGridCheckBoxColumn.Header>
+                                </DataGridCheckBoxColumn>
+                                <DataGridTextColumn x:DataType="components:NewClassRow"
+                                                    Header="Class" Width="*"
+                                                    IsReadOnly="True"
+                                                    Binding="{Binding ClassFullName}" />
+                                <DataGridTextColumn x:DataType="components:NewClassRow"
+                                                    Header="Dll" Width="Auto"
+                                                    IsReadOnly="True"
+                                                    Binding="{Binding Dll}" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+
+                    <!-- Existing tasks: update to the new version -->
+                    <StackPanel Spacing="8" IsVisible="{Binding HasExistingTasks}">
+                        <TextBlock Classes="h4" Text="Existing tasks" />
+
+                        <DataGrid x:Name="ExistingTasksGrid"
+                                  ItemsSource="{Binding ExistingTasks}"
+                                  CanUserReorderColumns="False"
+                                  CanUserSortColumns="False"
+                                  GridLinesVisibility="Horizontal"
+                                  SelectionMode="Single">
+                            <DataGrid.Columns>
+                                <DataGridCheckBoxColumn x:DataType="components:ExistingTaskRow"
+                                                        Width="44" CanUserResize="False" CanUserSort="False"
+                                                        Binding="{Binding IsSelected}">
+                                    <DataGridCheckBoxColumn.Header>
+                                        <CheckBox x:Name="ExistingTasksSelectToggler"
+                                                  Command="{Binding #ExistingTasksGrid.((components:PackageTasksVm)DataContext).ToggleExistingTasksSelectionCommand}"
+                                                  CommandParameter="{Binding #ExistingTasksSelectToggler.IsChecked}"
+                                                  IsChecked="{Binding #ExistingTasksGrid.((components:PackageTasksVm)DataContext).SelectAllExistingTasks}" />
+                                    </DataGridCheckBoxColumn.Header>
+                                </DataGridCheckBoxColumn>
+                                <DataGridTextColumn x:DataType="components:ExistingTaskRow"
+                                                    Header="Task" Width="*"
+                                                    IsReadOnly="True"
+                                                    Binding="{Binding Name}" />
+                                <DataGridTextColumn x:DataType="components:ExistingTaskRow"
+                                                    Header="Class" Width="*"
+                                                    IsReadOnly="True"
+                                                    Binding="{Binding ClassFullName}" />
+                                <DataGridTemplateColumn Header="Version" Width="Auto" CanUserResize="False">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate DataType="components:ExistingTaskRow">
+                                            <StackPanel Orientation="Horizontal" Spacing="6"
+                                                        VerticalAlignment="Center" Margin="8,0">
+                                                <shadui:Badge Content="{Binding CurrentVersion}"
+                                                              VerticalAlignment="Center" />
+                                                <TextBlock Classes="LucideIcon" VerticalAlignment="Center"
+                                                           Text="{x:Static fonts:LucideIconFont.ArrowRight}" />
+                                                <shadui:Badge VerticalAlignment="Center"
+                                                              Content="{Binding #ExistingTasksGrid.((components:PackageTasksVm)DataContext).TargetVersion}" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+
+                </StackPanel>
+            </ScrollViewer>
+
+            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                <Button Classes="Primary" Content="Apply" Command="{Binding ApplyCommand}"
+                        IsVisible="{Binding !IsEmpty}">
+                    <shadui:ButtonAssist.Icon>
+                        <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.Wand}" />
+                    </shadui:ButtonAssist.Icon>
+                </Button>
+            </StackPanel>
+
+        </Grid>
+        <shadui:BusyArea IsBusy="{Binding IsLoading}" />
+    </Panel>
+</UserControl>

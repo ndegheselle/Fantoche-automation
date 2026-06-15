@@ -42,8 +42,7 @@
 
                                 <!-- Add child: default state -->
                                 <Button Grid.Column="1"
-                                        Classes="Ghost"
-                                        Padding="4"
+                                        Classes="Icon"
                                         IsVisible="{Binding !IsCreatingChild}"
                                         Command="{Binding BeginAddChildCommand}"
                                         ToolTip.Tip="New child scope">
@@ -57,12 +56,12 @@
                                     <TextBox Text="{Binding NewChildName, Mode=TwoWay}"
                                              PlaceholderText="Scope name"
                                              MinWidth="110" />
-                                    <Button Classes="Ghost" Padding="4"
+                                    <Button Classes="Icon" Padding="4"
                                             Command="{Binding ConfirmAddChildCommand}">
                                         <TextBlock Classes="LucideIcon"
                                                    Text="{x:Static fonts:LucideIconFont.Check}" />
                                     </Button>
-                                    <Button Classes="Ghost" Padding="4"
+                                    <Button Classes="Icon" Padding="4"
                                             Command="{Binding CancelAddChildCommand}">
                                         <TextBlock Classes="LucideIcon"
                                                    Text="{x:Static fonts:LucideIconFont.CircleX}" />

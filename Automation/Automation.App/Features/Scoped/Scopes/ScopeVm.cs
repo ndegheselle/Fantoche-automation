@@ -1,4 +1,6 @@
+using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using Automation.Shared.Data.Scoped;
 
@@ -21,7 +23,10 @@ internal class ScopeVm : ScopedVm
     {
         var children = await _scopedService.GetChildrens(Scope.Id);
         Children.Clear();
-        foreach (var child in children)
+        // Group by type (scopes, then workflows, then tasks) and order alphabetically within each.
+        foreach (var child in children
+                     .OrderBy(c => c.Metadata.Type)
+                     .ThenBy(c => c.Metadata.Name, StringComparer.OrdinalIgnoreCase))
         {
             Children.Add(From(child));
         }
@@ -30,6 +35,26 @@ internal class ScopeVm : ScopedVm
     public async Task AddChild(ScopedElement child)
     {
         child = await _scopedService.CreateAsync(child);
-        Children.Add(From(child));
+        var vm = From(child);
+        Children.Insert(FindSortedIndex(vm), vm);
+    }
+
+    /// <summary>
+    /// Index at which [item] should be inserted to keep <see cref="Children"/> ordered the same
+    /// way <see cref="LoadChildren"/> orders them (by type, then name).
+    /// </summary>
+    private int FindSortedIndex(ScopedVm item)
+    {
+        for (int i = 0; i < Children.Count; i++)
+        {
+            ScopedMetadata current = Children[i].Metadata;
+            int byType = item.Metadata.Type.CompareTo(current.Type);
+            int order = byType != 0
+                ? byType
+                : string.Compare(item.Metadata.Name, current.Name, StringComparison.OrdinalIgnoreCase);
+            if (order < 0)
+                return i;
+        }
+        return Children.Count;
     }
 }

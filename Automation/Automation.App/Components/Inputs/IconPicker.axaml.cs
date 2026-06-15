@@ -28,6 +28,18 @@ public partial class IconPicker : UserControl
         set => SetValue(SelectedIconProperty, value);
     }
 
+    /// <summary>
+    /// When <c>true</c>, the icon is displayed but the picker flyout can no longer be opened.
+    /// </summary>
+    public static readonly StyledProperty<bool> IsReadOnlyProperty =
+        AvaloniaProperty.Register<IconPicker, bool>(nameof(IsReadOnly));
+
+    public bool IsReadOnly
+    {
+        get => GetValue(IsReadOnlyProperty);
+        set => SetValue(IsReadOnlyProperty, value);
+    }
+
     public IconPicker()
     {
         InitializeComponent();

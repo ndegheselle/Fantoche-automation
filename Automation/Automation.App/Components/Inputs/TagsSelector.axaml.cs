@@ -30,6 +30,9 @@ public class TagsSelector : TemplatedControl
     public static readonly StyledProperty<bool> AllowDuplicatesProperty =
         AvaloniaProperty.Register<TagsSelector, bool>(nameof(AllowDuplicates));
 
+    public static readonly StyledProperty<bool> IsReadOnlyProperty =
+        AvaloniaProperty.Register<TagsSelector, bool>(nameof(IsReadOnly));
+
     // Routed events so consumers can react without owning the logic.
     public static readonly RoutedEvent<TagChangedEventArgs> TagAddedEvent =
         RoutedEvent.Register<TagsSelector, TagChangedEventArgs>(
@@ -69,6 +72,15 @@ public class TagsSelector : TemplatedControl
     {
         get => GetValue(AllowDuplicatesProperty);
         set => SetValue(AllowDuplicatesProperty, value);
+    }
+
+    /// <summary>
+    /// When <c>true</c>, the tags are displayed but can no longer be added or removed.
+    /// </summary>
+    public bool IsReadOnly
+    {
+        get => GetValue(IsReadOnlyProperty);
+        set => SetValue(IsReadOnlyProperty, value);
     }
 
     public ICommand AddTagCommand { get; }

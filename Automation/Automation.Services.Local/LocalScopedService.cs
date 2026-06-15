@@ -13,7 +13,7 @@ public class LocalScopedService : IScopedService
     {
         var scope = new Scope { Id = Guid.NewGuid(), ParentId = Scope.ROOT_SCOPE_ID, Metadata = new ScopedMetadata("Ingestion", EnumScopedType.Scope) };
         var workflow = new AutomationWorkflow { Id = Guid.NewGuid(), ParentId = Scope.ROOT_SCOPE_ID, Metadata = new ScopedMetadata("Daily import", EnumScopedType.Workflow) };
-        var task = new AutomationTask { Id = Guid.NewGuid(), ParentId = scope.Id, Metadata = new ScopedMetadata("Fetch files", EnumScopedType.Task) };
+        var task = new AutomationTask { Id = Guid.NewGuid(), ParentId = scope.Id, Metadata = new ScopedMetadata("Fetch files", EnumScopedType.Task) {IsReadOnly = true} };
 
         _elements.Add(scope.Id, scope);
         _elements.Add(workflow.Id, workflow);
@@ -62,13 +62,11 @@ public class LocalScopedService : IScopedService
         return Task.FromResult(unique);
     }
 
-    public Task<List<AutomationTask>> GetTasksByTargetAsync(string packageId, Version version)
+    public Task<List<AutomationTask>> GetTasksByPackageAsync(string packageId)
     {
         var tasks = _elements.Values
             .OfType<AutomationTask>()
-            .Where(t => t.Target is PackageClassTarget pct &&
-                        pct.Package.Id == packageId &&
-                        pct.Package.Version == version)
+            .Where(t => t.Target != null && t.Target.Package.Id == packageId)
             .ToList();
         return Task.FromResult(tasks);
     }

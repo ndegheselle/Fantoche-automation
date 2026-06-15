@@ -1,0 +1,34 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="320" d:DesignHeight="40"
+             xmlns:shadui="clr-namespace:ShadUI;assembly=ShadUI"
+             xmlns:fonts="clr-namespace:Automation.App.Assets.Fonts"
+             x:Name="Root"
+             x:Class="Automation.App.Components.Inputs.ScopeSelectorInput">
+    <Grid ColumnDefinitions="* auto" ColumnSpacing="4">
+        <Border BorderBrush="{DynamicResource BorderColor}"
+                BorderThickness="1"
+                CornerRadius="{DynamicResource MdCornerRadius}"
+                Padding="8,6"
+                VerticalAlignment="Stretch">
+            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                <TextBlock Classes="LucideIcon" VerticalAlignment="Center"
+                           Text="{x:Static fonts:LucideIconFont.FolderOpen}" />
+                <TextBlock VerticalAlignment="Center"
+                           Text="{Binding SelectedScope.Metadata.Name, ElementName=Root,
+                                          FallbackValue=Root, TargetNullValue=Root}" />
+            </StackPanel>
+        </Border>
+
+        <Button Grid.Column="1"
+                Classes="Outline"
+                Content="Change"
+                Click="OnChangeClick">
+            <shadui:ButtonAssist.Icon>
+                <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.FolderOpen}" />
+            </shadui:ButtonAssist.Icon>
+        </Button>
+    </Grid>
+</UserControl>

@@ -86,13 +86,6 @@ internal partial class PackageDetailsVm : ObservableObject, INavigable
     }
 
     [RelayCommand]
-    private void ManageTasks()
-    {
-        var vm = new ClassTasksVm(ServiceProvider.Scoped, _navigation, _toasts, Package.Identifier, Classes);
-        _navigation.Overlay(vm);
-    }
-
-    [RelayCommand]
     private void Back() => _navigation.Close(this);
 
     [RelayCommand]
@@ -117,7 +110,7 @@ internal partial class PackageDetailsVm : ObservableObject, INavigable
 
         if (Versions.Count == 0)
         {
-            _toasts.Warning("Package removed", $"All versions of {Package.Identifier.Id} have been removed. The package no longer exists.");
+            _toasts.Success("Package removed", $"All versions of {Package.Identifier.Id} have been removed. The package no longer exists.");
             _navigation.Close(this);
         }
         else
