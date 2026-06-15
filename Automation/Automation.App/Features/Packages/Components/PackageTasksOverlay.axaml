@@ -76,18 +76,26 @@
                                   GridLinesVisibility="Horizontal"
                                   SelectionMode="Single">
                             <DataGrid.Columns>
-                                <DataGridCheckBoxColumn x:DataType="components:NewClassRow"
-                                                        Width="44" CanUserResize="False" CanUserSort="False"
-                                                        Binding="{Binding IsSelected}">
+                                
+                                <DataGridTemplateColumn x:DataType="components:NewClassRow"
+                                                        Width="44" CanUserResize="False" CanUserSort="False">
                                     <DataGridCheckBoxColumn.Header>
                                         <CheckBox x:Name="NewClassesSelectToggler"
                                                   Command="{Binding #NewClassesGrid.((components:PackageTasksVm)DataContext).ToggleNewClassesSelectionCommand}"
                                                   CommandParameter="{Binding #NewClassesSelectToggler.IsChecked}"
                                                   IsChecked="{Binding #NewClassesGrid.((components:PackageTasksVm)DataContext).SelectAllNewClasses}" />
                                     </DataGridCheckBoxColumn.Header>
-                                </DataGridCheckBoxColumn>
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <CheckBox IsChecked="{Binding IsSelected}"
+                                                      HorizontalAlignment="Center"
+                                                      VerticalAlignment="Center" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                
                                 <DataGridTextColumn x:DataType="components:NewClassRow"
-                                                    Header="Class" Width="*"
+                                                    Header="Class" Width="Auto"
                                                     IsReadOnly="True"
                                                     Binding="{Binding ClassFullName}" />
                                 <DataGridTextColumn x:DataType="components:NewClassRow"
@@ -109,16 +117,23 @@
                                   GridLinesVisibility="Horizontal"
                                   SelectionMode="Single">
                             <DataGrid.Columns>
-                                <DataGridCheckBoxColumn x:DataType="components:ExistingTaskRow"
-                                                        Width="44" CanUserResize="False" CanUserSort="False"
-                                                        Binding="{Binding IsSelected}">
+                                <DataGridTemplateColumn x:DataType="components:ExistingTaskRow"
+                                                        Width="44" CanUserResize="False" CanUserSort="False">
                                     <DataGridCheckBoxColumn.Header>
                                         <CheckBox x:Name="ExistingTasksSelectToggler"
                                                   Command="{Binding #ExistingTasksGrid.((components:PackageTasksVm)DataContext).ToggleExistingTasksSelectionCommand}"
                                                   CommandParameter="{Binding #ExistingTasksSelectToggler.IsChecked}"
                                                   IsChecked="{Binding #ExistingTasksGrid.((components:PackageTasksVm)DataContext).SelectAllExistingTasks}" />
                                     </DataGridCheckBoxColumn.Header>
-                                </DataGridCheckBoxColumn>
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <CheckBox IsChecked="{Binding IsSelected}"
+                                                      HorizontalAlignment="Center"
+                                                      VerticalAlignment="Center" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                
                                 <DataGridTextColumn x:DataType="components:ExistingTaskRow"
                                                     Header="Task" Width="*"
                                                     IsReadOnly="True"
@@ -153,7 +168,7 @@
                 <Button Classes="Primary" Content="Apply" Command="{Binding ApplyCommand}"
                         IsVisible="{Binding !IsEmpty}">
                     <shadui:ButtonAssist.Icon>
-                        <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.Wand}" />
+                        <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.Check}" />
                     </shadui:ButtonAssist.Icon>
                 </Button>
             </StackPanel>

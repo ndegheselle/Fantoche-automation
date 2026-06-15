@@ -20,11 +20,11 @@
                                Foreground="{DynamicResource WarningColor}"
                                VerticalAlignment="Center"
                                Text="{x:Static fonts:LucideIconFont.AlertTriangle}" />
-                    <TextBlock Text="No target"
+                    <TextBlock Text="No task target"
                                Foreground="{DynamicResource WarningColor60}"
                                VerticalAlignment="Center" />
                 </StackPanel>
-                <Button Classes="Secondary" HorizontalAlignment="Center" Content="Select" Click="OnSelectClick">
+                <Button Classes="Ghost" HorizontalAlignment="Center" Content="Select" Click="OnSelectClick">
                     <shadui:ButtonAssist.Icon>
                         <TextBlock
                             Classes="LucideIcon"
