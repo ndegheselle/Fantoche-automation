@@ -24,6 +24,7 @@
     <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.2" />
     <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="Nodify.Avalonia" Version="1.0.2" />
     <PackageReference Include="ShadUI" Version="0.2.3" />
   </ItemGroup>
 

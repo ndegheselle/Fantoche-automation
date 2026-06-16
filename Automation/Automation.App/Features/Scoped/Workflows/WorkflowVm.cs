@@ -9,10 +9,11 @@ namespace Automation.App.Features.Scoped.Workflows;
 internal class WorkflowVm : ScopedVm
 {
     public AutomationWorkflow Workflow => (AutomationWorkflow)Element;
-    
-    public EditorVm Editor { get; private set; } = new EditorVm();
+
+    public EditorVm Editor { get; private set; }
 
     public WorkflowVm(AutomationWorkflow workflow) : base(workflow)
     {
+        Editor = new EditorVm(workflow);
     }
 }

@@ -1,8 +1,59 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:shadUi="clr-namespace:ShadUI;assembly=ShadUI"
+             xmlns:fonts="clr-namespace:Automation.App.Assets.Fonts"
+             xmlns:editor="clr-namespace:Automation.App.Features.Scoped.Workflows.Editor"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="editor:EditorVm"
              x:Class="Automation.App.Features.Scoped.Workflows.Editor.EditorOverlay">
-    Welcome to Avalonia!
+    <!-- Transparent overlay: only the buttons capture input, the canvas underneath stays interactive. -->
+    <DockPanel LastChildFill="False" Margin="8">
+        <StackPanel DockPanel.Dock="Right" VerticalAlignment="Top" Spacing="2">
+            <Button
+                ToolTip.Tip="Zoom in"
+                Classes="Icon"
+                Command="{Binding ZoomInCommand}">
+                <shadUi:ButtonAssist.Icon>
+                    <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.ZoomIn}" />
+                </shadUi:ButtonAssist.Icon>
+            </Button>
+            <Button
+                ToolTip.Tip="Zoom out"
+                Classes="Icon"
+                Command="{Binding ZoomOutCommand}">
+                <Button
+                    ToolTip.Tip="Fit to screen"
+                    Classes="Icon"
+                    Command="{Binding FitToScreenCommand}">
+                    <shadUi:ButtonAssist.Icon>
+                        <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.Fullscreen}" />
+                    </shadUi:ButtonAssist.Icon>
+                </Button>
+                <shadUi:ButtonAssist.Icon>
+                    <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.ZoomOut}" />
+                </shadUi:ButtonAssist.Icon>
+            </Button>
+        </StackPanel>
+
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="2">
+            <Button
+                ToolTip.Tip="Remove selection"
+                Classes="DestructiveIcon"
+                Command="{Binding RemoveSelectionCommand}">
+                <shadUi:ButtonAssist.Icon>
+                    <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.Trash}" />
+                </shadUi:ButtonAssist.Icon>
+            </Button>
+            <Button
+                ToolTip.Tip="Save"
+                Classes="Icon"
+                Command="{Binding SaveCommand}">
+                <shadUi:ButtonAssist.Icon>
+                    <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.Save}" />
+                </shadUi:ButtonAssist.Icon>
+            </Button>
+        </StackPanel>
+    </DockPanel>
 </UserControl>

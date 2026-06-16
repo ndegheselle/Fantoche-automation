@@ -16,6 +16,12 @@ namespace Automation.Shared.Data.Graph
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public virtual string Name { get; } = string.Empty;
+
+        /// <summary>
+        /// Persisted layout position of the node on the editor canvas.
+        /// </summary>
+        public double LocationX { get; set; }
+        public double LocationY { get; set; }
     }
 
     /// <summary>

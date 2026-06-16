@@ -1,8 +1,77 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:nodify="clr-namespace:Nodify.Avalonia;assembly=Nodify.Avalonia"
+             xmlns:nodes="clr-namespace:Nodify.Avalonia.Nodes;assembly=Nodify.Avalonia"
+             xmlns:conn="clr-namespace:Nodify.Avalonia.Connections;assembly=Nodify.Avalonia"
+             xmlns:converters="clr-namespace:Automation.App.Converters"
+             xmlns:editor="clr-namespace:Automation.App.Features.Scoped.Workflows.Editor"
+             xmlns:viewModels="clr-namespace:Automation.App.Features.Scoped.Workflows.Editor.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="editor:EditorVm"
              x:Class="Automation.App.Features.Scoped.Workflows.Editor.EditorGraph">
-    Welcome to Avalonia!
+    <nodify:NodifyEditor x:Name="Editor"
+                         ItemsSource="{Binding Nodes}"
+                         Connections="{Binding Connections}"
+                         PendingConnection="{Binding PendingConnection}"
+                         SelectedItems="{Binding SelectedNodes}">
+
+        <!-- Two-way bind each container's canvas position to its node view model. -->
+        <nodify:NodifyEditor.Styles>
+            <Style Selector="nodify|ItemContainer" x:DataType="viewModels:NodeVm">
+                <Setter Property="Location" Value="{Binding Location, Mode=TwoWay}" />
+            </Style>
+        </nodify:NodifyEditor.Styles>
+
+        <!-- Node -->
+        <nodify:NodifyEditor.ItemTemplate>
+            <DataTemplate DataType="viewModels:NodeVm">
+                <nodes:Node Header="{Binding Name}"
+                            Input="{Binding Inputs}"
+                            Output="{Binding Outputs}">
+                    <nodes:Node.InputConnectorTemplate>
+                        <DataTemplate DataType="viewModels:ConnectorVm">
+                            <nodes:NodeInput Anchor="{Binding Anchor, Mode=OneWayToSource}"
+                                             IsConnected="{Binding IsConnected}"
+                                             Header="{Binding Name}" />
+                        </DataTemplate>
+                    </nodes:Node.InputConnectorTemplate>
+                    <nodes:Node.OutputConnectorTemplate>
+                        <DataTemplate DataType="viewModels:ConnectorVm">
+                            <nodes:NodeOutput Anchor="{Binding Anchor, Mode=OneWayToSource}"
+                                              IsConnected="{Binding IsConnected}"
+                                              Header="{Binding Name}" />
+                        </DataTemplate>
+                    </nodes:Node.OutputConnectorTemplate>
+
+                    <!-- Node body: the scoped icon -->
+                    <TextBlock Classes="LucideIcon"
+                               FontSize="28"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               Foreground="{Binding Metadata.Color,
+                                   Converter={x:Static converters:StringToBrush.Instance}}"
+                               Text="{Binding Metadata, Converter={x:Static converters:ScopedTypeConverters.ToIcon}}" />
+                </nodes:Node>
+            </DataTemplate>
+        </nodify:NodifyEditor.ItemTemplate>
+
+        <!-- Connection -->
+        <nodify:NodifyEditor.ConnectionTemplate>
+            <DataTemplate DataType="viewModels:ConnectionVm">
+                <conn:Connection Source="{Binding Source.Anchor}"
+                                 Target="{Binding Target.Anchor}" />
+            </DataTemplate>
+        </nodify:NodifyEditor.ConnectionTemplate>
+
+        <!-- Pending (in-progress) connection -->
+        <nodify:NodifyEditor.PendingConnectionTemplate>
+            <DataTemplate DataType="viewModels:PendingConnectionVm">
+                <conn:PendingConnection AllowOnlyConnectors="True"
+                                        StartedCommand="{Binding StartCommand}"
+                                        CompletedCommand="{Binding FinishCommand}" />
+            </DataTemplate>
+        </nodify:NodifyEditor.PendingConnectionTemplate>
+    </nodify:NodifyEditor>
 </UserControl>
