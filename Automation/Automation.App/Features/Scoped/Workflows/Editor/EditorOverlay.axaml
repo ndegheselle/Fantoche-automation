@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:shadUi="clr-namespace:ShadUI;assembly=ShadUI"
+             xmlns:sys="using:System"
              xmlns:fonts="clr-namespace:Automation.App.Assets.Fonts"
              xmlns:editor="clr-namespace:Automation.App.Features.Scoped.Workflows.Editor"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
@@ -13,24 +14,21 @@
         <StackPanel DockPanel.Dock="Right" VerticalAlignment="Top" Spacing="2">
             <Button
                 ToolTip.Tip="Zoom in"
-                Classes="Icon"
-                Command="{Binding ZoomInCommand}">
+                Classes="Icon">
                 <shadUi:ButtonAssist.Icon>
                     <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.ZoomIn}" />
                 </shadUi:ButtonAssist.Icon>
             </Button>
             <Button
+                ToolTip.Tip="Fit to screen"
+                Classes="Icon">
+                <shadUi:ButtonAssist.Icon>
+                    <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.Fullscreen}" />
+                </shadUi:ButtonAssist.Icon>
+            </Button>
+            <Button
                 ToolTip.Tip="Zoom out"
-                Classes="Icon"
-                Command="{Binding ZoomOutCommand}">
-                <Button
-                    ToolTip.Tip="Fit to screen"
-                    Classes="Icon"
-                    Command="{Binding FitToScreenCommand}">
-                    <shadUi:ButtonAssist.Icon>
-                        <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.Fullscreen}" />
-                    </shadUi:ButtonAssist.Icon>
-                </Button>
+                Classes="Icon">
                 <shadUi:ButtonAssist.Icon>
                     <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.ZoomOut}" />
                 </shadUi:ButtonAssist.Icon>
@@ -40,16 +38,14 @@
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="2">
             <Button
                 ToolTip.Tip="Remove selection"
-                Classes="DestructiveIcon"
-                Command="{Binding RemoveSelectionCommand}">
+                Classes="DestructiveIcon">
                 <shadUi:ButtonAssist.Icon>
                     <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.Trash}" />
                 </shadUi:ButtonAssist.Icon>
             </Button>
             <Button
                 ToolTip.Tip="Save"
-                Classes="Icon"
-                Command="{Binding SaveCommand}">
+                Classes="Icon">
                 <shadUi:ButtonAssist.Icon>
                     <TextBlock Classes="LucideIcon" Text="{x:Static fonts:LucideIconFont.Save}" />
                 </shadUi:ButtonAssist.Icon>

@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using System;
+using Avalonia.Logging;
 
 namespace Automation.App
 {
@@ -16,6 +17,9 @@ namespace Automation.App
         public static AppBuilder BuildAvaloniaApp()
             => AppBuilder.Configure<App>()
                 .UsePlatformDetect()
+                #if DEBUG
+                .LogToTrace(LogEventLevel.Warning)
+                #endif
                 .WithInterFont()
                 .LogToTrace();
     }

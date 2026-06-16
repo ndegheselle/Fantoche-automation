@@ -14,6 +14,6 @@ internal class WorkflowVm : ScopedVm
 
     public WorkflowVm(AutomationWorkflow workflow) : base(workflow)
     {
-        Editor = new EditorVm(workflow);
+        Editor = new EditorVm();
     }
 }

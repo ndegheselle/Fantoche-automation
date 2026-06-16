@@ -6,9 +6,9 @@
              xmlns:history="clr-namespace:Automation.App.Features.History"
              x:DataType="workflows:WorkflowVm"
              x:Class="Automation.App.Features.Scoped.Workflows.WorkflowPage">
-    <Grid Margin="4" RowSpacing="8" RowDefinitions="auto auto *">
+    <Grid Margin="4" RowSpacing="8" RowDefinitions="auto *">
         <components:ElementHeader />
-        <TabControl>
+        <TabControl Grid.Row="1">
             <TabItem Header="Editor">
                 <Panel>
                     <editor:EditorGraph DataContext="{Binding Editor}" />
@@ -16,7 +16,7 @@
                 </Panel>
             </TabItem>
             <TabItem Header="History">
-                <history:HistoryTable Grid.Row="1" DataContext="{Binding History}" />
+                <history:HistoryTable DataContext="{Binding History}" />
             </TabItem>
         </TabControl>
     </Grid>
