@@ -53,7 +53,6 @@
                 <Button Grid.Column="1"
                         VerticalAlignment="Center"
                         Classes="DestructiveIcon"
-                        CornerRadius="{StaticResource FullCornerRadius}"
                         ToolTip.Tip="Remove target"
                         Click="OnRemoveClick">
                     <shadui:ButtonAssist.Icon>

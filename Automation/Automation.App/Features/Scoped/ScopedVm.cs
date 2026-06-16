@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Automation.App.Features.History;
 using Automation.App.Features.Scoped.Scopes;
 using Automation.App.Features.Scoped.Tasks;
 using Automation.App.Features.Scoped.Workflows;
@@ -18,9 +19,17 @@ namespace Automation.App.Features.Scoped;
 internal abstract partial class ScopedVm : ObservableObject
 {
     protected readonly IScopedService _scopedService;
+    private ElementHistoryVm? _history;
+
     public ScopedElement Element { get; }
 
     public ScopedMetadata Metadata => Element.Metadata;
+
+    /// <summary>
+    /// Execution history of this element, loaded lazily. For a scope it aggregates the history of
+    /// every task and workflow it contains (including nested ones).
+    /// </summary>
+    public ElementHistoryVm History => _history ??= new ElementHistoryVm(Element.Id);
 
     protected ScopedVm(ScopedElement element)
     {

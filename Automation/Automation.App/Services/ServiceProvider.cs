@@ -49,6 +49,6 @@ internal static class ServiceProvider
         }
     }
 
-    public static IScopedService Scoped => new LocalScopedService();
+    public static IScopedService Scoped => new LocalScopedService(History.Value);
     #endregion
 }

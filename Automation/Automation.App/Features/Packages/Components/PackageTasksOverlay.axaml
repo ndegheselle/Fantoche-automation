@@ -79,12 +79,12 @@
                                 
                                 <DataGridTemplateColumn x:DataType="components:NewClassRow"
                                                         Width="44" CanUserResize="False" CanUserSort="False">
-                                    <DataGridCheckBoxColumn.Header>
+                                    <DataGridTemplateColumn.Header>
                                         <CheckBox x:Name="NewClassesSelectToggler"
                                                   Command="{Binding #NewClassesGrid.((components:PackageTasksVm)DataContext).ToggleNewClassesSelectionCommand}"
                                                   CommandParameter="{Binding #NewClassesSelectToggler.IsChecked}"
                                                   IsChecked="{Binding #NewClassesGrid.((components:PackageTasksVm)DataContext).SelectAllNewClasses}" />
-                                    </DataGridCheckBoxColumn.Header>
+                                    </DataGridTemplateColumn.Header>
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <CheckBox IsChecked="{Binding IsSelected}"
@@ -119,12 +119,12 @@
                             <DataGrid.Columns>
                                 <DataGridTemplateColumn x:DataType="components:ExistingTaskRow"
                                                         Width="44" CanUserResize="False" CanUserSort="False">
-                                    <DataGridCheckBoxColumn.Header>
+                                    <DataGridTemplateColumn.Header>
                                         <CheckBox x:Name="ExistingTasksSelectToggler"
                                                   Command="{Binding #ExistingTasksGrid.((components:PackageTasksVm)DataContext).ToggleExistingTasksSelectionCommand}"
                                                   CommandParameter="{Binding #ExistingTasksSelectToggler.IsChecked}"
                                                   IsChecked="{Binding #ExistingTasksGrid.((components:PackageTasksVm)DataContext).SelectAllExistingTasks}" />
-                                    </DataGridCheckBoxColumn.Header>
+                                    </DataGridTemplateColumn.Header>
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <CheckBox IsChecked="{Binding IsSelected}"
@@ -157,6 +157,49 @@
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+
+                    <!-- Removed classes: tasks to remove -->
+                    <StackPanel Spacing="8" IsVisible="{Binding HasRemovedClasses}">
+                        <TextBlock Classes="h4" Text="Removed classes" />
+                        <TextBlock Classes="Caption"
+                                   Foreground="{DynamicResource MutedColor}"
+                                   Text="These tasks target classes that no longer exist in the new version. Selected tasks will be removed." />
+
+                        <DataGrid x:Name="RemovedClassesGrid"
+                                  ItemsSource="{Binding RemovedClasses}"
+                                  CanUserReorderColumns="False"
+                                  CanUserSortColumns="False"
+                                  GridLinesVisibility="Horizontal"
+                                  SelectionMode="Single">
+                            <DataGrid.Columns>
+                                <DataGridTemplateColumn x:DataType="components:RemovedClassRow"
+                                                        Width="44" CanUserResize="False" CanUserSort="False">
+                                    <DataGridTemplateColumn.Header>
+                                        <CheckBox x:Name="RemovedClassesSelectToggler"
+                                                  Command="{Binding #RemovedClassesGrid.((components:PackageTasksVm)DataContext).ToggleRemovedClassesSelectionCommand}"
+                                                  CommandParameter="{Binding #RemovedClassesSelectToggler.IsChecked}"
+                                                  IsChecked="{Binding #RemovedClassesGrid.((components:PackageTasksVm)DataContext).SelectAllRemovedClasses}" />
+                                    </DataGridTemplateColumn.Header>
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <CheckBox IsChecked="{Binding IsSelected}"
+                                                      HorizontalAlignment="Center"
+                                                      VerticalAlignment="Center" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+                                <DataGridTextColumn x:DataType="components:RemovedClassRow"
+                                                    Header="Task" Width="*"
+                                                    IsReadOnly="True"
+                                                    Binding="{Binding Name}" />
+                                <DataGridTextColumn x:DataType="components:RemovedClassRow"
+                                                    Header="Class" Width="*"
+                                                    IsReadOnly="True"
+                                                    Binding="{Binding ClassFullName}" />
                             </DataGrid.Columns>
                         </DataGrid>
                     </StackPanel>

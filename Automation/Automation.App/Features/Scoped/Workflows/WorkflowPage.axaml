@@ -2,10 +2,22 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:workflows="clr-namespace:Automation.App.Features.Scoped.Workflows"
              xmlns:components="clr-namespace:Automation.App.Features.Scoped.Components"
+             xmlns:editor="clr-namespace:Automation.App.Features.Scoped.Workflows.Editor"
+             xmlns:history="clr-namespace:Automation.App.Features.History"
              x:DataType="workflows:WorkflowVm"
              x:Class="Automation.App.Features.Scoped.Workflows.WorkflowPage">
-    <StackPanel Margin="4" Spacing="8">
+    <Grid Margin="4" RowSpacing="8" RowDefinitions="auto auto *">
         <components:ElementHeader />
-        <TextBlock Classes="Muted" Text="The workflow editor will be displayed here." />
-    </StackPanel>
+        <TabControl>
+            <TabItem Header="Editor">
+                <Panel>
+                    <editor:EditorGraph DataContext="{Binding Editor}" />
+                    <editor:EditorOverlay DataContext="{Binding Editor}" />
+                </Panel>
+            </TabItem>
+            <TabItem Header="History">
+                <history:HistoryTable Grid.Row="1" DataContext="{Binding History}" />
+            </TabItem>
+        </TabControl>
+    </Grid>
 </UserControl>

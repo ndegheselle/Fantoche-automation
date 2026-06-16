@@ -47,6 +47,22 @@ internal partial class ExistingTaskRow : ObservableObject
 }
 
 /// <summary>
+/// One row of the "removed classes" grid: an <see cref="AutomationTask"/> whose target class no
+/// longer exists in the new version of the package. Selecting it removes the task.
+/// </summary>
+internal partial class RemovedClassRow : ObservableObject
+{
+    public AutomationTask Task { get; }
+
+    public string Name => Task.Metadata.Name;
+    public string ClassFullName => Task.Target?.ClassFullName ?? "";
+
+    [ObservableProperty] private bool _isSelected;
+
+    public RemovedClassRow(AutomationTask task) => Task = task;
+}
+
+/// <summary>
 /// View model for <see cref="PackageTasksOverlay"/>. Shown right after a package is added, it lets
 /// the user create tasks for the package's new classes and/or update tasks that already target an
 /// older version of the package.
@@ -65,6 +81,9 @@ internal partial class PackageTasksVm : ObservableObject, INavigable
     /// <summary>Tasks that already target the package, to be updated to the new version.</summary>
     public ObservableCollection<ExistingTaskRow> ExistingTasks { get; } = new();
 
+    /// <summary>Tasks targeting a class that no longer exists in the new package version.</summary>
+    public ObservableCollection<RemovedClassRow> RemovedClasses { get; } = new();
+
     /// <summary>Version of the package that was just added (the update target).</summary>
     public Version TargetVersion => _package.Identifier.Version;
 
@@ -78,12 +97,16 @@ internal partial class PackageTasksVm : ObservableObject, INavigable
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private bool _hasNewClasses;
     [ObservableProperty] private bool _hasExistingTasks;
+    [ObservableProperty] private bool _hasRemovedClasses;
 
     /// <summary>Header checkbox state for the "new classes" grid.</summary>
     [ObservableProperty] private bool _selectAllNewClasses;
 
     /// <summary>Header checkbox state for the "existing tasks" grid.</summary>
     [ObservableProperty] private bool _selectAllExistingTasks;
+
+    /// <summary>Header checkbox state for the "removed classes" grid.</summary>
+    [ObservableProperty] private bool _selectAllRemovedClasses;
 
     /// <summary>True once loading completed and there is nothing to create nor update.</summary>
     [ObservableProperty] private bool _isEmpty;
@@ -113,6 +136,11 @@ internal partial class PackageTasksVm : ObservableObject, INavigable
 
             var existingTasks = await _scopedService.GetTasksByPackageAsync(_package.Identifier.Id);
 
+            // Classes that still exist in the new version of the package.
+            var currentClasses = classes
+                .Select(c => c.ClassFullName)
+                .ToHashSet(StringComparer.Ordinal);
+
             // A class is "new" when no existing task already targets it.
             var targetedClasses = existingTasks
                 .Where(t => t.Target != null)
@@ -123,13 +151,21 @@ internal partial class PackageTasksVm : ObservableObject, INavigable
             foreach (var cls in classes.Where(c => !targetedClasses.Contains(c.ClassFullName)))
                 NewClasses.Add(new NewClassRow(cls));
 
+            // A task is "removed" when its target class no longer exists in the new version.
             ExistingTasks.Clear();
+            RemovedClasses.Clear();
             foreach (var task in existingTasks)
-                ExistingTasks.Add(new ExistingTaskRow(task));
+            {
+                if (task.Target != null && !currentClasses.Contains(task.Target.ClassFullName))
+                    RemovedClasses.Add(new RemovedClassRow(task));
+                else
+                    ExistingTasks.Add(new ExistingTaskRow(task));
+            }
 
             HasNewClasses = NewClasses.Count > 0;
             HasExistingTasks = ExistingTasks.Count > 0;
-            IsEmpty = !HasNewClasses && !HasExistingTasks;
+            HasRemovedClasses = RemovedClasses.Count > 0;
+            IsEmpty = !HasNewClasses && !HasExistingTasks && !HasRemovedClasses;
         }
         finally
         {
@@ -154,12 +190,21 @@ internal partial class PackageTasksVm : ObservableObject, INavigable
     }
 
     [RelayCommand]
+    private void ToggleRemovedClassesSelection(bool? isChecked)
+    {
+        bool value = isChecked ?? false;
+        foreach (var row in RemovedClasses)
+            row.IsSelected = value;
+    }
+
+    [RelayCommand]
     private async Task Apply()
     {
         var toCreate = NewClasses.Where(r => r.IsSelected).ToList();
         var toUpdate = ExistingTasks.Where(r => r.IsSelected).ToList();
+        var toRemove = RemovedClasses.Where(r => r.IsSelected).ToList();
 
-        if (toCreate.Count == 0 && toUpdate.Count == 0)
+        if (toCreate.Count == 0 && toUpdate.Count == 0 && toRemove.Count == 0)
         {
             _navigation.Close(this);
             return;
@@ -173,6 +218,9 @@ internal partial class PackageTasksVm : ObservableObject, INavigable
                 row.Task.Target!.Package.Version = TargetVersion;
                 await _scopedService.EditAsync(row.Task);
             }
+
+            foreach (var row in toRemove)
+                await _scopedService.RemoveAsync(row.Task);
 
             var scopeId = SelectedScope?.Id ?? Scope.ROOT_SCOPE_ID;
             foreach (var row in toCreate)
@@ -196,6 +244,7 @@ internal partial class PackageTasksVm : ObservableObject, INavigable
         var parts = new List<string>();
         if (toCreate.Count > 0) parts.Add($"{toCreate.Count} created");
         if (toUpdate.Count > 0) parts.Add($"{toUpdate.Count} updated");
+        if (toRemove.Count > 0) parts.Add($"{toRemove.Count} removed");
         _toasts.Success("Tasks applied", string.Join(", ", parts) + ".");
 
         _navigation.Close(this);
@@ -227,8 +276,14 @@ internal class PackageTasksVmDesign : PackageTasksVm
             Target = new PackageClassTarget(identifier, "MyCompany.Utils.HttpTask") { Dll = "MyCompany.Utils.dll" }
         }));
 
+        RemovedClasses.Add(new RemovedClassRow(new AutomationTask("LegacyTask", Guid.NewGuid())
+        {
+            Target = new PackageClassTarget(identifier, "MyCompany.Utils.LegacyTask") { Dll = "MyCompany.Utils.dll" }
+        }));
+
         HasNewClasses = true;
         HasExistingTasks = true;
+        HasRemovedClasses = true;
         IsLoading = false;
     }
 }

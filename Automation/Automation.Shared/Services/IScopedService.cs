@@ -1,4 +1,5 @@
-﻿using Automation.Shared.Data.Execution;
+﻿using Automation.Shared.Base;
+using Automation.Shared.Data.Execution;
 using Automation.Shared.Data.Scoped;
 
 namespace Automation.Shared.Services;
@@ -41,4 +42,11 @@ public interface IScopedService
     /// The element [excludeId] (if provided) is ignored, so an element keeping its own name stays valid.
     /// </summary>
     public Task<bool> IsNameUniqueAsync(Guid parentId, string name, Guid? excludeId = null);
+
+    /// <summary>
+    /// Get a page of the execution history related to the scoped element [elementId], most recent first.
+    /// For a task or workflow this is its own executions; for a scope it aggregates the executions of
+    /// every task and workflow it contains, including those nested in descendant scopes.
+    /// </summary>
+    public Task<Paginated<TaskInstance>> GetHistoryAsync(Guid elementId, PaginationOptions options = default);
 }

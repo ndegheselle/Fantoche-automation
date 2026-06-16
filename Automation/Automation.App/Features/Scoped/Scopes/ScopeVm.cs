@@ -21,6 +21,9 @@ internal class ScopeVm : ScopedVm
 
     public async Task LoadChildren()
     {
+        if (Children.Count > 0)
+            return;
+        
         var children = await _scopedService.GetChildrens(Scope.Id);
         Children.Clear();
         // Group by type (scopes, then workflows, then tasks) and order alphabetically within each.
