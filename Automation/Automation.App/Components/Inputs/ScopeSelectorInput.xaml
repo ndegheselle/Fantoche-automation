@@ -1,0 +1,43 @@
+<UserControl x:Class="Automation.App.Components.Inputs.ScopeSelectorInput"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:fonts="clr-namespace:Automation.App.Assets.Fonts"
+             xmlns:components="clr-namespace:Automation.App.Components"
+             mc:Ignorable="d" d:DesignWidth="320" d:DesignHeight="40"
+             x:Name="Root">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
+        <Border Grid.Column="0"
+                BorderBrush="{DynamicResource BorderColor}"
+                BorderThickness="1"
+                CornerRadius="6"
+                Padding="8,6"
+                Margin="0,0,4,0"
+                VerticalAlignment="Stretch">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Style="{StaticResource LucideIcon}" VerticalAlignment="Center"
+                           Margin="0,0,8,0"
+                           Text="{x:Static fonts:LucideIconFont.FolderOpen}" />
+                <TextBlock VerticalAlignment="Center"
+                           Text="{Binding SelectedScope.Metadata.Name, ElementName=Root,
+                                          FallbackValue=Root, TargetNullValue=Root}" />
+            </StackPanel>
+        </Border>
+
+        <ui:Button Grid.Column="1"
+                   Appearance="Secondary"
+                   Content="Change"
+                   Click="OnChangeClick">
+            <ui:Button.Icon>
+                <components:LucideIcon Glyph="{x:Static fonts:LucideIconFont.FolderOpen}" />
+            </ui:Button.Icon>
+        </ui:Button>
+    </Grid>
+</UserControl>

@@ -1,6 +1,7 @@
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Threading;
+using System;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Threading;
 
 namespace Automation.App.Components.Behaviors;
 
@@ -9,59 +10,61 @@ namespace Automation.App.Components.Behaviors;
 /// the box becomes visible. Used for the inline rename boxes that appear on demand in a tree, so the
 /// user can start typing the new name straight away (explorer-style rename).
 /// </summary>
-public class EditBoxAssist
+public static class EditBoxAssist
 {
-    private EditBoxAssist() { }
-
-    public static readonly AttachedProperty<bool> FocusOnVisibleProperty =
-        AvaloniaProperty.RegisterAttached<EditBoxAssist, TextBox, bool>("FocusOnVisible");
+    public static readonly DependencyProperty FocusOnVisibleProperty =
+        DependencyProperty.RegisterAttached(
+            "FocusOnVisible",
+            typeof(bool),
+            typeof(EditBoxAssist),
+            new PropertyMetadata(false, OnFocusOnVisibleChanged));
 
     public static void SetFocusOnVisible(TextBox element, bool value) =>
         element.SetValue(FocusOnVisibleProperty, value);
 
     public static bool GetFocusOnVisible(TextBox element) =>
-        element.GetValue(FocusOnVisibleProperty);
+        (bool)element.GetValue(FocusOnVisibleProperty);
 
-    static EditBoxAssist()
+    private static void OnFocusOnVisibleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        FocusOnVisibleProperty.Changed.AddClassHandler<TextBox>((box, e) =>
-        {
-            // The box may already be attached and visible (a freshly created node that starts in edit
-            // mode), or it may flip to visible later (renaming an existing node). Cover both cases.
-            box.AttachedToVisualTree -= OnAttached;
-            box.PropertyChanged -= OnBoxPropertyChanged;
+        if (d is not TextBox box)
+            return;
 
-            if (e.GetNewValue<bool>())
-            {
-                box.AttachedToVisualTree += OnAttached;
-                box.PropertyChanged += OnBoxPropertyChanged;
-                if (box.IsVisible)
-                    FocusAndSelect(box);
-            }
-        });
+        // The box may already be loaded and visible (a freshly created node that starts in edit
+        // mode), or it may flip to visible later (renaming an existing node). Cover both cases.
+        box.Loaded -= OnLoaded;
+        box.IsVisibleChanged -= OnIsVisibleChanged;
+
+        if (e.NewValue is true)
+        {
+            box.Loaded += OnLoaded;
+            box.IsVisibleChanged += OnIsVisibleChanged;
+            if (box.IsVisible)
+                FocusAndSelect(box);
+        }
     }
 
-    private static void OnAttached(object? sender, VisualTreeAttachmentEventArgs e)
+    private static void OnLoaded(object sender, RoutedEventArgs e)
     {
         if (sender is TextBox box && box.IsVisible)
             FocusAndSelect(box);
     }
 
-    private static void OnBoxPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    private static void OnIsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
-        if (sender is TextBox box && e.Property == Visual.IsVisibleProperty && e.GetNewValue<bool>())
+        if (sender is TextBox box && e.NewValue is true)
             FocusAndSelect(box);
     }
 
     private static void FocusAndSelect(TextBox box)
     {
         // Defer so the focus lands after the control is laid out and any selection has settled.
-        Dispatcher.UIThread.Post(() =>
+        box.Dispatcher.BeginInvoke(new Action(() =>
         {
             if (!box.IsVisible)
                 return;
             box.Focus();
             box.SelectAll();
-        }, DispatcherPriority.Background);
+        }), DispatcherPriority.Background);
     }
 }

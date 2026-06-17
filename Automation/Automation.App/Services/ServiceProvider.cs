@@ -1,14 +1,8 @@
-﻿using System;
+using System;
 using System.IO;
-using Automation.App.Features.Packages;
-using Automation.App.Features.Packages.Components;
-using Automation.App.Features.Scoped.Components;
 using Automation.App.Services.UI;
 using Automation.Services.Local;
 using Automation.Shared.Services;
-using Avalonia;
-using ShadUI;
-using MetadataEditDialog = Automation.App.Features.Scoped.Components.MetadataEditDialog;
 
 namespace Automation.App.Services;
 
@@ -16,20 +10,11 @@ internal static class ServiceProvider
 {
     #region Singletons
     private static readonly ToastManager _toastManager = new ToastManager();
-    private static readonly DialogManager _dialogManager = CreateDialogManager();
+    private static readonly DialogManager _dialogManager = new DialogManager();
 
     public static DialogManager Dialogs => _dialogManager;
 
-    private static DialogManager CreateDialogManager()
-    {
-        var manager = new DialogManager();
-        manager.Register<MetadataEditDialog, MetadataEditVm>();
-        manager.Register<TaskTargetPickerDialog, TaskTargetPickerVm>();
-        manager.Register<ScopeSelectorDialog, ScopeSelectorVm>();
-        return manager;
-    }
-
-    public static readonly Lazy<ThemeWatcher> Themes = new Lazy<ThemeWatcher>(() => new ThemeWatcher(Application.Current!));
+    public static readonly Lazy<ThemeWatcher> Themes = new Lazy<ThemeWatcher>(() => new ThemeWatcher());
     public static readonly Lazy<NavigationManager> Navigation = new Lazy<NavigationManager>(() => new NavigationManager());
     public static readonly Lazy<ToastDisplay> Toasts = new Lazy<ToastDisplay>(() => new ToastDisplay(_toastManager));
 

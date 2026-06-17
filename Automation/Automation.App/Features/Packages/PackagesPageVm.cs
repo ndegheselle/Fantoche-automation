@@ -7,13 +7,11 @@ using System.Threading.Tasks;
 using Automation.App.Features.Packages.Components;
 using Automation.App.Services;
 using Automation.App.Services.UI;
-using Avalonia.Collections;
 using Automation.Shared.Base;
 using Automation.Shared.Data.Execution;
 using Automation.Shared.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using ShadUI;
 
 namespace Automation.App.Features.Packages;
 

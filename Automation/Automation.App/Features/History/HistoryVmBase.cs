@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Automation.Shared.Base;
 using Automation.Shared.Data.Execution;
 using Automation.Shared.Services;
-using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Automation.App.Features.History;
@@ -80,7 +79,7 @@ internal abstract partial class HistoryVmBase : ObservableObject
 
     // Events come from a background timer thread, marshal back to the UI thread.
     private void OnHistoryChanged(TaskInstance instance)
-        => Dispatcher.UIThread.Post(() => _ = RefreshAsync());
+        => System.Windows.Application.Current.Dispatcher.BeginInvoke(() => _ = RefreshAsync());
 
     private void ResetToFirstPageAndReload()
     {

@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Windows.Data;
 using Automation.App.Assets.Fonts;
 using Automation.Shared.Data.Scoped;
-using Avalonia.Data.Converters;
 
 namespace Automation.App.Converters;
 
@@ -19,12 +21,20 @@ public static class ScopedTypeConverters
     /// default icon) or a <see cref="ScopedMetadata"/> (returns the custom icon when set, otherwise
     /// the default icon for its type).
     /// </summary>
-    public static readonly IValueConverter ToIcon =
-        new FuncValueConverter<object, string>(input => input switch
-        {
-            ScopedMetadata { Icon: { Length: > 0 } icon } => icon,
-            ScopedMetadata metadata => Icons.TryGetValue(metadata.Type, out var icon) ? icon : string.Empty,
-            EnumScopedType type => Icons.TryGetValue(type, out var icon) ? icon : string.Empty,
-            _ => string.Empty
-        });
+    public static readonly IValueConverter ToIcon = new ToIconConverter();
+
+    private sealed class ToIconConverter : IValueConverter
+    {
+        public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+            => value switch
+            {
+                ScopedMetadata { Icon: { Length: > 0 } icon } => icon,
+                ScopedMetadata metadata => Icons.TryGetValue(metadata.Type, out var icon) ? icon : string.Empty,
+                EnumScopedType type => Icons.TryGetValue(type, out var icon) ? icon : string.Empty,
+                _ => string.Empty
+            };
+
+        public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+            => throw new NotSupportedException();
+    }
 }

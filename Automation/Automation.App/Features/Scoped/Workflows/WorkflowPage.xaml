@@ -1,0 +1,26 @@
+<UserControl xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:workflows="clr-namespace:Automation.App.Features.Scoped.Workflows"
+             xmlns:components="clr-namespace:Automation.App.Features.Scoped.Components"
+             xmlns:history="clr-namespace:Automation.App.Features.History"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=workflows:WorkflowVm}"
+             x:Class="Automation.App.Features.Scoped.Workflows.WorkflowPage">
+    <Grid Margin="4">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <components:ElementHeader />
+        <TabControl Grid.Row="1" Margin="0,8,0,0">
+            <TabItem Header="Editor">
+            </TabItem>
+            <TabItem Header="History">
+                <history:HistoryTable DataContext="{Binding History}" />
+            </TabItem>
+        </TabControl>
+    </Grid>
+</UserControl>

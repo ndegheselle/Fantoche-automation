@@ -1,6 +1,4 @@
-﻿using ShadUI;
-
-namespace Automation.App.Services.UI
+﻿namespace Automation.App.Services.UI
 {
     internal class ToastDisplay
     {

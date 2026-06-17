@@ -1,54 +1,67 @@
 using System;
 using System.Globalization;
-using Avalonia;
-using Avalonia.Data;
-using Avalonia.Data.Converters;
-using Avalonia.Media;
+using System.Windows;
+using System.Windows.Data;
+using System.Windows.Media;
 
 namespace Automation.App.Converters;
 
 /// <summary>
-/// Converts a hex color string (e.g. <c>#FF3366</c>) to an Avalonia <see cref="Color"/> and back,
-/// so a <see cref="string"/> property can be bound to a <c>ColorPicker</c>.
+/// Converts a hex color string (e.g. <c>#FF3366</c>) to a <see cref="Color"/> and back, so a
+/// <see cref="string"/> property can be bound to a color picker.
 /// </summary>
 public class StringToColor : IValueConverter
 {
     public static readonly StringToColor Instance = new();
 
-    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is string text && Color.TryParse(text, out var color))
+        if (value is string text && TryParse(text, out var color))
             return color;
-        return AvaloniaProperty.UnsetValue;
+        return DependencyProperty.UnsetValue;
     }
 
-    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value is Color color)
             return color.ToString();
-        return AvaloniaProperty.UnsetValue;
+        return DependencyProperty.UnsetValue;
+    }
+
+    internal static bool TryParse(string text, out Color color)
+    {
+        try
+        {
+            color = (Color)ColorConverter.ConvertFromString(text);
+            return true;
+        }
+        catch
+        {
+            color = default;
+            return false;
+        }
     }
 }
 
 /// <summary>
-/// Converts a hex color string (e.g. <c>#FF3366</c>) to an Avalonia <see cref="IBrush"/>, returning
-/// <c>null</c> when the string is empty or invalid so the target falls back to its inherited value.
+/// Converts a hex color string (e.g. <c>#FF3366</c>) to a <see cref="Brush"/>, returning
+/// <see cref="Binding.DoNothing"/> when the string is empty or invalid so the target keeps its value.
 /// </summary>
 public class StringToBrush : IValueConverter
 {
     public static readonly StringToBrush Instance = new();
 
-    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is string text && Color.TryParse(text, out var color))
+        if (value is string text && StringToColor.TryParse(text, out var color))
             return new SolidColorBrush(color);
-        return BindingOperations.DoNothing;
+        return Binding.DoNothing;
     }
 
-    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is ISolidColorBrush brush)
+        if (value is SolidColorBrush brush)
             return brush.Color.ToString();
-        return BindingOperations.DoNothing;
+        return Binding.DoNothing;
     }
 }

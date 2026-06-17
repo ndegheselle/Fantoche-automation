@@ -9,7 +9,7 @@ using Automation.Shared.Data.Scoped;
 using Automation.Shared.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using ShadUI;
+using Automation.App.Services.UI;
 
 namespace Automation.App.Features.Scoped;
 

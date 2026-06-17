@@ -4,13 +4,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Automation.App.Base;
 using Automation.App.Services;
+using Automation.App.Services.UI;
 using Automation.Shared.Base;
 using Automation.Shared.Data.Execution;
 using Automation.Shared.Services;
-using Avalonia.Collections;
+using System.ComponentModel;
+using System.Windows.Data;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using ShadUI;
 
 namespace Automation.App.Features.Packages.Components;
 
@@ -31,8 +32,9 @@ internal partial class TaskTargetPickerVm : ViewModelBase
     {
         _packagesService = packagesService;
 
-        GroupedClasses = new DataGridCollectionView(Classes);
-        GroupedClasses.GroupDescriptions.Add(new DataGridPathGroupDescription(nameof(ClassTarget.Dll)));
+        var view = new ListCollectionView(Classes);
+        view.GroupDescriptions.Add(new PropertyGroupDescription(nameof(ClassTarget.Dll)));
+        GroupedClasses = view;
 
         // Null in design-time (see TaskTargetPickerVMDesign), which pre-populates the lists itself.
         if (_packagesService != null)
@@ -137,7 +139,7 @@ internal partial class TaskTargetPickerVm : ViewModelBase
     /// Grouped view over <see cref="Classes"/> that groups the package classes by
     /// the dll they belong to.
     /// </summary>
-    public DataGridCollectionView GroupedClasses { get; }
+    public ICollectionView GroupedClasses { get; }
 
     [ObservableProperty] private bool _isLoadingClasses;
 

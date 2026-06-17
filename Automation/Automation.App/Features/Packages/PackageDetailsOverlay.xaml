@@ -1,0 +1,139 @@
+<UserControl xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:fonts="clr-namespace:Automation.App.Assets.Fonts"
+             xmlns:converters="clr-namespace:Automation.App.Converters"
+             xmlns:components="clr-namespace:Automation.App.Components"
+             xmlns:packages="clr-namespace:Automation.App.Features.Packages"
+             xmlns:execution="clr-namespace:Automation.Shared.Data.Execution;assembly=Automation.Shared"
+             d:DataContext="{d:DesignInstance Type=packages:PackageDetailsVm}"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             Background="{DynamicResource ApplicationBackgroundBrush}"
+             x:Class="Automation.App.Features.Packages.PackageDetailsOverlay">
+    <Grid Background="{DynamicResource CardBackgroundColor}">
+        <Grid Margin="8">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Grid Margin="0,0,0,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Style="{StaticResource LucideIcon}"
+                                   Text="{x:Static fonts:LucideIconFont.Package}" VerticalAlignment="Center" />
+                        <TextBlock FontSize="18" FontWeight="SemiBold" Margin="8,0,0,0"
+                                   Text="{Binding Package.Identifier.Id}" />
+                    </StackPanel>
+                    <TextBlock FontSize="12" Margin="0,2,0,0"
+                               Foreground="{DynamicResource MutedColor}"
+                               Text="{Binding Package.Description}" />
+                </StackPanel>
+                <ui:Button Grid.Column="1"
+                           Appearance="Transparent"
+                           Command="{Binding BackCommand}"
+                           Content="Back to packages">
+                    <ui:Button.Icon>
+                        <components:LucideIcon Glyph="{x:Static fonts:LucideIconFont.ArrowLeft}" />
+                    </ui:Button.Icon>
+                </ui:Button>
+            </Grid>
+
+            <DataGrid
+                Grid.Row="1"
+                x:Name="VersionsList"
+                Margin="0,0,0,8"
+                ItemsSource="{Binding Versions}"
+                AutoGenerateColumns="False"
+                CanUserReorderColumns="False"
+                CanUserSortColumns="False"
+                GridLinesVisibility="Horizontal"
+                SelectionMode="Single"
+                IsReadOnly="True">
+                <DataGrid.Columns>
+                    <DataGridTemplateColumn Header="Version" Width="*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Border CornerRadius="10" Padding="6,2"
+                                        HorizontalAlignment="Left" VerticalAlignment="Center"
+                                        Background="{DynamicResource ControlFillColorDefaultBrush}">
+                                    <TextBlock Text="{Binding}" />
+                                </Border>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn CanUserResize="False" CanUserSort="False">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <ui:Button Appearance="Danger" Padding="6"
+                                           ToolTip="Remove"
+                                           Command="{Binding DataContext.RemoveVersionCommand, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"
+                                           CommandParameter="{Binding}">
+                                    <TextBlock Style="{StaticResource LucideIcon}"
+                                               Text="{x:Static fonts:LucideIconFont.Trash}" />
+                                </ui:Button>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <Grid Grid.Row="2">
+                <Border Visibility="{Binding IsEmpty, Converter={x:Static converters:CommonConverters.BoolToVisibility}}"
+                        BorderBrush="{DynamicResource SystemFillColorCautionBrush}"
+                        BorderThickness="1"
+                        CornerRadius="6">
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock Style="{StaticResource LucideIcon}"
+                                   Foreground="{DynamicResource SystemFillColorCautionBrush}"
+                                   VerticalAlignment="Center"
+                                   Text="{x:Static fonts:LucideIconFont.AlertTriangle}" />
+                        <TextBlock Text="No classes" Margin="8,0,0,0"
+                                   Foreground="{DynamicResource SystemFillColorCautionBrush}"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                </Border>
+
+                <DataGrid
+                    x:Name="ClassesList"
+                    Visibility="{Binding IsEmpty, Converter={x:Static converters:CommonConverters.InverseBoolToVisibility}}"
+                    ItemsSource="{Binding GroupedClasses}"
+                    AutoGenerateColumns="False"
+                    CanUserReorderColumns="False"
+                    CanUserSortColumns="False"
+                    GridLinesVisibility="Horizontal"
+                    SelectionMode="Single"
+                    IsReadOnly="True">
+
+                    <DataGrid.GroupStyle>
+                        <GroupStyle>
+                            <GroupStyle.HeaderTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Margin="4">
+                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                                        <TextBlock Text="{Binding ItemCount, StringFormat=' ({0})'}"
+                                                   Foreground="{DynamicResource MutedColor}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </GroupStyle.HeaderTemplate>
+                        </GroupStyle>
+                    </DataGrid.GroupStyle>
+
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Class" Width="*"
+                                            Binding="{Binding ClassFullName}" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Grid>
+        <components:BusyOverlay IsBusy="{Binding IsLoading}" />
+    </Grid>
+</UserControl>

@@ -6,10 +6,10 @@ using Automation.App.Services;
 using Automation.App.Services.UI;
 using Automation.Shared.Data.Execution;
 using Automation.Shared.Services;
-using Avalonia.Collections;
+using System.ComponentModel;
+using System.Windows.Data;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using ShadUI;
 
 namespace Automation.App.Features.Packages;
 
@@ -33,8 +33,9 @@ internal partial class PackageDetailsVm : ObservableObject, INavigable
 
         Package = package;
 
-        GroupedClasses = new DataGridCollectionView(Classes);
-        GroupedClasses.GroupDescriptions.Add(new DataGridPathGroupDescription("Dll"));
+        var view = new ListCollectionView(Classes);
+        view.GroupDescriptions.Add(new PropertyGroupDescription("Dll"));
+        GroupedClasses = view;
     }
 
     [ObservableProperty] private PackageInfos _package = new();
@@ -52,7 +53,7 @@ internal partial class PackageDetailsVm : ObservableObject, INavigable
     /// Grouped view over <see cref="Classes"/> that groups the package classes by
     /// the dll they belong to.
     /// </summary>
-    public DataGridCollectionView GroupedClasses { get; }
+    public ICollectionView GroupedClasses { get; }
 
     public ObservableCollection<Version> Versions { get; } = new();
 

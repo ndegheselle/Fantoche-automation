@@ -1,0 +1,83 @@
+<UserControl xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:fonts="clr-namespace:Automation.App.Assets.Fonts"
+             xmlns:data="clr-namespace:Automation.App.Components.Data"
+             xmlns:components="clr-namespace:Automation.App.Components"
+             xmlns:inputs="clr-namespace:Automation.App.Components.Inputs"
+             xmlns:packages="clr-namespace:Automation.App.Features.Packages"
+             xmlns:execution="clr-namespace:Automation.Shared.Data.Execution;assembly=Automation.Shared"
+             d:DataContext="{d:DesignInstance Type=packages:PackagesPageVm}"
+             mc:Ignorable="d" d:DesignWidth="850" d:DesignHeight="450"
+             x:Class="Automation.App.Features.Packages.PackagesPage">
+    <Grid Margin="4">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <inputs:DebouncedSearch Grid.Row="0" Margin="0,0,0,4"
+                                Search="{Binding SearchText, Mode=TwoWay}" />
+
+        <Grid Grid.Row="1" Margin="0,0,0,4">
+            <DataGrid
+                x:Name="PackagesList"
+                ItemsSource="{Binding Items}"
+                AutoGenerateColumns="False"
+                CanUserReorderColumns="False"
+                CanUserSortColumns="False"
+                GridLinesVisibility="Horizontal"
+                SelectionMode="Single"
+                IsReadOnly="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Identifier"
+                                        Binding="{Binding Identifier.Id}" />
+                    <DataGridTemplateColumn Header="Version">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate DataType="{x:Type execution:PackageInfos}">
+                                <Border CornerRadius="10" Padding="6,2"
+                                        HorizontalAlignment="Left" VerticalAlignment="Center"
+                                        Background="{DynamicResource ControlFillColorDefaultBrush}">
+                                    <TextBlock Text="{Binding Identifier.Version}" />
+                                </Border>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Description" Width="*"
+                                        Binding="{Binding Description}" />
+                    <DataGridTemplateColumn CanUserResize="False" CanUserSort="False">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <ui:Button Appearance="Secondary" Padding="6"
+                                           ToolTip="Details"
+                                           Command="{Binding DataContext.ShowDetailsCommand, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"
+                                           CommandParameter="{Binding}">
+                                    <TextBlock Style="{StaticResource LucideIcon}"
+                                               Text="{x:Static fonts:LucideIconFont.ArrowRight}" />
+                                </ui:Button>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+            <components:BusyOverlay IsBusy="{Binding IsLoading}" />
+        </Grid>
+
+        <data:Pagination
+            Grid.Row="2"
+            Total="{Binding TotalItems}"
+            CurrentPage="{Binding CurrentPage, Mode=TwoWay}"
+            PageSize="{Binding PageSize, Mode=TwoWay}" />
+
+        <inputs:FilePicker
+            Grid.Row="3"
+            FileFormat="*.nupkg"
+            Description="Add new packages (.nupkg)"
+            Command="{Binding AddPackagesCommand}" />
+
+    </Grid>
+</UserControl>
