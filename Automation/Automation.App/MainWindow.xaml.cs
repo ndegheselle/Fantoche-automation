@@ -1,13 +1,15 @@
-using Automation.App.Services;
-using Wpf.Ui.Controls;
+﻿using Joufflu.Controls;
 
-namespace Automation.App;
-
-public partial class MainWindow : FluentWindow
+namespace Automation.App
 {
-    public MainWindow()
+    /// <summary>
+    /// Interaction logic for MainWindow.xaml
+    /// </summary>
+    public partial class MainWindow : ThemedWindow
     {
-        InitializeComponent();
-        DataContext = ServiceProvider.Main;
+        public MainWindow()
+        {
+            InitializeComponent();
+        }
     }
 }

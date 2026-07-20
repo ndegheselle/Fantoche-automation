@@ -1,17 +1,21 @@
-using System.Windows;
-using Automation.App.Services;
+﻿using System.Windows;
+using Joufflu.Themes;
 
-namespace Automation.App;
-
-public partial class App : Application
+namespace Automation.App
 {
-    protected override void OnStartup(StartupEventArgs e)
+    /// <summary>
+    /// Interaction logic for App.xaml
+    /// </summary>
+    public partial class App : Application
     {
-        base.OnStartup(e);
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            base.OnStartup(e);
+            ThemeManager.Instance.Initialize();
 
-        ServiceProvider.Themes.Value.Initialize();
 
-        var window = new MainWindow();
-        window.Show();
+            var shell = new ShellViewModel();
+            new MainWindow { DataContext = shell }.Show();
+        }
     }
 }

@@ -1,16 +1,18 @@
-<Application
-    x:Class="Automation.App.App"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+﻿<Application x:Class="Automation.App.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:Automation.App"
+             xmlns:home="clr-namespace:Automation.App.Features.Home">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/SkinDefault.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/Theme.xaml" />
-
-                <ResourceDictionary Source="pack://application:,,,/Automation.App;component/Styles/Index.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/Joufflu;component/Resources.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
+            <DataTemplate DataType="{x:Type home:HomeViewModel}">
+                <home:HomePage />
+            </DataTemplate>
+
         </ResourceDictionary>
     </Application.Resources>
 </Application>
