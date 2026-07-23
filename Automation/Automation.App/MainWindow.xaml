@@ -5,21 +5,33 @@
     xmlns:controls="clr-namespace:Joufflu.Controls;assembly=Joufflu"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:fonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
+    xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Automation.App"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:nav="clr-namespace:Joufflu.Navigation.Controls;assembly=Joufflu.Navigation"
-    Title="Automation"
     Width="1000"
     Height="640"
     d:DataContext="{d:DesignInstance Type=local:ShellViewModel}"
-    mc:Ignorable="d"
-        PlaceTitleBarOverContent="True"
-    IconVisibility="Collapsed">
+    IconVisibility="Collapsed"
+    PlaceTitleBarOverContent="True"
+    mc:Ignorable="d">
     <DockPanel>
         <nav:NavigationMenu
             DockPanel.Dock="Left"
             Navigator="{Binding Navigator}"
             TargetResolver="{Binding ResolveTarget}">
+            <nav:NavigationMenu.Header>
+                <StackPanel
+                    VerticalAlignment="Center"
+                    joufflu:Spacing.Gap="8"
+                    Orientation="Horizontal">
+                    <fonts:FontIcon FontSize="20" Text="{x:Static fonts:LucideFontIcons.Workflow}" />
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        FontWeight="SemiBold"
+                        Text="Automation" />
+                </StackPanel>
+            </nav:NavigationMenu.Header>
 
             <nav:NavigationItem Target="home">
                 <nav:NavigationItem.Icon>
