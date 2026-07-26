@@ -1,67 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net10.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
-    <ApplicationManifest>app.manifest</ApplicationManifest>
-    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-    <ImplicitUsings>disable</ImplicitUsings>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
   </PropertyGroup>
-  <ItemGroup>
-    <None Remove="Assets\Fonts\lucide.ttf" />
-    <None Remove="Assets\Fonts\lucide.woff2" />
-  </ItemGroup>
-  <ItemGroup>
-    <AvaloniaResource Include="Assets\Fonts\lucide.ttf" />
-  </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="12.0.4" />
-    <PackageReference Include="Avalonia.Controls.ItemsRepeater" Version="12.0.0" />
-    <PackageReference Include="Avalonia.Desktop" Version="12.0.4" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.4" />
-    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.0.4" />
-    <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.2" />
-    <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-    <PackageReference Include="ShadUI" Version="0.2.3" />
+    <PackageReference Include="Joufflu" Version="0.1.1" />
+    <PackageReference Include="Joufflu.Inputs" Version="0.1.1" />
+    <PackageReference Include="Joufflu.Navigation" Version="0.1.1" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Automation.Services.Local\Automation.Services.Local.csproj" />
-    <ProjectReference Include="..\Automation.Shared\Automation.Shared.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="Components\Inputs\FilePicker.axaml.cs">
-      <DependentUpon>FilePicker.axaml</DependentUpon>
-    </Compile>
-    <Compile Update="Features\Workflows\Components\ElementHeader.axaml.cs">
-      <DependentUpon>ElementHeader.axaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Update="Features\Workflows\Components\ElementLabel.axaml.cs">
-      <DependentUpon>ElementLabel.axaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Update="Features\Scoped\Workflows\WorkflowPage.axaml.cs">
-      <DependentUpon>WorkflowPage.axaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Update="Features\Scoped\Tasks\TaskPage.axaml.cs">
-      <DependentUpon>TaskPage.axaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Update="Features\Scoped\Scopes\ScopePage.axaml.cs">
-      <DependentUpon>ScopePage.axaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Update="Features\Scoped\Components\MetadataEditDialog.axaml.cs">
-      <DependentUpon>MetadataEditDialog.axaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Update="Components\Inputs\ScopeSelectorInput.axaml.cs">
-      <DependentUpon>ScopeSelectorInput.axaml</DependentUpon>
-    </Compile>
-  </ItemGroup>
 </Project>

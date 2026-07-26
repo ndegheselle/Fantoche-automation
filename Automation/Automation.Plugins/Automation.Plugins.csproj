@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <Title>Base automation plugins</Title>
     <PackageIcon></PackageIcon>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
