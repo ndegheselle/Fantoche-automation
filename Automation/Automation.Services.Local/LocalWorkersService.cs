@@ -6,9 +6,9 @@ using Timer = System.Timers.Timer;
 namespace Automation.Services.Local;
 
 /// <summary>
-/// In-memory list of workers. Until the app is wired to the real redis backed
-/// <c>WorkersRealtimeClient</c> it keeps a few mock workers and mutates their load on a timer so
-/// the UI can demonstrate the real time refresh through <see cref="WorkerUpdated"/>.
+/// In-memory list of workers. Until the app is wired to a real worker backend it keeps a few
+/// mock workers and mutates their load on a timer so the UI can demonstrate the real time
+/// refresh through <see cref="WorkerUpdated"/>.
 /// </summary>
 public class LocalWorkersService : IWorkersService
 {

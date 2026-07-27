@@ -70,17 +70,14 @@ All projects live under `Automation/` (solution: `Automation/Automation.sln`) an
 
 ### Legacy / unused
 
-- **`Automation.Realtime`** — Redis-based worker registry and pub/sub used by the old distributed
-  backend. Only the `WorkersRealtimeClient` part is self-consistent; the state/notification
-  publishers reference types that were removed during the rework. It is **not referenced by any
-  active project** and is kept only as a reference for a future distributed setup.
 - **`docker-compose` (mongo + redis)** — scaffolding for the former distributed backend; currently
   unused by any project.
 
 > Removed during the engine rework: **`Automation.Supervisor.Api`** (the supervisor REST/SignalR
-> API) and **`Automation.Worker.Service`** (the hosted worker). Both were still built on the old
-> MongoDB DAL (`Automation.Dal`) and domain models (`Automation.Models`) that no longer exist, so
-> they no longer compiled against the reworked engine.
+> API), **`Automation.Worker.Service`** (the hosted worker) and **`Automation.Realtime`** (the
+> Redis-based worker registry and pub/sub). The first two were still built on the old MongoDB DAL
+> (`Automation.Dal`) and domain models (`Automation.Models`) that no longer exist; `Automation.Realtime`
+> was only consumed by those two projects, so it became orphaned once they were gone.
 
 ## Getting started
 
