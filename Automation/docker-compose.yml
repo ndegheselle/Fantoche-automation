@@ -1,36 +1,9 @@
 version: '3.4'
+# NOTE: The distributed backend (Automation.Supervisor.Api + Automation.Worker.Service)
+# was removed. The engine now runs in-process (see Automation.Worker). The mongo/redis
+# services below are kept only as scaffolding for a future distributed supervisor/worker
+# setup and are currently unused by any project in the solution.
 services:
-  automation.supervisor.api:
-    image: ${DOCKER_REGISTRY-}automationapisupervisor
-    depends_on:
-      - mongo
-      - redis
-    build:
-      context: .
-      dockerfile: Automation.Supervisor.Api/Dockerfile
-    env_file:
-      - .env
-    ports:
-      - "8080:8080"
-      - "8081:8081"
-    volumes:
-      - ./volumes/nugetlocal:/app/data/nuget
-
-  automation.worker.service:
-    image: ${DOCKER_REGISTRY-}automationworkerservice
-    depends_on:
-      - mongo
-      - redis
-    build:
-      context: .
-      dockerfile: Automation.Worker.Service/Dockerfile
-    env_file:
-      - .env
-    environment:
-      - WORKER_ID=DEFAULT_WORKER
-    volumes:
-      - ./volumes/nugetlocal:/app/data/nuget
-
   mongo:
     restart: always
     image: mongo:8.0

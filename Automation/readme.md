@@ -1,3 +1,7 @@
+> **Legacy notes.** This document describes the original distributed backend (supervisor API +
+> Redis/MongoDB workers), which has been **removed**. It is kept only as design history. For the
+> current project layout and how to run things, see the [repository README](../readme.md).
+
 # Server
 
 - Handle auth with JWT and refresh tokens

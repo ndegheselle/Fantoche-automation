@@ -1,11 +1,5 @@
 version: '3.4'
 
-services:
-  automation.supervisor.api:
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_HTTP_PORTS=8080
-      - ASPNETCORE_HTTPS_PORTS=8081
-    volumes:
-      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
-      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+# The Automation.Supervisor.Api service was removed along with the distributed backend.
+# No service overrides are currently needed.
+services: {}
