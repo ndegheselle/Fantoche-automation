@@ -9,9 +9,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Joufflu" Version="0.1.0" />
-    <PackageReference Include="Joufflu.Inputs" Version="0.1.0" />
-    <PackageReference Include="Joufflu.Navigation" Version="0.1.0" />
+    <PackageReference Include="Joufflu" Version="0.1.1" />
+    <PackageReference Include="Joufflu.Inputs" Version="0.1.1" />
+    <PackageReference Include="Joufflu.Navigation" Version="0.1.1" />
   </ItemGroup>
 
 </Project>

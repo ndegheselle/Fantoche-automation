@@ -39,6 +39,31 @@
                 </nav:NavigationItem.Icon>
                 Home
             </nav:NavigationItem>
+
+            <nav:NavigationItem Target="home">
+                <nav:NavigationItem.Icon>
+                    <fonts:FontIcon Text="{x:Static fonts:LucideFontIcons.Boxes}" />
+                </nav:NavigationItem.Icon>
+                Workflows / tasks
+            </nav:NavigationItem>
+            <nav:NavigationItem Target="home">
+                <nav:NavigationItem.Icon>
+                    <fonts:FontIcon Text="{x:Static fonts:LucideFontIcons.Package}" />
+                </nav:NavigationItem.Icon>
+                Packages
+            </nav:NavigationItem>
+            <nav:NavigationItem Target="home">
+                <nav:NavigationItem.Icon>
+                    <fonts:FontIcon Text="{x:Static fonts:LucideFontIcons.Server}" />
+                </nav:NavigationItem.Icon>
+                Servers
+            </nav:NavigationItem>
+            <nav:NavigationItem Target="home">
+                <nav:NavigationItem.Icon>
+                    <fonts:FontIcon Text="{x:Static fonts:LucideFontIcons.Database}" />
+                </nav:NavigationItem.Icon>
+                Storage
+            </nav:NavigationItem>
         </nav:NavigationMenu>
 
         <!--  Renders the current page and hosts the overlay + toast stacks.  -->
