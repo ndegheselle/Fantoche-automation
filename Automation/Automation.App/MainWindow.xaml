@@ -16,7 +16,7 @@
     xmlns:workflows="clr-namespace:Automation.App.Features.Workflows"
     Width="1000"
     Height="640"
-    d:DataContext="{d:DesignInstance Type=local:ShellViewModel}"
+    d:DataContext="{d:DesignInstance Type=local:SpineViewModel}"
     IconVisibility="Collapsed"
     PlaceTitleBarOverContent="True"
     mc:Ignorable="d">

@@ -9,13 +9,13 @@ namespace Automation.App
     /// </summary>
     public partial class App : Application
     {
-        private ShellViewModel? shell;
+        private SpineViewModel? shell;
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
             ThemeManager.Instance.Initialize();
 
-            shell = new ShellViewModel();
+            shell = new SpineViewModel();
             new MainWindow(shell).Show();
         }
 
