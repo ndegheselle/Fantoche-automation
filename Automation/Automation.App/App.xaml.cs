@@ -1,5 +1,6 @@
-﻿using System.Windows;
-using Joufflu.Themes;
+﻿using Joufflu.Themes;
+using System.Windows;
+using System.Windows.Threading;
 
 namespace Automation.App
 {
@@ -8,14 +9,39 @@ namespace Automation.App
     /// </summary>
     public partial class App : Application
     {
+        private ShellViewModel? shell;
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
             ThemeManager.Instance.Initialize();
 
+            shell = new ShellViewModel();
+            new MainWindow(shell).Show();
+        }
 
-            var shell = new ShellViewModel();
-            new MainWindow { DataContext = shell }.Show();
+        private void CurrentOnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+        {
+            HandleException(e.Exception);
+            e.Handled = true;
+        }
+
+        private void CurrentDomainUnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            var exception = e.ExceptionObject as Exception;
+            if (exception != null)
+            {
+                HandleException(exception);
+            }
+        }
+
+        private void HandleException(Exception exception)
+        {
+            try
+            {
+                shell?.Toasts.Error("An unexpected error happened ...", "Ooops");
+            }
+            catch
+            { }
         }
     }
 }

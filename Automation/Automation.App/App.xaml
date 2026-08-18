@@ -1,8 +1,14 @@
-﻿<Application x:Class="Automation.App.App"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:Automation.App"
-             xmlns:home="clr-namespace:Automation.App.Features.Home">
+﻿<Application
+    x:Class="Automation.App.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:home="clr-namespace:Automation.App.Features.Home"
+    xmlns:local="clr-namespace:Automation.App"
+    xmlns:packages="clr-namespace:Automation.App.Features.Packages"
+    xmlns:servers="clr-namespace:Automation.App.Features.Servers"
+    xmlns:storage="clr-namespace:Automation.App.Features.Storage"
+    xmlns:workflows="clr-namespace:Automation.App.Features.Workflows"
+    >
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -11,6 +17,22 @@
 
             <DataTemplate DataType="{x:Type home:HomeViewModel}">
                 <home:HomePage />
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type workflows:WorkflowsViewModel}">
+                <workflows:WorkflowsPage />
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type packages:PackagesViewModel}">
+                <packages:PackagesPage />
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type servers:ServersViewModel}">
+                <servers:ServersPage />
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type storage:StorageViewModel}">
+                <storage:StoragePage />
             </DataTemplate>
 
         </ResourceDictionary>

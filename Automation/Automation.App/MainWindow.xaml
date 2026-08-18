@@ -5,21 +5,27 @@
     xmlns:controls="clr-namespace:Joufflu.Controls;assembly=Joufflu"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:fonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
+    xmlns:home="clr-namespace:Automation.App.Features.Home"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Automation.App"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:nav="clr-namespace:Joufflu.Navigation.Controls;assembly=Joufflu.Navigation"
+    xmlns:packages="clr-namespace:Automation.App.Features.Packages"
+    xmlns:servers="clr-namespace:Automation.App.Features.Servers"
+    xmlns:storage="clr-namespace:Automation.App.Features.Storage"
+    xmlns:workflows="clr-namespace:Automation.App.Features.Workflows"
     Width="1000"
     Height="640"
     d:DataContext="{d:DesignInstance Type=local:ShellViewModel}"
     IconVisibility="Collapsed"
     PlaceTitleBarOverContent="True"
     mc:Ignorable="d">
+    <controls:ThemedWindow.Resources>
+        <!--  Offsets the content below the title bar drawn over it.  -->
+        <Thickness x:Key="ContentTitleBarMargin" Top="{StaticResource {x:Static joufflu:Dimensions.TitleBarHeight}}" />
+    </controls:ThemedWindow.Resources>
     <DockPanel>
-        <nav:NavigationMenu
-            DockPanel.Dock="Left"
-            Navigator="{Binding Navigator}"
-            TargetResolver="{Binding ResolveTarget}">
+        <nav:NavigationMenu DockPanel.Dock="Left" Navigator="{Binding Navigator}">
             <nav:NavigationMenu.Header>
                 <StackPanel
                     VerticalAlignment="Center"
@@ -33,32 +39,34 @@
                 </StackPanel>
             </nav:NavigationMenu.Header>
 
-            <nav:NavigationItem Target="home">
+            <nav:NavigationItem TargetType="{x:Type home:HomeViewModel}">
                 <nav:NavigationItem.Icon>
                     <fonts:FontIcon Text="{x:Static fonts:LucideFontIcons.Home}" />
                 </nav:NavigationItem.Icon>
                 Home
             </nav:NavigationItem>
 
-            <nav:NavigationItem Target="home">
+            <nav:NavigationItem TargetType="{x:Type workflows:WorkflowsViewModel}">
                 <nav:NavigationItem.Icon>
                     <fonts:FontIcon Text="{x:Static fonts:LucideFontIcons.Boxes}" />
                 </nav:NavigationItem.Icon>
                 Workflows / tasks
             </nav:NavigationItem>
-            <nav:NavigationItem Target="home">
+            <nav:NavigationItem TargetType="{x:Type packages:PackagesViewModel}">
                 <nav:NavigationItem.Icon>
                     <fonts:FontIcon Text="{x:Static fonts:LucideFontIcons.Package}" />
                 </nav:NavigationItem.Icon>
                 Packages
             </nav:NavigationItem>
-            <nav:NavigationItem Target="home">
+
+            <nav:NavigationTitle>Admin</nav:NavigationTitle>
+            <nav:NavigationItem TargetType="{x:Type servers:ServersViewModel}">
                 <nav:NavigationItem.Icon>
                     <fonts:FontIcon Text="{x:Static fonts:LucideFontIcons.Server}" />
                 </nav:NavigationItem.Icon>
                 Servers
             </nav:NavigationItem>
-            <nav:NavigationItem Target="home">
+            <nav:NavigationItem TargetType="{x:Type storage:StorageViewModel}">
                 <nav:NavigationItem.Icon>
                     <fonts:FontIcon Text="{x:Static fonts:LucideFontIcons.Database}" />
                 </nav:NavigationItem.Icon>
@@ -68,6 +76,7 @@
 
         <!--  Renders the current page and hosts the overlay + toast stacks.  -->
         <nav:NavigationContainer
+            Margin="{StaticResource ContentTitleBarMargin}"
             Navigator="{Binding Navigator}"
             Overlays="{Binding Overlays}"
             Toasts="{Binding Toasts}" />

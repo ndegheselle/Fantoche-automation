@@ -1,34 +1,40 @@
 ﻿using Automation.App.Features.Home;
+using Automation.App.Features.Packages;
+using Automation.App.Features.Servers;
+using Automation.App.Features.Storage;
+using Automation.App.Features.Workflows;
 using CommunityToolkit.Mvvm.ComponentModel;
-using Joufflu.Controls;
+using Joufflu.Feedback.Controls;
 using Joufflu.Navigation;
 using Joufflu.Navigation.Controls;
 
 namespace Automation.App
 {
-    internal class ShellViewModel : ObservableObject
+    public class ShellViewModel : ObservableObject
     {
-        public Navigator Navigator { get; } = new();
+        public Navigator Navigator { get; }
         public OverlayService Overlays { get; } = new();
         public ToastService Toasts { get; } = new();
 
-        private readonly Dictionary<string, object> _pages;
-        public Func<string, object?> ResolveTarget { get; }
+        private readonly Dictionary<Type, object> _pages;
 
         public ShellViewModel()
         {
-            _pages = new()
+            _pages = new object[]
             {
-                ["home"] = new HomeViewModel(),
-            };
+                new HomeViewModel(),
+                new WorkflowsViewModel(),
+                new PackagesViewModel(),
+                new ServersViewModel(),
+                new StorageViewModel(),
+            }.ToDictionary(x => x.GetType());
 
-            ResolveTarget = Resolve;
-
+            Navigator = new Navigator(Resolve);
             // Land on a page at startup.
-            Navigator.Navigate(_pages["home"]);
+            Navigator.Navigate(typeof(HomeViewModel));
         }
 
-        object? Resolve(string target)
+        object? Resolve(Type target)
         {
             return _pages.GetValueOrDefault(target);
         }

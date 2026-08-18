@@ -9,9 +9,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Joufflu" Version="0.1.1" />
-    <PackageReference Include="Joufflu.Inputs" Version="0.1.1" />
-    <PackageReference Include="Joufflu.Navigation" Version="0.1.1" />
+    <PackageReference Include="Joufflu" Version="0.3.0" />
+    <PackageReference Include="Joufflu.Inputs" Version="0.3.0" />
+    <PackageReference Include="Joufflu.Navigation" Version="0.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Automation.Shared\Automation.Shared.csproj" />
   </ItemGroup>
 
 </Project>

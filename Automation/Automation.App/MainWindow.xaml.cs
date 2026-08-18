@@ -7,8 +7,9 @@ namespace Automation.App
     /// </summary>
     public partial class MainWindow : ThemedWindow
     {
-        public MainWindow()
+        public MainWindow(ShellViewModel shell)
         {
+            this.DataContext = shell;
             InitializeComponent();
         }
     }
