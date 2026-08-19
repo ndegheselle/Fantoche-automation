@@ -9,9 +9,9 @@ public class LocalPackagesService : IPackagesService
 {
     private readonly LocalPackageManagement _packages;
 
-    public LocalPackagesService(string folder)
+    public LocalPackagesService(string folderPath, string cacheFolderPath)
     {
-        _packages = new LocalPackageManagement(folder);
+        _packages = new LocalPackageManagement(folderPath, cacheFolderPath);
     }
 
     public Task<Paginated<PackageInfos>> SearchAsync(string search = "", PaginationOptions options = default)

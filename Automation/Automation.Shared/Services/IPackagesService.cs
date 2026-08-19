@@ -11,8 +11,8 @@ public class PackageValidationException : Exception
 
 public class PackageAdded
 {
-    public PackageInfos Infos { get; set; }
-    public List<Warning> Warnings { get; set; }
+    public PackageInfos Infos { get; set; } = new PackageInfos();
+    public List<Warning> Warnings { get; set; } = [];
 }
 
 public interface IPackagesService

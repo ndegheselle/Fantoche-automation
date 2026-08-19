@@ -44,18 +44,17 @@ public class LocalPackageManagement
     /// <summary>
     /// Initializes a new instance of <see cref="LocalPackageManagement"/>.
     /// </summary>
-    /// <param name="folder">Path to the local NuGet package source folder.</param>
-    /// <exception cref="DirectoryNotFoundException">Thrown if <paramref name="folder"/> does not exist.</exception>
-    public LocalPackageManagement(string folder)
+    /// <param name="packageFolderPath">Path to the local NuGet package source folder.</param>
+    /// <exception cref="DirectoryNotFoundException">Thrown if <paramref name="packageFolderPath"/> does not exist.</exception>
+    public LocalPackageManagement(string packageFolderPath, string cacheFolderPath)
     {
         _frameworkVersion = GetCurrentFramework();
-        _localFolder = Path.Combine(Directory.GetCurrentDirectory(), "packages");
-        _folder = folder;
-
+        _localFolder = cacheFolderPath;
+        _folder = packageFolderPath;
         if (Directory.Exists(_folder) == false)
             Directory.CreateDirectory(_folder);
 
-        var packageSource = new PackageSource(folder);
+        var packageSource = new PackageSource(packageFolderPath);
         _repositoryTask = Task.Run(() => Repository.Factory.GetCoreV3(packageSource));
         _cacheContext = new SourceCacheContext();
         _logger = NullLogger.Instance;
