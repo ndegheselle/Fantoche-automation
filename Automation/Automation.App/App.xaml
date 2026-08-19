@@ -16,6 +16,11 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/Joufflu;component/Resources.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
+            <!--#region custom theme-->
+            <system:Double x:Key="{x:Static joufflu:Dimensions.Thickness}">2</system:Double>
+            <Thickness x:Key="{x:Static joufflu:Dimensions.BorderThickness}">2</Thickness>
+            <!--#endregion-->
             
             <DataTemplate DataType="{x:Type home:HomeViewModel}">
                 <home:HomePage />

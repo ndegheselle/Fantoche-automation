@@ -38,7 +38,7 @@
         </Grid>
         <Border
             Grid.Row="2"
-            BorderThickness="4"
+            BorderThickness="{DynamicResource {x:Static joufflu:Dimensions.BorderThickness}}"
             CornerRadius="{DynamicResource {x:Static joufflu:Dimensions.CornerRadius}}">
             <Border.BorderBrush>
                 <DrawingBrush Viewport="0,0,8,8" ViewportUnits="Absolute" TileMode="Tile">
