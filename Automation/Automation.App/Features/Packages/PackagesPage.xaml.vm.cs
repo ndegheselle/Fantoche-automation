@@ -3,39 +3,70 @@ using Automation.Shared.Data.Execution;
 using Automation.Shared.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Joufflu.Inputs.Controls;
 using Joufflu.Navigation;
+using System.IO;
+using System.Windows;
 
 namespace Automation.App.Features.Packages
 {
     public partial class PackagesViewModel : ObservableObject
     {
         [ObservableProperty]
-        private Paginated<PackageInfos> result = new Paginated<PackageInfos>();
+        private Paginated<PackageInfos> _result = new Paginated<PackageInfos>();
 
-        private readonly IPackagesService packages;
-        private readonly IOverlayService overlays;
+        [ObservableProperty] private string _search = "";
+        [ObservableProperty] private int _pageNumber = 1;
+        [ObservableProperty] private int _capacity = 50;
+
+        private readonly IPackagesService _packages;
+        private readonly IOverlayService _overlays;
 
         public PackagesViewModel(IPackagesService packages, IOverlayService overlays)
         {
-            this.packages = packages;
-            this.overlays = overlays;
+            this._packages = packages;
+            this._overlays = overlays;
         }
 
-        public async void Search(string search, PaginationOptions options)
+        [RelayCommand(CanExecute = nameof(CanDropFiles))]
+        public void DropFiles(IDataObject? data)
         {
-            Result = await packages.SearchAsync(search, options);
+            foreach (string file in GetFiles(data) ?? [])
+                AddPackage(file);
+        }
+
+        [RelayCommand]
+        public void OpenPackage(PackageInfos package)
+        {
+            _overlays.Show(new PackageViewModel(package, _packages, _overlays), new OverlayOptions() { FullScreen = true, Title = "Package detail" });
         }
 
         public async void AddPackage(string filePaths)
         {
-            await packages.AddAsync(filePaths);
+            await _packages.AddAsync(filePaths);
         }
 
-        [RelayCommand]
-        public void OpenPackage()
+        public async Task RefreshAsync()
         {
-            overlays.Show(new PackageViewModel(), new OverlayOptions() { FullScreen = true, Title = "Package detail" });
+            Result = await _packages.SearchAsync(Search, new PaginationOptions() { Page = PageNumber, PageSize = Capacity });
         }
+
+        partial void OnSearchChanged(string value)
+        {
+            _pageNumber = 1;
+            _ = RefreshAsync();
+        }
+
+        partial void OnCapacityChanged(int value) => _ = RefreshAsync();
+
+        partial void OnPageNumberChanged(int value) => _ = RefreshAsync();
+
+        private static bool CanDropFiles(IDataObject? data)
+        {
+            string[]? files = GetFiles(data);
+            return files?.Length > 0 && files.All(IsPackage);
+        }
+
+        private static string[]? GetFiles(IDataObject? data) => data?.GetData(DataFormats.FileDrop) as string[];
+        private static bool IsPackage(string path) => Path.GetExtension(path).Equals(".nupkg", StringComparison.OrdinalIgnoreCase);
     }
 }

@@ -13,6 +13,10 @@ namespace Automation.App
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+
+            Current.DispatcherUnhandledException += CurrentOnDispatcherUnhandledException;
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomainUnhandledException;
+
             ThemeManager.Instance.Initialize();
 
             shell = new SpineViewModel();

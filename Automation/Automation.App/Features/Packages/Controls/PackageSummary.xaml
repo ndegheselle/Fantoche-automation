@@ -1,0 +1,32 @@
+﻿<UserControl
+    x:Class="Automation.App.Features.Packages.Controls.PackageSummary"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:execution="clr-namespace:Automation.Shared.Data.Execution;assembly=Automation.Shared"
+    xmlns:feedback="clr-namespace:Joufflu.Feedback.Controls;assembly=Joufflu.Feedback"
+    xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
+    xmlns:local="clr-namespace:Automation.App.Features.Packages.Controls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DataContext="{d:DesignInstance Type=execution:PackageInfos}"
+    mc:Ignorable="d">
+    <Border Style="{StaticResource Card}">
+        <Grid joufflu:Spacing.Gap="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition Width="auto" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <TextBlock Style="{StaticResource Lead}" Text="{Binding Identifier.Id}" />
+            <feedback:Badge Grid.Column="1" Content="{Binding Identifier.Version}" />
+            <TextBlock
+                Grid.Row="1"
+                Grid.ColumnSpan="2"
+                Text="{Binding Description}"
+                TextWrapping="Wrap" />
+        </Grid>
+    </Border>
+</UserControl>

@@ -27,7 +27,7 @@
                 <RowDefinition />
                 <RowDefinition Height="auto" />
             </Grid.RowDefinitions>
-            <jnputs:Search Grid.Row="0" SearchChanged="Search_SearchChanged" />
+            <jnputs:Search Grid.Row="0" SearchText="{Binding Search, Mode=TwoWay}" />
             <DataGrid
                 Grid.Row="1"
                 AutoGenerateColumns="False"
@@ -38,15 +38,15 @@
                     <DataGridTextColumn Binding="{Binding Identifier.Id}" Header="Id" />
                     <DataGridTextColumn Binding="{Binding Identifier.Version}" Header="Version" />
                     <DataGridTextColumn
-                        MaxWidth="400"
+                        Width="*"
                         Binding="{Binding Description}"
                         Header="Description" />
-                    <DataGridTemplateColumn Width="*">
+                    <DataGridTemplateColumn>
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <Button
-                                    HorizontalAlignment="Right"
                                     joufflu:Sizing.IsSquare="True"
+                                    joufflu:Sizing.Size="sm"
                                     Command="{Binding ViewModel.OpenPackageCommand, RelativeSource={RelativeSource AncestorType={x:Type local:PackagesPage}}}"
                                     CommandParameter="{Binding}"
                                     Style="{StaticResource SecondaryButton}">
@@ -57,34 +57,52 @@
                     </DataGridTemplateColumn>
                 </DataGrid.Columns>
             </DataGrid>
-            <javigation:Paging Grid.Row="2" PagingChange="Paging_PagingChange" />
+            <javigation:Paging
+                Grid.Row="2"
+                Capacity="{Binding Capacity, Mode=TwoWay}"
+                PageNumber="{Binding PageNumber, Mode=TwoWay}" />
         </Grid>
         <Border
             x:Name="DropZone"
             Grid.Row="2"
+            joufflu:DropTarget.Command="{Binding DropFilesCommand}"
             AllowDrop="True"
             Background="Transparent"
             BorderThickness="{DynamicResource {x:Static joufflu:Dimensions.BorderThickness}}"
             CornerRadius="{DynamicResource {x:Static joufflu:Dimensions.CornerRadius}}">
-            <Border.BorderBrush>
-                <DrawingBrush
-                    TileMode="Tile"
-                    Viewport="0,0,8,8"
-                    ViewportUnits="Absolute">
-                    <DrawingBrush.Drawing>
-                        <DrawingGroup>
-                            <GeometryDrawing Brush="{DynamicResource {x:Static joufflu:Brushes.BorderBrush}}">
-                                <GeometryDrawing.Geometry>
-                                    <GeometryGroup>
-                                        <RectangleGeometry Rect="0,0,50,50" />
-                                        <RectangleGeometry Rect="50,50,50,50" />
-                                    </GeometryGroup>
-                                </GeometryDrawing.Geometry>
-                            </GeometryDrawing>
-                        </DrawingGroup>
-                    </DrawingBrush.Drawing>
-                </DrawingBrush>
-            </Border.BorderBrush>
+
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="Background" Value="Transparent" />
+                    <Setter Property="BorderBrush">
+                        <Setter.Value>
+                            <DrawingBrush
+                                TileMode="Tile"
+                                Viewport="0,0,8,8"
+                                ViewportUnits="Absolute">
+                                <DrawingBrush.Drawing>
+                                    <DrawingGroup>
+                                        <GeometryDrawing Brush="{DynamicResource {x:Static joufflu:Brushes.BorderBrush}}">
+                                            <GeometryDrawing.Geometry>
+                                                <GeometryGroup>
+                                                    <RectangleGeometry Rect="0,0,50,50" />
+                                                    <RectangleGeometry Rect="50,50,50,50" />
+                                                </GeometryGroup>
+                                            </GeometryDrawing.Geometry>
+                                        </GeometryDrawing>
+                                    </DrawingGroup>
+                                </DrawingBrush.Drawing>
+                            </DrawingBrush>
+                        </Setter.Value>
+                    </Setter>
+                    <Style.Triggers>
+                        <Trigger Property="joufflu:DropTarget.IsDragOver" Value="True">
+                            <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.PrimaryBrush}}" />
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+
             <StackPanel VerticalAlignment="Center" joufflu:Spacing.Gap="8">
                 <jonts:FontIcon
                     joufflu:Sizing.Size="xl"

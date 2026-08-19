@@ -145,10 +145,11 @@ public class LocalPackageManagement
 
     /// <summary>
     /// Adds a package to the repository from a file on disk.
+    /// If the same package version already exists, it is replaced.
     /// </summary>
     /// <param name="filePath">Absolute path to the <c>.nupkg</c> file to add.</param>
     /// <returns>The <see cref="PackageInfos"/> of the added package.</returns>
-    /// <exception cref="PackageValidationException">Thrown if the file is not a valid NuGet package, or if it already exists in the repository.</exception>
+    /// <exception cref="PackageValidationException">Thrown if the file is not a valid NuGet package.</exception>
     public async Task<PackageInfos> AddAsync(string filePath)
     {
         await using var stream = File.OpenRead(filePath);
@@ -158,11 +159,12 @@ public class LocalPackageManagement
     /// <summary>
     /// Adds a package to the repository from a stream.
     /// The stream must represent a valid <c>.nupkg</c> archive.
+    /// If the same package version already exists in the repository, it is replaced.
     /// </summary>
     /// <param name="stream">The stream containing the NuGet package data.</param>
-    /// <returns>The <see cref="PackageInfos"/> of the newly added package.</returns>
+    /// <returns>The <see cref="PackageInfos"/> of the added package.</returns>
     /// <exception cref="PackageValidationException">
-    /// Thrown if the stream is not a valid NuGet package, or if the package version already exists in the repository.
+    /// Thrown if the stream is not a valid NuGet package.
     /// </exception>
     public async Task<PackageInfos> CreateFromStreamAsync(Stream stream)
     {
@@ -175,9 +177,6 @@ public class LocalPackageManagement
         var identity = await packageReader.GetIdentityAsync(CancellationToken.None);
 
         string packagePath = Path.Combine(_folder, $"{identity.Id}.{identity.Version}.nupkg");
-
-        if (File.Exists(packagePath))
-            throw new PackageValidationException($"The package '{identity.Id}' (version {identity.Version}) already exists.");
 
         await using (var fileStream = File.Create(packagePath))
         {
