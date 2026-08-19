@@ -1,4 +1,5 @@
-﻿using Automation.App.Features.Home;
+﻿using System.IO;
+using Automation.App.Features.Home;
 using Automation.App.Features.Packages;
 using Automation.App.Features.Servers;
 using Automation.App.Features.Storage;
@@ -9,7 +10,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using Joufflu.Feedback.Controls;
 using Joufflu.Navigation;
 using Joufflu.Navigation.Controls;
-using System.IO;
 
 namespace Automation.App;
 
@@ -44,7 +44,7 @@ public class SpineViewModel : ObservableObject
         {
             new HomeViewModel(),
             new WorkflowsViewModel(),
-            new PackagesViewModel(Packages),
+            new PackagesViewModel(Packages, Overlays),
             new ServersViewModel(),
             new StorageViewModel(),
         }.ToDictionary(x => x.GetType());

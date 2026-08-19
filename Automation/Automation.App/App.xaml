@@ -8,13 +8,15 @@
     xmlns:servers="clr-namespace:Automation.App.Features.Servers"
     xmlns:storage="clr-namespace:Automation.App.Features.Storage"
     xmlns:workflows="clr-namespace:Automation.App.Features.Workflows"
+    xmlns:system="clr-namespace:System;assembly=mscorlib"
+    xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     >
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/Joufflu;component/Resources.xaml" />
             </ResourceDictionary.MergedDictionaries>
-
+            
             <DataTemplate DataType="{x:Type home:HomeViewModel}">
                 <home:HomePage />
             </DataTemplate>
@@ -25,6 +27,9 @@
 
             <DataTemplate DataType="{x:Type packages:PackagesViewModel}">
                 <packages:PackagesPage />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type packages:PackageViewModel}">
+                <packages:PackageOverlay />
             </DataTemplate>
 
             <DataTemplate DataType="{x:Type servers:ServersViewModel}">
