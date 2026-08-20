@@ -1,5 +1,9 @@
-﻿using Automation.Shared.Base;
+﻿using System.Collections.Concurrent;
+using System.Reflection;
+using System.Runtime.Versioning;
+using Automation.Shared.Base;
 using Automation.Shared.Data.Execution;
+using Automation.Shared.Services;
 using NuGet.Common;
 using NuGet.Configuration;
 using NuGet.Frameworks;
@@ -8,10 +12,6 @@ using NuGet.Packaging.Core;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
-using System.Collections.Concurrent;
-using System.Reflection;
-using System.Runtime.Versioning;
-using Automation.Shared.Services;
 
 namespace Automation.Worker.Packages;
 
@@ -255,10 +255,14 @@ public class LocalPackageManagement
             packageStream.Position = 0;
             using var packageReader = new PackageArchiveReader(packageStream);
             var nearestFramework = GetNearestFramework(packageReader);
+
+            if (nearestFramework == null)
+                throw new PackageDownloadException($"No compatible framework version found in the package.");
+
             var lib = packageReader.GetLibItems().FirstOrDefault(x => x.TargetFramework == nearestFramework);
 
             if (lib == null)
-                throw new PackageDownloadException($"Could not find compatible nearest framework [nearest:{nearestFramework}]");
+                throw new PackageDownloadException($"Could not find compatible framework version [target:{nearestFramework}]");
 
             await packageReader.CopyFilesAsync(
                 _localFolder,
@@ -471,15 +475,14 @@ public class LocalPackageManagement
     /// <param name="packageReader">The archive reader for the package being inspected.</param>
     /// <returns>The best matching <see cref="NuGetFramework"/>.</returns>
     /// <exception cref="Exception">Thrown if no compatible framework can be found in the package.</exception>
-    private NuGetFramework GetNearestFramework(PackageArchiveReader packageReader)
+    private NuGetFramework? GetNearestFramework(PackageArchiveReader packageReader)
     {
         var frameworks = packageReader.GetLibItems()
             .Select(group => group.TargetFramework)
             .Where(f => f != null)
             .ToList();
 
-        return NuGetFrameworkUtility.GetNearest(frameworks, _frameworkVersion, f => f)
-            ?? throw new Exception("Can't find the nearest framework.");
+        return NuGetFrameworkUtility.GetNearest(frameworks, _frameworkVersion, f => f);
     }
 
     /// <summary>

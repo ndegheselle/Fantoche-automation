@@ -1,6 +1,6 @@
-﻿using Joufflu.Themes;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Threading;
+using Joufflu.Themes;
 
 namespace Automation.App
 {
@@ -42,7 +42,7 @@ namespace Automation.App
         {
             try
             {
-                shell?.Toasts.Error("An unexpected error happened ...", "Ooops");
+                shell?.Toasts.Error(exception.Message, "Ooops");
             }
             catch
             { }
