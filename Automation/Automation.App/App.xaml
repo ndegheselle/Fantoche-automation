@@ -8,6 +8,8 @@
     xmlns:servers="clr-namespace:Automation.App.Features.Servers"
     xmlns:storage="clr-namespace:Automation.App.Features.Storage"
     xmlns:workflows="clr-namespace:Automation.App.Features.Workflows"
+    xmlns:workflowsDetails="clr-namespace:Automation.App.Features.Workflows.Details"
+    xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
     xmlns:system="clr-namespace:System;assembly=mscorlib"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     >

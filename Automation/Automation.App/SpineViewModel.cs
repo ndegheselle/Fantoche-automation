@@ -32,6 +32,8 @@ public class SpineViewModel : ObservableObject
     #region services
     public Settings Settings { get; } = new Settings();
     public IPackagesService Packages { get; }
+    public IHistoryService History { get; }
+    public IScopedService Scoped { get; }
     #endregion
 
     private readonly Dictionary<Type, object> _pages;
@@ -39,11 +41,13 @@ public class SpineViewModel : ObservableObject
     public SpineViewModel()
     {
         Packages = new LocalPackagesService(Settings.PackagesFolderPath, Settings.LocalFolderPath);
+        History = new LocalHistoryService();
+        Scoped = new LocalScopedService(History);
 
         _pages = new object[]
         {
             new HomeViewModel(),
-            new WorkflowsViewModel(),
+            new WorkflowsViewModel(Scoped),
             new PackagesViewModel(Packages, Overlays),
             new ServersViewModel(),
             new StorageViewModel(),

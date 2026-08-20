@@ -1,12 +1,113 @@
-<UserControl x:Class="Automation.App.Features.Workflows.WorkflowsPage"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:local="clr-namespace:Automation.App.Features.Workflows"
-             mc:Ignorable="d"
-             d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-        <TextBlock>Workflows / tasks</TextBlock>
+<UserControl
+    x:Class="Automation.App.Features.Workflows.WorkflowsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:details="clr-namespace:Automation.App.Features.Workflows.Details"
+    xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
+    xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
+    xmlns:local="clr-namespace:Automation.App.Features.Workflows"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DataContext="{d:DesignInstance Type=local:WorkflowsViewModel}"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Features/Workflows/Controls/ScopedIcon.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <DataTemplate DataType="{x:Type details:ScopeDetailsViewModel}">
+                <details:ScopeDetailsPage />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type details:WorkflowDetailsViewModel}">
+                <details:WorkflowDetailsPage />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type details:TaskDetailsViewModel}">
+                <details:TaskDetailsPage />
+            </DataTemplate>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid Margin="{StaticResource {x:Static joufflu:Dimensions.SpacingThickness}}" joufflu:Spacing.Gap="4">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto" MinWidth="200" />
+            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!--  Tree of every scope, workflow and task.  -->
+        <TreeView ItemsSource="{Binding Roots}" SelectedItemChanged="OnTreeSelectionChanged">
+            <TreeView.ItemContainerStyle>
+                <Style BasedOn="{StaticResource TreeViewItemStyle}" TargetType="{x:Type TreeViewItem}">
+                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+                </Style>
+            </TreeView.ItemContainerStyle>
+            <TreeView.ItemTemplate>
+                <HierarchicalDataTemplate DataType="{x:Type local:ScopedNode}" ItemsSource="{Binding Children}">
+                    <StackPanel joufflu:Spacing.Gap="4" Orientation="Horizontal">
+                        <jonts:FontIcon Style="{StaticResource ScopedIcon}" />
+                        <TextBlock Text="{Binding Name}" />
+                    </StackPanel>
+                </HierarchicalDataTemplate>
+            </TreeView.ItemTemplate>
+        </TreeView>
+
+        <GridSplitter
+            Grid.Column="1"
+            Width="4"
+            Background="Transparent"
+            ResizeBehavior="PreviousAndNext" />
+
+        <Grid Grid.Column="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <!--  Path of the selected element.  -->
+            <ScrollViewer
+                Grid.Row="0"
+                HorizontalScrollBarVisibility="Auto"
+                VerticalScrollBarVisibility="Disabled">
+                <ItemsControl ItemsSource="{Binding Breadcrumb}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type local:ScopedNode}">
+                            <StackPanel Orientation="Horizontal">
+                                <jonts:FontIcon Foreground="{DynamicResource {x:Static joufflu:Brushes.Foreground100Brush}}" Text="{x:Static jonts:LucideFontIcons.ChevronRight}">
+                                    <jonts:FontIcon.Style>
+                                        <Style BasedOn="{StaticResource {x:Type jonts:FontIcon}}" TargetType="{x:Type jonts:FontIcon}">
+                                            <Style.Triggers>
+                                                <!--  No separator before the first element of the path.  -->
+                                                <DataTrigger Binding="{Binding Parent}" Value="{x:Null}">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </jonts:FontIcon.Style>
+                                </jonts:FontIcon>
+                                <Button
+                                    Command="{Binding ViewModel.OpenCommand, RelativeSource={RelativeSource AncestorType={x:Type local:WorkflowsPage}}}"
+                                    CommandParameter="{Binding}"
+                                    Style="{StaticResource GhostButton}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <jonts:FontIcon Style="{StaticResource ScopedIcon}" />
+                                        <TextBlock Margin="4,0,0,0" Text="{Binding Name}" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <ContentControl Grid.Row="1" Content="{Binding Details}" />
+        </Grid>
     </Grid>
 </UserControl>
