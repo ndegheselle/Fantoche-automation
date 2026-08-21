@@ -82,6 +82,7 @@ public class AutomationControl : AutomationTask
     public static readonly AutomationControl StartTask = new AutomationControl(typeof(AutomationControl))
     {
         Id = Guid.Parse("00000000-0000-0000-0000-100000000001"),
+        ParentId = Scope.ROOT_SCOPE_ID,
         Metadata = new ScopedMetadata(EnumScopedType.Task) { Tags = ["Control"], Name = "Start", Icon = "\uE3D2", IsReadOnly = true },
         InputSchema = null,
         OutputSchema = new JsonSchema(),
@@ -89,6 +90,7 @@ public class AutomationControl : AutomationTask
     public static readonly AutomationControl EndTask = new AutomationControl(typeof(AutomationControl))
     {
         Id = Guid.Parse("00000000-0000-0000-0000-100000000002"),
+        ParentId = Scope.ROOT_SCOPE_ID,
         Metadata = new ScopedMetadata(EnumScopedType.Task) { Tags = ["Control"], Name = "End", Icon = "\uE244", IsReadOnly = true },
         InputSchema = new JsonSchema(),
         OutputSchema = null
@@ -99,6 +101,11 @@ public class AutomationControl : AutomationTask
     /// </summary>
     [JsonIgnore]
     public Type Type { get; set; }
+
+    // Needed so persistence layers (e.g. EF Core) can materialize instances from storage.
+    public AutomationControl() : this(typeof(AutomationControl))
+    {
+    }
 
     public AutomationControl(Type type)
     {

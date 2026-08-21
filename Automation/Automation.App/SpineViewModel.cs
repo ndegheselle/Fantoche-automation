@@ -47,9 +47,11 @@ public class SpineViewModel : ObservableObject
 
     private SpineViewModel()
     {
+        var dbContextFactory = new LocalDbContextFactory(Path.Combine(Settings.LocalFolderPath, "automation.db"));
+
         Packages = new LocalPackagesService(Settings.PackagesFolderPath, Settings.LocalFolderPath);
-        History = new LocalHistoryService();
-        Scoped = new LocalScopedService(History);
+        History = new LocalHistoryService(dbContextFactory);
+        Scoped = new LocalScopedService(History, dbContextFactory);
 
         _pages = new object[]
         {

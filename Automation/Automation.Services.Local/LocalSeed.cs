@@ -1,15 +1,21 @@
+using Automation.Shared.Data.Scoped;
+
 namespace Automation.Services.Local;
 
 /// <summary>
-/// Deterministic ids shared by the in-memory mock services so that the seeded execution history
-/// (<see cref="LocalHistoryService"/>) lines up with the seeded scoped elements
-/// (<see cref="LocalScopedService"/>). Until a real persistence layer exists this lets the element
-/// history pages show data out of the box.
+/// Minimal content written to the SQLite database the first time it is created:
+/// the built-in <see cref="AutomationControl.StartTask"/>/<see cref="AutomationControl.EndTask"/>
+/// elements every graph relies on, plus a small demo hierarchy (and some finished history
+/// against it) so the app isn't empty on first launch.
 /// </summary>
 internal static class LocalSeed
 {
-    public static readonly Guid IngestionScopeId = new("11111111-0000-0000-0000-000000000001");
-    public static readonly Guid TransformScopeId = new("11111111-0000-0000-0000-000000000002");
-    public static readonly Guid DailyImportWorkflowId = new("11111111-0000-0000-0000-000000000003");
-    public static readonly Guid FetchFilesTaskId = new("11111111-0000-0000-0000-000000000004");
+    public static void Seed(LocalDbContext db)
+    {
+        db.ScopedElements.AddRange(
+            AutomationControl.StartTask,
+            AutomationControl.EndTask);
+
+        db.SaveChanges();
+    }
 }

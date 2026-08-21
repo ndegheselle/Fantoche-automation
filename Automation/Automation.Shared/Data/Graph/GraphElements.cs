@@ -176,6 +176,12 @@ namespace Automation.Shared.Data.Graph
         [JsonIgnore] public bool IsConnected { get; set; }
         [JsonIgnore] public BaseGraphTask? Parent { get; set; }
 
+        // Needed for deserialization (e.g. EF Core-persisted graphs); Parent is re-linked by
+        // TasksGraph.Refresh() afterwards, same as when loading a graph from any other source.
+        public GraphConnector()
+        {
+        }
+
         public GraphConnector(BaseGraphTask parent)
         {
             Parent = parent;

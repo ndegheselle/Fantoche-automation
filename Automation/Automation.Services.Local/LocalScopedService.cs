@@ -2,80 +2,49 @@ using Automation.Shared.Base;
 using Automation.Shared.Data.Execution;
 using Automation.Shared.Data.Scoped;
 using Automation.Shared.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace Automation.Services.Local;
 
 public class LocalScopedService : IScopedService
 {
-    // In-memory store shared across instances until a real persistence layer exists
-    private static readonly Dictionary<Guid, ScopedElement> _elements = [];
-
     private readonly IHistoryService _historyService;
+    private readonly LocalDbContextFactory _dbContextFactory;
 
-    static LocalScopedService()
-    {
-        // Seeded hierarchy (deterministic ids, see LocalSeed):
-        //   Ingestion (scope)
-        //     ├─ Fetch files (task)
-        //     └─ Transform (scope)
-        //          └─ Daily import (workflow)
-        var ingestion = new Scope
-        {
-            Id = LocalSeed.IngestionScopeId,
-            ParentId = Scope.ROOT_SCOPE_ID,
-            Metadata = new ScopedMetadata("Ingestion", EnumScopedType.Scope)
-        };
-        var transform = new Scope
-        {
-            Id = LocalSeed.TransformScopeId,
-            ParentId = ingestion.Id,
-            Metadata = new ScopedMetadata("Transform", EnumScopedType.Scope)
-        };
-        var task = new AutomationTask
-        {
-            Id = LocalSeed.FetchFilesTaskId,
-            ParentId = ingestion.Id,
-            Metadata = new ScopedMetadata("Fetch files", EnumScopedType.Task) { IsReadOnly = true }
-        };
-        var workflow = new AutomationWorkflow
-        {
-            Id = LocalSeed.DailyImportWorkflowId,
-            ParentId = transform.Id,
-            Metadata = new ScopedMetadata("Daily import", EnumScopedType.Workflow)
-        };
-
-        _elements.Add(ingestion.Id, ingestion);
-        _elements.Add(transform.Id, transform);
-        _elements.Add(task.Id, task);
-        _elements.Add(workflow.Id, workflow);
-    }
-
-    public LocalScopedService(IHistoryService historyService)
+    public LocalScopedService(IHistoryService historyService, LocalDbContextFactory dbContextFactory)
     {
         _historyService = historyService;
+        _dbContextFactory = dbContextFactory;
     }
 
-    public Task<ScopedElement> CreateAsync(ScopedElement element)
+    public async Task<ScopedElement> CreateAsync(ScopedElement element)
     {
         element.Id = Guid.NewGuid();
-        _elements.Add(element.Id, element);
-        return Task.FromResult(element);
+
+        using var db = _dbContextFactory.CreateDbContext();
+        db.ScopedElements.Add(element);
+        await db.SaveChangesAsync();
+
+        return element;
     }
 
-    public Task<ScopedElement> EditAsync(ScopedElement element)
+    public async Task<ScopedElement> EditAsync(ScopedElement element)
     {
-        if (!_elements.ContainsKey(element.Id))
+        using var db = _dbContextFactory.CreateDbContext();
+
+        if (!await db.ScopedElements.AnyAsync(x => x.Id == element.Id))
             throw new KeyNotFoundException();
-        _elements[element.Id] = element;
-        return Task.FromResult(element);
+
+        db.ScopedElements.Update(element);
+        await db.SaveChangesAsync();
+
+        return element;
     }
 
-    public Task<List<ScopedElement>> GetChildrensAsync(Guid scopeId)
+    public async Task<List<ScopedElement>> GetChildrensAsync(Guid scopeId)
     {
-        var children = _elements.Where(x => x.Value.ParentId == scopeId)
-            .Select(x => x.Value)
-            .ToList();
-        return Task.FromResult(children);
+        using var db = _dbContextFactory.CreateDbContext();
+        return await db.ScopedElements.Where(x => x.ParentId == scopeId).ToListAsync();
     }
 
     public Task<ScopedElement> RemoveAsync(ScopedElement element)
@@ -83,57 +52,75 @@ public class LocalScopedService : IScopedService
         throw new NotImplementedException();
     }
 
-    public Task<Paginated<BaseAutomationTask>> SearchAsync(string search = "", PaginationOptions options = default)
+    public async Task<Paginated<BaseAutomationTask>> SearchAsync(string search = "", PaginationOptions options = default)
     {
-        var matched = _elements.Values
-            .OfType<BaseAutomationTask>()
-            .Where(x => string.IsNullOrWhiteSpace(search) || x.Metadata.Name.Contains(search, StringComparison.OrdinalIgnoreCase))
-            .ToList();
+        using var db = _dbContextFactory.CreateDbContext();
 
-        var items = matched
+        IQueryable<BaseAutomationTask> query = db.ScopedElements.OfType<BaseAutomationTask>();
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            string term = search.ToLower();
+            query = query.Where(x => x.Metadata.Name.ToLower().Contains(term));
+        }
+
+        var total = await query.CountAsync();
+        var items = await query
             .Skip((options.Page - 1) * options.PageSize)
             .Take(options.PageSize)
-            .ToList();
+            .ToListAsync();
 
-        return Task.FromResult(new Paginated<BaseAutomationTask>
+        return new Paginated<BaseAutomationTask>
         {
             Items = items,
-            Total = matched.Count,
+            Total = total,
             Options = options,
-        });
+        };
     }
 
-    public Task<bool> IsNameUniqueAsync(Guid parentId, string name, Guid? excludeId = null)
+    public async Task<bool> IsNameUniqueAsync(Guid parentId, string name, Guid? excludeId = null)
     {
-        bool unique = !_elements.Values.Any(x =>
+        using var db = _dbContextFactory.CreateDbContext();
+
+        string term = name.ToLower();
+        bool exists = await db.ScopedElements.AnyAsync(x =>
             x.ParentId == parentId &&
             x.Id != excludeId &&
-            string.Equals(x.Metadata.Name, name, StringComparison.OrdinalIgnoreCase));
-        return Task.FromResult(unique);
+            x.Metadata.Name.ToLower() == term);
+
+        return !exists;
     }
 
-    public Task<List<AutomationTask>> GetTasksByPackageAsync(string packageId)
+    public async Task<List<AutomationTask>> GetTasksByPackageAsync(string packageId)
     {
-        var tasks = _elements.Values
-            .OfType<AutomationTask>()
-            .Where(t => t.Target != null && t.Target.Package.Id == packageId)
-            .ToList();
-        return Task.FromResult(tasks);
+        using var db = _dbContextFactory.CreateDbContext();
+
+        // Target is stored as an opaque JSON column, so the predicate has to run client-side.
+        var tasks = await db.ScopedElements.OfType<AutomationTask>().ToListAsync();
+        return tasks.Where(t => t.Target != null && t.Target.Package.Id == packageId).ToList();
     }
 
-    public Task<Paginated<TaskInstance>> GetHistoryAsync(Guid elementId, PaginationOptions options = default)
+    public async Task<Paginated<TaskInstance>> GetHistoryAsync(Guid elementId, PaginationOptions options = default)
     {
-        var taskIds = CollectExecutableIds(elementId).ToHashSet();
-        return _historyService.SearchAsync(options, taskIds);
+        using var db = _dbContextFactory.CreateDbContext();
+        var elements = await db.ScopedElements.AsNoTracking().ToListAsync();
+
+        var byId = elements.ToDictionary(x => x.Id);
+        var byParent = elements.ToLookup(x => x.ParentId);
+
+        var taskIds = CollectExecutableIds(elementId, byId, byParent).ToHashSet();
+        return await _historyService.SearchAsync(options, taskIds);
     }
 
     /// <summary>
     /// Collect the ids whose executions make up [elementId]'s history: the element itself when it is a
     /// task or workflow, or every task/workflow nested under it (recursively) when it is a scope.
     /// </summary>
-    private static IEnumerable<Guid> CollectExecutableIds(Guid elementId)
+    private static IEnumerable<Guid> CollectExecutableIds(
+        Guid elementId,
+        Dictionary<Guid, ScopedElement> byId,
+        ILookup<Guid?, ScopedElement> byParent)
     {
-        if (!_elements.TryGetValue(elementId, out var element))
+        if (!byId.TryGetValue(elementId, out var element))
             yield break;
 
         switch (element)
@@ -143,8 +130,8 @@ public class LocalScopedService : IScopedService
                 yield return element.Id;
                 break;
             case Scope:
-                foreach (var child in _elements.Values.Where(x => x.ParentId == elementId))
-                    foreach (var id in CollectExecutableIds(child.Id))
+                foreach (var child in byParent[elementId])
+                    foreach (var id in CollectExecutableIds(child.Id, byId, byParent))
                         yield return id;
                 break;
         }
