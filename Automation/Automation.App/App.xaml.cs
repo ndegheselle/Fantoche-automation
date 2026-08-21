@@ -19,7 +19,7 @@ namespace Automation.App
 
             ThemeManager.Instance.Initialize();
 
-            shell = new SpineViewModel();
+            shell = SpineViewModel.Instance;
             new MainWindow(shell).Show();
         }
 

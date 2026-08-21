@@ -7,6 +7,7 @@
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Automation.App"
     xmlns:packages="clr-namespace:Automation.App.Features.Packages"
+    xmlns:packagesControls="clr-namespace:Automation.App.Features.Packages.Controls"
     xmlns:servers="clr-namespace:Automation.App.Features.Servers"
     xmlns:storage="clr-namespace:Automation.App.Features.Storage"
     xmlns:system="clr-namespace:System;assembly=mscorlib"
@@ -34,6 +35,9 @@
             </DataTemplate>
             <DataTemplate DataType="{x:Type packages:PackageViewModel}">
                 <packages:PackageOverlay />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type packagesControls:PackageSelectionViewModel}">
+                <packagesControls:PackageSelectionOverlay />
             </DataTemplate>
 
             <DataTemplate DataType="{x:Type servers:ServersViewModel}">

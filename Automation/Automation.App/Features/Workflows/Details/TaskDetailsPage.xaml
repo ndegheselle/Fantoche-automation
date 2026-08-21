@@ -3,14 +3,64 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:feedback="clr-namespace:Joufflu.Feedback.Controls;assembly=Joufflu.Feedback"
+    xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Automation.App.Features.Workflows.Details"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     d:DataContext="{d:DesignInstance Type=local:TaskDetailsViewModel}"
     mc:Ignorable="d">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+    </UserControl.Resources>
     <TabControl>
         <TabItem Header="Target">
-            
+            <Grid>
+                <!--  Current package  -->
+                <Border Style="{StaticResource Card}" Visibility="{Binding HasTarget, Converter={StaticResource BoolToVisibility}}">
+                    <Grid joufflu:Spacing.Gap="4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition />
+                            <ColumnDefinition Width="auto" />
+                            <ColumnDefinition Width="auto" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto" />
+                            <RowDefinition Height="auto" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Style="{StaticResource Lead}" Text="{Binding Target.Package.Id}" />
+                        <feedback:Badge Grid.Column="1" Content="{Binding Target.Package.Version}" />
+                        <Button
+                            Grid.Column="2"
+                            joufflu:Sizing.IsSquare="True"
+                            joufflu:Sizing.Size="sm"
+                            Command="{Binding RemovePackageCommand}"
+                            Style="{StaticResource SoftDangerButton}"
+                            ToolTip="Remove the package">
+                            <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Trash}" />
+                        </Button>
+                        <TextBlock
+                            Grid.Row="1"
+                            Grid.ColumnSpan="3"
+                            Text="{Binding Target.ClassFullName}"
+                            TextWrapping="Wrap" />
+                    </Grid>
+                </Border>
+
+                <!--  No package yet  -->
+                <Button
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    Command="{Binding SelectPackageCommand}"
+                    Style="{StaticResource SecondaryButton}"
+                    Visibility="{Binding HasTarget, Converter={StaticResource InverseBoolToVisibility}}">
+                    <StackPanel Orientation="Horizontal">
+                        <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Package}" />
+                        <TextBlock Margin="4,0,0,0">Select package</TextBlock>
+                    </StackPanel>
+                </Button>
+            </Grid>
         </TabItem>
     </TabControl>
 </UserControl>

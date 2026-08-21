@@ -23,6 +23,13 @@ public class Settings
 
 public class SpineViewModel : ObservableObject
 {
+    #region Singleton
+    private static readonly Lazy<SpineViewModel> lazy =
+        new Lazy<SpineViewModel>(() => new SpineViewModel());
+
+    public static SpineViewModel Instance { get { return lazy.Value; } }
+    #endregion
+
     #region UI
     public Navigator Navigator { get; }
     public OverlayService Overlays { get; } = new();
@@ -38,7 +45,7 @@ public class SpineViewModel : ObservableObject
 
     private readonly Dictionary<Type, object> _pages;
 
-    public SpineViewModel()
+    private SpineViewModel()
     {
         Packages = new LocalPackagesService(Settings.PackagesFolderPath, Settings.LocalFolderPath);
         History = new LocalHistoryService();
