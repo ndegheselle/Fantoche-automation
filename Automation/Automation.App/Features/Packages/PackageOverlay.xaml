@@ -15,12 +15,17 @@
     <Grid joufflu:Spacing.Gap="4">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition />
+            <RowDefinition Height="auto" />
             <RowDefinition />
         </Grid.RowDefinitions>
 
         <controls:PackageSummary DataContext="{Binding Package}" />
+
+        <TextBlock Grid.Row="1" Style="{StaticResource Lead}">Versions</TextBlock>
         <DataGrid
-            Grid.Row="1"
+            Grid.Row="2"
             AutoGenerateColumns="False"
             IsReadOnly="True"
             ItemsSource="{Binding Versions}">
@@ -46,5 +51,16 @@
             </DataGrid.Columns>
         </DataGrid>
 
+        <TextBlock Grid.Row="3" Style="{StaticResource Lead}">Classes</TextBlock>
+        <DataGrid
+            Grid.Row="4"
+            AutoGenerateColumns="False"
+            IsReadOnly="True"
+            ItemsSource="{Binding Classes}">
+            <DataGrid.Columns>
+                <DataGridTextColumn Binding="{Binding ClassFullName}" Header="Name" />
+                <DataGridTextColumn Binding="{Binding Dll}" Header="Dll" />
+            </DataGrid.Columns>
+        </DataGrid>
     </Grid>
 </UserControl>

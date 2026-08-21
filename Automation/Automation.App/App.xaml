@@ -18,6 +18,9 @@
                 <ResourceDictionary Source="pack://application:,,,/Joufflu;component/Resources.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
+            <system:Double x:Key="{x:Static joufflu:Dimensions.Spacing}">6</system:Double>
+            <Thickness x:Key="{x:Static joufflu:Dimensions.SpacingThickness}">6</Thickness>
+
             <DataTemplate DataType="{x:Type home:HomeViewModel}">
                 <home:HomePage />
             </DataTemplate>

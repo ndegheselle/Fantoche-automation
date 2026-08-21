@@ -1,11 +1,11 @@
+using System.IO;
+using System.Windows;
 using Automation.Shared.Base;
 using Automation.Shared.Data.Execution;
 using Automation.Shared.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Joufflu.Navigation;
-using System.IO;
-using System.Windows;
 
 namespace Automation.App.Features.Packages
 {
@@ -37,7 +37,7 @@ namespace Automation.App.Features.Packages
         [RelayCommand]
         public void OpenPackage(PackageInfos package)
         {
-            _overlays.Show(new PackageViewModel(package, _packages, _overlays), new OverlayOptions() { FullScreen = true, Title = "Package detail" });
+            _overlays.Show(new PackageViewModel(package, _packages, _overlays), new OverlayOptions() { Title = "Package detail" });
         }
 
         public async void AddPackage(string filePaths)

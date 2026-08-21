@@ -8,7 +8,9 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     d:DataContext="{d:DesignInstance Type=local:TaskDetailsViewModel}"
     mc:Ignorable="d">
-    <Grid>
-        
-    </Grid>
+    <TabControl>
+        <TabItem Header="Target">
+            
+        </TabItem>
+    </TabControl>
 </UserControl>
