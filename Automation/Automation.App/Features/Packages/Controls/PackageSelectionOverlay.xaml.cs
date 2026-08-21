@@ -33,9 +33,11 @@ namespace Automation.App.Features.Packages.Controls
         [ObservableProperty] private int _pageNumber = 1;
         [ObservableProperty] private int _capacity = 50;
 
-        // Step 2 : version and class selection
         [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(NextCommand))]
         private PackageInfos? _selectedPackage;
+
+        // Step 2 : version and class selection
 
         public ObservableCollection<Version> Versions { get; } = [];
         public ObservableCollection<ClassTarget> Classes { get; } = [];
@@ -82,27 +84,29 @@ namespace Automation.App.Features.Packages.Controls
             Result = await _packages.SearchAsync(Search, new PaginationOptions() { Page = PageNumber, PageSize = Capacity });
         }
 
-        [RelayCommand]
-        public async Task SelectPackage(PackageInfos package)
+        [RelayCommand(CanExecute = nameof(CanGoNext))]
+        public async Task Next()
         {
-            SelectedPackage = package;
+            if (SelectedPackage == null)
+                return;
+
             Step = EnumPackageSelectionStep.Class;
 
             Versions.Clear();
-            foreach (var version in await _packages.GetVersionsAsync(package.Identifier.Id))
+            foreach (var version in await _packages.GetVersionsAsync(SelectedPackage.Identifier.Id))
                 Versions.Add(version);
 
             // Default to the package version, or the newest one when not available
-            SelectedVersion = Versions.Contains(package.Identifier.Version)
-                ? package.Identifier.Version
+            SelectedVersion = Versions.Contains(SelectedPackage.Identifier.Version)
+                ? SelectedPackage.Identifier.Version
                 : Versions.FirstOrDefault();
         }
 
         [RelayCommand]
         public void Back()
         {
+            // Keep the selected package so the grid still shows it when going back
             Step = EnumPackageSelectionStep.Package;
-            SelectedPackage = null;
             SelectedVersion = null;
             SelectedClass = null;
             Versions.Clear();
@@ -130,6 +134,8 @@ namespace Automation.App.Features.Packages.Controls
 
         [RelayCommand]
         public void Cancel() => _overlays.CloseTop(false);
+
+        private bool CanGoNext() => SelectedPackage != null;
 
         private bool CanValidate() => SelectedClass != null;
 

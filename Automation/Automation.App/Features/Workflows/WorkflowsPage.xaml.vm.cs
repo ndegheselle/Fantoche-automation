@@ -57,7 +57,7 @@ namespace Automation.App.Features.Workflows
             Details = value?.Element switch
             {
                 AutomationWorkflow => new WorkflowDetailsViewModel(value, this),
-                AutomationTask => new TaskDetailsViewModel(value),
+                AutomationTask => new TaskDetailsViewModel(value, this),
                 Scope => new ScopeDetailsViewModel(value, this),
                 _ => null
             };

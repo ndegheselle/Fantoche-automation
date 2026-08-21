@@ -48,8 +48,12 @@
             </Grid.RowDefinitions>
 
             <jnputs:Search />
+            <jnputs:Dropdown>
+                <jnputs:Dropdown.Header>
+                    <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Plus}" />
+                </jnputs:Dropdown.Header>
+            </jnputs:Dropdown>
             <Button Grid.Column="1" joufflu:Sizing.IsSquare="True">
-                <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Plus}" />
             </Button>
 
             <!--  Tree of every scope, workflow and task.  -->

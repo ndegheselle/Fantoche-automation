@@ -20,8 +20,11 @@
                 <RowDefinition Height="auto" />
                 <RowDefinition />
             </Grid.RowDefinitions>
-            <TextBlock Style="{StaticResource Lead}" Text="{Binding Identifier.Id}" />
-            <feedback:Badge Grid.Column="1" Content="{Binding Identifier.Version}" />
+            <StackPanel Orientation="Horizontal">
+                <TextBlock VerticalAlignment="Center" Style="{StaticResource Lead}" Text="{Binding Identifier.Id}" />
+                <feedback:Badge Margin="4,0,0,0" Content="{Binding Identifier.Version}" />
+            </StackPanel>
+
             <TextBlock
                 Grid.Row="1"
                 Grid.ColumnSpan="2"
