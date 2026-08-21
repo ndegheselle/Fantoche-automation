@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:details="clr-namespace:Automation.App.Features.Workflows.Details"
+    xmlns:jnputs="clr-namespace:Joufflu.Inputs.Controls;assembly=Joufflu.Inputs"
     xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Automation.App.Features.Workflows"
@@ -30,30 +31,51 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <Grid Margin="{StaticResource {x:Static joufflu:Dimensions.SpacingThickness}}" joufflu:Spacing.Gap="4">
+    <Grid Margin="{StaticResource {x:Static joufflu:Dimensions.SpacingThickness}}" joufflu:Spacing.Gap="2">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="auto" MinWidth="200" />
             <ColumnDefinition Width="auto" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <!--  Tree of every scope, workflow and task.  -->
-        <TreeView ItemsSource="{Binding Roots}" SelectedItemChanged="OnTreeSelectionChanged">
-            <TreeView.ItemContainerStyle>
-                <Style BasedOn="{StaticResource TreeViewItemStyle}" TargetType="{x:Type TreeViewItem}">
-                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
-                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
-                </Style>
-            </TreeView.ItemContainerStyle>
-            <TreeView.ItemTemplate>
-                <HierarchicalDataTemplate DataType="{x:Type local:ScopedNode}" ItemsSource="{Binding Children}">
-                    <StackPanel joufflu:Spacing.Gap="4" Orientation="Horizontal">
-                        <jonts:FontIcon Style="{StaticResource ScopedIcon}" />
-                        <TextBlock Text="{Binding Name}" />
-                    </StackPanel>
-                </HierarchicalDataTemplate>
-            </TreeView.ItemTemplate>
-        </TreeView>
+        <Grid joufflu:Spacing.Gap="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition Width="auto" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+
+            <jnputs:Search />
+            <Button Grid.Column="1" joufflu:Sizing.IsSquare="True">
+                <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Plus}" />
+            </Button>
+
+            <!--  Tree of every scope, workflow and task.  -->
+            <TreeView
+                Grid.Row="1"
+                Grid.ColumnSpan="2"
+                ItemsSource="{Binding Roots}"
+                SelectedItemChanged="OnTreeSelectionChanged">
+                <TreeView.ItemContainerStyle>
+                    <Style BasedOn="{StaticResource TreeViewItemStyle}" TargetType="{x:Type TreeViewItem}">
+                        <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                        <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+                    </Style>
+                </TreeView.ItemContainerStyle>
+                <TreeView.ItemTemplate>
+                    <HierarchicalDataTemplate DataType="{x:Type local:ScopedNode}" ItemsSource="{Binding Children}">
+                        <StackPanel joufflu:Spacing.Gap="4" Orientation="Horizontal">
+                            <jonts:FontIcon Style="{StaticResource ScopedIcon}" />
+                            <TextBlock Text="{Binding Name}" />
+                        </StackPanel>
+                    </HierarchicalDataTemplate>
+                </TreeView.ItemTemplate>
+            </TreeView>
+
+        </Grid>
 
         <GridSplitter
             Grid.Column="1"
