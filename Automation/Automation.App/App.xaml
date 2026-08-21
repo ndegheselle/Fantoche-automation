@@ -12,6 +12,7 @@
     xmlns:storage="clr-namespace:Automation.App.Features.Storage"
     xmlns:system="clr-namespace:System;assembly=mscorlib"
     xmlns:workflows="clr-namespace:Automation.App.Features.Workflows"
+    xmlns:workflowsControls="clr-namespace:Automation.App.Features.Workflows.Controls"
     xmlns:workflowsDetails="clr-namespace:Automation.App.Features.Workflows.Details">
     <Application.Resources>
         <ResourceDictionary>
@@ -29,6 +30,9 @@
 
             <DataTemplate DataType="{x:Type workflows:WorkflowsViewModel}">
                 <workflows:WorkflowsPage />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type workflowsControls:TaskSelectionViewModel}">
+                <workflowsControls:TaskSelectionOverlay />
             </DataTemplate>
 
             <DataTemplate DataType="{x:Type packages:PackagesViewModel}">

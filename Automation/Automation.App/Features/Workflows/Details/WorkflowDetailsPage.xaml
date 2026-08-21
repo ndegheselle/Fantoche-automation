@@ -54,7 +54,7 @@
         </TabItem>
         <TabItem Header="History" IsEnabled="False" />
         <TabItem Header="Editor">
-            <editor:WorkflowEditor />
+            <editor:WorkflowEditor DataContext="{Binding Editor}" />
         </TabItem>
     </TabControl>
 </UserControl>

@@ -1,4 +1,4 @@
-using Automation.Shared.Data.Scoped;
+﻿using Automation.Shared.Data.Scoped;
 using Automation.Shared.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -51,8 +51,15 @@ namespace Automation.App.Features.Workflows.Details
         public async Task Save()
         {
             await _scoped.EditAsync(Element);
+            OnSaved();
             _toasts.Success($"The {TypeName} '{Node.Name}' has been saved.", $"{TypeName} saved");
         }
+
+        /// <summary>
+        /// Called once the element has been saved, for whatever has to be reset by the page.
+        /// </summary>
+        protected virtual void OnSaved()
+        { }
 
         [RelayCommand]
         public async Task Delete()

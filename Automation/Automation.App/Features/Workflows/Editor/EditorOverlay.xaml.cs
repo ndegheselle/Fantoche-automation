@@ -1,14 +1,29 @@
-﻿using System.Windows.Controls;
+using System.Windows;
+using System.Windows.Controls;
+using Nodify;
 
 namespace Automation.App.Features.Workflows.Editor
 {
     /// <summary>
-    /// Layer displayed on top of the editor, holding its buttons.The root is not hit testable so
-    /// that the empty areas keep panning and selecting on the editor below, every panel meant to
-    /// hold buttons has to re-enable it.
+    /// Logique d'interaction pour EditorOverlay.xaml
     /// </summary>
     public partial class EditorOverlay : UserControl
     {
+        public static readonly DependencyProperty EditorProperty = DependencyProperty.Register(
+            nameof(Editor),
+            typeof(NodifyEditor),
+            typeof(EditorOverlay));
+
+        /// <summary>
+        /// Editor the overlay acts on, the buttons using the <see cref="EditorCommands"/> needing
+        /// it as their command target since the overlay is a sibling of the editor.
+        /// </summary>
+        public NodifyEditor? Editor
+        {
+            get => (NodifyEditor?)GetValue(EditorProperty);
+            set => SetValue(EditorProperty, value);
+        }
+
         public EditorOverlay()
         {
             InitializeComponent();

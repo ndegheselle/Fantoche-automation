@@ -1,4 +1,4 @@
-<UserControl
+﻿<UserControl
     x:Class="Automation.App.Features.Workflows.Editor.EditorOverlay"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -7,7 +7,15 @@
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Automation.App.Features.Workflows.Editor"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:nodify="clr-namespace:Nodify;assembly=Nodify"
     mc:Ignorable="d">
+    <UserControl.Resources>
+        <!--  The editor commands are routed, they need the editor as their target  -->
+        <Style x:Key="EditorButton" BasedOn="{StaticResource GhostButton}" TargetType="Button">
+            <Setter Property="joufflu:Sizing.IsSquare" Value="True" />
+            <Setter Property="CommandTarget" Value="{Binding Editor, RelativeSource={RelativeSource AncestorType={x:Type local:EditorOverlay}}}" />
+        </Style>
+    </UserControl.Resources>
     <Grid Margin="{DynamicResource {x:Static joufflu:Dimensions.SpacingThickness}}">
         <!--  Editor tools  -->
         <Border
@@ -16,22 +24,33 @@
             VerticalAlignment="Center"
             Style="{StaticResource Card}">
             <StackPanel joufflu:Spacing.Gap="4">
-                <Button joufflu:Sizing.IsSquare="True" Style="{StaticResource GhostButton}" ToolTip="Zoom in">
+                <Button
+                    Command="{x:Static nodify:EditorCommands.ZoomIn}"
+                    Style="{StaticResource EditorButton}"
+                    ToolTip="Zoom in">
                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Plus}" />
                 </Button>
-                <Button joufflu:Sizing.IsSquare="True" Style="{StaticResource GhostButton}" ToolTip="Adjust zoom">
+                <Button
+                    Command="{x:Static nodify:EditorCommands.FitToScreen}"
+                    Style="{StaticResource EditorButton}"
+                    ToolTip="Adjust zoom">
                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Fullscreen}" />
                 </Button>
-                <Button joufflu:Sizing.IsSquare="True" Style="{StaticResource GhostButton}" ToolTip="Zoom out">
+                <Button
+                    Command="{x:Static nodify:EditorCommands.ZoomOut}"
+                    Style="{StaticResource EditorButton}"
+                    ToolTip="Zoom out">
                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Minus}" />
                 </Button>
                 <Separator />
                 <Button joufflu:Sizing.IsSquare="True"
+                    Command="{Binding History.UndoCommand}"
                     Style="{StaticResource GhostButton}"
                     ToolTip="Undo">
                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Undo}" />
                 </Button>
                 <Button joufflu:Sizing.IsSquare="True"
+                    Command="{Binding History.RedoCommand}"
                     Style="{StaticResource GhostButton}"
                     ToolTip="Redo">
                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Redo}" />
@@ -47,13 +66,25 @@
             VerticalAlignment="Bottom"
             Style="{StaticResource Card}">
             <StackPanel joufflu:Spacing.Gap="4" Orientation="Horizontal">
-                <Button joufflu:Sizing.IsSquare="True" Style="{StaticResource GhostButton}" ToolTip="Add">
+                <Button
+                    joufflu:Sizing.IsSquare="True"
+                    Command="{Binding AddCommand}"
+                    Style="{StaticResource GhostButton}"
+                    ToolTip="Add a node">
                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Plus}" />
                 </Button>
-                <Button joufflu:Sizing.IsSquare="True" Style="{StaticResource GhostButton}" ToolTip="Remove">
+                <Button
+                    joufflu:Sizing.IsSquare="True"
+                    Command="{Binding RemoveCommand}"
+                    Style="{StaticResource GhostButton}"
+                    ToolTip="Remove the selected nodes">
                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Trash}" />
                 </Button>
-                <Button joufflu:Sizing.IsSquare="True" Style="{StaticResource GhostButton}" ToolTip="Save">
+                <Button
+                    joufflu:Sizing.IsSquare="True"
+                    Command="{Binding SaveCommand}"
+                    Style="{StaticResource GhostButton}"
+                    ToolTip="Save the workflow">
                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Save}" />
                 </Button>
             </StackPanel>
