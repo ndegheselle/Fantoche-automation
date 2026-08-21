@@ -1,0 +1,180 @@
+<!--
+    Nodify controls themed with the Joufflu keys, so that the workflow editor follows the
+    application theme. The Nodify theme dictionaries (Themes/Dark.xaml, ...) are not merged on
+    purpose : they resolve their brushes with StaticResource, which makes them impossible to
+    re-theme afterwards. Every style below derives from the Nodify default one and only overrides
+    the brushes with dynamic Joufflu resources.
+-->
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
+    xmlns:nodify="clr-namespace:Nodify;assembly=Nodify">
+
+    <!--  Brushes needing a transparency, the others are used directly from Joufflu  -->
+    <SolidColorBrush
+        x:Key="Nodify.SelectionBackgroundBrush"
+        Opacity="0.15"
+        Color="{DynamicResource {x:Static joufflu:Colors.PrimaryColor}}" />
+    <SolidColorBrush
+        x:Key="Nodify.PushedAreaBackgroundBrush"
+        Opacity="0.2"
+        Color="{DynamicResource {x:Static joufflu:Colors.Foreground200Color}}" />
+    <SolidColorBrush
+        x:Key="Nodify.CuttingLineBackgroundBrush"
+        Opacity="0.2"
+        Color="{DynamicResource {x:Static joufflu:Colors.DangerColor}}" />
+    <SolidColorBrush
+        x:Key="Nodify.GroupingBackgroundBrush"
+        Opacity="0.4"
+        Color="{DynamicResource {x:Static joufflu:Colors.Background200Color}}" />
+    <SolidColorBrush
+        x:Key="Nodify.MinimapBackgroundBrush"
+        Opacity="0.7"
+        Color="{DynamicResource {x:Static joufflu:Colors.Background100Color}}" />
+    <SolidColorBrush
+        x:Key="Nodify.MinimapViewportBackgroundBrush"
+        Opacity="0.2"
+        Color="{DynamicResource {x:Static joufflu:Colors.Foreground200Color}}" />
+    <SolidColorBrush
+        x:Key="Nodify.MinimapItemBackgroundBrush"
+        Opacity="0.8"
+        Color="{DynamicResource {x:Static joufflu:Colors.PrimaryColor}}" />
+
+    <!--  Editor  -->
+    <Style x:Key="Nodify.SelectionRectangleStyle" TargetType="Rectangle">
+        <Setter Property="Fill" Value="{StaticResource Nodify.SelectionBackgroundBrush}" />
+        <Setter Property="Stroke" Value="{DynamicResource {x:Static joufflu:Brushes.PrimaryBrush}}" />
+        <Setter Property="StrokeThickness" Value="{DynamicResource {x:Static joufflu:Dimensions.Thickness}}" />
+    </Style>
+
+    <Style x:Key="Nodify.PushedAreaStyle" TargetType="Rectangle">
+        <Setter Property="Fill" Value="{StaticResource Nodify.PushedAreaBackgroundBrush}" />
+        <Setter Property="Stroke" Value="{DynamicResource {x:Static joufflu:Brushes.Foreground200Brush}}" />
+        <Setter Property="StrokeThickness" Value="{DynamicResource {x:Static joufflu:Dimensions.Thickness}}" />
+    </Style>
+
+    <Style BasedOn="{StaticResource {x:Type nodify:NodifyEditor}}" TargetType="{x:Type nodify:NodifyEditor}">
+        <Setter Property="Background" Value="{DynamicResource {x:Static joufflu:Brushes.BackgroundBrush}}" />
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static joufflu:Brushes.ForegroundBrush}}" />
+        <Setter Property="SelectionRectangleStyle" Value="{StaticResource Nodify.SelectionRectangleStyle}" />
+        <Setter Property="PushedAreaStyle" Value="{StaticResource Nodify.PushedAreaStyle}" />
+    </Style>
+
+    <Style BasedOn="{StaticResource {x:Type nodify:CuttingLine}}" TargetType="{x:Type nodify:CuttingLine}">
+        <Setter Property="Fill" Value="{StaticResource Nodify.CuttingLineBackgroundBrush}" />
+        <Setter Property="Stroke" Value="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}" />
+    </Style>
+
+    <!--  Containers  -->
+    <Style BasedOn="{StaticResource {x:Type nodify:ItemContainer}}" TargetType="{x:Type nodify:ItemContainer}">
+        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.Border100Brush}}" />
+        <Setter Property="SelectedBrush" Value="{DynamicResource {x:Static joufflu:Brushes.PrimaryBrush}}" />
+        <Setter Property="HighlightBrush" Value="{DynamicResource {x:Static joufflu:Brushes.InfoBrush}}" />
+    </Style>
+
+    <!--  Nodes  -->
+    <Style BasedOn="{StaticResource {x:Type nodify:Node}}" TargetType="{x:Type nodify:Node}">
+        <Setter Property="Background" Value="{DynamicResource {x:Static joufflu:Brushes.Background100Brush}}" />
+        <Setter Property="ContentBrush" Value="{DynamicResource {x:Static joufflu:Brushes.Background100Brush}}" />
+        <Setter Property="HeaderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.Background200Brush}}" />
+        <Setter Property="FooterBrush" Value="{DynamicResource {x:Static joufflu:Brushes.Background200Brush}}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.BorderBrush}}" />
+        <Setter Property="BorderThickness" Value="{DynamicResource {x:Static joufflu:Dimensions.BorderThickness}}" />
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static joufflu:Brushes.ForegroundBrush}}" />
+        <Setter Property="Padding" Value="{DynamicResource {x:Static joufflu:Dimensions.ControlPaddingSm}}" />
+    </Style>
+
+    <Style BasedOn="{StaticResource {x:Type nodify:StateNode}}" TargetType="{x:Type nodify:StateNode}">
+        <Setter Property="Background" Value="{DynamicResource {x:Static joufflu:Brushes.Background100Brush}}" />
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static joufflu:Brushes.ForegroundBrush}}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.BorderBrush}}" />
+        <Setter Property="HighlightBrush" Value="{DynamicResource {x:Static joufflu:Brushes.PrimaryBrush}}" />
+    </Style>
+
+    <Style BasedOn="{StaticResource {x:Type nodify:GroupingNode}}" TargetType="{x:Type nodify:GroupingNode}">
+        <Setter Property="Background" Value="{StaticResource Nodify.GroupingBackgroundBrush}" />
+        <Setter Property="HeaderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.Background200Brush}}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.BorderBrush}}" />
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static joufflu:Brushes.ForegroundBrush}}" />
+    </Style>
+
+    <Style BasedOn="{StaticResource {x:Type nodify:KnotNode}}" TargetType="{x:Type nodify:KnotNode}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static joufflu:Brushes.Foreground100Brush}}" />
+    </Style>
+
+    <!--  Connectors  -->
+    <Style BasedOn="{StaticResource {x:Type nodify:Connector}}" TargetType="{x:Type nodify:Connector}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.Foreground100Brush}}" />
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static joufflu:Brushes.ForegroundBrush}}" />
+    </Style>
+
+    <Style BasedOn="{StaticResource {x:Type nodify:NodeInput}}" TargetType="{x:Type nodify:NodeInput}">
+        <Setter Property="Background" Value="{DynamicResource {x:Static joufflu:Brushes.Background100Brush}}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.Foreground100Brush}}" />
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static joufflu:Brushes.ForegroundBrush}}" />
+    </Style>
+
+    <Style BasedOn="{StaticResource {x:Type nodify:NodeOutput}}" TargetType="{x:Type nodify:NodeOutput}">
+        <Setter Property="Background" Value="{DynamicResource {x:Static joufflu:Brushes.Background100Brush}}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.Foreground100Brush}}" />
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static joufflu:Brushes.ForegroundBrush}}" />
+    </Style>
+
+    <!--  Connections  -->
+    <Style BasedOn="{StaticResource {x:Type nodify:Connection}}" TargetType="{x:Type nodify:Connection}">
+        <Setter Property="Stroke" Value="{DynamicResource {x:Static joufflu:Brushes.Foreground100Brush}}" />
+        <Setter Property="Fill" Value="{DynamicResource {x:Static joufflu:Brushes.Foreground100Brush}}" />
+    </Style>
+
+    <Style BasedOn="{StaticResource {x:Type nodify:LineConnection}}" TargetType="{x:Type nodify:LineConnection}">
+        <Setter Property="Stroke" Value="{DynamicResource {x:Static joufflu:Brushes.Foreground100Brush}}" />
+        <Setter Property="Fill" Value="{DynamicResource {x:Static joufflu:Brushes.Foreground100Brush}}" />
+    </Style>
+
+    <Style BasedOn="{StaticResource {x:Type nodify:CircuitConnection}}" TargetType="{x:Type nodify:CircuitConnection}">
+        <Setter Property="Stroke" Value="{DynamicResource {x:Static joufflu:Brushes.Foreground100Brush}}" />
+        <Setter Property="Fill" Value="{DynamicResource {x:Static joufflu:Brushes.Foreground100Brush}}" />
+    </Style>
+
+    <Style BasedOn="{StaticResource {x:Type nodify:StepConnection}}" TargetType="{x:Type nodify:StepConnection}">
+        <Setter Property="Stroke" Value="{DynamicResource {x:Static joufflu:Brushes.Foreground100Brush}}" />
+        <Setter Property="Fill" Value="{DynamicResource {x:Static joufflu:Brushes.Foreground100Brush}}" />
+    </Style>
+
+    <Style BasedOn="{StaticResource {x:Type nodify:PendingConnection}}" TargetType="{x:Type nodify:PendingConnection}">
+        <Setter Property="Background" Value="{DynamicResource {x:Static joufflu:Brushes.Background200Brush}}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.Border100Brush}}" />
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static joufflu:Brushes.ForegroundBrush}}" />
+        <Setter Property="Stroke" Value="{DynamicResource {x:Static joufflu:Brushes.PrimaryBrush}}" />
+    </Style>
+
+    <!--  Minimap  -->
+    <Style x:Key="Nodify.MinimapViewportStyle" TargetType="Rectangle">
+        <Setter Property="Fill" Value="{StaticResource Nodify.MinimapViewportBackgroundBrush}" />
+        <Setter Property="Stroke" Value="{DynamicResource {x:Static joufflu:Brushes.Border100Brush}}" />
+        <Setter Property="StrokeLineJoin" Value="Round" />
+        <Setter Property="StrokeThickness" Value="2" />
+    </Style>
+
+    <Style BasedOn="{StaticResource {x:Type nodify:Minimap}}" TargetType="{x:Type nodify:Minimap}">
+        <Setter Property="Background" Value="{StaticResource Nodify.MinimapBackgroundBrush}" />
+        <Setter Property="ViewportStyle" Value="{StaticResource Nodify.MinimapViewportStyle}" />
+    </Style>
+
+    <Style BasedOn="{StaticResource {x:Type nodify:MinimapItem}}" TargetType="{x:Type nodify:MinimapItem}">
+        <Setter Property="Background" Value="{StaticResource Nodify.MinimapItemBackgroundBrush}" />
+    </Style>
+
+    <!--  Hot keys  -->
+    <Style BasedOn="{StaticResource {x:Type nodify:HotKeyControl}}" TargetType="{x:Type nodify:HotKeyControl}">
+        <Setter Property="Background" Value="{DynamicResource {x:Static joufflu:Brushes.Background200Brush}}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.Border100Brush}}" />
+        <Setter Property="BorderThickness" Value="{DynamicResource {x:Static joufflu:Dimensions.BorderThickness}}" />
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static joufflu:Brushes.ForegroundBrush}}" />
+    </Style>
+
+</ResourceDictionary>

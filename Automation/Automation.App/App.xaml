@@ -17,6 +17,7 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/Joufflu;component/Resources.xaml" />
+                <ResourceDictionary Source="Resources/Nodify.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <system:Double x:Key="{x:Static joufflu:Dimensions.Spacing}">6</system:Double>
