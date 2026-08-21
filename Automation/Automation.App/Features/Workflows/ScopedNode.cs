@@ -1,4 +1,4 @@
-using Automation.Shared.Data.Scoped;
+﻿using Automation.Shared.Data.Scoped;
 using Automation.Shared.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
@@ -34,6 +34,11 @@ namespace Automation.App.Features.Workflows
             Parent = parent;
             _scoped = scoped;
         }
+
+        /// <summary>
+        /// Notify the name changed, the metadata being edited through the element itself.
+        /// </summary>
+        public void NotifyNameChanged() => OnPropertyChanged(nameof(Name));
 
         public async Task LoadAsync()
         {

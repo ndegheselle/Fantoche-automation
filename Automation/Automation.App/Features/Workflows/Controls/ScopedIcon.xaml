@@ -11,10 +11,10 @@
         TargetType="{x:Type jonts:FontIcon}">
         <Setter Property="Text" Value="{x:Static jonts:LucideFontIcons.FolderClosed}" />
         <Style.Triggers>
-            <DataTrigger Binding="{Binding Type}" Value="{x:Static scoped:EnumScopedType.Workflow}">
+            <DataTrigger Binding="{Binding}" Value="{x:Static scoped:EnumScopedType.Workflow}">
                 <Setter Property="Text" Value="{x:Static jonts:LucideFontIcons.Workflow}" />
             </DataTrigger>
-            <DataTrigger Binding="{Binding Type}" Value="{x:Static scoped:EnumScopedType.Task}">
+            <DataTrigger Binding="{Binding}" Value="{x:Static scoped:EnumScopedType.Task}">
                 <Setter Property="Text" Value="{x:Static jonts:LucideFontIcons.SquareTerminal}" />
             </DataTrigger>
         </Style.Triggers>

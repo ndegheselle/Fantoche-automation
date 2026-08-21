@@ -15,14 +15,23 @@
     </UserControl.Resources>
     <TabControl>
         <TabItem Header="Settings">
-            <Grid>
+            <Grid joufflu:Spacing.Gap="4">
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="auto" />
                     <RowDefinition />
                     <RowDefinition Height="auto" />
                 </Grid.RowDefinitions>
-                
+
+                <StackPanel>
+                    <TextBlock Style="{StaticResource Muted}">Name</TextBlock>
+                    <TextBox Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+
                 <!--  Current package  -->
-                <Grid VerticalAlignment="Top" Visibility="{Binding HasTarget, Converter={StaticResource BoolToVisibility}}">
+                <Grid
+                    Grid.Row="1"
+                    VerticalAlignment="Top"
+                    Visibility="{Binding HasTarget, Converter={StaticResource BoolToVisibility}}">
                     <controls:PackageSummary DataContext="{Binding TargetPackage}" />
                     <Button
                         Margin="{StaticResource {x:Static joufflu:Dimensions.SpacingThickness}}"
@@ -39,6 +48,7 @@
 
                 <!--  No package yet  -->
                 <StackPanel
+                    Grid.Row="1"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     joufflu:Spacing.Gap="8">
@@ -66,20 +76,20 @@
 
 
 
-                <Grid Grid.Row="1">
+                <Grid Grid.Row="2">
                     <Button
-                HorizontalAlignment="Left"
-                Command="{Binding DeleteCommand}"
-                Style="{StaticResource SoftDangerButton}">
+                        HorizontalAlignment="Left"
+                        Command="{Binding DeleteCommand}"
+                        Style="{StaticResource SoftDangerButton}">
                         <StackPanel Orientation="Horizontal">
                             <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Trash}" />
                             <TextBlock Margin="4,0,0,0">Delete</TextBlock>
                         </StackPanel>
                     </Button>
                     <Button
-                HorizontalAlignment="Right"
-                Command="{Binding SaveCommand}"
-                Style="{StaticResource PrimaryButton}">
+                        HorizontalAlignment="Right"
+                        Command="{Binding SaveCommand}"
+                        Style="{StaticResource PrimaryButton}">
                         <StackPanel Orientation="Horizontal">
                             <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Save}" />
                             <TextBlock Margin="4,0,0,0">Save</TextBlock>
@@ -88,5 +98,6 @@
                 </Grid>
             </Grid>
         </TabItem>
+        <TabItem Header="History" IsEnabled="False" />
     </TabControl>
 </UserControl>

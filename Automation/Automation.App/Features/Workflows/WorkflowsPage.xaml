@@ -1,4 +1,4 @@
-<UserControl
+﻿<UserControl
     x:Class="Automation.App.Features.Workflows.WorkflowsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -9,6 +9,7 @@
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Automation.App.Features.Workflows"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:scoped="clr-namespace:Automation.Shared.Data.Scoped;assembly=Automation.Shared"
     d:DataContext="{d:DesignInstance Type=local:WorkflowsViewModel}"
     d:DesignHeight="450"
     d:DesignWidth="800"
@@ -33,7 +34,7 @@
 
     <Grid Margin="{StaticResource {x:Static joufflu:Dimensions.SpacingThickness}}" joufflu:Spacing.Gap="2">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="auto" MinWidth="120" />
+            <ColumnDefinition Width="200" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
@@ -48,13 +49,43 @@
             </Grid.RowDefinitions>
 
             <jnputs:Search />
-            <jnputs:Dropdown>
-                <jnputs:Dropdown.Header>
-                    <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Plus}" />
-                </jnputs:Dropdown.Header>
-            </jnputs:Dropdown>
-            <Button Grid.Column="1" joufflu:Sizing.IsSquare="True">
-            </Button>
+            <ToggleButton Grid.Column="1" joufflu:Sizing.IsSquare="True" jnputs:Dropdown.CloseOnClick="True">
+                <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Plus}" />
+                <jnputs:Dropdown.Popup>
+                    <StackPanel Width="160">
+                        <Button
+                            HorizontalContentAlignment="Left"
+                            Command="{Binding CreateCommand}"
+                            CommandParameter="{x:Static scoped:EnumScopedType.Scope}"
+                            Style="{StaticResource GhostButton}">
+                            <StackPanel Orientation="Horizontal">
+                                <jonts:FontIcon DataContext="{x:Static scoped:EnumScopedType.Scope}" Style="{StaticResource ScopedIcon}" />
+                                <TextBlock Margin="8,0,0,0">Add a scope</TextBlock>
+                            </StackPanel>
+                        </Button>
+                        <Button
+                            HorizontalContentAlignment="Left"
+                            Command="{Binding CreateCommand}"
+                            CommandParameter="{x:Static scoped:EnumScopedType.Workflow}"
+                            Style="{StaticResource GhostButton}">
+                            <StackPanel Orientation="Horizontal">
+                                <jonts:FontIcon DataContext="{x:Static scoped:EnumScopedType.Workflow}" Style="{StaticResource ScopedIcon}" />
+                                <TextBlock Margin="8,0,0,0">Add a workflow</TextBlock>
+                            </StackPanel>
+                        </Button>
+                        <Button
+                            HorizontalContentAlignment="Left"
+                            Command="{Binding CreateCommand}"
+                            CommandParameter="{x:Static scoped:EnumScopedType.Task}"
+                            Style="{StaticResource GhostButton}">
+                            <StackPanel Orientation="Horizontal">
+                                <jonts:FontIcon DataContext="{x:Static scoped:EnumScopedType.Task}" Style="{StaticResource ScopedIcon}" />
+                                <TextBlock Margin="8,0,0,0">Add a task</TextBlock>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </jnputs:Dropdown.Popup>
+            </ToggleButton>
 
             <!--  Tree of every scope, workflow and task.  -->
             <TreeView
@@ -71,7 +102,7 @@
                 <TreeView.ItemTemplate>
                     <HierarchicalDataTemplate DataType="{x:Type local:ScopedNode}" ItemsSource="{Binding Children}">
                         <StackPanel joufflu:Spacing.Gap="4" Orientation="Horizontal">
-                            <jonts:FontIcon Style="{StaticResource ScopedIcon}" />
+                            <jonts:FontIcon DataContext="{Binding Type}" Style="{StaticResource ScopedIcon}" />
                             <TextBlock Text="{Binding Name}" />
                         </StackPanel>
                     </HierarchicalDataTemplate>
@@ -111,7 +142,7 @@
                                     CommandParameter="{Binding}"
                                     Style="{StaticResource GhostButton}">
                                     <StackPanel Orientation="Horizontal">
-                                        <jonts:FontIcon Style="{StaticResource ScopedIcon}" />
+                                        <jonts:FontIcon DataContext="{Binding Type}" Style="{StaticResource ScopedIcon}" />
                                         <TextBlock Margin="4,0,0,0" Text="{Binding Name}" />
                                     </StackPanel>
                                 </Button>

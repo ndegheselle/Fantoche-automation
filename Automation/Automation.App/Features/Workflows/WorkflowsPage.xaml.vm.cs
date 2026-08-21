@@ -1,4 +1,4 @@
-using Automation.Shared.Data.Scoped;
+﻿using Automation.Shared.Data.Scoped;
 using Automation.Shared.Services;
 using Automation.App.Features.Workflows.Details;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -37,6 +37,41 @@ namespace Automation.App.Features.Workflows
             }
 
             Open(Roots.FirstOrDefault());
+        }
+
+        /// <summary>
+        /// Create a new element of [type] in the selected scope. When the selection is not a scope
+        /// its parent scope is used, defaulting to the root scope.
+        /// </summary>
+        [RelayCommand]
+        public async Task Create(EnumScopedType type)
+        {
+            ScopedNode? parent = Selected?.IsScope == true ? Selected : Selected?.Parent;
+            Guid parentId = parent?.Element.Id ?? Scope.ROOT_SCOPE_ID;
+            string name = await GetAvailableNameAsync(parentId, type);
+
+            ScopedElement element = type switch
+            {
+                EnumScopedType.Scope => new Scope(name, parentId),
+                EnumScopedType.Workflow => new AutomationWorkflow(name, parentId),
+                EnumScopedType.Task => new AutomationTask(name, parentId),
+                _ => throw new NotSupportedException($"Unknown scoped type '{type}'")
+            };
+
+            var node = new ScopedNode(await _scoped.CreateAsync(element), parent, _scoped);
+            (parent?.Children ?? Roots).Add(node);
+            Open(node);
+        }
+
+        /// <summary>
+        /// First name not already taken by a sibling, the name having to be unique within a scope.
+        /// </summary>
+        private async Task<string> GetAvailableNameAsync(Guid parentId, EnumScopedType type)
+        {
+            string name = $"New {type.ToString().ToLower()}";
+            for (int index = 2; !await _scoped.IsNameUniqueAsync(parentId, name); index++)
+                name = $"New {type.ToString().ToLower()} {index}";
+            return name;
         }
 
         [RelayCommand]
