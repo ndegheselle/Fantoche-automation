@@ -9,12 +9,12 @@ public interface IScopedService
     /// <summary>
     /// Get the childrens of a scope based on a [scopeId]
     /// </summary>
-    public Task<List<ScopedElement>> GetChildrens(Guid scopeId);
+    public Task<List<ScopedElement>> GetChildrensAsync(Guid scopeId);
 
     /// <summary>
     /// Search in all tasks.
     /// </summary>
-    public Task<List<BaseAutomationTask>> Search(string search = "");
+    public Task<Paginated<BaseAutomationTask>> SearchAsync(string search = "", PaginationOptions options = default);
 
     /// <summary>
     /// Get all <see cref="AutomationTask"/> whose target points at the package [packageId],

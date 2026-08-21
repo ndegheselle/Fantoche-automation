@@ -70,7 +70,7 @@ public class LocalScopedService : IScopedService
         return Task.FromResult(element);
     }
 
-    public Task<List<ScopedElement>> GetChildrens(Guid scopeId)
+    public Task<List<ScopedElement>> GetChildrensAsync(Guid scopeId)
     {
         var children = _elements.Where(x => x.Value.ParentId == scopeId)
             .Select(x => x.Value)
@@ -83,9 +83,24 @@ public class LocalScopedService : IScopedService
         throw new NotImplementedException();
     }
 
-    public Task<List<BaseAutomationTask>> Search(string search = "")
+    public Task<Paginated<BaseAutomationTask>> SearchAsync(string search = "", PaginationOptions options = default)
     {
-        throw new NotImplementedException();
+        var matched = _elements.Values
+            .OfType<BaseAutomationTask>()
+            .Where(x => string.IsNullOrWhiteSpace(search) || x.Metadata.Name.Contains(search, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        var items = matched
+            .Skip((options.Page - 1) * options.PageSize)
+            .Take(options.PageSize)
+            .ToList();
+
+        return Task.FromResult(new Paginated<BaseAutomationTask>
+        {
+            Items = items,
+            Total = matched.Count,
+            Options = options,
+        });
     }
 
     public Task<bool> IsNameUniqueAsync(Guid parentId, string name, Guid? excludeId = null)

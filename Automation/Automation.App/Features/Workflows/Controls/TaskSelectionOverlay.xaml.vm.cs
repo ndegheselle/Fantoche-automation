@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+using Automation.Shared.Base;
 using Automation.Shared.Data.Scoped;
 using Automation.Shared.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -12,9 +12,11 @@ namespace Automation.App.Features.Workflows.Controls
     /// </summary>
     public partial class TaskSelectionViewModel : ObservableObject
     {
-        public ObservableCollection<BaseAutomationTask> Results { get; } = [];
+        [ObservableProperty] private Paginated<BaseAutomationTask> _result = new();
 
         [ObservableProperty] private string _search = "";
+        [ObservableProperty] private int _pageNumber = 1;
+        [ObservableProperty] private int _capacity = 50;
 
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(ValidateCommand))]
@@ -58,11 +60,9 @@ namespace Automation.App.Features.Workflows.Controls
 
         public async Task RefreshAsync()
         {
-            List<BaseAutomationTask> results = await _scoped.Search(Search);
-
-            Results.Clear();
-            foreach (BaseAutomationTask task in results.Where(x => x.Id != _excludedId))
-                Results.Add(task);
+            Paginated<BaseAutomationTask> page = await _scoped.SearchAsync(Search, new PaginationOptions() { Page = PageNumber, PageSize = Capacity });
+            page.Items.RemoveAll(x => x.Id == _excludedId);
+            Result = page;
         }
 
         [RelayCommand(CanExecute = nameof(CanValidate))]
@@ -77,6 +77,14 @@ namespace Automation.App.Features.Workflows.Controls
 
         private bool CanValidate() => Selected != null;
 
-        partial void OnSearchChanged(string value) => _ = RefreshAsync();
+        partial void OnSearchChanged(string value)
+        {
+            _pageNumber = 1;
+            _ = RefreshAsync();
+        }
+
+        partial void OnCapacityChanged(int value) => _ = RefreshAsync();
+
+        partial void OnPageNumberChanged(int value) => _ = RefreshAsync();
     }
 }

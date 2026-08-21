@@ -1,4 +1,5 @@
-﻿using Automation.Shared.Data.Scoped;
+﻿using Automation.Shared.Base;
+using Automation.Shared.Data.Scoped;
 using Automation.Shared.Services;
 using Automation.App.Features.Workflows.Details;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -18,6 +19,7 @@ namespace Automation.App.Features.Workflows
 
         [ObservableProperty] private ScopedNode? _selected;
         [ObservableProperty] private object? _details;
+        [ObservableProperty] private string _search = "";
 
         private readonly IScopedService _scoped;
 
@@ -29,15 +31,28 @@ namespace Automation.App.Features.Workflows
         public async Task RefreshAsync()
         {
             Roots.Clear();
-            foreach (ScopedElement element in await _scoped.GetChildrens(Scope.ROOT_SCOPE_ID))
+
+            if (string.IsNullOrWhiteSpace(Search))
             {
-                var node = new ScopedNode(element, null, _scoped);
-                Roots.Add(node);
-                await node.LoadAsync();
+                foreach (ScopedElement element in await _scoped.GetChildrensAsync(Scope.ROOT_SCOPE_ID))
+                {
+                    var node = new ScopedNode(element, null, _scoped);
+                    Roots.Add(node);
+                    await node.LoadAsync();
+                }
+            }
+            else
+            {
+                // Flat list of the first page of tasks and workflows matching the search, scopes are not searchable.
+                Paginated<BaseAutomationTask> page = await _scoped.SearchAsync(Search);
+                foreach (BaseAutomationTask element in page.Items)
+                    Roots.Add(new ScopedNode(element, null, _scoped));
             }
 
             Open(Roots.FirstOrDefault());
         }
+
+        partial void OnSearchChanged(string value) => _ = RefreshAsync();
 
         /// <summary>
         /// Create a new element of [type] in the selected scope. When the selection is not a scope

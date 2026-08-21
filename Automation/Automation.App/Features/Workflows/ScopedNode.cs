@@ -46,7 +46,7 @@ namespace Automation.App.Features.Workflows
                 return;
 
             Children.Clear();
-            foreach (ScopedElement child in await _scoped.GetChildrens(Element.Id))
+            foreach (ScopedElement child in await _scoped.GetChildrensAsync(Element.Id))
             {
                 var node = new ScopedNode(child, this, _scoped);
                 Children.Add(node);

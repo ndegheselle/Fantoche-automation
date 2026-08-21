@@ -48,7 +48,7 @@
                 <RowDefinition />
             </Grid.RowDefinitions>
 
-            <jnputs:Search />
+            <jnputs:Search SearchText="{Binding Search, Mode=TwoWay}" />
             <ToggleButton Grid.Column="1" joufflu:Sizing.IsSquare="True" jnputs:Dropdown.CloseOnClick="True">
                 <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Plus}" />
                 <jnputs:Dropdown.Popup>
