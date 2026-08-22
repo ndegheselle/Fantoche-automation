@@ -1,6 +1,5 @@
-﻿using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
+using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Automation.Shared.Data.Scoped
 {
@@ -12,16 +11,18 @@ namespace Automation.Shared.Data.Scoped
         Task
     }
 
-    public class ScopedMetadata : INotifyPropertyChanged
+    /// <summary>
+    /// What every scoped element is presented with : its name and how it is displayed. It notifies its
+    /// changes so the views editing it can bind to it directly.
+    /// </summary>
+    public partial class ScopedMetadata : ObservableObject
     {
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        public EnumScopedType Type { get; set; }
-        public string Name { get; set; } = "";
-        public string? Color { get; set; }
-        public string? Icon { get; set; }
-        public bool IsReadOnly { get; set; }
-        public ObservableCollection<string> Tags { get; set; } = [];
+        [ObservableProperty] private EnumScopedType _type;
+        [ObservableProperty] private string _name = "";
+        [ObservableProperty] private string? _color;
+        [ObservableProperty] private string? _icon;
+        [ObservableProperty] private bool _isReadOnly;
+        [ObservableProperty] private ObservableCollection<string> _tags = [];
 
         public ScopedMetadata()
         {
@@ -38,14 +39,18 @@ namespace Automation.Shared.Data.Scoped
             Type = type;
         }
 
-        private void NotifyPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
+        /// <summary>
+        /// Copy of the metadata, holding its own tags and no subscriber of the original.
+        /// </summary>
         public ScopedMetadata Clone()
         {
-            return (ScopedMetadata)this.MemberwiseClone();
+            return new ScopedMetadata(Name, Type)
+            {
+                Color = Color,
+                Icon = Icon,
+                IsReadOnly = IsReadOnly,
+                Tags = [.. Tags]
+            };
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using Automation.App.Features.Workflows.Controls;
 using Automation.App.Features.Workflows.Editor.History;
@@ -33,7 +34,8 @@ namespace Automation.App.Features.Workflows.Editor
         public EditorHistory History { get; } = new();
 
         /// <summary>
-        /// Save of the workflow, handled by the page owning the editor.
+        /// Save of the graph, handled by the page owning the editor. It is only enabled while the
+        /// <see cref="History"/> has unsaved changes, the general infos having their own save.
         /// </summary>
         public IAsyncRelayCommand SaveCommand { get; }
 
@@ -139,6 +141,77 @@ namespace Automation.App.Features.Workflows.Editor
         }
 
         private bool CanRemove => SelectedNodes.Count > 0;
+
+        /// <summary>
+        /// Location of every selected node when a drag started, so the move can be recorded as a
+        /// single reversible action once it completes.
+        /// </summary>
+        private readonly Dictionary<NodeViewModel, Point> _dragOrigins = [];
+
+        [RelayCommand]
+        private void ItemsDragStarted()
+        {
+            _dragOrigins.Clear();
+            foreach (NodeViewModel node in SelectedNodes)
+                _dragOrigins[node] = node.Location;
+        }
+
+        [RelayCommand]
+        private void ItemsDragCompleted()
+        {
+            Dictionary<NodeViewModel, Point> origins = _dragOrigins
+                .Where(x => x.Key.Location != x.Value)
+                .ToDictionary(x => x.Key, x => x.Value);
+            _dragOrigins.Clear();
+
+            if (origins.Count == 0)
+                return;
+
+            Dictionary<NodeViewModel, Point> destinations = origins.ToDictionary(x => x.Key, x => x.Key.Location);
+
+            History.Apply(new ReversibleAction(
+                origins.Count == 1 ? $"Move '{origins.Keys.First().Name}'" : $"Move {origins.Count} nodes",
+                () =>
+                {
+                    foreach ((NodeViewModel node, Point location) in destinations)
+                        node.Location = location;
+                },
+                () =>
+                {
+                    foreach ((NodeViewModel node, Point location) in origins)
+                        node.Location = location;
+                }));
+        }
+
+        /// <summary>
+        /// Complete a pending connection dragged from one connector to another : the parameter is a
+        /// tuple of the connector the drag started from and the one it was dropped on. A connection
+        /// only makes sense between an output and an input of two different nodes.
+        /// </summary>
+        [RelayCommand]
+        private void ConnectionCompleted(object? parameter)
+        {
+            if (parameter is not ITuple { Length: 2 } pending)
+                return;
+            if (pending[0] is not ConnectorViewModel first || pending[1] is not ConnectorViewModel second)
+                return;
+
+            bool firstIsOutput = first.Node.Outputs.Contains(first);
+            bool secondIsOutput = second.Node.Outputs.Contains(second);
+            if (first.Node == second.Node || firstIsOutput == secondIsOutput)
+                return;
+
+            ConnectorViewModel source = firstIsOutput ? first : second;
+            ConnectorViewModel target = firstIsOutput ? second : first;
+            if (Connections.Any(x => x.Source == source && x.Target == target))
+                return;
+
+            var connection = new ConnectionViewModel(source, target);
+            History.Apply(new ReversibleAction(
+                $"Connect '{source.Node.Name}' to '{target.Node.Name}'",
+                () => AddConnection(connection),
+                () => RemoveConnection(connection)));
+        }
 
         #region Graph edition
 

@@ -62,7 +62,10 @@
             <nodify:NodifyEditor
                 x:Name="Editor"
                 Background="{StaticResource SmallGridLinesDrawingBrush}"
+                ConnectionCompletedCommand="{Binding ConnectionCompletedCommand}"
                 Connections="{Binding Connections}"
+                ItemsDragCompletedCommand="{Binding ItemsDragCompletedCommand}"
+                ItemsDragStartedCommand="{Binding ItemsDragStartedCommand}"
                 ItemsSource="{Binding Nodes}"
                 SelectedItems="{Binding SelectedNodes}"
                 ViewportLocation="{Binding ViewportLocation, Mode=TwoWay}"

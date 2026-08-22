@@ -2,6 +2,7 @@
     x:Class="Automation.App.Features.Workflows.Details.WorkflowDetailsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="clr-namespace:Automation.App.Features.Workflows.Details.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:editor="clr-namespace:Automation.App.Features.Workflows.Editor"
     xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
@@ -19,15 +20,12 @@
                     <RowDefinition Height="auto" />
                 </Grid.RowDefinitions>
 
-                <StackPanel>
-                    <TextBlock Style="{StaticResource Muted}">Name</TextBlock>
-                    <TextBox Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                </StackPanel>
+                <controls:MetadataEditor />
 
                 <StackPanel Grid.Row="1" VerticalAlignment="Top" joufflu:Spacing.Gap="4">
-                    <CheckBox IsChecked="{Binding Workflow.WorkflowSettings.IsStoringAllData}">Store all data</CheckBox>
-                    <CheckBox IsChecked="{Binding Workflow.WorkflowSettings.StopAtFirstEnd}">Stop at first end</CheckBox>
-                    <CheckBox IsChecked="{Binding Workflow.WorkflowSettings.StopIfAnyTaskFail}">Stop if any task fail</CheckBox>
+                    <CheckBox IsChecked="{Binding IsStoringAllData}">Store all data</CheckBox>
+                    <CheckBox IsChecked="{Binding StopAtFirstEnd}">Stop at first end</CheckBox>
+                    <CheckBox IsChecked="{Binding StopIfAnyTaskFail}">Stop if any task fail</CheckBox>
                 </StackPanel>
 
                 <Grid Grid.Row="2">

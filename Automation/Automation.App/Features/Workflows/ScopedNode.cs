@@ -2,6 +2,7 @@
 using Automation.Shared.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 
 namespace Automation.App.Features.Workflows
 {
@@ -33,12 +34,17 @@ namespace Automation.App.Features.Workflows
             Element = element;
             Parent = parent;
             _scoped = scoped;
+            // Name and Type are read from the metadata, which the details pages edit directly.
+            Element.Metadata.PropertyChanged += OnMetadataChanged;
         }
 
-        /// <summary>
-        /// Notify the name changed, the metadata being edited through the element itself.
-        /// </summary>
-        public void NotifyNameChanged() => OnPropertyChanged(nameof(Name));
+        private void OnMetadataChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(ScopedMetadata.Name))
+                OnPropertyChanged(nameof(Name));
+            else if (e.PropertyName == nameof(ScopedMetadata.Type))
+                OnPropertyChanged(nameof(Type));
+        }
 
         public async Task LoadAsync()
         {

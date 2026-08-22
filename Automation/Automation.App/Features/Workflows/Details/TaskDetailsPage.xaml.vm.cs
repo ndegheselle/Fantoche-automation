@@ -20,6 +20,7 @@ namespace Automation.App.Features.Workflows.Details
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(HasTarget));
                 OnPropertyChanged(nameof(TargetPackage));
+                MarkChanged();
             }
         }
 

@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="clr-namespace:Automation.App.Features.Packages.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:details="clr-namespace:Automation.App.Features.Workflows.Details.Controls"
     xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Automation.App.Features.Workflows.Details"
@@ -22,59 +23,53 @@
                     <RowDefinition Height="auto" />
                 </Grid.RowDefinitions>
 
-                <StackPanel>
-                    <TextBlock Style="{StaticResource Muted}">Name</TextBlock>
-                    <TextBox Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                </StackPanel>
+                <details:MetadataEditor />
 
-                <!--  Current package  -->
-                <Grid
-                    Grid.Row="1"
-                    VerticalAlignment="Top"
-                    Visibility="{Binding HasTarget, Converter={StaticResource BoolToVisibility}}">
-                    <controls:PackageSummary DataContext="{Binding TargetPackage}" />
-                    <Button
-                        Margin="{StaticResource {x:Static joufflu:Dimensions.SpacingThickness}}"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Top"
-                        joufflu:Sizing.IsSquare="True"
-                        joufflu:Sizing.Size="sm"
-                        Command="{Binding RemovePackageCommand}"
-                        Style="{StaticResource SoftDangerButton}"
-                        ToolTip="Remove the package">
-                        <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Trash}" />
-                    </Button>
-                </Grid>
+                <Grid Grid.Row="1">
+                    <!--  Current package  -->
+                    <Grid VerticalAlignment="Top" Visibility="{Binding HasTarget, Converter={StaticResource BoolToVisibility}}">
+                        <controls:PackageSummary DataContext="{Binding TargetPackage}" />
+                        <Button
+                            Margin="{StaticResource {x:Static joufflu:Dimensions.SpacingThickness}}"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Top"
+                            joufflu:Sizing.IsSquare="True"
+                            joufflu:Sizing.Size="sm"
+                            Command="{Binding RemovePackageCommand}"
+                            Style="{StaticResource SoftDangerButton}"
+                            ToolTip="Remove the package">
+                            <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Trash}" />
+                        </Button>
+                    </Grid>
 
-                <!--  No package yet  -->
-                <StackPanel
-                    Grid.Row="1"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    joufflu:Spacing.Gap="8">
-                    <StackPanel.Style>
-                        <Style TargetType="StackPanel">
-                            <Setter Property="Visibility" Value="Collapsed" />
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding HasTarget}" Value="False">
-                                    <Setter Property="Visibility" Value="Visible" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </StackPanel.Style>
-                    <StackPanel Orientation="Horizontal">
-                        <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.CircleSlash2}" />
-                        <TextBlock Margin="8,0,0,0">No target, select a package to setup the task.</TextBlock>
-                    </StackPanel>
-                    <Button HorizontalAlignment="Center" Command="{Binding SelectPackageCommand}">
+                    <!--  No package yet  -->
+                    <StackPanel
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        joufflu:Spacing.Gap="8">
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasTarget}" Value="False">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
                         <StackPanel Orientation="Horizontal">
-                            <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Package}" />
-                            <TextBlock Margin="4,0,0,0">Select package</TextBlock>
+                            <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.CircleSlash2}" />
+                            <TextBlock Margin="8,0,0,0">No target, select a package to setup the task.</TextBlock>
                         </StackPanel>
-                    </Button>
-                </StackPanel>
+                        <Button HorizontalAlignment="Center" Command="{Binding SelectPackageCommand}">
+                            <StackPanel Orientation="Horizontal">
+                                <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Package}" />
+                                <TextBlock Margin="4,0,0,0">Select package</TextBlock>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
 
-
+                </Grid>
 
                 <Grid Grid.Row="2">
                     <Button

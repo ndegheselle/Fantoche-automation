@@ -84,7 +84,7 @@
                     joufflu:Sizing.IsSquare="True"
                     Command="{Binding SaveCommand}"
                     Style="{StaticResource GhostButton}"
-                    ToolTip="Save the workflow">
+                    ToolTip="Save the graph">
                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Save}" />
                 </Button>
             </StackPanel>
