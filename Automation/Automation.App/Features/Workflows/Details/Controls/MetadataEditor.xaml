@@ -6,22 +6,15 @@
     xmlns:converters="clr-namespace:Automation.App.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:inputs="clr-namespace:Joufflu.Inputs.Controls;assembly=Joufflu.Inputs"
+    xmlns:jonverters="clr-namespace:Joufflu.Converters;assembly=Joufflu"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:scoped="clr-namespace:Automation.Shared.Data.Scoped;assembly=Automation.Shared"
+    d:DataContext="{d:DesignInstance Type=scoped:ScopedMetadata}"
     mc:Ignorable="d">
     <UserControl.Resources>
         <converters:HexColorConverter x:Key="HexColorConverter" />
     </UserControl.Resources>
-    <!--  Built-in elements (e.g. the start / end control tasks) can't be edited  -->
-    <UserControl.Style>
-        <Style TargetType="UserControl">
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding Metadata.IsReadOnly}" Value="True">
-                    <Setter Property="Visibility" Value="Collapsed" />
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
-    </UserControl.Style>
     <Grid joufflu:Spacing.Gap="4">
         <Grid.ColumnDefinitions>
             <ColumnDefinition />
@@ -35,17 +28,26 @@
 
         <StackPanel Grid.Row="0" Grid.Column="0">
             <TextBlock Style="{StaticResource Muted}">Name</TextBlock>
-            <TextBox Text="{Binding Metadata.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            <TextBox IsEnabled="{Binding IsReadOnly, Converter={x:Static jonverters:BooleanFlipConverter.Default}, Mode=OneTime}" Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
         </StackPanel>
 
-        <StackPanel Grid.Row="0" Grid.Column="1" Margin="4,0,0,0">
+        <StackPanel
+            Grid.Row="0"
+            Grid.Column="1"
+            Margin="4,0,0,0">
             <TextBlock Style="{StaticResource Muted}">Icon</TextBlock>
-            <controls:IconPicker SelectedIcon="{Binding Metadata.Icon, Mode=TwoWay}" />
+            <controls:IconPicker IsEnabled="{Binding IsReadOnly, Converter={x:Static jonverters:BooleanFlipConverter.Default}, Mode=OneTime}" SelectedIcon="{Binding Icon, Mode=TwoWay}" />
         </StackPanel>
 
-        <StackPanel Grid.Row="0" Grid.Column="2" Margin="4,0,0,0">
+        <StackPanel
+            Grid.Row="0"
+            Grid.Column="2"
+            Margin="4,0,0,0">
             <TextBlock Style="{StaticResource Muted}">Color</TextBlock>
-            <inputs:ColorPicker Width="120" Color="{Binding Metadata.Color, Mode=TwoWay, Converter={StaticResource HexColorConverter}}" />
+            <inputs:ColorPicker
+                Width="140"
+                IsEnabled="{Binding IsReadOnly, Converter={x:Static jonverters:BooleanFlipConverter.Default}, Mode=OneTime}"
+                Color="{Binding Color, Mode=TwoWay, Converter={StaticResource HexColorConverter}}" />
         </StackPanel>
 
         <StackPanel
@@ -54,7 +56,10 @@
             Grid.ColumnSpan="3"
             Margin="0,4,0,0">
             <TextBlock Style="{StaticResource Muted}">Tags</TextBlock>
-            <inputs:ComboBoxTags AllowAdd="True" SelectedItems="{Binding Metadata.Tags}" />
+            <inputs:ComboBoxTags
+                AllowAdd="True"
+                IsEnabled="{Binding IsReadOnly, Converter={x:Static jonverters:BooleanFlipConverter.Default}, Mode=OneTime}"
+                SelectedItems="{Binding Tags}" />
         </StackPanel>
     </Grid>
 </UserControl>

@@ -15,6 +15,7 @@ namespace Automation.App.Features.Workflows
         public ScopedNode? Parent { get; }
         public ObservableCollection<ScopedNode> Children { get; } = [];
 
+        public ScopedMetadata Metadata => Element.Metadata;
         public string Name => Element.Metadata.Name;
         public EnumScopedType Type => Element.Metadata.Type;
         public bool IsScope => Type == EnumScopedType.Scope;

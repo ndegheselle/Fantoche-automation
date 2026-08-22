@@ -119,91 +119,105 @@ namespace Automation.App.Features.Workflows.Editor
         private void Remove()
         {
             List<NodeViewModel> nodes = [.. SelectedNodes];
+            // Materialized right away : executing mutates the very collection it reads.
             List<ConnectionViewModel> connections =
                 [.. Connections.Where(x => nodes.Contains(x.Source.Node) || nodes.Contains(x.Target.Node))];
 
-            History.Apply(new ReversibleAction(
+            // Disconnecting comes first, a node only leaving the graph once nothing links to it
+            // anymore. The composite reverts its steps backwards, so the nodes come back before their
+            // connections without that ordering having to be written a second time.
+            History.Apply(new CompositeReversibleAction(
                 nodes.Count == 1 ? $"Remove '{nodes[0].Name}'" : $"Remove {nodes.Count} nodes",
-                () =>
-                {
-                    foreach (ConnectionViewModel connection in connections)
-                        RemoveConnection(connection);
-                    foreach (NodeViewModel node in nodes)
-                        RemoveNode(node);
-                },
-                () =>
-                {
-                    foreach (NodeViewModel node in nodes)
-                        AddNode(node);
-                    foreach (ConnectionViewModel connection in connections)
-                        AddConnection(connection);
-                }));
+                new ReversibleAction(
+                    $"Disconnect {connections.Count} connection(s)",
+                    () =>
+                    {
+                        foreach (ConnectionViewModel connection in connections)
+                            RemoveConnection(connection);
+                    },
+                    () =>
+                    {
+                        foreach (ConnectionViewModel connection in connections)
+                            AddConnection(connection);
+                    }),
+                new ReversibleAction(
+                    $"Remove {nodes.Count} node(s)",
+                    () =>
+                    {
+                        foreach (NodeViewModel node in nodes)
+                            RemoveNode(node);
+                    },
+                    () =>
+                    {
+                        foreach (NodeViewModel node in nodes)
+                            AddNode(node);
+                    })));
         }
 
         private bool CanRemove => SelectedNodes.Count > 0;
 
         /// <summary>
-        /// Location of every selected node when a drag started, so the move can be recorded as a
-        /// single reversible action once it completes.
+        /// Location of every node when a drag started, so the move can be recorded as a single
+        /// reversible action once it completes.
         /// </summary>
         private readonly Dictionary<NodeViewModel, Point> _dragOrigins = [];
 
         [RelayCommand]
         private void ItemsDragStarted()
         {
+            // Every node is snapshotted rather than only the selection : Nodify raises this for the
+            // selected containers but also when it pushes items around, and the completion keeps
+            // whichever nodes actually moved.
             _dragOrigins.Clear();
-            foreach (NodeViewModel node in SelectedNodes)
+            foreach (NodeViewModel node in Nodes)
                 _dragOrigins[node] = node.Location;
         }
 
         [RelayCommand]
         private void ItemsDragCompleted()
         {
-            Dictionary<NodeViewModel, Point> origins = _dragOrigins
-                .Where(x => x.Key.Location != x.Value)
-                .ToDictionary(x => x.Key, x => x.Value);
+            // Materialized right away : the destinations have to be read while the nodes are still
+            // where the drag left them, an undo moving them back to their origin.
+            List<(NodeViewModel Node, Point From, Point To)> moves =
+                [.. _dragOrigins.Where(x => x.Key.Location != x.Value).Select(x => (x.Key, x.Value, x.Key.Location))];
             _dragOrigins.Clear();
 
-            if (origins.Count == 0)
+            if (moves.Count == 0)
                 return;
 
-            Dictionary<NodeViewModel, Point> destinations = origins.ToDictionary(x => x.Key, x => x.Key.Location);
-
             History.Apply(new ReversibleAction(
-                origins.Count == 1 ? $"Move '{origins.Keys.First().Name}'" : $"Move {origins.Count} nodes",
+                moves.Count == 1 ? $"Move '{moves[0].Node.Name}'" : $"Move {moves.Count} nodes",
                 () =>
                 {
-                    foreach ((NodeViewModel node, Point location) in destinations)
-                        node.Location = location;
+                    foreach ((NodeViewModel node, _, Point to) in moves)
+                        node.Location = to;
                 },
                 () =>
                 {
-                    foreach ((NodeViewModel node, Point location) in origins)
-                        node.Location = location;
+                    foreach ((NodeViewModel node, Point from, _) in moves)
+                        node.Location = from;
                 }));
         }
 
         /// <summary>
         /// Complete a pending connection dragged from one connector to another : the parameter is a
-        /// tuple of the connector the drag started from and the one it was dropped on. A connection
-        /// only makes sense between an output and an input of two different nodes.
+        /// tuple of the connector the drag started from and the one it was dropped on. Whether the
+        /// connection is allowed is up to the graph.
         /// </summary>
         [RelayCommand]
         private void ConnectionCompleted(object? parameter)
         {
-            if (parameter is not ITuple { Length: 2 } pending)
-                return;
-            if (pending[0] is not ConnectorViewModel first || pending[1] is not ConnectorViewModel second)
-                return;
-
-            bool firstIsOutput = first.Node.Outputs.Contains(first);
-            bool secondIsOutput = second.Node.Outputs.Contains(second);
-            if (first.Node == second.Node || firstIsOutput == secondIsOutput)
+            // ITuple rather than the concrete type : Nodify packs the pair as a tuple without
+            // documenting which kind.
+            if (parameter is not ITuple { Length: 2 } pending
+                || pending[0] is not ConnectorViewModel first
+                || pending[1] is not ConnectorViewModel second)
                 return;
 
-            ConnectorViewModel source = firstIsOutput ? first : second;
-            ConnectorViewModel target = firstIsOutput ? second : first;
-            if (Connections.Any(x => x.Source == source && x.Target == target))
+            // Dragging an input onto an output makes the same connection as the other way around.
+            ConnectorViewModel source = first.IsOutput ? first : second;
+            ConnectorViewModel target = first.IsOutput ? second : first;
+            if (!Graph.CanConnect(source.Model, target.Model))
                 return;
 
             var connection = new ConnectionViewModel(source, target);

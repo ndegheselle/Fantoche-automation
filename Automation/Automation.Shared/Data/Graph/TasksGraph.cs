@@ -102,9 +102,49 @@ namespace Automation.Shared.Data.Graph
         /// </summary>
         /// <param name="task"></param>
         /// <param name="task2"></param>
+        /// <exception cref="InvalidOperationException">The connection isn't allowed, see <see cref="CanConnect"/>.</exception>
         public void Connect(BaseGraphTask task, BaseGraphTask task2)
         {
-            Connections.Add(new GraphConnection(task.Outputs.First(), task2.Inputs.First()));
+            GraphConnector source = task.Outputs.First();
+            GraphConnector target = task2.Inputs.First();
+            if (!CanConnect(source, target))
+                throw new InvalidOperationException($"'{task.Name}' can't be connected to '{task2.Name}'.");
+
+            Connections.Add(new GraphConnection(source, target));
+        }
+
+        /// <summary>
+        /// Whether [source] can be connected to [target] : an output and an input held by two
+        /// different nodes of this graph, not already connected together.
+        /// <para>
+        /// The rule lives here rather than in whichever editor offers the connection, the executor
+        /// walking the graph with no cycle guard : a task connected to itself hangs it.
+        /// </para>
+        /// </summary>
+        public bool CanConnect(GraphConnector source, GraphConnector target)
+        {
+            // Resolved by id rather than through GraphConnector.Parent, which is only set once
+            // Refresh() has run.
+            BaseGraphTask? sourceNode = FindNode(x => x.Outputs, source);
+            BaseGraphTask? targetNode = FindNode(x => x.Inputs, target);
+
+            // Unknown connectors, or dragged the wrong way around : an output only reaches an input.
+            if (sourceNode == null || targetNode == null || sourceNode == targetNode)
+                return false;
+
+            return !Connections.Any(x => x.SourceId == source.Id && x.TargetId == target.Id);
+        }
+
+        /// <summary>
+        /// The node of the graph holding [connector] in the collection given by [connectors].
+        /// </summary>
+        private BaseGraphTask? FindNode(
+            Func<BaseGraphTask, IEnumerable<GraphConnector>> connectors,
+            GraphConnector connector)
+        {
+            return Nodes
+                .OfType<BaseGraphTask>()
+                .FirstOrDefault(x => connectors(x).Any(c => c.Id == connector.Id));
         }
 
         /// <summary>

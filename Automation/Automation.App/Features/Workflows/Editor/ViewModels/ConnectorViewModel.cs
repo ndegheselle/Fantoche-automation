@@ -16,13 +16,20 @@ namespace Automation.App.Features.Workflows.Editor.ViewModels
 
         public string Name => Model.Name;
 
+        /// <summary>
+        /// Whether the connector is one of its node's outputs : the direction isn't held by the model,
+        /// only by the collection the connector belongs to, so the node hands it over.
+        /// </summary>
+        public bool IsOutput { get; }
+
         [ObservableProperty] private Point _anchor;
         [ObservableProperty] private bool _isConnected;
 
-        public ConnectorViewModel(NodeViewModel node, GraphConnector model)
+        public ConnectorViewModel(NodeViewModel node, GraphConnector model, bool isOutput)
         {
             Node = node;
             Model = model;
+            IsOutput = isOutput;
             _isConnected = model.IsConnected;
         }
 

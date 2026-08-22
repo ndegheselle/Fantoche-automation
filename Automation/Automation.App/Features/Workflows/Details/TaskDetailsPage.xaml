@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:details="clr-namespace:Automation.App.Features.Workflows.Details.Controls"
     xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
+    xmlns:jonverters="clr-namespace:Joufflu.Converters;assembly=Joufflu"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Automation.App.Features.Workflows.Details"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -23,9 +24,9 @@
                     <RowDefinition Height="auto" />
                 </Grid.RowDefinitions>
 
-                <details:MetadataEditor />
+                <details:MetadataEditor DataContext="{Binding Metadata}" />
 
-                <Grid Grid.Row="1">
+                <Grid Grid.Row="1" Visibility="{Binding Metadata.IsReadOnly, Mode=OneTime, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}">
                     <!--  Current package  -->
                     <Grid VerticalAlignment="Top" Visibility="{Binding HasTarget, Converter={StaticResource BoolToVisibility}}">
                         <controls:PackageSummary DataContext="{Binding TargetPackage}" />

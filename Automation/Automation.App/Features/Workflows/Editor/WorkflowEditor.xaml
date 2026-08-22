@@ -100,7 +100,7 @@
                             </nodify:Node.OutputConnectorTemplate>
 
                             <jonts:FontIcon
-                                DataContext="{Binding Metadata.Type}"
+                                DataContext="{Binding Metadata}"
                                 FontSize="{DynamicResource {x:Static joufflu:Dimensions.ControlFontSizeXl}}"
                                 Style="{StaticResource ScopedIcon}" />
                         </nodify:Node>

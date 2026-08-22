@@ -106,7 +106,7 @@
                 <TreeView.ItemTemplate>
                     <HierarchicalDataTemplate DataType="{x:Type local:ScopedNode}" ItemsSource="{Binding Children}">
                         <StackPanel joufflu:Spacing.Gap="4" Orientation="Horizontal">
-                            <jonts:FontIcon DataContext="{Binding Type}" Style="{StaticResource ScopedIcon}" />
+                            <jonts:FontIcon DataContext="{Binding Metadata}" Style="{StaticResource ScopedIcon}" />
                             <TextBlock Text="{Binding Name}" />
                         </StackPanel>
                     </HierarchicalDataTemplate>
@@ -146,7 +146,7 @@
                                     CommandParameter="{Binding}"
                                     Style="{StaticResource GhostButton}">
                                     <StackPanel Orientation="Horizontal">
-                                        <jonts:FontIcon DataContext="{Binding Type}" Style="{StaticResource ScopedIcon}" />
+                                        <jonts:FontIcon DataContext="{Binding Metadata}" Style="{StaticResource ScopedIcon}" />
                                         <TextBlock Margin="4,0,0,0" Text="{Binding Name}" />
                                     </StackPanel>
                                 </Button>

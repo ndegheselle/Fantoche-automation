@@ -50,7 +50,7 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
-                                <jonts:FontIcon DataContext="{Binding Metadata.Type}" Style="{StaticResource ScopedIcon}" />
+                                <jonts:FontIcon DataContext="{Binding Metadata}" Style="{StaticResource ScopedIcon}" />
                                 <TextBlock Margin="8,0,0,0" Text="{Binding Metadata.Name}" />
                             </StackPanel>
                         </DataTemplate>

@@ -20,7 +20,7 @@
                     <RowDefinition Height="auto" />
                 </Grid.RowDefinitions>
 
-                <controls:MetadataEditor />
+                <controls:MetadataEditor DataContext="{Binding Metadata}" />
 
                 <Grid Grid.Row="2">
                     <Button

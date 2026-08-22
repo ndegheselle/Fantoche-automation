@@ -31,9 +31,9 @@ namespace Automation.App.Features.Workflows.Editor.ViewModels
             _location = new Point(model.LocationX, model.LocationY);
 
             foreach (GraphConnector input in model.Inputs)
-                Inputs.Add(new ConnectorViewModel(this, input));
+                Inputs.Add(new ConnectorViewModel(this, input, isOutput: false));
             foreach (GraphConnector output in model.Outputs)
-                Outputs.Add(new ConnectorViewModel(this, output));
+                Outputs.Add(new ConnectorViewModel(this, output, isOutput: true));
         }
 
         /// <summary>
