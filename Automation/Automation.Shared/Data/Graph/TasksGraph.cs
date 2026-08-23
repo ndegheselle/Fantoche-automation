@@ -39,10 +39,13 @@ namespace Automation.Shared.Data.Graph
                 // Refresh node target task
                 if (tasks != null)
                 {
+                    // Control tasks are hard coded, they are not looked up among the tasks
                     if (taskNode.TaskId == AutomationControl.StartTask.Id)
                         taskNode.AutomationTask = AutomationControl.StartTask;
-                    if (taskNode.TaskId == AutomationControl.EndTask.Id)
+                    else if (taskNode.TaskId == AutomationControl.EndTask.Id)
                         taskNode.AutomationTask = AutomationControl.EndTask;
+                    else if (taskNode.TaskId == AutomationControl.ContextTask.Id)
+                        taskNode.AutomationTask = AutomationControl.ContextTask;
                     else
                         taskNode.AutomationTask = tasks[taskNode.TaskId];
                 }

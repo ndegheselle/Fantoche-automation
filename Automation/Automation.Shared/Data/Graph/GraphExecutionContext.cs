@@ -10,6 +10,13 @@ public class GraphExecutionContext
     private const string ContextIdentifier = "context";
     private readonly TasksGraph _graph;
 
+    /// <summary>
+    /// Context the graph starts from : the resolved context of the scope containing the workflow
+    /// (see <see cref="ScopeContextResolver.Resolve"/>). Resolved once, before generating the samples
+    /// or executing the graph, its values never changing during an execution.
+    /// </summary>
+    public JToken? ScopeContext { get; set; }
+
     public GraphExecutionContext(TasksGraph graph)
     {
         _graph = graph;
@@ -25,33 +32,43 @@ public class GraphExecutionContext
     /// <param name="task"></param>
     public List<string> GetContextSampleJsonFor(BaseGraphTask task)
     {
-        var previousTasks = _graph.GetPrevious(task);
-
-        // TODO : get the global and common token samples
-        JToken? context = null;
+        JToken? context = GetContextSampleFor(task);
 
         List<string> contexts = [];
         if (task.Settings.IsWaitingAllInputs)
         {
-            Dictionary<string, JToken?> previous = new Dictionary<string, JToken?>();
-            foreach (var pre in previousTasks)
-                foreach (var effective in ResolveEffectivePreviousTasks(pre))
-                    previous[effective.Name] = effective.OutputSchema?.ToSampleJson();
-            contexts.Add(GenerateContextFrom(previous, context).ToString());
+            contexts.Add(GenerateContextFrom(GetPreviousSamplesByName(task), context).ToString());
         }
         else
         {
             // XXX : maybe group by TaskId ?
-            foreach (var previousTask in previousTasks)
-            {
-                foreach (var effective in ResolveEffectivePreviousTasks(previousTask))
-                {
-                    var input = effective.OutputSchema?.ToSampleJson();
-                    contexts.Add(GenerateContextFrom(input, context).ToString());
-                }
-            }
+            foreach (JToken? previous in GetPreviousSamples(task))
+                contexts.Add(GenerateContextFrom(previous, context).ToString());
         }
         return contexts;
+    }
+
+    /// <summary>
+    /// Sample of the output of each effective previous task, keyed by node name (shape used by the
+    /// tasks waiting for all their inputs).
+    /// </summary>
+    private Dictionary<string, JToken?> GetPreviousSamplesByName(BaseGraphTask task)
+    {
+        Dictionary<string, JToken?> previous = [];
+        foreach (var pre in _graph.GetPrevious(task))
+            foreach (var effective in ResolveEffectivePreviousTasks(pre))
+                previous[effective.Name] = effective.OutputSchema?.ToSampleJson();
+        return previous;
+    }
+
+    /// <summary>
+    /// Sample of the output of each effective previous task, one per branch reaching the task.
+    /// </summary>
+    private IEnumerable<JToken?> GetPreviousSamples(BaseGraphTask task)
+    {
+        foreach (var pre in _graph.GetPrevious(task))
+            foreach (var effective in ResolveEffectivePreviousTasks(pre))
+                yield return effective.OutputSchema?.ToSampleJson();
     }
 
     /// <summary>
@@ -123,6 +140,140 @@ public class GraphExecutionContext
 
         return new JArray(endInstances.Select(x => x.Output).Where(x => x != null));
     }
+    #endregion
+
+    #region Context
+
+    /// <summary>
+    /// Context a task reads : the <see cref="ScopeContext"/> with the settings of every context
+    /// setter placed upstream of it applied, in graph order. Unlike the previous outputs the context
+    /// flows through every node, pass-through ones included.
+    /// </summary>
+    public JToken? GetContextSampleFor(BaseGraphTask task) => GetContextSampleFor(task, [], []);
+
+    private JToken? GetContextSampleFor(BaseGraphTask task, Dictionary<Guid, JToken?> resolved, HashSet<Guid> visiting)
+    {
+        if (resolved.TryGetValue(task.Id, out JToken? cached))
+            return cached;
+
+        if (!visiting.Add(task.Id))
+            return ScopeContext; // cycle guard
+
+        JToken? context = ScopeContext;
+        foreach (var pre in _graph.GetPrevious(task))
+            context = MergeContexts(context, GetContextLeaving(pre, resolved, visiting));
+
+        visiting.Remove(task.Id);
+        resolved[task.Id] = context;
+        return context;
+    }
+
+    /// <summary>
+    /// Context handed over by a task to the ones following it : the one it reads, plus its own
+    /// settings when it is a context setter.
+    /// </summary>
+    private JToken? GetContextLeaving(BaseGraphTask task, Dictionary<Guid, JToken?> resolved, HashSet<Guid> visiting)
+    {
+        JToken? context = GetContextSampleFor(task, resolved, visiting);
+        if (task is not GraphControl control || !control.IsContextSetter())
+            return context;
+
+        return ApplyContextSetter(context, GetContextSetterValues(control, context));
+    }
+
+    /// <summary>
+    /// Values a context setter sets, its settings references being resolved against the context it
+    /// reads and a sample of its previous outputs.
+    /// </summary>
+    private JToken? GetContextSetterValues(BaseGraphTask setter, JToken? context)
+    {
+        if (string.IsNullOrEmpty(setter.ParametersJson))
+            return null;
+
+        JToken? previous;
+        if (setter.Settings.IsWaitingAllInputs)
+        {
+            JObject byName = new JObject();
+            foreach (var sample in GetPreviousSamplesByName(setter))
+                byName[sample.Key] = sample.Value;
+            previous = byName;
+        }
+        else
+        {
+            previous = GetPreviousSamples(setter).FirstOrDefault();
+        }
+
+        JToken values = JToken.Parse(setter.ParametersJson);
+        return ReferencesHandler.ReplaceReferences(values, GenerateContextFrom(previous, context)).ReplacedSetting;
+    }
+
+    /// <summary>
+    /// Settings a context setter starts with : every key the context holds at that point of the
+    /// graph, left unset, the user only filling the ones the branch overrides (and adding the keys
+    /// specific to the workflow).
+    /// </summary>
+    public JObject GetContextSetterDefaultSettings(BaseGraphTask task)
+    {
+        JObject settings = new JObject();
+        if (GetContextSampleFor(task) is JObject context)
+            foreach (var property in context.Properties())
+                settings[property.Name] = JValue.CreateNull();
+        return settings;
+    }
+
+    /// <summary>
+    /// Context a context setter hands over : [context] with the [values] it sets applied. A null
+    /// value leaves the inherited one untouched (that is how an unset entry is stored), any other
+    /// value overrides it and a key the context doesn't hold yet is added to it.
+    /// </summary>
+    public static JObject ApplyContextSetter(JToken? context, JToken? values)
+    {
+        JObject applied = context is JObject inherited ? (JObject)inherited.DeepClone() : new JObject();
+        if (values is not JObject settings)
+            return applied;
+
+        foreach (var property in settings.Properties())
+        {
+            if (property.Value.Type == JTokenType.Null)
+                continue;
+            applied[property.Name] = property.Value.DeepClone();
+        }
+
+        return applied;
+    }
+
+    /// <summary>
+    /// Context flowing into a task at runtime : the one carried by each of its previous instances
+    /// merged together, falling back to [scopeContext] at the start of the graph.
+    /// </summary>
+    public static JToken? ResolveIncomingContext(IReadOnlyList<TaskInstance> previousInstances, JToken? scopeContext)
+    {
+        JToken? context = scopeContext;
+        foreach (var previous in previousInstances)
+            context = MergeContexts(context, previous.Context);
+        return context;
+    }
+
+    /// <summary>
+    /// Merge two contexts coming from two branches, the values of [other] winning. Anything that
+    /// isn't an object can't be merged and is taken as-is.
+    /// </summary>
+    private static JToken? MergeContexts(JToken? context, JToken? other)
+    {
+        if (other == null)
+            return context;
+        if (context is not JObject source || other is not JObject values)
+            return other;
+
+        JObject merged = (JObject)source.DeepClone();
+        merged.Merge(values, new JsonMergeSettings
+        {
+            MergeArrayHandling = MergeArrayHandling.Replace,
+            MergeNullValueHandling = MergeNullValueHandling.Ignore
+        });
+        return merged;
+    }
+
     #endregion
 
     /// <summary>

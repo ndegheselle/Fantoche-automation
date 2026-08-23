@@ -40,6 +40,16 @@ namespace Automation.Shared.Data.Execution
         public JToken? Parameters { get; set; }
         public JToken? Output { get; set; }
 
+        /// <summary>
+        /// Context the task read, i.e. the context of the workflow with every context setter met
+        /// upstream in the branch applied (see <see cref="Graph.GraphExecutionContext"/>). Carried by
+        /// every instance, pass-through ones included, so the next tasks of the branch inherit it.
+        /// Execution-only : rebuilt by the executor, never persisted.
+        /// </summary>
+        [JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
+        public JToken? Context { get; set; }
+
         public List<TaskInstance> Previous { get; set; } = [];
         public List<TaskInstance> Nexts { get; set; } = [];
 

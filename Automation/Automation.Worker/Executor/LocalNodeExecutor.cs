@@ -129,7 +129,8 @@ public class LocalNodeExecutor : IDisposable
         return _workflowExecutor.ExecuteAsync(
             automationWorkflow,
             instance.Parameters,
-            instance.ParentWorkflow?.SharedToken,
+            // The nested workflow starts from the context of the branch running it
+            instance.Context ?? instance.ParentWorkflow?.StartContext,
             instance.Id,
             progress,
             cancellation);

@@ -143,6 +143,12 @@ namespace Automation.Shared.Data.Graph
 
         public bool IsStart() => TaskId == AutomationControl.StartTask.Id;
         public bool IsEnd() => TaskId == AutomationControl.EndTask.Id;
+
+        /// <summary>
+        /// Whether the node sets values in the context of its branch, see
+        /// <see cref="AutomationControl.ContextTask"/>.
+        /// </summary>
+        public bool IsContextSetter() => TaskId == AutomationControl.ContextTask.Id;
     }
 
     /// <summary>

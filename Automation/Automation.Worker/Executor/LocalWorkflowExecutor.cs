@@ -19,7 +19,7 @@ public class LocalWorkflowExecutor
     public Task<TaskInstance> ExecuteAsync(
         AutomationWorkflow workflow,
         JToken? parameters,
-        JToken? sharedToken = null,
+        JToken? startContext = null,
         Guid? parentInstanceId = null,
         TaskInstancesProgress? progress = null,
         CancellationToken? cancellation = null)
@@ -27,7 +27,7 @@ public class LocalWorkflowExecutor
         if (workflow.Graph.IsRefreshed == false)
             throw new Exception("The workflow graph should be refreshed before being executed.");
 
-        var workflowInstance = new WorkflowInstance(workflow, parentInstanceId, sharedToken)
+        var workflowInstance = new WorkflowInstance(workflow, parentInstanceId, startContext)
         {
             Parameters = parameters
         };
@@ -52,6 +52,7 @@ public class LocalWorkflowExecutor
         {
             var startInstance = workflowInstance.CreateInstance(start, workflowInstance.Parameters, EnumTaskState.Completed);
             startInstance.Output = workflowInstance.Parameters;
+            startInstance.Context = workflowInstance.StartContext;
 
             progress?.StateChanges?.Report(startInstance);
             startTasks.Add(NextAsync(start, startInstance, workflowInstance, progress, token));
@@ -134,10 +135,15 @@ public class LocalWorkflowExecutor
         }
 
         previousInstances ??= [previousInstance];
+
+        // Context carried by the branch : the context the workflow started from with every context
+        // setter met upstream applied.
+        JToken? context = GraphExecutionContext.ResolveIncomingContext(previousInstances, workflowInstance.StartContext);
+
         JToken? parameters = null;
         if (!string.IsNullOrEmpty(node.ParametersJson))
         {
-            var taskContext = workflowInstance.Workflow.Graph.Execution.GetContextFor(node, previousInstances, workflowInstance.SharedToken);
+            var taskContext = workflowInstance.Workflow.Graph.Execution.GetContextFor(node, previousInstances, context);
             parameters = ReferencesHandler.ReplaceReferences(JToken.Parse(node.ParametersJson), taskContext).ReplacedSetting;
         }
 
@@ -148,6 +154,18 @@ public class LocalWorkflowExecutor
         {
             existingInstance.Parameters = parameters;
             existingInstance.State = EnumTaskState.Progressing;
+        }
+        existingInstance.Context = context;
+
+        // A context setter runs nothing : it only applies its settings on the context of the branch
+        // and hands the data of the previous task over to the next ones.
+        if (node is GraphControl control && control.IsContextSetter())
+        {
+            existingInstance.Context = GraphExecutionContext.ApplyContextSetter(context, parameters);
+            existingInstance.Output = previousInstance.Output;
+            existingInstance.State = EnumTaskState.Completed;
+            progress?.StateChanges?.Report(existingInstance);
+            return await NextAsync(node, existingInstance, workflowInstance, progress, cancellation);
         }
 
         progress?.StateChanges?.Report(existingInstance);

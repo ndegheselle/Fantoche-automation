@@ -14,7 +14,8 @@ internal static class LocalSeed
     {
         db.ScopedElements.AddRange(
             AutomationControl.StartTask,
-            AutomationControl.EndTask);
+            AutomationControl.EndTask,
+            AutomationControl.ContextTask);
 
         db.SaveChanges();
     }

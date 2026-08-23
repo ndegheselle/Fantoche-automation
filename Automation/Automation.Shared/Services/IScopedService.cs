@@ -1,6 +1,7 @@
 ﻿using Automation.Shared.Base;
 using Automation.Shared.Data.Execution;
 using Automation.Shared.Data.Scoped;
+using Newtonsoft.Json.Linq;
 
 namespace Automation.Shared.Services;
 
@@ -42,6 +43,13 @@ public interface IScopedService
     /// The element [excludeId] (if provided) is ignored, so an element keeping its own name stays valid.
     /// </summary>
     public Task<bool> IsNameUniqueAsync(Guid parentId, string name, Guid? excludeId = null);
+
+    /// <summary>
+    /// Get the resolved context of the element [elementId] : the context of every scope from the root
+    /// down to the one containing it, merged together (see <see cref="ScopeContextResolver.Resolve"/>).
+    /// Read once, before an execution or before editing a graph : the context a workflow starts from.
+    /// </summary>
+    public Task<JObject> GetContextAsync(Guid elementId);
 
     /// <summary>
     /// Get a page of the execution history related to the scoped element [elementId], most recent first.

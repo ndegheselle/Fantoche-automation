@@ -28,11 +28,14 @@ public class WorkflowInstance : TaskInstance
     public AutomationWorkflow Workflow { get; }
 
     /// <summary>
-    /// Shared context inherited from a parent workflow, propagated to every task of this workflow.
+    /// Context the workflow starts from : the resolved context of the scope containing it (see
+    /// <see cref="Scoped.ScopeContextResolver.Resolve"/>), or the context of the branch running it
+    /// when it is nested in another workflow. Every start node of the graph reads it, the context
+    /// setters of the graph then building on it branch by branch.
     /// </summary>
     [JsonIgnore]
     [Newtonsoft.Json.JsonIgnore]
-    public JToken? SharedToken { get; }
+    public JToken? StartContext { get; }
 
     /// <summary>
     /// Instances created during this workflow execution, indexed by graph node id.
@@ -53,10 +56,13 @@ public class WorkflowInstance : TaskInstance
     public WorkflowInstance(
         AutomationWorkflow workflow,
         Guid? parentInstanceId = null,
-        JToken? sharedToken = null)
+        JToken? startContext = null)
     {
         Workflow = workflow;
-        SharedToken = sharedToken;
+        StartContext = startContext;
+        // The workflow acts as one node for the tasks following it : whatever its own graph does to
+        // the context stays inside, the branch running it keeps the context it came in with.
+        Context = startContext;
         ParentInstanceId = parentInstanceId;
         TaskId = workflow.Id;
         NodeName = workflow.Metadata.Name;

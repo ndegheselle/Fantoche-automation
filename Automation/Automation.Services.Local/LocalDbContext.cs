@@ -46,6 +46,7 @@ public class LocalDbContext : DbContext
         task.Ignore(x => x.Nexts);
         task.Ignore(x => x.Node);
         task.Ignore(x => x.ParentWorkflow);
+        task.Ignore(x => x.Context);
 
         // TaskInstance.State's setter stamps FinishedAt as a side effect of the *transition*
         // out of a non-finished state. Materializing a row from the database isn't a real
