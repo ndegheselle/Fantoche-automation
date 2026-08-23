@@ -30,12 +30,16 @@ public class GraphExecutionContext
     /// from the nearest non-pass-through upstream node(s).
     /// </summary>
     /// <param name="task"></param>
-    public List<string> GetContextSampleJsonFor(BaseGraphTask task)
+    /// <param name="isWaitingAllInputs">
+    /// Overrides <see cref="GraphTaskSettings.IsWaitingAllInputs"/>, so an editor can preview the
+    /// samples of a setting the user hasn't applied to the task yet.
+    /// </param>
+    public List<string> GetContextSampleJsonFor(BaseGraphTask task, bool? isWaitingAllInputs = null)
     {
         JToken? context = GetContextSampleFor(task);
 
         List<string> contexts = [];
-        if (task.Settings.IsWaitingAllInputs)
+        if (isWaitingAllInputs ?? task.Settings.IsWaitingAllInputs)
         {
             contexts.Add(GenerateContextFrom(GetPreviousSamplesByName(task), context).ToString());
         }
@@ -104,12 +108,15 @@ public class GraphExecutionContext
     /// <summary>
     /// Get context of all the end tasks since they act as one.
     /// </summary>
+    /// <param name="isWaitingAllInputs">
+    /// Overrides the setting of the end tasks, see <see cref="GetContextSampleJsonFor"/>.
+    /// </param>
     /// <returns></returns>
-    public List<string> GetContextSampleForEnd()
+    public List<string> GetContextSampleForEnd(bool? isWaitingAllInputs = null)
     {
         List<string> contexts = [];
         var endTasks = _graph.GetEndNodes();
-        foreach (var task in endTasks) contexts.AddRange(GetContextSampleJsonFor(task));
+        foreach (var task in endTasks) contexts.AddRange(GetContextSampleJsonFor(task, isWaitingAllInputs));
         return contexts;
     }
 

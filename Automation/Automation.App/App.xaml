@@ -13,7 +13,8 @@
     xmlns:system="clr-namespace:System;assembly=mscorlib"
     xmlns:workflows="clr-namespace:Automation.App.Features.Workflows"
     xmlns:workflowsControls="clr-namespace:Automation.App.Features.Workflows.Controls"
-    xmlns:workflowsDetails="clr-namespace:Automation.App.Features.Workflows.Details">
+    xmlns:workflowsDetails="clr-namespace:Automation.App.Features.Workflows.Details"
+    xmlns:workflowsEditor="clr-namespace:Automation.App.Features.Workflows.Editor">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -33,6 +34,9 @@
             </DataTemplate>
             <DataTemplate DataType="{x:Type workflowsControls:TaskSelectionViewModel}">
                 <workflowsControls:TaskSelectionOverlay />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type workflowsEditor:TaskSettingsViewModel}">
+                <workflowsEditor:TaskSettingsOverlay />
             </DataTemplate>
 
             <DataTemplate DataType="{x:Type packages:PackagesViewModel}">

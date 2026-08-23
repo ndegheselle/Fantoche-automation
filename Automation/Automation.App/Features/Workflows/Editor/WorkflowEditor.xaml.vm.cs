@@ -6,6 +6,7 @@ using Automation.App.Features.Workflows.Editor.History;
 using Automation.App.Features.Workflows.Editor.ViewModels;
 using Automation.Shared.Data.Graph;
 using Automation.Shared.Data.Scoped;
+using Automation.Shared.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -33,6 +34,8 @@ namespace Automation.App.Features.Workflows.Editor
 
         public EditorHistory History { get; } = new();
 
+        private readonly IScopedService _scoped = SpineViewModel.Instance.Scoped;
+
         /// <summary>
         /// Save of the graph, handled by the page owning the editor. It is only enabled while the
         /// <see cref="History"/> has unsaved changes, the general infos having their own save.
@@ -51,7 +54,11 @@ namespace Automation.App.Features.Workflows.Editor
             SaveCommand = saveCommand;
 
             Load();
-            SelectedNodes.CollectionChanged += (_, _) => RemoveCommand.NotifyCanExecuteChanged();
+            SelectedNodes.CollectionChanged += (_, _) =>
+            {
+                RemoveCommand.NotifyCanExecuteChanged();
+                OpenSettingsCommand.NotifyCanExecuteChanged();
+            };
         }
 
         /// <summary>
@@ -59,6 +66,11 @@ namespace Automation.App.Features.Workflows.Editor
         /// </summary>
         private void Load()
         {
+            // The graph comes deserialized : its connectors and connections only know each other by
+            // id until it is refreshed, and walking it (to build the context samples of a task) reads
+            // the references.
+            Graph.Refresh();
+
             var connectors = new Dictionary<Guid, ConnectorViewModel>();
             foreach (BaseGraphTask task in Graph.Nodes.OfType<BaseGraphTask>())
             {
@@ -110,6 +122,39 @@ namespace Automation.App.Features.Workflows.Editor
 
             var node = new NodeViewModel(graphTask);
             History.Apply(new ReversibleAction($"Add '{node.Name}'", () => AddNode(node), () => RemoveNode(node)));
+        }
+
+        /// <summary>
+        /// Open the settings of a node : the JSON parameters it runs with, or the input / output of
+        /// the workflow for the control tasks. Without a node it falls back on the selected one, the
+        /// command being shared by the double click on a node and the editor toolbar.
+        /// </summary>
+        [RelayCommand(CanExecute = nameof(CanOpenSettings))]
+        private async Task OpenSettings(NodeViewModel? node)
+        {
+            node ??= SelectedNodes.FirstOrDefault();
+            if (node == null)
+                return;
+
+            // The settings display the context, which starts from the one of the scope
+            await LoadScopeContextAsync();
+
+            IReversibleAction? edition = await TaskSettingsViewModel.ShowAsync(node.Model, Workflow);
+            if (edition != null)
+                History.Apply(edition);
+        }
+
+        private bool CanOpenSettings(NodeViewModel? node) => node != null || SelectedNodes.Count == 1;
+
+        /// <summary>
+        /// Resolve the context of the scope containing the workflow, once : its values are static,
+        /// the graph only reading them to build the samples of the contexts.
+        /// </summary>
+        private async Task LoadScopeContextAsync()
+        {
+            if (Graph.Execution.ScopeContext != null)
+                return;
+            Graph.Execution.ScopeContext = await _scoped.GetContextAsync(Workflow.Id);
         }
 
         /// <summary>

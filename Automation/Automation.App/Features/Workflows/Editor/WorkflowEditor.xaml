@@ -82,6 +82,13 @@
                             Header="{Binding Name}"
                             Input="{Binding Inputs}"
                             Output="{Binding Outputs}">
+                            <nodify:Node.InputBindings>
+                                <!--  The editor holds the command, the node only knowing its own view model  -->
+                                <MouseBinding
+                                    Command="{Binding DataContext.OpenSettingsCommand, RelativeSource={RelativeSource AncestorType={x:Type nodify:NodifyEditor}}}"
+                                    CommandParameter="{Binding}"
+                                    Gesture="LeftDoubleClick" />
+                            </nodify:Node.InputBindings>
                             <nodify:Node.InputConnectorTemplate>
                                 <DataTemplate DataType="{x:Type viewModels:ConnectorViewModel}">
                                     <nodify:NodeInput

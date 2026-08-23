@@ -1,0 +1,166 @@
+﻿<UserControl
+    x:Class="Automation.App.Features.Workflows.Editor.TaskSettingsOverlay"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
+    xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
+    xmlns:local="clr-namespace:Automation.App.Features.Workflows.Editor"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DataContext="{d:DesignInstance Type=local:TaskSettingsViewModel}"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+
+        <!--  JSON is edited as raw text : monospaced, multi line and scrollable  -->
+        <Style
+            x:Key="JsonTextBox"
+            BasedOn="{StaticResource {x:Type TextBox}}"
+            TargetType="TextBox">
+            <Setter Property="AcceptsReturn" Value="True" />
+            <Setter Property="AcceptsTab" Value="True" />
+            <Setter Property="FontFamily" Value="Consolas" />
+            <Setter Property="HorizontalScrollBarVisibility" Value="Auto" />
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+            <Setter Property="VerticalContentAlignment" Value="Top" />
+        </Style>
+    </UserControl.Resources>
+
+    <Grid
+        MinWidth="850"
+        MinHeight="550"
+        joufflu:Spacing.Gap="4">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Style="{StaticResource Muted}" Text="{Binding Hint}" TextWrapping="Wrap" />
+
+        <!--  Context read (read only) | what the node holds + the resulting schema  -->
+        <Grid Grid.Row="1" joufflu:Spacing.Gap="4">
+            <Grid.ColumnDefinitions>
+                <!--  Collapsed altogether when the node reads no context  -->
+                <ColumnDefinition Width="{Binding ContextWidth}" />
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition Width="2*" MinWidth="250" />
+            </Grid.ColumnDefinitions>
+
+            <Grid Visibility="{Binding HasContext, Converter={StaticResource BoolToVisibility}}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto" />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+                <TextBlock Style="{StaticResource Muted}" Text="{Binding ContextLabel}" />
+                <ItemsControl
+                    Grid.Row="1"
+                    joufflu:Spacing.Gap="4"
+                    ItemsSource="{Binding ContextSamples}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="1" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBox
+                                IsReadOnly="True"
+                                Style="{StaticResource JsonTextBox}"
+                                Text="{Binding Mode=OneTime}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Grid>
+
+            <GridSplitter
+                Grid.Column="1"
+                Width="2"
+                Background="{DynamicResource {x:Static joufflu:Brushes.BorderBrush}}"
+                ShowsPreview="True"
+                Visibility="{Binding HasContext, Converter={StaticResource BoolToVisibility}}" />
+
+            <Grid Grid.Column="2" joufflu:Spacing.Gap="4">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="2*" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto" />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+                    <TextBlock Style="{StaticResource Muted}" Text="{Binding SettingsLabel}" />
+                    <TextBox
+                        Grid.Row="1"
+                        Style="{StaticResource JsonTextBox}"
+                        Text="{Binding SettingsJson, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                </Grid>
+
+                <GridSplitter
+                    Grid.Row="1"
+                    Height="2"
+                    HorizontalAlignment="Stretch"
+                    Background="{DynamicResource {x:Static joufflu:Brushes.BorderBrush}}"
+                    ShowsPreview="True" />
+
+                <Grid Grid.Row="2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto" />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+                    <TextBlock Style="{StaticResource Muted}" Text="{Binding SchemaLabel}" />
+                    <TextBox
+                        Grid.Row="1"
+                        IsReadOnly="True"
+                        Style="{StaticResource JsonTextBox}"
+                        Text="{Binding SchemaJson}" />
+                </Grid>
+            </Grid>
+        </Grid>
+
+        <!--  Errors, the validation being blocked while there is any  -->
+        <ItemsControl
+            Grid.Row="2"
+            ItemsSource="{Binding Errors}"
+            Visibility="{Binding HasErrors, Converter={StaticResource BoolToVisibility}}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <jonts:FontIcon Foreground="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}" Text="{x:Static jonts:LucideFontIcons.AlertCircle}" />
+                        <TextBlock
+                            Margin="4,0,0,0"
+                            Foreground="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}"
+                            Text="{Binding}"
+                            TextWrapping="Wrap" />
+                    </StackPanel>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <CheckBox
+            Grid.Row="3"
+            IsChecked="{Binding IsWaitingAllInputs, Mode=TwoWay}"
+            Visibility="{Binding CanWaitAllInputs, Converter={StaticResource BoolToVisibility}}">
+            Wait for all inputs
+        </CheckBox>
+
+        <StackPanel
+            Grid.Row="4"
+            HorizontalAlignment="Right"
+            joufflu:Spacing.Gap="4"
+            Orientation="Horizontal">
+            <Button Command="{Binding CancelCommand}" Style="{StaticResource SecondaryButton}">Cancel</Button>
+            <Button Command="{Binding ValidateCommand}" Style="{StaticResource PrimaryButton}">
+                <StackPanel Orientation="Horizontal">
+                    <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Save}" />
+                    <TextBlock Margin="4,0,0,0">Apply</TextBlock>
+                </StackPanel>
+            </Button>
+        </StackPanel>
+    </Grid>
+</UserControl>

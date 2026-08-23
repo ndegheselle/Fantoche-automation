@@ -75,6 +75,13 @@
                 </Button>
                 <Button
                     joufflu:Sizing.IsSquare="True"
+                    Command="{Binding OpenSettingsCommand}"
+                    Style="{StaticResource GhostButton}"
+                    ToolTip="Settings of the selected node">
+                    <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Settings}" />
+                </Button>
+                <Button
+                    joufflu:Sizing.IsSquare="True"
                     Command="{Binding RemoveCommand}"
                     Style="{StaticResource GhostButton}"
                     ToolTip="Remove the selected nodes">

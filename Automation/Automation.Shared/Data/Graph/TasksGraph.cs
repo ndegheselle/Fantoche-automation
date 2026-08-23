@@ -36,19 +36,17 @@ namespace Automation.Shared.Data.Graph
                 if (node is not BaseGraphTask taskNode)
                     continue;
 
-                // Refresh node target task
-                if (tasks != null)
-                {
-                    // Control tasks are hard coded, they are not looked up among the tasks
-                    if (taskNode.TaskId == AutomationControl.StartTask.Id)
-                        taskNode.AutomationTask = AutomationControl.StartTask;
-                    else if (taskNode.TaskId == AutomationControl.EndTask.Id)
-                        taskNode.AutomationTask = AutomationControl.EndTask;
-                    else if (taskNode.TaskId == AutomationControl.ContextTask.Id)
-                        taskNode.AutomationTask = AutomationControl.ContextTask;
-                    else
-                        taskNode.AutomationTask = tasks[taskNode.TaskId];
-                }
+                // Refresh node target task. The control tasks are hard coded : they are known even
+                // when no task is given, so a graph refreshed to be displayed still knows which of
+                // its nodes are passing through.
+                if (taskNode.TaskId == AutomationControl.StartTask.Id)
+                    taskNode.AutomationTask = AutomationControl.StartTask;
+                else if (taskNode.TaskId == AutomationControl.EndTask.Id)
+                    taskNode.AutomationTask = AutomationControl.EndTask;
+                else if (taskNode.TaskId == AutomationControl.ContextTask.Id)
+                    taskNode.AutomationTask = AutomationControl.ContextTask;
+                else if (tasks != null)
+                    taskNode.AutomationTask = tasks[taskNode.TaskId];
 
                 // Refresh inputs parent
                 foreach (GraphConnector connector in taskNode.Inputs)
