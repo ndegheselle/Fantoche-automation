@@ -14,7 +14,7 @@ namespace Automation.Worker.Service
     public class Worker : BackgroundService
     {
         private readonly TaskInstancesRepository _instanceRepo;
-        private readonly LocalNodeExecutor _executor;
+        private readonly NodeExecutor _executor;
         private readonly WorkerRealtimeClient _workerClient;
 
         private TaskCompletionSource? _waitingForTask;

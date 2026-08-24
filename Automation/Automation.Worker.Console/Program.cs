@@ -150,7 +150,7 @@ workflow.Graph.Refresh(tasks);
 string nuggetLocalPath = Path.Join(Directory.GetCurrentDirectory(), "nugetlocal");
 LocalPackageManagement packages = new LocalPackageManagement(nuggetLocalPath);
 
-LocalWorkflowExecutor executor = new LocalWorkflowExecutor(packages);
+WorkflowExecutor executor = new WorkflowExecutor(packages);
 TaskInstancesProgress progress = new TaskInstancesProgress()
 {
     StateChanges = new Progress<TaskInstance>((instance) =>

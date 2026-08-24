@@ -7,13 +7,13 @@ using Newtonsoft.Json.Linq;
 
 namespace Automation.Worker.Executor;
 
-public class LocalWorkflowExecutor
+public class WorkflowExecutor
 {
-    private readonly LocalNodeExecutor _executor;
+    private readonly NodeExecutor _executor;
 
-    public LocalWorkflowExecutor(LocalPackageManagement packageManagement)
+    public WorkflowExecutor(LocalPackageManagement packageManagement)
     {
-        _executor = new LocalNodeExecutor(packageManagement, this);
+        _executor = new NodeExecutor(packageManagement, this);
     }
 
     public Task<TaskInstance> ExecuteAsync(

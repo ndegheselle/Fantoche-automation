@@ -9,16 +9,16 @@ namespace Automation.Worker.Executor;
 /// <summary>
 /// Handle the concrete execution of a task
 /// </summary>
-public class LocalNodeExecutor : IDisposable
+public class NodeExecutor : IDisposable
 {
     private readonly LocalPackageManagement _packages;
-    private readonly LocalWorkflowExecutor _workflowExecutor;
+    private readonly WorkflowExecutor _workflowExecutor;
     /// <summary>
     /// Task loaders cached by DLL path.
     /// </summary>
     private readonly Dictionary<string, TaskLoader> _cachedTaskLoaders = [];
 
-    public LocalNodeExecutor(LocalPackageManagement packageManagement, LocalWorkflowExecutor workflowExecutor)
+    public NodeExecutor(LocalPackageManagement packageManagement, WorkflowExecutor workflowExecutor)
     {
         _workflowExecutor = workflowExecutor;
         _packages = packageManagement;

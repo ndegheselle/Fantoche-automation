@@ -26,7 +26,7 @@ namespace Automation.Supervisor.Api.Controllers
         /// <summary>
         /// Local executor to simplify debugging.
         /// </summary>
-        private readonly LocalNodeExecutor _localExecutor;
+        private readonly NodeExecutor _localExecutor;
         private readonly IPackageManagement _packageManagement;
 
         public TasksController(DatabaseConnection connection, RealtimeClients realtimeClients, IPackageManagement packageManagement) : base(new TasksRepository(connection))

@@ -7,7 +7,9 @@ namespace Automation.Shared.Data.Graph;
 public class GraphExecutionContext
 {
     private const string PreviousIdentifier = "previous";
-    private const string ContextIdentifier = "context";
+    private const string SharedIdentifier = "shared";
+    private const string GlobalIdentifier = "global";
+
     private readonly TasksGraph _graph;
 
     /// <summary>
@@ -21,6 +23,14 @@ public class GraphExecutionContext
     {
         _graph = graph;
     }
+
+    public JToken? GetContextFor(BaseGraphTask task)
+    { }
+
+    public JToken? GetContextFor(BaseGraphTask task, IReadOnlyList<TaskInstance> previousInstances)
+    { }
+
+    private
 
     #region Samples
 
@@ -344,7 +354,7 @@ public class GraphExecutionContext
         return new JObject
         {
             [PreviousIdentifier] = new JObject(),
-            [ContextIdentifier] = new JObject()
+            [SharedIdentifier] = new JObject()
         };
     }
 
@@ -353,7 +363,7 @@ public class GraphExecutionContext
         return new JObject
         {
             [PreviousIdentifier] = previous,
-            [ContextIdentifier] = context,
+            [SharedIdentifier] = context,
         };
     }
 
@@ -361,7 +371,7 @@ public class GraphExecutionContext
     {
         JObject ctxt = GenerateEmptyContext();
 
-        ctxt[ContextIdentifier] = context;
+        ctxt[SharedIdentifier] = context;
         foreach (var pre in previous)
         {
             JToken previousContext = ctxt[PreviousIdentifier] ?? new JObject();

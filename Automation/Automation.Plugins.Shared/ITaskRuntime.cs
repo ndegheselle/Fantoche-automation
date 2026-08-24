@@ -14,7 +14,7 @@ public interface ITaskRuntime
     IProgress<TaskNotification>? Progress { get; }
 
     /// <summary>
-    /// Deactivate the output (even if the task is completed it )
+    /// Deactivate the output (even if the task completed it)
     /// </summary>
     public void DeactivateOutput(bool deactivate = true);
 }
