@@ -11,26 +11,44 @@ public class GraphExecutionContext
     private const string GlobalIdentifier = "global";
 
     private readonly TasksGraph _graph;
+    private readonly WorkflowInstance _workflowInstance;
 
-    /// <summary>
-    /// Context the graph starts from : the resolved context of the scope containing the workflow
-    /// (see <see cref="ScopeContextResolver.Resolve"/>). Resolved once, before generating the samples
-    /// or executing the graph, its values never changing during an execution.
-    /// </summary>
-    public JToken? ScopeContext { get; set; }
-
-    public GraphExecutionContext(TasksGraph graph)
+    public GraphExecutionContext(TasksGraph graph, JToken globalContext)
     {
         _graph = graph;
+        _globalContext = globalContext;
     }
 
-    public JToken? GetContextFor(BaseGraphTask task)
-    { }
+    // Get context per instances -> Caller responsability to resolve 
 
-    public JToken? GetContextFor(BaseGraphTask task, IReadOnlyList<TaskInstance> previousInstances)
-    { }
+    public JToken GetContextFor(BaseGraphTask task, TaskInstance? previousInstance = null)
+    {
+        if (previousInstance != null)
+        {
+            return new JObject
+            {
+                [PreviousIdentifier] = previousInstance?.Output,
+                [SharedIdentifier] = _workflowInstance.SharedContext,
+                [GlobalIdentifier] = _workflowInstance.GlobalContext,
+            };
+        }
 
-    private
+        var previous = _graph.GetPrevious(task).DistinctBy(x => x.TaskId);
+        // Return a list of potential context (one per app)
+
+        return new JObject
+        {
+            [PreviousIdentifier] = previousInstance?.Output,
+            [SharedIdentifier] = _workflowInstance.Workflow.SharedSchema?.ToSampleJson(),
+            [GlobalIdentifier] = _workflowInstance.GlobalContext,
+        };
+    }
+
+
+    public List<string, JToken> GetAllContextFor(BaseGraphTask task, WorkflowInstance? workflowInstance = null)
+    {
+
+    }
 
     #region Samples
 
@@ -192,7 +210,7 @@ public class GraphExecutionContext
     private JToken? GetContextLeaving(BaseGraphTask task, Dictionary<Guid, JToken?> resolved, HashSet<Guid> visiting)
     {
         JToken? context = GetContextSampleFor(task, resolved, visiting);
-        if (task is not GraphControl control || !control.IsContextSetter())
+        if (task is not GraphControl control || !control.IsShare())
             return context;
 
         return ApplyContextSetter(context, GetContextSetterValues(control, context));

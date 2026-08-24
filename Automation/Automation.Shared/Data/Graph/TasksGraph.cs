@@ -43,8 +43,10 @@ namespace Automation.Shared.Data.Graph
                     taskNode.AutomationTask = AutomationControl.StartTask;
                 else if (taskNode.TaskId == AutomationControl.EndTask.Id)
                     taskNode.AutomationTask = AutomationControl.EndTask;
-                else if (taskNode.TaskId == AutomationControl.ContextTask.Id)
-                    taskNode.AutomationTask = AutomationControl.ContextTask;
+                else if (taskNode.TaskId == AutomationControl.ShareTask.Id)
+                    taskNode.AutomationTask = AutomationControl.ShareTask;
+                else if (taskNode.TaskId == AutomationControl.JoinTask.Id)
+                    taskNode.AutomationTask = AutomationControl.JoinTask;
                 else if (tasks != null)
                     taskNode.AutomationTask = tasks[taskNode.TaskId];
 

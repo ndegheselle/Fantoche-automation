@@ -33,17 +33,6 @@ namespace Automation.Shared.Data.Graph
     }
 
     /// <summary>
-    /// Settings of a task graph
-    /// </summary>
-    public class GraphTaskSettings
-    {
-        /// <summary>
-        /// Wait for all inputs to complete before starting the task.
-        /// </summary>
-        public bool IsWaitingAllInputs { get; set; } = false;
-    }
-
-    /// <summary>
     /// Base graph task common to a task, workflow or control task
     /// </summary>
     [JsonDerivedType(typeof(GraphTask), "task")]
@@ -69,7 +58,6 @@ namespace Automation.Shared.Data.Graph
         /// Not the data flowing in from upstream tasks — that lives in the context.
         /// </summary>
         public string? ParametersJson { get; set; }
-        public GraphTaskSettings Settings { get; set; } = new GraphTaskSettings();
 
         [JsonIgnore]
         public JsonSchema? InputSchema
@@ -135,20 +123,16 @@ namespace Automation.Shared.Data.Graph
         }
 
         public GraphControl(AutomationControl task) : base(task)
-        {
-            // End wait for all inputs
-            if (IsEnd())
-                Settings.IsWaitingAllInputs = true;
-        }
+        { }
 
         public bool IsStart() => TaskId == AutomationControl.StartTask.Id;
         public bool IsEnd() => TaskId == AutomationControl.EndTask.Id;
 
         /// <summary>
         /// Whether the node sets values in the context of its branch, see
-        /// <see cref="AutomationControl.ContextTask"/>.
+        /// <see cref="AutomationControl.ShareTask"/>.
         /// </summary>
-        public bool IsContextSetter() => TaskId == AutomationControl.ContextTask.Id;
+        public bool IsShare() => TaskId == AutomationControl.ShareTask.Id;
     }
 
     /// <summary>

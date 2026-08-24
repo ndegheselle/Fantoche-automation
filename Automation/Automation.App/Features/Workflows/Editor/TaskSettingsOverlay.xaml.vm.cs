@@ -191,7 +191,7 @@ namespace Automation.App.Features.Workflows.Editor
                 return EnumTaskSettingsKind.Start;
             if (control.IsEnd())
                 return EnumTaskSettingsKind.End;
-            if (control.IsContextSetter())
+            if (control.IsShare())
                 return EnumTaskSettingsKind.Context;
             return EnumTaskSettingsKind.Task;
         }

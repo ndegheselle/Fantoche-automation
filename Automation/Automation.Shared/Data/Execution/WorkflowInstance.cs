@@ -27,15 +27,12 @@ public class WorkflowInstance : TaskInstance
     [Newtonsoft.Json.JsonIgnore]
     public AutomationWorkflow Workflow { get; }
 
-    /// <summary>
-    /// Context the workflow starts from : the resolved context of the scope containing it (see
-    /// <see cref="Scoped.ScopeContextResolver.Resolve"/>), or the context of the branch running it
-    /// when it is nested in another workflow. Every start node of the graph reads it, the context
-    /// setters of the graph then building on it branch by branch.
-    /// </summary>
     [JsonIgnore]
     [Newtonsoft.Json.JsonIgnore]
-    public JToken? StartContext { get; }
+    public JToken? GlobalContext { get; }
+    [JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public JToken? SharedContext { get; }
 
     /// <summary>
     /// Instances created during this workflow execution, indexed by graph node id.
@@ -114,7 +111,7 @@ public class WorkflowInstance : TaskInstance
                                  .FirstOrDefault(i => i.State == EnumTaskState.Waiting);
             if (existing != null)
                 return existing;
-            // CreateInstance also takes _lock — reentrant, no deadlock
+            // CreateInstance also takes _lock - reentrant, no deadlock
             return CreateInstance(node, null, EnumTaskState.Waiting, previousInstance);
         }
     }

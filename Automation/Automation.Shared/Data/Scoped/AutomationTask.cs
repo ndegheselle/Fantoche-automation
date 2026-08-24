@@ -53,7 +53,7 @@ public class AutomationTask : BaseAutomationTask
     public AutomationTask() : base(EnumScopedType.Task)
     {
     }
-    
+
     public AutomationTask(string name, Guid parentId) : base(new ScopedMetadata(name, EnumScopedType.Task))
     {
         ParentId = parentId;
@@ -96,22 +96,23 @@ public class AutomationControl : AutomationTask
         OutputSchema = null
     };
 
-    /// <summary>
-    /// Set values in the execution context of the branch it is placed on. It executes nothing : the
-    /// data of the previous task is passed through untouched, only the context changes.
-    /// <para>
-    /// Its node settings hold one entry per context key : a value overrides what the context
-    /// carries, a null one leaves it untouched, a key the context doesn't hold yet is added to it.
-    /// </para>
-    /// </summary>
-    public static readonly AutomationControl ContextTask = new AutomationControl(typeof(AutomationControl))
+    public static readonly AutomationControl ShareTask = new AutomationControl(typeof(AutomationControl))
     {
         Id = Guid.Parse("00000000-0000-0000-0000-100000000003"),
         ParentId = Scope.ROOT_SCOPE_ID,
-        Metadata = new ScopedMetadata(EnumScopedType.Task) { Tags = ["Control"], Name = "Context", IsReadOnly = true },
+        Metadata = new ScopedMetadata(EnumScopedType.Task) { Tags = ["Control"], Name = "Share", IsReadOnly = true },
         InputSchema = new JsonSchema(),
         OutputSchema = new JsonSchema(),
         Settings = new TaskSettings() { IsPassingThrough = true }
+    };
+
+    public static readonly AutomationControl JoinTask = new AutomationControl(typeof(AutomationControl))
+    {
+        Id = Guid.Parse("00000000-0000-0000-0000-100000000004"),
+        ParentId = Scope.ROOT_SCOPE_ID,
+        Metadata = new ScopedMetadata(EnumScopedType.Task) { Tags = ["Control"], Name = "Join", IsReadOnly = true },
+        InputSchema = new JsonSchema(),
+        OutputSchema = new JsonSchema(),
     };
 
     /// <summary>

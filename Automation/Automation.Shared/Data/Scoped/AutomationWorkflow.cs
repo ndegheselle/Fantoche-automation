@@ -1,4 +1,6 @@
-﻿using Automation.Shared.Data.Graph;
+﻿using System.Text.Json.Serialization;
+using Automation.Shared.Data.Graph;
+using NJsonSchema;
 
 namespace Automation.Shared.Data.Scoped
 {
@@ -31,15 +33,22 @@ namespace Automation.Shared.Data.Scoped
         /// </summary>
         public string? OutputMappingJson { get; set; }
 
+        [JsonIgnore]
+        public JsonSchema? SharedSchema
+        {
+            get => SharedSchemaJson == null ? null : JsonSchema.FromJsonAsync(SharedSchemaJson).Result;
+            set => SharedSchemaJson = value == null ? null : value.ToJson();
+        }
+
         /// <summary>
         /// Schema of all the common data of the workflow.
         /// </summary>
-        public string? CommonSchemaJson { get; set; }
+        public string? SharedSchemaJson { get; set; }
 
         public AutomationWorkflow() : base(EnumScopedType.Workflow)
         {
         }
-        
+
         public AutomationWorkflow(string name, Guid parentId) : base(new ScopedMetadata(name, EnumScopedType.Workflow))
         {
             ParentId = parentId;

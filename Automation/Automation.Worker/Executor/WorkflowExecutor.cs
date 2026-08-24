@@ -157,17 +157,6 @@ public class WorkflowExecutor
         }
         existingInstance.Context = context;
 
-        // A context setter runs nothing : it only applies its settings on the context of the branch
-        // and hands the data of the previous task over to the next ones.
-        if (node is GraphControl control && control.IsContextSetter())
-        {
-            existingInstance.Context = GraphExecutionContext.ApplyContextSetter(context, parameters);
-            existingInstance.Output = previousInstance.Output;
-            existingInstance.State = EnumTaskState.Completed;
-            progress?.StateChanges?.Report(existingInstance);
-            return await NextAsync(node, existingInstance, workflowInstance, progress, cancellation);
-        }
-
         progress?.StateChanges?.Report(existingInstance);
         var instance = await _executor.ExecuteAsync(
             node.AutomationTask ?? throw new Exception("Workflow tasks are not loaded (is the graph refreshed?)."),
