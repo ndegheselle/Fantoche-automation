@@ -158,7 +158,6 @@ public class NodeExecutor : IDisposable
     }
 
     #region Control tasks
-
     private EnumTaskState JoinControl(
         AutomationControl automationControl,
         TaskInstance instance,
@@ -195,6 +194,28 @@ public class NodeExecutor : IDisposable
         instance.ParentWorkflow.SharedContext = GraphExecutionContext.MergeContexts(instance.ParentWorkflow.SharedContext, instance.Parameters);
         // XXX : maybe report a specific event ?
         progress?.StateChanges?.Report(instance.ParentWorkflow);
+        return EnumTaskState.Completed;
+    }
+
+    private EnumTaskState EndControl(
+        AutomationControl automationControl,
+        TaskInstance instance,
+        TaskInstancesProgress? progress = null,
+        CancellationToken? cancellation = null)
+    {
+        if (instance.ParentWorkflow == null)
+            throw new NodeExecutionException("A control task instance need a parent workflow to execute.");
+
+        if (instance.ParentWorkflow.Workflow.WorkflowSettings.StopIfAnyTaskFail)
+        {
+
+        }
+        else
+        {
+            // Treat the end as a 
+            return JoinControl(automationControl, instance, progress, cancellation);
+        }
+
         return EnumTaskState.Completed;
     }
     #endregion
