@@ -1,7 +1,6 @@
-﻿using System.Collections.ObjectModel;
-using System.Text.Json.Serialization;
-using Automation.Shared.Data.Scoped;
+﻿using Automation.Shared.Data.Scoped;
 using NJsonSchema;
+using System.Collections.ObjectModel;
 
 namespace Automation.Shared.Data.Graph
 {
@@ -11,14 +10,6 @@ namespace Automation.Shared.Data.Graph
         public ObservableCollection<GraphNode> Nodes { get; set; } = [];
 
         public bool IsRefreshed { get; private set; } = false;
-
-        [JsonIgnore]
-        public GraphExecutionContext Execution { get; private set; }
-
-        public TasksGraph()
-        {
-            Execution = new GraphExecutionContext(this);
-        }
 
         /// <summary>
         /// Refresh parent and object references between TaskNode, Connection and Connectors.

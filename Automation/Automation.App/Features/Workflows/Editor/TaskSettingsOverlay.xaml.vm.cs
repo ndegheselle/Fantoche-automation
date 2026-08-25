@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using Automation.App.Features.Workflows.Editor.History;
 using Automation.Shared.Data;
+using Automation.Shared.Data.Execution;
 using Automation.Shared.Data.Graph;
 using Automation.Shared.Data.Scoped;
 using CommunityToolkit.Mvvm.ComponentModel;

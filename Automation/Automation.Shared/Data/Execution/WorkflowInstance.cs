@@ -23,62 +23,55 @@ public class WorkflowInstance : TaskInstance
     /// <summary>
     /// Workflow definition being executed.
     /// </summary>
-    [JsonIgnore]
     [Newtonsoft.Json.JsonIgnore]
     public AutomationWorkflow Workflow { get; }
 
-    [JsonIgnore]
     [Newtonsoft.Json.JsonIgnore]
     public JToken? GlobalContext { get; }
-    [JsonIgnore]
     [Newtonsoft.Json.JsonIgnore]
-    public JToken? SharedContext { get; }
+    public JToken? SharedContext { get; set; }
 
     /// <summary>
     /// Instances created during this workflow execution, indexed by graph node id.
     /// </summary>
-    [JsonIgnore]
     [Newtonsoft.Json.JsonIgnore]
     public ConcurrentDictionary<Guid, List<TaskInstance>> NodeInstances { get; } = [];
 
     /// <summary>
     /// Cancellation source owned by the workflow (used by StopAtFirstEnd).
     /// </summary>
-    [JsonIgnore]
     [Newtonsoft.Json.JsonIgnore]
     public CancellationTokenSource WorkflowCts { get; } = new();
 
     private readonly object _lock = new();
 
-    public WorkflowInstance(
-        AutomationWorkflow workflow,
-        Guid? parentInstanceId = null,
-        JToken? startContext = null)
+    [JsonIgnore]
+    public GraphExecutionContext Execution { get; private set; }
+
+    public WorkflowInstance(AutomationWorkflow workflow)
     {
         Workflow = workflow;
-        StartContext = startContext;
-        // The workflow acts as one node for the tasks following it : whatever its own graph does to
-        // the context stays inside, the branch running it keeps the context it came in with.
-        Context = startContext;
-        ParentInstanceId = parentInstanceId;
         TaskId = workflow.Id;
-        NodeName = workflow.Metadata.Name;
-        State = EnumTaskState.Progressing;
+        Execution = new GraphExecutionContext(Workflow.Graph, this);
     }
 
     public TaskInstance CreateInstance(BaseGraphTask node, JToken? parameters, EnumTaskState state = EnumTaskState.Pending, TaskInstance? previous = null)
     {
-        var instance = new TaskInstance
-        {
-            ParentInstanceId = Id,
-            ParentWorkflow = this,
-            TaskId = node.TaskId,
-            NodeId = node.Id,
-            NodeName = node.Name,
-            Node = node,
-            Parameters = parameters,
-            State = state
-        };
+        TaskInstance instance;
+        
+        if (node.AutomationTask is AutomationWorkflow workflow)
+            instance = new WorkflowInstance(workflow);
+        else
+            instance = new TaskInstance();
+
+        instance.ParentInstanceId = Id;
+        instance.ParentWorkflow = this;
+        instance.TaskId = node.TaskId;
+        instance.NodeId = node.Id;
+        instance.NodeName = node.Name;
+        instance.Node = node;
+        instance.Parameters = parameters;
+        instance.State = state;
 
         if (previous != null)
             instance.Link(previous);

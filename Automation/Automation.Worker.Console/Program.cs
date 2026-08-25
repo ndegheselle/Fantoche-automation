@@ -108,7 +108,6 @@ GraphTask gate = new GraphTask(conditionalTask)
 GraphTask waitAll = new GraphTask(testTask)
 {
     Metadata = new ScopedMetadata() { Name = "WaitAll" },
-    Settings = new GraphTaskSettings() { IsWaitingAllInputs = true },
     ParametersJson = JsonConvert.SerializeObject(new
     {
         Message = "merged",

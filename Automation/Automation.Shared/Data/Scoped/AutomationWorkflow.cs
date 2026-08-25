@@ -7,11 +7,6 @@ namespace Automation.Shared.Data.Scoped
     public class WorkflowSettings : TaskSettings
     {
         /// <summary>
-        /// Store all data (input, output, global, ...) in task instance. Can be used to track data change precisely but data will be duplicated for each node.
-        /// </summary>
-        public bool IsStoringAllData { get; set; } = false;
-
-        /// <summary>
         /// If there is multiple end nodes, stop at the first one encoutered (and kill all unfinished tasks).
         /// </summary>
         public bool StopAtFirstEnd { get; set; } = false;

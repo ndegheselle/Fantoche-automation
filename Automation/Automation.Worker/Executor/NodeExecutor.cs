@@ -1,10 +1,17 @@
 using Automation.Plugins.Shared;
+using Automation.Shared.Data;
 using Automation.Shared.Data.Execution;
 using Automation.Shared.Data.Scoped;
 using Automation.Worker.Packages;
 using Newtonsoft.Json.Linq;
+using System.Xml.Linq;
 
 namespace Automation.Worker.Executor;
+
+public class NodeExecutionException : Exception
+{
+    public NodeExecutionException(string message) : base(message) { }
+}
 
 /// <summary>
 /// Handle the concrete execution of a task
@@ -43,20 +50,24 @@ public class NodeExecutor : IDisposable
                 // Pass-through tasks may legitimately run with no parameters (no template),
                 // since they don't transform anything — only the context walks past them.
                 if (automationTask.InputSchema != null && automationTask.Settings.IsPassingThrough == false)
-                    throw new Exception("Parameters are required for this task.");
+                    throw new NodeExecutionException("Parameters are required for this task.");
             }
             else
             {
                 var errors = automationTask.InputSchema?.Validate(instance.Parameters);
                 if (errors?.Count > 0)
-                    throw new Exception($"Parameters don't correspond to schema : {string.Join(", ", errors)}");
+                    throw new NodeExecutionException($"Parameters don't correspond to schema : {string.Join(", ", errors)}");
             }
 
             instance = automationTask switch
             {
+                AutomationWorkflow workflow => await ExecuteWorkflowAsync(
+                    workflow, 
+                    instance as WorkflowInstance ?? throw new NodeExecutionException("A workflow task must have a workflow instance"), 
+                    progress, cancellation),
+                AutomationControl control => await ExecuteControlAsync(control, instance, progress, cancellation),
                 AutomationTask task => await ExecuteTaskAsync(task, instance, progress, cancellation),
-                AutomationWorkflow workflow => await ExecuteWorkflowAsync(workflow, instance, progress, cancellation),
-                _ => throw new Exception("Unknown task type.")
+                _ => throw new NodeExecutionException("Unknown task type.")
             };
         }
         catch (OperationCanceledException)
@@ -69,8 +80,20 @@ public class NodeExecutor : IDisposable
             instance.Output = JToken.FromObject(ex.ToString());
         }
 
-        instance.State = EnumTaskState.Completed;
+        return instance;
+    }
 
+    private async Task<TaskInstance> ExecuteWorkflowAsync(
+        AutomationWorkflow automationWorkflow,
+        WorkflowInstance instance,
+        TaskInstancesProgress? progress = null,
+        CancellationToken? cancellation = null)
+    {
+        instance = await _workflowExecutor.ExecuteAsync(
+            instance,
+            progress,
+            cancellation);
+        instance.State = EnumTaskState.Completed;
         return instance;
     }
 
@@ -81,7 +104,7 @@ public class NodeExecutor : IDisposable
         CancellationToken? cancellation = null)
     {
         if (automationTask.Target is not PackageClassTarget target)
-            throw new Exception("Task target is not a package.");
+            throw new NodeExecutionException("Task target is not a package.");
 
         string dllPath =
             await _packages.DownloadToLocalIfMissing(target.Package.Id, target.Package.Version, target.Dll);
@@ -117,22 +140,62 @@ public class NodeExecutor : IDisposable
         if (runtime.IsOutputDeactivated)
             instance.Output = null;
 
+        instance.State = EnumTaskState.Completed;
         return instance;
     }
 
-    private Task<TaskInstance> ExecuteWorkflowAsync(
-        AutomationWorkflow automationWorkflow,
+    private async Task<TaskInstance> ExecuteControlAsync(
+        AutomationControl automationControl,
         TaskInstance instance,
         TaskInstancesProgress? progress = null,
         CancellationToken? cancellation = null)
     {
-        return _workflowExecutor.ExecuteAsync(
-            automationWorkflow,
-            instance.Parameters,
-            // The nested workflow starts from the context of the branch running it
-            instance.Context ?? instance.ParentWorkflow?.StartContext,
-            instance.Id,
-            progress,
-            cancellation);
+        if (automationControl.Id == AutomationControl.ShareTask.Id)
+            instance.State = ShareControl(automationControl, instance, progress, cancellation);
+        else if (automationControl.Id == AutomationControl.JoinTask.Id)
+            instance.State = JoinControl(automationControl, instance, progress, cancellation);
+        return instance;
     }
+
+    #region Control tasks
+
+    private EnumTaskState JoinControl(
+        AutomationControl automationControl,
+        TaskInstance instance,
+        TaskInstancesProgress? progress = null,
+        CancellationToken? cancellation = null)
+    {
+        if (instance.ParentWorkflow == null)
+            throw new NodeExecutionException("A control task instance need a parent workflow to execute.");
+        if (instance.Node == null)
+            throw new NodeExecutionException("A control task instance need a link to the node object.");
+        if (instance.Previous == null)
+            throw new NodeExecutionException("A control task instance need a link to the previous instance.");
+
+        instance.ParentWorkflow.GetOrCreateWaitingInstance(instance.Node, instance.Previous);
+        var previousInstances = instance.ParentWorkflow.TryGetAllPrevious(instance.Node);
+
+        // All previous are not ready yet
+        if (previousInstances == null || previousInstances.Count == 0)
+            return EnumTaskState.Waiting;
+
+        instance.Output = instance.ParentWorkflow.Execution.GetInstanceContextFor(instance.Node, instance.Previous);
+        return EnumTaskState.Completed;
+    }
+
+    private EnumTaskState ShareControl(
+        AutomationControl automationControl,
+        TaskInstance instance,
+        TaskInstancesProgress? progress = null,
+        CancellationToken? cancellation = null)
+    {
+        if (instance.ParentWorkflow == null)
+            throw new NodeExecutionException("A control task instance need a parent workflow to execute.");
+
+        instance.ParentWorkflow.SharedContext = GraphExecutionContext.MergeContexts(instance.ParentWorkflow.SharedContext, instance.Parameters);
+        // XXX : maybe report a specific event ?
+        progress?.StateChanges?.Report(instance.ParentWorkflow);
+        return EnumTaskState.Completed;
+    }
+    #endregion
 }

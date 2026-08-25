@@ -4,6 +4,7 @@ using Automation.Shared.Data.Graph;
 using Automation.Shared.Data.Scoped;
 using Automation.Worker.Packages;
 using Newtonsoft.Json.Linq;
+using System.Xml.Linq;
 
 namespace Automation.Worker.Executor;
 
@@ -16,27 +17,8 @@ public class WorkflowExecutor
         _executor = new NodeExecutor(packageManagement, this);
     }
 
-    public Task<TaskInstance> ExecuteAsync(
-        AutomationWorkflow workflow,
-        JToken? parameters,
-        JToken? startContext = null,
-        Guid? parentInstanceId = null,
-        TaskInstancesProgress? progress = null,
-        CancellationToken? cancellation = null)
-    {
-        if (workflow.Graph.IsRefreshed == false)
-            throw new Exception("The workflow graph should be refreshed before being executed.");
-
-        var workflowInstance = new WorkflowInstance(workflow, parentInstanceId, startContext)
-        {
-            Parameters = parameters
-        };
-        progress?.StateChanges?.Report(workflowInstance);
-
-        return ExecuteAsync(workflowInstance, progress, cancellation);
-    }
-
-    public async Task<TaskInstance> ExecuteAsync(
+    // FIXME : in the workflowInstance the Workflow should have a Graph up to date, this should be indicated somewhere or forced
+    public async Task<WorkflowInstance> ExecuteAsync(
         WorkflowInstance workflowInstance,
         TaskInstancesProgress? progress = null,
         CancellationToken? cancellation = null)
@@ -47,12 +29,12 @@ public class WorkflowExecutor
             : null;
         var token = (CancellationToken?)(linkedCts?.Token ?? workflowInstance.WorkflowCts.Token);
 
+        // Create start tasks instances
         var startTasks = new List<Task<IReadOnlyList<TaskInstance>>>();
         foreach (var start in workflowInstance.Workflow.Graph.GetStartNodes())
         {
             var startInstance = workflowInstance.CreateInstance(start, workflowInstance.Parameters, EnumTaskState.Completed);
             startInstance.Output = workflowInstance.Parameters;
-            startInstance.Context = workflowInstance.StartContext;
 
             progress?.StateChanges?.Report(startInstance);
             startTasks.Add(NextAsync(start, startInstance, workflowInstance, progress, token));
@@ -60,7 +42,7 @@ public class WorkflowExecutor
 
         var results = await Task.WhenAll(startTasks);
         var endInstances = results.SelectMany(r => r).ToList();
-        return EndAsync(workflowInstance, endInstances, progress);
+        return EndAsync(workflowInstance, progress);
     }
 
     private async Task<IReadOnlyList<TaskInstance>> NextAsync(
@@ -116,51 +98,18 @@ public class WorkflowExecutor
         TaskInstancesProgress? progress,
         CancellationToken? cancellation)
     {
-        TaskInstance? existingInstance = null;
-        IReadOnlyList<TaskInstance>? previousInstances = null;
-        // If the task wait for all inputs but only have one we treat it like other tasks and skip this part
-        if (node.Settings.IsWaitingAllInputs && workflowInstance.Workflow.Graph.WithMultipleInputsConnections(node))
-        {
-            existingInstance = workflowInstance.GetOrCreateWaitingInstance(node, previousInstance);
-            previousInstances = workflowInstance.TryGetAllPrevious(node);
-
-            // All previous are not ready yet
-            if (previousInstances == null || previousInstances.Count == 0)
-                return [];
-
-            foreach (var prev in previousInstances)
-                existingInstance.Link(prev);
-
-            progress?.StateChanges?.Report(existingInstance);
-        }
-
-        previousInstances ??= [previousInstance];
-
-        // Context carried by the branch : the context the workflow started from with every context
-        // setter met upstream applied.
-        JToken? context = GraphExecutionContext.ResolveIncomingContext(previousInstances, workflowInstance.StartContext);
-
         JToken? parameters = null;
         if (!string.IsNullOrEmpty(node.ParametersJson))
         {
-            var taskContext = workflowInstance.Workflow.Graph.Execution.GetContextFor(node, previousInstances, context);
+            var taskContext = workflowInstance.Execution.GetInstanceContextFor(node, previousInstance);
             parameters = ReferencesHandler.ReplaceReferences(JToken.Parse(node.ParametersJson), taskContext).ReplacedSetting;
         }
 
-        // Set the instance as progressing
-        if (existingInstance == null)
-            existingInstance = workflowInstance.CreateInstance(node, parameters, EnumTaskState.Progressing, previousInstance);
-        else
-        {
-            existingInstance.Parameters = parameters;
-            existingInstance.State = EnumTaskState.Progressing;
-        }
-        existingInstance.Context = context;
-
-        progress?.StateChanges?.Report(existingInstance);
-        var instance = await _executor.ExecuteAsync(
+        var instance = workflowInstance.CreateInstance(node, parameters, EnumTaskState.Progressing, previousInstance);
+        progress?.StateChanges?.Report(instance);
+        instance = await _executor.ExecuteAsync(
             node.AutomationTask ?? throw new Exception("Workflow tasks are not loaded (is the graph refreshed?)."),
-            existingInstance,
+            instance,
             progress,
             cancellation);
         progress?.StateChanges?.Report(instance);
@@ -171,15 +120,15 @@ public class WorkflowExecutor
         return [];
     }
 
-    private TaskInstance EndAsync(WorkflowInstance workflowInstance, IReadOnlyList<TaskInstance> endInstances, TaskInstancesProgress? progress = null)
+    private WorkflowInstance EndAsync(WorkflowInstance workflowInstance, IReadOnlyList<TaskInstance> endInstances, TaskInstancesProgress? progress = null)
     {
         // TODO : return failed and handle task instance on the level of the workflow
         if (workflowInstance.Workflow.OutputSchema != null && endInstances.Count == 0)
             throw new Exception("Reached end of workflow without data.");
 
-        // TODO return at least empty object
+        // TODO : implement
+
         workflowInstance.State = EnumTaskState.Completed;
-        workflowInstance.Output = workflowInstance.Workflow.Graph.Execution.CombineEndOutputs(endInstances, workflowInstance.Workflow.WorkflowSettings);
         progress?.StateChanges?.Report(workflowInstance);
         return workflowInstance;
     }

@@ -17,12 +17,6 @@ namespace Automation.App.Features.Workflows.Details
 
         protected override string TypeName => "workflow";
 
-        public bool IsStoringAllData
-        {
-            get => Workflow.WorkflowSettings.IsStoringAllData;
-            set => SetSetting(value, v => Workflow.WorkflowSettings.IsStoringAllData = v);
-        }
-
         public bool StopAtFirstEnd
         {
             get => Workflow.WorkflowSettings.StopAtFirstEnd;
