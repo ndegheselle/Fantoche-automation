@@ -208,11 +208,12 @@ public class NodeExecutor : IDisposable
 
         if (instance.ParentWorkflow.Workflow.WorkflowSettings.StopIfAnyTaskFail)
         {
-
+            // Pass the parameters as the output.
         }
         else
         {
-            // Treat the end as a 
+            // Treat the end as a join control
+            // ! need to clean all waiting end then reaching the workflow end
             return JoinControl(automationControl, instance, progress, cancellation);
         }
 
