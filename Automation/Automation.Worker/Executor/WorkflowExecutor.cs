@@ -42,7 +42,7 @@ public class WorkflowExecutor
 
         var results = await Task.WhenAll(startTasks);
         var endInstances = results.SelectMany(r => r).ToList();
-        return EndAsync(workflowInstance, progress);
+        return EndAsync(workflowInstance, endInstances, progress);
     }
 
     private async Task<IReadOnlyList<TaskInstance>> NextAsync(
@@ -59,15 +59,6 @@ public class WorkflowExecutor
         foreach (var pair in nextPairs)
         {
             var next = pair.Task;
-
-            if (next.TaskId == AutomationControl.EndTask.Id)
-            {
-                endInstances.Add(currentInstance);
-                if (workflowInstance.Workflow.WorkflowSettings.StopAtFirstEnd)
-                    workflowInstance.WorkflowCts.Cancel();
-                continue;
-            }
-
             branches.Add(RunBranchAsync(next, currentInstance, workflowInstance, progress, cancellation));
         }
 
@@ -114,6 +105,17 @@ public class WorkflowExecutor
             cancellation);
         progress?.StateChanges?.Report(instance);
 
+        // An end node closes its branch : it has no next task, its output is the one of the workflow.
+        if (node is GraphControl control && control.IsEnd())
+        {
+            if (instance.State != EnumTaskState.Completed)
+                return [];
+
+            if (workflowInstance.Workflow.WorkflowSettings.StopAtFirstEnd)
+                workflowInstance.WorkflowCts.Cancel();
+            return [instance];
+        }
+
         if (instance.State == EnumTaskState.Completed && instance.Output != null)
             return await NextAsync(node, instance, workflowInstance, progress, cancellation);
 
@@ -126,7 +128,10 @@ public class WorkflowExecutor
         if (workflowInstance.Workflow.OutputSchema != null && endInstances.Count == 0)
             throw new Exception("Reached end of workflow without data.");
 
-        // TODO : implement
+        // The first end reached gives the output of the workflow.
+        workflowInstance.Output = endInstances
+            .OrderBy(x => x.FinishedAt ?? x.CreatedAt)
+            .FirstOrDefault()?.Output;
 
         workflowInstance.State = EnumTaskState.Completed;
         progress?.StateChanges?.Report(workflowInstance);

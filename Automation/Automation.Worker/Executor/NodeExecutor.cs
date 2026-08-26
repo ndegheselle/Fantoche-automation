@@ -45,18 +45,23 @@ public class NodeExecutor : IDisposable
     {
         try
         {
-            if (instance.Parameters == null)
+            // Controls run nothing : they have no parameters to validate (an end or a join
+            // without a template simply hands the data of its branch over).
+            if (automationTask is not AutomationControl)
             {
-                // Pass-through tasks may legitimately run with no parameters (no template),
-                // since they don't transform anything — only the context walks past them.
-                if (automationTask.InputSchema != null && automationTask.Settings.IsPassingThrough == false)
-                    throw new NodeExecutionException("Parameters are required for this task.");
-            }
-            else
-            {
-                var errors = automationTask.InputSchema?.Validate(instance.Parameters);
-                if (errors?.Count > 0)
-                    throw new NodeExecutionException($"Parameters don't correspond to schema : {string.Join(", ", errors)}");
+                if (instance.Parameters == null)
+                {
+                    // Pass-through tasks may legitimately run with no parameters (no template),
+                    // since they don't transform anything — only the context walks past them.
+                    if (automationTask.InputSchema != null && automationTask.Settings.IsPassingThrough == false)
+                        throw new NodeExecutionException("Parameters are required for this task.");
+                }
+                else
+                {
+                    var errors = automationTask.InputSchema?.Validate(instance.Parameters);
+                    if (errors?.Count > 0)
+                        throw new NodeExecutionException($"Parameters don't correspond to schema : {string.Join(", ", errors)}");
+                }
             }
 
             instance = automationTask switch
@@ -154,6 +159,8 @@ public class NodeExecutor : IDisposable
             instance.State = ShareControl(automationControl, instance, progress, cancellation);
         else if (automationControl.Id == AutomationControl.JoinTask.Id)
             instance.State = JoinControl(automationControl, instance, progress, cancellation);
+        else if (automationControl.Id == AutomationControl.EndTask.Id)
+            instance.State = EndControl(automationControl, instance, progress, cancellation);
         return instance;
     }
 
@@ -178,7 +185,7 @@ public class NodeExecutor : IDisposable
         if (previousInstances == null || previousInstances.Count == 0)
             return EnumTaskState.Waiting;
 
-        instance.Output = instance.ParentWorkflow.Execution.GetInstanceContextFor(instance.Node, instance.Previous);
+        instance.Output = instance.ParentWorkflow.Execution.GetWaitedInstanceContextFor(instance.Node, instance.Previous);
         return EnumTaskState.Completed;
     }
 
@@ -197,6 +204,10 @@ public class NodeExecutor : IDisposable
         return EnumTaskState.Completed;
     }
 
+    /// <summary>
+    /// End of the workflow : what it outputs is what the workflow returns. An end reached by
+    /// several branches waits for all of them like a join would.
+    /// </summary>
     private EnumTaskState EndControl(
         AutomationControl automationControl,
         TaskInstance instance,
@@ -205,19 +216,21 @@ public class NodeExecutor : IDisposable
     {
         if (instance.ParentWorkflow == null)
             throw new NodeExecutionException("A control task instance need a parent workflow to execute.");
+        if (instance.Node == null)
+            throw new NodeExecutionException("A control task instance need a link to the node object.");
 
-        if (instance.ParentWorkflow.Workflow.WorkflowSettings.StopIfAnyTaskFail)
+        if (instance.ParentWorkflow.Workflow.Graph.WithMultipleInputsConnections(instance.Node))
         {
-            // Pass the parameters as the output.
-        }
-        else
-        {
-            // Treat the end as a join control
-            // ! need to clean all waiting end then reaching the workflow end
-            return JoinControl(automationControl, instance, progress, cancellation);
+            var state = JoinControl(automationControl, instance, progress, cancellation);
+            if (state != EnumTaskState.Completed)
+                return state;
         }
 
+        // The parameters template of the end node shapes the output of the workflow, without one
+        // the data of the branch reaching it is handed over as is.
+        instance.Output = instance.Parameters ?? instance.Previous?.Output;
         return EnumTaskState.Completed;
     }
+
     #endregion
 }
