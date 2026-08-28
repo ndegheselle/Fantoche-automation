@@ -1,10 +1,8 @@
 using Automation.Plugins.Shared;
-using Automation.Shared.Data;
 using Automation.Shared.Data.Execution;
 using Automation.Shared.Data.Scoped;
 using Automation.Worker.Packages;
 using Newtonsoft.Json.Linq;
-using System.Xml.Linq;
 
 namespace Automation.Worker.Executor;
 
@@ -62,10 +60,9 @@ public class NodeExecutor : IDisposable
             instance = automationTask switch
             {
                 AutomationWorkflow workflow => await ExecuteWorkflowAsync(
-                    workflow, 
-                    instance as WorkflowInstance ?? throw new NodeExecutionException("A workflow task must have a workflow instance"), 
+                    workflow,
+                    instance as WorkflowInstance ?? throw new NodeExecutionException("A workflow task must have a workflow instance"),
                     progress, cancellation),
-                AutomationControl control => await ExecuteControlAsync(control, instance, progress, cancellation),
                 AutomationTask task => await ExecuteTaskAsync(task, instance, progress, cancellation),
                 _ => throw new NodeExecutionException("Unknown task type.")
             };
@@ -143,81 +140,4 @@ public class NodeExecutor : IDisposable
         instance.State = EnumTaskState.Completed;
         return instance;
     }
-
-    private async Task<TaskInstance> ExecuteControlAsync(
-        AutomationControl automationControl,
-        TaskInstance instance,
-        TaskInstancesProgress? progress = null,
-        CancellationToken? cancellation = null)
-    {
-        if (automationControl.Id == AutomationControl.ShareTask.Id)
-            instance.State = ShareControl(automationControl, instance, progress, cancellation);
-        else if (automationControl.Id == AutomationControl.JoinTask.Id)
-            instance.State = JoinControl(automationControl, instance, progress, cancellation);
-        return instance;
-    }
-
-    #region Control tasks
-    private EnumTaskState JoinControl(
-        AutomationControl automationControl,
-        TaskInstance instance,
-        TaskInstancesProgress? progress = null,
-        CancellationToken? cancellation = null)
-    {
-        if (instance.ParentWorkflow == null)
-            throw new NodeExecutionException("A control task instance need a parent workflow to execute.");
-        if (instance.Node == null)
-            throw new NodeExecutionException("A control task instance need a link to the node object.");
-        if (instance.Previous == null)
-            throw new NodeExecutionException("A control task instance need a link to the previous instance.");
-
-        instance.ParentWorkflow.GetOrCreateWaitingInstance(instance.Node, instance.Previous);
-        var previousInstances = instance.ParentWorkflow.TryGetAllPrevious(instance.Node);
-
-        // All previous are not ready yet
-        if (previousInstances == null || previousInstances.Count == 0)
-            return EnumTaskState.Waiting;
-
-        instance.Output = instance.ParentWorkflow.Execution.GetInstanceContextFor(instance.Node, instance.Previous);
-        return EnumTaskState.Completed;
-    }
-
-    private EnumTaskState ShareControl(
-        AutomationControl automationControl,
-        TaskInstance instance,
-        TaskInstancesProgress? progress = null,
-        CancellationToken? cancellation = null)
-    {
-        if (instance.ParentWorkflow == null)
-            throw new NodeExecutionException("A control task instance need a parent workflow to execute.");
-
-        instance.ParentWorkflow.SharedContext = GraphExecutionContext.MergeContexts(instance.ParentWorkflow.SharedContext, instance.Parameters);
-        // XXX : maybe report a specific event ?
-        progress?.StateChanges?.Report(instance.ParentWorkflow);
-        return EnumTaskState.Completed;
-    }
-
-    private EnumTaskState EndControl(
-        AutomationControl automationControl,
-        TaskInstance instance,
-        TaskInstancesProgress? progress = null,
-        CancellationToken? cancellation = null)
-    {
-        if (instance.ParentWorkflow == null)
-            throw new NodeExecutionException("A control task instance need a parent workflow to execute.");
-
-        if (instance.ParentWorkflow.Workflow.WorkflowSettings.StopIfAnyTaskFail)
-        {
-            // Pass the parameters as the output.
-        }
-        else
-        {
-            // Treat the end as a join control
-            // ! need to clean all waiting end then reaching the workflow end
-            return JoinControl(automationControl, instance, progress, cancellation);
-        }
-
-        return EnumTaskState.Completed;
-    }
-    #endregion
 }

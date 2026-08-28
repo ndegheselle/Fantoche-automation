@@ -4,7 +4,6 @@ using Automation.Shared.Data.Graph;
 using Automation.Shared.Data.Scoped;
 using Automation.Worker.Packages;
 using Newtonsoft.Json.Linq;
-using System.Xml.Linq;
 
 namespace Automation.Worker.Executor;
 
@@ -42,6 +41,7 @@ public class WorkflowExecutor
 
         var results = await Task.WhenAll(startTasks);
         var endInstances = results.SelectMany(r => r).ToList();
+
         return EndAsync(workflowInstance, progress);
     }
 
@@ -126,10 +126,88 @@ public class WorkflowExecutor
         if (workflowInstance.Workflow.OutputSchema != null && endInstances.Count == 0)
             throw new Exception("Reached end of workflow without data.");
 
-        // TODO : implement
+        if (workflowInstance.Workflow.WorkflowSettings.StopAtFirstEnd && endInstances.Count > 1)
+            throw new NodeExecutionException("Unexcepcted behavior, more than one end instance with StopAtFirst.");
+
+        workflowInstance.Output = endInstances[0].Output;
 
         workflowInstance.State = EnumTaskState.Completed;
         progress?.StateChanges?.Report(workflowInstance);
         return workflowInstance;
     }
+
+    private async Task<TaskInstance> ExecuteControlAsync(
+        AutomationControl automationControl,
+        TaskInstance instance,
+        TaskInstancesProgress? progress = null,
+        CancellationToken? cancellation = null)
+    {
+        if (automationControl.Id == AutomationControl.ShareTask.Id)
+            instance.State = ShareControl(automationControl, instance, progress, cancellation);
+        else if (automationControl.Id == AutomationControl.JoinTask.Id)
+            instance.State = JoinControl(automationControl, instance, progress, cancellation);
+        return instance;
+    }
+
+    #region Control tasks
+    private EnumTaskState JoinControl(
+        AutomationControl automationControl,
+        TaskInstance instance,
+        TaskInstancesProgress? progress = null,
+        CancellationToken? cancellation = null)
+    {
+        if (instance.ParentWorkflow == null)
+            throw new NodeExecutionException("A control task instance need a parent workflow to execute.");
+        if (instance.Node == null)
+            throw new NodeExecutionException("A control task instance need a link to the node object.");
+        if (instance.Previous == null)
+            throw new NodeExecutionException("A control task instance need a link to the previous instance.");
+
+        instance.ParentWorkflow.GetOrCreateWaitingInstance(instance.Node, instance.Previous);
+        var previousInstances = instance.ParentWorkflow.TryGetAllPrevious(instance.Node);
+
+        // All previous are not ready yet
+        if (previousInstances == null || previousInstances.Count == 0)
+            return EnumTaskState.Waiting;
+
+        instance.Output = instance.ParentWorkflow.Execution.GetInstanceContextFor(instance.Node, instance.Previous);
+        return EnumTaskState.Completed;
+    }
+
+    private EnumTaskState ShareControl(
+        AutomationControl automationControl,
+        TaskInstance instance,
+        TaskInstancesProgress? progress = null,
+        CancellationToken? cancellation = null)
+    {
+        if (instance.ParentWorkflow == null)
+            throw new NodeExecutionException("A control task instance need a parent workflow to execute.");
+
+        instance.ParentWorkflow.SharedContext = GraphExecutionContext.MergeContexts(instance.ParentWorkflow.SharedContext, instance.Parameters);
+        // XXX : maybe report a specific event ?
+        progress?.StateChanges?.Report(instance.ParentWorkflow);
+        return EnumTaskState.Completed;
+    }
+
+    private EnumTaskState EndControl(
+        AutomationControl automationControl,
+        TaskInstance instance,
+        TaskInstancesProgress? progress = null,
+        CancellationToken? cancellation = null)
+    {
+        if (instance.ParentWorkflow == null)
+            throw new NodeExecutionException("A control task instance need a parent workflow to execute.");
+
+        if (instance.ParentWorkflow.Workflow.WorkflowSettings.StopIfAnyTaskFail)
+        {
+            // Pass the parameters as the output.
+        }
+        else
+        {
+            instance.State = EnumTaskState.Waiting;
+        }
+
+        return EnumTaskState.Completed;
+    }
+    #endregion
 }
