@@ -30,16 +30,9 @@ public class GraphExecutionContext
         return GenerateContextFrom(ResolveEffectiveInstance(previousInstance).Output, _workflowInstance.SharedContext, _workflowInstance.GlobalContext);
     }
 
-    public JObject GetWaitedInstanceContextFor(BaseGraphTask task, TaskInstance previousInstance)
+    public JObject GetWaitedInstanceContextFor(BaseGraphTask task, IReadOnlyList<TaskInstance> instances)
     {
-        var instances = _workflowInstance.TryGetAllPrevious(task);
-        if (instances == null)
-            throw new GraphContextResolutionException("Could not resolve one of the previous instance.");
-
         var previouses = instances.Select(ResolveEffectiveInstance).ToDictionary(x => x.NodeName, x => x.Output);
-        // Making sure the previous instance used is the one present
-        previouses[previousInstance.NodeName] = previousInstance.Output;
-
         return GenerateContextFrom(previouses, _workflowInstance.SharedContext, _workflowInstance.GlobalContext);
     }
     #endregion
