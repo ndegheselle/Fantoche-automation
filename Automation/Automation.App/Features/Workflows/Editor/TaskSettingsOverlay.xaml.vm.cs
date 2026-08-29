@@ -1,41 +1,19 @@
 using System.Collections.ObjectModel;
-using System.Windows;
 using Automation.App.Features.Workflows.Editor.History;
-using Automation.Shared.Data;
-using Automation.Shared.Data.Execution;
 using Automation.Shared.Data.Graph;
 using Automation.Shared.Data.Scoped;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Joufflu.Navigation;
 using Newtonsoft.Json.Linq;
-using NJsonSchema;
 
 namespace Automation.App.Features.Workflows.Editor
 {
     /// <summary>
-    /// What a node of the graph holds its settings for : a regular task runs with its own
-    /// parameters, while the control tasks stand for something the workflow itself holds.
-    /// </summary>
-    public enum EnumTaskSettingsKind
-    {
-        /// <summary>A task or a nested workflow : its own JSON parameters.</summary>
-        Task,
-
-        /// <summary>The start of the graph : the input schema of the workflow.</summary>
-        Start,
-
-        /// <summary>An end of the graph : the output mapping and schema of the workflow.</summary>
-        End,
-
-        /// <summary>A context setter : the values it puts in the context of its branch.</summary>
-        Context
-    }
-
-    /// <summary>
-    /// Settings of a graph node, everything being edited as raw JSON : the context the task reads
-    /// (read only, inferred from the previous tasks), what the node holds, and the resulting schema
-    /// (read only).
+    /// Settings of a graph node, edited as raw JSON : what it reads (input), what it runs with
+    /// (parameters) and what it produces (output). A regular task only owns its parameters, while
+    /// the control tasks stand for something the workflow itself holds : whatever the node doesn't
+    /// own is displayed read only.
     /// <para>
     /// The settings are only written to the graph once validated, and as a
     /// <see cref="IReversibleAction"/> handed over to the editor : nothing is edited in place, so
@@ -48,35 +26,26 @@ namespace Automation.App.Features.Workflows.Editor
 
         public AutomationWorkflow Workflow { get; }
 
-        public EnumTaskSettingsKind Kind { get; }
-
         /// <summary>
         /// Edition to apply to the graph, only set once the settings have been validated.
         /// </summary>
         public IReversibleAction? Edition { get; private set; }
 
         /// <summary>
-        /// Samples of the context the task reads, one per branch reaching it : the output of the
-        /// previous tasks under <c>previous</c> and the context of the workflow under <c>context</c>.
+        /// Schema of what the node reads : its own for a task, the input of the workflow for a start.
         /// </summary>
-        [ObservableProperty] private List<string> _contextSamples = [];
+        [ObservableProperty] private string? _inputJson;
 
         /// <summary>
-        /// What the node holds, as edited by the user : the task parameters, the sample of the
-        /// workflow input, its output mapping or the values set in the context.
+        /// Template the node runs with, references to the context included (e.g. "$previous.Value").
         /// </summary>
-        [ObservableProperty] private string? _settingsJson;
+        [ObservableProperty] private string? _parametersJson;
 
         /// <summary>
-        /// Schema (or resulting context) matching the settings, displayed read only.
+        /// Schema of what the node produces : its own for a task or a join, the output of the
+        /// workflow for an end, the shared context for a share.
         /// </summary>
-        [ObservableProperty] private string? _schemaJson;
-
-        /// <summary>
-        /// Whether the task waits for every branch reaching it before running, which changes the
-        /// shape of the context it reads : the outputs are then keyed by node name.
-        /// </summary>
-        [ObservableProperty] private bool _isWaitingAllInputs;
+        [ObservableProperty] private string? _outputJson;
 
         /// <summary>
         /// What is wrong with the current settings, blocking the validation while not empty.
@@ -85,42 +54,28 @@ namespace Automation.App.Features.Workflows.Editor
 
         public bool HasErrors => Errors.Count > 0;
 
-        /// <summary>
-        /// Whether the node reads a context at all : the start of the graph, or a node nothing is
-        /// connected to, has none to display.
-        /// </summary>
-        public bool HasContext => ContextSamples.Count > 0;
-
-        /// <summary>
-        /// Width of the context column, taken back by the settings when there is no context to show.
-        /// </summary>
-        public GridLength ContextWidth => HasContext ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
-
         public string Title { get; }
 
-        public string Hint { get; }
-
-        public string ContextLabel { get; }
-
-        public string SettingsLabel { get; }
-
-        public string SchemaLabel { get; }
+        /// <summary>
+        /// Only the start owns what it reads : it stands for the input of the workflow.
+        /// </summary>
+        public bool IsInputReadOnly => _control?.IsStart() != true;
 
         /// <summary>
-        /// Whether the wait-for-all-inputs setting applies : every node but the start of the graph,
-        /// which has no input.
+        /// Everything but the start runs with parameters, the start only handing the input over.
         /// </summary>
-        public bool CanWaitAllInputs => Kind != EnumTaskSettingsKind.Start;
+        public bool IsParametersReadOnly => _control?.IsStart() == true;
 
         /// <summary>
-        /// Input schema the parameters are validated against, parsed once.
+        /// A task produces what its package declares and a start what the workflow is started with :
+        /// in both cases the output isn't the node's to write.
         /// </summary>
-        private readonly JsonSchema? _inputSchema;
+        public bool IsOutputReadOnly => _control == null || _control.IsStart();
 
         /// <summary>
-        /// Context read by a context setter, its resulting context being previewed from it.
+        /// The node as a control task, null when it is a regular task or a nested workflow.
         /// </summary>
-        private readonly JToken? _incomingContext;
+        private readonly GraphControl? _control;
 
         private readonly IOverlayService _overlays;
 
@@ -129,41 +84,23 @@ namespace Automation.App.Features.Workflows.Editor
             Node = node;
             Workflow = workflow;
             _overlays = overlays;
-            Kind = GetKind(node);
+            _control = node as GraphControl;
+            Title = $"Parameters - {node.Name}";
 
-            _isWaitingAllInputs = node.Settings.IsWaitingAllInputs;
-            _inputSchema = Kind == EnumTaskSettingsKind.Task ? node.InputSchema : null;
-            _incomingContext = Kind == EnumTaskSettingsKind.Context
-                ? workflow.Graph.Execution.GetContextSampleFor(node)
-                : null;
+            _inputJson = node.InputSchemaJson;
+            _parametersJson = node.ParametersJson;
+            _outputJson = node.OutputSchemaJson;
 
-            (Title, Hint, ContextLabel, SettingsLabel, SchemaLabel) = Kind switch
+            // The controls stand for the workflow itself, they display what it holds
+            if (_control?.IsStart() == true)
             {
-                EnumTaskSettingsKind.Start => (
-                    $"{node.Name} - workflow input",
-                    "The schema of the workflow input is inferred from the sample : whatever is written here is accepted when the workflow runs.",
-                    "Context",
-                    "Input sample",
-                    "Inferred input schema"),
-                EnumTaskSettingsKind.End => (
-                    $"{node.Name} - workflow output",
-                    "Every end task acts as one : their previous tasks are mixed together and they all share this mapping.",
-                    "Context of the ends",
-                    "Output mapping",
-                    "Inferred output schema"),
-                EnumTaskSettingsKind.Context => (
-                    $"{node.Name} - context values",
-                    "A value overrides what the context carries, a null one leaves it untouched and a new key is added to it.",
-                    "Context read",
-                    "Context values",
-                    "Resulting context"),
-                _ => (
-                    $"{node.Name} - settings",
-                    "Reference the context with '$', e.g. \"$previous.Value\" or \"$context.errorMail\".",
-                    "Context read",
-                    "Parameters",
-                    "Output schema")
-            };
+                _inputJson = Workflow.InputSchemaJson;
+                _outputJson = Workflow.InputSchemaJson;
+            }
+            else if (_control?.IsEnd() == true)
+                _outputJson = Workflow.OutputSchemaJson;
+            else if (_control?.IsShare() == true)
+                _outputJson = Workflow.SharedSchemaJson;
 
             Errors.CollectionChanged += (_, _) =>
             {
@@ -171,30 +108,7 @@ namespace Automation.App.Features.Workflows.Editor
                 ValidateCommand.NotifyCanExecuteChanged();
             };
 
-            // A regular task doesn't infer anything, its output schema comes from the task itself
-            if (Kind == EnumTaskSettingsKind.Task)
-                _schemaJson = node.OutputSchemaJson;
-
-            _settingsJson = InitialSettingsJson();
-            RefreshSamples();
             Refresh();
-        }
-
-        /// <summary>
-        /// What the node holds its settings for : the control tasks stand for the workflow input,
-        /// output or context, anything else runs with its own parameters.
-        /// </summary>
-        private static EnumTaskSettingsKind GetKind(BaseGraphTask node)
-        {
-            if (node is not GraphControl control)
-                return EnumTaskSettingsKind.Task;
-            if (control.IsStart())
-                return EnumTaskSettingsKind.Start;
-            if (control.IsEnd())
-                return EnumTaskSettingsKind.End;
-            if (control.IsShare())
-                return EnumTaskSettingsKind.Context;
-            return EnumTaskSettingsKind.Task;
         }
 
         /// <summary>
@@ -212,100 +126,37 @@ namespace Automation.App.Features.Workflows.Editor
         }
 
         /// <summary>
-        /// Settings the overlay opens on : what the node already holds, or a starting point built
-        /// from what it expects.
-        /// </summary>
-        private string? InitialSettingsJson()
-        {
-            switch (Kind)
-            {
-                case EnumTaskSettingsKind.Start:
-                    return Workflow.InputSchema?.ToSampleJson().ToString() ?? "{}";
-                case EnumTaskSettingsKind.End:
-                    return Workflow.OutputMappingJson ?? "{}";
-                case EnumTaskSettingsKind.Context:
-                    // Every key the context carries at that point, unset : the user only fills the
-                    // ones the branch overrides.
-                    return Node.ParametersJson
-                        ?? Workflow.Graph.Execution.GetContextSetterDefaultSettings(Node).ToString();
-                default:
-                    return Node.ParametersJson ?? _inputSchema?.ToSampleJson().ToString() ?? "{}";
-            }
-        }
-
-        /// <summary>
-        /// Rebuild the context samples, the shape of the context depending on whether the task waits
-        /// for all its inputs.
-        /// </summary>
-        private void RefreshSamples()
-        {
-            ContextSamples = Kind == EnumTaskSettingsKind.End
-                ? Workflow.Graph.Execution.GetContextSampleForEnd(IsWaitingAllInputs)
-                : Workflow.Graph.Execution.GetContextSampleJsonFor(Node, IsWaitingAllInputs);
-        }
-
-        /// <summary>
-        /// Check the settings against the context they read and refresh what is inferred from them :
-        /// the schema of the workflow input / output, or the resulting context of a context setter.
+        /// Check that everything the node owns is valid JSON, the validation being blocked while it
+        /// isn't.
         /// </summary>
         private void Refresh()
         {
             Errors.Clear();
 
-            if (string.IsNullOrWhiteSpace(SettingsJson))
-            {
-                Errors.Add("The settings can't be empty.");
-                return;
-            }
+            if (!IsInputReadOnly)
+                CheckJson("Input", InputJson);
+            if (!IsParametersReadOnly)
+                CheckJson("Parameters", ParametersJson);
+            if (!IsOutputReadOnly)
+                CheckJson("Output", OutputJson);
+        }
 
-            // No sample at all (the start of the graph) still goes through one pass, references
-            // simply having nothing to point at.
-            IEnumerable<string?> samples = ContextSamples.Count > 0 ? ContextSamples : [null];
-
-            MultiReferenceReplaceContext replaced;
-            try
-            {
-                replaced = ReferencesHandler.ReplaceReferences(SettingsJson, samples);
-            }
-            catch (Exception exception)
-            {
-                Errors.Add($"The JSON is not valid : {exception.Message}");
-                return;
-            }
-
-            foreach (var error in replaced.InconsistentReferenceErrors)
-                Errors.Add(error.ToString());
-            foreach (string error in replaced.Contexts.SelectMany(x => x.Errors).Select(x => x.ToString()).Distinct())
-                Errors.Add(error);
-
-            JToken? resolved = replaced.Contexts.FirstOrDefault()?.ReplacedSetting;
-            if (resolved == null)
+        /// <summary>
+        /// Add an error when [json] is filled with something that isn't JSON. An empty value is
+        /// valid, it simply means the node holds nothing.
+        /// </summary>
+        private void CheckJson(string label, string? json)
+        {
+            if (string.IsNullOrWhiteSpace(json))
                 return;
 
             try
             {
-                switch (Kind)
-                {
-                    case EnumTaskSettingsKind.Start:
-                    case EnumTaskSettingsKind.End:
-                        // The schema is what the sample / mapping describes, the user never writes it
-                        SchemaJson = JsonSchema.FromSampleJson(resolved.ToString()).ToJson();
-                        break;
-                    case EnumTaskSettingsKind.Context:
-                        SchemaJson = GraphExecutionContext.ApplyContextSetter(_incomingContext, resolved).ToString();
-                        break;
-                    default:
-                        // The parameters have to match the schema of the task once resolved, whichever
-                        // branch reaches it
-                        foreach (var context in replaced.Contexts)
-                            foreach (var error in _inputSchema?.Validate(context.ReplacedSetting) ?? [])
-                                Errors.Add(error.ToString());
-                        break;
-                }
+                JToken.Parse(json);
             }
             catch (Exception exception)
             {
-                Errors.Add(exception.Message);
+                Errors.Add($"{label} : {exception.Message}");
             }
         }
 
@@ -327,99 +178,118 @@ namespace Automation.App.Features.Workflows.Editor
         /// </summary>
         private IReversibleAction BuildEdition()
         {
-            string? settings = SettingsJson;
-            string? schema = SchemaJson;
-            bool waitAll = IsWaitingAllInputs;
+            string? input = NullIfEmpty(InputJson);
+            string? parameters = NullIfEmpty(ParametersJson);
+            string? output = NullIfEmpty(OutputJson);
 
-            switch (Kind)
+            if (_control?.IsStart() == true)
             {
-                case EnumTaskSettingsKind.Start:
-                {
-                    // Every start node hands the workflow input over, its output schema is that input
-                    List<GraphControl> starts = [.. Workflow.Graph.GetStartNodes()];
-                    string? previousSchema = Workflow.InputSchemaJson;
-                    List<string?> previousOutputs = [.. starts.Select(x => x.OutputSchemaJson)];
+                // Every start hands the same input over : they all carry the schema of the workflow
+                List<GraphControl> starts = [.. Workflow.Graph.GetStartNodes()];
+                string? previousInput = Workflow.InputSchemaJson;
+                List<string?> previousOutputs = [.. starts.Select(x => x.OutputSchemaJson)];
 
-                    return new ReversibleAction(
-                        $"Edit the input of '{Workflow.Metadata.Name}'",
-                        () =>
-                        {
-                            Workflow.InputSchemaJson = schema;
-                            foreach (GraphControl start in starts)
-                                start.OutputSchemaJson = schema;
-                        },
-                        () =>
-                        {
-                            Workflow.InputSchemaJson = previousSchema;
-                            foreach ((GraphControl start, string? output) in starts.Zip(previousOutputs))
-                                start.OutputSchemaJson = output;
-                        });
-                }
-                case EnumTaskSettingsKind.End:
-                {
-                    // The ends act as one : the mapping and the wait setting are shared by all of them
-                    List<GraphControl> ends = [.. Workflow.Graph.GetEndNodes()];
-                    string? previousSchema = Workflow.OutputSchemaJson;
-                    string? previousMapping = Workflow.OutputMappingJson;
-                    List<(string? Parameters, bool WaitAll)> previousEnds =
-                        [.. ends.Select(x => (x.ParametersJson, x.Settings.IsWaitingAllInputs))];
-
-                    return new ReversibleAction(
-                        $"Edit the output of '{Workflow.Metadata.Name}'",
-                        () =>
-                        {
-                            Workflow.OutputSchemaJson = schema;
-                            Workflow.OutputMappingJson = settings;
-                            foreach (GraphControl end in ends)
-                            {
-                                end.ParametersJson = settings;
-                                end.Settings.IsWaitingAllInputs = waitAll;
-                            }
-                        },
-                        () =>
-                        {
-                            Workflow.OutputSchemaJson = previousSchema;
-                            Workflow.OutputMappingJson = previousMapping;
-                            foreach ((GraphControl end, (string? parameters, bool endWaitAll)) in ends.Zip(previousEnds))
-                            {
-                                end.ParametersJson = parameters;
-                                end.Settings.IsWaitingAllInputs = endWaitAll;
-                            }
-                        });
-                }
-                default:
-                {
-                    string? previousSettings = Node.ParametersJson;
-                    bool previousWaitAll = Node.Settings.IsWaitingAllInputs;
-
-                    return new ReversibleAction(
-                        $"Edit the settings of '{Node.Name}'",
-                        () =>
-                        {
-                            Node.ParametersJson = settings;
-                            Node.Settings.IsWaitingAllInputs = waitAll;
-                        },
-                        () =>
-                        {
-                            Node.ParametersJson = previousSettings;
-                            Node.Settings.IsWaitingAllInputs = previousWaitAll;
-                        });
-                }
+                return new ReversibleAction(
+                    $"Edit the input of '{Workflow.Metadata.Name}'",
+                    () =>
+                    {
+                        Workflow.InputSchemaJson = input;
+                        foreach (GraphControl start in starts)
+                            start.OutputSchemaJson = input;
+                    },
+                    () =>
+                    {
+                        Workflow.InputSchemaJson = previousInput;
+                        foreach ((GraphControl start, string? previous) in starts.Zip(previousOutputs))
+                            start.OutputSchemaJson = previous;
+                    });
             }
+
+            if (_control?.IsEnd() == true)
+            {
+                // The mapping of the end is the output of the workflow, each end having its own
+                string? previousParameters = Node.ParametersJson;
+                string? previousMapping = Workflow.OutputMappingJson;
+                string? previousOutput = Workflow.OutputSchemaJson;
+
+                return new ReversibleAction(
+                    $"Edit the output of '{Workflow.Metadata.Name}'",
+                    () =>
+                    {
+                        Node.ParametersJson = parameters;
+                        Workflow.OutputMappingJson = parameters;
+                        Workflow.OutputSchemaJson = output;
+                    },
+                    () =>
+                    {
+                        Node.ParametersJson = previousParameters;
+                        Workflow.OutputMappingJson = previousMapping;
+                        Workflow.OutputSchemaJson = previousOutput;
+                    });
+            }
+
+            if (_control?.IsShare() == true)
+            {
+                string? previousParameters = Node.ParametersJson;
+                string? previousShared = Workflow.SharedSchemaJson;
+
+                return new ReversibleAction(
+                    $"Edit the shared values of '{Node.Name}'",
+                    () =>
+                    {
+                        Node.ParametersJson = parameters;
+                        Workflow.SharedSchemaJson = output;
+                    },
+                    () =>
+                    {
+                        Node.ParametersJson = previousParameters;
+                        Workflow.SharedSchemaJson = previousShared;
+                    });
+            }
+
+            if (_control?.IsJoin() == true)
+            {
+                string? previousParameters = Node.ParametersJson;
+                string? previousOutput = Node.OutputSchemaJson;
+
+                return new ReversibleAction(
+                    $"Edit the merge of '{Node.Name}'",
+                    () =>
+                    {
+                        Node.ParametersJson = parameters;
+                        Node.OutputSchemaJson = output;
+                    },
+                    () =>
+                    {
+                        Node.ParametersJson = previousParameters;
+                        Node.OutputSchemaJson = previousOutput;
+                    });
+            }
+
+            // A task only owns its parameters, its schemas come from the package it targets
+            string? previousSettings = Node.ParametersJson;
+
+            return new ReversibleAction(
+                $"Edit the settings of '{Node.Name}'",
+                () => Node.ParametersJson = parameters,
+                () => Node.ParametersJson = previousSettings);
         }
 
-        partial void OnContextSamplesChanged(List<string> value)
-        {
-            OnPropertyChanged(nameof(HasContext));
-            OnPropertyChanged(nameof(ContextWidth));
-        }
+        /// <summary>
+        /// An empty text box means the node holds nothing, which is null rather than "".
+        /// </summary>
+        private static string? NullIfEmpty(string? json) => string.IsNullOrWhiteSpace(json) ? null : json;
 
-        partial void OnSettingsJsonChanged(string? value) => Refresh();
-
-        partial void OnIsWaitingAllInputsChanged(bool value)
+        partial void OnInputJsonChanged(string? value)
         {
-            RefreshSamples();
+            // A start outputs the very input of the workflow, there is nothing else to display
+            if (_control?.IsStart() == true)
+                OutputJson = value;
             Refresh();
         }
+
+        partial void OnParametersJsonChanged(string? value) => Refresh();
+
+        partial void OnOutputJsonChanged(string? value) => Refresh();
     }
 }

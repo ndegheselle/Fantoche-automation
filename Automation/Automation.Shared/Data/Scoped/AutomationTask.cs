@@ -83,7 +83,7 @@ public class AutomationControl : AutomationTask
     {
         Id = Guid.Parse("00000000-0000-0000-0000-100000000001"),
         ParentId = Scope.ROOT_SCOPE_ID,
-        Metadata = new ScopedMetadata(EnumScopedType.Task) { Tags = ["Control"], Name = "Start", Icon = "\uE3D2", IsReadOnly = true },
+        Metadata = new ScopedMetadata(EnumScopedType.Task) { Tags = ["Control"], Name = "Start", Icon = "\ue13c", IsReadOnly = true },
         InputSchema = null,
         OutputSchema = new JsonSchema(),
     };
@@ -91,7 +91,7 @@ public class AutomationControl : AutomationTask
     {
         Id = Guid.Parse("00000000-0000-0000-0000-100000000002"),
         ParentId = Scope.ROOT_SCOPE_ID,
-        Metadata = new ScopedMetadata(EnumScopedType.Task) { Tags = ["Control"], Name = "End", Icon = "\uE244", IsReadOnly = true },
+        Metadata = new ScopedMetadata(EnumScopedType.Task) { Tags = ["Control"], Name = "End", Icon = "\ue6b9", IsReadOnly = true },
         InputSchema = new JsonSchema(),
         OutputSchema = null
     };
@@ -100,7 +100,7 @@ public class AutomationControl : AutomationTask
     {
         Id = Guid.Parse("00000000-0000-0000-0000-100000000003"),
         ParentId = Scope.ROOT_SCOPE_ID,
-        Metadata = new ScopedMetadata(EnumScopedType.Task) { Tags = ["Control"], Name = "Share", IsReadOnly = true },
+        Metadata = new ScopedMetadata(EnumScopedType.Task) { Tags = ["Control"], Name = "Share", Icon = "\ue36a", IsReadOnly = true },
         InputSchema = new JsonSchema(),
         OutputSchema = new JsonSchema(),
         Settings = new TaskSettings() { IsPassingThrough = true }
@@ -110,7 +110,7 @@ public class AutomationControl : AutomationTask
     {
         Id = Guid.Parse("00000000-0000-0000-0000-100000000004"),
         ParentId = Scope.ROOT_SCOPE_ID,
-        Metadata = new ScopedMetadata(EnumScopedType.Task) { Tags = ["Control"], Name = "Join", IsReadOnly = true },
+        Metadata = new ScopedMetadata(EnumScopedType.Task) { Tags = ["Control"], Name = "Join", Icon = "\ue43f", IsReadOnly = true },
         InputSchema = new JsonSchema(),
         OutputSchema = new JsonSchema(),
     };

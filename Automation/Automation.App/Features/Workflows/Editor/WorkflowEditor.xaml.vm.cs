@@ -6,7 +6,6 @@ using Automation.App.Features.Workflows.Editor.History;
 using Automation.App.Features.Workflows.Editor.ViewModels;
 using Automation.Shared.Data.Graph;
 using Automation.Shared.Data.Scoped;
-using Automation.Shared.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -33,8 +32,6 @@ namespace Automation.App.Features.Workflows.Editor
         public ObservableCollection<NodeViewModel> SelectedNodes { get; } = [];
 
         public EditorHistory History { get; } = new();
-
-        private readonly IScopedService _scoped = SpineViewModel.Instance.Scoped;
 
         /// <summary>
         /// Save of the graph, handled by the page owning the editor. It is only enabled while the
@@ -136,26 +133,12 @@ namespace Automation.App.Features.Workflows.Editor
             if (node == null)
                 return;
 
-            // The settings display the context, which starts from the one of the scope
-            await LoadScopeContextAsync();
-
             IReversibleAction? edition = await TaskSettingsViewModel.ShowAsync(node.Model, Workflow);
             if (edition != null)
                 History.Apply(edition);
         }
 
         private bool CanOpenSettings(NodeViewModel? node) => node != null || SelectedNodes.Count == 1;
-
-        /// <summary>
-        /// Resolve the context of the scope containing the workflow, once : its values are static,
-        /// the graph only reading them to build the samples of the contexts.
-        /// </summary>
-        private async Task LoadScopeContextAsync()
-        {
-            if (Graph.Execution.ScopeContext != null)
-                return;
-            Graph.Execution.ScopeContext = await _scoped.GetContextAsync(Workflow.Id);
-        }
 
         /// <summary>
         /// Remove the selected nodes, along with the connections linked to them.

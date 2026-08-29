@@ -108,6 +108,9 @@ public class LocalDbContext : DbContext
 
         modelBuilder.Entity<AutomationWorkflow>(workflow =>
         {
+            // Computed from SharedSchemaJson; not independently storable.
+            workflow.Ignore(x => x.SharedSchema);
+
             workflow.Property(x => x.Graph)
                 .HasConversion(GraphConverter)
                 .Metadata.SetValueComparer(CreateJsonValueComparer<TasksGraph>());
