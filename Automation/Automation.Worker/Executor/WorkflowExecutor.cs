@@ -112,7 +112,6 @@ public class WorkflowExecutor
 
     private WorkflowInstance EndAsync(WorkflowInstance workflowInstance, IReadOnlyList<TaskInstance> endInstances, TaskInstancesProgress? progress = null)
     {
-        // TODO : return failed and handle task instance on the level of the workflow
         if (workflowInstance.Workflow.OutputSchema != null && endInstances.Count == 0)
             throw new Exception("Reached end of workflow without data.");
 
