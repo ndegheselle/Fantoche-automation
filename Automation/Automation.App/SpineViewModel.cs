@@ -53,6 +53,9 @@ public class SpineViewModel : ObservableObject
         History = new LocalHistoryService(dbContextFactory);
         Scoped = new LocalScopedService(History, dbContextFactory);
 
+        // Take the cost of building the EF model off the first navigation.
+        _ = Task.Run(dbContextFactory.WarmupAsync);
+
         _pages = new object[]
         {
             new HomeViewModel(),
