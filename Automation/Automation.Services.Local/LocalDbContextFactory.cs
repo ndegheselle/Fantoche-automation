@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+
 namespace Automation.Services.Local;
 
 /// <summary>
@@ -23,4 +25,14 @@ public class LocalDbContextFactory
     }
 
     public LocalDbContext CreateDbContext() => new LocalDbContext(_connectionString);
+
+    /// <summary>
+    /// Runs a throw-away query so the EF model, the query pipeline and the SQLite connection are
+    /// all built up front instead of on the first user-triggered request.
+    /// </summary>
+    public async Task WarmupAsync(CancellationToken cancellationToken = default)
+    {
+        using var db = CreateDbContext();
+        await db.ScopedElements.AnyAsync(cancellationToken);
+    }
 }
