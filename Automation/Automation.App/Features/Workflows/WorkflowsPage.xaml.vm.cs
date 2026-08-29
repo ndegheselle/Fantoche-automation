@@ -21,6 +21,17 @@ namespace Automation.App.Features.Workflows
         [ObservableProperty] private object? _details;
         [ObservableProperty] private string _search = "";
 
+        /// <summary>
+        /// Whether the tree is currently being (re)loaded, the views showing a loader meanwhile.
+        /// </summary>
+        [ObservableProperty] private bool _isLoading;
+
+        /// <summary>
+        /// Cancellation of the running refresh : typing in the search starts one per keystroke, and
+        /// only the last one is allowed to display its result.
+        /// </summary>
+        private CancellationTokenSource? _refreshCancellation;
+
         private readonly IScopedService _scoped;
 
         public WorkflowsViewModel(IScopedService scoped)
@@ -30,14 +41,49 @@ namespace Automation.App.Features.Workflows
 
         public async Task RefreshAsync()
         {
-            Roots.Clear();
+            _refreshCancellation?.Cancel();
+            using var cancellation = new CancellationTokenSource();
+            _refreshCancellation = cancellation;
+            IsLoading = true;
+
+            try
+            {
+                // Loaded aside from the displayed tree, which is only replaced once everything is
+                // there : no flickering, and a refresh made obsolete by a newer one changes nothing.
+                List<ScopedNode> roots = await LoadRootsAsync();
+                if (cancellation.IsCancellationRequested)
+                    return;
+
+                Roots.Clear();
+                foreach (ScopedNode root in roots)
+                    Roots.Add(root);
+
+                Open(Roots.FirstOrDefault());
+            }
+            finally
+            {
+                if (_refreshCancellation == cancellation)
+                {
+                    _refreshCancellation = null;
+                    IsLoading = false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Elements displayed at the root of the tree : the content of the root scope, or the results
+        /// of the search when there is one.
+        /// </summary>
+        private async Task<List<ScopedNode>> LoadRootsAsync()
+        {
+            List<ScopedNode> roots = [];
 
             if (string.IsNullOrWhiteSpace(Search))
             {
                 foreach (ScopedElement element in await _scoped.GetChildrensAsync(Scope.ROOT_SCOPE_ID))
                 {
                     var node = new ScopedNode(element, null, _scoped);
-                    Roots.Add(node);
+                    roots.Add(node);
                     await node.LoadAsync();
                 }
             }
@@ -46,10 +92,10 @@ namespace Automation.App.Features.Workflows
                 // Flat list of the first page of tasks and workflows matching the search, scopes are not searchable.
                 Paginated<BaseAutomationTask> page = await _scoped.SearchAsync(Search);
                 foreach (BaseAutomationTask element in page.Items)
-                    Roots.Add(new ScopedNode(element, null, _scoped));
+                    roots.Add(new ScopedNode(element, null, _scoped));
             }
 
-            Open(Roots.FirstOrDefault());
+            return roots;
         }
 
         partial void OnSearchChanged(string value) => _ = RefreshAsync();

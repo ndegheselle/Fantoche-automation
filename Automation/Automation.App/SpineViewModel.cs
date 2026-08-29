@@ -52,6 +52,9 @@ public class SpineViewModel : ObservableObject
         Packages = new LocalPackagesService(Settings.PackagesFolderPath, Settings.LocalFolderPath);
         History = new LocalHistoryService(dbContextFactory);
         Scoped = new LocalScopedService(History, dbContextFactory);
+        // Entity Framework's first query pays for the model building and the query compilation :
+        // done here, in the background, the pages don't have to.
+        _ = dbContextFactory.WarmupAsync();
 
         _pages = new object[]
         {

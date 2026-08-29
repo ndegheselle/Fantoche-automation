@@ -6,6 +6,7 @@
     xmlns:details="clr-namespace:Automation.App.Features.Workflows.Details"
     xmlns:jnputs="clr-namespace:Joufflu.Inputs.Controls;assembly=Joufflu.Inputs"
     xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
+    xmlns:jonverters="clr-namespace:Joufflu.Converters;assembly=Joufflu"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Automation.App.Features.Workflows"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -19,6 +20,25 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/Features/Workflows/Controls/ScopedIcon.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
+            <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+
+            <!--  Shown in place of the content that is still being loaded.  -->
+            <ControlTemplate x:Key="Loader" TargetType="{x:Type Control}">
+                <StackPanel
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    joufflu:Spacing.Gap="2">
+                    <ProgressBar
+                        Width="120"
+                        Height="4"
+                        IsIndeterminate="True" />
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        Foreground="{DynamicResource {x:Static joufflu:Brushes.Foreground100Brush}}"
+                        Text="Loading..." />
+                </StackPanel>
+            </ControlTemplate>
 
             <DataTemplate DataType="{x:Type details:ScopeDetailsViewModel}">
                 <details:ScopeDetailsPage />
@@ -94,6 +114,7 @@
             <TreeView
                 Grid.Row="1"
                 Grid.ColumnSpan="2"
+                Visibility="{Binding IsLoading, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}"
                 joufflu:Sizing.Size="xs"
                 ItemsSource="{Binding Roots}"
                 SelectedItemChanged="OnTreeSelectionChanged">
@@ -113,6 +134,12 @@
                 </TreeView.ItemTemplate>
             </TreeView>
 
+            <Control
+                Grid.Row="1"
+                Grid.ColumnSpan="2"
+                Template="{StaticResource Loader}"
+                Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}" />
+
         </Grid>
 
         <Grid Grid.Column="2" joufflu:Spacing.Gap="2">
@@ -124,7 +151,8 @@
             <ScrollViewer
                 Grid.Row="0"
                 HorizontalScrollBarVisibility="Auto"
-                VerticalScrollBarVisibility="Disabled">
+                VerticalScrollBarVisibility="Disabled"
+                Visibility="{Binding IsLoading, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}">
                 <ItemsControl ItemsSource="{Binding Breadcrumb}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="{x:Type local:ScopedNode}">
@@ -161,7 +189,15 @@
                 </ItemsControl>
             </ScrollViewer>
 
-            <ContentControl Grid.Row="1" Content="{Binding Details}" />
+            <ContentControl
+                Grid.Row="1"
+                Content="{Binding Details}"
+                Visibility="{Binding IsLoading, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}" />
+
+            <Control
+                Grid.Row="1"
+                Template="{StaticResource Loader}"
+                Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}" />
         </Grid>
     </Grid>
 </UserControl>

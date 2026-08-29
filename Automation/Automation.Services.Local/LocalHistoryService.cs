@@ -20,12 +20,10 @@ public class LocalHistoryService : IHistoryService
         _dbContextFactory = dbContextFactory;
     }
 
-    public async Task<Paginated<TaskInstance>> SearchAsync(
+    public Task<Paginated<TaskInstance>> SearchAsync(
         PaginationOptions options = default,
-        IReadOnlyCollection<Guid>? taskIds = null)
+        IReadOnlyCollection<Guid>? taskIds = null) => _dbContextFactory.QueryAsync(async db =>
     {
-        using var db = _dbContextFactory.CreateDbContext();
-
         IQueryable<TaskInstance> query = db.TaskInstances;
         if (taskIds != null)
             query = query.Where(x => taskIds.Contains(x.TaskId));
@@ -44,5 +42,5 @@ public class LocalHistoryService : IHistoryService
             Total = total,
             Options = options,
         };
-    }
+    });
 }

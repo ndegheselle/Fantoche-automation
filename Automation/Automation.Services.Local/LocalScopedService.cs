@@ -18,21 +18,18 @@ public class LocalScopedService : IScopedService
         _dbContextFactory = dbContextFactory;
     }
 
-    public async Task<ScopedElement> CreateAsync(ScopedElement element)
+    public Task<ScopedElement> CreateAsync(ScopedElement element) => _dbContextFactory.QueryAsync(async db =>
     {
         element.Id = Guid.NewGuid();
 
-        using var db = _dbContextFactory.CreateDbContext();
         db.ScopedElements.Add(element);
         await db.SaveChangesAsync();
 
         return element;
-    }
+    });
 
-    public async Task<ScopedElement> EditAsync(ScopedElement element)
+    public Task<ScopedElement> EditAsync(ScopedElement element) => _dbContextFactory.QueryAsync(async db =>
     {
-        using var db = _dbContextFactory.CreateDbContext();
-
         if (!await db.ScopedElements.AnyAsync(x => x.Id == element.Id))
             throw new KeyNotFoundException();
 
@@ -40,23 +37,19 @@ public class LocalScopedService : IScopedService
         await db.SaveChangesAsync();
 
         return element;
-    }
+    });
 
-    public async Task<List<ScopedElement>> GetChildrensAsync(Guid scopeId)
-    {
-        using var db = _dbContextFactory.CreateDbContext();
-        return await db.ScopedElements.Where(x => x.ParentId == scopeId).ToListAsync();
-    }
+    public Task<List<ScopedElement>> GetChildrensAsync(Guid scopeId) => _dbContextFactory.QueryAsync(
+        db => db.ScopedElements.Where(x => x.ParentId == scopeId).ToListAsync());
 
     public Task<ScopedElement> RemoveAsync(ScopedElement element)
     {
         throw new NotImplementedException();
     }
 
-    public async Task<Paginated<BaseAutomationTask>> SearchAsync(string search = "", PaginationOptions options = default)
+    public Task<Paginated<BaseAutomationTask>> SearchAsync(string search = "", PaginationOptions options = default)
+        => _dbContextFactory.QueryAsync(async db =>
     {
-        using var db = _dbContextFactory.CreateDbContext();
-
         IQueryable<BaseAutomationTask> query = db.ScopedElements.OfType<BaseAutomationTask>();
         if (!string.IsNullOrWhiteSpace(search))
         {
@@ -76,12 +69,11 @@ public class LocalScopedService : IScopedService
             Total = total,
             Options = options,
         };
-    }
+    });
 
-    public async Task<bool> IsNameUniqueAsync(Guid parentId, string name, Guid? excludeId = null)
+    public Task<bool> IsNameUniqueAsync(Guid parentId, string name, Guid? excludeId = null)
+        => _dbContextFactory.QueryAsync(async db =>
     {
-        using var db = _dbContextFactory.CreateDbContext();
-
         string term = name.ToLower();
         bool exists = await db.ScopedElements.AnyAsync(x =>
             x.ParentId == parentId &&
@@ -89,21 +81,18 @@ public class LocalScopedService : IScopedService
             x.Metadata.Name.ToLower() == term);
 
         return !exists;
-    }
+    });
 
-    public async Task<List<AutomationTask>> GetTasksByPackageAsync(string packageId)
+    public Task<List<AutomationTask>> GetTasksByPackageAsync(string packageId)
+        => _dbContextFactory.QueryAsync(async db =>
     {
-        using var db = _dbContextFactory.CreateDbContext();
-
         // Target is stored as an opaque JSON column, so the predicate has to run client-side.
         var tasks = await db.ScopedElements.OfType<AutomationTask>().ToListAsync();
         return tasks.Where(t => t.Target != null && t.Target.Package.Id == packageId).ToList();
-    }
+    });
 
-    public async Task<JObject> GetContextAsync(Guid elementId)
+    public Task<JObject> GetContextAsync(Guid elementId) => _dbContextFactory.QueryAsync(async db =>
     {
-        using var db = _dbContextFactory.CreateDbContext();
-
         var element = await db.ScopedElements.AsNoTracking().FirstOrDefaultAsync(x => x.Id == elementId);
         if (element == null)
             return new JObject();
@@ -120,11 +109,11 @@ public class LocalScopedService : IScopedService
         }
 
         return ScopeContextResolver.Resolve(hierarchy);
-    }
+    });
 
-    public async Task<Paginated<TaskInstance>> GetHistoryAsync(Guid elementId, PaginationOptions options = default)
+    public Task<Paginated<TaskInstance>> GetHistoryAsync(Guid elementId, PaginationOptions options = default)
+        => _dbContextFactory.QueryAsync(async db =>
     {
-        using var db = _dbContextFactory.CreateDbContext();
         var elements = await db.ScopedElements.AsNoTracking().ToListAsync();
 
         var byId = elements.ToDictionary(x => x.Id);
@@ -132,7 +121,7 @@ public class LocalScopedService : IScopedService
 
         var taskIds = CollectExecutableIds(elementId, byId, byParent).ToHashSet();
         return await _historyService.SearchAsync(options, taskIds);
-    }
+    });
 
     /// <summary>
     /// Collect the ids whose executions make up [elementId]'s history: the element itself when it is a
