@@ -1,4 +1,5 @@
-﻿using Automation.Shared.Data.Scoped;
+﻿using Automation.App.Features.Workflows.Details.Controls;
+using Automation.Shared.Data.Scoped;
 using Automation.Shared.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -20,6 +21,11 @@ namespace Automation.App.Features.Workflows.Details
         public IRelayCommand<ScopedNode?> OpenCommand { get; }
 
         /// <summary>
+        /// Executions of the element, displayed by the history tab.
+        /// </summary>
+        public HistoryViewModel History { get; }
+
+        /// <summary>
         /// General infos of the element, edited directly by the views : it notifies its own changes.
         /// </summary>
         public ScopedMetadata Metadata => Element.Metadata;
@@ -36,6 +42,7 @@ namespace Automation.App.Features.Workflows.Details
 
         private readonly WorkflowsViewModel _parent;
         private readonly IScopedService _scoped = SpineViewModel.Instance.Scoped;
+        private readonly IHistoryService _history = SpineViewModel.Instance.History;
         private readonly IOverlayService _overlays = SpineViewModel.Instance.Overlays;
         private readonly IToastService _toasts = SpineViewModel.Instance.Toasts;
 
@@ -44,6 +51,7 @@ namespace Automation.App.Features.Workflows.Details
             Node = node;
             _parent = parent;
             OpenCommand = parent.OpenCommand;
+            History = new HistoryViewModel(node, _scoped, _history);
 
             // The views edit the metadata itself, so its changes are what tells the element needs
             // saving. Tags are edited through the collection rather than the property, hence the
