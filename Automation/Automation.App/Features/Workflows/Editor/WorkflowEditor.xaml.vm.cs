@@ -99,9 +99,10 @@ namespace Automation.App.Features.Workflows.Editor
         }
 
         /// <summary>
-        /// Add a node targeting [task] at the center of the viewport.
+        /// Add a node targeting [task] at [location] in the graph, at the center of the viewport
+        /// when no location is given.
         /// </summary>
-        public void Add(BaseAutomationTask task)
+        public void Add(BaseAutomationTask task, Point? location = null)
         {
             BaseGraphTask graphTask = task switch
             {
@@ -113,8 +114,11 @@ namespace Automation.App.Features.Workflows.Editor
 
             // The name is only a label within the graph, it has to stay unique to identify the node
             graphTask.Metadata.Name = Graph.GetUniqueNodeName(graphTask.Metadata.Name);
-            graphTask.LocationX = ViewportLocation.X + ViewportSize.Width / 2;
-            graphTask.LocationY = ViewportLocation.Y + ViewportSize.Height / 2;
+            Point placement = location ?? new Point(
+                ViewportLocation.X + ViewportSize.Width / 2,
+                ViewportLocation.Y + ViewportSize.Height / 2);
+            graphTask.LocationX = placement.X;
+            graphTask.LocationY = placement.Y;
             graphTask.AutomationTask = task;
 
             var node = new NodeViewModel(graphTask);

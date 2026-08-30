@@ -118,12 +118,24 @@
 
         </ResourceDictionary>
     </UserControl.Resources>
+    <!--  Drop target of the whole editor, the toolbars over it included, so a node can be dropped anywhere in it  -->
     <Border
+        joufflu:DropTarget.Command="{Binding DropCommand, RelativeSource={RelativeSource AncestorType={x:Type local:WorkflowEditor}}}"
         Background="{DynamicResource {x:Static joufflu:Brushes.BackgroundBrush}}"
-        BorderBrush="{DynamicResource {x:Static joufflu:Brushes.BorderBrush}}"
         BorderThickness="{DynamicResource {x:Static joufflu:Dimensions.BorderThickness}}"
         ClipToBounds="True"
         CornerRadius="{DynamicResource {x:Static joufflu:Dimensions.CornerRadius}}">
+        <Border.Style>
+            <Style TargetType="Border">
+                <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.BorderBrush}}" />
+                <Style.Triggers>
+                    <!--  True only for a task or a workflow, what the editor refuses never lights the border up  -->
+                    <Trigger Property="joufflu:DropTarget.IsDragOver" Value="True">
+                        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.PrimaryBrush}}" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+        </Border.Style>
         <!--  The editor background being the grid lines, the solid color comes from the container  -->
         <Grid>
             <nodify:NodifyEditor

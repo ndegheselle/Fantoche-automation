@@ -21,6 +21,12 @@ namespace Automation.App.Features.Workflows
         public bool IsScope => Type == EnumScopedType.Scope;
 
         /// <summary>
+        /// The element as something runnable, <see langword="null"/> for a scope : it is what a node
+        /// dragged out of the tree carries.
+        /// </summary>
+        public BaseAutomationTask? TaskElement => Element as BaseAutomationTask;
+
+        /// <summary>
         /// Ancestors then itself, root first.
         /// </summary>
         public IEnumerable<ScopedNode> Path => Parent == null ? [this] : Parent.Path.Append(this);

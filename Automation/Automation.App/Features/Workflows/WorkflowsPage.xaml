@@ -96,6 +96,8 @@
                 Grid.ColumnSpan="2"
                 joufflu:Sizing.Size="xs"
                 ItemsSource="{Binding Roots}"
+                PreviewMouseLeftButtonUp="OnTreeMouseLeftButtonUp"
+                QueryContinueDrag="OnTreeQueryContinueDrag"
                 SelectedItemChanged="OnTreeSelectionChanged">
                 <TreeView.ItemContainerStyle>
                     <Style BasedOn="{StaticResource TreeViewItemStyle}" TargetType="{x:Type TreeViewItem}">
@@ -105,7 +107,23 @@
                 </TreeView.ItemContainerStyle>
                 <TreeView.ItemTemplate>
                     <HierarchicalDataTemplate DataType="{x:Type local:ScopedNode}" ItemsSource="{Binding Children}">
-                        <StackPanel joufflu:Spacing.Gap="4" Orientation="Horizontal">
+                        <!--  The node itself is dragged, a drop target reading what it is worth to it (a workflow editor only takes tasks and workflows).  -->
+                        <StackPanel
+                            joufflu:DragSource.Data="{Binding}"
+                            joufflu:Spacing.Gap="4"
+                            Orientation="Horizontal">
+                            <StackPanel.Style>
+                                <Style TargetType="StackPanel">
+                                    <!--  Hit tested as a whole, so the gap between the icon and the name can be grabbed too.  -->
+                                    <Setter Property="Background" Value="Transparent" />
+                                    <Style.Triggers>
+                                        <!--  The original fades out while it travels.  -->
+                                        <Trigger Property="joufflu:DragSource.IsDragging" Value="True">
+                                            <Setter Property="Opacity" Value="0.4" />
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </StackPanel.Style>
                             <jonts:FontIcon DataContext="{Binding Metadata}" Style="{StaticResource ScopedIcon}" />
                             <TextBlock Text="{Binding Name}" />
                         </StackPanel>
