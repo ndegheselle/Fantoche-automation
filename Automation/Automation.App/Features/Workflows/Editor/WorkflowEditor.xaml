@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
+    xmlns:jonverters="clr-namespace:Joufflu.Converters;assembly=Joufflu"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Automation.App.Features.Workflows.Editor"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -49,6 +50,72 @@
                 Transform="{Binding ViewportTransform, ElementName=Editor}"
                 Viewport="0 0 100 100"
                 ViewportUnits="Absolute" />
+
+            <Style TargetType="{x:Type nodify:Node}">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type nodify:Node}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="auto" />
+                                </Grid.RowDefinitions>
+
+                                <!--  Header  -->
+                                <Border
+                                    Background="{TemplateBinding HeaderBrush}"
+                                    Style="{TemplateBinding HeaderContainerStyle}"
+                                    Visibility="{TemplateBinding HasHeader,
+                                                                 Converter={x:Static jonverters:VisibilityConverter.Default}}">
+                                    <ContentPresenter ContentSource="Header" />
+                                </Border>
+
+                                <Grid Grid.Row="1">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="22" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="22" />
+                                    </Grid.ColumnDefinitions>
+                                    <!--  Data IN  -->
+                                    <ItemsControl
+                                        VerticalAlignment="Center"
+                                        Focusable="False"
+                                        ItemTemplate="{TemplateBinding InputConnectorTemplate}"
+                                        ItemsSource="{TemplateBinding Input}" />
+
+                                    <!--  Body  -->
+                                    <Border Grid.Column="1" Style="{StaticResource Card}">
+                                        <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                                    </Border>
+
+                                    <!--  Data OUT  -->
+                                    <ItemsControl
+                                        Grid.Column="2"
+                                        VerticalAlignment="Center"
+                                        Focusable="False"
+                                        ItemTemplate="{TemplateBinding OutputConnectorTemplate}"
+                                        ItemsSource="{TemplateBinding Output}" />
+                                </Grid>
+
+                                <!--  Footer  -->
+                                <Border
+                                    Grid.Row="2"
+                                    HorizontalAlignment="Center"
+                                    Background="Transparent"
+                                    Style="{TemplateBinding FooterContainerStyle}"
+                                    Visibility="{TemplateBinding HasFooter,
+                                                                 Converter={x:Static jonverters:VisibilityConverter.Default}}">
+                                    <ContentPresenter ContentSource="Footer" />
+                                </Border>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
         </ResourceDictionary>
     </UserControl.Resources>
     <Border
@@ -71,7 +138,7 @@
                 ViewportLocation="{Binding ViewportLocation, Mode=TwoWay}"
                 ViewportSize="{Binding ViewportSize, Mode=OneWayToSource}">
                 <nodify:NodifyEditor.InputBindings>
-                    <KeyBinding Command="{Binding RemoveCommand}" Key="Delete" />
+                    <KeyBinding Key="Delete" Command="{Binding RemoveCommand}" />
                     <KeyBinding Command="{Binding History.UndoCommand}" Gesture="Ctrl+Z" />
                     <KeyBinding Command="{Binding History.RedoCommand}" Gesture="Ctrl+Y" />
                 </nodify:NodifyEditor.InputBindings>
@@ -79,7 +146,7 @@
                 <nodify:NodifyEditor.Resources>
                     <DataTemplate DataType="{x:Type viewModels:NodeViewModel}">
                         <nodify:Node
-                            Header="{Binding Name}"
+                            Footer="{Binding Name}"
                             Input="{Binding Inputs}"
                             Output="{Binding Outputs}">
                             <nodify:Node.InputBindings>
@@ -118,6 +185,7 @@
                     <Style BasedOn="{StaticResource {x:Type nodify:ItemContainer}}" TargetType="{x:Type nodify:ItemContainer}">
                         <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
                         <Setter Property="Location" Value="{Binding Location, Mode=TwoWay}" />
+                        <Setter Property="BorderBrush" Value="Transparent" />
                     </Style>
                 </nodify:NodifyEditor.ItemContainerStyle>
 

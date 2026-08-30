@@ -11,7 +11,10 @@
     mc:Ignorable="d">
     <UserControl.Resources>
         <!--  The editor commands are routed, they need the editor as their target  -->
-        <Style x:Key="EditorButton" BasedOn="{StaticResource GhostButton}" TargetType="Button">
+        <Style
+            x:Key="EditorButton"
+            BasedOn="{StaticResource GhostButton}"
+            TargetType="Button">
             <Setter Property="joufflu:Sizing.IsSquare" Value="True" />
             <Setter Property="CommandTarget" Value="{Binding Editor, RelativeSource={RelativeSource AncestorType={x:Type local:EditorOverlay}}}" />
         </Style>
@@ -43,13 +46,15 @@
                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Minus}" />
                 </Button>
                 <Separator />
-                <Button joufflu:Sizing.IsSquare="True"
+                <Button
+                    joufflu:Sizing.IsSquare="True"
                     Command="{Binding History.UndoCommand}"
                     Style="{StaticResource GhostButton}"
                     ToolTip="Undo">
                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Undo}" />
                 </Button>
-                <Button joufflu:Sizing.IsSquare="True"
+                <Button
+                    joufflu:Sizing.IsSquare="True"
                     Command="{Binding History.RedoCommand}"
                     Style="{StaticResource GhostButton}"
                     ToolTip="Redo">
@@ -87,6 +92,10 @@
                     ToolTip="Remove the selected nodes">
                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Trash}" />
                 </Button>
+                <Rectangle
+                    Width="1"
+                    VerticalAlignment="Stretch"
+                    Fill="{DynamicResource {x:Static joufflu:Brushes.BorderBrush}}" />
                 <Button
                     joufflu:Sizing.IsSquare="True"
                     Command="{Binding SaveCommand}"

@@ -15,7 +15,7 @@
     <UserControl.Resources>
         <converters:HexColorConverter x:Key="HexColorConverter" />
     </UserControl.Resources>
-    <Grid joufflu:Spacing.Gap="4">
+    <Grid joufflu:Spacing.Gap="2">
         <Grid.ColumnDefinitions>
             <ColumnDefinition />
             <ColumnDefinition Width="auto" />
@@ -31,18 +31,12 @@
             <TextBox IsEnabled="{Binding IsReadOnly, Converter={x:Static jonverters:BooleanFlipConverter.Default}, Mode=OneTime}" Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
         </StackPanel>
 
-        <StackPanel
-            Grid.Row="0"
-            Grid.Column="1"
-            Margin="4,0,0,0">
+        <StackPanel Grid.Row="0" Grid.Column="1">
             <TextBlock Style="{StaticResource Muted}">Icon</TextBlock>
             <controls:IconPicker IsEnabled="{Binding IsReadOnly, Converter={x:Static jonverters:BooleanFlipConverter.Default}, Mode=OneTime}" SelectedIcon="{Binding Icon, Mode=TwoWay}" />
         </StackPanel>
 
-        <StackPanel
-            Grid.Row="0"
-            Grid.Column="2"
-            Margin="4,0,0,0">
+        <StackPanel Grid.Row="0" Grid.Column="2">
             <TextBlock Style="{StaticResource Muted}">Color</TextBlock>
             <inputs:ColorPicker
                 Width="140"

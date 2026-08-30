@@ -45,4 +45,13 @@ public class LocalHistoryService : IHistoryService
             Options = options,
         };
     }
+
+    public async Task RemoveAsync(IReadOnlyCollection<Guid> taskIds)
+    {
+        if (taskIds.Count == 0)
+            return;
+
+        using var db = _dbContextFactory.CreateDbContext();
+        await db.TaskInstances.Where(x => taskIds.Contains(x.TaskId)).ExecuteDeleteAsync();
+    }
 }

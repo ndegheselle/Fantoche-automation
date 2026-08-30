@@ -9,10 +9,10 @@ namespace Automation.Services.Local;
 
 public class LocalScopedService : IScopedService
 {
-    private readonly IHistoryService _historyService;
+    private readonly LocalHistoryService _historyService;
     private readonly LocalDbContextFactory _dbContextFactory;
 
-    public LocalScopedService(IHistoryService historyService, LocalDbContextFactory dbContextFactory)
+    public LocalScopedService(LocalHistoryService historyService, LocalDbContextFactory dbContextFactory)
     {
         _historyService = historyService;
         _dbContextFactory = dbContextFactory;
@@ -48,9 +48,41 @@ public class LocalScopedService : IScopedService
         return await db.ScopedElements.Where(x => x.ParentId == scopeId).ToListAsync();
     }
 
-    public Task<ScopedElement> RemoveAsync(ScopedElement element)
+    public async Task<ScopedElement> RemoveAsync(ScopedElement element)
     {
-        throw new NotImplementedException();
+        using var db = _dbContextFactory.CreateDbContext();
+
+        if (!await db.ScopedElements.AnyAsync(x => x.Id == element.Id))
+            throw new KeyNotFoundException();
+
+        // ParentId is a plain column and not a relationship, so there is no cascade to rely on :
+        // removing a scope means collecting its whole subtree by hand.
+        var links = await db.ScopedElements
+            .AsNoTracking()
+            .Select(x => new { x.Id, x.ParentId })
+            .ToListAsync();
+        var byParent = links.ToLookup(x => x.ParentId, x => x.Id);
+
+        HashSet<Guid> ids = [element.Id];
+        Queue<Guid> pending = new(ids);
+        while (pending.Count > 0)
+        {
+            foreach (var childId in byParent[pending.Dequeue()])
+            {
+                if (ids.Add(childId))
+                    pending.Enqueue(childId);
+            }
+        }
+
+        var removed = await db.ScopedElements.Where(x => ids.Contains(x.Id)).ToListAsync();
+        db.ScopedElements.RemoveRange(removed);
+        await db.SaveChangesAsync();
+
+        // The executions of the removed tasks and workflows are unreachable from now on : drop them
+        // instead of leaving orphaned rows behind.
+        await _historyService.RemoveAsync(removed.OfType<BaseAutomationTask>().Select(x => x.Id).ToList());
+
+        return element;
     }
 
     public async Task<Paginated<BaseAutomationTask>> SearchAsync(string search = "", PaginationOptions options = default)

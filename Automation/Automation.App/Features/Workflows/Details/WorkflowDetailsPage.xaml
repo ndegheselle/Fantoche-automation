@@ -26,7 +26,6 @@
                     Grid.Row="1"
                     VerticalAlignment="Top"
                     joufflu:Spacing.Gap="4">
-                    <CheckBox IsChecked="{Binding IsStoringAllData}">Store all data</CheckBox>
                     <CheckBox IsChecked="{Binding StopAtFirstEnd}">Stop at first end</CheckBox>
                     <CheckBox IsChecked="{Binding StopIfAnyTaskFail}">Stop if any task fail</CheckBox>
                 </StackPanel>
