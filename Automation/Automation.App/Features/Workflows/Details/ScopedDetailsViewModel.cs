@@ -94,16 +94,26 @@ namespace Automation.App.Features.Workflows.Details
         protected virtual void OnSaved()
         { }
 
-        [RelayCommand]
+        [RelayCommand(CanExecute = nameof(CanDelete))]
         public async Task Delete()
         {
             if (await _overlays.Confirm($"Are you sure you want to delete the {TypeName} '{Node.Name}' ?", "Confirm deletion", EnumConfirmationType.Danger) != true)
                 return;
 
+            // Kept before the removal, the node not being displayed anymore once it is done.
+            string name = Node.Name;
+
             await _scoped.RemoveAsync(Element);
             Node.Parent?.Children.Remove(Node);
             // Fall back on the parent scope, the element not being displayable anymore
             _parent.Open(Node.Parent);
+            _toasts.Success($"The {TypeName} '{name}' has been deleted.", $"{TypeName} deleted");
         }
+
+        /// <summary>
+        /// Whether <see cref="DeleteCommand"/> can currently execute : the built-in elements (e.g. the
+        /// control tasks every graph relies on) are read only and can't be deleted.
+        /// </summary>
+        protected bool CanDelete => !Metadata.IsReadOnly;
     }
 }

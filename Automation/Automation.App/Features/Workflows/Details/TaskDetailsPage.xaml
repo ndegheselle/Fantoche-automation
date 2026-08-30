@@ -76,7 +76,8 @@
                     <Button
                         HorizontalAlignment="Left"
                         Command="{Binding DeleteCommand}"
-                        Style="{StaticResource SoftDangerButton}">
+                        Style="{StaticResource SoftDangerButton}"
+                        Visibility="{Binding Metadata.IsReadOnly, Mode=OneTime, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}">
                         <StackPanel Orientation="Horizontal">
                             <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Trash}" />
                             <TextBlock Margin="4,0,0,0">Delete</TextBlock>

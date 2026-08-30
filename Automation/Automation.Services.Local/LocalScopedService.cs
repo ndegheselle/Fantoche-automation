@@ -75,6 +75,13 @@ public class LocalScopedService : IScopedService
         }
 
         var removed = await db.ScopedElements.Where(x => ids.Contains(x.Id)).ToListAsync();
+
+        // Built-in elements (e.g. the control tasks every graph relies on) are read only : neither
+        // them nor a scope holding one of them can be removed.
+        var protectedElement = removed.FirstOrDefault(x => x.Metadata.IsReadOnly);
+        if (protectedElement != null)
+            throw new InvalidOperationException($"The element '{protectedElement.Metadata.Name}' is read only and can't be removed.");
+
         db.ScopedElements.RemoveRange(removed);
         await db.SaveChangesAsync();
 

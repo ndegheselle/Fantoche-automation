@@ -5,6 +5,7 @@
     xmlns:controls="clr-namespace:Automation.App.Features.Workflows.Details.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
+    xmlns:jonverters="clr-namespace:Joufflu.Converters;assembly=Joufflu"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Automation.App.Features.Workflows.Details"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -26,7 +27,8 @@
                     <Button
                         HorizontalAlignment="Left"
                         Command="{Binding DeleteCommand}"
-                        Style="{StaticResource SoftDangerButton}">
+                        Style="{StaticResource SoftDangerButton}"
+                        Visibility="{Binding Metadata.IsReadOnly, Mode=OneTime, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}">
                         <StackPanel Orientation="Horizontal">
                             <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Trash}" />
                             <TextBlock Margin="4,0,0,0">Delete</TextBlock>
