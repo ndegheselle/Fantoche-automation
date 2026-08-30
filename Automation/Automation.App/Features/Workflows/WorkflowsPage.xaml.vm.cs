@@ -32,7 +32,13 @@ namespace Automation.App.Features.Workflows
         public IEnumerable<ScopedNode> Breadcrumb => Selected?.Path ?? [];
 
         [ObservableProperty] private ScopedNode? _selected;
+
+        /// <summary>
+        /// Result highlighted in the search list, the page opening it once the press it comes from
+        /// turns out to be a click rather than a drag.
+        /// </summary>
         [ObservableProperty] private ScopedNode? _selectedResult;
+
         [ObservableProperty] private object? _details;
         [ObservableProperty] private string _search = "";
 
@@ -77,8 +83,6 @@ namespace Automation.App.Features.Workflows
             OnPropertyChanged(nameof(IsSearching));
             _ = SearchAsync();
         }
-
-        partial void OnSelectedResultChanged(ScopedNode? value) => Open(value);
 
         /// <summary>
         /// Create a new element of [type] in the selected scope. When the selection is not a scope
