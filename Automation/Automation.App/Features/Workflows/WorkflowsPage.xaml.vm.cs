@@ -10,7 +10,21 @@ namespace Automation.App.Features.Workflows
 {
     public partial class WorkflowsViewModel : ObservableObject
     {
-        public ObservableCollection<ScopedNode> Roots { get; } = [];
+        /// <summary>
+        /// Scope holding the whole hierarchy. It is only a container : the tree displays its children.
+        /// </summary>
+        public ScopedNode Root { get; }
+
+        /// <summary>
+        /// Flat list of the tasks and workflows matching <see cref="Search"/>, displayed instead of
+        /// the tree while a search is running.
+        /// </summary>
+        public ObservableCollection<ScopedNode> SearchResults { get; } = [];
+
+        /// <summary>
+        /// Whether a search is running, the tree and its results not being displayed together.
+        /// </summary>
+        public bool IsSearching => !string.IsNullOrWhiteSpace(Search);
 
         /// <summary>
         /// Path of the selected element, used by the breadcrumb.
@@ -18,6 +32,7 @@ namespace Automation.App.Features.Workflows
         public IEnumerable<ScopedNode> Breadcrumb => Selected?.Path ?? [];
 
         [ObservableProperty] private ScopedNode? _selected;
+        [ObservableProperty] private ScopedNode? _selectedResult;
         [ObservableProperty] private object? _details;
         [ObservableProperty] private string _search = "";
 
@@ -26,33 +41,44 @@ namespace Automation.App.Features.Workflows
         public WorkflowsViewModel(IScopedService scoped)
         {
             _scoped = scoped;
+            Root = new ScopedNode(Scope.Root, null, scoped);
         }
 
         public async Task RefreshAsync()
         {
-            Roots.Clear();
-
-            if (string.IsNullOrWhiteSpace(Search))
-            {
-                foreach (ScopedElement element in await _scoped.GetChildrensAsync(Scope.ROOT_SCOPE_ID))
-                {
-                    var node = new ScopedNode(element, null, _scoped);
-                    Roots.Add(node);
-                    await node.LoadAsync();
-                }
-            }
-            else
-            {
-                // Flat list of the first page of tasks and workflows matching the search, scopes are not searchable.
-                Paginated<BaseAutomationTask> page = await _scoped.SearchAsync(Search);
-                foreach (BaseAutomationTask element in page.Items)
-                    Roots.Add(new ScopedNode(element, null, _scoped));
-            }
-
-            Open(Roots.FirstOrDefault());
+            await Root.LoadAsync();
+            Open(Root.Children.FirstOrDefault());
         }
 
-        partial void OnSearchChanged(string value) => _ = RefreshAsync();
+        /// <summary>
+        /// Fill <see cref="SearchResults"/> with the first page of tasks and workflows matching
+        /// <see cref="Search"/>, scopes not being searchable.
+        /// </summary>
+        private async Task SearchAsync()
+        {
+            SearchResults.Clear();
+            if (!IsSearching)
+                return;
+
+            Paginated<BaseAutomationTask> page = await _scoped.SearchAsync(Search, new PaginationOptions());
+
+            // The whole hierarchy is loaded, so a result is displayed through the node already
+            // holding it : selecting it then reveals it at its place in the tree.
+            Dictionary<Guid, ScopedNode> nodes = Root.Descendants.ToDictionary(x => x.Element.Id);
+            foreach (BaseAutomationTask element in page.Items)
+            {
+                if (nodes.TryGetValue(element.Id, out ScopedNode? node))
+                    SearchResults.Add(node);
+            }
+        }
+
+        partial void OnSearchChanged(string value)
+        {
+            OnPropertyChanged(nameof(IsSearching));
+            _ = SearchAsync();
+        }
+
+        partial void OnSelectedResultChanged(ScopedNode? value) => Open(value);
 
         /// <summary>
         /// Create a new element of [type] in the selected scope. When the selection is not a scope
@@ -61,8 +87,9 @@ namespace Automation.App.Features.Workflows
         [RelayCommand]
         public async Task Create(EnumScopedType type)
         {
-            ScopedNode? parent = Selected?.IsScope == true ? Selected : Selected?.Parent;
-            Guid parentId = parent?.Element.Id ?? Scope.ROOT_SCOPE_ID;
+            ScopedNode selected = Selected ?? Root;
+            ScopedNode parent = selected.IsScope ? selected : selected.Parent ?? Root;
+            Guid parentId = parent.Element.Id;
             string name = await GetAvailableNameAsync(parentId, type);
 
             ScopedElement element = type switch
@@ -74,7 +101,7 @@ namespace Automation.App.Features.Workflows
             };
 
             var node = new ScopedNode(await _scoped.CreateAsync(element), parent, _scoped);
-            (parent?.Children ?? Roots).Add(node);
+            parent.Children.Add(node);
             Open(node);
         }
 
@@ -87,6 +114,17 @@ namespace Automation.App.Features.Workflows
             for (int index = 2; !await _scoped.IsNameUniqueAsync(parentId, name); index++)
                 name = $"New {type.ToString().ToLower()} {index}";
             return name;
+        }
+
+        /// <summary>
+        /// Drop [node] and whatever it contains from the tree, once they have been deleted.
+        /// </summary>
+        public void Remove(ScopedNode node)
+        {
+            // The results hold the very nodes of the tree, so what is gone has to leave both.
+            foreach (ScopedNode removed in node.Descendants.Append(node).ToList())
+                SearchResults.Remove(removed);
+            node.Parent?.Children.Remove(node);
         }
 
         [RelayCommand]

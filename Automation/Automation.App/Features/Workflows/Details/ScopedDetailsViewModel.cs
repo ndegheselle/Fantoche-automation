@@ -104,8 +104,7 @@ namespace Automation.App.Features.Workflows.Details
             string name = Node.Name;
 
             await _scoped.RemoveAsync(Element);
-            // Drop the node from the tree, the root elements being held by the page itself.
-            (Node.Parent?.Children ?? _parent.Roots).Remove(Node);
+            _parent.Remove(Node);
             // Fall back on the parent scope, the element not being displayable anymore
             _parent.Open(Node.Parent);
             _toasts.Success($"The {TypeName} '{name}' has been deleted.", $"{TypeName} deleted");

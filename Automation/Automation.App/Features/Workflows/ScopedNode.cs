@@ -31,6 +31,11 @@ namespace Automation.App.Features.Workflows
         /// </summary>
         public IEnumerable<ScopedNode> Path => Parent == null ? [this] : Parent.Path.Append(this);
 
+        /// <summary>
+        /// Every node below this one, whatever its depth.
+        /// </summary>
+        public IEnumerable<ScopedNode> Descendants => Children.Concat(Children.SelectMany(x => x.Descendants));
+
         [ObservableProperty] private bool _isExpanded;
         [ObservableProperty] private bool _isSelected;
 

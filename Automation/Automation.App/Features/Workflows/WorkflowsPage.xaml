@@ -6,6 +6,7 @@
     xmlns:details="clr-namespace:Automation.App.Features.Workflows.Details"
     xmlns:jnputs="clr-namespace:Joufflu.Inputs.Controls;assembly=Joufflu.Inputs"
     xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
+    xmlns:jonverters="clr-namespace:Joufflu.Converters;assembly=Joufflu"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Automation.App.Features.Workflows"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -90,15 +91,16 @@
                 </jnputs:Dropdown.Popup>
             </ToggleButton>
 
-            <!--  Tree of every scope, workflow and task.  -->
+            <!--  Tree of every scope, workflow and task, the root scope only holding them.  -->
             <TreeView
                 Grid.Row="1"
                 Grid.ColumnSpan="2"
                 joufflu:Sizing.Size="xs"
-                ItemsSource="{Binding Roots}"
+                ItemsSource="{Binding Root.Children}"
                 PreviewMouseLeftButtonUp="OnTreeMouseLeftButtonUp"
                 QueryContinueDrag="OnTreeQueryContinueDrag"
-                SelectedItemChanged="OnTreeSelectionChanged">
+                SelectedItemChanged="OnTreeSelectionChanged"
+                Visibility="{Binding IsSearching, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}">
                 <TreeView.ItemContainerStyle>
                     <Style BasedOn="{StaticResource TreeViewItemStyle}" TargetType="{x:Type TreeViewItem}">
                         <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
@@ -130,6 +132,24 @@
                     </HierarchicalDataTemplate>
                 </TreeView.ItemTemplate>
             </TreeView>
+
+            <!--  Tasks and workflows matching the search, listed flat in place of the tree.  -->
+            <ListBox
+                Grid.Row="1"
+                Grid.ColumnSpan="2"
+                joufflu:Sizing.Size="xs"
+                ItemsSource="{Binding SearchResults}"
+                SelectedItem="{Binding SelectedResult, Mode=TwoWay}"
+                Visibility="{Binding IsSearching, Converter={x:Static jonverters:VisibilityConverter.Default}}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate DataType="{x:Type local:ScopedNode}">
+                        <StackPanel joufflu:Spacing.Gap="4" Orientation="Horizontal">
+                            <jonts:FontIcon DataContext="{Binding Metadata}" Style="{StaticResource ScopedIcon}" />
+                            <TextBlock Text="{Binding Name}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
 
         </Grid>
 
