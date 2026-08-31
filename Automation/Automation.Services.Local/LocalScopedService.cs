@@ -2,6 +2,7 @@
 using Automation.Shared.Data.Scoped;
 using Automation.Shared.Services;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json.Linq;
 
 namespace Automation.Services.Local;
 
@@ -161,11 +162,33 @@ public class LocalScopedService : IScopedService
         return !exists;
     }
 
+    public async Task<JObject> GetContextAsync(Guid elementId)
+    {
+        using var db = _dbContextFactory.CreateDbContext();
+
+        var element = await db.ScopedElements.AsNoTracking().FirstOrDefaultAsync(x => x.Id == elementId);
+        if (element == null)
+            return new JObject();
+
+        var scopes = await db.ScopedElements.AsNoTracking().OfType<Scope>().ToDictionaryAsync(x => x.Id);
+
+        // Walk up to the root, the resolution then going back down so a scope overrides its parents.
+        List<Scope> hierarchy = [];
+        Guid? currentId = element is Scope ? element.Id : element.ParentId;
+        while (currentId != null && scopes.TryGetValue(currentId.Value, out var scope))
+        {
+            hierarchy.Insert(0, scope);
+            currentId = scope.ParentId;
+        }
+
+        return ScopeContextResolver.Resolve(hierarchy);
+    }
+
     /// <summary>
     /// Collect the ids whose executions make up [elementId]'s history: the element itself when it is a
     /// task or workflow, or every task/workflow nested under it (recursively) when it is a scope.
     /// </summary>
-    private static IEnumerable<Guid> CollectExecutableIds(
+    public static IEnumerable<Guid> CollectExecutableIds(
         Guid elementId,
         Dictionary<Guid, ScopedElement> byId,
         ILookup<Guid?, ScopedElement> byParent)

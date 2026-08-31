@@ -25,7 +25,6 @@ namespace Automation.App.Features.Workflows.Details.Controls
         [ObservableProperty] private int _capacity = 50;
 
         private readonly ScopedNode _node;
-        private readonly IScopedService _scoped;
         private readonly IHistoryService _history;
 
         /// <summary>
@@ -34,10 +33,9 @@ namespace Automation.App.Features.Workflows.Details.Controls
         /// </summary>
         private bool _isSubscribed;
 
-        public HistoryViewModel(ScopedNode node, IScopedService scoped, IHistoryService history)
+        public HistoryViewModel(ScopedNode node, IHistoryService history)
         {
             _node = node;
-            _scoped = scoped;
             _history = history;
         }
 
@@ -72,7 +70,7 @@ namespace Automation.App.Features.Workflows.Details.Controls
 
         public async Task RefreshAsync()
         {
-            var page = await _scoped.GetHistoryAsync(
+            var page = await _history.GetByScopedAsync(
                 _node.Element.Id,
                 new PaginationOptions() { Page = PageNumber, PageSize = Capacity });
 
@@ -93,9 +91,7 @@ namespace Automation.App.Features.Workflows.Details.Controls
         /// </summary>
         private bool IsDisplayed(TaskInstance instance)
         {
-            if (!_node.IsScope)
-                return instance.TaskId == _node.Element.Id;
-            return _node.Descendants.Any(x => x.TaskElement != null && x.TaskElement.Id == instance.TaskId);
+            return instance.TaskId == _node.Element.Id;
         }
 
         private void OnInstanceAdded(TaskInstance instance)

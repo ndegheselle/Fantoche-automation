@@ -26,8 +26,7 @@
         </Style>
     </UserControl.Resources>
 
-    <Grid
-        joufflu:Spacing.Gap="4">
+    <Grid joufflu:Spacing.Gap="4">
         <Grid.RowDefinitions>
             <RowDefinition />
             <RowDefinition Height="auto" />
@@ -36,48 +35,54 @@
 
         <!--  What the node reads, what it runs with and what it produces  -->
         <Grid joufflu:Spacing.Gap="4">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition />
-                <ColumnDefinition />
-                <ColumnDefinition />
-            </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto" />
+                <RowDefinition Height="2*" />
                 <RowDefinition />
             </Grid.RowDefinitions>
 
-            <TextBlock Style="{StaticResource Muted}" Text="Input" />
+            <TextBlock Style="{StaticResource Muted}" Text="Parameters" />
             <TextBox
                 Grid.Row="1"
-                Height="auto"
-                IsReadOnly="{Binding IsInputReadOnly}"
-                Style="{StaticResource JsonTextBox}"
-                Text="{Binding InputJson, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-
-            <TextBlock
-                Grid.Column="1"
-                Style="{StaticResource Muted}"
-                Text="Parameters" />
-            <TextBox
-                Grid.Row="1"
-                Grid.Column="1"
-                Height="auto"
+                Height="200"
+                Padding="4"
                 IsReadOnly="{Binding IsParametersReadOnly}"
                 Style="{StaticResource JsonTextBox}"
                 Text="{Binding ParametersJson, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
-            <TextBlock
-                Grid.Column="2"
-                Style="{StaticResource Muted}"
-                Text="Output" />
-            <TextBox
-                Grid.Row="1"
-                Height="auto"
-                VerticalContentAlignment="Stretch"
-                Grid.Column="2"
-                IsReadOnly="{Binding IsOutputReadOnly}"
-                Style="{StaticResource JsonTextBox}"
-                Text="{Binding OutputJson, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            <Grid Grid.Row="2" joufflu:Spacing.Gap="4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto" />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+
+                <TextBlock Style="{StaticResource Muted}" Text="Input" />
+                <TextBox
+                    Grid.Row="1"
+                    Height="200"
+                    Padding="4"
+                    IsReadOnly="{Binding IsInputReadOnly}"
+                    Style="{StaticResource JsonTextBox}"
+                    Text="{Binding InputJson, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                <TextBlock
+                    Grid.Column="1"
+                    Style="{StaticResource Muted}"
+                    Text="Output" />
+                <TextBox
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    Height="200"
+                    Padding="4"
+                    VerticalContentAlignment="Stretch"
+                    IsReadOnly="{Binding IsOutputReadOnly}"
+                    Style="{StaticResource JsonTextBox}"
+                    Text="{Binding OutputJson, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </Grid>
         </Grid>
 
         <!--  Errors, the validation being blocked while there is any  -->

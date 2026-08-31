@@ -26,9 +26,21 @@ public class LocalHistoryService : IHistoryService
         _dbContextFactory = dbContextFactory;
     }
 
-    public async Task<Paginated<TaskInstance>> SearchAsync(
-        PaginationOptions options = default,
-        IReadOnlyCollection<Guid>? taskIds = null)
+    public async Task<Paginated<TaskInstance>> GetByScopedAsync(Guid elementId, PaginationOptions options = default)
+    {
+        using var db = _dbContextFactory.CreateDbContext();
+        var elements = await db.ScopedElements.AsNoTracking().ToListAsync();
+
+        var byId = elements.ToDictionary(x => x.Id);
+        var byParent = elements.ToLookup(x => x.ParentId);
+
+        var taskIds = LocalScopedService.CollectExecutableIds(elementId, byId, byParent).ToHashSet();
+        return await GetAsync(taskIds, options);
+    }
+
+    private async Task<Paginated<TaskInstance>> GetAsync(
+        IReadOnlyCollection<Guid>? taskIds = null,
+        PaginationOptions options = default)
     {
         using var db = _dbContextFactory.CreateDbContext();
 

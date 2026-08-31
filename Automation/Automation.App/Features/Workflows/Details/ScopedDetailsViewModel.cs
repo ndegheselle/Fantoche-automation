@@ -46,7 +46,7 @@ namespace Automation.App.Features.Workflows.Details
             Node = node;
             _parent = parent;
             OpenCommand = parent.OpenCommand;
-            History = new HistoryViewModel(node, _scoped, _history);
+            History = new HistoryViewModel(node, _history);
 
             // The views edit the metadata itself, so its changes are what tells the element needs
             // saving. Tags are edited through the collection rather than the property, hence the
