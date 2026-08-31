@@ -41,6 +41,7 @@ public class SpineViewModel : ObservableObject
     public IPackagesService Packages { get; }
     public IHistoryService History { get; }
     public IScopedService Scoped { get; }
+    public IExecutionService Execution { get; }
     #endregion
 
     private readonly Dictionary<Type, object> _pages;
@@ -50,9 +51,12 @@ public class SpineViewModel : ObservableObject
         var dbContextFactory = new LocalDbContextFactory(Path.Combine(Settings.LocalFolderPath, "automation.db"));
 
         var history = new LocalHistoryService(dbContextFactory);
-        Packages = new LocalPackagesService(Settings.PackagesFolderPath, Settings.LocalFolderPath);
+        var packages = new LocalPackagesService(Settings.PackagesFolderPath, Settings.LocalFolderPath);
+        var scoped = new LocalScopedService(history, dbContextFactory);
+        Packages = packages;
         History = history;
-        Scoped = new LocalScopedService(history, dbContextFactory);
+        Scoped = scoped;
+        Execution = new LocalExecutionService(scoped, history, dbContextFactory, packages.PackageManagement);
 
         // Take the cost of building the EF model off the first navigation.
         _ = Task.Run(() => dbContextFactory.WarmupAsync());

@@ -95,6 +95,8 @@
                 </Grid>
             </Grid>
         </TabItem>
-        <TabItem Header="History" IsEnabled="False" />
+        <TabItem Header="History">
+            <details:HistoryTable DataContext="{Binding History}" />
+        </TabItem>
     </TabControl>
 </UserControl>

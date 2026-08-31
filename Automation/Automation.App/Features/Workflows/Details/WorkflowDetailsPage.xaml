@@ -54,7 +54,9 @@
                 </Grid>
             </Grid>
         </TabItem>
-        <TabItem Header="History" IsEnabled="False" />
+        <TabItem Header="History">
+            <controls:HistoryTable DataContext="{Binding History}" />
+        </TabItem>
         <TabItem Header="Editor">
             <editor:WorkflowEditor DataContext="{Binding Editor}" />
         </TabItem>
