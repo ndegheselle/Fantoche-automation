@@ -1,8 +1,8 @@
-﻿using Automation.Shared.Data.Scoped;
+﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
+using Automation.Shared.Data.Scoped;
 using Automation.Shared.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
 
 namespace Automation.App.Features.Workflows
 {
@@ -30,11 +30,6 @@ namespace Automation.App.Features.Workflows
         /// Ancestors then itself, root first.
         /// </summary>
         public IEnumerable<ScopedNode> Path => Parent == null ? [this] : Parent.Path.Append(this);
-
-        /// <summary>
-        /// Every node below this one, whatever its depth.
-        /// </summary>
-        public IEnumerable<ScopedNode> Descendants => Children.Concat(Children.SelectMany(x => x.Descendants));
 
         [ObservableProperty] private bool _isExpanded;
         [ObservableProperty] private bool _isSelected;

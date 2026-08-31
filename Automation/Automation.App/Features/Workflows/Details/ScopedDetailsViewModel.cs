@@ -25,11 +25,6 @@ namespace Automation.App.Features.Workflows.Details
         public ScopedMetadata Metadata => Element.Metadata;
 
         /// <summary>
-        /// Name of the element type, as displayed in the user feedbacks.
-        /// </summary>
-        protected abstract string TypeName { get; }
-
-        /// <summary>
         /// Whether the metadata has been edited since the last save.
         /// </summary>
         private bool _hasMetadataChanges;
@@ -56,7 +51,7 @@ namespace Automation.App.Features.Workflows.Details
         /// Save the general infos of the element : its metadata and its own settings.
         /// </summary>
         [RelayCommand(CanExecute = nameof(CanSave))]
-        public Task Save() => SaveElementAsync($"The {TypeName} '{Node.Name}' has been saved.");
+        public Task Save() => SaveElementAsync($"The {Node.Type} '{Node.Name}' has been saved.");
 
         /// <summary>
         /// Persist the element, then confirm it to the user with [message]. The storage has no partial
@@ -69,7 +64,7 @@ namespace Automation.App.Features.Workflows.Details
             _hasMetadataChanges = false;
             OnSaved();
             SaveCommand.NotifyCanExecuteChanged();
-            _toasts.Success(message, $"{TypeName} saved");
+            _toasts.Success(message, $"{Node.Type} saved");
         }
 
         /// <summary>
@@ -97,7 +92,7 @@ namespace Automation.App.Features.Workflows.Details
         [RelayCommand(CanExecute = nameof(CanDelete))]
         public async Task Delete()
         {
-            if (await _overlays.Confirm($"Are you sure you want to delete the {TypeName} '{Node.Name}' ?", "Confirm deletion", EnumConfirmationType.Danger) != true)
+            if (await _overlays.Confirm($"Are you sure you want to delete the {Node.Type} '{Node.Name}' ?", "Confirm deletion", EnumConfirmationType.Danger) != true)
                 return;
 
             // Kept before the removal, the node not being displayed anymore once it is done.
@@ -107,7 +102,7 @@ namespace Automation.App.Features.Workflows.Details
             _parent.Remove(Node);
             // Fall back on the parent scope, the element not being displayable anymore
             _parent.Open(Node.Parent);
-            _toasts.Success($"The {TypeName} '{name}' has been deleted.", $"{TypeName} deleted");
+            _toasts.Success($"The {Node.Type} '{name}' has been deleted.", $"{Node.Type} deleted");
         }
 
         /// <summary>

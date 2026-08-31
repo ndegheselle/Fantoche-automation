@@ -1,9 +1,7 @@
 using Automation.Shared.Base;
-using Automation.Shared.Data.Execution;
 using Automation.Shared.Data.Scoped;
 using Automation.Shared.Services;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json.Linq;
 
 namespace Automation.Services.Local;
 
@@ -128,49 +126,6 @@ public class LocalScopedService : IScopedService
             x.Metadata.Name.ToLower() == term);
 
         return !exists;
-    }
-
-    public async Task<List<AutomationTask>> GetTasksByPackageAsync(string packageId)
-    {
-        using var db = _dbContextFactory.CreateDbContext();
-
-        // Target is stored as an opaque JSON column, so the predicate has to run client-side.
-        var tasks = await db.ScopedElements.OfType<AutomationTask>().ToListAsync();
-        return tasks.Where(t => t.Target != null && t.Target.Package.Id == packageId).ToList();
-    }
-
-    public async Task<JObject> GetContextAsync(Guid elementId)
-    {
-        using var db = _dbContextFactory.CreateDbContext();
-
-        var element = await db.ScopedElements.AsNoTracking().FirstOrDefaultAsync(x => x.Id == elementId);
-        if (element == null)
-            return new JObject();
-
-        var scopes = await db.ScopedElements.AsNoTracking().OfType<Scope>().ToDictionaryAsync(x => x.Id);
-
-        // Walk up to the root, the resolution then going back down so a scope overrides its parents.
-        List<Scope> hierarchy = [];
-        Guid? currentId = element is Scope ? element.Id : element.ParentId;
-        while (currentId != null && scopes.TryGetValue(currentId.Value, out var scope))
-        {
-            hierarchy.Insert(0, scope);
-            currentId = scope.ParentId;
-        }
-
-        return ScopeContextResolver.Resolve(hierarchy);
-    }
-
-    public async Task<Paginated<TaskInstance>> GetHistoryAsync(Guid elementId, PaginationOptions options = default)
-    {
-        using var db = _dbContextFactory.CreateDbContext();
-        var elements = await db.ScopedElements.AsNoTracking().ToListAsync();
-
-        var byId = elements.ToDictionary(x => x.Id);
-        var byParent = elements.ToLookup(x => x.ParentId);
-
-        var taskIds = CollectExecutableIds(elementId, byId, byParent).ToHashSet();
-        return await _historyService.SearchAsync(options, taskIds);
     }
 
     /// <summary>

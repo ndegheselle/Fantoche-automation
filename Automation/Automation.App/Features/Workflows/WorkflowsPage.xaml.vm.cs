@@ -1,10 +1,8 @@
-﻿using Automation.Shared.Base;
+﻿using Automation.App.Features.Workflows.Details;
 using Automation.Shared.Data.Scoped;
 using Automation.Shared.Services;
-using Automation.App.Features.Workflows.Details;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System.Collections.ObjectModel;
 
 namespace Automation.App.Features.Workflows
 {
@@ -14,12 +12,6 @@ namespace Automation.App.Features.Workflows
         /// Scope holding the whole hierarchy. It is only a container : the tree displays its children.
         /// </summary>
         public ScopedNode Root { get; }
-
-        /// <summary>
-        /// Flat list of the tasks and workflows matching <see cref="Search"/>, displayed instead of
-        /// the tree while a search is running.
-        /// </summary>
-        public ObservableCollection<ScopedNode> SearchResults { get; } = [];
 
         /// <summary>
         /// Whether a search is running, the tree and its results not being displayed together.
@@ -62,20 +54,6 @@ namespace Automation.App.Features.Workflows
         /// </summary>
         private async Task SearchAsync()
         {
-            SearchResults.Clear();
-            if (!IsSearching)
-                return;
-
-            Paginated<BaseAutomationTask> page = await _scoped.SearchAsync(Search, new PaginationOptions());
-
-            // The whole hierarchy is loaded, so a result is displayed through the node already
-            // holding it : selecting it then reveals it at its place in the tree.
-            Dictionary<Guid, ScopedNode> nodes = Root.Descendants.ToDictionary(x => x.Element.Id);
-            foreach (BaseAutomationTask element in page.Items)
-            {
-                if (nodes.TryGetValue(element.Id, out ScopedNode? node))
-                    SearchResults.Add(node);
-            }
         }
 
         partial void OnSearchChanged(string value)
@@ -125,9 +103,6 @@ namespace Automation.App.Features.Workflows
         /// </summary>
         public void Remove(ScopedNode node)
         {
-            // The results hold the very nodes of the tree, so what is gone has to leave both.
-            foreach (ScopedNode removed in node.Descendants.Append(node).ToList())
-                SearchResults.Remove(removed);
             node.Parent?.Children.Remove(node);
         }
 
