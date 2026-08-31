@@ -27,7 +27,7 @@ public class WorkflowInstance : TaskInstance
     public AutomationWorkflow Workflow { get; }
 
     [Newtonsoft.Json.JsonIgnore]
-    public JToken? GlobalContext { get; }
+    public JToken? GlobalContext { get; set; }
     [Newtonsoft.Json.JsonIgnore]
     public JToken? SharedContext { get; set; }
 

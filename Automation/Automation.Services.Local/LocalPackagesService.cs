@@ -9,6 +9,11 @@ public class LocalPackagesService : IPackagesService
 {
     private readonly LocalPackageManagement _packages;
 
+    /// <summary>
+    /// The packages the tasks are loaded from, shared with whoever executes them.
+    /// </summary>
+    public LocalPackageManagement PackageManagement => _packages;
+
     public LocalPackagesService(string folderPath, string cacheFolderPath)
     {
         _packages = new LocalPackageManagement(folderPath, cacheFolderPath);
