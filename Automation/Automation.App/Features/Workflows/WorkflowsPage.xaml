@@ -99,8 +99,7 @@
                 ItemsSource="{Binding Root.Children}"
                 PreviewMouseLeftButtonUp="OnSelectionMouseLeftButtonUp"
                 QueryContinueDrag="OnSelectionQueryContinueDrag"
-                SelectedItemChanged="OnTreeSelectionChanged"
-                Visibility="{Binding IsSearching, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}">
+                SelectedItemChanged="OnTreeSelectionChanged">
                 <TreeView.ItemContainerStyle>
                     <Style BasedOn="{StaticResource TreeViewItemStyle}" TargetType="{x:Type TreeViewItem}">
                         <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />

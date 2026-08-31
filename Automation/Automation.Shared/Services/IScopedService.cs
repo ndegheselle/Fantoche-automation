@@ -16,9 +16,10 @@ public interface IScopedService
     public Task<Paginated<BaseAutomationTask>> SearchAsync(string search = "", PaginationOptions options = default);
 
     /// <summary>
-    /// Search in all tasks, return a complete tree of the elements with parents
+    /// Search in all tasks, return a flat list holding the elements corresponding to the search and
+    /// every scope leading to them, so the tree can be rebuilt from their parents.
     /// </summary>
-    public Task<List<ScopedElement>> SearchTreeAsync(string search = "", PaginationOptions options = default);
+    public Task<List<ScopedElement>> SearchTreeAsync(string search = "");
 
     /// <summary>
     /// Create a new element.

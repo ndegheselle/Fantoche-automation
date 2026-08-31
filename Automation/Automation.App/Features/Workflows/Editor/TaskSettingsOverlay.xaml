@@ -27,8 +27,6 @@
     </UserControl.Resources>
 
     <Grid
-        MinWidth="850"
-        MinHeight="550"
         joufflu:Spacing.Gap="4">
         <Grid.RowDefinitions>
             <RowDefinition />
@@ -39,9 +37,9 @@
         <!--  What the node reads, what it runs with and what it produces  -->
         <Grid joufflu:Spacing.Gap="4">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition MinWidth="200" />
-                <ColumnDefinition MinWidth="200" />
-                <ColumnDefinition MinWidth="200" />
+                <ColumnDefinition />
+                <ColumnDefinition />
+                <ColumnDefinition />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto" />
@@ -51,6 +49,7 @@
             <TextBlock Style="{StaticResource Muted}" Text="Input" />
             <TextBox
                 Grid.Row="1"
+                Height="auto"
                 IsReadOnly="{Binding IsInputReadOnly}"
                 Style="{StaticResource JsonTextBox}"
                 Text="{Binding InputJson, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
@@ -62,6 +61,7 @@
             <TextBox
                 Grid.Row="1"
                 Grid.Column="1"
+                Height="auto"
                 IsReadOnly="{Binding IsParametersReadOnly}"
                 Style="{StaticResource JsonTextBox}"
                 Text="{Binding ParametersJson, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
@@ -72,6 +72,8 @@
                 Text="Output" />
             <TextBox
                 Grid.Row="1"
+                Height="auto"
+                VerticalContentAlignment="Stretch"
                 Grid.Column="2"
                 IsReadOnly="{Binding IsOutputReadOnly}"
                 Style="{StaticResource JsonTextBox}"

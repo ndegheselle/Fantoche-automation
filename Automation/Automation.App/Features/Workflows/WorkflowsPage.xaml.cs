@@ -91,9 +91,6 @@ namespace Automation.App.Features.Workflows
                 return;
 
             open.IsSelected = true;
-            // The results only hold what the search matched, so the highlight leaves them when what
-            // is open isn't one of them.
-            ViewModel.SelectedResult = ViewModel.SearchResults.Contains(open) ? open : null;
         }
     }
 }

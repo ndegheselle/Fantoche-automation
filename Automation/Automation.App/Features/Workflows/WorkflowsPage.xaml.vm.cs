@@ -49,11 +49,38 @@ namespace Automation.App.Features.Workflows
         }
 
         /// <summary>
-        /// Fill <see cref="SearchResults"/> with the first page of tasks and workflows matching
-        /// <see cref="Search"/>, scopes not being searchable.
+        /// Rebuild the tree with the tasks and workflows matching <see cref="Search"/> and the scopes
+        /// leading to them, scopes not being searchable. An empty search restores the whole tree.
         /// </summary>
         private async Task SearchAsync()
         {
+            string search = Search;
+            if (string.IsNullOrWhiteSpace(search))
+            {
+                await Root.LoadAsync();
+                return;
+            }
+
+            List<ScopedElement> results = await _scoped.SearchTreeAsync(search);
+
+            // Another search may have been typed while this one was running : only the last one wins.
+            if (search != Search)
+                return;
+
+            // The root is the tree container and is not part of the results : its own children hang
+            // directly under it.
+            Root.Load(results.Where(x => x.Id != Root.Element.Id).ToLookup(x => x.ParentId));
+            ExpandAll(Root);
+        }
+
+        /// <summary>
+        /// Open every branch of [node], the results being buried in their scopes otherwise.
+        /// </summary>
+        private static void ExpandAll(ScopedNode node)
+        {
+            node.IsExpanded = true;
+            foreach (ScopedNode child in node.Children)
+                ExpandAll(child);
         }
 
         partial void OnSearchChanged(string value)

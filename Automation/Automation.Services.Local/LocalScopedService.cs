@@ -1,4 +1,4 @@
-using Automation.Shared.Base;
+﻿using Automation.Shared.Base;
 using Automation.Shared.Data.Scoped;
 using Automation.Shared.Services;
 using Microsoft.EntityFrameworkCore;
@@ -94,7 +94,7 @@ public class LocalScopedService : IScopedService
     {
         using var db = _dbContextFactory.CreateDbContext();
 
-        IQueryable<BaseAutomationTask> query = db.ScopedElements.OfType<BaseAutomationTask>();
+        IQueryable<BaseAutomationTask> query = db.ScopedElements.AsNoTracking().OfType<BaseAutomationTask>();
         if (!string.IsNullOrWhiteSpace(search))
         {
             string term = search.ToLower();
@@ -113,6 +113,39 @@ public class LocalScopedService : IScopedService
             Total = total,
             Options = options,
         };
+    }
+
+    public async Task<List<ScopedElement>> SearchTreeAsync(string search = "")
+    {
+        using var db = _dbContextFactory.CreateDbContext();
+
+        // Only tasks and workflows are matched, scopes being kept only for the branches they hold.
+        IQueryable<BaseAutomationTask> query = db.ScopedElements.AsNoTracking().OfType<BaseAutomationTask>();
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            string term = search.ToLower();
+            query = query.Where(x => x.Metadata.Name.ToLower().Contains(term));
+        }
+
+        List<ScopedElement> results = [.. await query.ToListAsync()];
+        HashSet<Guid> known = [.. results.Select(x => x.Id)];
+
+        // Every result comes with the scopes leading to it, so the caller can rebuild the branches
+        // from ParentId : they are read one level at a time, the parent being a plain column and not
+        // a relationship to join on.
+        List<Guid> missing = [.. results.Select(x => x.ParentId).OfType<Guid>().Where(known.Add)];
+        while (missing.Count > 0)
+        {
+            var parents = await db.ScopedElements
+                .AsNoTracking()
+                .Where(x => missing.Contains(x.Id))
+                .ToListAsync();
+
+            results.AddRange(parents);
+            missing = [.. parents.Select(x => x.ParentId).OfType<Guid>().Where(known.Add)];
+        }
+
+        return results;
     }
 
     public async Task<bool> IsNameUniqueAsync(Guid parentId, string name, Guid? excludeId = null)

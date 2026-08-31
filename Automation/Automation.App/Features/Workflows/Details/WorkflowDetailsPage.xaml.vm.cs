@@ -15,8 +15,6 @@ namespace Automation.App.Features.Workflows.Details
         /// </summary>
         public WorkflowEditorViewModel Editor { get; }
 
-        protected override string TypeName => "workflow";
-
         public bool StopAtFirstEnd
         {
             get => Workflow.WorkflowSettings.StopAtFirstEnd;

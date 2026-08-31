@@ -8,9 +8,6 @@ namespace Automation.App.Features.Workflows.Details
     public partial class TaskDetailsViewModel : ScopedDetailsViewModel<AutomationTask>
     {
         public AutomationTask Task => Element;
-
-        protected override string TypeName => "task";
-
         public PackageClassTarget? Target
         {
             get => Task.Target;

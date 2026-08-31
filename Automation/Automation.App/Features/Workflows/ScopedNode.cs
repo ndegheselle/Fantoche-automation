@@ -53,6 +53,21 @@ namespace Automation.App.Features.Workflows
                 OnPropertyChanged(nameof(Type));
         }
 
+        /// <summary>
+        /// Fill the children from an already loaded flat list of elements, indexed by their parent :
+        /// used by the search, which returns its results along with the scopes leading to them.
+        /// </summary>
+        public void Load(ILookup<Guid?, ScopedElement> byParent)
+        {
+            Children.Clear();
+            foreach (ScopedElement child in byParent[Element.Id])
+            {
+                var node = new ScopedNode(child, this, _scoped);
+                Children.Add(node);
+                node.Load(byParent);
+            }
+        }
+
         public async Task LoadAsync()
         {
             if (!IsScope)
