@@ -1,0 +1,36 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:jeedback="clr-namespace:Joufflu.Feedback.Controls;assembly=Joufflu.Feedback">
+
+    <!--
+        State of an instance, shared by the history table and the detail of an instance so a state
+        always reads the same. The content is the state itself, the variant follows it.
+    -->
+    <Style
+        x:Key="InstanceStateBadge"
+        BasedOn="{StaticResource {x:Type jeedback:Badge}}"
+        TargetType="{x:Type jeedback:Badge}">
+        <Setter Property="Content" Value="{Binding State}" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding State}" Value="Pending">
+                <Setter Property="Variant" Value="Info" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding State}" Value="Waiting">
+                <Setter Property="Variant" Value="Warning" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding State}" Value="Progressing">
+                <Setter Property="Variant" Value="Info" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding State}" Value="Completed">
+                <Setter Property="Variant" Value="Success" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding State}" Value="Failed">
+                <Setter Property="Variant" Value="Danger" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding State}" Value="Canceled">
+                <Setter Property="Variant" Value="Warning" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+</ResourceDictionary>

@@ -1,5 +1,6 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Windows;
+using Automation.Shared.Data.Execution;
 using Automation.Shared.Data.Graph;
 using Automation.Shared.Data.Scoped;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -24,6 +25,13 @@ namespace Automation.App.Features.Workflows.Editor.ViewModels
 
         [ObservableProperty] private Point _location;
         [ObservableProperty] private bool _isSelected;
+
+        /// <summary>
+        /// State of the last instance of this node in the run being followed, so the editor shows
+        /// the progress of the workflow. Null while the node hasn't run yet : the state is that of
+        /// a run, not of the graph, and it is cleared when a new one starts.
+        /// </summary>
+        [ObservableProperty] private EnumTaskState? _state;
 
         public NodeViewModel(BaseGraphTask model)
         {

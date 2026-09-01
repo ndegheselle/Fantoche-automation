@@ -25,11 +25,6 @@ public interface IExecutionService
     public Task<TaskInstance> StartAsync(Guid taskId, JToken? parameters = null);
 
     /// <summary>
-    /// Start the already loaded task or workflow [task], see <see cref="StartAsync(Guid, JToken?)"/>.
-    /// </summary>
-    public Task<TaskInstance> StartAsync(BaseAutomationTask task, JToken? parameters = null);
-
-    /// <summary>
     /// Wait for the execution [instanceId] to be finished and return its final instance.
     /// Returns the persisted instance right away when the execution is already over.
     /// </summary>

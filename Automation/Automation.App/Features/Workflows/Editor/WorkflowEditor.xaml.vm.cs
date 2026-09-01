@@ -307,10 +307,19 @@ namespace Automation.App.Features.Workflows.Editor
                     return;
             }
 
-            _historyService.InstanceUpdated += OnInstanceUpdated;
+            // The states displayed belong to a run : the previous one is cleared rather than left
+            // over the nodes of the new one.
+            foreach (NodeViewModel node in Nodes)
+                node.State = null;
+
+            // Added and updated both : a node is reported as it starts, then again as it ends.
+            _historyService.InstanceAdded += OnInstanceReported;
+            _historyService.InstanceUpdated += OnInstanceReported;
             try
             {
-                RunningInstance = await _execution.StartAsync(Workflow, settings);
+                // Started by id : what runs is the persisted workflow, which is why the graph has to
+                // be saved before it can be started.
+                RunningInstance = await _execution.StartAsync(Workflow.Id, settings);
             }
             catch (Exception exception)
             {
@@ -346,22 +355,79 @@ namespace Automation.App.Features.Workflows.Editor
             }
         }
 
-        private void OnInstanceUpdated(TaskInstance instance)
+        /// <summary>
+        /// An instance of the run being followed changed : the workflow itself, which ends the run,
+        /// or one of its nodes, whose state is displayed on the graph.
+        /// </summary>
+        private void OnInstanceReported(TaskInstance instance)
         {
             // The instances are reported by the threads running the executions.
             Dispatch(() =>
             {
-                if (RunningInstance?.Id == instance.Id && (instance.State & EnumTaskState.Finished) != 0)
-                    Stop();
+                TaskInstance? running = RunningInstance;
+                if (running == null)
+                    return;
+
+                if (running.Id == instance.Id)
+                {
+                    if ((instance.State & EnumTaskState.Finished) != 0)
+                    {
+                        Stop();
+                        Report(instance);
+                    }
+                    return;
+                }
+
+                // Only the nodes of this very run, a workflow can be running in more than one place
+                // (its own editor, a node of another graph, a schedule).
+                if (running.Id != instance.ParentInstanceId || instance.NodeId is not Guid nodeId)
+                    return;
+
+                NodeViewModel? node = Nodes.FirstOrDefault(x => x.Model.Id == nodeId);
+                if (node != null)
+                    node.State = instance.State;
             });
         }
 
         /// <summary>
-        /// Stop following the execution, the graph becoming editable again.
+        /// Tell how the run ended, the editor being the place it was started from.
+        /// </summary>
+        private void Report(TaskInstance instance)
+        {
+            string name = Workflow.Metadata.Name;
+            switch (instance.State)
+            {
+                case EnumTaskState.Completed:
+                    _toasts.Success($"The workflow '{name}' has been executed.", "Workflow completed");
+                    break;
+                case EnumTaskState.Canceled:
+                    _toasts.Warning($"The workflow '{name}' has been canceled.", "Workflow canceled");
+                    break;
+                default:
+                    // The failure of a task is stored as its stack trace, only its first line is
+                    // worth a toast : the history holds the rest.
+                    _toasts.Error(FirstLine(instance.Output?.ToString()) ?? "The execution failed.", $"Workflow '{name}' failed");
+                    break;
+            }
+        }
+
+        private static string? FirstLine(string? text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return null;
+
+            string line = text.ReplaceLineEndings("\n").Split('\n')[0].Trim();
+            return string.IsNullOrEmpty(line) ? null : line;
+        }
+
+        /// <summary>
+        /// Stop following the execution, the graph becoming editable again. The states left on the
+        /// nodes are kept : they are what the run amounted to.
         /// </summary>
         private void Stop()
         {
-            _historyService.InstanceUpdated -= OnInstanceUpdated;
+            _historyService.InstanceAdded -= OnInstanceReported;
+            _historyService.InstanceUpdated -= OnInstanceReported;
             RunningInstance = null;
         }
 

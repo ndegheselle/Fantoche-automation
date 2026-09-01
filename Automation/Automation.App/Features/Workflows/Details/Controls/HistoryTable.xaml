@@ -1,4 +1,4 @@
-<UserControl
+﻿<UserControl
     x:Class="Automation.App.Features.Workflows.Details.Controls.HistoryTable"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -6,10 +6,18 @@
     xmlns:javigation="clr-namespace:Joufflu.Navigation.Controls;assembly=Joufflu.Navigation"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:jeedback="clr-namespace:Joufflu.Feedback.Controls;assembly=Joufflu.Feedback"
+    xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
     xmlns:local="clr-namespace:Automation.App.Features.Workflows.Details.Controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     d:DataContext="{d:DesignInstance Type=local:HistoryViewModel}"
     mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/Automation.App;component/Features/Workflows/Details/Controls/InstanceState.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
     <Grid joufflu:Spacing.Gap="4">
         <Grid.RowDefinitions>
             <RowDefinition />
@@ -17,6 +25,7 @@
         </Grid.RowDefinitions>
 
         <DataGrid
+            joufflu:Sizing.Size="xs"
             Grid.Row="0"
             AutoGenerateColumns="False"
             CanUserReorderColumns="False"
@@ -30,31 +39,27 @@
                 <DataGridTemplateColumn Header="State">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <jeedback:Badge Content="{Binding State}">
-                                <jeedback:Badge.Style>
-                                    <Style TargetType="{x:Type jeedback:Badge}" BasedOn="{StaticResource {x:Type jeedback:Badge}}">
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding State}" Value="Progressing">
-                                                <Setter Property="Variant" Value="Info" />
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding State}" Value="Sucess">
-                                                <Setter Property="Variant" Value="Success" />
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding State}" Value="Failed">
-                                                <Setter Property="Variant" Value="Danger" />
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding State}" Value="Canceled">
-                                                <Setter Property="Variant" Value="Warning" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </jeedback:Badge.Style>
-                            </jeedback:Badge>
+                            <jeedback:Badge Style="{StaticResource InstanceStateBadge}" />
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
                 <DataGridTextColumn Binding="{Binding CreatedAt, StringFormat=\{0:g\}}" Header="Started" />
                 <DataGridTextColumn Binding="{Binding FinishedAt, StringFormat=\{0:g\}}" Header="Finished" />
+                <DataGridTemplateColumn>
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <!--  The row only knows its own instance, the command lives on the history  -->
+                            <Button
+                                joufflu:Sizing.IsSquare="True"
+                                Command="{Binding DataContext.OpenDetailCommand, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"
+                                CommandParameter="{Binding}"
+                                Style="{StaticResource GhostButton}"
+                                ToolTip="Detail of the execution">
+                                <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.ChevronRight}" />
+                            </Button>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
 

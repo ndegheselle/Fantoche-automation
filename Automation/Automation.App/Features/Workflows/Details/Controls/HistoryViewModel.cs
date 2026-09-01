@@ -1,9 +1,10 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Windows;
 using Automation.Shared.Base;
 using Automation.Shared.Data.Execution;
 using Automation.Shared.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 
 namespace Automation.App.Features.Workflows.Details.Controls
 {
@@ -67,6 +68,14 @@ namespace Automation.App.Features.Workflows.Details.Controls
             _history.InstanceUpdated -= OnInstanceUpdated;
             _isSubscribed = false;
         }
+
+        /// <summary>
+        /// Open the detail of [instance] : what it ran with and produced, and the nodes it ran when
+        /// it is a workflow.
+        /// </summary>
+        [RelayCommand]
+        private Task OpenDetail(TaskInstance? instance)
+            => instance == null ? Task.CompletedTask : InstanceDetailViewModel.ShowAsync(instance);
 
         public async Task RefreshAsync()
         {

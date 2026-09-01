@@ -1,4 +1,4 @@
-using Automation.Shared.Base;
+﻿using Automation.Shared.Base;
 using Automation.Shared.Data.Execution;
 using Automation.Shared.Services;
 using Microsoft.EntityFrameworkCore;
@@ -36,6 +36,17 @@ public class LocalHistoryService : IHistoryService
 
         var taskIds = LocalScopedService.CollectExecutableIds(elementId, byId, byParent).ToHashSet();
         return await GetAsync(taskIds, options);
+    }
+
+    public async Task<IReadOnlyList<TaskInstance>> GetChildrenAsync(Guid instanceId)
+    {
+        using var db = _dbContextFactory.CreateDbContext();
+
+        return await db.TaskInstances
+            .AsNoTracking()
+            .Where(x => x.ParentInstanceId == instanceId)
+            .OrderBy(x => x.CreatedAt)
+            .ToListAsync();
     }
 
     private async Task<Paginated<TaskInstance>> GetAsync(

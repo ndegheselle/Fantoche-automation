@@ -51,6 +51,37 @@
                 Viewport="0 0 100 100"
                 ViewportUnits="Absolute" />
 
+            <!--
+                Body of a node, outlined with the state of its last instance in the run being
+                followed : the progress of the workflow is read on the graph itself. Without a state
+                (nothing ran yet) it is a plain card.
+            -->
+            <Style
+                x:Key="NodeCard"
+                BasedOn="{StaticResource Card}"
+                TargetType="Border">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding State}" Value="Pending">
+                        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.InfoBrush}}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding State}" Value="Waiting">
+                        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.WarningBrush}}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding State}" Value="Progressing">
+                        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.InfoBrush}}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding State}" Value="Completed">
+                        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.SuccessBrush}}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding State}" Value="Failed">
+                        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding State}" Value="Canceled">
+                        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.WarningBrush}}" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+
             <Style TargetType="{x:Type nodify:Node}">
                 <Setter Property="Background" Value="Transparent" />
                 <Setter Property="BorderBrush" Value="Transparent" />
@@ -87,7 +118,7 @@
                                         ItemsSource="{TemplateBinding Input}" />
 
                                     <!--  Body  -->
-                                    <Border Grid.Column="1" Style="{StaticResource Card}">
+                                    <Border Grid.Column="1" Style="{StaticResource NodeCard}">
                                         <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                                     </Border>
 
