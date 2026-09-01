@@ -264,8 +264,13 @@ public class LocalPackageManagement
     /// Thrown if the package is not found, no compatible framework is available,
     /// or any other download error occurs.
     /// </exception>
-    private async Task<IEnumerable<string>> DownloadPackageDllsAsync(string id, Version version)
+    public async Task<IEnumerable<string>> DownloadPackageAsync(string id, Version version)
     {
+        // If the package is already cached, use that
+        var existingDlls = GetLocalDllPaths(id, version);
+        if (existingDlls.Any())
+            return existingDlls;
+
         try
         {
             var findPackageByIdResource = await (await _repositoryTask).GetResourceAsync<FindPackageByIdResource>();
@@ -326,90 +331,9 @@ public class LocalPackageManagement
     /// </exception>
     public async Task<string> DownloadPackageAsync(string id, Version version, string dll)
     {
-        await DownloadPackageDllsAsync(id, version);
-        return GetLocalDllPath(id, version, dll)
-            ?? throw new PackageDownloadException($"Could not find dll for [id:{id}][version:{version}] in downloaded package.");
-    }
-
-    /// <summary>
-    /// Returns the path of a specific DLL if it is already cached locally,
-    /// otherwise downloads the package first.
-    /// Uses a per-package semaphore to prevent concurrent duplicate downloads.
-    /// </summary>
-    /// <param name="id">The NuGet package identifier.</param>
-    /// <param name="version">The version of the package.</param>
-    /// <param name="dll">The name of the DLL (without extension) to locate.</param>
-    /// <returns>The full local path to the DLL.</returns>
-    public async Task<string> DownloadToLocalIfMissing(string id, Version version, string dll)
-    {
-        string? path = GetLocalDllPath(id, version, dll);
-        if (!string.IsNullOrEmpty(path))
-        {
-            ExtractSymbols(id, version);
-            return path;
-        }
-
-        string key = $"{id}.{version}";
-        var semaphore = _downloadLocks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
-
-        await semaphore.WaitAsync();
-        try
-        {
-            // Re-check after acquiring the lock — another task may have already downloaded it.
-            path = GetLocalDllPath(id, version, dll);
-            if (!string.IsNullOrEmpty(path))
-            {
-                ExtractSymbols(id, version);
-                return path;
-            }
-
-            return await DownloadPackageAsync(id, version, dll);
-        }
-        finally
-        {
-            semaphore.Release();
-            _downloadLocks.TryRemove(key, out _);
-        }
-    }
-
-    /// <summary>
-    /// Returns all DLL paths for a package if already cached locally,
-    /// otherwise downloads the package first.
-    /// Uses a per-package semaphore to prevent concurrent duplicate downloads.
-    /// </summary>
-    /// <param name="id">The NuGet package identifier.</param>
-    /// <param name="version">The version of the package.</param>
-    /// <returns>An enumerable of absolute paths to every <c>.dll</c> file in the package.</returns>
-    public async Task<IEnumerable<string>> DownloadAllDllsIfMissing(string id, Version version)
-    {
-        var paths = GetLocalDllPaths(id, version);
-        if (paths.Any())
-        {
-            ExtractSymbols(id, version);
-            return paths;
-        }
-
-        string key = $"{id}.{version}";
-        var semaphore = _downloadLocks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
-
-        await semaphore.WaitAsync();
-        try
-        {
-            // Re-check after acquiring the lock — another task may have already downloaded it.
-            paths = GetLocalDllPaths(id, version);
-            if (paths.Any())
-            {
-                ExtractSymbols(id, version);
-                return paths;
-            }
-
-            return await DownloadPackageDllsAsync(id, version);
-        }
-        finally
-        {
-            semaphore.Release();
-            _downloadLocks.TryRemove(key, out _);
-        }
+        var files = await DownloadPackageAsync(id, version);
+        var target = files.FirstOrDefault(x => Path.GetFileName(x) == $"{dll}.dll");
+        return target ?? throw new PackageDownloadException($"Could not find dll for [id:{id}][version:{version}] in downloaded package.");
     }
 
     /// <summary>
@@ -498,19 +422,6 @@ public class LocalPackageManagement
     #endregion
 
     #region Local File Resolution
-
-    /// <summary>
-    /// Returns the full path to a DLL in the local package cache, or <c>null</c> if it has not been extracted yet.
-    /// </summary>
-    /// <param name="id">The NuGet package identifier.</param>
-    /// <param name="version">The package version.</param>
-    /// <param name="dll">The name of the DLL (without extension).</param>
-    /// <returns>The full path if the file exists; otherwise <c>null</c>.</returns>
-    public string? GetLocalDllPath(string id, Version version, string dll)
-    {
-        string path = Path.Combine(GetLocalFolderPath(id, version), $"{dll}.dll");
-        return File.Exists(path) ? path : null;
-    }
 
     /// <summary>
     /// Returns the full paths of all DLLs extracted for a given package version in the local cache.

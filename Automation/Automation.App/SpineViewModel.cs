@@ -51,7 +51,7 @@ public class SpineViewModel : ObservableObject
         var dbContextFactory = new LocalDbContextFactory(Path.Combine(Settings.LocalFolderPath, "automation.db"));
 
         var history = new LocalHistoryService(dbContextFactory);
-        var packages = new LocalPackagesService(Settings.PackagesFolderPath, Settings.LocalFolderPath);
+        var packages = new LocalPackagesService(Settings.PackagesFolderPath, Path.Join(Settings.LocalFolderPath, "cache"));
         var scoped = new LocalScopedService(history, dbContextFactory);
         Packages = packages;
         History = history;
@@ -65,7 +65,7 @@ public class SpineViewModel : ObservableObject
         {
             new HomeViewModel(),
             new WorkflowsViewModel(Scoped),
-            new PackagesViewModel(Packages, Overlays),
+            new PackagesViewModel(Packages, Overlays, Toasts),
             new ServersViewModel(),
             new StorageViewModel(),
         }.ToDictionary(x => x.GetType());

@@ -234,7 +234,7 @@ internal static class Samples
             {
                 Dll = "Automation.Plugins",
                 ClassFullName = className,
-                Package = new PackageIdentifier() { Id = "Automation.Plugins", Version = new Version("1.0.1") }
+                Package = new PackageIdentifier() { Id = "Automation.Plugins", Version = new Version("1.0.2") }
             },
             InputSchemaJson = inputSchema,
             OutputSchemaJson = outputSchema,

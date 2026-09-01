@@ -38,7 +38,7 @@ public class LocalPackagesService : IPackagesService
             return new PackageAdded() { Infos = infos };
 
         // Check if the package contain tasks
-        var dllsPaths = await _packages.DownloadAllDllsIfMissing(infos.Identifier.Id, infos.Identifier.Version);
+        var dllsPaths = await _packages.DownloadPackageAsync(infos.Identifier.Id, infos.Identifier.Version);
         List<string> classes = [];
         foreach (var path in dllsPaths)
         {
@@ -49,7 +49,7 @@ public class LocalPackagesService : IPackagesService
         List<Warning> warnings = [];
         if (classes.Count == 0)
             warnings = [new Warning("packages.add.warnings.noTasks", "This package doesn't contain any compatible task.")];
-        
+
         return new PackageAdded()
         {
             Infos = infos,
@@ -70,7 +70,7 @@ public class LocalPackagesService : IPackagesService
     public async Task<List<ClassTarget>> GetClassesAsync(string id, Version version)
     {
         var identifier = new PackageIdentifier { Id = id, Version = version };
-        var dllsPaths = await _packages.DownloadAllDllsIfMissing(id, version);
+        var dllsPaths = await _packages.DownloadPackageAsync(id, version);
 
         List<ClassTarget> targets = [];
         foreach (var path in dllsPaths)

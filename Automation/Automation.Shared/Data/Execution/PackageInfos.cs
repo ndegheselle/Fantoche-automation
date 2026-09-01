@@ -10,7 +10,7 @@
 
         public override string ToString()
         {
-            return $"'{Id}' (version {Version})";
+            return $"{Id} (version {Version})";
         }
     }
 

@@ -5,6 +5,7 @@ using Automation.Shared.Data.Execution;
 using Automation.Shared.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Joufflu.Feedback;
 using Joufflu.Navigation;
 
 namespace Automation.App.Features.Packages
@@ -20,11 +21,13 @@ namespace Automation.App.Features.Packages
 
         private readonly IPackagesService _packages;
         private readonly IOverlayService _overlays;
+        private readonly IToastService _toasts;
 
-        public PackagesViewModel(IPackagesService packages, IOverlayService overlays)
+        public PackagesViewModel(IPackagesService packages, IOverlayService overlays, IToastService toasts)
         {
             this._packages = packages;
-            this._overlays = overlays;
+            _overlays = overlays;
+            _toasts = toasts;
         }
 
         [RelayCommand(CanExecute = nameof(CanDropFiles))]
@@ -42,7 +45,15 @@ namespace Automation.App.Features.Packages
 
         public async void AddPackage(string filePaths)
         {
-            await _packages.AddAsync(filePaths);
+            var result = await _packages.AddAsync(filePaths);
+            if (result.Warnings.Any())
+            {
+                _toasts.Warning(string.Join("\n", result.Warnings.SelectMany(x => x.Message)), "Package added with errors");
+            }
+            else
+            {
+                _toasts.Success($"Package '{result.Infos.Identifier}' added.", "Package added");
+            }
         }
 
         public async Task RefreshAsync()
