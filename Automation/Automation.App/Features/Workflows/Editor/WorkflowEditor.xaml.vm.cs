@@ -11,6 +11,7 @@ using Automation.Shared.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Joufflu.Feedback;
+using Newtonsoft.Json.Linq;
 
 namespace Automation.App.Features.Workflows.Editor
 {
@@ -290,14 +291,26 @@ namespace Automation.App.Features.Workflows.Editor
         /// Start the workflow as it is currently saved, the graph turning read only until the
         /// execution is over. Returns as soon as the execution started, its end being reported by
         /// the history service.
+        /// <para>
+        /// A workflow expecting an input asks for it first, the run being cancelled when the user
+        /// gives up on the settings.
+        /// </para>
         /// </summary>
         [RelayCommand(CanExecute = nameof(IsEditable))]
         private async Task Start()
         {
+            JToken? settings = null;
+            if (StartSettingsViewModel.IsExpectingSettings(Workflow))
+            {
+                settings = await StartSettingsViewModel.ShowAsync(Workflow);
+                if (settings == null)
+                    return;
+            }
+
             _historyService.InstanceUpdated += OnInstanceUpdated;
             try
             {
-                RunningInstance = await _execution.StartAsync(Workflow);
+                RunningInstance = await _execution.StartAsync(Workflow, settings);
             }
             catch (Exception exception)
             {

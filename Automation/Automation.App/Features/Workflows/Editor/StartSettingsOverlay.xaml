@@ -1,0 +1,102 @@
+﻿<UserControl
+    x:Class="Automation.App.Features.Workflows.Editor.StartSettingsOverlay"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
+    xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
+    xmlns:local="clr-namespace:Automation.App.Features.Workflows.Editor"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DataContext="{d:DesignInstance Type=local:StartSettingsViewModel}"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+
+        <!--  JSON is edited as raw text : monospaced, multi line and scrollable  -->
+        <Style
+            x:Key="JsonTextBox"
+            BasedOn="{StaticResource {x:Type TextBox}}"
+            TargetType="TextBox">
+            <Setter Property="AcceptsReturn" Value="True" />
+            <Setter Property="AcceptsTab" Value="True" />
+            <Setter Property="FontFamily" Value="Consolas" />
+            <Setter Property="HorizontalScrollBarVisibility" Value="Auto" />
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+            <Setter Property="VerticalContentAlignment" Value="Top" />
+        </Style>
+    </UserControl.Resources>
+
+    <Grid joufflu:Spacing.Gap="4">
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+
+        <!--  What the run is started with, next to the schema expecting it  -->
+        <Grid joufflu:Spacing.Gap="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+
+            <TextBlock Style="{StaticResource Muted}" Text="Settings" />
+            <TextBox
+                Grid.Row="1"
+                Height="240"
+                Padding="4"
+                Style="{StaticResource JsonTextBox}"
+                Text="{Binding SettingsJson, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+            <TextBlock
+                Grid.Column="1"
+                Style="{StaticResource Muted}"
+                Text="Expected" />
+            <TextBox
+                Grid.Row="1"
+                Grid.Column="1"
+                Height="240"
+                Padding="4"
+                IsReadOnly="True"
+                Style="{StaticResource JsonTextBox}"
+                Text="{Binding SchemaJson, Mode=OneWay}" />
+        </Grid>
+
+        <!--  Errors, the start being blocked while there is any  -->
+        <ItemsControl
+            Grid.Row="1"
+            ItemsSource="{Binding Errors}"
+            Visibility="{Binding HasErrors, Converter={StaticResource BoolToVisibility}}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <jonts:FontIcon Foreground="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}" Text="{x:Static jonts:LucideFontIcons.AlertCircle}" />
+                        <TextBlock
+                            Margin="4,0,0,0"
+                            Foreground="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}"
+                            Text="{Binding}"
+                            TextWrapping="Wrap" />
+                    </StackPanel>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <StackPanel
+            Grid.Row="2"
+            HorizontalAlignment="Right"
+            joufflu:Spacing.Gap="4"
+            Orientation="Horizontal">
+            <Button Command="{Binding CancelCommand}" Style="{StaticResource SecondaryButton}">Cancel</Button>
+            <Button Command="{Binding StartCommand}" Style="{StaticResource PrimaryButton}">
+                <StackPanel Orientation="Horizontal">
+                    <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.CirclePlay}" />
+                    <TextBlock Margin="4,0,0,0">Start</TextBlock>
+                </StackPanel>
+            </Button>
+        </StackPanel>
+    </Grid>
+</UserControl>

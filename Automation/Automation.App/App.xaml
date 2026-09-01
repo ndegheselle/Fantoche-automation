@@ -38,6 +38,9 @@
             <DataTemplate DataType="{x:Type workflowsEditor:TaskSettingsViewModel}">
                 <workflowsEditor:TaskSettingsOverlay />
             </DataTemplate>
+            <DataTemplate DataType="{x:Type workflowsEditor:StartSettingsViewModel}">
+                <workflowsEditor:StartSettingsOverlay />
+            </DataTemplate>
 
             <DataTemplate DataType="{x:Type packages:PackagesViewModel}">
                 <packages:PackagesPage />
