@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 namespace Automation.App.Features.Workflows.Editor.History
@@ -17,9 +17,15 @@ namespace Automation.App.Features.Workflows.Editor.History
         /// </summary>
         private IReversibleAction? _savePoint;
 
-        public bool CanUndo => _applied.Count > 0;
+        /// <summary>
+        /// Whether the history can be used at all : the editor disables it while the graph is read
+        /// only, an undo being a modification like any other.
+        /// </summary>
+        [ObservableProperty] private bool _isEnabled = true;
 
-        public bool CanRedo => _reverted.Count > 0;
+        public bool CanUndo => IsEnabled && _applied.Count > 0;
+
+        public bool CanRedo => IsEnabled && _reverted.Count > 0;
 
         /// <summary>
         /// True when actions have been applied or reverted since the last <see cref="MarkSaved"/>.
@@ -76,6 +82,8 @@ namespace Automation.App.Features.Workflows.Editor.History
             _savePoint = null;
             NotifyChanged();
         }
+
+        partial void OnIsEnabledChanged(bool value) => NotifyChanged();
 
         private void NotifyChanged()
         {

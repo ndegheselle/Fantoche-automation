@@ -27,16 +27,21 @@ namespace Automation.Shared.Data.Scoped
 
     public partial class Scope : ScopedElement
     {
-        public static readonly Guid ROOT_SCOPE_ID = new Guid("00000000-0000-0000-0000-000000000001");
-
         /// <summary>
         /// Scope every other element ends up under : it is the only one without a parent, and is
         /// read only so it can't be edited or deleted.
         /// </summary>
         public static readonly Scope Root = new Scope()
         {
-            Id = ROOT_SCOPE_ID,
+            Id = new Guid("00000000-0000-0000-0000-000000000001"),
             Metadata = new ScopedMetadata("Root", EnumScopedType.Scope) { IsReadOnly = true },
+        };
+        /// <summary>Scope holding the default controls tasks.</summary>
+        public static readonly Scope Controls = new Scope()
+        {
+            Id = new Guid("00000000-0000-0000-0000-000000000002"),
+            ParentId = Root.Id,
+            Metadata = new ScopedMetadata("Controls", EnumScopedType.Scope) { IsReadOnly = true },
         };
 
         public string? ContextJson { get; set; }

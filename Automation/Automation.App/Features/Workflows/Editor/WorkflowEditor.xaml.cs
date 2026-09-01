@@ -43,7 +43,8 @@ namespace Automation.App.Features.Workflows.Editor
         private bool CanDrop(IDataObject? data)
         {
             BaseAutomationTask? task = GetTask(data);
-            return task != null && task.Id != ViewModel?.Workflow.Id;
+            // Nothing can be added to a running workflow, its graph being read only.
+            return task != null && task.Id != ViewModel?.Workflow.Id && ViewModel?.IsEditable == true;
         }
 
         /// <summary>

@@ -4,10 +4,13 @@ using System.Windows;
 using Automation.App.Features.Workflows.Controls;
 using Automation.App.Features.Workflows.Editor.History;
 using Automation.App.Features.Workflows.Editor.ViewModels;
+using Automation.Shared.Data.Execution;
 using Automation.Shared.Data.Graph;
 using Automation.Shared.Data.Scoped;
+using Automation.Shared.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Joufflu.Feedback;
 
 namespace Automation.App.Features.Workflows.Editor
 {
@@ -40,10 +43,31 @@ namespace Automation.App.Features.Workflows.Editor
         public IAsyncRelayCommand SaveCommand { get; }
 
         /// <summary>
+        /// Execution of the workflow started from the editor, null while nothing is running. The
+        /// graph can't be edited while it is set : what runs has to stay what is displayed.
+        /// </summary>
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsEditable), nameof(IsRunning))]
+        [NotifyCanExecuteChangedFor(nameof(StartCommand), nameof(CancelCommand), nameof(AddCommand),
+            nameof(RemoveCommand), nameof(OpenSettingsCommand))]
+        private TaskInstance? _runningInstance;
+
+        /// <summary>
+        /// Whether the graph can be modified, false while an execution is running.
+        /// </summary>
+        public bool IsEditable => RunningInstance == null;
+
+        public bool IsRunning => RunningInstance != null;
+
+        /// <summary>
         /// Viewport of the editor, used to add the new nodes where the user is actually looking.
         /// </summary>
         [ObservableProperty] private Point _viewportLocation;
         [ObservableProperty] private Size _viewportSize;
+
+        private readonly IExecutionService _execution = SpineViewModel.Instance.Execution;
+        private readonly IHistoryService _historyService = SpineViewModel.Instance.History;
+        private readonly IToastService _toasts = SpineViewModel.Instance.Toasts;
 
         public WorkflowEditorViewModel(AutomationWorkflow workflow, IAsyncRelayCommand saveCommand)
         {
@@ -89,7 +113,7 @@ namespace Automation.App.Features.Workflows.Editor
         /// Pick an existing task or workflow and add it to the graph. The workflow being edited is
         /// left out of the selection, it can't contain itself.
         /// </summary>
-        [RelayCommand]
+        [RelayCommand(CanExecute = nameof(IsEditable))]
         private async Task Add()
         {
             BaseAutomationTask? task = await TaskSelectionViewModel.ShowAsync(Workflow.Id);
@@ -142,7 +166,7 @@ namespace Automation.App.Features.Workflows.Editor
                 History.Apply(edition);
         }
 
-        private bool CanOpenSettings(NodeViewModel? node) => node != null || SelectedNodes.Count == 1;
+        private bool CanOpenSettings(NodeViewModel? node) => IsEditable && (node != null || SelectedNodes.Count == 1);
 
         /// <summary>
         /// Remove the selected nodes, along with the connections linked to them.
@@ -186,7 +210,7 @@ namespace Automation.App.Features.Workflows.Editor
                     })));
         }
 
-        private bool CanRemove => SelectedNodes.Count > 0;
+        private bool CanRemove => IsEditable && SelectedNodes.Count > 0;
 
         /// <summary>
         /// Location of every node when a drag started, so the move can be recorded as a single
@@ -241,7 +265,8 @@ namespace Automation.App.Features.Workflows.Editor
         {
             // ITuple rather than the concrete type : Nodify packs the pair as a tuple without
             // documenting which kind.
-            if (parameter is not ITuple { Length: 2 } pending
+            if (!IsEditable
+                || parameter is not ITuple { Length: 2 } pending
                 || pending[0] is not ConnectorViewModel first
                 || pending[1] is not ConnectorViewModel second)
                 return;
@@ -258,6 +283,90 @@ namespace Automation.App.Features.Workflows.Editor
                 () => AddConnection(connection),
                 () => RemoveConnection(connection)));
         }
+
+        #region Execution
+
+        /// <summary>
+        /// Start the workflow as it is currently saved, the graph turning read only until the
+        /// execution is over. Returns as soon as the execution started, its end being reported by
+        /// the history service.
+        /// </summary>
+        [RelayCommand(CanExecute = nameof(IsEditable))]
+        private async Task Start()
+        {
+            _historyService.InstanceUpdated += OnInstanceUpdated;
+            try
+            {
+                RunningInstance = await _execution.StartAsync(Workflow);
+            }
+            catch (Exception exception)
+            {
+                Stop();
+                _toasts.Error(exception.Message, $"The workflow '{Workflow.Metadata.Name}' could not be started");
+                return;
+            }
+
+            // The execution may already be over by the time it is awaited, its end then having been
+            // reported before there was anything to match it against.
+            if ((RunningInstance.State & EnumTaskState.Finished) != 0)
+                Stop();
+        }
+
+        /// <summary>
+        /// Cancel the running execution. The graph only becomes editable again once the execution
+        /// actually reports itself as finished.
+        /// </summary>
+        [RelayCommand(CanExecute = nameof(IsRunning))]
+        private async Task Cancel()
+        {
+            TaskInstance? instance = RunningInstance;
+            if (instance == null)
+                return;
+
+            try
+            {
+                await _execution.CancelAsync(instance.Id);
+            }
+            catch (Exception exception)
+            {
+                _toasts.Error(exception.Message, $"The workflow '{Workflow.Metadata.Name}' could not be canceled");
+            }
+        }
+
+        private void OnInstanceUpdated(TaskInstance instance)
+        {
+            // The instances are reported by the threads running the executions.
+            Dispatch(() =>
+            {
+                if (RunningInstance?.Id == instance.Id && (instance.State & EnumTaskState.Finished) != 0)
+                    Stop();
+            });
+        }
+
+        /// <summary>
+        /// Stop following the execution, the graph becoming editable again.
+        /// </summary>
+        private void Stop()
+        {
+            _historyService.InstanceUpdated -= OnInstanceUpdated;
+            RunningInstance = null;
+        }
+
+        /// <summary>
+        /// The undo / redo also modifies the graph, so it follows whether the editor is editable.
+        /// </summary>
+        partial void OnRunningInstanceChanged(TaskInstance? value) => History.IsEnabled = IsEditable;
+
+        private static void Dispatch(Action action)
+        {
+            var dispatcher = Application.Current?.Dispatcher;
+            if (dispatcher == null || dispatcher.CheckAccess())
+                action();
+            else
+                dispatcher.Invoke(action);
+        }
+
+        #endregion
 
         #region Graph edition
 

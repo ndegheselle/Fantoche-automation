@@ -82,7 +82,7 @@ public class AutomationControl : AutomationTask
     public static readonly AutomationControl StartTask = new AutomationControl(typeof(AutomationControl))
     {
         Id = Guid.Parse("00000000-0000-0000-0000-100000000001"),
-        ParentId = Scope.ROOT_SCOPE_ID,
+        ParentId = Scope.Controls.Id,
         Metadata = new ScopedMetadata(EnumScopedType.Task) { Tags = ["Control"], Name = "Start", Icon = "\ue13c", IsReadOnly = true },
         InputSchema = null,
         OutputSchema = new JsonSchema(),
@@ -90,7 +90,7 @@ public class AutomationControl : AutomationTask
     public static readonly AutomationControl EndTask = new AutomationControl(typeof(AutomationControl))
     {
         Id = Guid.Parse("00000000-0000-0000-0000-100000000002"),
-        ParentId = Scope.ROOT_SCOPE_ID,
+        ParentId = Scope.Controls.Id,
         Metadata = new ScopedMetadata(EnumScopedType.Task) { Tags = ["Control"], Name = "End", Icon = "\ue6b9", IsReadOnly = true },
         InputSchema = new JsonSchema(),
         OutputSchema = null
@@ -99,7 +99,7 @@ public class AutomationControl : AutomationTask
     public static readonly AutomationControl ShareTask = new AutomationControl(typeof(AutomationControl))
     {
         Id = Guid.Parse("00000000-0000-0000-0000-100000000003"),
-        ParentId = Scope.ROOT_SCOPE_ID,
+        ParentId = Scope.Controls.Id,
         Metadata = new ScopedMetadata(EnumScopedType.Task) { Tags = ["Control"], Name = "Share", Icon = "\ue36a", IsReadOnly = true },
         InputSchema = new JsonSchema(),
         OutputSchema = new JsonSchema(),
@@ -109,7 +109,7 @@ public class AutomationControl : AutomationTask
     public static readonly AutomationControl JoinTask = new AutomationControl(typeof(AutomationControl))
     {
         Id = Guid.Parse("00000000-0000-0000-0000-100000000004"),
-        ParentId = Scope.ROOT_SCOPE_ID,
+        ParentId = Scope.Controls.Id,
         Metadata = new ScopedMetadata(EnumScopedType.Task) { Tags = ["Control"], Name = "Join", Icon = "\ue43f", IsReadOnly = true },
         InputSchema = new JsonSchema(),
         OutputSchema = new JsonSchema(),

@@ -173,7 +173,8 @@
                                     <nodify:NodeInput
                                         Anchor="{Binding Anchor, Mode=OneWayToSource}"
                                         Header="{Binding Name}"
-                                        IsConnected="{Binding IsConnected}" />
+                                        IsConnected="{Binding IsConnected}"
+                                        IsEnabled="{Binding DataContext.IsEditable, RelativeSource={RelativeSource AncestorType={x:Type nodify:NodifyEditor}}}" />
                                 </DataTemplate>
                             </nodify:Node.InputConnectorTemplate>
                             <nodify:Node.OutputConnectorTemplate>
@@ -181,7 +182,8 @@
                                     <nodify:NodeOutput
                                         Anchor="{Binding Anchor, Mode=OneWayToSource}"
                                         Header="{Binding Name}"
-                                        IsConnected="{Binding IsConnected}" />
+                                        IsConnected="{Binding IsConnected}"
+                                        IsEnabled="{Binding DataContext.IsEditable, RelativeSource={RelativeSource AncestorType={x:Type nodify:NodifyEditor}}}" />
                                 </DataTemplate>
                             </nodify:Node.OutputConnectorTemplate>
 
@@ -198,6 +200,8 @@
                         <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
                         <Setter Property="Location" Value="{Binding Location, Mode=TwoWay}" />
                         <Setter Property="BorderBrush" Value="Transparent" />
+                        <!--  A running workflow can't be edited : the nodes stay where they are  -->
+                        <Setter Property="IsDraggable" Value="{Binding DataContext.IsEditable, RelativeSource={RelativeSource AncestorType={x:Type nodify:NodifyEditor}}}" />
                     </Style>
                 </nodify:NodifyEditor.ItemContainerStyle>
 

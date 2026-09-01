@@ -4,10 +4,12 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
+    xmlns:jonverters="clr-namespace:Joufflu.Converters;assembly=Joufflu"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Automation.App.Features.Workflows.Editor"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:nodify="clr-namespace:Nodify;assembly=Nodify"
+    d:DataContext="{d:DesignInstance Type=local:WorkflowEditorViewModel}"
     mc:Ignorable="d">
     <UserControl.Resources>
         <!--  The editor commands are routed, they need the editor as their target  -->
@@ -20,6 +22,32 @@
         </Style>
     </UserControl.Resources>
     <Grid Margin="{DynamicResource {x:Static joufflu:Dimensions.SpacingThickness}}">
+        <!--  Execution : only one of the two is displayed, depending on whether the workflow is running  -->
+        <Border
+            Padding="0"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Top"
+            Style="{StaticResource Card}">
+            <StackPanel joufflu:Spacing.Gap="4" Orientation="Horizontal">
+                <Button
+                    joufflu:Sizing.IsSquare="True"
+                    Command="{Binding StartCommand}"
+                    Style="{StaticResource GhostButton}"
+                    ToolTip="Start the workflow"
+                    Visibility="{Binding IsRunning, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}">
+                    <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.CirclePlay}" />
+                </Button>
+                <Button
+                    joufflu:Sizing.IsSquare="True"
+                    Command="{Binding CancelCommand}"
+                    Style="{StaticResource GhostButton}"
+                    ToolTip="Cancel the running workflow"
+                    Visibility="{Binding IsRunning, Converter={x:Static jonverters:VisibilityConverter.Default}}">
+                    <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.CircleStop}" />
+                </Button>
+            </StackPanel>
+        </Border>
+
         <!--  Editor tools  -->
         <Border
             Padding="0"
@@ -64,7 +92,6 @@
         </Border>
 
         <!--  Viewport actions  -->
-
         <Border
             Padding="0"
             HorizontalAlignment="Center"
