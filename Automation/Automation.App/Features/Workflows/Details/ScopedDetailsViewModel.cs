@@ -3,7 +3,7 @@ using Automation.Shared.Data.Scoped;
 using Automation.Shared.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Joufflu.Feedback.Controls;
+using Joufflu.Feedback;
 using Joufflu.Navigation;
 
 namespace Automation.App.Features.Workflows.Details

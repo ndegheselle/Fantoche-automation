@@ -7,7 +7,7 @@ using Automation.App.Features.Workflows;
 using Automation.Services.Local;
 using Automation.Shared.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
-using Joufflu.Feedback.Controls;
+using Joufflu.Feedback;
 using Joufflu.Navigation;
 using Joufflu.Navigation.Controls;
 
