@@ -5,6 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:javigation="clr-namespace:Joufflu.Navigation.Controls;assembly=Joufflu.Navigation"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
+    xmlns:jeedback="clr-namespace:Joufflu.Feedback.Controls;assembly=Joufflu.Feedback"
     xmlns:local="clr-namespace:Automation.App.Features.Workflows.Details.Controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     d:DataContext="{d:DesignInstance Type=local:HistoryViewModel}"
@@ -26,7 +27,32 @@
                     Width="*"
                     Binding="{Binding NodeName}"
                     Header="Name" />
-                <DataGridTextColumn Binding="{Binding State}" Header="State" />
+                <DataGridTemplateColumn Header="State">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <jeedback:Badge Content="{Binding State}">
+                                <jeedback:Badge.Style>
+                                    <Style TargetType="{x:Type jeedback:Badge}" BasedOn="{StaticResource {x:Type jeedback:Badge}}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding State}" Value="Progressing">
+                                                <Setter Property="Variant" Value="Info" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding State}" Value="Sucess">
+                                                <Setter Property="Variant" Value="Success" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding State}" Value="Failed">
+                                                <Setter Property="Variant" Value="Danger" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding State}" Value="Canceled">
+                                                <Setter Property="Variant" Value="Warning" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </jeedback:Badge.Style>
+                            </jeedback:Badge>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
                 <DataGridTextColumn Binding="{Binding CreatedAt, StringFormat=\{0:g\}}" Header="Started" />
                 <DataGridTextColumn Binding="{Binding FinishedAt, StringFormat=\{0:g\}}" Header="Finished" />
             </DataGrid.Columns>
