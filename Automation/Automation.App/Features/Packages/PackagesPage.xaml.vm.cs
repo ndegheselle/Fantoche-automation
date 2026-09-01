@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using Automation.Shared.Base;
 using Automation.Shared.Data.Execution;
@@ -67,6 +67,15 @@ namespace Automation.App.Features.Packages
         }
 
         private static string[]? GetFiles(IDataObject? data) => data?.GetData(DataFormats.FileDrop) as string[];
-        private static bool IsPackage(string path) => Path.GetExtension(path).Equals(".nupkg", StringComparison.OrdinalIgnoreCase);
+        /// <summary>
+        /// A package, or the symbols of one : both are dropped the same way, the symbols being
+        /// stored next to the package they make debuggable.
+        /// </summary>
+        private static bool IsPackage(string path)
+        {
+            string extension = Path.GetExtension(path);
+            return extension.Equals(".nupkg", StringComparison.OrdinalIgnoreCase)
+                || extension.Equals(".snupkg", StringComparison.OrdinalIgnoreCase);
+        }
     }
 }

@@ -14,9 +14,13 @@ public class LocalPackagesService : IPackagesService
     /// </summary>
     public LocalPackageManagement PackageManagement => _packages;
 
-    public LocalPackagesService(string folderPath, string cacheFolderPath)
+    /// <param name="loadSymbols">
+    /// Whether the symbol packages are extracted along with the assemblies, so the tasks can be
+    /// stepped into. Defaults to whether the application itself is a debug build.
+    /// </param>
+    public LocalPackagesService(string folderPath, string cacheFolderPath, bool? loadSymbols = null)
     {
-        _packages = new LocalPackageManagement(folderPath, cacheFolderPath);
+        _packages = new LocalPackageManagement(folderPath, cacheFolderPath, loadSymbols);
     }
 
     public Task<Paginated<PackageInfos>> SearchAsync(string search = "", PaginationOptions options = default)
@@ -27,7 +31,12 @@ public class LocalPackagesService : IPackagesService
     public async Task<PackageAdded> AddAsync(string filePath)
     {
         var infos = await _packages.AddAsync(filePath);
-        
+
+        // A symbol package only makes the tasks of the package it belongs to debuggable, there is
+        // nothing to look for in it.
+        if (infos.IsSymbols)
+            return new PackageAdded() { Infos = infos };
+
         // Check if the package contain tasks
         var dllsPaths = await _packages.DownloadAllDllsIfMissing(infos.Identifier.Id, infos.Identifier.Version);
         List<string> classes = [];

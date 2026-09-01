@@ -6,11 +6,14 @@
     <Nullable>enable</Nullable>
     <Title>Base automation plugins</Title>
     <PackageIcon></PackageIcon>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Automation.Plugins.Shared\Automation.Plugins.Shared.csproj" />
   </ItemGroup>
-
+  <PropertyGroup>
+  	<IncludeSymbols>true</IncludeSymbols>
+  	<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
 </Project>

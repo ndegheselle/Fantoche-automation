@@ -1,4 +1,4 @@
-using Automation.Shared.Base;
+﻿using Automation.Shared.Base;
 using Microsoft.Win32;
 using System.Windows.Controls;
 
@@ -22,7 +22,7 @@ namespace Automation.App.Features.Packages
         {
             var openFileDialog = new OpenFileDialog
             {
-                Filter = "Packages files (*.nupkg)|*.nupkg"
+                Filter = "Packages files (*.nupkg;*.snupkg)|*.nupkg;*.snupkg"
             };
             if (openFileDialog.ShowDialog() != true)
                 return;

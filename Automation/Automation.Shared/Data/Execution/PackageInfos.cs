@@ -21,5 +21,12 @@
     {
         public PackageIdentifier Identifier { get; set; } = new PackageIdentifier();
         public string Description { get; set; } = "";
+
+        /// <summary>
+        /// Whether the package holds the debugging symbols of the package of the same identifier
+        /// rather than the assemblies themselves (a ".snupkg"). It carries no task, it only makes
+        /// the ones of its package debuggable.
+        /// </summary>
+        public bool IsSymbols { get; set; }
     }
 }

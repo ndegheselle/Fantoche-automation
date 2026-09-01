@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.Versioning;
 using Automation.Shared.Base;
@@ -37,6 +38,17 @@ public class LocalPackageManagement
     private readonly NuGetFramework _frameworkVersion;
     private readonly ConcurrentDictionary<string, SemaphoreSlim> _downloadLocks = new();
 
+    /// <summary>
+    /// Whether the symbols shipped next to the packages are extracted along with their assemblies,
+    /// see <see cref="IsHostDebuggable"/>.
+    /// </summary>
+    private readonly bool _loadSymbols;
+
+    /// <summary>
+    /// Extension of a symbol package, holding the pdb files of the package of the same identifier.
+    /// </summary>
+    public const string SymbolsExtension = ".snupkg";
+
     #endregion
 
     #region Constructor
@@ -45,9 +57,16 @@ public class LocalPackageManagement
     /// Initializes a new instance of <see cref="LocalPackageManagement"/>.
     /// </summary>
     /// <param name="packageFolderPath">Path to the local NuGet package source folder.</param>
+    /// <param name="cacheFolderPath">Path the packages are extracted to.</param>
+    /// <param name="loadSymbols">
+    /// Whether the symbol packages are extracted along with the assemblies they belong to, so the
+    /// tasks can be stepped into. Defaults to <see cref="IsHostDebuggable"/> : a released
+    /// application has nothing to debug, and the symbols only make the loading heavier.
+    /// </param>
     /// <exception cref="DirectoryNotFoundException">Thrown if <paramref name="packageFolderPath"/> does not exist.</exception>
-    public LocalPackageManagement(string packageFolderPath, string cacheFolderPath)
+    public LocalPackageManagement(string packageFolderPath, string cacheFolderPath, bool? loadSymbols = null)
     {
+        _loadSymbols = loadSymbols ?? IsHostDebuggable();
         _frameworkVersion = GetCurrentFramework();
         _localFolder = cacheFolderPath;
         _folder = packageFolderPath;
@@ -176,7 +195,11 @@ public class LocalPackageManagement
         using var packageReader = new PackageArchiveReader(stream);
         var identity = await packageReader.GetIdentityAsync(CancellationToken.None);
 
-        string packagePath = Path.Combine(_folder, $"{identity.Id}.{identity.Version}.nupkg");
+        // A symbol package carries the pdb of the package of the same identifier : it is stored
+        // next to it rather than as a package of its own, the local source only listing ".nupkg".
+        PackageInfos infos = packageReader.NuspecReader.ToPackageInfos();
+        string extension = infos.IsSymbols ? SymbolsExtension : ".nupkg";
+        string packagePath = Path.Combine(_folder, $"{identity.Id}.{identity.Version}{extension}");
 
         await using (var fileStream = File.Create(packagePath))
         {
@@ -184,7 +207,12 @@ public class LocalPackageManagement
             await stream.CopyToAsync(fileStream);
         }
 
-        return packageReader.NuspecReader.ToPackageInfos();
+        // The assemblies may already have been extracted without their symbols, the new ones only
+        // being read on the next download otherwise.
+        if (infos.IsSymbols)
+            ExtractSymbols(identity.Id, identity.Version.Version);
+
+        return infos;
     }
 
     #endregion
@@ -200,18 +228,21 @@ public class LocalPackageManagement
     /// <param name="version">The version of the package to remove, or <c>null</c> to remove all versions.</param>
     public Task RemoveAsync(string id, Version? version)
     {
+        // The symbols belong to the package they carry the pdb of, they leave with it.
         if (version is null)
         {
-            foreach (string packagePath in Directory.EnumerateFiles(_folder, $"{id}.*.nupkg"))
+            foreach (string packagePath in Directory.EnumerateFiles(_folder, $"{id}.*.nupkg")
+                .Concat(Directory.EnumerateFiles(_folder, $"{id}.*{SymbolsExtension}")))
                 File.Delete(packagePath);
         }
         else
         {
             var nugetVersion = new NuGetVersion(version);
-            string packagePath = Path.Combine(_folder, $"{id}.{nugetVersion.ToNormalizedString()}.nupkg");
+            string basePath = Path.Combine(_folder, $"{id}.{nugetVersion.ToNormalizedString()}");
 
-            if (File.Exists(packagePath))
-                File.Delete(packagePath);
+            foreach (string packagePath in new[] { $"{basePath}.nupkg", $"{basePath}{SymbolsExtension}" })
+                if (File.Exists(packagePath))
+                    File.Delete(packagePath);
         }
 
         return Task.CompletedTask;
@@ -271,6 +302,8 @@ public class LocalPackageManagement
                 _logger,
                 CancellationToken.None);
 
+            ExtractSymbols(id, version);
+
             return GetLocalDllPaths(id, version);
         }
         catch (Exception ex)
@@ -311,7 +344,10 @@ public class LocalPackageManagement
     {
         string? path = GetLocalDllPath(id, version, dll);
         if (!string.IsNullOrEmpty(path))
+        {
+            ExtractSymbols(id, version);
             return path;
+        }
 
         string key = $"{id}.{version}";
         var semaphore = _downloadLocks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
@@ -322,7 +358,10 @@ public class LocalPackageManagement
             // Re-check after acquiring the lock — another task may have already downloaded it.
             path = GetLocalDllPath(id, version, dll);
             if (!string.IsNullOrEmpty(path))
+            {
+                ExtractSymbols(id, version);
                 return path;
+            }
 
             return await DownloadPackageAsync(id, version, dll);
         }
@@ -345,7 +384,10 @@ public class LocalPackageManagement
     {
         var paths = GetLocalDllPaths(id, version);
         if (paths.Any())
+        {
+            ExtractSymbols(id, version);
             return paths;
+        }
 
         string key = $"{id}.{version}";
         var semaphore = _downloadLocks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
@@ -356,7 +398,10 @@ public class LocalPackageManagement
             // Re-check after acquiring the lock — another task may have already downloaded it.
             paths = GetLocalDllPaths(id, version);
             if (paths.Any())
+            {
+                ExtractSymbols(id, version);
                 return paths;
+            }
 
             return await DownloadPackageDllsAsync(id, version);
         }
@@ -365,6 +410,70 @@ public class LocalPackageManagement
             semaphore.Release();
             _downloadLocks.TryRemove(key, out _);
         }
+    }
+
+    /// <summary>
+    /// Extracts the debugging symbols of [id] [version] next to its assemblies, so the debugger
+    /// finds them on its own : the loader loads the tasks from that very folder.
+    /// <para>
+    /// A no-op when the symbols aren't wanted (see <see cref="IsHostDebuggable"/>), when no symbol
+    /// package was added for that version, or when they are already extracted. Whatever goes wrong
+    /// while reading them is swallowed : missing symbols only cost the ability to step into a task,
+    /// they must never keep it from running.
+    /// </para>
+    /// </summary>
+    private void ExtractSymbols(string id, Version version)
+    {
+        if (!_loadSymbols)
+            return;
+
+        try
+        {
+            var nugetVersion = new NuGetVersion(version);
+            string symbolsPath = Path.Combine(_folder, $"{id}.{nugetVersion.ToNormalizedString()}{SymbolsExtension}");
+            if (!File.Exists(symbolsPath))
+                return;
+
+            string folder = GetLocalFolderPath(id, version);
+            using var packageReader = new PackageArchiveReader(File.OpenRead(symbolsPath));
+
+            var nearestFramework = GetNearestFramework(packageReader);
+            var lib = packageReader.GetLibItems().FirstOrDefault(x => x.TargetFramework == nearestFramework);
+            if (lib == null)
+                return;
+
+            // Only what is missing is written : the pdb of a loaded assembly is locked by the
+            // debugger, and rewriting it identically would fail for nothing.
+            List<string> items =
+                [.. lib.Items.Where(x => !File.Exists(Path.Combine(folder, Path.GetFileName(x))))];
+            if (items.Count == 0)
+                return;
+
+            packageReader.CopyFiles(
+                _localFolder,
+                items,
+                (source, target, stream) => ExtractFile(id, version, target, stream),
+                _logger,
+                CancellationToken.None);
+        }
+        catch (Exception)
+        {
+            // Debugging is a convenience, a broken symbol package doesn't break the execution.
+        }
+    }
+
+    /// <summary>
+    /// Whether the running application is itself a debug build, in which case the tasks it loads
+    /// are worth being debuggable too. A release application has nothing to step into, so it skips
+    /// the symbols entirely.
+    /// </summary>
+    public static bool IsHostDebuggable()
+    {
+        var debuggable = Assembly.GetEntryAssembly()?.GetCustomAttribute<DebuggableAttribute>();
+        if (debuggable == null)
+            return Debugger.IsAttached;
+
+        return debuggable.IsJITOptimizerDisabled;
     }
 
     /// <summary>
@@ -542,6 +651,7 @@ public static class PackageExtensions
                 Version = reader.GetVersion().Version
             },
             Description = reader.GetDescription(),
+            IsSymbols = reader.GetPackageTypes().Any(x => x == PackageType.SymbolsPackage),
         };
     }
 }
