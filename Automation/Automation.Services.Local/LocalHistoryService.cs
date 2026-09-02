@@ -1,16 +1,20 @@
-﻿using Automation.Shared.Base;
+﻿using Automation.Services.Local.Database;
+using Automation.Shared.Base;
 using Automation.Shared.Data.Execution;
+using Automation.Shared.Data.Scoped;
 using Automation.Shared.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace Automation.Services.Local;
 
 /// <summary>
-/// SQLite-backed history of task instances.
+/// SQLite-backed history of task instances. Nothing removes them : an instance hangs under the
+/// task it ran and, for the node of a run, under the instance of the run itself, so removing a
+/// task takes its whole history along.
 /// </summary>
 public class LocalHistoryService : IHistoryService
 {
-    private readonly LocalDbContextFactory _dbContextFactory;
+    private readonly SqliteContextFactory _contextFactory;
 
     /// <summary>
     /// The branches of a workflow run in parallel and all report through here : the writes are
@@ -21,15 +25,22 @@ public class LocalHistoryService : IHistoryService
     public event Action<TaskInstance>? InstanceAdded;
     public event Action<TaskInstance>? InstanceUpdated;
 
-    public LocalHistoryService(LocalDbContextFactory dbContextFactory)
+    public LocalHistoryService(SqliteContextFactory contextFactory)
     {
-        _dbContextFactory = dbContextFactory;
+        _contextFactory = contextFactory;
     }
 
     public async Task<Paginated<TaskInstance>> GetByScopedAsync(Guid elementId, PaginationOptions options = default)
     {
-        using var db = _dbContextFactory.CreateDbContext();
-        var elements = await db.ScopedElements.AsNoTracking().ToListAsync();
+        using var db = _contextFactory.CreateContext();
+
+        // Only the shape of the tree is needed to know which tasks the history is asked for, not
+        // what the elements hold (a workflow would come with its whole graph).
+        var elements = await db.Scoped
+            .AsNoTracking()
+            .IgnoreAutoIncludes()
+            .Select(x => new LocalScopedService.ScopedLink(x.Id, x.ParentId, x is BaseAutomationTask))
+            .ToListAsync();
 
         var byId = elements.ToDictionary(x => x.Id);
         var byParent = elements.ToLookup(x => x.ParentId);
@@ -40,7 +51,7 @@ public class LocalHistoryService : IHistoryService
 
     public async Task<IReadOnlyList<TaskInstance>> GetChildrenAsync(Guid instanceId)
     {
-        using var db = _dbContextFactory.CreateDbContext();
+        using var db = _contextFactory.CreateContext();
 
         return await db.TaskInstances
             .AsNoTracking()
@@ -53,7 +64,7 @@ public class LocalHistoryService : IHistoryService
         IReadOnlyCollection<Guid>? taskIds = null,
         PaginationOptions options = default)
     {
-        using var db = _dbContextFactory.CreateDbContext();
+        using var db = _contextFactory.CreateContext();
 
         IQueryable<TaskInstance> query = db.TaskInstances;
         if (taskIds != null)
@@ -85,7 +96,7 @@ public class LocalHistoryService : IHistoryService
         await _writeLock.WaitAsync();
         try
         {
-            using var db = _dbContextFactory.CreateDbContext();
+            using var db = _contextFactory.CreateContext();
 
             var stored = await db.TaskInstances.FirstOrDefaultAsync(x => x.Id == instance.Id);
             added = stored == null;
@@ -119,14 +130,5 @@ public class LocalHistoryService : IHistoryService
             InstanceAdded?.Invoke(instance);
         else
             InstanceUpdated?.Invoke(instance);
-    }
-
-    public async Task RemoveAsync(IReadOnlyCollection<Guid> taskIds)
-    {
-        if (taskIds.Count == 0)
-            return;
-
-        using var db = _dbContextFactory.CreateDbContext();
-        await db.TaskInstances.Where(x => taskIds.Contains(x.TaskId)).ExecuteDeleteAsync();
     }
 }

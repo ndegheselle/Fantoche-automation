@@ -103,14 +103,21 @@ namespace Automation.App.Features.Workflows.Details
             if (await _overlays.Confirm($"Are you sure you want to delete the {Node.Type} '{Node.Name}' ?", "Confirm deletion", EnumConfirmationType.Danger) != true)
                 return;
 
-            // Kept before the removal, the node not being displayed anymore once it is done.
-            string name = Node.Name;
+            try
+            {
+                await _scoped.RemoveAsync(Element);
+            }
+            catch (InvalidOperationException exception)
+            {
+                // What is read only, or what a graph still has a node pointing at, stays.
+                _toasts.Error(exception.Message, $"The {Node.Type} '{Node.Name}' could not be deleted");
+                return;
+            }
 
-            await _scoped.RemoveAsync(Element);
             _parent.Remove(Node);
             // Fall back on the parent scope, the element not being displayable anymore
             _parent.Open(Node.Parent);
-            _toasts.Success($"The {Node.Type} '{name}' has been deleted.", $"{Node.Type} deleted");
+            _toasts.Success($"The {Node.Type} '{Node.Name}' has been deleted.", $"{Node.Type} deleted");
         }
 
         /// <summary>

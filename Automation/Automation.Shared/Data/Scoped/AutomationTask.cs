@@ -33,7 +33,7 @@ public abstract class BaseAutomationTask : ScopedElement
 
     public string? OutputSchemaJson { get; set; }
 
-    public IEnumerable<Schedule> Schedules { get; set; } = [];
+    public List<Schedule> Schedules { get; set; } = [];
 
     public TaskSettings Settings { get; set; } = new();
 

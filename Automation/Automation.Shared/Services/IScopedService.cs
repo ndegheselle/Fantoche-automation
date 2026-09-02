@@ -35,7 +35,17 @@ public interface IScopedService
     /// <summary>
     /// Remove an existing element.
     /// </summary>
+    /// <exception cref="InvalidOperationException">
+    /// The element, or one held under it, is read only or is still used by the graph of a workflow
+    /// (see <see cref="GetUsagesAsync"/>).
+    /// </exception>
     public Task<ScopedElement> RemoveAsync(ScopedElement element);
+
+    /// <summary>
+    /// The nodes using the task or workflow [taskId], each with the workflow holding it. Empty when
+    /// it is used nowhere, which is what makes it removable.
+    /// </summary>
+    public Task<List<TaskUsage>> GetUsagesAsync(Guid taskId);
 
     /// <summary>
     /// Get the resolved context of the element [elementId] : the context of every scope from the root

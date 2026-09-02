@@ -52,7 +52,7 @@ public class SpineViewModel : ObservableObject
 
         var history = new LocalHistoryService(dbContextFactory);
         var packages = new LocalPackagesService(Settings.PackagesFolderPath, Path.Join(Settings.LocalFolderPath, "cache"));
-        var scoped = new LocalScopedService(history, dbContextFactory);
+        var scoped = new LocalScopedService(dbContextFactory);
         Packages = packages;
         History = history;
         Scoped = scoped;
