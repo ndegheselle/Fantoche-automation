@@ -1,11 +1,10 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using Automation.Shared.Data.Execution;
 using Automation.Shared.Data.Graph;
 using Automation.Shared.Data.Scoped;
 using Automation.Shared.Services;
 using Automation.Worker.Executor;
 using Automation.Worker.Packages;
-using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
 
 namespace Automation.Services.Local;
@@ -25,7 +24,6 @@ public class LocalExecutionService : IExecutionService, IDisposable
 
     private readonly LocalScopedService _scopedService;
     private readonly LocalHistoryService _historyService;
-    private readonly LocalDbContextFactory _dbContextFactory;
 
     private readonly WorkflowExecutor _workflowExecutor;
     private readonly NodeExecutor _nodeExecutor;
@@ -35,12 +33,10 @@ public class LocalExecutionService : IExecutionService, IDisposable
     public LocalExecutionService(
         LocalScopedService scopedService,
         LocalHistoryService historyService,
-        LocalDbContextFactory dbContextFactory,
         LocalPackageManagement packageManagement)
     {
         _scopedService = scopedService;
         _historyService = historyService;
-        _dbContextFactory = dbContextFactory;
 
         _workflowExecutor = new WorkflowExecutor(packageManagement);
         _nodeExecutor = new NodeExecutor(packageManagement, _workflowExecutor);
@@ -99,8 +95,8 @@ public class LocalExecutionService : IExecutionService, IDisposable
         if (_running.TryGetValue(instanceId, out var running))
             return await running.Completion.Task;
 
-        using var db = _dbContextFactory.CreateDbContext();
-        return await db.TaskInstances.AsNoTracking().FirstOrDefaultAsync(x => x.Id == instanceId)
+        // Nothing is running under that id anymore : what the history holds of it is its outcome.
+        return await _historyService.GetAsync(instanceId)
             ?? throw new ExecutionException($"Unknown execution '{instanceId}'.");
     }
 
@@ -152,9 +148,7 @@ public class LocalExecutionService : IExecutionService, IDisposable
     /// </summary>
     private async Task<BaseAutomationTask> LoadTaskAsync(Guid taskId)
     {
-        using var db = _dbContextFactory.CreateDbContext();
-
-        var element = await db.ScopedElements.AsNoTracking().FirstOrDefaultAsync(x => x.Id == taskId)
+        ScopedElement element = await _scopedService.GetAsync(taskId)
             ?? throw new ExecutionException($"Unknown element '{taskId}'.");
 
         if (element is not BaseAutomationTask task)
@@ -175,10 +169,7 @@ public class LocalExecutionService : IExecutionService, IDisposable
 
         var nodesIds = workflow.Graph.Nodes.OfType<BaseGraphTask>().Select(x => x.TaskId).Distinct().ToList();
 
-        using var db = _dbContextFactory.CreateDbContext();
-        var elements = await db.ScopedElements.AsNoTracking()
-            .Where(x => nodesIds.Contains(x.Id))
-            .ToListAsync();
+        var elements = await _scopedService.GetAsync(nodesIds);
 
         Dictionary<Guid, BaseAutomationTask> tasks = [];
         foreach (var element in elements)

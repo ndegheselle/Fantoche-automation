@@ -1,7 +1,7 @@
 ﻿using Automation.Shared.Data.Execution;
 using Newtonsoft.Json.Linq;
 
-namespace Automation.Services.Local.Database;
+namespace Automation.Services.Local.Models;
 
 /// <summary>
 /// One row of the instances table, mapped by hand : the JSON columns are read back as JToken,

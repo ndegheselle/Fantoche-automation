@@ -1,4 +1,5 @@
 ﻿using Automation.Services.Local.Database;
+using Automation.Services.Local.Models;
 using Automation.Shared.Base;
 using Automation.Shared.Data.Execution;
 using Automation.Shared.Services;
@@ -30,17 +31,11 @@ public class LocalHistoryService : IHistoryService
     }
 
     /// <summary>
-    /// The branch of the scoped tree hanging under @elementId, the element itself included. Only
-    /// the tasks and workflows of it ever have instances, so the scopes coming along in the walk
-    /// don't have to be told apart : they simply match nothing.
+    /// The branch of the scoped tree the history is asked for. Only the tasks and workflows of it
+    /// ever have instances, so the scopes coming along in the walk don't have to be told apart :
+    /// they simply match nothing.
     /// </summary>
-    private const string BranchQuery = """
-        WITH RECURSIVE Branch(Id) AS (
-            SELECT Id FROM Scoped WHERE Id = @elementId
-            UNION ALL
-            SELECT child.Id FROM Scoped child JOIN Branch ON child.ParentId = Branch.Id
-        )
-        """;
+    private const string BranchQuery = ScopedModel.BranchQuery;
 
     public async Task<Paginated<TaskInstance>> GetByScopedAsync(Guid elementId, PaginationOptions options = default)
     {
@@ -76,6 +71,21 @@ public class LocalHistoryService : IHistoryService
         };
     }
 
+    /// <summary>
+    /// The instance [instanceId] as it was last reported, null when nothing ran under that id.
+    /// </summary>
+    public async Task<TaskInstance?> GetAsync(Guid instanceId)
+    {
+        using var connection = _databaseFactory.Create();
+
+        var row = await connection.QuerySingleOrDefaultAsync<TaskInstanceModel>($"""
+            SELECT {TaskInstanceModel.Columns} FROM TaskInstances WHERE Id = @instanceId;
+            """,
+            new { instanceId });
+
+        return row?.ToInstance();
+    }
+
     public async Task<IReadOnlyList<TaskInstance>> GetChildrenAsync(Guid instanceId)
     {
         using var connection = _databaseFactory.Create();
@@ -109,7 +119,7 @@ public class LocalHistoryService : IHistoryService
                 VALUES (@Id, @TaskId, @NodeId, @ParentInstanceId, @NodeName, @Parameters, @Output, @State, @CreatedAt, @FinishedAt)
                 ON CONFLICT (Id) DO NOTHING;
                 """,
-                instance) > 0;
+                TaskInstanceModel.From(instance)) > 0;
 
             if (!added)
             {

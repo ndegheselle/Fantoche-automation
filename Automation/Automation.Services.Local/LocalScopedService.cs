@@ -1,185 +1,211 @@
-﻿using Automation.Shared.Base;
+﻿using System.Data;
+using Automation.Services.Local.Database;
+using Automation.Services.Local.Models;
+using Automation.Shared.Base;
 using Automation.Shared.Data.Graph;
 using Automation.Shared.Data.Scoped;
 using Automation.Shared.Services;
+using Dapper;
 using Newtonsoft.Json.Linq;
 
 namespace Automation.Services.Local;
 
+/// <summary>
+/// SQLite-backed tree of the scopes and of the tasks and workflows they hold : one table for the
+/// tree itself, the graph of a workflow hanging under it in tables of its own. The database takes a
+/// whole branch along when the element at its root is removed.
+/// </summary>
 public class LocalScopedService : IScopedService
 {
-    private readonly SqliteContextFactory _contextFactory;
+    private readonly DatabaseFactory _databaseFactory;
 
-    public LocalScopedService(SqliteContextFactory contextFactory)
+    public LocalScopedService(DatabaseFactory databaseFactory)
     {
-        _contextFactory = contextFactory;
+        _databaseFactory = databaseFactory;
     }
 
     public async Task<ScopedElement> CreateAsync(ScopedElement element)
     {
         element.Id = Guid.NewGuid();
 
-        using var db = _contextFactory.CreateContext();
-        db.Scoped.Add(element);
-        await db.SaveChangesAsync();
+        using var connection = _databaseFactory.Create();
+        // The graph of a workflow is written along with it : an element and what hangs under it in
+        // other tables land in one go or not at all.
+        using var transaction = connection.BeginTransaction();
+
+        await connection.ExecuteAsync(
+            ScopedModel.InsertQuery,
+            ScopedModel.From(element),
+            transaction);
+
+        if (element is AutomationWorkflow workflow)
+            await GraphStore.ReplaceAsync(connection, transaction, workflow);
+
+        transaction.Commit();
 
         return element;
     }
 
     public async Task<ScopedElement> EditAsync(ScopedElement element)
     {
-        using var db = _contextFactory.CreateContext();
+        using var connection = _databaseFactory.Create();
+        using var transaction = connection.BeginTransaction();
 
-        if (!await db.Scoped.AnyAsync(x => x.Id == element.Id))
+        // The editor gives back the element as a whole, what it holds included : the row is written
+        // again from it, there is nothing to diff against what is stored.
+        int updated = await connection.ExecuteAsync($"""
+            UPDATE Scoped SET
+                {ScopedModel.Assignments}
+            WHERE Id = @Id;
+            """,
+            ScopedModel.From(element),
+            transaction);
+
+        if (updated == 0)
             throw new KeyNotFoundException();
 
-        // What hangs under the element in tables of its own — its schedules, and the whole graph of
-        // a workflow — is dropped and written again rather than diffed against what is stored : the
-        // editor gives back the element as a whole, holding the very ids that are stored, so
-        // rewriting the rows lands on the same ones a diff would have.
-        await ClearDependentRowsAsync(db, element);
+        if (element is AutomationWorkflow workflow)
+            await GraphStore.ReplaceAsync(connection, transaction, workflow);
 
-        // Update() would mark everything it reaches as modified, which the rows just dropped are
-        // not anymore : only what shares the table of the element itself (its metadata, its
-        // settings, its target) is an update, the rest is an insert.
-        string? table = db.Model.FindEntityType(element.GetType())?.GetTableName();
-        db.ChangeTracker.TrackGraph(element, node => node.Entry.State =
-            node.Entry.Metadata.GetTableName() == table ? EntityState.Modified : EntityState.Added);
-
-        await db.SaveChangesAsync();
+        transaction.Commit();
 
         return element;
     }
 
     /// <summary>
-    /// Drop the rows [element] owns in other tables. Removing the graph of a workflow takes its
-    /// nodes with it, and each node its connectors and their connections.
+    /// The element [elementId], null when nothing is stored under that id. A workflow comes with its
+    /// graph, ready to be walked.
     /// </summary>
-    private static async Task ClearDependentRowsAsync(DatabaseContext db, ScopedElement element)
+    public async Task<ScopedElement?> GetAsync(Guid elementId)
     {
-        if (element is BaseAutomationTask)
-        {
-            await db.Schedules
-                .Where(x => EF.Property<Guid>(x, DatabaseContext.ScheduleTaskId) == element.Id)
-                .ExecuteDeleteAsync();
-        }
+        return (await GetAsync([elementId])).FirstOrDefault();
+    }
 
-        if (element is AutomationWorkflow)
-        {
-            await db.Graphs
-                .Where(x => EF.Property<Guid>(x, DatabaseContext.GraphWorkflowId) == element.Id)
-                .ExecuteDeleteAsync();
-        }
+    /// <summary>
+    /// The elements [elementIds], the unknown ones simply left out.
+    /// </summary>
+    public async Task<List<ScopedElement>> GetAsync(IReadOnlyCollection<Guid> elementIds)
+    {
+        if (elementIds.Count == 0)
+            return [];
+
+        using var connection = _databaseFactory.Create();
+
+        var rows = await connection.QueryAsync<ScopedModel>($"""
+            SELECT {ScopedModel.Columns} FROM Scoped WHERE Id IN @elementIds;
+            """,
+            new { elementIds });
+
+        return await ToElementsAsync(connection, rows);
     }
 
     public async Task<List<ScopedElement>> GetChildrensAsync(Guid scopeId)
     {
-        using var db = _contextFactory.CreateContext();
-        return await db.Scoped.Where(x => x.ParentId == scopeId).ToListAsync();
+        using var connection = _databaseFactory.Create();
+
+        var rows = await connection.QueryAsync<ScopedModel>($"""
+            SELECT {ScopedModel.Columns} FROM Scoped WHERE ParentId = @scopeId;
+            """,
+            new { scopeId });
+
+        return await ToElementsAsync(connection, rows);
     }
 
     public async Task<ScopedElement> RemoveAsync(ScopedElement element)
     {
-        using var db = _contextFactory.CreateContext();
+        using var connection = _databaseFactory.Create();
 
-        if (!await db.Scoped.AnyAsync(x => x.Id == element.Id))
+        // The whole branch is read first : what it holds has its say on whether it can go.
+        var branch = (await connection.QueryAsync<ScopedModel>($"""
+            {ScopedModel.BranchQuery}
+            SELECT {ScopedModel.Columns} FROM Scoped WHERE Id IN (SELECT Id FROM Branch);
+            """,
+            new { elementId = element.Id })).ToList();
+
+        if (branch.Count == 0)
             throw new KeyNotFoundException();
-
-        HashSet<Guid> ids = await CollectBranchAsync(db, element.Id);
-
-        var removed = await db.Scoped.Where(x => ids.Contains(x.Id)).ToListAsync();
 
         // Built-in elements (e.g. the control tasks every graph relies on) are read only : neither
         // them nor a scope holding one of them can be removed.
-        var protectedElement = removed.FirstOrDefault(x => x.Metadata.IsReadOnly);
+        var protectedElement = branch.FirstOrDefault(x => x.IsReadOnly);
         if (protectedElement != null)
-            throw new InvalidOperationException($"The element '{protectedElement.Metadata.Name}' is read only and can't be removed.");
+            throw new InvalidOperationException($"The element '{protectedElement.Name}' is read only and can't be removed.");
 
-        // A node points at its task through a relation, so a task still used by a graph can't be
-        // dropped from under it. The graphs being removed along with the element don't count : they
-        // are going away with their nodes.
-        var usages = (await GetUsagesAsync(db, ids)).Where(x => !ids.Contains(x.WorkflowId)).ToList();
+        // A node points at its task by id, so a task still used by a graph can't be dropped from
+        // under it. The workflows being removed along with the element don't count : they are going
+        // away with their nodes.
+        HashSet<Guid> ids = [.. branch.Select(x => x.Id)];
+        var usages = (await GetUsagesAsync(connection, ids)).Where(x => !ids.Contains(x.WorkflowId)).ToList();
         if (usages.Count > 0)
             throw new InvalidOperationException($"Still used by {string.Join(", ", usages.Select(x => x.ToString()))}.");
 
-        // The children of the removed elements, the graph of a workflow and the history of what
-        // they ran all hang under them : the database takes them along.
-        db.Scoped.RemoveRange(removed);
-        await db.SaveChangesAsync();
+        // The children of the element, and the history of what the branch ran, all hang under it :
+        // the database takes them along.
+        await connection.ExecuteAsync("DELETE FROM Scoped WHERE Id = @elementId;", new { elementId = element.Id });
 
         return element;
     }
 
-    /// <summary>
-    /// [elementId] and everything under it, read one level at a time : a whole branch of the tree.
-    /// </summary>
-    private static async Task<HashSet<Guid>> CollectBranchAsync(DatabaseContext db, Guid elementId)
-    {
-        HashSet<Guid> ids = [elementId];
-
-        List<Guid> level = [elementId];
-        while (level.Count > 0)
-        {
-            level = await db.Scoped
-                .AsNoTracking()
-                .Where(x => x.ParentId != null && level.Contains(x.ParentId.Value))
-                .Select(x => x.Id)
-                .ToListAsync();
-            level = [.. level.Where(ids.Add)];
-        }
-
-        return ids;
-    }
-
     public async Task<List<TaskUsage>> GetUsagesAsync(Guid taskId)
     {
-        using var db = _contextFactory.CreateContext();
-        return await GetUsagesAsync(db, [taskId]);
+        using var connection = _databaseFactory.Create();
+        return await GetUsagesAsync(connection, [taskId]);
     }
 
     /// <summary>
     /// The nodes pointing at one of [taskIds], with the workflow holding them.
     /// </summary>
-    private static async Task<List<TaskUsage>> GetUsagesAsync(DatabaseContext db, IReadOnlyCollection<Guid> taskIds)
+    private static async Task<List<TaskUsage>> GetUsagesAsync(IDbConnection connection, IReadOnlyCollection<Guid> taskIds)
     {
         if (taskIds.Count == 0)
             return [];
 
-        return await (
-            from node in db.GraphNodes.AsNoTracking().OfType<BaseGraphTask>()
-            join workflow in db.Scoped.AsNoTracking().OfType<AutomationWorkflow>()
-                on EF.Property<Guid>(node, DatabaseContext.NodeGraphId) equals workflow.Id
-            where taskIds.Contains(node.TaskId)
-            select new TaskUsage()
-            {
-                TaskId = node.TaskId,
-                WorkflowId = workflow.Id,
-                WorkflowName = workflow.Metadata.Name,
-                NodeId = node.Id,
-                NodeName = node.Metadata.Name,
-            }).ToListAsync();
+        var usages = await connection.QueryAsync<TaskUsage>("""
+            SELECT
+                node.TaskId AS TaskId,
+                node.Id AS NodeId,
+                node.Name AS NodeName,
+                workflow.Id AS WorkflowId,
+                workflow.Name AS WorkflowName
+            FROM GraphNodes node
+            JOIN Scoped workflow ON workflow.Id = node.WorkflowId
+            WHERE node.TaskId IN @taskIds;
+            """,
+            new { taskIds });
+
+        return [.. usages];
     }
 
     public async Task<Paginated<BaseAutomationTask>> SearchAsync(string search = "", PaginationOptions options = default)
     {
-        using var db = _contextFactory.CreateContext();
+        using var connection = _databaseFactory.Create();
 
-        IQueryable<BaseAutomationTask> query = db.Scoped.AsNoTracking().OfType<BaseAutomationTask>();
-        if (!string.IsNullOrWhiteSpace(search))
-        {
-            string term = search.ToLower();
-            query = query.Where(x => x.Metadata.Name.ToLower().Contains(term));
-        }
+        // Only the tasks and workflows are searched, a scope is not something that runs.
+        const string filter = """
+            WHERE ElementKind <> @scopeKind AND (@term = '' OR instr(lower(Name), @term) > 0)
+            """;
 
-        var total = await query.CountAsync();
-        var items = await query
-            .Skip((options.Page - 1) * options.PageSize)
-            .Take(options.PageSize)
-            .ToListAsync();
+        using var results = await connection.QueryMultipleAsync($"""
+            SELECT COUNT(*) FROM Scoped {filter};
+
+            SELECT {ScopedModel.Columns} FROM Scoped {filter}
+            ORDER BY lower(Name)
+            LIMIT @take OFFSET @skip;
+            """,
+            new
+            {
+                scopeKind = ScopedModel.ScopeKind,
+                term = SearchTerm(search),
+                take = options.PageSize,
+                skip = (options.Page - 1) * options.PageSize,
+            });
+
+        long total = await results.ReadSingleAsync<long>();
+        var rows = await results.ReadAsync<ScopedModel>();
 
         return new Paginated<BaseAutomationTask>
         {
-            Items = items,
+            Items = [.. (await ToElementsAsync(connection, rows)).OfType<BaseAutomationTask>()],
             Total = total,
             Options = options,
         };
@@ -187,103 +213,91 @@ public class LocalScopedService : IScopedService
 
     public async Task<List<ScopedElement>> SearchTreeAsync(string search = "")
     {
-        using var db = _contextFactory.CreateContext();
+        using var connection = _databaseFactory.Create();
 
-        // Only tasks and workflows are matched, scopes being kept only for the branches they hold.
-        IQueryable<BaseAutomationTask> query = db.Scoped.AsNoTracking().OfType<BaseAutomationTask>();
-        if (!string.IsNullOrWhiteSpace(search))
-        {
-            string term = search.ToLower();
-            query = query.Where(x => x.Metadata.Name.ToLower().Contains(term));
-        }
+        // Only tasks and workflows are matched, the scopes leading to them coming along so the
+        // caller can rebuild the branches from their parents. A scope shared by two results is
+        // walked once, which is also what keeps the walk from turning on itself.
+        var rows = await connection.QueryAsync<ScopedModel>($"""
+            WITH RECURSIVE Matched(Id, ParentId) AS (
+                SELECT Id, ParentId FROM Scoped
+                WHERE ElementKind <> @scopeKind AND (@term = '' OR instr(lower(Name), @term) > 0)
+            ),
+            Tree(Id, ParentId) AS (
+                SELECT Id, ParentId FROM Matched
+                UNION
+                SELECT parent.Id, parent.ParentId FROM Scoped parent JOIN Tree ON Tree.ParentId = parent.Id
+            )
+            SELECT {ScopedModel.Columns} FROM Scoped WHERE Id IN (SELECT Id FROM Tree);
+            """,
+            new { scopeKind = ScopedModel.ScopeKind, term = SearchTerm(search) });
 
-        List<ScopedElement> results = [.. await query.ToListAsync()];
-        HashSet<Guid> known = [.. results.Select(x => x.Id)];
-
-        // Every result comes with the scopes leading to it, so the caller can rebuild the branches
-        // from ParentId, reading them one level at a time.
-        List<Guid> missing = [.. results.Select(x => x.ParentId).OfType<Guid>().Where(known.Add)];
-        while (missing.Count > 0)
-        {
-            var parents = await db.Scoped
-                .AsNoTracking()
-                .Where(x => missing.Contains(x.Id))
-                .ToListAsync();
-
-            results.AddRange(parents);
-            missing = [.. parents.Select(x => x.ParentId).OfType<Guid>().Where(known.Add)];
-        }
-
-        return results;
+        return await ToElementsAsync(connection, rows);
     }
 
     public async Task<bool> IsNameUniqueAsync(Guid parentId, string name, Guid? excludeId = null)
     {
-        using var db = _contextFactory.CreateContext();
+        using var connection = _databaseFactory.Create();
 
-        string term = name.ToLower();
-        bool exists = await db.Scoped.AnyAsync(x =>
-            x.ParentId == parentId &&
-            x.Id != excludeId &&
-            x.Metadata.Name.ToLower() == term);
-
-        return !exists;
+        // IS NOT rather than <> : an element keeping its own name is left out of the search, and
+        // nothing is when no element is excluded.
+        return await connection.ExecuteScalarAsync<bool>("""
+            SELECT NOT EXISTS(
+                SELECT 1 FROM Scoped
+                WHERE ParentId = @parentId AND Id IS NOT @excludeId AND lower(Name) = @term
+            );
+            """,
+            new { parentId, excludeId, term = name.ToLower() });
     }
 
     public async Task<JObject> GetContextAsync(Guid elementId)
     {
-        using var db = _contextFactory.CreateContext();
+        using var connection = _databaseFactory.Create();
 
-        // Only the place of the element in the tree matters here, not what it holds.
-        var element = await db.Scoped
-            .AsNoTracking()
-            .IgnoreAutoIncludes()
-            .Select(x => new { x.Id, x.ParentId, IsScope = x is Scope })
-            .FirstOrDefaultAsync(x => x.Id == elementId);
-        if (element == null)
-            return new JObject();
+        // The scopes from the root down to the one holding the element, the resolution going back
+        // down so a scope overrides its parents. The element itself is walked over unless it is a
+        // scope, and an unknown element simply leads to no scope at all.
+        var rows = await connection.QueryAsync<ScopedModel>($"""
+            WITH RECURSIVE Ancestry(AncestorId, AncestorParentId, Depth) AS (
+                SELECT Id, ParentId, 0 FROM Scoped WHERE Id = @elementId
+                UNION ALL
+                SELECT parent.Id, parent.ParentId, Ancestry.Depth + 1
+                FROM Scoped parent JOIN Ancestry ON Ancestry.AncestorParentId = parent.Id
+            )
+            SELECT {ScopedModel.Columns} FROM Scoped
+            JOIN Ancestry ON AncestorId = Scoped.Id
+            WHERE ElementKind = @scopeKind
+            ORDER BY Depth DESC;
+            """,
+            new { elementId, scopeKind = ScopedModel.ScopeKind });
 
-        var scopes = await db.Scoped.AsNoTracking().OfType<Scope>().ToDictionaryAsync(x => x.Id);
-
-        // Walk up to the root, the resolution then going back down so a scope overrides its parents.
-        List<Scope> hierarchy = [];
-        Guid? currentId = element.IsScope ? element.Id : element.ParentId;
-        while (currentId != null && scopes.TryGetValue(currentId.Value, out var scope))
-        {
-            hierarchy.Insert(0, scope);
-            currentId = scope.ParentId;
-        }
-
-        return ScopeContextResolver.Resolve(hierarchy);
+        return ScopeContextResolver.Resolve(rows.Select(x => x.ToElement()).OfType<Scope>());
     }
 
     /// <summary>
-    /// The place of a scoped element in the tree, and whether it is one of the executable leaves.
-    /// Read on its own so that walking the tree doesn't have to load what the elements hold.
+    /// What a search is matched on : nothing when it holds nothing to look for.
     /// </summary>
-    public record ScopedLink(Guid Id, Guid? ParentId, bool IsExecutable);
+    private static string SearchTerm(string search)
+    {
+        return string.IsNullOrWhiteSpace(search) ? "" : search.ToLower();
+    }
 
     /// <summary>
-    /// Collect the ids whose executions make up [elementId]'s history: the element itself when it is a
-    /// task or workflow, or every task/workflow nested under it (recursively) when it is a scope.
+    /// The elements [rows] stand for, the workflows of them coming with their graph : it lives in
+    /// tables of its own, read once for all the workflows of the read rather than one by one.
     /// </summary>
-    public static IEnumerable<Guid> CollectExecutableIds(
-        Guid elementId,
-        Dictionary<Guid, ScopedLink> byId,
-        ILookup<Guid?, ScopedLink> byParent)
+    private static async Task<List<ScopedElement>> ToElementsAsync(IDbConnection connection, IEnumerable<ScopedModel> rows)
     {
-        if (!byId.TryGetValue(elementId, out var element))
-            yield break;
+        List<ScopedElement> elements = [.. rows.Select(x => x.ToElement())];
 
-        // Tasks and workflows are the executable leaves, a scope only holds them.
-        if (element.IsExecutable)
-        {
-            yield return element.Id;
-            yield break;
-        }
+        List<AutomationWorkflow> workflows = [.. elements.OfType<AutomationWorkflow>()];
+        if (workflows.Count == 0)
+            return elements;
 
-        foreach (var child in byParent[elementId])
-            foreach (var id in CollectExecutableIds(child.Id, byId, byParent))
-                yield return id;
+        var graphs = await GraphStore.LoadAsync(connection, [.. workflows.Select(x => x.Id)]);
+        foreach (AutomationWorkflow workflow in workflows)
+            workflow.Graph = graphs[workflow.Id];
+
+        return elements;
     }
 }

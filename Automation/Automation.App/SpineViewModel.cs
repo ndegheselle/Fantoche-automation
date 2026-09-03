@@ -5,6 +5,7 @@ using Automation.App.Features.Servers;
 using Automation.App.Features.Storage;
 using Automation.App.Features.Workflows;
 using Automation.Services.Local;
+using Automation.Services.Local.Database;
 using Automation.Shared.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Joufflu.Feedback;
@@ -48,18 +49,19 @@ public class SpineViewModel : ObservableObject
 
     private SpineViewModel()
     {
-        var dbContextFactory = new LocalDbContextFactory(Path.Combine(Settings.LocalFolderPath, "automation.db"));
+        // The factory puts the schema and the starting content in place as it is built.
+        var databaseFactory = new DatabaseFactory(Path.Combine(Settings.LocalFolderPath, "automation.db"));
 
-        var history = new LocalHistoryService(dbContextFactory);
+        var history = new LocalHistoryService(databaseFactory);
         var packages = new LocalPackagesService(Settings.PackagesFolderPath, Path.Join(Settings.LocalFolderPath, "cache"));
-        var scoped = new LocalScopedService(dbContextFactory);
+        var scoped = new LocalScopedService(databaseFactory);
         Packages = packages;
         History = history;
         Scoped = scoped;
-        Execution = new LocalExecutionService(scoped, history, dbContextFactory, packages.PackageManagement);
+        Execution = new LocalExecutionService(scoped, history, packages.PackageManagement);
 
-        // Take the cost of building the EF model off the first navigation.
-        _ = Task.Run(() => dbContextFactory.WarmupAsync());
+        // Take the cost of opening the database off the first navigation.
+        _ = Task.Run(() => DatabaseFactory.WarmUpDatabase(databaseFactory));
 
         _pages = new object[]
         {

@@ -1,5 +1,4 @@
-﻿using Automation.Services.Local;
-using Automation.Services.Local.Database;
+﻿using Automation.Services.Local.Models;
 using Dapper;
 using Microsoft.Data.Sqlite;
 using System.Data;
@@ -23,7 +22,11 @@ namespace Automation.Services.Local.Database
 
             _connectionString = $"Data Source={sqliteDbPath}";
 
-            // TODO : ensure schema + seed
+            // The database is ready to be read from as soon as the factory is built : the tables
+            // are created when they are missing, and a database that never held anything is given
+            // its starting content.
+            DatabaseSchema.EnsureCreated(this);
+            DatabaseSeeder.Seed(this);
         }
 
         public IDbConnection Create()
@@ -59,26 +62,27 @@ namespace Automation.Services.Local.Database
             };
         }
     }
-}
 
-/// <summary>
-/// The tables the local database is made of, created when they are missing : the application
-/// carries its own schema and there is no migration to run.
-/// </summary>
-public static class DatabaseSchema
-{
     /// <summary>
-    /// Create whatever is missing in the database. Called once, before anything reads or writes,
-    /// the tables being created in the order they point at each other.
+    /// The tables the local database is made of, created when they are missing : the application
+    /// carries its own schema and there is no migration to run.
     /// </summary>
-    public static void EnsureCreated(DatabaseFactory factory)
+    public static class DatabaseSchema
     {
-        using var connection = factory.Create();
-        connection.Execute(TaskInstanceModel.Schema);
+        /// <summary>
+        /// Create whatever is missing in the database. Called once, before anything reads or writes,
+        /// the tables being created in the order they point at each other.
+        /// </summary>
+        public static void EnsureCreated(DatabaseFactory factory)
+        {
+            using var connection = factory.Create();
+            // The tree comes first : the instances point at the element they ran, and the nodes of a
+            // graph at the workflow holding them.
+            connection.Execute(ScopedModel.Schema);
+            connection.Execute(TaskInstanceModel.Schema);
+            connection.Execute(GraphNodeModel.Schema);
+            connection.Execute(GraphConnectorModel.Schema);
+            connection.Execute(GraphConnectionModel.Schema);
+        }
     }
-}
-
-public static class DatabaseSeeder
-{
-    // TODO
 }
