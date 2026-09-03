@@ -1,8 +1,10 @@
-﻿using Dapper;
+﻿using Automation.Services.Local;
+using Automation.Services.Local.Database;
+using Dapper;
 using Microsoft.Data.Sqlite;
 using System.Data;
 
-namespace Automation.Services.Local
+namespace Automation.Services.Local.Database
 {
     public class DatabaseFactory
     {
@@ -20,6 +22,8 @@ namespace Automation.Services.Local
                 Directory.CreateDirectory(parentFolder);
 
             _connectionString = $"Data Source={sqliteDbPath}";
+
+            // TODO : ensure schema + seed
         }
 
         public IDbConnection Create()
@@ -55,4 +59,26 @@ namespace Automation.Services.Local
             };
         }
     }
+}
+
+/// <summary>
+/// The tables the local database is made of, created when they are missing : the application
+/// carries its own schema and there is no migration to run.
+/// </summary>
+public static class DatabaseSchema
+{
+    /// <summary>
+    /// Create whatever is missing in the database. Called once, before anything reads or writes,
+    /// the tables being created in the order they point at each other.
+    /// </summary>
+    public static void EnsureCreated(DatabaseFactory factory)
+    {
+        using var connection = factory.Create();
+        connection.Execute(TaskInstanceModel.Schema);
+    }
+}
+
+public static class DatabaseSeeder
+{
+    // TODO
 }

@@ -1,8 +1,8 @@
-﻿using Automation.Shared.Base;
+﻿using Automation.Services.Local.Database;
+using Automation.Shared.Base;
 using Automation.Shared.Data.Execution;
 using Automation.Shared.Services;
 using Dapper;
-using Newtonsoft.Json.Linq;
 
 namespace Automation.Services.Local;
 
@@ -30,12 +30,6 @@ public class LocalHistoryService : IHistoryService
     }
 
     /// <summary>
-    /// The columns making up a stored instance, in the order the insert writes them.
-    /// </summary>
-    private const string Columns =
-        "Id, TaskId, NodeId, ParentInstanceId, NodeName, Parameters, Output, State, CreatedAt, FinishedAt";
-
-    /// <summary>
     /// The branch of the scoped tree hanging under @elementId, the element itself included. Only
     /// the tasks and workflows of it ever have instances, so the scopes coming along in the walk
     /// don't have to be told apart : they simply match nothing.
@@ -59,7 +53,7 @@ public class LocalHistoryService : IHistoryService
             SELECT COUNT(*) FROM TaskInstances WHERE TaskId IN (SELECT Id FROM Branch);
 
             {BranchQuery}
-            SELECT {Columns} FROM TaskInstances
+            SELECT {TaskInstanceModel.Columns} FROM TaskInstances
             WHERE TaskId IN (SELECT Id FROM Branch)
             ORDER BY CreatedAt DESC
             LIMIT @take OFFSET @skip;
@@ -72,11 +66,11 @@ public class LocalHistoryService : IHistoryService
             });
 
         long total = await results.ReadSingleAsync<long>();
-        var rows = await results.ReadAsync<InstanceRow>();
+        var rows = await results.ReadAsync<TaskInstanceModel>();
 
         return new Paginated<TaskInstance>
         {
-            Items = [.. rows.Select(x => x.ToInstance())],
+            Items = rows.Select(x => x.ToInstance()).ToList(),
             Total = total,
             Options = options,
         };
@@ -86,8 +80,8 @@ public class LocalHistoryService : IHistoryService
     {
         using var connection = _databaseFactory.Create();
 
-        var rows = await connection.QueryAsync<InstanceRow>($"""
-            SELECT {Columns} FROM TaskInstances
+        var rows = await connection.QueryAsync<TaskInstanceModel>($"""
+            SELECT {TaskInstanceModel.Columns} FROM TaskInstances
             WHERE ParentInstanceId = @instanceId
             ORDER BY CreatedAt;
             """,
@@ -102,22 +96,6 @@ public class LocalHistoryService : IHistoryService
     /// </summary>
     public async Task SaveAsync(TaskInstance instance)
     {
-        // A WorkflowInstance carries the runtime of a run : whatever is executed, what is stored is
-        // always the plain columns of an instance.
-        var row = new
-        {
-            instance.Id,
-            instance.TaskId,
-            instance.NodeId,
-            instance.ParentInstanceId,
-            instance.NodeName,
-            Parameters = instance.Parameters?.ToString(Newtonsoft.Json.Formatting.None),
-            Output = instance.Output?.ToString(Newtonsoft.Json.Formatting.None),
-            instance.State,
-            instance.CreatedAt,
-            instance.FinishedAt,
-        };
-
         bool added;
         await _writeLock.WaitAsync();
         try
@@ -127,11 +105,11 @@ public class LocalHistoryService : IHistoryService
             // The row is written blind and the conflict on its id tells whether the instance was
             // already known : nothing else is let through, a missing task or column stays a failure.
             added = await connection.ExecuteAsync($"""
-                INSERT INTO TaskInstances ({Columns})
+                INSERT INTO TaskInstances ({TaskInstanceModel.Columns})
                 VALUES (@Id, @TaskId, @NodeId, @ParentInstanceId, @NodeName, @Parameters, @Output, @State, @CreatedAt, @FinishedAt)
                 ON CONFLICT (Id) DO NOTHING;
                 """,
-                row) > 0;
+                instance) > 0;
 
             if (!added)
             {
@@ -148,7 +126,7 @@ public class LocalHistoryService : IHistoryService
                         FinishedAt = @FinishedAt
                     WHERE Id = @Id;
                     """,
-                    row);
+                    TaskInstanceModel.From(instance));
             }
         }
         finally
@@ -160,44 +138,5 @@ public class LocalHistoryService : IHistoryService
             InstanceAdded?.Invoke(instance);
         else
             InstanceUpdated?.Invoke(instance);
-    }
-
-    /// <summary>
-    /// One row of the instances table, mapped by hand : the JSON columns are read back as JToken,
-    /// and the state of an instance stamps its FinishedAt as it is assigned.
-    /// </summary>
-    private sealed record InstanceRow
-    {
-        public Guid Id { get; init; }
-        public Guid TaskId { get; init; }
-        public Guid? NodeId { get; init; }
-        public Guid? ParentInstanceId { get; init; }
-        public string NodeName { get; init; } = string.Empty;
-        public string? Parameters { get; init; }
-        public string? Output { get; init; }
-        public EnumTaskState State { get; init; }
-        public DateTime CreatedAt { get; init; }
-        public DateTime? FinishedAt { get; init; }
-
-        public TaskInstance ToInstance()
-        {
-            var instance = new TaskInstance()
-            {
-                Id = Id,
-                TaskId = TaskId,
-                NodeId = NodeId,
-                ParentInstanceId = ParentInstanceId,
-                NodeName = NodeName,
-                Parameters = Parameters == null ? null : JToken.Parse(Parameters),
-                Output = Output == null ? null : JToken.Parse(Output),
-                CreatedAt = CreatedAt,
-                State = State,
-            };
-
-            // Assigning the state stamps FinishedAt, the stored value has to stay the one of the run.
-            instance.FinishedAt = FinishedAt;
-
-            return instance;
-        }
     }
 }
