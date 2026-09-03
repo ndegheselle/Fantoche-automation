@@ -12,8 +12,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     d:DataContext="{d:DesignInstance Type=local:WorkflowDetailsViewModel}"
     mc:Ignorable="d">
-    <TabControl>
-        <TabItem Header="Settings">
+    <TabControl SelectedValue="{Binding CurrentTab, Mode=TwoWay}" SelectedValuePath="Tag">
+        <TabItem Header="Settings" Tag="{x:Static local:EnumDetailTab.Settings}">
             <Grid joufflu:Spacing.Gap="4">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto" />
@@ -54,10 +54,13 @@
                 </Grid>
             </Grid>
         </TabItem>
-        <TabItem Header="History">
+        <TabItem Header="History" Tag="{x:Static local:EnumDetailTab.History}">
             <controls:HistoryTable DataContext="{Binding History}" />
         </TabItem>
-        <TabItem Header="Editor">
+        <TabItem Header="Usages" Tag="{x:Static local:EnumDetailTab.Usages}">
+            <controls:UsagesTable DataContext="{Binding Usages}" />
+        </TabItem>
+        <TabItem Header="Editor" Tag="{x:Static local:EnumDetailTab.Editor}">
             <editor:WorkflowEditor DataContext="{Binding Editor}" />
         </TabItem>
     </TabControl>

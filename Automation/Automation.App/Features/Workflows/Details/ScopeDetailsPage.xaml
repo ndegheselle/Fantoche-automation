@@ -12,8 +12,8 @@
     xmlns:workflows="clr-namespace:Automation.App.Features.Workflows"
     d:DataContext="{d:DesignInstance Type=local:ScopeDetailsViewModel}"
     mc:Ignorable="d">
-    <TabControl>
-        <TabItem Header="Settings">
+    <TabControl SelectedValue="{Binding CurrentTab, Mode=TwoWay}" SelectedValuePath="Tag">
+        <TabItem Header="Settings" Tag="{x:Static local:EnumDetailTab.Settings}">
             <Grid joufflu:Spacing.Gap="4">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto" />
@@ -46,7 +46,7 @@
                 </Grid>
             </Grid>
         </TabItem>
-        <TabItem Header="History">
+        <TabItem Header="History" Tag="{x:Static local:EnumDetailTab.History}">
             <controls:HistoryTable DataContext="{Binding History}" />
         </TabItem>
     </TabControl>

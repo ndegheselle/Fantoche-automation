@@ -133,6 +133,20 @@ namespace Automation.App.Features.Workflows
             node.Parent?.Children.Remove(node);
         }
 
+        /// <summary>
+        /// The node standing for the element [elementId], <see langword="null"/> when the tree
+        /// doesn't currently hold it (e.g. while a search only displays part of it).
+        /// </summary>
+        public ScopedNode? Find(Guid elementId) => Find(Root, elementId);
+
+        private static ScopedNode? Find(ScopedNode node, Guid elementId)
+        {
+            if (node.Element.Id == elementId)
+                return node;
+
+            return node.Children.Select(child => Find(child, elementId)).FirstOrDefault(found => found != null);
+        }
+
         [RelayCommand]
         public void Open(ScopedNode? node)
         {

@@ -1,0 +1,72 @@
+﻿<UserControl
+    x:Class="Automation.App.Features.Workflows.Details.Controls.UsagesTable"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
+    xmlns:jonverters="clr-namespace:Joufflu.Converters;assembly=Joufflu"
+    xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
+    xmlns:local="clr-namespace:Automation.App.Features.Workflows.Details.Controls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DataContext="{d:DesignInstance Type=local:UsagesViewModel}"
+    mc:Ignorable="d">
+    <Grid joufflu:Spacing.Gap="4">
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+
+        <DataGrid
+            joufflu:Sizing.Size="xs"
+            Grid.Row="0"
+            AutoGenerateColumns="False"
+            CanUserReorderColumns="False"
+            IsReadOnly="True"
+            ItemsSource="{Binding Usages}"
+            Visibility="{Binding IsEmpty, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}">
+            <DataGrid.Columns>
+                <DataGridTextColumn
+                    Width="*"
+                    Binding="{Binding WorkflowName}"
+                    Header="Workflow" />
+                <DataGridTextColumn
+                    Width="*"
+                    Binding="{Binding NodeName}"
+                    Header="Node" />
+                <DataGridTemplateColumn>
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <!--  The row only knows its own usage, the command lives on the usages  -->
+                            <Button
+                                joufflu:Sizing.IsSquare="True"
+                                Command="{Binding DataContext.OpenWorkflowCommand, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"
+                                CommandParameter="{Binding}"
+                                Style="{StaticResource GhostButton}"
+                                ToolTip="Open the workflow using it">
+                                <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.ChevronRight}" />
+                            </Button>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!--  Used nowhere, which is also what makes the element deletable  -->
+        <StackPanel
+            Grid.Row="0"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Orientation="Horizontal"
+            Visibility="{Binding IsEmpty, Converter={x:Static jonverters:VisibilityConverter.Default}}">
+            <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.CircleSlash2}" />
+            <TextBlock Margin="8,0,0,0">Not used by any workflow.</TextBlock>
+        </StackPanel>
+
+        <TextBlock
+            Grid.Row="1"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Center"
+            Opacity="0.5"
+            Text="{Binding Usages.Count, StringFormat={}{0} usages}" />
+    </Grid>
+</UserControl>

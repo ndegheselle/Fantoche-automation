@@ -221,7 +221,7 @@
                             <jonts:FontIcon
                                 DataContext="{Binding Metadata}"
                                 FontSize="{DynamicResource {x:Static joufflu:Dimensions.ControlFontSizeXl}}"
-                                Style="{StaticResource ScopedIcon}" />
+                                Style="{StaticResource ScopedMetadataIcon}" />
                         </nodify:Node>
                     </DataTemplate>
                 </nodify:NodifyEditor.Resources>

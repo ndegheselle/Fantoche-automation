@@ -6,26 +6,12 @@
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:scoped="clr-namespace:Automation.Shared.Data.Scoped;assembly=Automation.Shared">
-    <!--
-        Icon of a scoped element : the custom icon and color of its metadata when it has any, the icon
-        of its type otherwise.
-        Expects a ScopedMetadata as DataContext, or an EnumScopedType alone when there is no element
-        to display yet (only the icon of the type is then available).
-    -->
     <Style
-        x:Key="ScopedIcon"
+        x:Key="ScopedMetadataIcon"
         BasedOn="{StaticResource {x:Type jonts:FontIcon}}"
         TargetType="{x:Type jonts:FontIcon}">
         <Setter Property="Text" Value="{x:Static jonts:LucideFontIcons.FolderClosed}" />
         <Style.Triggers>
-            <!--  Type alone as DataContext.  -->
-            <DataTrigger Binding="{Binding}" Value="{x:Static scoped:EnumScopedType.Workflow}">
-                <Setter Property="Text" Value="{x:Static jonts:LucideFontIcons.Workflow}" />
-            </DataTrigger>
-            <DataTrigger Binding="{Binding}" Value="{x:Static scoped:EnumScopedType.Task}">
-                <Setter Property="Text" Value="{x:Static jonts:LucideFontIcons.SquareTerminal}" />
-            </DataTrigger>
-
             <!--  Type of the metadata.  -->
             <DataTrigger Binding="{Binding Type}" Value="{x:Static scoped:EnumScopedType.Workflow}">
                 <Setter Property="Text" Value="{x:Static jonts:LucideFontIcons.Workflow}" />
@@ -44,6 +30,21 @@
             </DataTrigger>
             <DataTrigger Binding="{Binding Color, Converter={x:Static converters:HasValueConverter.Default}}" Value="True">
                 <Setter Property="Foreground" Value="{Binding Color}" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+    <Style
+        x:Key="ScopedIcon"
+        BasedOn="{StaticResource {x:Type jonts:FontIcon}}"
+        TargetType="{x:Type jonts:FontIcon}">
+        <Setter Property="Text" Value="{x:Static jonts:LucideFontIcons.FolderClosed}" />
+        <Style.Triggers>
+            <!--  Type alone as DataContext.  -->
+            <DataTrigger Binding="{Binding FallbackValue={x:Null}}" Value="{x:Static scoped:EnumScopedType.Workflow}">
+                <Setter Property="Text" Value="{x:Static jonts:LucideFontIcons.Workflow}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding FallbackValue={x:Null}}" Value="{x:Static scoped:EnumScopedType.Task}">
+                <Setter Property="Text" Value="{x:Static jonts:LucideFontIcons.SquareTerminal}" />
             </DataTrigger>
         </Style.Triggers>
     </Style>

@@ -130,7 +130,7 @@
                             <jonts:FontIcon
                                 VerticalAlignment="Center"
                                 DataContext="{Binding Metadata}"
-                                Style="{StaticResource ScopedIcon}" />
+                                Style="{StaticResource ScopedMetadataIcon}" />
                             <TextBlock VerticalAlignment="Center" Text="{Binding Name}" />
                         </StackPanel>
                     </HierarchicalDataTemplate>
@@ -170,7 +170,7 @@
                                     CommandParameter="{Binding}"
                                     Style="{StaticResource GhostButton}">
                                     <StackPanel Orientation="Horizontal">
-                                        <jonts:FontIcon DataContext="{Binding Metadata}" Style="{StaticResource ScopedIcon}" />
+                                        <jonts:FontIcon DataContext="{Binding Metadata}" Style="{StaticResource ScopedMetadataIcon}" />
                                         <TextBlock Margin="4,0,0,0" Text="{Binding Name}" />
                                     </StackPanel>
                                 </Button>

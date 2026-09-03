@@ -8,6 +8,14 @@ using Joufflu.Navigation;
 
 namespace Automation.App.Features.Workflows.Details
 {
+    public enum EnumDetailTab
+    {
+        Settings = 0,
+        History = 1,
+        Usages = 2,
+        Editor = 3
+    }
+
     /// <summary>
     /// Base of the details pages view models, handling what every scoped element shares : its name
     /// and the save / delete actions.
@@ -20,10 +28,19 @@ namespace Automation.App.Features.Workflows.Details
         public TElement Element => (TElement)Node.Element;
         public IRelayCommand<ScopedNode?> OpenCommand { get; }
 
+        [ObservableProperty]
+        private EnumDetailTab _currentTab;
+
         /// <summary>
         /// Executions of the element, displayed by the history tab.
         /// </summary>
         public HistoryViewModel History { get; }
+
+        /// <summary>
+        /// Graph nodes pointing at the element, displayed by the usages tab of the tasks and of the
+        /// workflows : only what runs can be used by a graph, a scope never is.
+        /// </summary>
+        public UsagesViewModel Usages { get; }
 
         /// <summary>
         /// General infos of the element, edited directly by the views : it notifies its own changes.
@@ -47,6 +64,7 @@ namespace Automation.App.Features.Workflows.Details
             _parent = parent;
             OpenCommand = parent.OpenCommand;
             History = new HistoryViewModel(node, _history);
+            Usages = new UsagesViewModel(node, parent, _scoped);
 
             // The views edit the metadata itself, so its changes are what tells the element needs
             // saving. Tags are edited through the collection rather than the property, hence the
@@ -96,6 +114,12 @@ namespace Automation.App.Features.Workflows.Details
         /// </summary>
         protected virtual void OnSaved()
         { }
+
+        partial void OnCurrentTabChanged(EnumDetailTab value)
+        {
+            if (value == EnumDetailTab.Usages)
+                _ = Usages.RefreshAsync();
+        }
 
         [RelayCommand(CanExecute = nameof(CanDelete))]
         public async Task Delete()
