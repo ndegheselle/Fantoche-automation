@@ -86,6 +86,9 @@ public class WorkflowInstance : TaskInstance
         return instance;
     }
 
+    /// <summary>
+    /// Last instance of [node] in [state], the most recently finished one first.
+    /// </summary>
     public TaskInstance? GetLastNodeInstance(BaseGraphTask node, EnumTaskState state)
     {
         lock (_lock)
@@ -95,13 +98,40 @@ public class WorkflowInstance : TaskInstance
         }
     }
 
-    public TaskInstance GetOrCreateWaitingInstance(BaseGraphTask node, TaskInstance previousInstance)
+    /// <summary>
+    /// Last instance of [node] having handed an output over, so the one the nodes after it read.
+    /// Null when the node hasn't run yet or when every run of it died (see
+    /// <see cref="BranchLiveness.HasDelivered"/>).
+    /// </summary>
+    public TaskInstance? GetLastDeliveredInstance(BaseGraphTask node)
     {
         lock (_lock)
         {
             NodeInstances.TryGetValue(node.Id, out var list);
-            var existing = list?.OrderByDescending(x => x.FinishedAt)
-                                 .FirstOrDefault(i => i.State == EnumTaskState.Waiting);
+            return list?.Where(BranchLiveness.HasDelivered)
+                        .OrderByDescending(x => x.FinishedAt)
+                        .FirstOrDefault();
+        }
+    }
+
+    /// <summary>
+    /// Instances of [node] created during this run.
+    /// </summary>
+    public IReadOnlyList<TaskInstance> GetNodeInstances(BaseGraphTask node)
+    {
+        lock (_lock)
+        {
+            if (NodeInstances.TryGetValue(node.Id, out var list))
+                return list.ToArray();
+            return [];
+        }
+    }
+
+    public TaskInstance GetOrCreateWaitingInstance(BaseGraphTask node, TaskInstance previousInstance)
+    {
+        lock (_lock)
+        {
+            var existing = GetLastNodeInstance(node, EnumTaskState.Waiting);
             if (existing != null)
                 return existing;
             // CreateInstance also takes _lock - reentrant, no deadlock
@@ -110,24 +140,73 @@ public class WorkflowInstance : TaskInstance
     }
 
     /// <summary>
-    /// Returns the completed predecessor instances of <paramref name="node"/> if and only if
-    /// every predecessor has one; otherwise <c>null</c>.
+    /// Instances currently holding on the branches reaching their node.
     /// </summary>
-    public IReadOnlyList<TaskInstance>? TryGetAllPrevious(BaseGraphTask node)
+    public IReadOnlyList<TaskInstance> GetWaitingInstances()
     {
-        var previous = Workflow.Graph.GetPrevious(node);
         lock (_lock)
         {
-            List<TaskInstance> previousInstances = [];
-            foreach (var p in previous)
-            {
-                var previousInstance = GetLastNodeInstance(p, EnumTaskState.Completed);
-                if (previousInstance == null)
-                    return null;
-                previousInstances.Add(previousInstance);
-            }
-
-            return previousInstances;
+            return NodeInstances.Values
+                .SelectMany(x => x)
+                .Where(x => x.State == EnumTaskState.Waiting)
+                .ToArray();
         }
+    }
+
+    /// <summary>
+    /// Take hold of a waiting instance and move it to [state]. Only the caller getting
+    /// <c>true</c> runs the node : the branches racing to resume it (the last one arriving, one
+    /// of them dying) get <c>false</c>.
+    /// </summary>
+    public bool TryClaimWaitingInstance(TaskInstance instance, EnumTaskState state)
+    {
+        lock (_lock)
+        {
+            if (instance.State != EnumTaskState.Waiting)
+                return false;
+            instance.State = state;
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// Gather the instances a node waiting on all of its branches reads, telling whether it can
+    /// run at all :
+    /// <list type="bullet">
+    /// <item><see cref="EnumWaitResolution.Pending"/> : a branch can still deliver, keep waiting.</item>
+    /// <item><see cref="EnumWaitResolution.Resolved"/> : [previous] holds what the live branches gave.</item>
+    /// <item><see cref="EnumWaitResolution.Dead"/> : every branch is dead, the node will never run.</item>
+    /// </list>
+    /// <para>
+    /// A dead branch is left out instead of being waited for : nothing can come out of it anymore,
+    /// so the node runs with the branches that did deliver. References of the node pointing into a
+    /// dead branch are simply not resolved, that branch never having produced anything.
+    /// </para>
+    /// </summary>
+    public EnumWaitResolution TryResolvePrevious(BaseGraphTask node, out IReadOnlyList<TaskInstance> previous)
+    {
+        List<TaskInstance> delivered = [];
+        bool pending = false;
+
+        lock (_lock)
+        {
+            foreach (BaseGraphTask p in Workflow.Graph.GetPrevious(node).DistinctBy(x => x.Id))
+            {
+                TaskInstance? instance = GetLastDeliveredInstance(p);
+                if (instance != null)
+                {
+                    delivered.Add(instance);
+                    continue;
+                }
+
+                if (BranchLiveness.Resolve(Workflow.Graph, GetNodeInstances, p) != EnumBranchLiveness.Dead)
+                    pending = true;
+            }
+        }
+
+        previous = delivered;
+        if (pending)
+            return EnumWaitResolution.Pending;
+        return delivered.Count > 0 ? EnumWaitResolution.Resolved : EnumWaitResolution.Dead;
     }
 }

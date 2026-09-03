@@ -23,6 +23,9 @@ IScenario[] scenarios =
     new BranchScenario(stopAtFirstEnd: false),
     new BranchScenario(stopAtFirstEnd: true),
     new LoopScenario(),
+    new DeadBranchScenario(EnumDeadBranch.DiesFirst),
+    new DeadBranchScenario(EnumDeadBranch.DiesLast),
+    new DeadBranchScenario(EnumDeadBranch.Both),
 ];
 
 WorkflowExecutor executor = new WorkflowExecutor(packages);

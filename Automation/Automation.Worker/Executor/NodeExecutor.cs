@@ -119,8 +119,14 @@ public class NodeExecutor : IDisposable
 
         // Pass-through with no parameters: nothing to deserialize, nothing for the plugin
         // to do — short-circuit before forcing a TInput-typed conversion that would throw.
+        // It still completes on an (empty) output, like the plugin would have : it is
+        // transparent to the branch, not a dead end of it.
         if (task.IsPassThrough() && instance.Parameters == null)
+        {
+            instance.Output = new JObject();
+            instance.State = EnumTaskState.Completed;
             return instance;
+        }
 
         object? parameter = null;
         if (instance.Parameters != null && task.Input?.Type != null)

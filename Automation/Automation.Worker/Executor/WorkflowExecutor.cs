@@ -28,15 +28,24 @@ public class WorkflowExecutor
             : null;
         var token = (CancellationToken?)(linkedCts?.Token ?? workflowInstance.WorkflowCts.Token);
 
-        // Create start tasks instances
-        var startTasks = new List<Task<IReadOnlyList<TaskInstance>>>();
+        // Create start tasks instances. Every one of them exists before any branch is walked : a
+        // node waiting on all of its branches crawls the graph to tell the dead ones from the
+        // running ones, and a start without an instance yet would pass for a dead one.
+        var starts = new List<(BaseGraphTask Node, TaskInstance Instance)>();
         foreach (var start in workflowInstance.Workflow.Graph.GetStartNodes())
         {
             var startInstance = workflowInstance.CreateInstance(start, workflowInstance.Parameters, EnumTaskState.Completed);
-            startInstance.Output = workflowInstance.Parameters;
+            // A start hands the parameters of the workflow over, an empty object when it has none :
+            // an instance completed without any output is a branch that died (see BranchLiveness).
+            startInstance.Output = workflowInstance.Parameters ?? new JObject();
+            starts.Add((start, startInstance));
+        }
 
-            progress?.StateChanges?.Report(startInstance);
-            startTasks.Add(NextAsync(start, startInstance, workflowInstance, progress, token));
+        var startTasks = new List<Task<IReadOnlyList<TaskInstance>>>();
+        foreach (var (node, instance) in starts)
+        {
+            progress?.StateChanges?.Report(instance);
+            startTasks.Add(NextAsync(node, instance, workflowInstance, progress, token));
         }
 
         var results = await Task.WhenAll(startTasks);
@@ -104,10 +113,13 @@ public class WorkflowExecutor
             cancellation);
         progress?.StateChanges?.Report(instance);
 
-        if (instance.State == EnumTaskState.Completed && instance.Output != null)
+        if (BranchLiveness.HasDelivered(instance))
             return await NextAsync(node, instance, workflowInstance, progress, cancellation);
 
-        return [];
+        // The branch dies here : the task closed its output (a conditional), failed or was
+        // canceled. The nodes waiting for it downstream have to be told, or they would hold on a
+        // branch that can't reach them anymore.
+        return await SettleWaitingNodesAsync(workflowInstance, progress, cancellation);
     }
 
     private WorkflowInstance EndAsync(WorkflowInstance workflowInstance, IReadOnlyList<TaskInstance> endInstances, TaskInstancesProgress? progress = null)
@@ -154,34 +166,110 @@ public class WorkflowExecutor
         bool waitAllPrevious = control.Id == AutomationControl.JoinTask.Id
             || (control.Id == AutomationControl.EndTask.Id && !workflowInstance.Workflow.WorkflowSettings.StopAtFirstEnd);
 
-        TaskInstance instance;
         if (waitAllPrevious)
         {
-            instance = workflowInstance.GetOrCreateWaitingInstance(node, previousInstance);
-            var previouses = workflowInstance.TryGetAllPrevious(node);
-
-            // Some branches have yet to reach this node, the last one arriving resumes it.
-            if (previouses == null)
-            {
-                progress?.StateChanges?.Report(instance);
-                return [];
-            }
-
-            instance.Parameters = ResolveParameters(node, workflowInstance.Execution.GetWaitedInstanceContextFor(node, previouses));
+            TaskInstance waiting = workflowInstance.GetOrCreateWaitingInstance(node, previousInstance);
+            return await ResumeWaitingAsync(control, node, waiting, workflowInstance, progress, cancellation);
         }
-        else
+
+        TaskInstance instance = workflowInstance.CreateInstance(
+            node,
+            ResolveParameters(node, workflowInstance.Execution.GetInstanceContextFor(node, previousInstance)),
+            EnumTaskState.Progressing,
+            previousInstance);
+
+        return await RunControlAsync(control, node, instance, workflowInstance, progress, cancellation);
+    }
+
+    /// <summary>
+    /// Try to run a node waiting on every branch reaching it. It holds while a branch can still
+    /// deliver, and is skipped when they are all dead : its own branch then dies with them.
+    /// </summary>
+    private async Task<IReadOnlyList<TaskInstance>> ResumeWaitingAsync(
+        AutomationControl control,
+        BaseGraphTask node,
+        TaskInstance instance,
+        WorkflowInstance workflowInstance,
+        TaskInstancesProgress? progress,
+        CancellationToken? cancellation)
+    {
+        EnumWaitResolution resolution = workflowInstance.TryResolvePrevious(node, out var previouses);
+
+        // Some branches have yet to reach this node, the last one arriving resumes it.
+        if (resolution == EnumWaitResolution.Pending)
         {
-            instance = workflowInstance.CreateInstance(
-                node,
-                ResolveParameters(node, workflowInstance.Execution.GetInstanceContextFor(node, previousInstance)),
-                EnumTaskState.Progressing,
-                previousInstance);
+            progress?.StateChanges?.Report(instance);
+            return [];
         }
 
+        // Two branches can resolve the node at the same time (the last one arriving and another
+        // one dying) : whoever takes hold of the instance runs it, once.
+        if (!workflowInstance.TryClaimWaitingInstance(
+                instance,
+                resolution == EnumWaitResolution.Dead ? EnumTaskState.Skipped : EnumTaskState.Progressing))
+            return [];
+
+        // Every branch reaching the node is dead : it will never run, and neither will anything
+        // after it, which can in turn resolve the nodes waiting further down.
+        if (resolution == EnumWaitResolution.Dead)
+        {
+            progress?.StateChanges?.Report(instance);
+            return await SettleWaitingNodesAsync(workflowInstance, progress, cancellation);
+        }
+
+        instance.Parameters = ResolveParameters(node, workflowInstance.Execution.GetWaitedInstanceContextFor(node, previouses));
+        return await RunControlAsync(control, node, instance, workflowInstance, progress, cancellation);
+    }
+
+    /// <summary>
+    /// A branch just died : the nodes waiting on it can't wait for it any longer. Resume the ones
+    /// only left with dead branches and with the ones that already delivered.
+    /// <para>
+    /// A waiting node is otherwise only ever resumed by a branch reaching it, so a branch dying
+    /// after the others arrived would leave it waiting for good.
+    /// </para>
+    /// </summary>
+    private async Task<IReadOnlyList<TaskInstance>> SettleWaitingNodesAsync(
+        WorkflowInstance workflowInstance,
+        TaskInstancesProgress? progress,
+        CancellationToken? cancellation)
+    {
+        // Nothing is resumed once the run is over : the branches dying of a cancellation are not
+        // dead ends of the graph, they were cut.
+        if (cancellation?.IsCancellationRequested == true)
+            return [];
+
+        List<TaskInstance> endInstances = [];
+        foreach (TaskInstance waiting in workflowInstance.GetWaitingInstances())
+        {
+            // Only the controls wait, and they wait on the graph : a waiting instance without its
+            // node is one of a run that isn't driven from here.
+            BaseGraphTask? node = waiting.Node;
+            if (node == null || node.AutomationTask is not AutomationControl control)
+                continue;
+
+            endInstances.AddRange(await ResumeWaitingAsync(
+                control, node, waiting, workflowInstance, progress, cancellation));
+        }
+
+        return endInstances;
+    }
+
+    /// <summary>
+    /// Run the body of a control : it produces nothing of its own, it hands its resolved
+    /// parameters over (feeding the shared context, closing the workflow).
+    /// </summary>
+    private async Task<IReadOnlyList<TaskInstance>> RunControlAsync(
+        AutomationControl control,
+        BaseGraphTask node,
+        TaskInstance instance,
+        WorkflowInstance workflowInstance,
+        TaskInstancesProgress? progress,
+        CancellationToken? cancellation)
+    {
         if (control.Id == AutomationControl.ShareTask.Id)
             workflowInstance.SharedContext = GraphExecutionContext.MergeContexts(workflowInstance.SharedContext, instance.Parameters);
 
-        // A control produces nothing of its own, it hands over its resolved parameters.
         instance.Output = instance.Parameters ?? new JObject();
         instance.State = EnumTaskState.Completed;
         progress?.StateChanges?.Report(instance);

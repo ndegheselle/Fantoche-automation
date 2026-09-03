@@ -79,6 +79,9 @@
                     <DataTrigger Binding="{Binding State}" Value="Canceled">
                         <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.WarningBrush}}" />
                     </DataTrigger>
+                    <DataTrigger Binding="{Binding State}" Value="Skipped">
+                        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.WarningBrush}}" />
+                    </DataTrigger>
                 </Style.Triggers>
             </Style>
 

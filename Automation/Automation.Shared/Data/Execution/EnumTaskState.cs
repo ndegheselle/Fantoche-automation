@@ -31,8 +31,13 @@
         /// </summary>
         Canceled = 32,
         /// <summary>
+        /// Task will never run : every branch reaching it is dead (a conditional closed its
+        /// output, a task failed or was canceled), so waiting on them any longer is pointless.
+        /// </summary>
+        Skipped = 64,
+        /// <summary>
         /// Task is finished
         /// </summary>
-        Finished = Completed | Failed | Canceled
+        Finished = Completed | Failed | Canceled | Skipped
     }
 }
