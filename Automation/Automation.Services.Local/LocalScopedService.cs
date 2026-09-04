@@ -17,6 +17,18 @@ namespace Automation.Services.Local;
 /// </summary>
 public class LocalScopedService : IScopedService
 {
+    /// <summary>
+    /// The tasks a graph knows on its own : they are hard coded rather than stored, so nothing
+    /// points at them in the scoped elements.
+    /// </summary>
+    private static readonly Guid[] ControlTaskIds =
+    [
+        AutomationControl.StartTask.Id,
+        AutomationControl.EndTask.Id,
+        AutomationControl.ShareTask.Id,
+        AutomationControl.JoinTask.Id,
+    ];
+
     private readonly DatabaseFactory _databaseFactory;
 
     public LocalScopedService(DatabaseFactory databaseFactory)
@@ -79,6 +91,24 @@ public class LocalScopedService : IScopedService
     public async Task<ScopedElement?> GetAsync(Guid elementId)
     {
         return (await GetAsync([elementId])).FirstOrDefault();
+    }
+
+    /// <summary>
+    /// The ids of the tasks and workflows the nodes of the workflow [workflowId] point at, as it is
+    /// stored. The control tasks are left out : they aren't stored elements, the graph knows them on
+    /// its own.
+    /// </summary>
+    public async Task<List<Guid>> GetGraphTaskIdsAsync(Guid workflowId)
+    {
+        using var connection = _databaseFactory.Create();
+
+        var ids = await connection.QueryAsync<Guid>("""
+            SELECT DISTINCT TaskId FROM GraphNodes
+            WHERE WorkflowId = @workflowId AND TaskId IS NOT NULL AND TaskId NOT IN @controlIds;
+            """,
+            new { workflowId, controlIds = ControlTaskIds });
+
+        return [.. ids];
     }
 
     /// <summary>

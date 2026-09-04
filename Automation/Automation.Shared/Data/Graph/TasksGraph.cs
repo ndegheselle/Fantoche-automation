@@ -1,6 +1,6 @@
-﻿using Automation.Shared.Data.Scoped;
+﻿using System.Collections.ObjectModel;
+using Automation.Shared.Data.Scoped;
 using NJsonSchema;
-using System.Collections.ObjectModel;
 
 namespace Automation.Shared.Data.Graph
 {
@@ -38,8 +38,8 @@ namespace Automation.Shared.Data.Graph
                     taskNode.AutomationTask = AutomationControl.ShareTask;
                 else if (taskNode.TaskId == AutomationControl.JoinTask.Id)
                     taskNode.AutomationTask = AutomationControl.JoinTask;
-                else if (tasks != null)
-                    taskNode.AutomationTask = tasks[taskNode.TaskId];
+                else if (tasks != null && tasks.TryGetValue(taskNode.TaskId, out BaseAutomationTask? task))
+                    taskNode.AutomationTask = task;
 
                 // Refresh inputs parent
                 foreach (GraphConnector connector in taskNode.Inputs)

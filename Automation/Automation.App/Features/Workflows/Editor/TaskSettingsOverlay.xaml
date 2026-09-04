@@ -8,7 +8,8 @@
     xmlns:local="clr-namespace:Automation.App.Features.Workflows.Editor"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     d:DataContext="{d:DesignInstance Type=local:TaskSettingsViewModel}"
-    mc:Ignorable="d">
+    mc:Ignorable="d"
+    MinWidth="400">
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
 

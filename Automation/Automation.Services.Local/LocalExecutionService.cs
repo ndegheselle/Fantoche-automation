@@ -167,7 +167,8 @@ public class LocalExecutionService : IExecutionService, IDisposable
         if (!visited.Add(workflow.Id))
             return;
 
-        var nodesIds = workflow.Graph.Nodes.OfType<BaseGraphTask>().Select(x => x.TaskId).Distinct().ToList();
+        // The controls are left out by the store, the graph knows them on its own.
+        var nodesIds = await _scopedService.GetGraphTaskIdsAsync(workflow.Id);
 
         var elements = await _scopedService.GetAsync(nodesIds);
 
@@ -178,14 +179,7 @@ public class LocalExecutionService : IExecutionService, IDisposable
                 tasks[task.Id] = task;
         }
 
-        // The controls aren't stored elements, the graph knows them on its own.
-        var missing = nodesIds
-            .Where(id => !tasks.ContainsKey(id))
-            .Where(id => id != AutomationControl.StartTask.Id
-                && id != AutomationControl.EndTask.Id
-                && id != AutomationControl.ShareTask.Id
-                && id != AutomationControl.JoinTask.Id)
-            .ToList();
+        var missing = nodesIds.Where(id => !tasks.ContainsKey(id)).ToList();
         if (missing.Count > 0)
             throw new ExecutionException($"The workflow '{workflow.Metadata.Name}' points at unknown tasks : {string.Join(", ", missing)}.");
 

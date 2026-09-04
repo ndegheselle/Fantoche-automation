@@ -12,6 +12,24 @@ public interface IScopedService
     public Task<List<ScopedElement>> GetChildrensAsync(Guid scopeId);
 
     /// <summary>
+    /// The element [elementId], null when nothing is stored under that id. A workflow comes with its
+    /// graph, ready to be walked.
+    /// </summary>
+    public Task<ScopedElement?> GetAsync(Guid elementId);
+
+    /// <summary>
+    /// The elements [elementIds], the unknown ones simply left out.
+    /// </summary>
+    public Task<List<ScopedElement>> GetAsync(IReadOnlyCollection<Guid> elementIds);
+
+    /// <summary>
+    /// The ids of the tasks and workflows the nodes of the workflow [workflowId] point at, as it is
+    /// stored. The control tasks are left out : they aren't stored elements, the graph knows them on
+    /// its own.
+    /// </summary>
+    public Task<List<Guid>> GetGraphTaskIdsAsync(Guid workflowId);
+
+    /// <summary>
     /// Search in all tasks, return a flat paginated list of elements.
     /// </summary>
     public Task<Paginated<BaseAutomationTask>> SearchAsync(string search = "", PaginationOptions options = default);

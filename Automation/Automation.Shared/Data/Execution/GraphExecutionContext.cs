@@ -39,24 +39,42 @@ public class GraphExecutionContext
 
     #region Get sample from task
     public IEnumerable<JObject> GetSamplesFor(BaseGraphTask task)
-    {
-        var previouses = _graph.GetPrevious(task).SelectMany(ResolveEffectiveTask);
-        return previouses.Select(x => GenerateContextFrom(x.OutputSchema?.ToSampleJson(), _workflowInstance.SharedContext, _workflowInstance.GlobalContext));
-    }
+        => GetSamplesFor(_graph, task, _workflowInstance.SharedContext, _workflowInstance.GlobalContext);
 
     public JObject GetWaitedSamplesFor(BaseGraphTask task)
+        => GetWaitedSamplesFor(_graph, task, _workflowInstance.SharedContext, _workflowInstance.GlobalContext);
+
+    /// <summary>
+    /// One context per branch reaching [task], each holding a sample of what the branch produces
+    /// rather than what it produced : the graph as it would run, known without running it.
+    /// </summary>
+    public static IEnumerable<JObject> GetSamplesFor(TasksGraph graph, BaseGraphTask task, JToken? shared, JToken? global)
     {
-        var previouses = _graph.GetPrevious(task).SelectMany(ResolveEffectiveTask);
-        return GenerateContextFrom(previouses.ToDictionary(x => x.Name, x => x.OutputSchema?.ToSampleJson()), _workflowInstance.SharedContext, _workflowInstance.GlobalContext);
+        var previouses = graph.GetPrevious(task).SelectMany(x => ResolveEffectiveTask(graph, x));
+        return previouses.Select(x => GenerateContextFrom(x.OutputSchema?.ToSampleJson(), shared, global));
+    }
+
+    /// <summary>
+    /// The single context of a task waiting for every branch reaching it, each sample being held
+    /// under the name of the node producing it.
+    /// </summary>
+    public static JObject GetWaitedSamplesFor(TasksGraph graph, BaseGraphTask task, JToken? shared, JToken? global)
+    {
+        var previouses = graph.GetPrevious(task).SelectMany(x => ResolveEffectiveTask(graph, x));
+        return GenerateContextFrom(previouses.ToDictionary(x => x.Name, x => x.OutputSchema?.ToSampleJson()), shared, global);
     }
     #endregion
 
     #region Resolve
-    private IEnumerable<BaseGraphTask> ResolveEffectiveTask(BaseGraphTask task)
+    /// <summary>
+    /// What a node actually stands for : a node passing through produces nothing of its own, the
+    /// branches leading to it are what the next ones read.
+    /// </summary>
+    private static IEnumerable<BaseGraphTask> ResolveEffectiveTask(TasksGraph graph, BaseGraphTask task)
     {
         if (task.AutomationTask?.Settings.IsPassingThrough != true)
             return [task];
-        return _graph.GetPrevious(task).SelectMany(ResolveEffectiveTask);
+        return graph.GetPrevious(task).SelectMany(x => ResolveEffectiveTask(graph, x));
     }
 
     private TaskInstance ResolveEffectiveInstance(TaskInstance instance)
@@ -70,7 +88,7 @@ public class GraphExecutionContext
     #endregion
 
     #region Generate
-    public JObject GenerateContextFrom(JToken? previous, JToken? shared, JToken? global)
+    public static JObject GenerateContextFrom(JToken? previous, JToken? shared, JToken? global)
     {
         return new JObject
         {
@@ -80,7 +98,7 @@ public class GraphExecutionContext
         };
     }
 
-    public JObject GenerateEmptyContext()
+    public static JObject GenerateEmptyContext()
     {
         return new JObject
         {
@@ -90,7 +108,7 @@ public class GraphExecutionContext
         };
     }
 
-    public JObject GenerateContextFrom(Dictionary<string, JToken?> previous, JToken? shared, JToken? global)
+    public static JObject GenerateContextFrom(Dictionary<string, JToken?> previous, JToken? shared, JToken? global)
     {
         JObject ctxt = GenerateEmptyContext();
 

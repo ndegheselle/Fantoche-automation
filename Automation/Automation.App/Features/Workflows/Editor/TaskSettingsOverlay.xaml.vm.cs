@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Joufflu.Navigation;
 using Newtonsoft.Json.Linq;
+using NJsonSchema;
 
 namespace Automation.App.Features.Workflows.Editor
 {
@@ -79,11 +80,21 @@ namespace Automation.App.Features.Workflows.Editor
 
         private readonly IOverlayService _overlays;
 
-        public TaskSettingsViewModel(BaseGraphTask node, AutomationWorkflow workflow, IOverlayService overlays)
+        /// <summary>
+        /// Context of the scopes holding the workflow, what a "$global" reference points at.
+        /// </summary>
+        private readonly JToken? _globalContext;
+
+        public TaskSettingsViewModel(
+            BaseGraphTask node,
+            AutomationWorkflow workflow,
+            IOverlayService overlays,
+            JToken? globalContext = null)
         {
             Node = node;
             Workflow = workflow;
             _overlays = overlays;
+            _globalContext = globalContext;
             _control = node as GraphControl;
             Title = $"Parameters - {node.Name}";
 
@@ -119,7 +130,11 @@ namespace Automation.App.Features.Workflows.Editor
         {
             IOverlayService overlays = SpineViewModel.Instance.Overlays;
 
-            var viewModel = new TaskSettingsViewModel(node, workflow, overlays);
+            // The context of the scopes holding the workflow is read once : the parameters can
+            // reference it, so validating them needs it.
+            JToken? global = await SpineViewModel.Instance.Scoped.GetContextAsync(workflow.Id);
+
+            var viewModel = new TaskSettingsViewModel(node, workflow, overlays, global);
             if (await overlays.Show(viewModel, new OverlayOptions() { Title = viewModel.Title }) != true)
                 return null;
             return viewModel.Edition;
@@ -139,7 +154,50 @@ namespace Automation.App.Features.Workflows.Editor
                 CheckJson("Parameters", ParametersJson);
             if (!IsOutputReadOnly)
                 CheckJson("Output", OutputJson);
+
+            if (Errors.Count == 0)
+                CheckParameters();
         }
+
+        /// <summary>
+        /// Check the parameters as they would be resolved when the workflow runs : the references
+        /// are replaced by samples of what the node reads, and what comes out has to match the
+        /// schema the node is expected to hand over.
+        /// </summary>
+        private void CheckParameters()
+        {
+            if (IsParametersReadOnly)
+                return;
+
+            JsonSchema? expected;
+            try
+            {
+                // A task hands its parameters to the package it targets, while a control maps them
+                // to what the workflow holds : the output being edited next to them.
+                expected = _control == null
+                    ? Node.AutomationTask?.InputSchema
+                    : ParseSchema(OutputJson);
+            }
+            catch (Exception exception)
+            {
+                Errors.Add($"Schema : {exception.Message}");
+                return;
+            }
+
+            List<string> errors = GraphParametersValidator.Validate(
+                Workflow.Graph,
+                Node,
+                ParametersJson,
+                expected,
+                Workflow.SharedSchemaJson == null ? null : ParseSchema(Workflow.SharedSchemaJson)?.ToSampleJson(),
+                _globalContext);
+
+            foreach (string error in errors)
+                Errors.Add($"Parameters : {error}");
+        }
+
+        private static JsonSchema? ParseSchema(string? json)
+            => string.IsNullOrWhiteSpace(json) ? null : JsonSchema.FromJsonAsync(json).Result;
 
         /// <summary>
         /// Add an error when [json] is filled with something that isn't JSON. An empty value is

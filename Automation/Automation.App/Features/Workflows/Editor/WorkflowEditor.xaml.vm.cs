@@ -66,6 +66,7 @@ namespace Automation.App.Features.Workflows.Editor
         [ObservableProperty] private Point _viewportLocation;
         [ObservableProperty] private Size _viewportSize;
 
+        private readonly IScopedService _scoped = SpineViewModel.Instance.Scoped;
         private readonly IExecutionService _execution = SpineViewModel.Instance.Execution;
         private readonly IHistoryService _historyService = SpineViewModel.Instance.History;
         private readonly IToastService _toasts = SpineViewModel.Instance.Toasts;
@@ -75,7 +76,7 @@ namespace Automation.App.Features.Workflows.Editor
             Workflow = workflow;
             SaveCommand = saveCommand;
 
-            Load();
+            _ = LoadAsync();
             SelectedNodes.CollectionChanged += (_, _) =>
             {
                 RemoveCommand.NotifyCanExecuteChanged();
@@ -84,14 +85,30 @@ namespace Automation.App.Features.Workflows.Editor
         }
 
         /// <summary>
-        /// Wrap the graph elements, the connections being resolved to the connectors they link.
+        /// Wrap the graph elements, the connections being resolved to the connectors they link. The
+        /// tasks the nodes point at are loaded along : the editor needs their schemas to tell
+        /// whether the parameters of a node hold up (see <see cref="GraphParametersValidator"/>).
         /// </summary>
-        private void Load()
+        private async Task LoadAsync()
         {
-            // The graph comes deserialized : its connectors and connections only know each other by
-            // id until it is refreshed, and walking it (to build the context samples of a task) reads
-            // the references.
-            Graph.Refresh();
+            Dictionary<Guid, BaseAutomationTask> tasks = [];
+            try
+            {
+                List<Guid> taskIds = await _scoped.GetGraphTaskIdsAsync(Workflow.Id);
+                foreach (ScopedElement element in await _scoped.GetAsync(taskIds))
+                {
+                    if (element is BaseAutomationTask task)
+                        tasks[task.Id] = task;
+                }
+            }
+            catch (Exception exception)
+            {
+                // The graph is still displayed without them, only the validation of the parameters
+                // has less to say.
+                _toasts.Error(exception.Message, $"The tasks of '{Workflow.Metadata.Name}' could not be loaded");
+            }
+
+            Graph.Refresh(tasks, force: true);
 
             var connectors = new Dictionary<Guid, ConnectorViewModel>();
             foreach (BaseGraphTask task in Graph.Nodes.OfType<BaseGraphTask>())
