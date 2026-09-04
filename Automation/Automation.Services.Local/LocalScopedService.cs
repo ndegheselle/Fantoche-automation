@@ -38,6 +38,7 @@ public class LocalScopedService : IScopedService
 
     public async Task<ScopedElement> CreateAsync(ScopedElement element)
     {
+        EnsureValidGraph(element);
         element.Id = Guid.NewGuid();
 
         using var connection = _databaseFactory.Create();
@@ -60,6 +61,8 @@ public class LocalScopedService : IScopedService
 
     public async Task<ScopedElement> EditAsync(ScopedElement element)
     {
+        EnsureValidGraph(element);
+
         using var connection = _databaseFactory.Create();
         using var transaction = connection.BeginTransaction();
 
@@ -98,6 +101,21 @@ public class LocalScopedService : IScopedService
     /// stored. The control tasks are left out : they aren't stored elements, the graph knows them on
     /// its own.
     /// </summary>
+    /// <summary>
+    /// Refuse a workflow whose graph doesn't hold up (see <see cref="TasksGraph.GetStructureErrors"/>) :
+    /// the rule is the storage's, an editor only spares the user from reaching it.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">The graph is not a workflow the executor can walk.</exception>
+    private static void EnsureValidGraph(ScopedElement element)
+    {
+        if (element is not AutomationWorkflow workflow)
+            return;
+
+        List<string> errors = workflow.Graph.GetStructureErrors();
+        if (errors.Count > 0)
+            throw new InvalidOperationException(string.Join(" ", errors));
+    }
+
     public async Task<List<Guid>> GetGraphTaskIdsAsync(Guid workflowId)
     {
         using var connection = _databaseFactory.Create();

@@ -149,15 +149,16 @@ internal static class Samples
     }
 
     /// <summary>
-    /// Parallel branches, a join and two ends racing each other.
+    /// Parallel branches merged by a join, then by the end.
     /// <code>
-    /// Start -+-> Quick(+1) ------------------+-> Join -> EndJoin
-    ///        +-> Slow(delay) -> Late(+100) --+
-    ///        +-> Sprint(+2) -------------------------------> EndSprint
+    /// Start -+-> Quick(+1) ------------------+-> Join --+
+    ///        +-> Slow(delay) -> Late(+100) --+          +-> End
+    ///        +-> Sprint(+2) --------------------------- +
     /// </code>
-    /// Every branch runs, the join waiting for Quick and Late. Expected output : Value = 101.
-    /// Turning on "Stop at first end" makes the Sprint branch cancel the rest instead, the join
-    /// then being left waiting (the ends have to be read as "$previous.*" in that case).
+    /// Every branch runs, the join waiting for Quick and Late and the end for the join and Sprint.
+    /// Expected output : Value = 101. Turning on "Stop at first end" makes the end run as soon as
+    /// the Sprint branch reaches it and cancel the rest, the join then being left waiting (the end
+    /// has to be read as "$previous.*" in that case).
     /// </summary>
     private static AutomationWorkflow BuildBranches()
     {
@@ -176,12 +177,11 @@ internal static class Samples
         // node name.
         GraphControl join = Node(new GraphControl(AutomationControl.JoinTask), "Join", 660, 75,
             new { Value = "$previous.Late.Value", Message = "$previous.Quick.Message" });
-        GraphControl endJoin = Node(new GraphControl(AutomationControl.EndTask), "EndJoin", 880, 75,
+        // The end merges what reaches it the same way, the join and the sprint branch here.
+        GraphControl end = Node(new GraphControl(AutomationControl.EndTask), "End", 880, 150,
             new { Value = "$previous.Join.Value", Message = "$previous.Join.Message" });
-        GraphControl endSprint = Node(new GraphControl(AutomationControl.EndTask), "EndSprint", 880, 300,
-            new { Value = "$previous.Sprint.Value", Message = "$previous.Sprint.Message" });
 
-        Add(workflow, start, quick, slow, late, sprint, join, endJoin, endSprint);
+        Add(workflow, start, quick, slow, late, sprint, join, end);
 
         workflow.Graph.Connect(start, quick);
         workflow.Graph.Connect(start, slow);
@@ -189,8 +189,8 @@ internal static class Samples
         workflow.Graph.Connect(slow, late);
         workflow.Graph.Connect(quick, join);
         workflow.Graph.Connect(late, join);
-        workflow.Graph.Connect(join, endJoin);
-        workflow.Graph.Connect(sprint, endSprint);
+        workflow.Graph.Connect(join, end);
+        workflow.Graph.Connect(sprint, end);
 
         return workflow;
     }
@@ -289,7 +289,7 @@ internal static class Samples
         node.LocationX = x;
         node.LocationY = y;
         if (parameters != null)
-            node.ParametersJson = JsonConvert.SerializeObject(parameters);
+            node.InputMappingJson = JsonConvert.SerializeObject(parameters);
         return node;
     }
 

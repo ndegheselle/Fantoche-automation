@@ -72,6 +72,42 @@ namespace Automation.Shared.Data.Graph
         public IEnumerable<GraphControl> GetStartNodes() => Nodes.OfType<GraphControl>().Where(x => x.IsStart());
         public IEnumerable<GraphControl> GetEndNodes() => Nodes.OfType<GraphControl>().Where(x => x.IsEnd());
 
+        /// <summary>
+        /// Whether [node] can join the graph : a workflow is entered once and left once, so it holds
+        /// a single start and a single end. Anything else can be added as many times as wanted.
+        /// </summary>
+        public bool CanAdd(GraphNode node)
+        {
+            if (node is not GraphControl control)
+                return true;
+            if (control.IsStart())
+                return !GetStartNodes().Any();
+            if (control.IsEnd())
+                return !GetEndNodes().Any();
+            return true;
+        }
+
+        /// <summary>
+        /// What is wrong with the shape of the graph, empty when it holds up. An editor refuses the
+        /// edition beforehand (see <see cref="CanAdd"/>), this is what a graph reaching the storage
+        /// from anywhere else is checked against. A graph being built has no start nor end yet, only
+        /// holding several of them is refused.
+        /// </summary>
+        public List<string> GetStructureErrors()
+        {
+            List<string> errors = [];
+
+            int starts = GetStartNodes().Count();
+            if (starts > 1)
+                errors.Add($"A workflow is entered once, {starts} starts found.");
+
+            int ends = GetEndNodes().Count();
+            if (ends > 1)
+                errors.Add($"A workflow is left once, {ends} ends found.");
+
+            return errors;
+        }
+
         public string GetUniqueNodeName(string nodeName)
         {
             string uniqueName = nodeName;

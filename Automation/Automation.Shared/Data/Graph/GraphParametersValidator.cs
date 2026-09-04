@@ -13,7 +13,7 @@ namespace Automation.Shared.Data.Graph
     public static class GraphParametersValidator
     {
         /// <summary>
-        /// What is wrong with [parametersJson] for [node], empty when the template holds up. Each
+        /// What is wrong with [inputMappingJson] for [node], empty when the template holds up. Each
         /// branch reaching the node is checked on its own : the parameters have to be valid whichever
         /// one leads to it.
         /// </summary>
@@ -25,12 +25,12 @@ namespace Automation.Shared.Data.Graph
         public static List<string> Validate(
             TasksGraph graph,
             BaseGraphTask node,
-            string? parametersJson,
+            string? inputMappingJson,
             JsonSchema? expected,
             JToken? shared,
             JToken? global)
         {
-            if (string.IsNullOrWhiteSpace(parametersJson))
+            if (string.IsNullOrWhiteSpace(inputMappingJson))
             {
                 // Nothing is handed over at runtime : an empty template only holds up when the task
                 // is fine with no value at all.
@@ -47,7 +47,7 @@ namespace Automation.Shared.Data.Graph
             JToken template;
             try
             {
-                template = JToken.Parse(parametersJson);
+                template = JToken.Parse(inputMappingJson);
             }
             catch
             {

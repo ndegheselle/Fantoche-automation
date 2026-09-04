@@ -52,12 +52,12 @@ namespace Automation.Shared.Data.Graph
         public List<GraphConnector> Outputs { get; set; } = [];
 
         /// <summary>
-        /// Parameters template for the task — JSON with context references (e.g.
-        /// <c>{{previous.X}}</c>, <c>{{context.Y}}</c>) that the executor resolves
-        /// at runtime to populate <see cref="Execution.TaskInstance.Parameters"/>.
-        /// Not the data flowing in from upstream tasks — that lives in the context.
+        /// Mapping of what the task is run with — JSON with context references (e.g.
+        /// <c>$previous.X</c>, <c>$shared.Y</c>) that the executor resolves at runtime to
+        /// populate <see cref="Execution.TaskInstance.Parameters"/>, which are the parameters
+        /// themselves. Not the data flowing in from upstream tasks — that lives in the context.
         /// </summary>
-        public string? ParametersJson { get; set; }
+        public string? InputMappingJson { get; set; }
 
         [JsonIgnore]
         public JsonSchema? InputSchema

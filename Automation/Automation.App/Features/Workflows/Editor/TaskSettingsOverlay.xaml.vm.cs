@@ -38,9 +38,9 @@ namespace Automation.App.Features.Workflows.Editor
         [ObservableProperty] private string? _inputJson;
 
         /// <summary>
-        /// Template the node runs with, references to the context included (e.g. "$previous.Value").
+        /// Mapping the node runs with, references to the context included (e.g. "$previous.Value").
         /// </summary>
-        [ObservableProperty] private string? _parametersJson;
+        [ObservableProperty] private string? _inputMappingJson;
 
         /// <summary>
         /// Schema of what the node produces : its own for a task or a join, the output of the
@@ -63,9 +63,9 @@ namespace Automation.App.Features.Workflows.Editor
         public bool IsInputReadOnly => _control?.IsStart() != true;
 
         /// <summary>
-        /// Everything but the start runs with parameters, the start only handing the input over.
+        /// Everything but the start runs with a mapping, the start only handing the input over.
         /// </summary>
-        public bool IsParametersReadOnly => _control?.IsStart() == true;
+        public bool IsInputMappingReadOnly => _control?.IsStart() == true;
 
         /// <summary>
         /// A task produces what its package declares and a start what the workflow is started with :
@@ -99,7 +99,7 @@ namespace Automation.App.Features.Workflows.Editor
             Title = $"Parameters - {node.Name}";
 
             _inputJson = node.InputSchemaJson;
-            _parametersJson = node.ParametersJson;
+            _inputMappingJson = node.InputMappingJson;
             _outputJson = node.OutputSchemaJson;
 
             // The controls stand for the workflow itself, they display what it holds
@@ -150,30 +150,30 @@ namespace Automation.App.Features.Workflows.Editor
 
             if (!IsInputReadOnly)
                 CheckJson("Input", InputJson);
-            if (!IsParametersReadOnly)
-                CheckJson("Parameters", ParametersJson);
+            if (!IsInputMappingReadOnly)
+                CheckJson("Input mapping", InputMappingJson);
             if (!IsOutputReadOnly)
                 CheckJson("Output", OutputJson);
 
             if (Errors.Count == 0)
-                CheckParameters();
+                CheckInputMapping();
         }
 
         /// <summary>
-        /// Check the parameters as they would be resolved when the workflow runs : the references
-        /// are replaced by samples of what the node reads, and what comes out has to match the
-        /// schema the node is expected to hand over.
+        /// Check the mapping as it would be resolved when the workflow runs : the references are
+        /// replaced by samples of what the node reads, and the parameters that come out have to
+        /// match the schema the node is expected to hand over.
         /// </summary>
-        private void CheckParameters()
+        private void CheckInputMapping()
         {
-            if (IsParametersReadOnly)
+            if (IsInputMappingReadOnly)
                 return;
 
             JsonSchema? expected;
             try
             {
                 // A task hands its parameters to the package it targets, while a control maps them
-                // to what the workflow holds : the output being edited next to them.
+                // to what the workflow holds : the output being edited next to the mapping.
                 expected = _control == null
                     ? Node.AutomationTask?.InputSchema
                     : ParseSchema(OutputJson);
@@ -187,13 +187,13 @@ namespace Automation.App.Features.Workflows.Editor
             List<string> errors = GraphParametersValidator.Validate(
                 Workflow.Graph,
                 Node,
-                ParametersJson,
+                InputMappingJson,
                 expected,
                 Workflow.SharedSchemaJson == null ? null : ParseSchema(Workflow.SharedSchemaJson)?.ToSampleJson(),
                 _globalContext);
 
             foreach (string error in errors)
-                Errors.Add($"Parameters : {error}");
+                Errors.Add($"Input mapping : {error}");
         }
 
         private static JsonSchema? ParseSchema(string? json)
@@ -237,7 +237,7 @@ namespace Automation.App.Features.Workflows.Editor
         private IReversibleAction BuildEdition()
         {
             string? input = NullIfEmpty(InputJson);
-            string? parameters = NullIfEmpty(ParametersJson);
+            string? mapping = NullIfEmpty(InputMappingJson);
             string? output = NullIfEmpty(OutputJson);
 
             if (_control?.IsStart() == true)
@@ -266,7 +266,7 @@ namespace Automation.App.Features.Workflows.Editor
             if (_control?.IsEnd() == true)
             {
                 // The mapping of the end is the output of the workflow, each end having its own
-                string? previousParameters = Node.ParametersJson;
+                string? previousInputMapping = Node.InputMappingJson;
                 string? previousMapping = Workflow.OutputMappingJson;
                 string? previousOutput = Workflow.OutputSchemaJson;
 
@@ -274,13 +274,13 @@ namespace Automation.App.Features.Workflows.Editor
                     $"Edit the output of '{Workflow.Metadata.Name}'",
                     () =>
                     {
-                        Node.ParametersJson = parameters;
-                        Workflow.OutputMappingJson = parameters;
+                        Node.InputMappingJson = mapping;
+                        Workflow.OutputMappingJson = mapping;
                         Workflow.OutputSchemaJson = output;
                     },
                     () =>
                     {
-                        Node.ParametersJson = previousParameters;
+                        Node.InputMappingJson = previousInputMapping;
                         Workflow.OutputMappingJson = previousMapping;
                         Workflow.OutputSchemaJson = previousOutput;
                     });
@@ -288,49 +288,49 @@ namespace Automation.App.Features.Workflows.Editor
 
             if (_control?.IsShare() == true)
             {
-                string? previousParameters = Node.ParametersJson;
+                string? previousMapping = Node.InputMappingJson;
                 string? previousShared = Workflow.SharedSchemaJson;
 
                 return new ReversibleAction(
                     $"Edit the shared values of '{Node.Name}'",
                     () =>
                     {
-                        Node.ParametersJson = parameters;
+                        Node.InputMappingJson = mapping;
                         Workflow.SharedSchemaJson = output;
                     },
                     () =>
                     {
-                        Node.ParametersJson = previousParameters;
+                        Node.InputMappingJson = previousMapping;
                         Workflow.SharedSchemaJson = previousShared;
                     });
             }
 
             if (_control?.IsJoin() == true)
             {
-                string? previousParameters = Node.ParametersJson;
+                string? previousMapping = Node.InputMappingJson;
                 string? previousOutput = Node.OutputSchemaJson;
 
                 return new ReversibleAction(
                     $"Edit the merge of '{Node.Name}'",
                     () =>
                     {
-                        Node.ParametersJson = parameters;
+                        Node.InputMappingJson = mapping;
                         Node.OutputSchemaJson = output;
                     },
                     () =>
                     {
-                        Node.ParametersJson = previousParameters;
+                        Node.InputMappingJson = previousMapping;
                         Node.OutputSchemaJson = previousOutput;
                     });
             }
 
             // A task only owns its parameters, its schemas come from the package it targets
-            string? previousSettings = Node.ParametersJson;
+            string? previousSettings = Node.InputMappingJson;
 
             return new ReversibleAction(
                 $"Edit the settings of '{Node.Name}'",
-                () => Node.ParametersJson = parameters,
-                () => Node.ParametersJson = previousSettings);
+                () => Node.InputMappingJson = mapping,
+                () => Node.InputMappingJson = previousSettings);
         }
 
         /// <summary>
@@ -346,7 +346,7 @@ namespace Automation.App.Features.Workflows.Editor
             Refresh();
         }
 
-        partial void OnParametersJsonChanged(string? value) => Refresh();
+        partial void OnInputMappingJsonChanged(string? value) => Refresh();
 
         partial void OnOutputJsonChanged(string? value) => Refresh();
     }

@@ -42,14 +42,14 @@
                 <RowDefinition />
             </Grid.RowDefinitions>
 
-            <TextBlock Style="{StaticResource Muted}" Text="Parameters" />
+            <TextBlock Style="{StaticResource Muted}" Text="Input mapping" />
             <TextBox
                 Grid.Row="1"
                 Height="200"
                 Padding="4"
-                IsReadOnly="{Binding IsParametersReadOnly}"
+                IsReadOnly="{Binding IsInputMappingReadOnly}"
                 Style="{StaticResource JsonTextBox}"
-                Text="{Binding ParametersJson, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                Text="{Binding InputMappingJson, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
             <Grid Grid.Row="2" joufflu:Spacing.Gap="4">
                 <Grid.ColumnDefinitions>

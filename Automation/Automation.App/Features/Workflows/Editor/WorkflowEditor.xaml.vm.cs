@@ -154,6 +154,15 @@ namespace Automation.App.Features.Workflows.Editor
                 _ => throw new NotSupportedException($"Unknown task type '{task.GetType().Name}'")
             };
 
+            // A workflow is entered once and left once : the second start or end never makes it in.
+            if (!Graph.CanAdd(graphTask))
+            {
+                _toasts.Warning(
+                    $"The workflow '{Workflow.Metadata.Name}' already holds one.",
+                    $"'{task.Metadata.Name}' can only be added once");
+                return;
+            }
+
             // The name is only a label within the graph, it has to stay unique to identify the node
             graphTask.Metadata.Name = Graph.GetUniqueNodeName(graphTask.Metadata.Name);
             Point placement = location ?? new Point(

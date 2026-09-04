@@ -1,4 +1,4 @@
-using Automation.Plugins;
+﻿using Automation.Plugins;
 using Automation.Shared.Data.Graph;
 using Automation.Shared.Data.Scoped;
 using Newtonsoft.Json;
@@ -52,26 +52,26 @@ public class LoopScenario : IScenario
         GraphTask counter = new GraphTask(ScenarioTasks.Test)
         {
             Metadata = new ScopedMetadata() { Name = "Counter" },
-            ParametersJson = JsonConvert.SerializeObject(new { Message = "turn", Value = "$previous.Value", Add = 1 })
+            InputMappingJson = JsonConvert.SerializeObject(new { Message = "turn", Value = "$previous.Value", Add = 1 })
         };
 
         GraphTask loopGate = new GraphTask(ScenarioTasks.LoopGate)
         {
             Metadata = new ScopedMetadata() { Name = "LoopGate" },
-            ParametersJson = JsonConvert.SerializeObject(new { Value = "$previous.Value", Max, WhileUnder = true })
+            InputMappingJson = JsonConvert.SerializeObject(new { Value = "$previous.Value", Max, WhileUnder = true })
         };
 
         GraphTask exitGate = new GraphTask(ScenarioTasks.LoopGate)
         {
             Metadata = new ScopedMetadata() { Name = "ExitGate" },
-            ParametersJson = JsonConvert.SerializeObject(new { Value = "$previous.Value", Max, WhileUnder = false })
+            InputMappingJson = JsonConvert.SerializeObject(new { Value = "$previous.Value", Max, WhileUnder = false })
         };
 
         // The exit gate being pass-through, the end reads the counter of the last turn.
         GraphControl end = new GraphControl(AutomationControl.EndTask)
         {
             Metadata = new ScopedMetadata() { Name = "End" },
-            ParametersJson = JsonConvert.SerializeObject(new { Value = "$previous.Counter.Value", Message = "$previous.Counter.Message" })
+            InputMappingJson = JsonConvert.SerializeObject(new { Value = "$previous.Counter.Value", Message = "$previous.Counter.Message" })
         };
 
         workflow.Graph.Nodes.Add(start);

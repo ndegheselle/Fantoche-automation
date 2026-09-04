@@ -1,4 +1,4 @@
-using Automation.Shared.Data;
+﻿using Automation.Shared.Data;
 using Automation.Shared.Data.Execution;
 using Automation.Shared.Data.Graph;
 using Automation.Shared.Data.Scoped;
@@ -131,9 +131,9 @@ public class WorkflowExecutor
     /// </summary>
     private static JToken? ResolveParameters(BaseGraphTask node, JObject context)
     {
-        if (string.IsNullOrEmpty(node.ParametersJson))
+        if (string.IsNullOrEmpty(node.InputMappingJson))
             return null;
-        return ReferencesHandler.ReplaceReferences(JToken.Parse(node.ParametersJson), context).ReplacedSetting;
+        return ReferencesHandler.ReplaceReferences(JToken.Parse(node.InputMappingJson), context).ReplacedSetting;
     }
 
     #region Control tasks

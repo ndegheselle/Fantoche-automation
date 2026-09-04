@@ -1,4 +1,4 @@
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 using Automation.Shared.Data.Graph;
 using Newtonsoft.Json.Linq;
 
@@ -33,7 +33,7 @@ namespace Automation.Shared.Data.Execution
         public string NodeName { get; set; } = string.Empty;
 
         /// <summary>
-        /// Resolved parameters of the task — i.e. the node's <see cref="Automation.Shared.Data.Graph.BaseGraphTask.ParametersJson"/>
+        /// Resolved parameters of the task — i.e. the node's <see cref="Automation.Shared.Data.Graph.BaseGraphTask.InputMappingJson"/>
         /// template with context references replaced. This is NOT the data flowing in from
         /// upstream tasks (that lives in the context as <c>previous.*</c>).
         /// </summary>

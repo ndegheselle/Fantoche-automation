@@ -23,7 +23,7 @@ internal sealed record GraphNodeModel
     public const string Columns = """
         Id, WorkflowId, NodeKind, LocationX, LocationY, SizeWidth, SizeHeight,
         Name, Type, Color, Icon, IsReadOnly, Tags,
-        TaskId, ParametersJson, InputSchemaJson, OutputSchemaJson
+        TaskId, InputMappingJson, InputSchemaJson, OutputSchemaJson
         """;
 
     /// <summary>
@@ -32,7 +32,7 @@ internal sealed record GraphNodeModel
     public const string Values = """
         @Id, @WorkflowId, @NodeKind, @LocationX, @LocationY, @SizeWidth, @SizeHeight,
         @Name, @Type, @Color, @Icon, @IsReadOnly, @Tags,
-        @TaskId, @ParametersJson, @InputSchemaJson, @OutputSchemaJson
+        @TaskId, @InputMappingJson, @InputSchemaJson, @OutputSchemaJson
         """;
 
     /// <summary>
@@ -56,7 +56,7 @@ internal sealed record GraphNodeModel
             IsReadOnly INTEGER NULL,
             Tags TEXT NULL,
             TaskId TEXT NULL,
-            ParametersJson TEXT NULL,
+            InputMappingJson TEXT NULL,
             InputSchemaJson TEXT NULL,
             OutputSchemaJson TEXT NULL
         );
@@ -85,7 +85,7 @@ internal sealed record GraphNodeModel
 
     /// <summary>Nodes running a task, a workflow or a control.</summary>
     public Guid? TaskId { get; init; }
-    public string? ParametersJson { get; init; }
+    public string? InputMappingJson { get; init; }
     public string? InputSchemaJson { get; init; }
     public string? OutputSchemaJson { get; init; }
 
@@ -114,7 +114,7 @@ internal sealed record GraphNodeModel
                 IsReadOnly = IsReadOnly ?? false,
                 Tags = DatabaseJson.Deserialize<ObservableCollection<string>>(Tags) ?? [],
             };
-            task.ParametersJson = ParametersJson;
+            task.InputMappingJson = InputMappingJson;
             task.InputSchemaJson = InputSchemaJson;
             task.OutputSchemaJson = OutputSchemaJson;
         }
@@ -143,7 +143,7 @@ internal sealed record GraphNodeModel
             IsReadOnly = task?.Metadata.IsReadOnly,
             Tags = task == null ? null : DatabaseJson.Serialize(task.Metadata.Tags),
             TaskId = task?.TaskId,
-            ParametersJson = task?.ParametersJson,
+            InputMappingJson = task?.InputMappingJson,
             InputSchemaJson = task?.InputSchemaJson,
             OutputSchemaJson = task?.OutputSchemaJson,
         };

@@ -1,4 +1,4 @@
-using Automation.Plugins;
+﻿using Automation.Plugins;
 using Automation.Shared.Data.Graph;
 using Automation.Shared.Data.Scoped;
 using Newtonsoft.Json;
@@ -46,34 +46,34 @@ public class LinearScenario : IScenario
         GraphTask first = new GraphTask(ScenarioTasks.Test)
         {
             Metadata = new ScopedMetadata() { Name = "First" },
-            ParametersJson = JsonConvert.SerializeObject(new { Message = "first", Value = "$previous.Value", Add = 10 })
+            InputMappingJson = JsonConvert.SerializeObject(new { Message = "first", Value = "$previous.Value", Add = 10 })
         };
 
         // Everything the share receives is merged in the shared context of the workflow.
         GraphControl share = new GraphControl(AutomationControl.ShareTask)
         {
             Metadata = new ScopedMetadata() { Name = "Share" },
-            ParametersJson = JsonConvert.SerializeObject(new { Bonus = 100, Origin = "$previous.Message" })
+            InputMappingJson = JsonConvert.SerializeObject(new { Bonus = 100, Origin = "$previous.Message" })
         };
 
         GraphTask passThrough = new GraphTask(ScenarioTasks.PassThrough)
         {
             Metadata = new ScopedMetadata() { Name = "PassThrough" },
-            ParametersJson = JsonConvert.SerializeObject(new PassThroughParameters() { Label = "after the share" })
+            InputMappingJson = JsonConvert.SerializeObject(new PassThroughParameters() { Label = "after the share" })
         };
 
         // Both the share and the pass-through are transparent : "$previous" is still "First" here.
         GraphTask second = new GraphTask(ScenarioTasks.Test)
         {
             Metadata = new ScopedMetadata() { Name = "Second" },
-            ParametersJson = JsonConvert.SerializeObject(new { Message = "second", Value = "$previous.Value", Add = "$shared.Bonus" })
+            InputMappingJson = JsonConvert.SerializeObject(new { Message = "second", Value = "$previous.Value", Add = "$shared.Bonus" })
         };
 
         // The end merges every branch reaching it, so its context is indexed by node name.
         GraphControl end = new GraphControl(AutomationControl.EndTask)
         {
             Metadata = new ScopedMetadata() { Name = "End" },
-            ParametersJson = JsonConvert.SerializeObject(new { Value = "$previous.Second.Value", Message = "$previous.Second.Message" })
+            InputMappingJson = JsonConvert.SerializeObject(new { Value = "$previous.Second.Value", Message = "$previous.Second.Message" })
         };
 
         workflow.Graph.Nodes.Add(start);
