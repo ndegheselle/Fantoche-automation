@@ -29,6 +29,50 @@
                     joufflu:Spacing.Gap="4">
                     <CheckBox IsChecked="{Binding StopAtFirstEnd}">Stop at first end</CheckBox>
                     <CheckBox IsChecked="{Binding StopIfAnyTaskFail}">Stop if any task fail</CheckBox>
+
+                    <!--  What the workflow is started with : the one schema written by hand  -->
+                    <TextBlock
+                        Margin="0,8,0,0"
+                        Style="{StaticResource Muted}"
+                        Text="Input schema" />
+                    <TextBox
+                        Height="160"
+                        Padding="4"
+                        AcceptsReturn="True"
+                        AcceptsTab="True"
+                        FontFamily="Consolas"
+                        HorizontalScrollBarVisibility="Auto"
+                        Text="{Binding InputSchemaJson, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        VerticalContentAlignment="Top"
+                        VerticalScrollBarVisibility="Auto" />
+
+                    <TextBlock Style="{StaticResource Muted}" Text="Default values, handed over for what the caller doesn't give" />
+                    <TextBox
+                        Height="120"
+                        Padding="4"
+                        AcceptsReturn="True"
+                        AcceptsTab="True"
+                        FontFamily="Consolas"
+                        HorizontalScrollBarVisibility="Auto"
+                        IsEnabled="{Binding HasStart}"
+                        Text="{Binding InputDefaultsJson, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        VerticalContentAlignment="Top"
+                        VerticalScrollBarVisibility="Auto" />
+
+                    <ItemsControl ItemsSource="{Binding InputErrors}" Visibility="{Binding HasInputErrors, Converter={x:Static jonverters:VisibilityConverter.Default}}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <jonts:FontIcon Foreground="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}" Text="{x:Static jonts:LucideFontIcons.AlertCircle}" />
+                                    <TextBlock
+                                        Margin="4,0,0,0"
+                                        Foreground="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}"
+                                        Text="{Binding}"
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                 </StackPanel>
 
                 <Grid Grid.Row="2">

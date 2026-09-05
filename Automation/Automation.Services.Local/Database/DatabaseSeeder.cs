@@ -9,9 +9,8 @@ namespace Automation.Services.Local.Database;
 
 /// <summary>
 /// Minimal content written to the SQLite database the first time it is created: the
-/// <see cref="Scope.Root"/> holding every other element, the built-in
-/// <see cref="AutomationControl.StartTask"/>/<see cref="AutomationControl.EndTask"/> elements every
-/// graph relies on, and a "Samples" scope with something to look at and to run.
+/// <see cref="Scope.Root"/> holding every other element, the built-in controls every graph relies on
+/// (<see cref="AutomationControl.All"/>), and a "Samples" scope with something to look at and to run.
 /// </summary>
 public static class DatabaseSeeder
 {
@@ -32,10 +31,7 @@ public static class DatabaseSeeder
         [
             Scope.Root,
             Scope.Controls,
-            AutomationControl.StartTask,
-            AutomationControl.EndTask,
-            AutomationControl.ShareTask,
-            AutomationControl.JoinTask,
+            .. AutomationControl.All,
             .. Samples.Build(),
         ];
 
@@ -278,18 +274,18 @@ internal static class Samples
         };
 
     /// <summary>
-    /// Name a node, place it on the canvas and give it the parameters template it runs with. The
+    /// Name a node, place it on the canvas and give it the mapping it runs with. The
     /// metadata comes cloned from the task, so only the name changes : the icon stays the one of
     /// what the node points to.
     /// </summary>
-    private static TNode Node<TNode>(TNode node, string name, double x, double y, object? parameters = null)
+    private static TNode Node<TNode>(TNode node, string name, double x, double y, object? mapping = null)
         where TNode : BaseGraphTask
     {
         node.Metadata.Name = name;
         node.LocationX = x;
         node.LocationY = y;
-        if (parameters != null)
-            node.InputMappingJson = JsonConvert.SerializeObject(parameters);
+        if (mapping != null)
+            node.InputMappingJson = JsonConvert.SerializeObject(mapping);
         return node;
     }
 

@@ -1,6 +1,7 @@
 ﻿using System.Drawing;
 using System.Text.Json.Serialization;
 using Automation.Shared.Data.Scoped;
+using Newtonsoft.Json.Linq;
 using NJsonSchema;
 
 namespace Automation.Shared.Data.Graph
@@ -59,6 +60,30 @@ namespace Automation.Shared.Data.Graph
         /// </summary>
         public string? InputMappingJson { get; set; }
 
+        /// <summary>
+        /// Whether the mapping can be read : holding none is valid, holding something that isn't
+        /// JSON isn't. An editor shows what is wrong with it, a run refuses to walk past it.
+        /// </summary>
+        [JsonIgnore]
+        public bool IsInputMappingValid => string.IsNullOrWhiteSpace(InputMappingJson) || InputMapping != null;
+
+        /// <summary>
+        /// The mapping as a token, null when the node holds none or when what it holds isn't JSON
+        /// (yet) : see <see cref="IsInputMappingValid"/> to tell the two apart.
+        /// </summary>
+        [JsonIgnore]
+        public JToken? InputMapping
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(InputMappingJson))
+                    return null;
+
+                try { return JToken.Parse(InputMappingJson); }
+                catch { return null; }
+            }
+        }
+
         [JsonIgnore]
         public JsonSchema? InputSchema
         {
@@ -76,6 +101,13 @@ namespace Automation.Shared.Data.Graph
         }
 
         public string? OutputSchemaJson { get; set; }
+
+        /// <summary>
+        /// The mapping of the node resolved against [context] : the parameters the task runs with,
+        /// or the values a control hands over. The one place a mapping becomes values, whether the
+        /// context comes from a run or from an editor.
+        /// </summary>
+        public JToken? ResolveInputMapping(GraphContext context) => context.Resolve(InputMapping);
 
         public BaseGraphTask()
         {
@@ -129,6 +161,13 @@ namespace Automation.Shared.Data.Graph
         public bool IsEnd() => TaskId == AutomationControl.EndTask.Id;
         public bool IsShare() => TaskId == AutomationControl.ShareTask.Id;
         public bool IsJoin() => TaskId == AutomationControl.JoinTask.Id;
+        public bool IsMap() => TaskId == AutomationControl.MapTask.Id;
+
+        /// <summary>
+        /// Whether the node merges every branch reaching it rather than running once per branch.
+        /// The end waits too, unless the workflow stops at the first branch reaching it.
+        /// </summary>
+        public bool IsWaiting(bool stopAtFirstEnd = false) => IsJoin() || (IsEnd() && !stopAtFirstEnd);
     }
 
     /// <summary>

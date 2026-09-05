@@ -30,14 +30,8 @@ namespace Automation.Shared.Data.Graph
                 // Refresh node target task. The control tasks are hard coded : they are known even
                 // when no task is given, so a graph refreshed to be displayed still knows which of
                 // its nodes are passing through.
-                if (taskNode.TaskId == AutomationControl.StartTask.Id)
-                    taskNode.AutomationTask = AutomationControl.StartTask;
-                else if (taskNode.TaskId == AutomationControl.EndTask.Id)
-                    taskNode.AutomationTask = AutomationControl.EndTask;
-                else if (taskNode.TaskId == AutomationControl.ShareTask.Id)
-                    taskNode.AutomationTask = AutomationControl.ShareTask;
-                else if (taskNode.TaskId == AutomationControl.JoinTask.Id)
-                    taskNode.AutomationTask = AutomationControl.JoinTask;
+                if (AutomationControl.Get(taskNode.TaskId) is AutomationControl control)
+                    taskNode.AutomationTask = control;
                 else if (tasks != null && tasks.TryGetValue(taskNode.TaskId, out BaseAutomationTask? task))
                     taskNode.AutomationTask = task;
 
@@ -99,11 +93,11 @@ namespace Automation.Shared.Data.Graph
 
             int starts = GetStartNodes().Count();
             if (starts > 1)
-                errors.Add($"A workflow is entered once, {starts} starts found.");
+                errors.Add($"A workflow can only have one start node, {starts} starts found.");
 
             int ends = GetEndNodes().Count();
             if (ends > 1)
-                errors.Add($"A workflow is left once, {ends} ends found.");
+                errors.Add($"A workflow can only have one end node, {ends} ends found.");
 
             return errors;
         }
@@ -185,6 +179,17 @@ namespace Automation.Shared.Data.Graph
         public IEnumerable<BaseGraphTask> GetPrevious(BaseGraphTask task)
         {
             return GetInputsConnectionsFrom(task).Select(x => x.Source!.Parent!);
+        }
+
+        /// <summary>
+        /// What [task] actually stands for : a task passing through produces nothing of its own, so
+        /// the branches leading to it are what the next ones read.
+        /// </summary>
+        public IEnumerable<BaseGraphTask> GetEffective(BaseGraphTask task)
+        {
+            if (task.AutomationTask?.Settings.IsPassingThrough != true)
+                return [task];
+            return GetPrevious(task).SelectMany(GetEffective);
         }
 
         /// <summary>

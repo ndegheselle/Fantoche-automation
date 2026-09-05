@@ -21,13 +21,7 @@ public class LocalScopedService : IScopedService
     /// The tasks a graph knows on its own : they are hard coded rather than stored, so nothing
     /// points at them in the scoped elements.
     /// </summary>
-    private static readonly Guid[] ControlTaskIds =
-    [
-        AutomationControl.StartTask.Id,
-        AutomationControl.EndTask.Id,
-        AutomationControl.ShareTask.Id,
-        AutomationControl.JoinTask.Id,
-    ];
+    private static readonly Guid[] ControlTaskIds = [.. AutomationControl.All.Select(x => x.Id)];
 
     private readonly DatabaseFactory _databaseFactory;
 
@@ -97,11 +91,6 @@ public class LocalScopedService : IScopedService
     }
 
     /// <summary>
-    /// The ids of the tasks and workflows the nodes of the workflow [workflowId] point at, as it is
-    /// stored. The control tasks are left out : they aren't stored elements, the graph knows them on
-    /// its own.
-    /// </summary>
-    /// <summary>
     /// Refuse a workflow whose graph doesn't hold up (see <see cref="TasksGraph.GetStructureErrors"/>) :
     /// the rule is the storage's, an editor only spares the user from reaching it.
     /// </summary>
@@ -112,10 +101,20 @@ public class LocalScopedService : IScopedService
             return;
 
         List<string> errors = workflow.Graph.GetStructureErrors();
+
+        // The schemas are written from the mappings rather than by hand : a caller reads what a
+        // workflow produces without loading its graph, so they are stored along with it.
+        errors.AddRange(workflow.DeriveSchemas());
+
         if (errors.Count > 0)
             throw new InvalidOperationException(string.Join(" ", errors));
     }
 
+    /// <summary>
+    /// The ids of the tasks and workflows the nodes of the workflow [workflowId] point at, as it is
+    /// stored. The control tasks are left out : they aren't stored elements, the graph knows them on
+    /// its own.
+    /// </summary>
     public async Task<List<Guid>> GetGraphTaskIdsAsync(Guid workflowId)
     {
         using var connection = _databaseFactory.Create();

@@ -1,4 +1,4 @@
-﻿<UserControl
+<UserControl
     x:Class="Automation.App.Features.Workflows.Editor.TaskSettingsOverlay"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -7,9 +7,9 @@
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Automation.App.Features.Workflows.Editor"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    MinWidth="900"
     d:DataContext="{d:DesignInstance Type=local:TaskSettingsViewModel}"
-    mc:Ignorable="d"
-    MinWidth="400">
+    mc:Ignorable="d">
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
 
@@ -29,66 +29,93 @@
 
     <Grid joufflu:Spacing.Gap="4">
         <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
             <RowDefinition />
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
-        <!--  What the node reads, what it runs with and what it produces  -->
-        <Grid joufflu:Spacing.Gap="4">
+        <!--  What the node does with its mapping  -->
+        <TextBlock
+            Style="{StaticResource Muted}"
+            Text="{Binding Description}"
+            TextWrapping="Wrap" />
+
+        <!--  The start stands for the workflow : its input is edited in the settings  -->
+        <Button
+            Grid.Row="1"
+            HorizontalAlignment="Left"
+            Command="{Binding OpenWorkflowSettingsCommand}"
+            Style="{StaticResource SecondaryButton}"
+            Visibility="{Binding IsStart, Converter={StaticResource BoolToVisibility}}">
+            <StackPanel Orientation="Horizontal">
+                <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Settings}" />
+                <TextBlock Margin="4,0,0,0">Open the settings of the workflow</TextBlock>
+            </StackPanel>
+        </Button>
+
+        <!--  What the node reads, what it maps, and what comes out of it  -->
+        <Grid Grid.Row="2" joufflu:Spacing.Gap="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto" />
-                <RowDefinition Height="2*" />
-                <RowDefinition />
+                <RowDefinition Height="300" />
             </Grid.RowDefinitions>
 
-            <TextBlock Style="{StaticResource Muted}" Text="Input mapping" />
-            <TextBox
+            <TextBlock Style="{StaticResource Muted}" Text="Available (double click to insert)" />
+            <TreeView
+                x:Name="ContextTree"
                 Grid.Row="1"
-                Height="200"
+                ItemsSource="{Binding Context}"
+                MouseDoubleClick="OnContextDoubleClick">
+                <TreeView.ItemTemplate>
+                    <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock FontFamily="Consolas" Text="{Binding Name}" />
+                            <TextBlock
+                                Margin="8,0,0,0"
+                                FontFamily="Consolas"
+                                Style="{StaticResource Muted}"
+                                Text="{Binding Preview}" />
+                        </StackPanel>
+                    </HierarchicalDataTemplate>
+                </TreeView.ItemTemplate>
+            </TreeView>
+
+            <TextBlock
+                Grid.Column="1"
+                Style="{StaticResource Muted}"
+                Text="Input mapping" />
+            <TextBox
+                x:Name="MappingTextBox"
+                Grid.Row="1"
+                Grid.Column="1"
                 Padding="4"
-                IsReadOnly="{Binding IsInputMappingReadOnly}"
+                IsReadOnly="{Binding IsStart}"
                 Style="{StaticResource JsonTextBox}"
                 Text="{Binding InputMappingJson, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
-            <Grid Grid.Row="2" joufflu:Spacing.Gap="4">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition />
-                    <ColumnDefinition />
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="auto" />
-                    <RowDefinition />
-                </Grid.RowDefinitions>
-
-                <TextBlock Style="{StaticResource Muted}" Text="Input" />
-                <TextBox
-                    Grid.Row="1"
-                    Height="200"
-                    Padding="4"
-                    IsReadOnly="{Binding IsInputReadOnly}"
-                    Style="{StaticResource JsonTextBox}"
-                    Text="{Binding InputJson, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-
-                <TextBlock
-                    Grid.Column="1"
-                    Style="{StaticResource Muted}"
-                    Text="Output" />
-                <TextBox
-                    Grid.Row="1"
-                    Grid.Column="1"
-                    Height="200"
-                    Padding="4"
-                    VerticalContentAlignment="Stretch"
-                    IsReadOnly="{Binding IsOutputReadOnly}"
-                    Style="{StaticResource JsonTextBox}"
-                    Text="{Binding OutputJson, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-            </Grid>
+            <TextBlock
+                Grid.Column="2"
+                Style="{StaticResource Muted}"
+                Text="Result" />
+            <TextBox
+                Grid.Row="1"
+                Grid.Column="2"
+                Padding="4"
+                IsReadOnly="True"
+                Style="{StaticResource JsonTextBox}"
+                Text="{Binding ResultJson, Mode=OneWay}" />
         </Grid>
 
         <!--  Errors, the validation being blocked while there is any  -->
         <ItemsControl
-            Grid.Row="1"
+            Grid.Row="3"
             ItemsSource="{Binding Errors}"
             Visibility="{Binding HasErrors, Converter={StaticResource BoolToVisibility}}">
             <ItemsControl.ItemTemplate>
@@ -106,12 +133,15 @@
         </ItemsControl>
 
         <StackPanel
-            Grid.Row="2"
+            Grid.Row="4"
             HorizontalAlignment="Right"
             joufflu:Spacing.Gap="4"
             Orientation="Horizontal">
             <Button Command="{Binding CancelCommand}" Style="{StaticResource SecondaryButton}">Cancel</Button>
-            <Button Command="{Binding ValidateCommand}" Style="{StaticResource PrimaryButton}">
+            <Button
+                Command="{Binding ValidateCommand}"
+                Style="{StaticResource PrimaryButton}"
+                Visibility="{Binding IsEditable, Converter={StaticResource BoolToVisibility}}">
                 <StackPanel Orientation="Horizontal">
                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Save}" />
                     <TextBlock Margin="4,0,0,0">Apply</TextBlock>

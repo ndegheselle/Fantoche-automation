@@ -116,6 +116,31 @@ public class AutomationControl : AutomationTask
     };
 
     /// <summary>
+    /// A join without the waiting : it reshapes what one branch produces into something the next
+    /// ones read, and runs as many times as a branch reaches it.
+    /// </summary>
+    public static readonly AutomationControl MapTask = new AutomationControl(typeof(AutomationControl))
+    {
+        Id = Guid.Parse("00000000-0000-0000-0000-100000000005"),
+        ParentId = Scope.Controls.Id,
+        Metadata = new ScopedMetadata(EnumScopedType.Task) { Tags = ["Control"], Name = "Map", IsReadOnly = true },
+        InputSchema = new JsonSchema(),
+        OutputSchema = new JsonSchema(),
+    };
+
+    /// <summary>
+    /// Every control a graph knows on its own. They are hard coded rather than written by the user,
+    /// so anything walking a graph tells them apart from the tasks with this list rather than with
+    /// its own copy of their ids.
+    /// </summary>
+    public static readonly IReadOnlyList<AutomationControl> All = [StartTask, EndTask, ShareTask, JoinTask, MapTask];
+
+    /// <summary>
+    /// The control [taskId] stands for, null when it points at a task or a workflow.
+    /// </summary>
+    public static AutomationControl? Get(Guid taskId) => All.FirstOrDefault(x => x.Id == taskId);
+
+    /// <summary>
     /// Type of the class that the target point on
     /// </summary>
     [JsonIgnore]

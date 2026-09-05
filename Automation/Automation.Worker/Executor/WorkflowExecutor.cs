@@ -1,7 +1,5 @@
-﻿using Automation.Shared.Data;
-using Automation.Shared.Data.Execution;
+﻿using Automation.Shared.Data.Execution;
 using Automation.Shared.Data.Graph;
-using Automation.Shared.Data.Scoped;
 using Automation.Worker.Packages;
 using Newtonsoft.Json.Linq;
 
@@ -28,10 +26,12 @@ public class WorkflowExecutor
             : null;
         var token = (CancellationToken?)(linkedCts?.Token ?? workflowInstance.WorkflowCts.Token);
 
-        // Create start tasks instances
+        // Create start tasks instances (there should be only one)
         var startTasks = new List<Task<IReadOnlyList<TaskInstance>>>();
         foreach (var start in workflowInstance.Workflow.Graph.GetStartNodes())
         {
+            // The parameters already hold the default values of the start, applied when the input
+            // of the workflow was checked : the start only hands them over.
             var startInstance = workflowInstance.CreateInstance(start, workflowInstance.Parameters, EnumTaskState.Completed);
             startInstance.Output = workflowInstance.Parameters;
 
@@ -89,11 +89,14 @@ public class WorkflowExecutor
         TaskInstancesProgress? progress,
         CancellationToken? cancellation)
     {
-        // Control nodes are driven by the workflow itself, they never reach the node executor.
-        if (node.AutomationTask is AutomationControl control)
-            return await RunControlBranchAsync(control, node, previousInstance, workflowInstance, progress, cancellation);
+        if (!node.IsInputMappingValid)
+            throw new NodeExecutionException($"The mapping of '{node.Name}' is not valid JSON.");
 
-        var parameters = ResolveParameters(node, workflowInstance.Execution.GetInstanceContextFor(node, previousInstance));
+        // Control nodes are driven by the workflow itself, they never reach the node executor.
+        if (node is GraphControl control)
+            return await RunControlBranchAsync(control, previousInstance, workflowInstance, progress, cancellation);
+
+        var parameters = node.ResolveInputMapping(workflowInstance.Execution.GetInstanceContextFor(previousInstance));
 
         var instance = workflowInstance.CreateInstance(node, parameters, EnumTaskState.Progressing, previousInstance);
         progress?.StateChanges?.Report(instance);
@@ -125,34 +128,21 @@ public class WorkflowExecutor
         return workflowInstance;
     }
 
-    /// <summary>
-    /// Resolve the parameters of a node : its template with the references replaced by the values
-    /// of [context]. Null when the node has no template.
-    /// </summary>
-    private static JToken? ResolveParameters(BaseGraphTask node, JObject context)
-    {
-        if (string.IsNullOrEmpty(node.InputMappingJson))
-            return null;
-        return ReferencesHandler.ReplaceReferences(JToken.Parse(node.InputMappingJson), context).ReplacedSetting;
-    }
-
     #region Control tasks
     /// <summary>
     /// Run a control node of the branch : a control has no task to execute, it only drives the
     /// workflow (merge the branches, feed the shared context, close the workflow).
     /// </summary>
     private async Task<IReadOnlyList<TaskInstance>> RunControlBranchAsync(
-        AutomationControl control,
-        BaseGraphTask node,
+        GraphControl node,
         TaskInstance previousInstance,
         WorkflowInstance workflowInstance,
         TaskInstancesProgress? progress,
         CancellationToken? cancellation)
     {
         // A join always merges every branch reaching it. An end does the same, unless the workflow
-        // stops at the first end : the branch arriving first then kills the others.
-        bool waitAllPrevious = control.Id == AutomationControl.JoinTask.Id
-            || (control.Id == AutomationControl.EndTask.Id && !workflowInstance.Workflow.WorkflowSettings.StopAtFirstEnd);
+        // stops at the first branch reaching it.
+        bool waitAllPrevious = node.IsWaiting(workflowInstance.Workflow.WorkflowSettings.StopAtFirstEnd);
 
         TaskInstance instance;
         if (waitAllPrevious)
@@ -167,19 +157,19 @@ public class WorkflowExecutor
                 return [];
             }
 
-            instance.Parameters = ResolveParameters(node, workflowInstance.Execution.GetWaitedInstanceContextFor(node, previouses));
+            instance.Parameters = node.ResolveInputMapping(workflowInstance.Execution.GetWaitedInstanceContextFor(previouses));
         }
         else
         {
             instance = workflowInstance.CreateInstance(
                 node,
-                ResolveParameters(node, workflowInstance.Execution.GetInstanceContextFor(node, previousInstance)),
+                node.ResolveInputMapping(workflowInstance.Execution.GetInstanceContextFor(previousInstance)),
                 EnumTaskState.Progressing,
                 previousInstance);
         }
 
-        if (control.Id == AutomationControl.ShareTask.Id)
-            workflowInstance.SharedContext = GraphExecutionContext.MergeContexts(workflowInstance.SharedContext, instance.Parameters);
+        if (node.IsShare())
+            workflowInstance.SharedContext = GraphContext.Merge(workflowInstance.SharedContext, instance.Parameters);
 
         // A control produces nothing of its own, it hands over its resolved parameters.
         instance.Output = instance.Parameters ?? new JObject();
@@ -187,7 +177,7 @@ public class WorkflowExecutor
         progress?.StateChanges?.Report(instance);
 
         // The end closes the branch, its instance is the result of the workflow.
-        if (control.Id == AutomationControl.EndTask.Id)
+        if (node.IsEnd())
         {
             if (workflowInstance.Workflow.WorkflowSettings.StopAtFirstEnd)
                 workflowInstance.WorkflowCts.Cancel();

@@ -83,6 +83,32 @@ namespace Automation.Services.Local.Database
             connection.Execute(GraphNodeModel.Schema);
             connection.Execute(GraphConnectorModel.Schema);
             connection.Execute(GraphConnectionModel.Schema);
+
+            RenameLegacyColumns(connection);
+        }
+
+        /// <summary>
+        /// Rename what a database written by an older version calls otherwise : creating the tables
+        /// leaves an existing one untouched, so a renamed column would never reach it and every
+        /// query naming it would fail. The only thing this handles is a rename, a column that is
+        /// merely gone being harmless (it stays there, nullable and unread).
+        /// </summary>
+        private static void RenameLegacyColumns(IDbConnection connection)
+        {
+            Rename(connection, "GraphNodes", "ParametersJson", "InputMappingJson");
+        }
+
+        /// <summary>
+        /// Rename [column] of [table] into [renamed], when the table still holds the old name and
+        /// not the new one : anything else means there is nothing to do.
+        /// </summary>
+        private static void Rename(IDbConnection connection, string table, string column, string renamed)
+        {
+            List<string> columns = [.. connection.Query<string>($"SELECT name FROM pragma_table_info('{table}');")];
+            if (!columns.Contains(column) || columns.Contains(renamed))
+                return;
+
+            connection.Execute($"ALTER TABLE {table} RENAME COLUMN {column} TO {renamed};");
         }
     }
 }

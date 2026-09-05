@@ -1,4 +1,4 @@
-using Automation.Plugins;
+﻿using Automation.Plugins;
 using Automation.Shared.Data.Execution;
 using Automation.Shared.Data.Scoped;
 using Newtonsoft.Json.Linq;
@@ -62,21 +62,19 @@ public static class ScenarioTasks
         JsonSchema.FromType<LoopGateParameters>(), new JsonSchema(), passThrough: true);
 
     /// <summary>
-    /// Every task the graphs can point to, controls included : what
-    /// <see cref="Shared.Data.Graph.TasksGraph.Refresh"/> needs to load the nodes.
+    /// Every task the graphs can point to : what <see cref="Shared.Data.Graph.TasksGraph.Refresh"/>
+    /// needs to load the nodes. The controls are known by the graph on its own, they are only here
+    /// so a scenario can be walked with a single dictionary.
     /// </summary>
-    public static Dictionary<Guid, BaseAutomationTask> All => new()
+    public static Dictionary<Guid, BaseAutomationTask> All => new Dictionary<Guid, BaseAutomationTask>()
     {
-        { AutomationControl.StartTask.Id, AutomationControl.StartTask },
-        { AutomationControl.EndTask.Id, AutomationControl.EndTask },
-        { AutomationControl.ShareTask.Id, AutomationControl.ShareTask },
-        { AutomationControl.JoinTask.Id, AutomationControl.JoinTask },
         { Test.Id, Test },
         { Delay.Id, Delay },
         { PassThrough.Id, PassThrough },
         { Conditional.Id, Conditional },
         { LoopGate.Id, LoopGate },
-    };
+    }.Concat(AutomationControl.All.Select(x => new KeyValuePair<Guid, BaseAutomationTask>(x.Id, x)))
+     .ToDictionary(x => x.Key, x => x.Value);
 
     private static AutomationTask MakeTask(string className, string name, JsonSchema? input, JsonSchema? output, bool passThrough = false)
         => new AutomationTask()

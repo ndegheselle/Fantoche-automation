@@ -55,7 +55,7 @@ namespace Automation.App.Features.Workflows.Editor
             _overlays = overlays;
             Title = $"Start - {workflow.Metadata.Name}";
             SchemaJson = Format(workflow.InputSchemaJson);
-            _settingsJson = BuildTemplate(workflow.InputSchema);
+            _settingsJson = BuildTemplate(workflow.InputSchema, Defaults(workflow));
 
             Errors.CollectionChanged += (_, _) =>
             {
@@ -155,16 +155,36 @@ namespace Automation.App.Features.Workflows.Editor
         /// left to fill in. Anything the schema doesn't describe as an object falls back on an empty
         /// object.
         /// </summary>
-        private static string BuildTemplate(JsonSchema? schema)
+        private static string BuildTemplate(JsonSchema? schema, JObject? defaults)
         {
             var template = new JObject();
             if (schema != null)
             {
+                // The default values are displayed rather than left out : what is typed here wins
+                // over them (see <see cref="AutomationWorkflow.ApplyInputDefaults"/>), so an empty
+                // placeholder would silently replace a default with nothing.
                 foreach ((string name, JsonSchemaProperty property) in schema.ActualProperties)
-                    template[name] = EmptyValue(property);
+                    template[name] = defaults?[name]?.DeepClone() ?? EmptyValue(property);
             }
 
             return template.ToString(Formatting.Indented);
+        }
+
+        /// <summary>
+        /// What the start of [workflow] hands over for the values the caller doesn't give, null when
+        /// it holds none or when what it holds can't be read.
+        /// </summary>
+        private static JObject? Defaults(AutomationWorkflow workflow)
+        {
+            try
+            {
+                return workflow.GetInputDefaults() as JObject;
+            }
+            catch (Exception)
+            {
+                // The settings of the workflow are where that is reported, not the start of a run.
+                return null;
+            }
         }
 
         private static JToken EmptyValue(JsonSchema schema)

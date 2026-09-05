@@ -71,10 +71,20 @@ namespace Automation.App.Features.Workflows.Editor
         private readonly IHistoryService _historyService = SpineViewModel.Instance.History;
         private readonly IToastService _toasts = SpineViewModel.Instance.Toasts;
 
-        public WorkflowEditorViewModel(AutomationWorkflow workflow, IAsyncRelayCommand saveCommand)
+        /// <summary>
+        /// Open the settings of the workflow, handed over by the page holding the editor : the
+        /// input the start hands over is edited there rather than on the node.
+        /// </summary>
+        private readonly Action? _openWorkflowSettings;
+
+        public WorkflowEditorViewModel(
+            AutomationWorkflow workflow,
+            IAsyncRelayCommand saveCommand,
+            Action? openWorkflowSettings = null)
         {
             Workflow = workflow;
             SaveCommand = saveCommand;
+            _openWorkflowSettings = openWorkflowSettings;
 
             _ = LoadAsync();
             SelectedNodes.CollectionChanged += (_, _) =>
@@ -87,7 +97,7 @@ namespace Automation.App.Features.Workflows.Editor
         /// <summary>
         /// Wrap the graph elements, the connections being resolved to the connectors they link. The
         /// tasks the nodes point at are loaded along : the editor needs their schemas to tell
-        /// whether the parameters of a node hold up (see <see cref="GraphParametersValidator"/>).
+        /// whether the mapping of a node holds up (see <see cref="GraphSampling.Validate"/>).
         /// </summary>
         private async Task LoadAsync()
         {
@@ -177,9 +187,10 @@ namespace Automation.App.Features.Workflows.Editor
         }
 
         /// <summary>
-        /// Open the settings of a node : the JSON parameters it runs with, or the input / output of
-        /// the workflow for the control tasks. Without a node it falls back on the selected one, the
-        /// command being shared by the double click on a node and the editor toolbar.
+        /// Open the settings of a node : the mapping it runs with, whatever its kind. Without a node
+        /// it falls back on the selected one, the command being shared by the double click on a node
+        /// and the editor toolbar. The start only shows its own, what it hands over belonging to the
+        /// settings of the workflow.
         /// </summary>
         [RelayCommand(CanExecute = nameof(CanOpenSettings))]
         private async Task OpenSettings(NodeViewModel? node)
@@ -188,7 +199,7 @@ namespace Automation.App.Features.Workflows.Editor
             if (node == null)
                 return;
 
-            IReversibleAction? edition = await TaskSettingsViewModel.ShowAsync(node.Model, Workflow);
+            IReversibleAction? edition = await TaskSettingsViewModel.ShowAsync(node.Model, Workflow, _openWorkflowSettings);
             if (edition != null)
                 History.Apply(edition);
         }

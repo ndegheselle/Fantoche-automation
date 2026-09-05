@@ -25,7 +25,7 @@ internal sealed record ScopedModel
     public const string Columns = """
         Id, ParentId, ElementKind, Name, Type, Color, Icon, IsReadOnly, Tags, ContextJson,
         InputSchemaJson, OutputSchemaJson, Schedules, Settings, Target,
-        WorkflowSettings, OutputMappingJson, SharedSchemaJson
+        WorkflowSettings, SharedSchemaJson
         """;
 
     /// <summary>
@@ -34,7 +34,7 @@ internal sealed record ScopedModel
     public const string Values = """
         @Id, @ParentId, @ElementKind, @Name, @Type, @Color, @Icon, @IsReadOnly, @Tags, @ContextJson,
         @InputSchemaJson, @OutputSchemaJson, @Schedules, @Settings, @Target,
-        @WorkflowSettings, @OutputMappingJson, @SharedSchemaJson
+        @WorkflowSettings, @SharedSchemaJson
         """;
 
     /// <summary>
@@ -64,7 +64,6 @@ internal sealed record ScopedModel
         Settings = @Settings,
         Target = @Target,
         WorkflowSettings = @WorkflowSettings,
-        OutputMappingJson = @OutputMappingJson,
         SharedSchemaJson = @SharedSchemaJson
         """;
 
@@ -102,7 +101,6 @@ internal sealed record ScopedModel
             Settings TEXT NULL,
             Target TEXT NULL,
             WorkflowSettings TEXT NULL,
-            OutputMappingJson TEXT NULL,
             SharedSchemaJson TEXT NULL
         );
 
@@ -134,7 +132,6 @@ internal sealed record ScopedModel
 
     /// <summary>Workflows only.</summary>
     public string? WorkflowSettings { get; init; }
-    public string? OutputMappingJson { get; init; }
     public string? SharedSchemaJson { get; init; }
 
     public ScopedElement ToElement()
@@ -148,7 +145,6 @@ internal sealed record ScopedModel
             WorkflowKind => new AutomationWorkflow()
             {
                 WorkflowSettings = DatabaseJson.Deserialize<WorkflowSettings>(WorkflowSettings) ?? new WorkflowSettings(),
-                OutputMappingJson = OutputMappingJson,
                 SharedSchemaJson = SharedSchemaJson,
             },
             _ => throw new InvalidOperationException($"Unknown kind of scoped element '{ElementKind}'."),
@@ -202,7 +198,6 @@ internal sealed record ScopedModel
             Settings = DatabaseJson.Serialize(task?.Settings),
             Target = DatabaseJson.Serialize((element as AutomationTask)?.Target),
             WorkflowSettings = DatabaseJson.Serialize(workflow?.WorkflowSettings),
-            OutputMappingJson = workflow?.OutputMappingJson,
             SharedSchemaJson = workflow?.SharedSchemaJson,
         };
     }

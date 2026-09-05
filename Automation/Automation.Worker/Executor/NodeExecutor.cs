@@ -1,4 +1,4 @@
-using Automation.Plugins.Shared;
+﻿using Automation.Plugins.Shared;
 using Automation.Shared.Data.Execution;
 using Automation.Shared.Data.Scoped;
 using Automation.Worker.Packages;
@@ -43,6 +43,11 @@ public class NodeExecutor : IDisposable
     {
         try
         {
+            // The defaults of the start stand for what the caller doesn't give : they are part of
+            // the input of the workflow, so they are applied before it is validated.
+            if (automationTask is AutomationWorkflow withDefaults && instance is WorkflowInstance workflowInstance)
+                instance.Parameters = withDefaults.ApplyInputDefaults(instance.Parameters, workflowInstance.GlobalContext);
+
             if (instance.Parameters == null)
             {
                 // Pass-through tasks may legitimately run with no parameters (no template),

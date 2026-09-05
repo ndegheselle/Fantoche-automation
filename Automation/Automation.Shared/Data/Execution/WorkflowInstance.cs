@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Text.Json.Serialization;
 using Automation.Plugins.Shared;
 using Automation.Shared.Data.Graph;
@@ -52,7 +52,7 @@ public class WorkflowInstance : TaskInstance
     {
         Workflow = workflow;
         TaskId = workflow.Id;
-        Execution = new GraphExecutionContext(Workflow.Graph, this);
+        Execution = new GraphExecutionContext(this);
     }
 
     public TaskInstance CreateInstance(BaseGraphTask node, JToken? parameters, EnumTaskState state = EnumTaskState.Pending, TaskInstance? previous = null)
