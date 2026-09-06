@@ -38,7 +38,7 @@ public class WorkflowInstance : TaskInstance
     public ConcurrentDictionary<Guid, List<TaskInstance>> NodeInstances { get; } = [];
 
     /// <summary>
-    /// Cancellation source owned by the workflow (used by StopAtFirstEnd).
+    /// Cancellation source owned by the workflow
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     public CancellationTokenSource WorkflowCts { get; } = new();
@@ -65,7 +65,6 @@ public class WorkflowInstance : TaskInstance
             instance = new TaskInstance();
 
         instance.ParentInstanceId = Id;
-        instance.ParentWorkflow = this;
         instance.TaskId = node.TaskId;
         instance.NodeId = node.Id;
         instance.NodeName = node.Name;

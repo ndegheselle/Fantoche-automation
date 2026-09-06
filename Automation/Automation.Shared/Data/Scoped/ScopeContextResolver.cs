@@ -30,7 +30,7 @@ public static class ScopeContextResolver
 
             // References only reach the parents context : the values of the scope itself are
             // exactly what is being declared here.
-            JToken values = ReferencesHandler.ReplaceReferences(context, resolved).ReplacedSetting;
+            JToken values = ReferencesHandler.ReplaceReferences(context, resolved).Replaced;
             resolved.Merge(values, MergeSettings);
         }
 

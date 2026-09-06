@@ -13,7 +13,7 @@ namespace Automation.Shared.Data.Graph
     /// node, or every branch reaching it merged into one context.
     /// </param>
     /// <param name="Values">The context itself, as the references point at it.</param>
-    public record GraphContext(string? Branch, JObject Values)
+    public record GraphContextverengineering(string? Branch, JObject Values)
     {
         public const string PreviousIdentifier = "previous";
         public const string SharedIdentifier = "shared";

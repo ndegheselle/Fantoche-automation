@@ -1,5 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 using Automation.Shared.Data.Graph;
+using Automation.Shared.Data.Scoped;
 using Newtonsoft.Json.Linq;
 
 namespace Automation.Shared.Data.Execution
@@ -32,6 +33,7 @@ namespace Automation.Shared.Data.Execution
         /// </summary>
         public string NodeName { get; set; } = string.Empty;
 
+        public JToken? PreviousContext ?
         /// <summary>
         /// Resolved parameters of the task — i.e. the node's <see cref="Automation.Shared.Data.Graph.BaseGraphTask.InputMappingJson"/>
         /// template with context references replaced. This is NOT the data flowing in from
@@ -41,7 +43,13 @@ namespace Automation.Shared.Data.Execution
         public JToken? Output { get; set; }
 
         public TaskInstance? Previous { get; set; }
-        public List<TaskInstance> Nexts { get; set; } = [];
+        /// <summary>
+        /// Get the effective instance for passing through task, the graph need to be loaded (instance -> node -> automation task)
+        /// </summary>
+        public TaskInstance Effective => 
+            Node?.AutomationTask?.Settings.IsPassingThrough == true ? 
+            Previous?.Effective ?? throw new Exception("Only the start task can't have previous instance. A start instance can't be pass through.") :
+            this;
 
         private EnumTaskState _state;
         public EnumTaskState State
@@ -66,14 +74,6 @@ namespace Automation.Shared.Data.Execution
         [Newtonsoft.Json.JsonIgnore]
         public BaseGraphTask? Node { get; set; }
 
-        /// <summary>
-        /// Parent workflow instance when this task is executed as a node of a workflow.
-        /// Not persisted — re-populated by the executor when running.
-        /// </summary>
-        [JsonIgnore]
-        [Newtonsoft.Json.JsonIgnore]
-        public WorkflowInstance? ParentWorkflow { get; set; }
-
         public TaskInstance()
         {
             CreatedAt = DateTime.UtcNow;
@@ -82,7 +82,6 @@ namespace Automation.Shared.Data.Execution
         public void Link(TaskInstance previous)
         {
             this.Previous = previous;
-            previous.Nexts.Add(this);
         }
     }
 }

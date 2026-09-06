@@ -102,13 +102,6 @@ namespace Automation.Shared.Data.Graph
 
         public string? OutputSchemaJson { get; set; }
 
-        /// <summary>
-        /// The mapping of the node resolved against [context] : the parameters the task runs with,
-        /// or the values a control hands over. The one place a mapping becomes values, whether the
-        /// context comes from a run or from an editor.
-        /// </summary>
-        public JToken? ResolveInputMapping(GraphContext context) => context.Resolve(InputMapping);
-
         public BaseGraphTask()
         {
         }
@@ -162,12 +155,6 @@ namespace Automation.Shared.Data.Graph
         public bool IsShare() => TaskId == AutomationControl.ShareTask.Id;
         public bool IsJoin() => TaskId == AutomationControl.JoinTask.Id;
         public bool IsMap() => TaskId == AutomationControl.MapTask.Id;
-
-        /// <summary>
-        /// Whether the node merges every branch reaching it rather than running once per branch.
-        /// The end waits too, unless the workflow stops at the first branch reaching it.
-        /// </summary>
-        public bool IsWaiting(bool stopAtFirstEnd = false) => IsJoin() || (IsEnd() && !stopAtFirstEnd);
     }
 
     /// <summary>

@@ -2,51 +2,19 @@
 
 namespace Automation.Shared.Data;
 
-/// <summary>
-/// Error of a replacement of references
-/// </summary>
-public class ReferenceReplaceError
+public class ReferenceReplaceResult
 {
-    public string Reference { get; }
-    public string Message { get; }
+    public JToken Replaced { get; set; }
+    public List<string> Errors { get; } = [];
+    public bool HasErrors => Errors.Count > 0;
 
-    public ReferenceReplaceError(string reference, string message)
+    public ReferenceReplaceResult(JToken mapping, List<string> errors)
     {
-        Reference = reference;
-        Message = message;
-    }
-
-    public override string ToString()
-    {
-        return $"{Reference} : {Message}";
+        Replaced = mapping;
+        Errors = errors;
     }
 }
 
-public class ReferenceReplaceContext
-{
-    public JToken ReplacedSetting { get; set; }
-    public List<ReferenceReplaceError> Errors { get; } = [];
-    public Dictionary<string, JTokenType> ReferencesTypes { get; } = [];
-
-    public ReferenceReplaceContext(JToken replacedSetting)
-    {
-        ReplacedSetting = replacedSetting;
-    }
-
-    public void SetReferenceType(string reference, JTokenType type)
-    {
-        if (!ReferencesTypes.TryAdd(reference, type))
-            ReferencesTypes[reference] = type;
-    }
-}
-
-public class MultiReferenceReplaceContext
-{
-    public List<ReferenceReplaceContext> Contexts { get; set; } = [];
-    public List<ReferenceReplaceError> InconsistentReferenceErrors { get; set; } = [];
-}
-
-// TODO : separate Global, Workflow and previous and allow recursive references
 public static class ReferencesHandler
 {
     private const string ReferenceIdentifier = "$";
@@ -55,57 +23,10 @@ public static class ReferencesHandler
     {
     }
 
-    public static MultiReferenceReplaceContext ReplaceReferences(string settingJson, IEnumerable<string?> contextsJson)
+    public static ReferenceReplaceResult ReplaceReferences(JToken mapping, JToken context)
     {
-        List<ReferenceReplaceContext> results = [];
-        foreach (var contextJson in contextsJson)
-            results.Add(ReplaceReferences(settingJson, contextJson));
-
-        var allKeys = results
-            .SelectMany(d => d.ReferencesTypes.Keys)
-            .Distinct()
-            .ToList();
-
-        var inconsistentKeys = allKeys
-            .Where(key =>
-            {
-                var types = results
-                    .Select(d => d.ReferencesTypes.TryGetValue(key, out var value) ? (JTokenType?)value : null)
-                    .Distinct()
-                    .ToList();
-                // Inconsistent if: has null (missing) OR multiple different types
-                return types.Contains(null) || types.Count(t => t.HasValue) > 1;
-            })
-            .Select(x => new ReferenceReplaceError(x, "Inconsistent types across contexts.")).ToList();
-
-        return new MultiReferenceReplaceContext { Contexts = results, InconsistentReferenceErrors = inconsistentKeys };
-    }
-
-    /// <summary>
-    /// Replace references by their actual context value (if the reference path exist in the context).
-    /// </summary>
-    /// <param name="settingJson">Setting containing references</param>
-    /// <param name="contextJson">Context the references points to</param>
-    /// <returns></returns>
-    public static ReferenceReplaceContext ReplaceReferences(string settingJson, string? contextJson)
-    {
-        if (string.IsNullOrEmpty(settingJson) || string.IsNullOrEmpty(contextJson))
-            return new ReferenceReplaceContext(JToken.Parse(settingJson));
-
-        var setting = JToken.Parse(settingJson);
-        var context = JToken.Parse(contextJson);
-
-        return ReplaceReferences(setting, context);
-    }
-
-    public static ReferenceReplaceContext ReplaceReferences(JToken setting, JToken? context)
-    {
-        if (context == null)
-            return new ReferenceReplaceContext(setting);
-
-        var result = new ReferenceReplaceContext(setting);
-        ReplaceReferences(setting, context, result);
-        result.ReplacedSetting = setting;
+        var resultToken = ReplaceReferences(mapping, context, out var errors);
+        var result = new ReferenceReplaceResult(resultToken, errors);
         return result;
     }
 
@@ -116,28 +37,36 @@ public static class ReferencesHandler
     /// <param name="context">Context the references points to</param>
     /// <param name="result"></param>
     /// <returns></returns>
-    private static void ReplaceReferences(JToken token, JToken context, ReferenceReplaceContext result)
+    private static JToken ReplaceReferences(JToken token, JToken context, out List<string> errors)
     {
+        errors = [];
         var reference = GetReferencePath(token);
+        // Is a reference
         if (!string.IsNullOrEmpty(reference))
         {
             var contextToken = context.SelectToken(reference);
-            if (contextToken != null)
+            if (contextToken == null)
             {
-                token.Replace(contextToken);
-                result.SetReferenceType(reference, contextToken.Type);
+                errors.Add($"[{reference}] not found in context.");
+                return token;
+            }
 
-                // Recursive reference
-                if (IsReference(contextToken))
-                    ReplaceReferences(contextToken, context, result);
-            }
-            else
-            {
-                result.Errors.Add(new ReferenceReplaceError(reference, $"[{reference}] not found in context."));
-            }
+            token.Replace(contextToken);
+
+            // Recursive reference
+            if (IsReference(contextToken))
+                ReplaceReferences(contextToken, context, out errors);
         }
+        else
+        {
+            foreach (var child in token.Children())
+            {
+                ReplaceReferences(child, context, out var childErrors);
+                errors.AddRange(childErrors);
+            }
 
-        foreach (var child in token.Children()) ReplaceReferences(child, context, result);
+        }
+        return token;
     }
 
     /// <summary>

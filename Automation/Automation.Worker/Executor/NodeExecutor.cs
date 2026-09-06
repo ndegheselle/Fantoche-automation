@@ -43,16 +43,9 @@ public class NodeExecutor : IDisposable
     {
         try
         {
-            // The defaults of the start stand for what the caller doesn't give : they are part of
-            // the input of the workflow, so they are applied before it is validated.
-            if (automationTask is AutomationWorkflow withDefaults && instance is WorkflowInstance workflowInstance)
-                instance.Parameters = withDefaults.ApplyInputDefaults(instance.Parameters, workflowInstance.GlobalContext);
-
             if (instance.Parameters == null)
             {
-                // Pass-through tasks may legitimately run with no parameters (no template),
-                // since they don't transform anything — only the context walks past them.
-                if (automationTask.InputSchema != null && automationTask.Settings.IsPassingThrough == false)
+                if (automationTask.InputSchema != null)
                     throw new NodeExecutionException("Parameters are required for this task.");
             }
             else

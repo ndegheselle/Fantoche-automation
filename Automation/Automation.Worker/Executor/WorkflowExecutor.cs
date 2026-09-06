@@ -54,7 +54,6 @@ public class WorkflowExecutor
     {
         var nextPairs = workflowInstance.Workflow.Graph.GetNext(current);
 
-        var endInstances = new List<TaskInstance>();
         var branches = new List<Task<IReadOnlyList<TaskInstance>>>();
         foreach (var pair in nextPairs)
         {
@@ -62,6 +61,7 @@ public class WorkflowExecutor
             branches.Add(RunBranchAsync(next, currentInstance, workflowInstance, progress, cancellation));
         }
 
+        var endInstances = new List<TaskInstance>();
         if (branches.Count > 0)
         {
             var results = await Task.WhenAll(branches);
@@ -80,7 +80,7 @@ public class WorkflowExecutor
     /// <param name="workflowInstance"></param>
     /// <param name="progress"></param>
     /// <param name="cancellation"></param>
-    /// <returns></returns>
+    /// <returns>All last branchs instances</returns>
     /// <exception cref="Exception"></exception>
     private async Task<IReadOnlyList<TaskInstance>> RunBranchAsync(
         BaseGraphTask node,
@@ -118,8 +118,8 @@ public class WorkflowExecutor
         if (workflowInstance.Workflow.OutputSchema != null && endInstances.Count == 0)
             throw new Exception("Reached end of workflow without data.");
 
-        if (workflowInstance.Workflow.WorkflowSettings.StopAtFirstEnd && endInstances.Count > 1)
-            throw new NodeExecutionException("Unexcepcted behavior, more than one end instance with StopAtFirst.");
+        if (endInstances.Count > 1)
+            workflowInstance.WorkflowCts.Cancel();
 
         workflowInstance.Output = endInstances.FirstOrDefault()?.Output;
 
@@ -140,12 +140,8 @@ public class WorkflowExecutor
         TaskInstancesProgress? progress,
         CancellationToken? cancellation)
     {
-        // A join always merges every branch reaching it. An end does the same, unless the workflow
-        // stops at the first branch reaching it.
-        bool waitAllPrevious = node.IsWaiting(workflowInstance.Workflow.WorkflowSettings.StopAtFirstEnd);
-
         TaskInstance instance;
-        if (waitAllPrevious)
+        if (node.IsJoin())
         {
             instance = workflowInstance.GetOrCreateWaitingInstance(node, previousInstance);
             var previouses = workflowInstance.TryGetAllPrevious(node);
@@ -169,7 +165,7 @@ public class WorkflowExecutor
         }
 
         if (node.IsShare())
-            workflowInstance.SharedContext = GraphContext.Merge(workflowInstance.SharedContext, instance.Parameters);
+            workflowInstance.SharedContext = GraphContextResolution.Merge(workflowInstance.SharedContext, instance.Parameters);
 
         // A control produces nothing of its own, it hands over its resolved parameters.
         instance.Output = instance.Parameters ?? new JObject();
@@ -179,8 +175,8 @@ public class WorkflowExecutor
         // The end closes the branch, its instance is the result of the workflow.
         if (node.IsEnd())
         {
-            if (workflowInstance.Workflow.WorkflowSettings.StopAtFirstEnd)
-                workflowInstance.WorkflowCts.Cancel();
+            // Cancel every other task that may be still running
+            workflowInstance.WorkflowCts.Cancel();
             return [instance];
         }
 

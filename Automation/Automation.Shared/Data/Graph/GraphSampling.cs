@@ -20,7 +20,7 @@ namespace Automation.Shared.Data.Graph
     /// course of an edition : an instance lives as long as the edition it serves, never longer.
     /// </para>
     /// </summary>
-    public class GraphSampling
+    public class GraphSamplingOverengineering
     {
         private readonly AutomationWorkflow _workflow;
         private readonly TasksGraph _graph;
