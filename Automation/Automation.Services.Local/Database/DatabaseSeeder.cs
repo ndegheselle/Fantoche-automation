@@ -285,7 +285,7 @@ internal static class Samples
         node.LocationX = x;
         node.LocationY = y;
         if (mapping != null)
-            node.InputMappingJson = JsonConvert.SerializeObject(mapping);
+            node.InputTemplateJson = JsonConvert.SerializeObject(mapping);
         return node;
     }
 

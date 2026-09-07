@@ -60,26 +60,26 @@ public class BranchScenario : IScenario
         GraphTask quick = new GraphTask(ScenarioTasks.Test)
         {
             Metadata = new ScopedMetadata() { Name = "Quick" },
-            InputMappingJson = JsonConvert.SerializeObject(new { Message = "quick", Value = "$previous.Value", Add = 1 })
+            InputTemplateJson = JsonConvert.SerializeObject(new { Message = "quick", Value = "$previous.Value", Add = 1 })
         };
 
         GraphTask slow = new GraphTask(ScenarioTasks.Delay)
         {
             Metadata = new ScopedMetadata() { Name = "Slow" },
-            InputMappingJson = JsonConvert.SerializeObject(new TestDelayParameters() { DelayMs = 400 })
+            InputTemplateJson = JsonConvert.SerializeObject(new TestDelayParameters() { DelayMs = 400 })
         };
 
         // The delay is pass-through : "$previous" here is still the start.
         GraphTask late = new GraphTask(ScenarioTasks.Test)
         {
             Metadata = new ScopedMetadata() { Name = "Late" },
-            InputMappingJson = JsonConvert.SerializeObject(new { Message = "late", Value = "$previous.Value", Add = 100 })
+            InputTemplateJson = JsonConvert.SerializeObject(new { Message = "late", Value = "$previous.Value", Add = 100 })
         };
 
         GraphTask sprint = new GraphTask(ScenarioTasks.Test)
         {
             Metadata = new ScopedMetadata() { Name = "Sprint" },
-            InputMappingJson = JsonConvert.SerializeObject(new { Message = "sprint", Value = "$previous.Value", Add = 2 })
+            InputTemplateJson = JsonConvert.SerializeObject(new { Message = "sprint", Value = "$previous.Value", Add = 2 })
         };
 
         // The join runs once every branch reaching it is completed, its context being indexed
@@ -87,7 +87,7 @@ public class BranchScenario : IScenario
         GraphControl join = new GraphControl(AutomationControl.JoinTask)
         {
             Metadata = new ScopedMetadata() { Name = "Join" },
-            InputMappingJson = JsonConvert.SerializeObject(new
+            InputTemplateJson = JsonConvert.SerializeObject(new
             {
                 Value = "$previous.Late.Value",
                 Message = "$previous.Quick.Message"
@@ -98,7 +98,7 @@ public class BranchScenario : IScenario
         GraphControl end = new GraphControl(AutomationControl.EndTask)
         {
             Metadata = new ScopedMetadata() { Name = "End" },
-            InputMappingJson = JsonConvert.SerializeObject(new
+            InputTemplateJson = JsonConvert.SerializeObject(new
             {
                 Value = Reference("Join", "Value"),
                 Message = Reference("Join", "Message")

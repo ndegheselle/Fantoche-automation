@@ -52,34 +52,26 @@ namespace Automation.Shared.Data.Graph
         public List<GraphConnector> Inputs { get; set; } = [];
         public List<GraphConnector> Outputs { get; set; } = [];
 
+
         /// <summary>
         /// Mapping of what the task is run with — JSON with context references (e.g.
         /// <c>$previous.X</c>, <c>$shared.Y</c>) that the executor resolves at runtime to
         /// populate <see cref="Execution.TaskInstance.Parameters"/>, which are the parameters
         /// themselves. Not the data flowing in from upstream tasks — that lives in the context.
         /// </summary>
-        public string? InputMappingJson { get; set; }
-
+        public string? InputTemplateJson { get; set; }
         /// <summary>
-        /// Whether the mapping can be read : holding none is valid, holding something that isn't
-        /// JSON isn't. An editor shows what is wrong with it, a run refuses to walk past it.
+        /// The mapping as a token, null when the node holds none or when what it holds isn't JSON.
         /// </summary>
         [JsonIgnore]
-        public bool IsInputMappingValid => string.IsNullOrWhiteSpace(InputMappingJson) || InputMapping != null;
-
-        /// <summary>
-        /// The mapping as a token, null when the node holds none or when what it holds isn't JSON
-        /// (yet) : see <see cref="IsInputMappingValid"/> to tell the two apart.
-        /// </summary>
-        [JsonIgnore]
-        public JToken? InputMapping
+        public JToken? InputTemplate
         {
             get
             {
-                if (string.IsNullOrWhiteSpace(InputMappingJson))
+                if (string.IsNullOrWhiteSpace(InputTemplateJson))
                     return null;
 
-                try { return JToken.Parse(InputMappingJson); }
+                try { return JToken.Parse(InputTemplateJson); }
                 catch { return null; }
             }
         }

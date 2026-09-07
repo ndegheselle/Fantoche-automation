@@ -23,9 +23,9 @@ public static class ReferencesHandler
     {
     }
 
-    public static ReferenceReplaceResult ReplaceReferences(JToken mapping, JToken context)
+    public static ReferenceReplaceResult ReplaceReferences(JToken template, JToken context)
     {
-        var resultToken = ReplaceReferences(mapping, context, out var errors);
+        var resultToken = ReplaceReferences(template, context, out var errors);
         var result = new ReferenceReplaceResult(resultToken, errors);
         return result;
     }
@@ -33,14 +33,14 @@ public static class ReferencesHandler
     /// <summary>
     /// Replace references by their actual context value (if the reference path exist in the context).
     /// </summary>
-    /// <param name="token">Setting containing references</param>
+    /// <param name="template">Setting containing references</param>
     /// <param name="context">Context the references points to</param>
     /// <param name="result"></param>
     /// <returns></returns>
-    private static JToken ReplaceReferences(JToken token, JToken context, out List<string> errors)
+    private static JToken ReplaceReferences(JToken template, JToken context, out List<string> errors)
     {
         errors = [];
-        var reference = GetReferencePath(token);
+        var reference = GetReferencePath(template);
         // Is a reference
         if (!string.IsNullOrEmpty(reference))
         {
@@ -48,10 +48,10 @@ public static class ReferencesHandler
             if (contextToken == null)
             {
                 errors.Add($"[{reference}] not found in context.");
-                return token;
+                return template;
             }
 
-            token.Replace(contextToken);
+            template.Replace(contextToken);
 
             // Recursive reference
             if (IsReference(contextToken))
@@ -59,14 +59,14 @@ public static class ReferencesHandler
         }
         else
         {
-            foreach (var child in token.Children())
+            foreach (var child in template.Children())
             {
                 ReplaceReferences(child, context, out var childErrors);
                 errors.AddRange(childErrors);
             }
 
         }
-        return token;
+        return template;
     }
 
     /// <summary>

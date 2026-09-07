@@ -155,7 +155,7 @@ namespace Automation.App.Features.Workflows.Editor
 
             Title = $"{node.Name} - {Describe()}";
             Description = Explain();
-            _inputMappingJson = node.InputMappingJson;
+            _inputMappingJson = node.InputTemplateJson;
 
             LoadContext();
 
@@ -380,12 +380,12 @@ namespace Automation.App.Features.Workflows.Editor
         private IReversibleAction BuildEdition()
         {
             string? mapping = NullIfEmpty(InputMappingJson);
-            string? previous = Node.InputMappingJson;
+            string? previous = Node.InputTemplateJson;
 
             return new ReversibleAction(
                 $"Edit the mapping of '{Node.Name}'",
-                () => Node.InputMappingJson = mapping,
-                () => Node.InputMappingJson = previous);
+                () => Node.InputTemplateJson = mapping,
+                () => Node.InputTemplateJson = previous);
         }
 
         /// <summary>

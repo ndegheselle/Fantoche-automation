@@ -40,13 +40,13 @@ namespace Automation.App.Features.Workflows.Details
         /// </summary>
         public string? InputDefaultsJson
         {
-            get => Start?.InputMappingJson;
+            get => Start?.InputTemplateJson;
             set
             {
                 if (Start == null)
                     return;
 
-                Start.InputMappingJson = NullIfEmpty(value);
+                Start.InputTemplateJson = NullIfEmpty(value);
                 OnPropertyChanged();
                 MarkChanged();
                 RefreshInput();
@@ -118,7 +118,7 @@ namespace Automation.App.Features.Workflows.Details
             {
                 List<string> errors = Workflow.Sample().Validate(
                     Start,
-                    Start.InputMappingJson,
+                    Start.InputTemplateJson,
                     schema,
                     partial: true);
 

@@ -1,6 +1,5 @@
 ﻿using System.Text.Json.Serialization;
 using Automation.Shared.Data.Graph;
-using Automation.Shared.Data.Scoped;
 using Newtonsoft.Json.Linq;
 
 namespace Automation.Shared.Data.Execution
@@ -33,11 +32,12 @@ namespace Automation.Shared.Data.Execution
         /// </summary>
         public string NodeName { get; set; } = string.Empty;
 
-        public JToken? PreviousContext ?
         /// <summary>
-        /// Resolved parameters of the task — i.e. the node's <see cref="Automation.Shared.Data.Graph.BaseGraphTask.InputMappingJson"/>
-        /// template with context references replaced. This is NOT the data flowing in from
-        /// upstream tasks (that lives in the context as <c>previous.*</c>).
+        /// The state of the shared context then reaching this instance.
+        /// </summary>
+        public JToken? Shared { get; set; }
+        /// <summary>
+        /// Resolved parameters of the task based on <see cref="Automation.Shared.Data.Graph.BaseGraphTask.InputTemplateJson"/>
         /// </summary>
         public JToken? Parameters { get; set; }
         public JToken? Output { get; set; }
@@ -46,8 +46,8 @@ namespace Automation.Shared.Data.Execution
         /// <summary>
         /// Get the effective instance for passing through task, the graph need to be loaded (instance -> node -> automation task)
         /// </summary>
-        public TaskInstance Effective => 
-            Node?.AutomationTask?.Settings.IsPassingThrough == true ? 
+        public TaskInstance Effective =>
+            Node?.AutomationTask?.Settings.IsPassingThrough == true ?
             Previous?.Effective ?? throw new Exception("Only the start task can't have previous instance. A start instance can't be pass through.") :
             this;
 

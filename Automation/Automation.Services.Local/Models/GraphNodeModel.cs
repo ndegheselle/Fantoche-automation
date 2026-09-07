@@ -114,7 +114,7 @@ internal sealed record GraphNodeModel
                 IsReadOnly = IsReadOnly ?? false,
                 Tags = DatabaseJson.Deserialize<ObservableCollection<string>>(Tags) ?? [],
             };
-            task.InputMappingJson = InputMappingJson;
+            task.InputTemplateJson = InputMappingJson;
             task.InputSchemaJson = InputSchemaJson;
             task.OutputSchemaJson = OutputSchemaJson;
         }
@@ -143,7 +143,7 @@ internal sealed record GraphNodeModel
             IsReadOnly = task?.Metadata.IsReadOnly,
             Tags = task == null ? null : DatabaseJson.Serialize(task.Metadata.Tags),
             TaskId = task?.TaskId,
-            InputMappingJson = task?.InputMappingJson,
+            InputMappingJson = task?.InputTemplateJson,
             InputSchemaJson = task?.InputSchemaJson,
             OutputSchemaJson = task?.OutputSchemaJson,
         };

@@ -89,9 +89,6 @@ public class WorkflowExecutor
         TaskInstancesProgress? progress,
         CancellationToken? cancellation)
     {
-        if (!node.IsInputMappingValid)
-            throw new NodeExecutionException($"The mapping of '{node.Name}' is not valid JSON.");
-
         // Control nodes are driven by the workflow itself, they never reach the node executor.
         if (node is GraphControl control)
             return await RunControlBranchAsync(control, previousInstance, workflowInstance, progress, cancellation);
