@@ -33,6 +33,13 @@ public class GraphContextResolution
     public JToken? GlobalContext { get; set; }
     public ConcurrentDictionary<Guid, List<TaskInstance>> NodeInstances { get; } = [];
 
+    /// <summary>
+    /// Branches already arrived on a join, by node id. Guarded by <see cref="_joinsLock"/> : the
+    /// branches of a join are resolved one at a time, only the last one arriving carries on.
+    /// </summary>
+    private readonly Dictionary<Guid, int> _joinBranches = [];
+    private readonly object _joinsLock = new();
+
     public TaskInstance CreateInstance(BaseGraphTask node, JToken? parameters, EnumTaskState state = EnumTaskState.Pending, TaskInstance? previous = null)
     {
         TaskInstance instance;
@@ -64,6 +71,44 @@ public class GraphContextResolution
     {
         return GetLastInstance(node.Id, EnumTaskState.Waiting) ??
             CreateInstance(node, null, EnumTaskState.Waiting, previousInstance);
+    }
+
+    /// <summary>
+    /// The instance of a join [node] reached by a branch coming from [previousInstance], the
+    /// branches expected being the instances of [previousNodes].
+    /// <para>
+    /// Returns false while some of them have yet to arrive : the branches run in parallel, so the
+    /// join is handed over to the last one arriving and to that one only, [arrived] then holding
+    /// what every branch produced. The count restarts right after, a loop reaching the join again
+    /// waiting for its branches anew.
+    /// </para>
+    /// </summary>
+    public bool TryJoinBranches(
+        BaseGraphTask node,
+        TaskInstance? previousInstance,
+        IReadOnlyList<BaseGraphTask> previousNodes,
+        out TaskInstance instance,
+        out List<TaskInstance> arrived)
+    {
+        lock (_joinsLock)
+        {
+            instance = GetOrCreateWaitingInstance(node, previousInstance);
+            arrived = [];
+
+            int branches = _joinBranches.GetValueOrDefault(node.Id) + 1;
+            if (branches < previousNodes.Count)
+            {
+                _joinBranches[node.Id] = branches;
+                return false;
+            }
+
+            _joinBranches[node.Id] = 0;
+            if (!TryGetAllInstances(previousNodes, out arrived))
+                throw new GraphContextResolutionException(
+                    $"Every branch of [{node.Name}] arrived but some of them produced no instance.");
+
+            return true;
+        }
     }
 
     private TaskInstance? GetLastInstance(Guid nodeId, EnumTaskState state = EnumTaskState.Completed)
@@ -102,8 +147,8 @@ public class GraphContextResolution
         }
 
         JObject inputContext = instances.Count > 1 ?
-            GetContextFor(node, instances.FirstOrDefault(), sharedContext) :
-            GetMultipleContextFor(node, instances, sharedContext);
+            GetMultipleContextFor(node, instances, sharedContext) :
+            GetContextFor(node, instances.FirstOrDefault(), sharedContext);
 
         var replacementResult = ReferencesHandler.ReplaceReferences(node.InputTemplate, inputContext);
         // Reference replacement errors
@@ -112,6 +157,8 @@ public class GraphContextResolution
             result.Errors.AddRange(replacementResult.Errors);
             return result;
         }
+
+        result.Token = replacementResult.Replaced;
         return result;
     }
 

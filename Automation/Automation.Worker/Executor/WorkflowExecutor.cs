@@ -118,6 +118,8 @@ public class WorkflowExecutor
             throw new ExecutionException($"Parameters error in node [{context.Node.Id}] : {string.Join('\n', parameters.Errors)}");
 
         var instance = context.Resolution.CreateInstance(context.Node, parameters.Token, EnumTaskState.Progressing, context.Instance);
+        // The shared context walks down the branch, whatever a share upstream fed it with.
+        instance.Shared = context.Instance.Shared;
         progress?.StateChanges?.Report(instance);
         instance = await _executor.ExecuteAsync(
             context.Node.AutomationTask ?? throw new ExecutionException("Workflow tasks are not loaded (is the graph refreshed?)."),
@@ -127,11 +129,12 @@ public class WorkflowExecutor
         progress?.StateChanges?.Report(instance);
 
         if (instance.State == EnumTaskState.Completed && instance.Output != null)
-            return await NextAsync(context, progress, cancellation);
+            return await NextAsync(context.Copy(context.Node, instance), progress, cancellation);
 
         return [];
     }
 
+    #region Control tasks
     /// <summary>
     /// Run a control node of the branch : a control has no task to execute, it only drives the
     /// workflow (merge the branches, feed the shared context, close the workflow).
@@ -141,33 +144,17 @@ public class WorkflowExecutor
         TaskInstancesProgress? progress,
         CancellationToken? cancellation)
     {
-        GraphControl control = context.Node as GraphControl ?? throw new ArgumentException("Node is not a graph control", nameof(context.Node));
-        TaskInstance instance;
-        if (control.IsJoin())
-        {
-            instance = context.WorkflowInstance.GetOrCreateWaitingInstance(node, previousInstance);
-            var previouses = context.WorkflowInstance.TryGetAllPrevious(node);
+        GraphControl control = context.Node as GraphControl ?? throw new ArgumentException("Node is not a graph control", nameof(context));
 
-            // Some branches have yet to reach this node, the last one arriving resumes it.
-            if (previouses == null)
-            {
-                progress?.StateChanges?.Report(instance);
-                return [];
-            }
+        // A join holds the branch until every other one reached it, the rest of the controls are
+        // passed through by each branch reaching them.
+        TaskInstance? instance = control.IsJoin()
+            ? ResolveJoin(context, control, progress)
+            : ResolveControl(context, control);
 
-            instance.Parameters = context.Node.ResolveInputMapping(workflowInstance.Execution.GetWaitedInstanceContextFor(previouses));
-        }
-        else
-        {
-            instance = workflowInstance.CreateInstance(
-                node,
-                node.ResolveInputMapping(workflowInstance.Execution.GetInstanceContextFor(previousInstance)),
-                EnumTaskState.Progressing,
-                previousInstance);
-        }
-
-        if (control.IsShare())
-            workflowInstance.SharedContext = GraphContextResolution.Merge(workflowInstance.SharedContext, instance.Parameters);
+        // The join is still waiting for the branches that have yet to arrive.
+        if (instance == null)
+            return [];
 
         // A control produces nothing of its own, it hands over its resolved parameters.
         instance.Output = instance.Parameters ?? new JObject();
@@ -181,9 +168,63 @@ public class WorkflowExecutor
             context.WorkflowInstance.WorkflowCts.Cancel();
             return [instance];
         }
-        
-        return await NextAsync(context.Copy(context.Node, instance), progress, cancellation);
+
+        return await NextAsync(context.Copy(control, instance), progress, cancellation);
     }
+
+    /// <summary>
+    /// Instance of a control reached by a single branch (a share, a map or the end) : it resolves
+    /// against what that branch carries and runs again each time a branch reaches it.
+    /// </summary>
+    private TaskInstance ResolveControl(WorkflowExecutionContext context, GraphControl control)
+    {
+        var input = context.Resolution.GetInputFor(control, context.Instance, context.Instance.Shared);
+
+        if (input.HasError)
+            throw new ExecutionException($"Parameters error in control [{control.Id}] : {string.Join('\n', input.Errors)}");
+
+        var instance = context.Resolution.CreateInstance(control, input.Token, EnumTaskState.Progressing, context.Instance);
+        // A share feeds what it resolved to everything downstream, the other controls hand the
+        // shared context over as they got it.
+        instance.Shared = control.IsShare()
+            ? GraphContextResolution.MergeContexts(context.Instance.Shared, input.Token)
+            : context.Instance.Shared;
+
+        return instance;
+    }
+
+    /// <summary>
+    /// Instance of a join, null while some of its branches have yet to reach it : the last one
+    /// arriving resumes the waiting instance with what every branch produced.
+    /// </summary>
+    private TaskInstance? ResolveJoin(WorkflowExecutionContext context, GraphControl control, TaskInstancesProgress? progress)
+    {
+        var previousNodes = context.WorkflowInstance.Workflow.Graph.GetPrevious(control).ToList();
+
+        if (!context.Resolution.TryJoinBranches(control, context.Instance, previousNodes, out var instance, out var arrived))
+        {
+            progress?.StateChanges?.Report(instance);
+            return null;
+        }
+
+        // What the join hands over holds every branch, so does the shared context it passes on.
+        JToken? shared = arrived.Aggregate(
+            context.Instance.Shared,
+            (merged, branch) => GraphContextResolution.MergeContexts(merged, branch.Shared));
+
+        var input = context.Resolution.GetInputFor(control, arrived, shared);
+        if (input.HasError)
+            throw new ExecutionException($"Parameters error in control [{control.Id}] : {string.Join('\n', input.Errors)}");
+
+        // The branch resuming the join is the one it carries on from.
+        instance.Previous = context.Instance;
+        instance.Parameters = input.Token;
+        instance.Shared = shared;
+        instance.State = EnumTaskState.Progressing;
+
+        return instance;
+    }
+    #endregion
 
     private WorkflowInstance EndAsync(WorkflowInstance workflowInstance, IReadOnlyList<TaskInstance> endInstances, TaskInstancesProgress? progress = null)
     {
