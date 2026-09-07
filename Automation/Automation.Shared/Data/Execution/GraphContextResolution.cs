@@ -87,6 +87,11 @@ public class GraphContextResolution
     }
 
     #region Handle context
+    public GraphContextResult GetInputFor(BaseGraphTask node, TaskInstance? previous, JToken? sharedContext)
+    {
+        return GetInputFor(node, previous == null ? [] : [previous], sharedContext);
+    }
+
     public GraphContextResult GetInputFor(BaseGraphTask node, IReadOnlyList<TaskInstance> instances, JToken? sharedContext)
     {
         GraphContextResult result = new GraphContextResult();

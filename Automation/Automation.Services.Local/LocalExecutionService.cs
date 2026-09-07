@@ -97,7 +97,7 @@ public class LocalExecutionService : IExecutionService, IDisposable
 
         // Nothing is running under that id anymore : what the history holds of it is its outcome.
         return await _historyService.GetAsync(instanceId)
-            ?? throw new ExecutionException($"Unknown execution '{instanceId}'.");
+            ?? throw new Shared.Services.ExecutionException($"Unknown execution '{instanceId}'.");
     }
 
     public Task CancelAsync(Guid instanceId)
@@ -149,10 +149,10 @@ public class LocalExecutionService : IExecutionService, IDisposable
     private async Task<BaseAutomationTask> LoadTaskAsync(Guid taskId)
     {
         ScopedElement element = await _scopedService.GetAsync(taskId)
-            ?? throw new ExecutionException($"Unknown element '{taskId}'.");
+            ?? throw new Shared.Services.ExecutionException($"Unknown element '{taskId}'.");
 
         if (element is not BaseAutomationTask task)
-            throw new ExecutionException($"The element '{element.Metadata.Name}' is not a task or a workflow.");
+            throw new Shared.Services.ExecutionException($"The element '{element.Metadata.Name}' is not a task or a workflow.");
 
         return task;
     }
@@ -181,7 +181,7 @@ public class LocalExecutionService : IExecutionService, IDisposable
 
         var missing = nodesIds.Where(id => !tasks.ContainsKey(id)).ToList();
         if (missing.Count > 0)
-            throw new ExecutionException($"The workflow '{workflow.Metadata.Name}' points at unknown tasks : {string.Join(", ", missing)}.");
+            throw new Shared.Services.ExecutionException($"The workflow '{workflow.Metadata.Name}' points at unknown tasks : {string.Join(", ", missing)}.");
 
         foreach (var child in tasks.Values.OfType<AutomationWorkflow>())
             await RefreshGraphAsync(child, visited);

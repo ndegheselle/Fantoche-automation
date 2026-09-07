@@ -89,7 +89,7 @@ public class GraphExecutionPreview
             return null;
 
         // We don't really need the input here, we just check if there is any errors in mapping
-        var result = resolution.GetInputFor(node, previous == null ? [] : [previous], sharedContext);
+        var result = resolution.GetInputFor(node, previous, sharedContext);
         if (result.HasError)
         {
             NodesErrors.Add(node.Id, result.Errors);

@@ -5,6 +5,24 @@ using Newtonsoft.Json.Linq;
 
 namespace Automation.Worker.Executor;
 
+public record WorkflowExecutionContext
+{
+    public GraphContextResolution Resolution { get; }
+    public BaseGraphTask Node { get; }
+    public TaskInstance Instance { get; }
+    public WorkflowInstance WorkflowInstance { get; }
+
+    public WorkflowExecutionContext(GraphContextResolution resolution, WorkflowInstance workflowInstance, BaseGraphTask node, TaskInstance instance)
+    {
+        Resolution = resolution;
+        Node = node;
+        Instance = instance;
+        WorkflowInstance = workflowInstance;
+    }
+
+    public WorkflowExecutionContext Copy(BaseGraphTask node, TaskInstance instance) => new WorkflowExecutionContext(Resolution, WorkflowInstance, node, instance);
+}
+
 public class WorkflowExecutor
 {
     private readonly NodeExecutor _executor;
@@ -26,17 +44,21 @@ public class WorkflowExecutor
             : null;
         var token = (CancellationToken?)(linkedCts?.Token ?? workflowInstance.WorkflowCts.Token);
 
+        // XXX : should check if the workflow instance is correctly formated (parameters there)
+
+        GraphContextResolution resolution = new GraphContextResolution(workflowInstance.Id);
         // Create start tasks instances (there should be only one)
         var startTasks = new List<Task<IReadOnlyList<TaskInstance>>>();
         foreach (var start in workflowInstance.Workflow.Graph.GetStartNodes())
         {
-            // The parameters already hold the default values of the start, applied when the input
-            // of the workflow was checked : the start only hands them over.
-            var startInstance = workflowInstance.CreateInstance(start, workflowInstance.Parameters, EnumTaskState.Completed);
-            startInstance.Output = workflowInstance.Parameters;
-
+            // Apply node default on the given parameters
+            var startParameters = GraphContextResolution.MergeContexts(start.InputTemplate, workflowInstance.Parameters);
+            var startInstance = resolution.CreateInstance(start, startParameters, EnumTaskState.Completed);
+            startInstance.Output = startParameters;
             progress?.StateChanges?.Report(startInstance);
-            startTasks.Add(NextAsync(start, startInstance, workflowInstance, progress, token));
+
+            WorkflowExecutionContext context = new WorkflowExecutionContext(resolution, workflowInstance, start, startInstance);
+            startTasks.Add(NextAsync(context, progress, token));
         }
 
         var results = await Task.WhenAll(startTasks);
@@ -46,19 +68,18 @@ public class WorkflowExecutor
     }
 
     private async Task<IReadOnlyList<TaskInstance>> NextAsync(
-        BaseGraphTask current,
-        TaskInstance currentInstance,
-        WorkflowInstance workflowInstance,
+        WorkflowExecutionContext context,
         TaskInstancesProgress? progress,
         CancellationToken? cancellation)
     {
-        var nextPairs = workflowInstance.Workflow.Graph.GetNext(current);
+        var nextPairs = context.WorkflowInstance.Workflow.Graph.GetNext(context.Node);
 
         var branches = new List<Task<IReadOnlyList<TaskInstance>>>();
         foreach (var pair in nextPairs)
         {
             var next = pair.Task;
-            branches.Add(RunBranchAsync(next, currentInstance, workflowInstance, progress, cancellation));
+            var nextContext = context.Copy(next, context.Instance);
+            branches.Add(RunBranchAsync(nextContext, progress, cancellation));
         }
 
         var endInstances = new List<TaskInstance>();
@@ -83,65 +104,49 @@ public class WorkflowExecutor
     /// <returns>All last branchs instances</returns>
     /// <exception cref="Exception"></exception>
     private async Task<IReadOnlyList<TaskInstance>> RunBranchAsync(
-        BaseGraphTask node,
-        TaskInstance previousInstance,
-        WorkflowInstance workflowInstance,
+        WorkflowExecutionContext context,
         TaskInstancesProgress? progress,
         CancellationToken? cancellation)
     {
         // Control nodes are driven by the workflow itself, they never reach the node executor.
-        if (node is GraphControl control)
-            return await RunControlBranchAsync(control, previousInstance, workflowInstance, progress, cancellation);
+        if (context.Node is GraphControl control)
+            return await RunControlBranchAsync(context, progress, cancellation);
 
-        var parameters = node.ResolveInputMapping(workflowInstance.Execution.GetInstanceContextFor(previousInstance));
+        var parameters = context.Resolution.GetInputFor(context.Node, context.Instance, context.Instance.Shared);
 
-        var instance = workflowInstance.CreateInstance(node, parameters, EnumTaskState.Progressing, previousInstance);
+        if (parameters.HasError)
+            throw new ExecutionException($"Parameters error in node [{context.Node.Id}] : {string.Join('\n', parameters.Errors)}");
+
+        var instance = context.Resolution.CreateInstance(context.Node, parameters.Token, EnumTaskState.Progressing, context.Instance);
         progress?.StateChanges?.Report(instance);
         instance = await _executor.ExecuteAsync(
-            node.AutomationTask ?? throw new Exception("Workflow tasks are not loaded (is the graph refreshed?)."),
+            context.Node.AutomationTask ?? throw new ExecutionException("Workflow tasks are not loaded (is the graph refreshed?)."),
             instance,
             progress,
             cancellation);
         progress?.StateChanges?.Report(instance);
 
         if (instance.State == EnumTaskState.Completed && instance.Output != null)
-            return await NextAsync(node, instance, workflowInstance, progress, cancellation);
+            return await NextAsync(context, progress, cancellation);
 
         return [];
     }
 
-    private WorkflowInstance EndAsync(WorkflowInstance workflowInstance, IReadOnlyList<TaskInstance> endInstances, TaskInstancesProgress? progress = null)
-    {
-        if (workflowInstance.Workflow.OutputSchema != null && endInstances.Count == 0)
-            throw new Exception("Reached end of workflow without data.");
-
-        if (endInstances.Count > 1)
-            workflowInstance.WorkflowCts.Cancel();
-
-        workflowInstance.Output = endInstances.FirstOrDefault()?.Output;
-
-        workflowInstance.State = EnumTaskState.Completed;
-        progress?.StateChanges?.Report(workflowInstance);
-        return workflowInstance;
-    }
-
-    #region Control tasks
     /// <summary>
     /// Run a control node of the branch : a control has no task to execute, it only drives the
     /// workflow (merge the branches, feed the shared context, close the workflow).
     /// </summary>
     private async Task<IReadOnlyList<TaskInstance>> RunControlBranchAsync(
-        GraphControl node,
-        TaskInstance previousInstance,
-        WorkflowInstance workflowInstance,
+        WorkflowExecutionContext context,
         TaskInstancesProgress? progress,
         CancellationToken? cancellation)
     {
+        GraphControl control = context.Node as GraphControl ?? throw new ArgumentException("Node is not a graph control", nameof(context.Node));
         TaskInstance instance;
-        if (node.IsJoin())
+        if (control.IsJoin())
         {
-            instance = workflowInstance.GetOrCreateWaitingInstance(node, previousInstance);
-            var previouses = workflowInstance.TryGetAllPrevious(node);
+            instance = context.WorkflowInstance.GetOrCreateWaitingInstance(node, previousInstance);
+            var previouses = context.WorkflowInstance.TryGetAllPrevious(node);
 
             // Some branches have yet to reach this node, the last one arriving resumes it.
             if (previouses == null)
@@ -150,7 +155,7 @@ public class WorkflowExecutor
                 return [];
             }
 
-            instance.Parameters = node.ResolveInputMapping(workflowInstance.Execution.GetWaitedInstanceContextFor(previouses));
+            instance.Parameters = context.Node.ResolveInputMapping(workflowInstance.Execution.GetWaitedInstanceContextFor(previouses));
         }
         else
         {
@@ -161,7 +166,7 @@ public class WorkflowExecutor
                 previousInstance);
         }
 
-        if (node.IsShare())
+        if (control.IsShare())
             workflowInstance.SharedContext = GraphContextResolution.Merge(workflowInstance.SharedContext, instance.Parameters);
 
         // A control produces nothing of its own, it hands over its resolved parameters.
@@ -170,14 +175,28 @@ public class WorkflowExecutor
         progress?.StateChanges?.Report(instance);
 
         // The end closes the branch, its instance is the result of the workflow.
-        if (node.IsEnd())
+        if (control.IsEnd())
         {
             // Cancel every other task that may be still running
-            workflowInstance.WorkflowCts.Cancel();
+            context.WorkflowInstance.WorkflowCts.Cancel();
             return [instance];
         }
-
-        return await NextAsync(node, instance, workflowInstance, progress, cancellation);
+        
+        return await NextAsync(context.Copy(context.Node, instance), progress, cancellation);
     }
-    #endregion
+
+    private WorkflowInstance EndAsync(WorkflowInstance workflowInstance, IReadOnlyList<TaskInstance> endInstances, TaskInstancesProgress? progress = null)
+    {
+        if (workflowInstance.Workflow.OutputSchema != null && endInstances.Count == 0)
+            throw new ExecutionException("Reached end of workflow without data.");
+
+        if (endInstances.Count > 1)
+            workflowInstance.WorkflowCts.Cancel();
+
+        workflowInstance.Output = endInstances.FirstOrDefault()?.Output;
+
+        workflowInstance.State = EnumTaskState.Completed;
+        progress?.StateChanges?.Report(workflowInstance);
+        return workflowInstance;
+    }
 }

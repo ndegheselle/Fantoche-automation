@@ -6,9 +6,9 @@ using Newtonsoft.Json.Linq;
 
 namespace Automation.Worker.Executor;
 
-public class NodeExecutionException : Exception
+public class ExecutionException : Exception
 {
-    public NodeExecutionException(string message) : base(message) { }
+    public ExecutionException(string message) : base(message) { }
 }
 
 /// <summary>
@@ -46,23 +46,23 @@ public class NodeExecutor : IDisposable
             if (instance.Parameters == null)
             {
                 if (automationTask.InputSchema != null)
-                    throw new NodeExecutionException("Parameters are required for this task.");
+                    throw new ExecutionException("Parameters are required for this task.");
             }
             else
             {
                 var errors = automationTask.InputSchema?.Validate(instance.Parameters);
                 if (errors?.Count > 0)
-                    throw new NodeExecutionException($"Parameters don't correspond to schema : {string.Join(", ", errors)}");
+                    throw new ExecutionException($"Parameters don't correspond to schema : {string.Join(", ", errors)}");
             }
 
             instance = automationTask switch
             {
                 AutomationWorkflow workflow => await ExecuteWorkflowAsync(
                     workflow,
-                    instance as WorkflowInstance ?? throw new NodeExecutionException("A workflow task must have a workflow instance"),
+                    instance as WorkflowInstance ?? throw new ExecutionException("A workflow task must have a workflow instance"),
                     progress, cancellation),
                 AutomationTask task => await ExecuteTaskAsync(task, instance, progress, cancellation),
-                _ => throw new NodeExecutionException("Unknown task type.")
+                _ => throw new ExecutionException("Unknown task type.")
             };
         }
         catch (OperationCanceledException)
@@ -99,7 +99,7 @@ public class NodeExecutor : IDisposable
         CancellationToken? cancellation = null)
     {
         if (automationTask.Target is not PackageClassTarget target)
-            throw new NodeExecutionException("Task target is not a package.");
+            throw new ExecutionException("Task target is not a package.");
 
         string dllPath =
             await _packages.DownloadPackageAsync(target.Package.Id, target.Package.Version, target.Dll);
