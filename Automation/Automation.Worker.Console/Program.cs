@@ -20,8 +20,7 @@ LocalPackageManagement packages = new LocalPackageManagement(nugetLocalPath, nug
 IScenario[] scenarios =
 [
     new LinearScenario(),
-    new BranchScenario(stopAtFirstEnd: false),
-    new BranchScenario(stopAtFirstEnd: true),
+    new BranchScenario(),
     new LoopScenario(),
 ];
 

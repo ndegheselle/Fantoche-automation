@@ -7,9 +7,11 @@ public class GraphExecutionPreview
 {
     public Dictionary<Guid, List<string>> NodesErrors { get; } = [];
 
-    // XXX : graph need to be refreshed
     public void BuildSamples(TasksGraph graph, GraphContextResolution resolution)
     {
+        if (graph.IsRefreshed == false)
+            throw new Exception("The graph need to be refreshed before a preview.");
+
         foreach (var start in graph.GetStartNodes())
         {
             // Merge schema sample with default values

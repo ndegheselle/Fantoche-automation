@@ -23,21 +23,10 @@ namespace Automation.Worker.Console.Scenarios;
 /// </summary>
 public class BranchScenario : IScenario
 {
-    private readonly bool _stopAtFirstEnd;
+    public string Name => $"Branches";
 
-    public BranchScenario(bool stopAtFirstEnd)
-    {
-        _stopAtFirstEnd = stopAtFirstEnd;
-    }
-
-    public string Name => $"Branches (StopAtFirstEnd = {_stopAtFirstEnd})";
-
-    public string Description => _stopAtFirstEnd
-        ? "Sprint reaches the end while Slow is still delayed : the workflow is cancelled, " +
-          "the join stays waiting. Expected output : Value = 1 + 2 = 3."
-        : "Every branch runs, the join merges Quick and Late (which reads through the delay, so " +
-          "1 + 100). The end then waits for the join and Sprint, and keeps what the join " +
-          "produced : Value = 101.";
+    public string Description => "Sprint reaches the end while Slow is still delayed : the workflow is cancelled, " +
+          "the join stays waiting. Expected output : Value = 1 + 2 = 3.";
 
     public JToken Input => JToken.FromObject(new ScenarioInput() { Value = 1 });
 
@@ -49,7 +38,6 @@ public class BranchScenario : IScenario
             Metadata = new ScopedMetadata() { Name = Name },
             InputSchema = JsonSchema.FromType<ScenarioInput>(),
             OutputSchema = JsonSchema.FromType<TestResult>(),
-            WorkflowSettings = new WorkflowSettings() { StopAtFirstEnd = _stopAtFirstEnd },
         };
 
         GraphControl start = new GraphControl(AutomationControl.StartTask)
@@ -134,6 +122,5 @@ public class BranchScenario : IScenario
     /// them indexed by node name, while one stopping at the first branch reaching it only sees a
     /// single previous.
     /// </summary>
-    private string Reference(string nodeName, string field)
-        => _stopAtFirstEnd ? $"$previous.{field}" : $"$previous.{nodeName}.{field}";
+    private string Reference(string nodeName, string field) => $"$previous.{field}";
 }

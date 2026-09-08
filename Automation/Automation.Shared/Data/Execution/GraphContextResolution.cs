@@ -74,40 +74,20 @@ public class GraphContextResolution
     }
 
     /// <summary>
-    /// The instance of a join [node] reached by a branch coming from [previousInstance], the
-    /// branches expected being the instances of [previousNodes].
-    /// <para>
-    /// Returns false while some of them have yet to arrive : the branches run in parallel, so the
-    /// join is handed over to the last one arriving and to that one only, [arrived] then holding
-    /// what every branch produced. The count restarts right after, a loop reaching the join again
-    /// waiting for its branches anew.
-    /// </para>
+    /// Return true if all previous branches are completed, false overwise. [branchesInstances] contains the list of previous instances if true.
+    /// This check is locked since async branches may race to free the same join node.
     /// </summary>
     public bool TryJoinBranches(
         BaseGraphTask node,
         TaskInstance? previousInstance,
         IReadOnlyList<BaseGraphTask> previousNodes,
         out TaskInstance instance,
-        out List<TaskInstance> arrived)
+        out List<TaskInstance> branchesInstances)
     {
         lock (_joinsLock)
         {
             instance = GetOrCreateWaitingInstance(node, previousInstance);
-            arrived = [];
-
-            int branches = _joinBranches.GetValueOrDefault(node.Id) + 1;
-            if (branches < previousNodes.Count)
-            {
-                _joinBranches[node.Id] = branches;
-                return false;
-            }
-
-            _joinBranches[node.Id] = 0;
-            if (!TryGetAllInstances(previousNodes, out arrived))
-                throw new GraphContextResolutionException(
-                    $"Every branch of [{node.Name}] arrived but some of them produced no instance.");
-
-            return true;
+            return TryGetAllInstances(previousNodes, out branchesInstances);
         }
     }
 

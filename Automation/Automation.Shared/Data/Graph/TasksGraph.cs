@@ -8,8 +8,7 @@ namespace Automation.Shared.Data.Graph
     {
         public ObservableCollection<GraphConnection> Connections { get; set; } = [];
         public ObservableCollection<GraphNode> Nodes { get; set; } = [];
-
-        private bool _isRefreshed = false;
+        public bool IsRefreshed { get; private set; }
 
         /// <summary>
         /// Refresh parent and object references between TaskNode, Connection and Connectors.
@@ -18,7 +17,7 @@ namespace Automation.Shared.Data.Graph
         /// <param name="force">Force the refresh even if the graph is already refreshed.</param>
         public void Refresh(Dictionary<Guid, BaseAutomationTask>? tasks = null, bool force = false)
         {
-            if (_isRefreshed && !force)
+            if (IsRefreshed && !force)
                 return;
 
             var connectors = new Dictionary<Guid, GraphConnector>();
@@ -58,7 +57,7 @@ namespace Automation.Shared.Data.Graph
                 connection.Connect(source, target);
             }
 
-            _isRefreshed = true;
+            IsRefreshed = true;
         }
 
         #region Nodes

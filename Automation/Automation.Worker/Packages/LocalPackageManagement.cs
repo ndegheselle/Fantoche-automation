@@ -91,7 +91,7 @@ public class LocalPackageManagement
     /// <returns>A paginated list of matching <see cref="PackageInfos"/>.</returns>
     public async Task<Paginated<PackageInfos>> SearchAsync(string name = "", PaginationOptions options = default)
     {
-        // XXX : difference with LocalPackageSearchResource ?
+        // ? : difference with LocalPackageSearchResource ?
         var resource = (await _repositoryTask).GetResource<PackageSearchResource>();
         var packages = await resource.SearchAsync(
             name,

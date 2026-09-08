@@ -44,7 +44,7 @@ public class WorkflowExecutor
             : null;
         var token = (CancellationToken?)(linkedCts?.Token ?? workflowInstance.WorkflowCts.Token);
 
-        // XXX : should check if the workflow instance is correctly formated (parameters there)
+        // XXX : should check if the workflow instance is correctly formated (parameters if there is an InputSchema)
 
         GraphContextResolution resolution = new GraphContextResolution(workflowInstance.Id);
         // Create start tasks instances (there should be only one)
@@ -201,18 +201,15 @@ public class WorkflowExecutor
     {
         var previousNodes = context.WorkflowInstance.Workflow.Graph.GetPrevious(control).ToList();
 
-        if (!context.Resolution.TryJoinBranches(control, context.Instance, previousNodes, out var instance, out var arrived))
-        {
-            progress?.StateChanges?.Report(instance);
+        if (!context.Resolution.TryJoinBranches(control, context.Instance, previousNodes, out var instance, out var branchesInstances))
             return null;
-        }
 
-        // What the join hands over holds every branch, so does the shared context it passes on.
-        JToken? shared = arrived.Aggregate(
+        // Merge every branche shared data
+        JToken? shared = branchesInstances.Aggregate(
             context.Instance.Shared,
             (merged, branch) => GraphContextResolution.MergeContexts(merged, branch.Shared));
 
-        var input = context.Resolution.GetInputFor(control, arrived, shared);
+        var input = context.Resolution.GetInputFor(control, branchesInstances, shared);
         if (input.HasError)
             throw new ExecutionException($"Parameters error in control [{control.Id}] : {string.Join('\n', input.Errors)}");
 
