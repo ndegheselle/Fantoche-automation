@@ -26,7 +26,7 @@ public class PackageDownloadException : Exception
 
 #endregion
 
-public class LocalPackageManagement
+public class LocalPackageManagement : IPackageManagement
 {
     #region Fields
 

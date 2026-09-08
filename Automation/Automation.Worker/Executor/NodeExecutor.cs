@@ -16,14 +16,14 @@ public class ExecutionException : Exception
 /// </summary>
 public class NodeExecutor : IDisposable
 {
-    private readonly LocalPackageManagement _packages;
+    private readonly IPackageManagement _packages;
     private readonly WorkflowExecutor _workflowExecutor;
     /// <summary>
     /// Task loaders cached by DLL path.
     /// </summary>
     private readonly Dictionary<string, TaskLoader> _cachedTaskLoaders = [];
 
-    public NodeExecutor(LocalPackageManagement packageManagement, WorkflowExecutor workflowExecutor)
+    public NodeExecutor(IPackageManagement packageManagement, WorkflowExecutor workflowExecutor)
     {
         _workflowExecutor = workflowExecutor;
         _packages = packageManagement;

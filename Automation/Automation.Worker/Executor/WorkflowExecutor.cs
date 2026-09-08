@@ -18,7 +18,7 @@ public class WorkflowExecutor
 {
     private readonly NodeExecutor _executor;
 
-    public WorkflowExecutor(LocalPackageManagement packageManagement)
+    public WorkflowExecutor(IPackageManagement packageManagement)
     {
         _executor = new NodeExecutor(packageManagement, this);
     }
@@ -37,7 +37,12 @@ public class WorkflowExecutor
 
         // XXX : should check if the workflow instance is correctly formated (parameters if there is an InputSchema)
 
-        GraphContextResolution resolution = new GraphContextResolution(workflowInstance.Id);
+        // The context of the scopes the workflow belongs to is read once, when the run starts : it
+        // is what the mappings of its nodes read as "$global.*".
+        GraphContextResolution resolution = new GraphContextResolution(workflowInstance.Id)
+        {
+            GlobalContext = workflowInstance.GlobalContext,
+        };
         // Create start tasks instances (there should be only one)
         var startTasks = new List<Task<IReadOnlyList<TaskInstance>>>();
         foreach (var start in workflowInstance.Workflow.Graph.GetStartNodes())
