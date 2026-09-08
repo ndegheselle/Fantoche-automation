@@ -1,4 +1,4 @@
-namespace Automation.App.Features.Workflows.Editor.History
+﻿namespace Automation.App.Features.Workflows.Editor.History
 {
     /// <summary>
     /// Several actions applied as one. Reverting undoes them backwards, an action having to be undone
@@ -8,6 +8,11 @@ namespace Automation.App.Features.Workflows.Editor.History
     public class CompositeReversibleAction : IReversibleAction
     {
         public string Name { get; }
+
+        /// <summary>
+        /// True as soon as one of the composed actions changes the graph.
+        /// </summary>
+        public bool ChangesExecution => _actions.Any(x => x.ChangesExecution);
 
         private readonly IReversibleAction[] _actions;
 

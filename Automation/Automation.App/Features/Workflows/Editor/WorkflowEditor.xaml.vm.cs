@@ -78,6 +78,14 @@ namespace Automation.App.Features.Workflows.Editor
         private readonly Action? _openWorkflowSettings;
 
         /// <summary>
+        /// What the graph would run into, as the last refresh found it. Held rather than rebuilt by
+        /// whoever needs it : two previews of the same graph are two walks of it, and they can
+        /// disagree — the global context lands asynchronously, so one built before it arrives
+        /// resolves "$global" against nothing.
+        /// </summary>
+        public GraphExecutionPreview? Preview { get; private set; }
+
+        /// <summary>
         /// The context of the scopes holding the workflow, which a mapping reads as "$global".
         /// </summary>
         private JToken? _globalContext;
@@ -104,9 +112,9 @@ namespace Automation.App.Features.Workflows.Editor
                 OpenSettingsCommand.NotifyCanExecuteChanged();
             };
 
-            // Every modification of the graph goes through the history, so it is also where the
-            // preview of what the graph would run into is worth refreshing.
-            History.PropertyChanged += (_, _) => RefreshPreview();
+            // Refreshed from the history rather than from each command : an undo and a redo change
+            // the graph as much as the edit they replay, and only the history knows of them.
+            History.ExecutionChanged += RefreshPreview;
         }
 
         /// <summary>
@@ -173,8 +181,7 @@ namespace Automation.App.Features.Workflows.Editor
         /// </summary>
         private void RefreshPreview()
         {
-            Dictionary<Guid, List<GraphPreviewError>> nodesErrors = [];
-            Dictionary<GraphEdge, List<GraphPreviewError>> edgesErrors = [];
+            Preview = null;
 
             try
             {
@@ -187,8 +194,7 @@ namespace Automation.App.Features.Workflows.Editor
                 GraphExecutionPreview preview = new();
                 preview.BuildSamples(Graph, resolution);
 
-                nodesErrors = preview.NodesErrors;
-                edgesErrors = preview.EdgesErrors;
+                Preview = preview;
             }
             catch
             {
@@ -197,10 +203,10 @@ namespace Automation.App.Features.Workflows.Editor
             }
 
             foreach (NodeViewModel node in Nodes)
-                node.Errors = Messages(nodesErrors, node.Model.Id);
+                node.Errors = Messages(Preview?.NodesErrors, node.Model.Id);
 
             foreach (ConnectionViewModel connection in Connections)
-                connection.Errors = Messages(edgesErrors, connection.Model.Edge, named: true);
+                connection.Errors = Messages(Preview?.EdgesErrors, connection.Model.Edge, named: true);
         }
 
         /// <summary>
@@ -209,12 +215,12 @@ namespace Automation.App.Features.Workflows.Editor
         /// stands for what the node it leads to cannot handle, not for something of its own.
         /// </summary>
         private IReadOnlyList<string> Messages<TKey>(
-            Dictionary<TKey, List<GraphPreviewError>> errors,
+            Dictionary<TKey, List<GraphPreviewError>>? errors,
             TKey key,
             bool named = false)
             where TKey : notnull
         {
-            if (!errors.TryGetValue(key, out List<GraphPreviewError>? found))
+            if (errors == null || !errors.TryGetValue(key, out List<GraphPreviewError>? found))
                 return [];
 
             return
@@ -289,7 +295,7 @@ namespace Automation.App.Features.Workflows.Editor
             if (node == null)
                 return;
 
-            IReversibleAction? edition = await TaskSettingsViewModel.ShowAsync(node.Model, Workflow, _openWorkflowSettings);
+            IReversibleAction? edition = await TaskSettingsViewModel.ShowAsync(node.Model, Preview, _openWorkflowSettings);
             if (edition != null)
                 History.Apply(edition);
         }
@@ -380,7 +386,11 @@ namespace Automation.App.Features.Workflows.Editor
                 {
                     foreach ((NodeViewModel node, Point from, _) in moves)
                         node.Location = from;
-                }));
+                })
+            {
+                // Where the nodes sit says nothing about what the graph resolves to.
+                ChangesExecution = false,
+            });
         }
 
         /// <summary>

@@ -76,23 +76,59 @@ namespace Automation.Shared.Data.Graph
             }
         }
 
+        private JsonSchema? _inputSchema;
+        private JsonSchema? _outputSchema;
+
+        /// <summary>
+        /// The shape of what the node reads, parsed once per value of
+        /// <see cref="InputSchemaJson"/> (see <see cref="Schemas.Parse"/>).
+        /// </summary>
         [JsonIgnore]
         public JsonSchema? InputSchema
         {
-            get => InputSchemaJson == null ? null : JsonSchema.FromJsonAsync(InputSchemaJson).Result;
-            set => InputSchemaJson = value?.ToJson();
+            get => _inputSchema ??= Schemas.Parse(InputSchemaJson);
+            set
+            {
+                InputSchemaJson = value?.ToJson();
+                _inputSchema = value;
+            }
         }
 
-        public string? InputSchemaJson { get; set; }
+        public string? InputSchemaJson
+        {
+            get;
+            set
+            {
+                field = value;
+                _inputSchema = null;
+            }
+        }
 
+        /// <summary>
+        /// The shape of what the node hands over, parsed once per value of
+        /// <see cref="OutputSchemaJson"/> (see <see cref="Schemas.Parse"/>). Read for every context
+        /// a walk of the graph reaches the node with, so it is the one worth not parsing again.
+        /// </summary>
         [JsonIgnore]
         public JsonSchema? OutputSchema
         {
-            get => OutputSchemaJson == null ? null : JsonSchema.FromJsonAsync(OutputSchemaJson).Result;
-            set => OutputSchemaJson = value?.ToJson();
+            get => _outputSchema ??= Schemas.Parse(OutputSchemaJson);
+            set
+            {
+                OutputSchemaJson = value?.ToJson();
+                _outputSchema = value;
+            }
         }
 
-        public string? OutputSchemaJson { get; set; }
+        public string? OutputSchemaJson
+        {
+            get;
+            set
+            {
+                field = value;
+                _outputSchema = null;
+            }
+        }
 
         public BaseGraphTask()
         {

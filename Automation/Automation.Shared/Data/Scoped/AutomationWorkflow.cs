@@ -1,4 +1,5 @@
 ﻿using Automation.Shared.Data.Graph;
+using Automation.Shared.Data;
 using NJsonSchema;
 using System.Text.Json.Serialization;
 
@@ -18,17 +19,35 @@ namespace Automation.Shared.Data.Scoped
 
         public WorkflowSettings WorkflowSettings { get; set; } = new();
 
+        private JsonSchema? _sharedSchema;
+
+        /// <summary>
+        /// The shape of the common data of the workflow, parsed once per value of
+        /// <see cref="SharedSchemaJson"/> (see <see cref="Schemas.Parse"/>).
+        /// </summary>
         [JsonIgnore]
         public JsonSchema? SharedSchema
         {
-            get => SharedSchemaJson == null ? null : JsonSchema.FromJsonAsync(SharedSchemaJson).Result;
-            set => SharedSchemaJson = value == null ? null : value.ToJson();
+            get => _sharedSchema ??= Schemas.Parse(SharedSchemaJson);
+            set
+            {
+                SharedSchemaJson = value?.ToJson();
+                _sharedSchema = value;
+            }
         }
 
         /// <summary>
         /// Schema of all the common data of the workflow.
         /// </summary>
-        public string? SharedSchemaJson { get; set; }
+        public string? SharedSchemaJson
+        {
+            get;
+            set
+            {
+                field = value;
+                _sharedSchema = null;
+            }
+        }
 
         public AutomationWorkflow() : base(EnumScopedType.Workflow)
         {

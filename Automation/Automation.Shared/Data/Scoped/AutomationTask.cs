@@ -1,6 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 using Automation.Plugins.Shared;
 using Automation.Shared.Data.Execution;
+using Automation.Shared.Data;
 using NJsonSchema;
 
 namespace Automation.Shared.Data.Scoped;
@@ -15,23 +16,58 @@ public class TaskSettings
 [JsonDerivedType(typeof(AutomationWorkflow), "workflow")]
 public abstract class BaseAutomationTask : ScopedElement
 {
+    private JsonSchema? _inputSchema;
+    private JsonSchema? _outputSchema;
+
+    /// <summary>
+    /// The shape of what the task reads, parsed once per value of <see cref="InputSchemaJson"/>
+    /// (see <see cref="Schemas.Parse"/>).
+    /// </summary>
     [JsonIgnore]
     public JsonSchema? InputSchema
     {
-        get => InputSchemaJson == null ? null : JsonSchema.FromJsonAsync(InputSchemaJson).Result;
-        set => InputSchemaJson = value == null ? null : value.ToJson();
+        get => _inputSchema ??= Schemas.Parse(InputSchemaJson);
+        set
+        {
+            InputSchemaJson = value?.ToJson();
+            _inputSchema = value;
+        }
     }
 
-    public string? InputSchemaJson { get; set; }
+    public string? InputSchemaJson
+    {
+        get;
+        set
+        {
+            field = value;
+            _inputSchema = null;
+        }
+    }
 
+    /// <summary>
+    /// The shape of what the task hands over, parsed once per value of
+    /// <see cref="OutputSchemaJson"/> (see <see cref="Schemas.Parse"/>).
+    /// </summary>
     [JsonIgnore]
     public JsonSchema? OutputSchema
     {
-        get => OutputSchemaJson == null ? null : JsonSchema.FromJsonAsync(OutputSchemaJson).Result;
-        set => OutputSchemaJson = value == null ? null : value.ToJson();
+        get => _outputSchema ??= Schemas.Parse(OutputSchemaJson);
+        set
+        {
+            OutputSchemaJson = value?.ToJson();
+            _outputSchema = value;
+        }
     }
 
-    public string? OutputSchemaJson { get; set; }
+    public string? OutputSchemaJson
+    {
+        get;
+        set
+        {
+            field = value;
+            _outputSchema = null;
+        }
+    }
 
     public List<Schedule> Schedules { get; set; } = [];
 

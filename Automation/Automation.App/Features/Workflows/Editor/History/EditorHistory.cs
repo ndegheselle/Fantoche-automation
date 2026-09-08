@@ -18,6 +18,14 @@ namespace Automation.App.Features.Workflows.Editor.History
         private IReversibleAction? _savePoint;
 
         /// <summary>
+        /// Raised when an action that changes what the graph would run into was applied, reverted or
+        /// redone. Whoever reads the graph as a whole — the preview of what it would run into —
+        /// listens to this rather than to every property of the history, moving a node around being
+        /// a modification the graph itself knows nothing about.
+        /// </summary>
+        public event Action? ExecutionChanged;
+
+        /// <summary>
         /// Whether the history can be used at all : the editor disables it while the graph is read
         /// only, an undo being a modification like any other.
         /// </summary>
@@ -43,6 +51,7 @@ namespace Automation.App.Features.Workflows.Editor.History
             _applied.Push(action);
             _reverted.Clear();
             NotifyChanged();
+            Raise(action);
         }
 
         [RelayCommand(CanExecute = nameof(CanUndo))]
@@ -52,6 +61,7 @@ namespace Automation.App.Features.Workflows.Editor.History
             action.Revert();
             _reverted.Push(action);
             NotifyChanged();
+            Raise(action);
         }
 
         [RelayCommand(CanExecute = nameof(CanRedo))]
@@ -61,6 +71,7 @@ namespace Automation.App.Features.Workflows.Editor.History
             action.Execute();
             _applied.Push(action);
             NotifyChanged();
+            Raise(action);
         }
 
         /// <summary>
@@ -81,6 +92,12 @@ namespace Automation.App.Features.Workflows.Editor.History
             _reverted.Clear();
             _savePoint = null;
             NotifyChanged();
+        }
+
+        private void Raise(IReversibleAction action)
+        {
+            if (action.ChangesExecution)
+                ExecutionChanged?.Invoke();
         }
 
         partial void OnIsEnabledChanged(bool value) => NotifyChanged();

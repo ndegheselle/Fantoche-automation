@@ -128,9 +128,9 @@ namespace Automation.App.Features.Workflows.Editor
         public bool HasErrors => Errors.Count > 0;
 
         /// <summary>
-        /// Whether nothing is known of what the node reads, the graph not having been walked up to
-        /// it : the mapping is then edited blind, the references having nothing to be resolved
-        /// against and so nothing to be checked against either.
+        /// Whether nothing is known of what the node reads : the graph could not be walked up to it,
+        /// or nothing walked it at all. The mapping is then edited blind, the references having
+        /// nothing to be resolved against and so nothing to be checked against either.
         /// </summary>
         public bool IsContextMissing => _contexts.Count == 0;
 
@@ -177,15 +177,14 @@ namespace Automation.App.Features.Workflows.Editor
 
         public TaskSettingsViewModel(
             BaseGraphTask node,
-            AutomationWorkflow workflow,
+            GraphExecutionPreview? preview,
             IOverlayService overlays,
-            JToken? globalContext = null,
             Action? openWorkflowSettings = null)
         {
             Node = node;
             _overlays = overlays;
             _control = node as GraphControl;
-            _contexts = ContextsOf(workflow, node, globalContext);
+            _contexts = preview?.NodesContexts.GetValueOrDefault(node.Id) ?? [];
             _openWorkflowSettings = openWorkflowSettings;
 
             Title = $"{node.Name} - {Describe()}";
@@ -207,60 +206,23 @@ namespace Automation.App.Features.Workflows.Editor
         /// <summary>
         /// Show the settings of [node] and wait for the user to validate them, the edition to apply
         /// to the graph being returned (<see langword="null"/> when cancelled).
+        /// <para>
+        /// [preview] is what the editor last found the graph would run into, and where the contexts
+        /// the mapping is resolved against come from : previewing the graph again here would be a
+        /// second walk of it, and one that can disagree with the one the editor is drawing.
+        /// </para>
         /// </summary>
         public static async Task<IReversibleAction?> ShowAsync(
             BaseGraphTask node,
-            AutomationWorkflow workflow,
+            GraphExecutionPreview? preview,
             Action? openWorkflowSettings = null)
         {
             IOverlayService overlays = SpineViewModel.Instance.Overlays;
 
-            // The context of the scopes holding the workflow is read once : the mapping can
-            // reference it, so showing and checking it needs it.
-            JToken? global = null;
-            try
-            {
-                global = await SpineViewModel.Instance.Scoped.GetContextAsync(workflow.Id);
-            }
-            catch
-            {
-                // Without it a reference to the global context simply can't be resolved.
-            }
-
-            var viewModel = new TaskSettingsViewModel(node, workflow, overlays, global, openWorkflowSettings);
+            var viewModel = new TaskSettingsViewModel(node, preview, overlays, openWorkflowSettings);
             if (await overlays.Show(viewModel, new OverlayOptions() { Title = viewModel.Title }) != true)
                 return null;
             return viewModel.Edition;
-        }
-
-        /// <summary>
-        /// Preview the graph and keep what it found for [node] : the contexts a run would reach it
-        /// with. Empty when the graph can't be walked — the mapping is then edited blind rather than
-        /// not at all.
-        /// </summary>
-        private static IReadOnlyList<NodePreviewContext> ContextsOf(
-            AutomationWorkflow workflow,
-            BaseGraphTask node,
-            JToken? globalContext)
-        {
-            try
-            {
-                // Refreshing an already refreshed graph does nothing, so the tasks the editor loaded
-                // are kept : a node handing over nothing is only known through them.
-                workflow.Graph.Refresh();
-
-                GraphContextResolution resolution = new() { GlobalContext = globalContext };
-                GraphExecutionPreview preview = new();
-                preview.BuildSamples(workflow.Graph, resolution);
-
-                return preview.NodesContexts.TryGetValue(node.Id, out List<NodePreviewContext>? contexts)
-                    ? contexts
-                    : [];
-            }
-            catch
-            {
-                return [];
-            }
         }
 
         /// <summary>
