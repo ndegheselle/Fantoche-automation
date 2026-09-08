@@ -101,6 +101,12 @@ public class LocalScopedService : IScopedService
             return;
 
         List<string> errors = workflow.Graph.GetStructureErrors();
+
+        // The schemas of a workflow are declared by the start and the end of its graph rather than
+        // by the element : a caller reads them without loading the graph, so they are copied over as
+        // the workflow is stored.
+        workflow.DeriveSchemas();
+
         if (errors.Count > 0)
             throw new InvalidOperationException(string.Join(" ", errors));
     }

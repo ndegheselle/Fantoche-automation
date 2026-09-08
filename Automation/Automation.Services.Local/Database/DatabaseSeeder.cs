@@ -94,7 +94,7 @@ internal static class Samples
 
     public static IEnumerable<ScopedElement> Build()
     {
-        return
+        List<ScopedElement> elements =
         [
             SamplesScope,
             Test,
@@ -105,6 +105,13 @@ internal static class Samples
             BuildBranches(),
             BuildLoop(),
         ];
+
+        // The schemas of a workflow are declared by its start and its end, the element only holding
+        // a copy for whoever reads it without its graph — written here the way storing one writes it.
+        foreach (AutomationWorkflow workflow in elements.OfType<AutomationWorkflow>())
+            workflow.DeriveSchemas();
+
+        return elements;
     }
 
     /// <summary>
@@ -131,8 +138,7 @@ internal static class Samples
             new { Message = "second", Value = "$previous.Value", Add = "$shared.Bonus" });
         // An end is not a join : it resolves against the single branch reaching it, so "$previous"
         // is what that branch handed over rather than something indexed by node name.
-        GraphControl end = Node(new GraphControl(AutomationControl.EndTask), "End", 1100, 0,
-            new { Value = "$previous.Value", Message = "$previous.Message" });
+        GraphControl end = EndNode(1100, 0, new { Value = "$previous.Value", Message = "$previous.Message" });
 
         Add(workflow, start, first, share, passThrough, second, end);
 
@@ -178,8 +184,7 @@ internal static class Samples
         GraphControl join = Node(new GraphControl(AutomationControl.JoinTask), "Join", 660, 150,
             new { Value = "$previous.Late.Value", Message = "$previous.Quick.Message" });
         // The end resolves against the join alone, so it reads what the join handed over.
-        GraphControl end = Node(new GraphControl(AutomationControl.EndTask), "End", 880, 150,
-            new { Value = "$previous.Value", Message = "$previous.Message" });
+        GraphControl end = EndNode(880, 150, new { Value = "$previous.Value", Message = "$previous.Message" });
 
         Add(workflow, start, quick, slow, late, sprint, join, end);
 
@@ -217,8 +222,7 @@ internal static class Samples
         GraphTask exitGate = Node(new GraphTask(LoopGate), "ExitGate", 440, 150,
             new { Value = "$previous.Value", Max = max, WhileUnder = false });
         // The exit gate being pass-through, "$previous" here is the counter of the last turn.
-        GraphControl end = Node(new GraphControl(AutomationControl.EndTask), "End", 660, 150,
-            new { Value = "$previous.Value", Message = "$previous.Message" });
+        GraphControl end = EndNode(660, 150, new { Value = "$previous.Value", Message = "$previous.Message" });
 
         Add(workflow, start, counter, loopGate, exitGate, end);
 
@@ -254,6 +258,15 @@ internal static class Samples
             new GraphControl(AutomationControl.StartTask) { OutputSchemaJson = WorkflowInputSchema },
             "Start", x, y);
 
+    /// <summary>
+    /// The end of a workflow, declaring what it hands back : what an end reads is the output of the
+    /// workflow, so the shape is declared on the node producing it.
+    /// </summary>
+    private static GraphControl EndNode(double x, double y, object mapping)
+        => Node(
+            new GraphControl(AutomationControl.EndTask) { InputSchemaJson = WorkflowOutputSchema },
+            "End", x, y, mapping);
+
     private static AutomationTask MakeTask(
         Guid id,
         string name,
@@ -277,14 +290,17 @@ internal static class Samples
             Settings = new TaskSettings() { IsPassingThrough = passThrough }
         };
 
+    /// <summary>
+    /// A workflow with an empty graph. Its schemas are not set here : they are declared by the start
+    /// and the end of the graph, and copied onto the element by
+    /// <see cref="AutomationWorkflow.DeriveSchemas"/> once it is built.
+    /// </summary>
     private static AutomationWorkflow MakeWorkflow(Guid id, string name)
         => new AutomationWorkflow()
         {
             Id = id,
             ParentId = SamplesScope.Id,
             Metadata = new ScopedMetadata(name, EnumScopedType.Workflow) { Tags = ["Sample"] },
-            InputSchemaJson = WorkflowInputSchema,
-            OutputSchemaJson = WorkflowOutputSchema,
         };
 
     /// <summary>

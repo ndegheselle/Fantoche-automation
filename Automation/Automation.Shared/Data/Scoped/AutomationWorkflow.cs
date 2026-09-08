@@ -49,6 +49,18 @@ namespace Automation.Shared.Data.Scoped
             }
         }
 
+        /// <summary>
+        /// Copy onto the workflow the schemas its graph declares : the start says what the workflow
+        /// is started with, the end what it hands back. Those two nodes are where they are edited —
+        /// they are the boundary of the graph — and a caller reads a workflow without loading its
+        /// graph, so the element carries a derived copy. Called whenever the workflow is stored.
+        /// </summary>
+        public void DeriveSchemas()
+        {
+            InputSchemaJson = Graph.GetStartNodes().FirstOrDefault()?.OutputSchemaJson;
+            OutputSchemaJson = Graph.GetEndNodes().FirstOrDefault()?.InputSchemaJson;
+        }
+
         public AutomationWorkflow() : base(EnumScopedType.Workflow)
         {
         }

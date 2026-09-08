@@ -19,57 +19,6 @@ namespace Automation.App.Features.Workflows.Details
         /// </summary>
         public WorkflowEditorViewModel Editor { get; }
 
-        /// <summary>
-        /// What the workflow expects to be started with : the one schema of a graph written by hand,
-        /// every other one being deduced from the mappings when it is saved.
-        /// </summary>
-        public string? InputSchemaJson
-        {
-            get => Workflow.InputSchemaJson;
-            set
-            {
-                Workflow.InputSchemaJson = NullIfEmpty(value);
-                OnPropertyChanged();
-                MarkChanged();
-                RefreshInput();
-            }
-        }
-
-        /// <summary>
-        /// What the start hands over for the values the caller doesn't give. Null when the graph has
-        /// no start yet, there is then nothing to hold them.
-        /// </summary>
-        public string? InputDefaultsJson
-        {
-            get => Start?.InputTemplateJson;
-            set
-            {
-                if (Start == null)
-                    return;
-
-                Start.InputTemplateJson = NullIfEmpty(value);
-                OnPropertyChanged();
-                MarkChanged();
-                RefreshInput();
-            }
-        }
-
-        public bool HasStart => Start != null;
-
-        /// <summary>
-        /// What is wrong with the input of the workflow : the schema isn't one, or the default
-        /// values don't match it.
-        /// </summary>
-        public ObservableCollection<string> InputErrors { get; } = [];
-
-        public bool HasInputErrors => InputErrors.Count > 0;
-
-        /// <summary>
-        /// The start of the graph, which is the node handing the input over. A workflow holds a
-        /// single one (see <see cref="TasksGraph.GetStructureErrors"/>).
-        /// </summary>
-        private GraphControl? Start => Workflow.Graph.GetStartNodes().FirstOrDefault();
-
         public bool StopIfAnyTaskFail
         {
             get => Workflow.WorkflowSettings.StopIfAnyTaskFail;
@@ -78,57 +27,13 @@ namespace Automation.App.Features.Workflows.Details
 
         public WorkflowDetailsViewModel(ScopedNode node, WorkflowsViewModel parent) : base(node, parent)
         {
-            Editor = new WorkflowEditorViewModel(Workflow, SaveGraphCommand, () => CurrentTab = EnumDetailTab.Settings);
-            RefreshInput();
+            Editor = new WorkflowEditorViewModel(Workflow, SaveGraphCommand);
             Editor.History.PropertyChanged += (_, e) =>
             {
                 if (e.PropertyName == nameof(EditorHistory.HasUnsavedChanges))
                     SaveGraphCommand.NotifyCanExecuteChanged();
             };
         }
-
-        /// <summary>
-        /// Check what the input of the workflow is made of : its schema has to be one, and the
-        /// default values have to match it. They only stand for what the caller doesn't give, so a
-        /// value the schema requires may be missing from them.
-        /// </summary>
-        private void RefreshInput()
-        {
-            InputErrors.Clear();
-
-            JsonSchema? schema = null;
-            if (!string.IsNullOrWhiteSpace(Workflow.InputSchemaJson))
-            {
-                try
-                {
-                    schema = JsonSchema.FromJsonAsync(Workflow.InputSchemaJson).Result;
-                }
-                catch (Exception exception)
-                {
-                    InputErrors.Add($"Input schema : {exception.Message}");
-                }
-            }
-
-            // XXX : the default values are only checked for being JSON. They hold references to
-            // the context of the scopes of the workflow ("$global"), which nothing resolves outside
-            // of a run or of a GraphExecutionPreview, so checking them against [schema] here would
-            // report every reference as the wrong type.
-            if (Start != null && !string.IsNullOrWhiteSpace(Start.InputTemplateJson))
-            {
-                try
-                {
-                    JToken.Parse(Start.InputTemplateJson);
-                }
-                catch (Exception exception)
-                {
-                    InputErrors.Add($"Default values : {exception.Message}");
-                }
-            }
-
-            OnPropertyChanged(nameof(HasInputErrors));
-        }
-
-        private static string? NullIfEmpty(string? json) => string.IsNullOrWhiteSpace(json) ? null : json;
 
         /// <summary>
         /// Save of the graph, kept apart from the general infos one so each is only enabled by the

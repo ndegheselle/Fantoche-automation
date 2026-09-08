@@ -72,12 +72,6 @@ namespace Automation.App.Features.Workflows.Editor
         private readonly IToastService _toasts = SpineViewModel.Instance.Toasts;
 
         /// <summary>
-        /// Open the settings of the workflow, handed over by the page holding the editor : the
-        /// input the start hands over is edited there rather than on the node.
-        /// </summary>
-        private readonly Action? _openWorkflowSettings;
-
-        /// <summary>
         /// What the graph would run into, as the last refresh found it. Held rather than rebuilt by
         /// whoever needs it : two previews of the same graph are two walks of it, and they can
         /// disagree — the global context lands asynchronously, so one built before it arrives
@@ -96,14 +90,10 @@ namespace Automation.App.Features.Workflows.Editor
         /// </summary>
         private Dictionary<Guid, BaseAutomationTask> _tasks = [];
 
-        public WorkflowEditorViewModel(
-            AutomationWorkflow workflow,
-            IAsyncRelayCommand saveCommand,
-            Action? openWorkflowSettings = null)
+        public WorkflowEditorViewModel(AutomationWorkflow workflow, IAsyncRelayCommand saveCommand)
         {
             Workflow = workflow;
             SaveCommand = saveCommand;
-            _openWorkflowSettings = openWorkflowSettings;
 
             _ = LoadAsync();
             SelectedNodes.CollectionChanged += (_, _) =>
@@ -285,8 +275,7 @@ namespace Automation.App.Features.Workflows.Editor
         /// <summary>
         /// Open the settings of a node : the mapping it runs with, whatever its kind. Without a node
         /// it falls back on the selected one, the command being shared by the double click on a node
-        /// and the editor toolbar. The start only shows its own, what it hands over belonging to the
-        /// settings of the workflow.
+        /// and the editor toolbar.
         /// </summary>
         [RelayCommand(CanExecute = nameof(CanOpenSettings))]
         private async Task OpenSettings(NodeViewModel? node)
@@ -295,7 +284,7 @@ namespace Automation.App.Features.Workflows.Editor
             if (node == null)
                 return;
 
-            IReversibleAction? edition = await TaskSettingsViewModel.ShowAsync(node.Model, Preview, _openWorkflowSettings);
+            IReversibleAction? edition = await TaskSettingsViewModel.ShowAsync(node.Model, Preview);
             if (edition != null)
                 History.Apply(edition);
         }

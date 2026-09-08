@@ -42,18 +42,22 @@
             Text="{Binding Description}"
             TextWrapping="Wrap" />
 
-        <!--  The start stands for the workflow : its input is edited in the settings  -->
-        <Button
+        <!--
+            The start and the end are the boundary of the workflow : what one hands over and what the
+            other hands back is what a caller reads it by, so the shape is declared here, next to the
+            mapping producing it.
+        -->
+        <StackPanel
             Grid.Row="1"
-            HorizontalAlignment="Left"
-            Command="{Binding OpenWorkflowSettingsCommand}"
-            Style="{StaticResource SecondaryButton}"
-            Visibility="{Binding IsStart, Converter={StaticResource BoolToVisibility}}">
-            <StackPanel Orientation="Horizontal">
-                <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Settings}" />
-                <TextBlock Margin="4,0,0,0">Open the settings of the workflow</TextBlock>
-            </StackPanel>
-        </Button>
+            joufflu:Spacing.Gap="4"
+            Visibility="{Binding HasSchema,
+                                 Converter={StaticResource BoolToVisibility}}">
+            <TextBlock Style="{StaticResource Muted}" Text="{Binding SchemaLabel}" />
+            <TextBox
+                Height="110"
+                Style="{StaticResource JsonTextBox}"
+                Text="{Binding SchemaJson, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+        </StackPanel>
 
         <!--  What the node reads, what it maps, and what comes out of it  -->
         <Grid Grid.Row="2" joufflu:Spacing.Gap="4">
@@ -90,13 +94,12 @@
             <TextBlock
                 Grid.Column="1"
                 Style="{StaticResource Muted}"
-                Text="Input mapping" />
+                Text="{Binding MappingLabel}" />
             <TextBox
                 Height="auto"
                 x:Name="MappingTextBox"
                 Grid.Row="1"
                 Grid.Column="1"
-                IsReadOnly="{Binding IsStart}"
                 Style="{StaticResource JsonTextBox}"
                 Text="{Binding InputMappingJson, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
@@ -161,10 +164,7 @@
             joufflu:Spacing.Gap="4"
             Orientation="Horizontal">
             <Button Command="{Binding CancelCommand}" Style="{StaticResource SecondaryButton}">Cancel</Button>
-            <Button
-                Command="{Binding ValidateCommand}"
-                Style="{StaticResource PrimaryButton}"
-                Visibility="{Binding IsEditable, Converter={StaticResource BoolToVisibility}}">
+            <Button Command="{Binding ValidateCommand}" Style="{StaticResource PrimaryButton}">
                 <StackPanel Orientation="Horizontal">
                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Save}" />
                     <TextBlock Margin="4,0,0,0">Apply</TextBlock>

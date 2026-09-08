@@ -9,6 +9,8 @@ using CommunityToolkit.Mvvm.Input;
 using Joufflu.Navigation;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NJsonSchema;
+using NJsonSchema.Validation;
 
 namespace Automation.App.Features.Workflows.Editor
 {
@@ -30,6 +32,19 @@ namespace Automation.App.Features.Workflows.Editor
         public string Preview { get; }
 
         public ObservableCollection<ContextEntry> Children { get; } = [];
+
+        /// <summary>
+        /// A row standing for one of the ways into the node rather than for a value : it groups what
+        /// that branch hands over, so it holds no reference and previews nothing of its own.
+        /// </summary>
+        public static ContextEntry Branch(string name) => new ContextEntry(name);
+
+        private ContextEntry(string name)
+        {
+            Name = name;
+            Reference = string.Empty;
+            Preview = string.Empty;
+        }
 
         public ContextEntry(string name, string reference, JToken? value)
         {
@@ -148,13 +163,33 @@ namespace Automation.App.Features.Workflows.Editor
         public string ResultLabel { get; }
 
         /// <summary>
-        /// The start stands for the workflow itself : what it hands over is the input of the
-        /// workflow and the default values are part of its settings, so there is nothing to edit
-        /// here.
+        /// What the mapping stands for : the parameters of a task everywhere, the default values on
+        /// the start.
+        /// </summary>
+        public string MappingLabel { get; }
+
+        /// <summary>
+        /// The schema the node declares, edited on the start and the end only : they are the boundary
+        /// of the workflow, so what one hands over and what the other hands back is what a caller
+        /// reads the workflow by (see <see cref="AutomationWorkflow.DeriveSchemas"/>). Null anywhere
+        /// else, a node taking the shapes of the task it points at.
+        /// </summary>
+        [ObservableProperty] private string? _schemaJson;
+
+        /// <summary>Whether the node declares one of the two schemas of the workflow.</summary>
+        public bool HasSchema => IsStart || IsEnd;
+
+        /// <summary>What the declared schema is the shape of.</summary>
+        public string SchemaLabel { get; }
+
+        /// <summary>
+        /// The start stands for what the workflow is started with : nothing feeds it, so it reads no
+        /// branch, and its mapping holds the values a caller does not give.
         /// </summary>
         public bool IsStart => _control?.IsStart() == true;
 
-        public bool IsEditable => !IsStart;
+        /// <summary>The end stands for what the workflow hands back.</summary>
+        public bool IsEnd => _control?.IsEnd() == true;
 
         /// <summary>
         /// The node as a control task, null when it is a regular task or a nested workflow.
@@ -169,28 +204,27 @@ namespace Automation.App.Features.Workflows.Editor
 
         private readonly IOverlayService _overlays;
 
-        /// <summary>
-        /// Open the settings of the workflow, where the start is edited. Null when the overlay was
-        /// opened from somewhere that can't show them.
-        /// </summary>
-        private readonly Action? _openWorkflowSettings;
-
         public TaskSettingsViewModel(
             BaseGraphTask node,
             GraphExecutionPreview? preview,
-            IOverlayService overlays,
-            Action? openWorkflowSettings = null)
+            IOverlayService overlays)
         {
             Node = node;
             _overlays = overlays;
             _control = node as GraphControl;
             _contexts = preview?.NodesContexts.GetValueOrDefault(node.Id) ?? [];
-            _openWorkflowSettings = openWorkflowSettings;
 
             Title = $"{node.Name} - {Describe()}";
             Description = Explain();
             ResultLabel = LabelResult();
+            MappingLabel = IsStart ? "Default values, for what the caller leaves out" : "Input mapping";
+            SchemaLabel = IsStart
+                ? "Schema of what the workflow is started with"
+                : "Schema of what the workflow hands back";
             _inputMappingJson = node.InputTemplateJson;
+            // The start declares what it hands over, the end what it reads : an end produces nothing
+            // of its own, so the output of the workflow is the shape reaching it.
+            _schemaJson = IsStart ? node.OutputSchemaJson : IsEnd ? node.InputSchemaJson : null;
 
             LoadContext();
 
@@ -214,12 +248,11 @@ namespace Automation.App.Features.Workflows.Editor
         /// </summary>
         public static async Task<IReversibleAction?> ShowAsync(
             BaseGraphTask node,
-            GraphExecutionPreview? preview,
-            Action? openWorkflowSettings = null)
+            GraphExecutionPreview? preview)
         {
             IOverlayService overlays = SpineViewModel.Instance.Overlays;
 
-            var viewModel = new TaskSettingsViewModel(node, preview, overlays, openWorkflowSettings);
+            var viewModel = new TaskSettingsViewModel(node, preview, overlays);
             if (await overlays.Show(viewModel, new OverlayOptions() { Title = viewModel.Title }) != true)
                 return null;
             return viewModel.Edition;
@@ -250,9 +283,9 @@ namespace Automation.App.Features.Workflows.Editor
             if (_control == null)
                 return "The mapping is what the task runs with : it has to match what the task expects.";
             if (_control.IsStart())
-                return "The start hands over what the workflow is started with. Its schema and its default values belong to the settings of the workflow.";
+                return "The start hands over what the workflow is started with : the schema declares its shape, the mapping holds the values a caller leaves out.";
             if (_control.IsEnd())
-                return "The mapping is what the workflow hands back to whoever started it.";
+                return "The mapping is what the workflow hands back to whoever started it, and the schema declares its shape.";
             if (_control.IsShare())
                 return "The mapping is added to the shared values, readable as \"$shared\" by every node after this one. The branch itself goes through untouched.";
             if (_control.IsJoin())
@@ -287,12 +320,16 @@ namespace Automation.App.Features.Workflows.Editor
                 ContextEntry? branch = null;
                 if (_contexts.Count > 1 && context.Branches.Count > 0)
                 {
-                    branch = new ContextEntry($"from {string.Join(", ", context.Branches)}", string.Empty, null);
+                    branch = ContextEntry.Branch($"from {string.Join(", ", context.Branches)}");
                     Context.Add(branch);
                 }
 
                 foreach (JProperty property in context.Context.Properties())
                 {
+                    // Nothing runs before the start, so it has no branch and no shared value to read.
+                    if (IsStart && property.Name != "global")
+                        continue;
+
                     var entry = new ContextEntry($"${property.Name}", $"${property.Name}", property.Value);
                     if (branch != null)
                         branch.Children.Add(entry);
@@ -310,8 +347,53 @@ namespace Automation.App.Features.Workflows.Editor
         {
             Errors.Clear();
 
-            CheckJson("Input mapping", InputMappingJson);
+            JsonSchema? declared = CheckSchema();
+            CheckJson(MappingLabel, InputMappingJson);
             ResultJson = HasErrors ? string.Empty : Resolve();
+
+            if (declared != null)
+                CheckAgainstSchema(declared);
+        }
+
+        /// <summary>
+        /// The schema the node declares, null when it declares none or when what it holds is not one.
+        /// </summary>
+        private JsonSchema? CheckSchema()
+        {
+            if (!HasSchema || string.IsNullOrWhiteSpace(SchemaJson))
+                return null;
+
+            try
+            {
+                return JsonSchema.FromJsonAsync(SchemaJson).Result;
+            }
+            catch (Exception exception)
+            {
+                Errors.Add(new MappingError($"{SchemaLabel} : {exception.Message}"));
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Check what the mapping resolved to against the schema the node declares. The two are
+        /// edited side by side here, which is what makes it the one place a shape can be checked
+        /// against what fills it.
+        /// <para>
+        /// The values of the start only stand for what a caller leaves out, so a property the schema
+        /// requires is allowed to be missing from them.
+        /// </para>
+        /// </summary>
+        private void CheckAgainstSchema(JsonSchema declared)
+        {
+            if (string.IsNullOrWhiteSpace(ResultJson))
+                return;
+
+            foreach (ValidationError error in declared.Validate(ResultJson))
+            {
+                if (IsStart && error.Kind == ValidationErrorKind.PropertyRequired)
+                    continue;
+                Errors.Add(new MappingError($"{error.Path} : {error.Kind}"));
+            }
         }
 
         /// <summary>
@@ -373,35 +455,55 @@ namespace Automation.App.Features.Workflows.Editor
             _overlays.CloseTop(true);
         }
 
-        private bool CanValidate() => IsEditable && !HasErrors;
+        private bool CanValidate() => !HasErrors;
 
         [RelayCommand]
         private void Cancel() => _overlays.CloseTop(false);
 
         /// <summary>
-        /// Leave the node behind and open the settings of the workflow, where the input it hands
-        /// over is edited.
-        /// </summary>
-        [RelayCommand]
-        private void OpenWorkflowSettings()
-        {
-            _overlays.CloseTop(false);
-            _openWorkflowSettings?.Invoke();
-        }
-
-        /// <summary>
-        /// Build the edition of the graph from the current mapping : the value to apply and the one
-        /// it replaces, so the editor can undo it. Every node holds its mapping and nothing else.
+        /// Build the edition of the graph from what was edited : the values to apply and the ones
+        /// they replace, so the editor can undo it. Every node holds its mapping, the start and the
+        /// end holding a schema of the workflow along with it.
         /// </summary>
         private IReversibleAction BuildEdition()
         {
             string? mapping = NullIfEmpty(InputMappingJson);
-            string? previous = Node.InputTemplateJson;
+            string? previousMapping = Node.InputTemplateJson;
+
+            if (!HasSchema)
+            {
+                return new ReversibleAction(
+                    $"Edit the mapping of '{Node.Name}'",
+                    () => Node.InputTemplateJson = mapping,
+                    () => Node.InputTemplateJson = previousMapping);
+            }
+
+            string? schema = NullIfEmpty(SchemaJson);
+            string? previousSchema = IsStart ? Node.OutputSchemaJson : Node.InputSchemaJson;
 
             return new ReversibleAction(
-                $"Edit the mapping of '{Node.Name}'",
-                () => Node.InputTemplateJson = mapping,
-                () => Node.InputTemplateJson = previous);
+                $"Edit '{Node.Name}'",
+                () =>
+                {
+                    Node.InputTemplateJson = mapping;
+                    Declare(schema);
+                },
+                () =>
+                {
+                    Node.InputTemplateJson = previousMapping;
+                    Declare(previousSchema);
+                });
+        }
+
+        /// <summary>
+        /// Write [schema] where the node declares it : what the start hands over, what the end reads.
+        /// </summary>
+        private void Declare(string? schema)
+        {
+            if (IsStart)
+                Node.OutputSchemaJson = schema;
+            else
+                Node.InputSchemaJson = schema;
         }
 
         /// <summary>
@@ -410,5 +512,7 @@ namespace Automation.App.Features.Workflows.Editor
         private static string? NullIfEmpty(string? json) => string.IsNullOrWhiteSpace(json) ? null : json;
 
         partial void OnInputMappingJsonChanged(string? value) => Refresh();
+
+        partial void OnSchemaJsonChanged(string? value) => Refresh();
     }
 }

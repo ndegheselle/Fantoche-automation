@@ -1,4 +1,4 @@
-using System.Windows.Controls;
+﻿using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace Automation.App.Features.Workflows.Editor
@@ -19,9 +19,8 @@ namespace Automation.App.Features.Workflows.Editor
         /// </summary>
         private void OnContextDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (ContextTree.SelectedItem is not ContextEntry entry
-                || string.IsNullOrEmpty(entry.Reference)
-                || MappingTextBox.IsReadOnly)
+            // A row grouping the entries of a branch holds no reference : there is nothing to insert.
+            if (ContextTree.SelectedItem is not ContextEntry entry || string.IsNullOrEmpty(entry.Reference))
                 return;
 
             // Written as JSON : a reference stands where a value stands, quotes included.
