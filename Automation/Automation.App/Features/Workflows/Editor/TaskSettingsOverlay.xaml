@@ -5,6 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
+    xmlns:controls="clr-namespace:Automation.App.Features.Workflows.Controls"
     xmlns:local="clr-namespace:Automation.App.Features.Workflows.Editor"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     MinWidth="900"
@@ -41,23 +42,6 @@
             Style="{StaticResource Muted}"
             Text="{Binding Description}"
             TextWrapping="Wrap" />
-
-        <!--
-            The start and the end are the boundary of the workflow : what one hands over and what the
-            other hands back is what a caller reads it by, so the shape is declared here, next to the
-            mapping producing it.
-        -->
-        <StackPanel
-            Grid.Row="1"
-            joufflu:Spacing.Gap="4"
-            Visibility="{Binding HasSchema,
-                                 Converter={StaticResource BoolToVisibility}}">
-            <TextBlock Style="{StaticResource Muted}" Text="{Binding SchemaLabel}" />
-            <TextBox
-                Height="110"
-                Style="{StaticResource JsonTextBox}"
-                Text="{Binding SchemaJson, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-        </StackPanel>
 
         <!--  What the node reads, what it maps, and what comes out of it  -->
         <Grid Grid.Row="2" joufflu:Spacing.Gap="4">
@@ -103,17 +87,35 @@
                 Style="{StaticResource JsonTextBox}"
                 Text="{Binding InputMappingJson, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
+            <!--
+                The shape the mapping has to produce, which is what the reader needs in front of them
+                while writing one. Theirs to declare on the start and the end, the boundary of the
+                workflow being what a caller reads it by ; read from the task everywhere else.
+            -->
             <TextBlock
                 Grid.Column="2"
                 Style="{StaticResource Muted}"
-                Text="{Binding ResultLabel}" />
+                Text="{Binding ExpectedLabel}" />
+            <!--
+                Read as a tree where the shape is only shown, and as the schema itself where the node
+                declares it : editing one means editing the schema, reading one means reading the
+                values it describes.
+            -->
+            <controls:SchemaDisplay
+                Grid.Row="1"
+                Grid.Column="2"
+                EmptyText="{Binding EmptyExpectationText}"
+                SchemaJson="{Binding ExpectedSchemaJson}"
+                Visibility="{Binding IsExpectedReadOnly,
+                                     Converter={StaticResource BoolToVisibility}}" />
             <TextBox
                 Height="auto"
                 Grid.Row="1"
                 Grid.Column="2"
-                IsReadOnly="True"
                 Style="{StaticResource JsonTextBox}"
-                Text="{Binding ResultJson, Mode=OneWay}" />
+                Text="{Binding ExpectedSchemaJson, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                Visibility="{Binding DeclaresSchema,
+                                     Converter={StaticResource BoolToVisibility}}" />
         </Grid>
 
         <!--  Errors, the validation being blocked while there is any  -->

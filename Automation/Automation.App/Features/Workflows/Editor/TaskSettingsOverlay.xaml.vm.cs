@@ -125,12 +125,6 @@ namespace Automation.App.Features.Workflows.Editor
         [ObservableProperty] private string? _inputMappingJson;
 
         /// <summary>
-        /// What the mapping produces once its references are resolved, one block per branch reaching
-        /// the node : the parameters the task would run with, or the values the node hands over.
-        /// </summary>
-        [ObservableProperty] private string _resultJson = string.Empty;
-
-        /// <summary>
         /// What the node reads, one root per branch reaching it : a reference is written from there.
         /// </summary>
         public ObservableCollection<ContextEntry> Context { get; } = [];
@@ -158,29 +152,46 @@ namespace Automation.App.Features.Workflows.Editor
         public string Description { get; }
 
         /// <summary>
-        /// What the resolved mapping stands for, which is not the same thing for every kind of node.
-        /// </summary>
-        public string ResultLabel { get; }
-
-        /// <summary>
         /// What the mapping stands for : the parameters of a task everywhere, the default values on
         /// the start.
         /// </summary>
         public string MappingLabel { get; }
 
         /// <summary>
-        /// The schema the node declares, edited on the start and the end only : they are the boundary
-        /// of the workflow, so what one hands over and what the other hands back is what a caller
-        /// reads the workflow by (see <see cref="AutomationWorkflow.DeriveSchemas"/>). Null anywhere
-        /// else, a node taking the shapes of the task it points at.
+        /// The shape the mapping has to produce, which is what a reader needs in front of them while
+        /// writing one. Read from what the node declares : what it reads everywhere, except on the
+        /// start whose mapping produces what it hands over instead.
+        /// <para>
+        /// Editable on the start and the end only : they are the boundary of the workflow, so those
+        /// two shapes are what a caller reads it by (see
+        /// <see cref="AutomationWorkflow.DeriveSchemas"/>). Everywhere else the shape belongs to the
+        /// task the node runs and is only shown.
+        /// </para>
         /// </summary>
-        [ObservableProperty] private string? _schemaJson;
+        [ObservableProperty] private string? _expectedSchemaJson;
 
-        /// <summary>Whether the node declares one of the two schemas of the workflow.</summary>
-        public bool HasSchema => IsStart || IsEnd;
+        /// <summary>
+        /// Whether the expected shape is the node to declare, which the start and the end are alone
+        /// in doing.
+        /// </summary>
+        public bool DeclaresSchema => IsStart || IsEnd;
 
-        /// <summary>What the declared schema is the shape of.</summary>
-        public string SchemaLabel { get; }
+        /// <summary>
+        /// Whether the expected shape is only shown : it belongs to the task the node runs rather
+        /// than to the node.
+        /// </summary>
+        public bool IsExpectedReadOnly => !DeclaresSchema;
+
+        /// <summary>What the expected shape is the shape of.</summary>
+        public string ExpectedLabel { get; }
+
+        /// <summary>
+        /// What to say when the shape expected of the mapping describes nothing : a control other
+        /// than the boundary of the workflow constrains none, and a task can expect nothing too.
+        /// </summary>
+        public string EmptyExpectationText => _control == null
+            ? "The task expects no particular shape."
+            : "A control constrains no shape : what it hands over is whatever its mapping produces.";
 
         /// <summary>
         /// The start stands for what the workflow is started with : nothing feeds it, so it reads no
@@ -216,15 +227,12 @@ namespace Automation.App.Features.Workflows.Editor
 
             Title = $"{node.Name} - {Describe()}";
             Description = Explain();
-            ResultLabel = LabelResult();
             MappingLabel = IsStart ? "Default values, for what the caller leaves out" : "Input mapping";
-            SchemaLabel = IsStart
-                ? "Schema of what the workflow is started with"
-                : "Schema of what the workflow hands back";
+            ExpectedLabel = LabelExpected();
             _inputMappingJson = node.InputTemplateJson;
-            // The start declares what it hands over, the end what it reads : an end produces nothing
-            // of its own, so the output of the workflow is the shape reaching it.
-            _schemaJson = IsStart ? node.OutputSchemaJson : IsEnd ? node.InputSchemaJson : null;
+            // The mapping of a node produces what that node reads, except on the start : nothing
+            // feeds a start, so its mapping produces what it hands over instead.
+            _expectedSchemaJson = IsStart ? node.OutputSchemaJson : node.InputSchemaJson;
 
             LoadContext();
 
@@ -293,17 +301,20 @@ namespace Automation.App.Features.Workflows.Editor
             return "The mapping reshapes what one branch produces into what the next ones read.";
         }
 
-        private string LabelResult()
+        /// <summary>
+        /// What the shape in front of the mapping is the shape of. A control other than the boundary
+        /// of the workflow expects none : what it hands over is whatever its mapping says, so it is
+        /// worth saying that rather than showing an empty schema without a word.
+        /// </summary>
+        private string LabelExpected()
         {
             if (_control == null)
-                return "Parameters of the task";
+                return "Expected : the shape the task is run with";
             if (_control.IsStart())
-                return "What the workflow is started with";
+                return "Expected : the shape the workflow is started with";
             if (_control.IsEnd())
-                return "What the workflow hands back";
-            if (_control.IsShare())
-                return "Added to the shared values";
-            return "What the next nodes read";
+                return "Expected : the shape the workflow hands back";
+            return "Expected : a control constrains no shape";
         }
 
         /// <summary>
@@ -347,12 +358,11 @@ namespace Automation.App.Features.Workflows.Editor
         {
             Errors.Clear();
 
-            JsonSchema? declared = CheckSchema();
+            JsonSchema? expected = CheckSchema();
             CheckJson(MappingLabel, InputMappingJson);
-            ResultJson = HasErrors ? string.Empty : Resolve();
 
-            if (declared != null)
-                CheckAgainstSchema(declared);
+            if (!HasErrors)
+                Resolve(expected);
         }
 
         /// <summary>
@@ -360,39 +370,39 @@ namespace Automation.App.Features.Workflows.Editor
         /// </summary>
         private JsonSchema? CheckSchema()
         {
-            if (!HasSchema || string.IsNullOrWhiteSpace(SchemaJson))
+            // Checked wherever there is a shape to check against, whether the node declares it or
+            // takes it from the task it runs : a mapping producing something the task cannot be run
+            // with is wrong either way.
+            if (string.IsNullOrWhiteSpace(ExpectedSchemaJson))
                 return null;
 
             try
             {
-                return JsonSchema.FromJsonAsync(SchemaJson).Result;
+                return JsonSchema.FromJsonAsync(ExpectedSchemaJson).Result;
             }
             catch (Exception exception)
             {
-                Errors.Add(new MappingError($"{SchemaLabel} : {exception.Message}"));
+                Errors.Add(new MappingError($"Expected shape : {exception.Message}"));
                 return null;
             }
         }
 
         /// <summary>
-        /// Check what the mapping resolved to against the schema the node declares. The two are
-        /// edited side by side here, which is what makes it the one place a shape can be checked
-        /// against what fills it.
+        /// Check what the mapping resolved to on one branch against the shape expected of it. What a
+        /// reference stands for is only known once resolved, so the shape is checked on what came out
+        /// rather than on the mapping itself.
         /// <para>
         /// The values of the start only stand for what a caller leaves out, so a property the schema
         /// requires is allowed to be missing from them.
         /// </para>
         /// </summary>
-        private void CheckAgainstSchema(JsonSchema declared)
+        private void CheckAgainstSchema(JsonSchema expected, JToken resolved, string? branch)
         {
-            if (string.IsNullOrWhiteSpace(ResultJson))
-                return;
-
-            foreach (ValidationError error in declared.Validate(ResultJson))
+            foreach (ValidationError error in expected.Validate(resolved.ToString(Formatting.None)))
             {
                 if (IsStart && error.Kind == ValidationErrorKind.PropertyRequired)
                     continue;
-                Errors.Add(new MappingError($"{error.Path} : {error.Kind}"));
+                Errors.Add(new MappingError($"{error.Path} : {error.Kind}", branch));
             }
         }
 
@@ -416,16 +426,16 @@ namespace Automation.App.Features.Workflows.Editor
         }
 
         /// <summary>
-        /// The mapping with its references replaced by what they point at, one block per branch
-        /// reaching the node, filling <see cref="Errors"/> with whatever it cannot resolve. Resolved
-        /// the very way a run resolves it, only against samples.
+        /// Resolve the mapping against every context the node can be reached with — the very way a
+        /// run resolves it — holding against it whatever cannot be resolved, and whatever does not
+        /// match [expected]. Resolved once per branch : a mapping can hold up on one and break on
+        /// another, and the error says which.
         /// </summary>
-        private string Resolve()
+        private void Resolve(JsonSchema? expected)
         {
             if (string.IsNullOrWhiteSpace(InputMappingJson))
-                return string.Empty;
+                return;
 
-            List<string> resolved = [];
             foreach (NodePreviewContext context in _contexts)
             {
                 string? branch = _contexts.Count > 1 && context.Branches.Count > 0
@@ -441,11 +451,11 @@ namespace Automation.App.Features.Workflows.Editor
                 foreach (string error in result.Errors)
                     Errors.Add(new MappingError(error, branch));
 
-                string text = result.Replaced.ToString(Formatting.Indented);
-                resolved.Add(branch == null ? text : $"// from {branch}{Environment.NewLine}{text}");
+                // A mapping still holding references it could not resolve says nothing about its
+                // shape : the references left in it would be read as the strings they are written as.
+                if (expected != null && !result.HasErrors)
+                    CheckAgainstSchema(expected, result.Replaced, branch);
             }
-
-            return string.Join(Environment.NewLine + Environment.NewLine, resolved);
         }
 
         [RelayCommand(CanExecute = nameof(CanValidate))]
@@ -470,8 +480,8 @@ namespace Automation.App.Features.Workflows.Editor
             string? mapping = NullIfEmpty(InputMappingJson);
             string? previousMapping = Node.InputTemplateJson;
 
-            string? schema = HasSchema ? NullIfEmpty(SchemaJson) : null;
-            string? previousSchema = HasSchema
+            string? schema = DeclaresSchema ? NullIfEmpty(ExpectedSchemaJson) : null;
+            string? previousSchema = DeclaresSchema
                 ? (IsStart ? Node.OutputSchemaJson : Node.InputSchemaJson)
                 : null;
 
@@ -489,7 +499,7 @@ namespace Automation.App.Features.Workflows.Editor
         {
             Node.InputTemplateJson = mapping;
 
-            if (!HasSchema)
+            if (!DeclaresSchema)
                 return;
 
             if (IsStart)
@@ -505,6 +515,6 @@ namespace Automation.App.Features.Workflows.Editor
 
         partial void OnInputMappingJsonChanged(string? value) => Refresh();
 
-        partial void OnSchemaJsonChanged(string? value) => Refresh();
+        partial void OnExpectedSchemaJsonChanged(string? value) => Refresh();
     }
 }

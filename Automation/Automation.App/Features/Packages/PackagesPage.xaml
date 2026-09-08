@@ -25,7 +25,7 @@
                 <RowDefinition />
                 <RowDefinition Height="auto" />
             </Grid.RowDefinitions>
-            <jnputs:Search Grid.Row="0" SearchText="{Binding Search, Mode=TwoWay}" />
+            <jnputs:Search Grid.Row="0" SearchText="{Binding Search, Mode=TwoWay}" Width="300" HorizontalAlignment="Left" />
             <DataGrid
                 Grid.Row="1"
                 AutoGenerateColumns="False"

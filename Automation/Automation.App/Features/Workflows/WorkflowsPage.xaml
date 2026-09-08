@@ -145,6 +145,8 @@
             </Grid.RowDefinitions>
             <!--  Path of the selected element.  -->
             <ScrollViewer
+                MaxWidth="300"
+                HorizontalAlignment="Left"
                 Grid.Row="0"
                 HorizontalScrollBarVisibility="Auto"
                 VerticalScrollBarVisibility="Disabled">
@@ -165,7 +167,6 @@
                                     </jonts:FontIcon.Style>
                                 </jonts:FontIcon>
                                 <Button
-                                    joufflu:Sizing.Size="xs"
                                     Command="{Binding ViewModel.OpenCommand, RelativeSource={RelativeSource AncestorType={x:Type local:WorkflowsPage}}}"
                                     CommandParameter="{Binding}"
                                     Style="{StaticResource GhostButton}">
