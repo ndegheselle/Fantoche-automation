@@ -69,6 +69,7 @@
                     -->
                     <DataTrigger Binding="{Binding HasErrors}" Value="True">
                         <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}" />
+                        <Setter Property="BorderThickness" Value="2" />
                     </DataTrigger>
                     <DataTrigger Binding="{Binding State}" Value="Pending">
                         <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.InfoBrush}}" />
@@ -106,7 +107,7 @@
 
                                 <!--  Header  -->
                                 <Border
-                                    Background="{TemplateBinding HeaderBrush}"
+                                    Background="Transparent"
                                     Style="{TemplateBinding HeaderContainerStyle}"
                                     Visibility="{TemplateBinding HasHeader,
                                                                  Converter={x:Static jonverters:VisibilityConverter.Default}}">
@@ -227,23 +228,20 @@
                                 </DataTemplate>
                             </nodify:Node.OutputConnectorTemplate>
 
-                            <Grid>
+                            <nodify:Node.Header>
                                 <jonts:FontIcon
-                                    DataContext="{Binding Metadata}"
-                                    FontSize="{DynamicResource {x:Static joufflu:Dimensions.ControlFontSizeXl}}"
-                                    Style="{StaticResource ScopedMetadataIcon}" />
-
-                                <!--  What the mapping of the node can't resolve, branch by branch  -->
-                                <jonts:FontIcon
-                                    HorizontalAlignment="Right"
-                                    VerticalAlignment="Top"
                                     Foreground="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}"
                                     Text="{x:Static jonts:LucideFontIcons.AlertCircle}"
                                     ToolTip="{Binding ErrorsText}"
+                                    ToolTipService.InitialShowDelay="0"
                                     ToolTipService.ShowOnDisabled="True"
-                                    Visibility="{Binding HasErrors,
-                                                         Converter={x:Static jonverters:VisibilityConverter.Default}}" />
-                            </Grid>
+                                    Visibility="{Binding HasErrors, Converter={x:Static jonverters:VisibilityConverter.Default}}" />
+                            </nodify:Node.Header>
+
+                            <jonts:FontIcon
+                                DataContext="{Binding Metadata}"
+                                FontSize="{DynamicResource {x:Static joufflu:Dimensions.ControlFontSizeXl}}"
+                                Style="{StaticResource ScopedMetadataIcon}" />
                         </nodify:Node>
                     </DataTemplate>
                 </nodify:NodifyEditor.Resources>
