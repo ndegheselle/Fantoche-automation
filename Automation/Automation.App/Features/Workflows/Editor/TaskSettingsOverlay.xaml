@@ -92,10 +92,10 @@
                 Style="{StaticResource Muted}"
                 Text="Input mapping" />
             <TextBox
+                Height="auto"
                 x:Name="MappingTextBox"
                 Grid.Row="1"
                 Grid.Column="1"
-                Padding="4"
                 IsReadOnly="{Binding IsStart}"
                 Style="{StaticResource JsonTextBox}"
                 Text="{Binding InputMappingJson, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
@@ -105,9 +105,9 @@
                 Style="{StaticResource Muted}"
                 Text="{Binding ResultLabel}" />
             <TextBox
+                Height="auto"
                 Grid.Row="1"
                 Grid.Column="2"
-                Padding="4"
                 IsReadOnly="True"
                 Style="{StaticResource JsonTextBox}"
                 Text="{Binding ResultJson, Mode=OneWay}" />

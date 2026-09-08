@@ -412,6 +412,17 @@ namespace Automation.App.Features.Workflows.Editor
             // Dragging an input onto an output makes the same connection as the other way around.
             ConnectorViewModel source = first.IsOutput ? first : second;
             ConnectorViewModel target = first.IsOutput ? second : first;
+
+            var existingConnection = GetConnectionsBetween(source.Model, target.Model);
+            if (existingConnection != null)
+            {
+                History.Apply(new ReversibleAction(
+                    $"Unconnecting '{source.Node.Name}' to '{target.Node.Name}'",
+                    () => RemoveConnection(existingConnection),
+                    () => AddConnection(existingConnection)));
+                return;
+            }
+
             if (!Graph.CanConnect(source.Model, target.Model))
                 return;
 
@@ -617,6 +628,18 @@ namespace Automation.App.Features.Workflows.Editor
 
         private bool IsConnected(ConnectorViewModel connector)
             => Connections.Any(x => x.Source == connector || x.Target == connector);
+
+
+        /// <summary>
+        /// Get the connection between the [source] and [target] if it exist.
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="target"></param>
+        /// <returns></returns>
+        private ConnectionViewModel? GetConnectionsBetween(GraphConnector source, GraphConnector target)
+        {
+            return Connections.FirstOrDefault(x => x.Model.SourceId == source.Id || x.Model.TargetId == target.Id);
+        }
 
         #endregion
     }

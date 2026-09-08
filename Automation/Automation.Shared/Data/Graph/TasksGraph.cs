@@ -252,7 +252,6 @@ namespace Automation.Shared.Data.Graph
         {
             return Connections.Where(x => x.SourceId == connector.Id || x.TargetId == connector.Id);
         }
-
         #endregion
     }
 }
