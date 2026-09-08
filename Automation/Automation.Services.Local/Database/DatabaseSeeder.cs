@@ -119,7 +119,7 @@ internal static class Samples
     {
         AutomationWorkflow workflow = MakeWorkflow(Id(0x20), "Linear");
 
-        GraphControl start = Node(new GraphControl(AutomationControl.StartTask), "Start", 0, 0);
+        GraphControl start = StartNode(0, 0);
         GraphTask first = Node(new GraphTask(Test), "First", 220, 0,
             new { Message = "first", Value = "$previous.Value", Add = 10 });
         GraphControl share = Node(new GraphControl(AutomationControl.ShareTask), "Share", 440, 0,
@@ -129,9 +129,10 @@ internal static class Samples
         // Both the share and the pass-through are transparent : "$previous" is still "First" here.
         GraphTask second = Node(new GraphTask(Test), "Second", 880, 0,
             new { Message = "second", Value = "$previous.Value", Add = "$shared.Bonus" });
-        // The end merges every branch reaching it, so its context is indexed by node name.
+        // An end is not a join : it resolves against the single branch reaching it, so "$previous"
+        // is what that branch handed over rather than something indexed by node name.
         GraphControl end = Node(new GraphControl(AutomationControl.EndTask), "End", 1100, 0,
-            new { Value = "$previous.Second.Value", Message = "$previous.Second.Message" });
+            new { Value = "$previous.Value", Message = "$previous.Message" });
 
         Add(workflow, start, first, share, passThrough, second, end);
 
@@ -145,22 +146,25 @@ internal static class Samples
     }
 
     /// <summary>
-    /// Parallel branches merged by a join, then by the end.
+    /// Parallel branches merged by a join.
     /// <code>
-    /// Start -+-> Quick(+1) ------------------+-> Join --+
-    ///        +-> Slow(delay) -> Late(+100) --+          +-> End
-    ///        +-> Sprint(+2) --------------------------- +
+    /// Start -+-> Quick(+1) ------------------+
+    ///        +-> Slow(delay) -> Late(+100) --+-> Join -> End
+    ///        +-> Sprint(+2) -----------------+
     /// </code>
-    /// Every branch runs, the join waiting for Quick and Late and the end for the join and Sprint.
-    /// Expected output : Value = 101. Turning on "Stop at first end" makes the end run as soon as
-    /// the Sprint branch reaches it and cancel the rest, the join then being left waiting (the end
-    /// has to be read as "$previous.*" in that case).
+    /// Every branch runs and the join waits for all three of them. The end hangs off the join alone
+    /// rather than racing it : an end closes the workflow as soon as a single branch reaches it and
+    /// cancels whatever is still running, so a branch wired straight to it would decide the output
+    /// and leave the join waiting forever.
+    /// <para>
+    /// Expected output : Value = 101 (what Late produced), Message from Quick.
+    /// </para>
     /// </summary>
     private static AutomationWorkflow BuildBranches()
     {
         AutomationWorkflow workflow = MakeWorkflow(Id(0x21), "Branches");
 
-        GraphControl start = Node(new GraphControl(AutomationControl.StartTask), "Start", 0, 150);
+        GraphControl start = StartNode(0, 150);
         GraphTask quick = Node(new GraphTask(Test), "Quick", 220, 0,
             new { Message = "quick", Value = "$previous.Value", Add = 1 });
         GraphTask slow = Node(new GraphTask(Delay), "Slow", 220, 150, new { DelayMs = 400 });
@@ -169,13 +173,13 @@ internal static class Samples
             new { Message = "late", Value = "$previous.Value", Add = 100 });
         GraphTask sprint = Node(new GraphTask(Test), "Sprint", 220, 300,
             new { Message = "sprint", Value = "$previous.Value", Add = 2 });
-        // The join runs once every branch reaching it is completed, its context being indexed by
-        // node name.
-        GraphControl join = Node(new GraphControl(AutomationControl.JoinTask), "Join", 660, 75,
+        // The join runs once every branch reaching it is completed, and it is the only node whose
+        // context is indexed by node name : it reads them all at once.
+        GraphControl join = Node(new GraphControl(AutomationControl.JoinTask), "Join", 660, 150,
             new { Value = "$previous.Late.Value", Message = "$previous.Quick.Message" });
-        // The end merges what reaches it the same way, the join and the sprint branch here.
+        // The end resolves against the join alone, so it reads what the join handed over.
         GraphControl end = Node(new GraphControl(AutomationControl.EndTask), "End", 880, 150,
-            new { Value = "$previous.Join.Value", Message = "$previous.Join.Message" });
+            new { Value = "$previous.Value", Message = "$previous.Message" });
 
         Add(workflow, start, quick, slow, late, sprint, join, end);
 
@@ -185,8 +189,8 @@ internal static class Samples
         workflow.Graph.Connect(slow, late);
         workflow.Graph.Connect(quick, join);
         workflow.Graph.Connect(late, join);
+        workflow.Graph.Connect(sprint, join);
         workflow.Graph.Connect(join, end);
-        workflow.Graph.Connect(sprint, end);
 
         return workflow;
     }
@@ -205,16 +209,16 @@ internal static class Samples
         const int max = 5;
         AutomationWorkflow workflow = MakeWorkflow(Id(0x22), "Loop");
 
-        GraphControl start = Node(new GraphControl(AutomationControl.StartTask), "Start", 0, 75);
+        GraphControl start = StartNode(0, 75);
         GraphTask counter = Node(new GraphTask(Test), "Counter", 220, 75,
             new { Message = "turn", Value = "$previous.Value", Add = 1 });
         GraphTask loopGate = Node(new GraphTask(LoopGate), "LoopGate", 440, 0,
             new { Value = "$previous.Value", Max = max, WhileUnder = true });
         GraphTask exitGate = Node(new GraphTask(LoopGate), "ExitGate", 440, 150,
             new { Value = "$previous.Value", Max = max, WhileUnder = false });
-        // The exit gate being pass-through, the end reads the counter of the last turn.
+        // The exit gate being pass-through, "$previous" here is the counter of the last turn.
         GraphControl end = Node(new GraphControl(AutomationControl.EndTask), "End", 660, 150,
-            new { Value = "$previous.Counter.Value", Message = "$previous.Counter.Message" });
+            new { Value = "$previous.Value", Message = "$previous.Message" });
 
         Add(workflow, start, counter, loopGate, exitGate, end);
 
@@ -239,6 +243,16 @@ internal static class Samples
     private static readonly string WorkflowOutputSchema = Schema(("Value", "integer"), ("Message", "string"));
 
     private static Guid Id(byte index) => new Guid($"00000000-0000-0000-0000-2000000000{index:x2}");
+
+    /// <summary>
+    /// The start of a workflow. It declares what it hands over the way every other node declares
+    /// what it produces : the control itself knows no shape, and anything reading the graph — a run,
+    /// or the preview an editor shows of it — reads "$previous" of the first node from there.
+    /// </summary>
+    private static GraphControl StartNode(double x, double y)
+        => Node(
+            new GraphControl(AutomationControl.StartTask) { OutputSchemaJson = WorkflowInputSchema },
+            "Start", x, y);
 
     private static AutomationTask MakeTask(
         Guid id,

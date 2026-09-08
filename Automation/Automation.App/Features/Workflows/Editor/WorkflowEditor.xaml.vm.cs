@@ -638,7 +638,7 @@ namespace Automation.App.Features.Workflows.Editor
         /// <returns></returns>
         private ConnectionViewModel? GetConnectionsBetween(GraphConnector source, GraphConnector target)
         {
-            return Connections.FirstOrDefault(x => x.Model.SourceId == source.Id || x.Model.TargetId == target.Id);
+            return Connections.FirstOrDefault(x => x.Model.SourceId == source.Id && x.Model.TargetId == target.Id);
         }
 
         #endregion
