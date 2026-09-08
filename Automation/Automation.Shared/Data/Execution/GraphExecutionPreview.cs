@@ -1,8 +1,11 @@
-﻿using Automation.Shared.Data.Graph;
+using Automation.Shared.Data.Graph;
 using Newtonsoft.Json.Linq;
 
 namespace Automation.Shared.Data.Execution;
 
+/// <summary>
+/// Allow an editor to simulate the execution of a workflow to get all the potential errors and resolved references.
+/// </summary>
 public class GraphExecutionPreview
 {
     public Dictionary<Guid, List<string>> NodesErrors { get; } = [];
@@ -16,48 +19,61 @@ public class GraphExecutionPreview
         {
             // Merge schema sample with default values
             var startSample = GraphContextResolution.MergeContexts(start.OutputSchema?.ToSampleJson(), start.InputTemplate);
-            var instance = resolution.CreateInstance(start, startSample, EnumTaskState.Completed);
+            var startInstance = resolution.CreateInstance(start, startSample, EnumTaskState.Completed);
+
+            GraphExecutionContext context = new()
+            {
+                Resolution = resolution,
+                Graph = graph,
+                Node = start,
+                Instance = startInstance,
+            };
 
             foreach (var nextNode in graph.GetNext(start))
-                RunBranch(graph, nextNode.Task, instance, new JObject(), resolution);
+                RunBranch(context with { Node = nextNode.Task }, new JObject());
         }
     }
 
-    public void RunBranch(TasksGraph graph, BaseGraphTask node, TaskInstance? previous, JToken? sharedContext, GraphContextResolution resolution)
+    /// <summary>
+    /// Walk the branch [context] stands at, previewing every node it leads to.
+    /// </summary>
+    /// <remarks>
+    /// XXX : the shared context is threaded along the walk rather than carried by the instances the
+    /// way a run carries it, so it is reset on every node and a share never feeds what comes after
+    /// it (see <c>WorkflowExecutor.ResolveControl</c>).
+    /// </remarks>
+    private void RunBranch(GraphExecutionContext context, JToken? sharedContext)
     {
-        // Control task
-        TaskInstance? instance = null;
-        if (node is GraphControl control)
-            instance = PreviewControl(graph, control, previous, sharedContext, resolution);
-        // All other tasks
-        else
-            instance = PreviewTask(graph, node, previous, sharedContext, resolution);
+        // A control drives the walk, everything else stands for the task it runs.
+        TaskInstance? instance = context.Node is GraphControl control
+            ? PreviewControl(context, control, sharedContext)
+            : PreviewTask(context, sharedContext);
 
         if (instance == null)
             return;
 
         instance.Shared = sharedContext;
-        foreach (var nextNode in graph.GetNext(node))
-            RunBranch(graph, nextNode.Task, instance, new JObject(), resolution);
+        foreach (var nextNode in context.Graph.GetNext(context.Node))
+            RunBranch(context with { Node = nextNode.Task, Instance = instance }, new JObject());
     }
 
-    private TaskInstance? PreviewControl(TasksGraph graph, GraphControl control, TaskInstance? previous, JToken? sharedContext, GraphContextResolution resolution)
+    private TaskInstance? PreviewControl(GraphExecutionContext context, GraphControl control, JToken? sharedContext)
     {
         if (control.IsJoin())
         {
-            var waitingInstance = resolution.GetOrCreateWaitingInstance(control, previous);
+            var waitingInstance = context.Resolution.GetOrCreateWaitingInstance(control, context.Instance);
 
-            var previousNodes = graph.GetPrevious(control);
-            if (resolution.TryGetAllInstances(previousNodes, out var instances))
+            var previousNodes = context.Graph.GetPrevious(control);
+            if (context.Resolution.TryGetAllInstances(previousNodes, out var instances))
             {
-                var result = resolution.GetInputFor(control, instances, sharedContext);
+                var result = context.Resolution.GetInputFor(control, instances, sharedContext);
                 if (result.HasError)
                 {
                     NodesErrors.Add(control.Id, result.Errors);
                     return null;
                 }
 
-                waitingInstance.Previous = previous;
+                waitingInstance.Previous = context.Instance;
                 waitingInstance.State = EnumTaskState.Completed;
                 waitingInstance.Shared = sharedContext;
                 // XXX : which mean that the outpute schema have to be updated then setting up
@@ -68,38 +84,40 @@ public class GraphExecutionPreview
         else if (control.IsShare())
         {
             // We pass on each node exactly once
-            if (resolution.NodeInstances.ContainsKey(control.Id))
+            if (context.Resolution.NodeInstances.ContainsKey(control.Id))
                 return null;
 
-            var result = resolution.GetInputFor(control, previous == null ? [] : [previous], sharedContext);
+            // XXX : what the share resolved is dropped rather than merged into the shared context,
+            // see RunBranch.
+            var result = context.Resolution.GetInputFor(control, context.Instance, sharedContext);
             if (result.HasError)
             {
                 NodesErrors.Add(control.Id, result.Errors);
                 return null;
             }
-            sharedContext = GraphContextResolution.MergeContexts(sharedContext, result.Token);
-            return resolution.CreateInstance(control, result.Token, EnumTaskState.Completed, previous);
+
+            return context.Resolution.CreateInstance(control, result.Token, EnumTaskState.Completed, context.Instance);
         }
 
         return null;
     }
 
-    private TaskInstance? PreviewTask(TasksGraph graph, BaseGraphTask node, TaskInstance? previous, JToken? sharedContext, GraphContextResolution resolution)
+    private TaskInstance? PreviewTask(GraphExecutionContext context, JToken? sharedContext)
     {
         // We pass on each node exactly once
-        if (resolution.NodeInstances.ContainsKey(node.Id))
+        if (context.Resolution.NodeInstances.ContainsKey(context.Node.Id))
             return null;
 
         // We don't really need the input here, we just check if there is any errors in mapping
-        var result = resolution.GetInputFor(node, previous, sharedContext);
+        var result = context.Resolution.GetInputFor(context.Node, context.Instance, sharedContext);
         if (result.HasError)
         {
-            NodesErrors.Add(node.Id, result.Errors);
+            NodesErrors.Add(context.Node.Id, result.Errors);
             return null;
         }
 
-        var instance = resolution.CreateInstance(node, result.Token, EnumTaskState.Completed, previous);
-        instance.Output = node.OutputSchema?.ToSampleJson();
+        var instance = context.Resolution.CreateInstance(context.Node, result.Token, EnumTaskState.Completed, context.Instance);
+        instance.Output = context.Node.OutputSchema?.ToSampleJson();
 
         return instance;
     }

@@ -5,22 +5,13 @@ using Newtonsoft.Json.Linq;
 
 namespace Automation.Worker.Executor;
 
-public record WorkflowExecutionContext
+/// <summary>
+/// Where a run of a workflow stands : the walk of the graph (see <see cref="GraphExecutionContext"/>)
+/// plus the instance of the workflow it belongs to, which the branches are closed by.
+/// </summary>
+public record WorkflowExecutionContext : GraphExecutionContext
 {
-    public GraphContextResolution Resolution { get; }
-    public BaseGraphTask Node { get; }
-    public TaskInstance Instance { get; }
-    public WorkflowInstance WorkflowInstance { get; }
-
-    public WorkflowExecutionContext(GraphContextResolution resolution, WorkflowInstance workflowInstance, BaseGraphTask node, TaskInstance instance)
-    {
-        Resolution = resolution;
-        Node = node;
-        Instance = instance;
-        WorkflowInstance = workflowInstance;
-    }
-
-    public WorkflowExecutionContext Copy(BaseGraphTask node, TaskInstance instance) => new WorkflowExecutionContext(Resolution, WorkflowInstance, node, instance);
+    public required WorkflowInstance WorkflowInstance { get; init; }
 }
 
 public class WorkflowExecutor
@@ -57,7 +48,14 @@ public class WorkflowExecutor
             startInstance.Output = startParameters;
             progress?.StateChanges?.Report(startInstance);
 
-            WorkflowExecutionContext context = new WorkflowExecutionContext(resolution, workflowInstance, start, startInstance);
+            WorkflowExecutionContext context = new()
+            {
+                Resolution = resolution,
+                Graph = workflowInstance.Workflow.Graph,
+                Node = start,
+                Instance = startInstance,
+                WorkflowInstance = workflowInstance,
+            };
             startTasks.Add(NextAsync(context, progress, token));
         }
 
@@ -72,13 +70,13 @@ public class WorkflowExecutor
         TaskInstancesProgress? progress,
         CancellationToken? cancellation)
     {
-        var nextPairs = context.WorkflowInstance.Workflow.Graph.GetNext(context.Node);
+        var nextPairs = context.Graph.GetNext(context.Node);
 
         var branches = new List<Task<IReadOnlyList<TaskInstance>>>();
         foreach (var pair in nextPairs)
         {
             var next = pair.Task;
-            var nextContext = context.Copy(next, context.Instance);
+            var nextContext = context with { Node = next };
             branches.Add(RunBranchAsync(nextContext, progress, cancellation));
         }
 
@@ -129,7 +127,7 @@ public class WorkflowExecutor
         progress?.StateChanges?.Report(instance);
 
         if (instance.State == EnumTaskState.Completed && instance.Output != null)
-            return await NextAsync(context.Copy(context.Node, instance), progress, cancellation);
+            return await NextAsync(context with { Instance = instance }, progress, cancellation);
 
         return [];
     }
@@ -169,7 +167,7 @@ public class WorkflowExecutor
             return [instance];
         }
 
-        return await NextAsync(context.Copy(control, instance), progress, cancellation);
+        return await NextAsync(context with { Instance = instance }, progress, cancellation);
     }
 
     /// <summary>
@@ -199,7 +197,7 @@ public class WorkflowExecutor
     /// </summary>
     private TaskInstance? ResolveJoin(WorkflowExecutionContext context, GraphControl control, TaskInstancesProgress? progress)
     {
-        var previousNodes = context.WorkflowInstance.Workflow.Graph.GetPrevious(control).ToList();
+        var previousNodes = context.Graph.GetPrevious(control).ToList();
 
         if (!context.Resolution.TryJoinBranches(control, context.Instance, previousNodes, out var instance, out var branchesInstances))
             return null;
