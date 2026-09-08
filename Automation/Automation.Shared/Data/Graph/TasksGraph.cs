@@ -198,7 +198,7 @@ namespace Automation.Shared.Data.Graph
         public IEnumerable<GraphSource> GetNext(BaseGraphTask task)
         {
             return GetOutputsConnectionsFrom(task)
-                .Select(c => new GraphSource(c.Target!.Parent!, c.Source!));
+                .Select(c => new GraphSource(c.Target!.Parent!, c.Source!, c));
         }
 
         public bool WithMultipleInputsConnections(BaseGraphTask task)

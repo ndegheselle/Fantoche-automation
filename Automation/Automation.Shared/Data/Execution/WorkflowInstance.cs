@@ -1,7 +1,5 @@
 ﻿using System.Collections.Concurrent;
-using System.Text.Json.Serialization;
 using Automation.Plugins.Shared;
-using Automation.Shared.Data.Graph;
 using Automation.Shared.Data.Scoped;
 using Newtonsoft.Json.Linq;
 
@@ -23,17 +21,15 @@ public class WorkflowInstance : TaskInstance
     /// <summary>
     /// Workflow definition being executed.
     /// </summary>
-    
+
     public AutomationWorkflow Workflow { get; }
 
     public JToken? GlobalContext { get; set; }
-    // XXX : need to check how can I remvoe it compared to task instance
-    public JToken? SharedContext { get; set; }
 
     /// <summary>
     /// Instances created during this workflow execution, indexed by graph node id.
     /// </summary>
-    
+
     public ConcurrentDictionary<Guid, List<TaskInstance>> NodeInstances { get; } = [];
 
     /// <summary>

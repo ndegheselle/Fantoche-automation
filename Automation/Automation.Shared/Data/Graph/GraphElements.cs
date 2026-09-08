@@ -198,12 +198,21 @@ namespace Automation.Shared.Data.Graph
     }
 
     /// <summary>
+    /// Identity of a connection : the two connectors it links. A connector belongs to a single node
+    /// and a pair of them is only connected once (see <see cref="TasksGraph.CanConnect"/>), so it
+    /// stands for one edge of the graph and can be matched against what an editor draws.
+    /// </summary>
+    public readonly record struct GraphEdge(Guid SourceId, Guid TargetId);
+
+    /// <summary>
     /// Connection between two connectors
     /// </summary>
     public class GraphConnection
     {
         public Guid SourceId { get; set; }
         public Guid TargetId { get; set; }
+
+        [JsonIgnore] public GraphEdge Edge => new(SourceId, TargetId);
 
         [JsonIgnore] public GraphConnector? Source { get; set; }
         [JsonIgnore] public GraphConnector? Target { get; set; }
@@ -235,10 +244,19 @@ namespace Automation.Shared.Data.Graph
     {
         public BaseGraphTask Task { get; set; }
         public GraphConnector SourceConnector { get; set; }
-        public GraphSource(BaseGraphTask task, GraphConnector sourceConnector)
+
+        /// <summary>
+        /// The connection <see cref="Task"/> is reachable through : what a walk of the graph just
+        /// crossed to get to it, which is how an error it finds there is blamed on an edge rather
+        /// than only on a node.
+        /// </summary>
+        public GraphConnection Connection { get; set; }
+
+        public GraphSource(BaseGraphTask task, GraphConnector sourceConnector, GraphConnection connection)
         {
             Task = task;
             SourceConnector = sourceConnector;
+            Connection = connection;
         }
     }
 }

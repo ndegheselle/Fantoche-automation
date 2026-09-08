@@ -217,11 +217,13 @@ public class GraphContextResolution
 
     /// <summary>
     /// Merge two contexts coming from two branches, the values of [other] winning. Anything that
-    /// isn't an object can't be merged and is taken as-is.
+    /// isn't an object can't be merged and is taken as-is, holding nothing being the exception : a
+    /// JSON null stands for nothing to merge rather than for a value overriding what is there, the
+    /// way a missing token does.
     /// </summary>
     public static JToken? MergeContexts(JToken? context, JToken? other)
     {
-        if (other == null)
+        if (other == null || other.Type == JTokenType.Null)
             return context;
         if (context is not JObject source || other is not JObject values)
             return other;
