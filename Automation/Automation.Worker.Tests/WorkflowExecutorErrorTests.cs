@@ -226,14 +226,12 @@ internal sealed class WorkflowExecutorErrorTests
 
     #endregion
 
-    #region Known gaps
+    #region Global context
 
     [Test]
-    public async Task GlobalContext_OfTheRunNeverReachesTheNodes()
+    public async Task GlobalContext_OfTheRunIsReadByTheNodes()
     {
-        // KNOWN GAP : WorkflowInstance.GlobalContext (the context of the scopes the workflow
-        // belongs to, see LocalExecutionService) is never handed to the resolution of the run, so
-        // a mapping reading "$global.*" can't resolve. Flip this test over the day it is.
+        // The context of the scopes the workflow belongs to, see LocalExecutionService.
         TestWorkflow workflow = new TestWorkflow("Global")
             .Start()
             .Task("First", PluginTasks.Test, new { Message = "first", Value = "$global.Value", Add = 1 })
@@ -243,13 +241,38 @@ internal sealed class WorkflowExecutorErrorTests
         WorkflowInstance instance = workflow.Instance(new { Value = 1 });
         instance.GlobalContext = JToken.FromObject(new { Value = 100 });
 
-        (_, Exception? error) = await WorkflowRun.TryExecuteAsync(instance);
+        WorkflowRun run = await WorkflowRun.ExecuteAsync(instance);
 
         Assert.Multiple(() =>
         {
-            Assert.That(error, Is.TypeOf<ExecutionException>());
-            Assert.That(error?.Message, Does.Contain("[global.Value] not found in context."));
+            Assert.That(run.ParametersOf("First")?["Value"]?.Value<int>(), Is.EqualTo(100));
+            Assert.That(run.Instance.Output?["Value"]?.Value<int>(), Is.EqualTo(101));
         });
+    }
+
+    [Test]
+    public async Task GlobalContext_IsHandedOverToANestedWorkflow()
+    {
+        TestWorkflow nested = new TestWorkflow("Nested")
+            .Start()
+            .Task("Inner", PluginTasks.Test, new { Message = "inner", Value = "$global.Value", Add = 5 })
+            .End(new { Value = "$previous.Value", Message = "$previous.Message" })
+            .Chain("Start", "Inner", "End");
+
+        TestWorkflow workflow = new TestWorkflow("Parent")
+            .Start()
+            .Nested("Sub", nested)
+            .End(new { Value = "$previous.Value", Message = "$previous.Message" })
+            .Chain("Start", "Sub", "End");
+
+        WorkflowInstance instance = workflow.Instance(new { Value = 1 });
+        instance.GlobalContext = JToken.FromObject(new { Value = 100 });
+
+        WorkflowRun run = await WorkflowRun.ExecuteAsync(instance);
+
+        // A nested workflow walks its graph with a resolution of its own, the global context of the
+        // run it belongs to reaching it all the same.
+        Assert.That(run.Instance.Output?["Value"]?.Value<int>(), Is.EqualTo(105));
     }
 
     #endregion

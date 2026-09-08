@@ -80,8 +80,10 @@ public class GraphContextResolution
     {
         TaskInstance instance;
 
+        // A workflow reached as a node of another one is a run of its own : it walks its graph with
+        // a resolution of its own, which the global context has to be handed over to.
         if (node.AutomationTask is AutomationWorkflow workflow)
-            instance = new WorkflowInstance(workflow);
+            instance = new WorkflowInstance(workflow) { GlobalContext = GlobalContext };
         else
             instance = new TaskInstance();
 
@@ -110,8 +112,15 @@ public class GraphContextResolution
     }
 
     /// <summary>
-    /// Return true if all previous branches are completed, false overwise. [branchesInstances] contains the list of previous instances if true.
-    /// This check is locked since async branches may race to free the same join node.
+    /// Register the branch reaching [node] and return whether it is the one resuming it : true once
+    /// every branch arrived, [branchesInstances] then holding what each of them produced.
+    /// <para>
+    /// A join is resumed by the arrival of its last branch rather than by the state of the ones
+    /// before it : several branches finishing at once would all find every other one completed, and
+    /// each of them would resume the join. The arrivals are counted instead, and the instance leaves
+    /// the waiting state under the lock, so a branch of the next turn through the join waits on an
+    /// instance of its own.
+    /// </para>
     /// </summary>
     public bool TryJoinBranches(
         BaseGraphTask node,
@@ -123,7 +132,22 @@ public class GraphContextResolution
         lock (_joinsLock)
         {
             instance = GetOrCreateWaitingInstance(node, previousInstance);
-            return TryGetAllInstances(previousNodes, out branchesInstances);
+            branchesInstances = [];
+
+            int arrived = _joinBranches.GetValueOrDefault(node.Id) + 1;
+
+            // Still waiting for a branch to arrive, or for one of them to have produced anything.
+            if (arrived < previousNodes.Count || !TryGetAllInstances(previousNodes, out branchesInstances))
+            {
+                _joinBranches[node.Id] = arrived;
+                return false;
+            }
+
+            // Resumed : the join is claimed by this branch and starts over from no arrival, so a
+            // loop leading back to it waits for its branches again.
+            _joinBranches.Remove(node.Id);
+            instance.State = EnumTaskState.Progressing;
+            return true;
         }
     }
 
@@ -162,9 +186,7 @@ public class GraphContextResolution
             return result;
         }
 
-        JObject inputContext = instances.Count > 1 ?
-            GetMultipleContextFor(node, instances, sharedContext) :
-            GetContextFor(node, instances.FirstOrDefault(), sharedContext);
+        JObject inputContext = BuildContextFor(instances, sharedContext);
 
         var replacementResult = ReferencesHandler.ReplaceReferences(node.InputTemplate, inputContext);
         // Reference replacement errors
@@ -178,7 +200,24 @@ public class GraphContextResolution
         return result;
     }
 
-    private JObject GetContextFor(BaseGraphTask task, TaskInstance? previous, JToken? sharedContext)
+    /// <summary>
+    /// What a node reads where the branches [instances] lead to it : "$previous", "$shared" and
+    /// "$global" as its mapping names them. A node several branches reach reads them by node name,
+    /// a node a single one reaches reads it directly.
+    /// <para>
+    /// What <see cref="GetInputFor(BaseGraphTask, IReadOnlyList{TaskInstance}, JToken?)"/> resolves
+    /// the references against, exposed on its own so that an editor can show it and resolve a
+    /// mapping being written the very way a run resolves it.
+    /// </para>
+    /// </summary>
+    public JObject BuildContextFor(IReadOnlyList<TaskInstance> instances, JToken? sharedContext)
+    {
+        return instances.Count > 1
+            ? GetMultipleContextFor(instances, sharedContext)
+            : GetContextFor(instances.FirstOrDefault(), sharedContext);
+    }
+
+    private JObject GetContextFor(TaskInstance? previous, JToken? sharedContext)
     {
         return new JObject
         {
@@ -188,7 +227,7 @@ public class GraphContextResolution
         };
     }
 
-    private JObject GetMultipleContextFor(BaseGraphTask task, IReadOnlyList<TaskInstance> instances, JToken? sharedContext)
+    private JObject GetMultipleContextFor(IReadOnlyList<TaskInstance> instances, JToken? sharedContext)
     {
         var previouses = instances.Select(x => x.Effective).ToDictionary(x => x.NodeName, x => x.Output);
         JObject ctxt = GenerateEmptyContext();

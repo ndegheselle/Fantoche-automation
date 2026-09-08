@@ -77,6 +77,17 @@ namespace Automation.App.Features.Workflows.Editor
         /// </summary>
         private readonly Action? _openWorkflowSettings;
 
+        /// <summary>
+        /// The context of the scopes holding the workflow, which a mapping reads as "$global".
+        /// </summary>
+        private JToken? _globalContext;
+
+        /// <summary>
+        /// The tasks the nodes of the graph point at, kept from the load : refreshing the graph
+        /// needs them, a node handing over nothing of its own being only known through them.
+        /// </summary>
+        private Dictionary<Guid, BaseAutomationTask> _tasks = [];
+
         public WorkflowEditorViewModel(
             AutomationWorkflow workflow,
             IAsyncRelayCommand saveCommand,
@@ -92,16 +103,31 @@ namespace Automation.App.Features.Workflows.Editor
                 RemoveCommand.NotifyCanExecuteChanged();
                 OpenSettingsCommand.NotifyCanExecuteChanged();
             };
+
+            // Every modification of the graph goes through the history, so it is also where the
+            // preview of what the graph would run into is worth refreshing.
+            History.PropertyChanged += (_, _) => RefreshPreview();
         }
 
         /// <summary>
         /// Wrap the graph elements, the connections being resolved to the connectors they link. The
-        /// tasks the nodes point at are loaded along : the editor needs their schemas to tell
-        /// whether the mapping of a node holds up (see <see cref="GraphSampling.Validate"/>).
+        /// tasks the nodes point at are loaded along : a node handing over nothing of its own is
+        /// only known through them, and the preview walks the graph reading what they declare.
         /// </summary>
         private async Task LoadAsync()
         {
             Dictionary<Guid, BaseAutomationTask> tasks = [];
+
+            try
+            {
+                _globalContext = await _scoped.GetContextAsync(Workflow.Id);
+            }
+            catch
+            {
+                // Without it a mapping referencing the global context simply can't be resolved, and
+                // the preview says so like it says the rest.
+            }
+
             try
             {
                 List<Guid> taskIds = await _scoped.GetGraphTaskIdsAsync(Workflow.Id);
@@ -118,6 +144,7 @@ namespace Automation.App.Features.Workflows.Editor
                 _toasts.Error(exception.Message, $"The tasks of '{Workflow.Metadata.Name}' could not be loaded");
             }
 
+            _tasks = tasks;
             Graph.Refresh(tasks, force: true);
 
             var connectors = new Dictionary<Guid, ConnectorViewModel>();
@@ -135,7 +162,70 @@ namespace Automation.App.Features.Workflows.Editor
                     && connectors.TryGetValue(connection.TargetId, out ConnectorViewModel? target))
                     Connections.Add(new ConnectionViewModel(connection, source, target));
             }
+
+            RefreshPreview();
         }
+
+        /// <summary>
+        /// What the graph would run into : the nodes whose mapping cannot resolve what they read,
+        /// and the branches they cannot resolve it on. Read from the graph rather than from a run,
+        /// so it shows while the workflow is being drawn.
+        /// </summary>
+        private void RefreshPreview()
+        {
+            Dictionary<Guid, List<GraphPreviewError>> nodesErrors = [];
+            Dictionary<GraphEdge, List<GraphPreviewError>> edgesErrors = [];
+
+            try
+            {
+                // Re-wired first : a node added since the last load holds connectors nothing linked
+                // to it yet, and walking the graph reads the nodes a connection leads to rather than
+                // the ids it holds.
+                Graph.Refresh(_tasks, force: true);
+
+                GraphContextResolution resolution = new() { GlobalContext = _globalContext };
+                GraphExecutionPreview preview = new();
+                preview.BuildSamples(Graph, resolution);
+
+                nodesErrors = preview.NodesErrors;
+                edgesErrors = preview.EdgesErrors;
+            }
+            catch
+            {
+                // A graph that can't be walked at all says nothing about its nodes : showing no
+                // error is better than showing one on every one of them.
+            }
+
+            foreach (NodeViewModel node in Nodes)
+                node.Errors = Messages(nodesErrors, node.Model.Id);
+
+            foreach (ConnectionViewModel connection in Connections)
+                connection.Errors = Messages(edgesErrors, connection.Model.Edge, named: true);
+        }
+
+        /// <summary>
+        /// What [errors] holds against [key], the duplicates two branches carrying the same thing
+        /// produce left out. Named when the reader needs to know which node holds them : an edge
+        /// stands for what the node it leads to cannot handle, not for something of its own.
+        /// </summary>
+        private IReadOnlyList<string> Messages<TKey>(
+            Dictionary<TKey, List<GraphPreviewError>> errors,
+            TKey key,
+            bool named = false)
+            where TKey : notnull
+        {
+            if (!errors.TryGetValue(key, out List<GraphPreviewError>? found))
+                return [];
+
+            return
+            [
+                .. found
+                    .Select(x => named ? $"{NameOf(x.NodeId)} : {x.Message}" : x.Message)
+                    .Distinct()
+            ];
+        }
+
+        private string NameOf(Guid nodeId) => Nodes.FirstOrDefault(x => x.Model.Id == nodeId)?.Name ?? "?";
 
         /// <summary>
         /// Pick an existing task or workflow and add it to the graph. The workflow being edited is

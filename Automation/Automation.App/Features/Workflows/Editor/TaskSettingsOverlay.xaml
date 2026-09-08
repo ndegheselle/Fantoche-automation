@@ -1,4 +1,4 @@
-<UserControl
+﻿<UserControl
     x:Class="Automation.App.Features.Workflows.Editor.TaskSettingsOverlay"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -103,7 +103,7 @@
             <TextBlock
                 Grid.Column="2"
                 Style="{StaticResource Muted}"
-                Text="Result" />
+                Text="{Binding ResultLabel}" />
             <TextBox
                 Grid.Row="1"
                 Grid.Column="2"
@@ -114,23 +114,46 @@
         </Grid>
 
         <!--  Errors, the validation being blocked while there is any  -->
-        <ItemsControl
-            Grid.Row="3"
-            ItemsSource="{Binding Errors}"
-            Visibility="{Binding HasErrors, Converter={StaticResource BoolToVisibility}}">
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <StackPanel Orientation="Horizontal">
-                        <jonts:FontIcon Foreground="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}" Text="{x:Static jonts:LucideFontIcons.AlertCircle}" />
-                        <TextBlock
-                            Margin="4,0,0,0"
-                            Foreground="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}"
-                            Text="{Binding}"
-                            TextWrapping="Wrap" />
-                    </StackPanel>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
+        <StackPanel Grid.Row="3" joufflu:Spacing.Gap="4">
+            <!--
+                Without a context the mapping is edited blind : nothing walked the graph, so a
+                reference has nothing to be resolved against and nothing can be said about it.
+            -->
+            <StackPanel
+                Orientation="Horizontal"
+                Visibility="{Binding IsContextMissing,
+                                     Converter={StaticResource BoolToVisibility}}">
+                <jonts:FontIcon Foreground="{DynamicResource {x:Static joufflu:Brushes.WarningBrush}}" Text="{x:Static jonts:LucideFontIcons.AlertTriangle}" />
+                <TextBlock
+                    Margin="4,0,0,0"
+                    Foreground="{DynamicResource {x:Static joufflu:Brushes.WarningBrush}}"
+                    Text="The graph could not be walked up to this node : the references are neither resolved nor checked."
+                    TextWrapping="Wrap" />
+            </StackPanel>
+
+            <ItemsControl ItemsSource="{Binding Errors}" Visibility="{Binding HasErrors, Converter={StaticResource BoolToVisibility}}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <jonts:FontIcon Foreground="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}" Text="{x:Static jonts:LucideFontIcons.AlertCircle}" />
+                            <!--  The branch it is wrong on, when the node is reached more than one way  -->
+                            <TextBlock
+                                Margin="4,0,0,0"
+                                FontFamily="Consolas"
+                                Style="{StaticResource Muted}"
+                                Text="{Binding Branch, StringFormat='from {0}'}"
+                                Visibility="{Binding HasBranch,
+                                                     Converter={StaticResource BoolToVisibility}}" />
+                            <TextBlock
+                                Margin="4,0,0,0"
+                                Foreground="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}"
+                                Text="{Binding Message}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
 
         <StackPanel
             Grid.Row="4"

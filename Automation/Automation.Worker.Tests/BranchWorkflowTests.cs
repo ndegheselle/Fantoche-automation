@@ -80,6 +80,34 @@ internal sealed class BranchWorkflowTests
     }
 
     [Test]
+    public async Task Join_RunsOnceWhenItsBranchesFinishAtTheSameTime()
+    {
+        TestWorkflow workflow = new TestWorkflow("Simultaneous")
+            .Start()
+            .Task("SlowA", PluginTasks.Delay, new { DelayMs = 200 })
+            .Task("A", PluginTasks.Test, new { Message = "a", Value = "$previous.Value", Add = 1 })
+            .Task("SlowB", PluginTasks.Delay, new { DelayMs = 200 })
+            .Task("B", PluginTasks.Test, new { Message = "b", Value = "$previous.Value", Add = 2 })
+            .Join("Join", new { A = "$previous.A.Value", B = "$previous.B.Value" })
+            .End(new { Value = "$previous.A" })
+            .Chain("Start", "SlowA", "A", "Join")
+            .Chain("Start", "SlowB", "B", "Join")
+            .Chain("Join", "End");
+
+        WorkflowRun run = await workflow.RunAsync(new { Value = 1 });
+
+        Assert.Multiple(() =>
+        {
+            // Both branches are held by the same delay, so each of them can find the other one
+            // completed on arrival : the join is resumed by the last arrival, once.
+            Assert.That(run.CompletionsOf("Join"), Is.EqualTo(1));
+            Assert.That(run.CompletionsOf("End"), Is.EqualTo(1));
+            Assert.That(run.OutputOf("Join", "A")?.Value<int>(), Is.EqualTo(2));
+            Assert.That(run.OutputOf("Join", "B")?.Value<int>(), Is.EqualTo(3));
+        });
+    }
+
+    [Test]
     public async Task Join_MergesTheSharedContextOfEveryBranch()
     {
         TestWorkflow workflow = new TestWorkflow("SharedBranches")

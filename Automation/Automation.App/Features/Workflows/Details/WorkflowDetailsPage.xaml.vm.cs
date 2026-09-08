@@ -5,6 +5,7 @@ using Automation.App.Features.Workflows.Editor.History;
 using Automation.Shared.Data.Graph;
 using Automation.Shared.Data.Scoped;
 using CommunityToolkit.Mvvm.Input;
+using Newtonsoft.Json.Linq;
 using NJsonSchema;
 
 namespace Automation.App.Features.Workflows.Details
@@ -69,12 +70,6 @@ namespace Automation.App.Features.Workflows.Details
         /// </summary>
         private GraphControl? Start => Workflow.Graph.GetStartNodes().FirstOrDefault();
 
-        public bool StopAtFirstEnd
-        {
-            get => Workflow.WorkflowSettings.StopAtFirstEnd;
-            set => SetSetting(value, v => Workflow.WorkflowSettings.StopAtFirstEnd = v);
-        }
-
         public bool StopIfAnyTaskFail
         {
             get => Workflow.WorkflowSettings.StopIfAnyTaskFail;
@@ -114,16 +109,20 @@ namespace Automation.App.Features.Workflows.Details
                 }
             }
 
-            if (Start != null && schema != null)
+            // XXX : the default values are only checked for being JSON. They hold references to
+            // the context of the scopes of the workflow ("$global"), which nothing resolves outside
+            // of a run or of a GraphExecutionPreview, so checking them against [schema] here would
+            // report every reference as the wrong type.
+            if (Start != null && !string.IsNullOrWhiteSpace(Start.InputTemplateJson))
             {
-                List<string> errors = Workflow.Sample().Validate(
-                    Start,
-                    Start.InputTemplateJson,
-                    schema,
-                    partial: true);
-
-                foreach (string error in errors)
-                    InputErrors.Add($"Default values : {error}");
+                try
+                {
+                    JToken.Parse(Start.InputTemplateJson);
+                }
+                catch (Exception exception)
+                {
+                    InputErrors.Add($"Default values : {exception.Message}");
+                }
             }
 
             OnPropertyChanged(nameof(HasInputErrors));

@@ -12,6 +12,13 @@ public record GraphPreviewError
     public required string Message { get; init; }
 
     /// <summary>
+    /// The node the error is held against. Held by the error itself and not only by the key of
+    /// <see cref="GraphExecutionPreview.NodesErrors"/> : an edge holds what the node it leads to
+    /// cannot handle, and naming that node is what makes it readable there.
+    /// </summary>
+    public required Guid NodeId { get; init; }
+
+    /// <summary>
     /// The edges the failing context travelled to get there, in walk order — the last one leads to
     /// the node holding the error. A path starts at the start of the workflow or at the last join it
     /// went through : a join is reached by every branch at once, so where it carries on from is no
@@ -34,7 +41,24 @@ public record GraphPreviewError
     /// down another path is another thing to show.
     /// </summary>
     public bool IsSameAs(GraphPreviewError other)
-        => Message == other.Message && Provenance.SequenceEqual(other.Provenance);
+        => NodeId == other.NodeId && Message == other.Message && Provenance.SequenceEqual(other.Provenance);
+}
+
+/// <summary>
+/// One of the ways a node can be reached : what it reads there, and which branches fed it.
+/// </summary>
+public record NodePreviewContext
+{
+    /// <summary>
+    /// The nodes that fed it, named the way a mapping merging several branches names them (see
+    /// <c>$previous.&lt;node&gt;</c>). Empty for the start, which nothing feeds.
+    /// </summary>
+    public required IReadOnlyList<string> Branches { get; init; }
+
+    /// <summary>
+    /// "$previous", "$shared" and "$global" as the node reads them there.
+    /// </summary>
+    public required JObject Context { get; init; }
 }
 
 /// <summary>
@@ -71,6 +95,13 @@ public class GraphExecutionPreview
     /// only in <see cref="NodesErrors"/>, see <see cref="GraphPreviewError.DivergenceEdge"/>.
     /// </summary>
     public Dictionary<GraphEdge, List<GraphPreviewError>> EdgesErrors { get; } = [];
+
+    /// <summary>
+    /// What every node reads, one entry per context it was previewed with : an editor shows the
+    /// references that can be written against it, and resolves a mapping being edited the very way
+    /// a run resolves it.
+    /// </summary>
+    public Dictionary<Guid, List<NodePreviewContext>> NodesContexts { get; } = [];
 
     /// <summary>
     /// Whether a node reached <see cref="MaxContextsPerNode"/>, which means some of the ways the
@@ -118,6 +149,10 @@ public class GraphExecutionPreview
                 Node = start,
                 Instance = startInstance,
             };
+
+            // The start is handed its context rather than walked into : nothing feeds it, but its
+            // mapping is the defaults of the workflow and those can read "$global".
+            RecordContext(resolution, start.Id, [], null);
 
             EnqueueNext(pending, context, []);
         }
@@ -194,8 +229,7 @@ public class GraphExecutionPreview
     {
         GraphExecutionContext context = step.Context;
 
-        string contextKey = ContextKey([context.Instance], step.Shared);
-        if (!TryTakeContext(step, control.Id, contextKey))
+        if (!TryTakeContext(step, control.Id, [context.Instance], step.Shared, out string contextKey))
             return null;
 
         var input = context.Resolution.GetInputFor(control, context.Instance, step.Shared);
@@ -234,8 +268,7 @@ public class GraphExecutionPreview
 
         // Every branch reaching the join resolves it against the same instances, so it is previewed
         // by whichever of them gets there once they are all in.
-        string contextKey = ContextKey(branchesInstances, shared);
-        if (!TryTakeContext(step, control.Id, contextKey))
+        if (!TryTakeContext(step, control.Id, branchesInstances, shared, out string contextKey))
             return null;
 
         var input = context.Resolution.GetInputFor(control, branchesInstances, shared);
@@ -259,8 +292,7 @@ public class GraphExecutionPreview
     {
         GraphExecutionContext context = step.Context;
 
-        string contextKey = ContextKey([context.Instance], step.Shared);
-        if (!TryTakeContext(step, context.Node.Id, contextKey))
+        if (!TryTakeContext(step, context.Node.Id, [context.Instance], step.Shared, out string contextKey))
             return null;
 
         // We don't really need the input here, we just check if there is any errors in mapping
@@ -297,12 +329,19 @@ public class GraphExecutionPreview
     }
 
     /// <summary>
-    /// Whether [nodeId] has yet to be previewed with [contextKey]. False when it already was — what
-    /// it held against the node is then held against the path [step] came by as well — and false when
-    /// the node reached <see cref="MaxContextsPerNode"/>.
+    /// Whether [nodeId] has yet to be previewed with what [instances] and [shared] make it read.
+    /// False when it already was — what it held against the node is then held against the path
+    /// [step] came by as well — and false when the node reached <see cref="MaxContextsPerNode"/>.
     /// </summary>
-    private bool TryTakeContext(PreviewStep step, Guid nodeId, string contextKey)
+    private bool TryTakeContext(
+        PreviewStep step,
+        Guid nodeId,
+        IReadOnlyList<TaskInstance> instances,
+        JToken? shared,
+        out string contextKey)
     {
+        contextKey = ContextKey(instances, shared);
+
         if (!_contexts.TryGetValue(nodeId, out Dictionary<string, List<string>?>? previewed))
             _contexts[nodeId] = previewed = [];
 
@@ -320,7 +359,29 @@ public class GraphExecutionPreview
         }
 
         previewed[contextKey] = null;
+        RecordContext(step.Context.Resolution, nodeId, instances, shared);
         return true;
+    }
+
+    /// <summary>
+    /// Keep what the node reads with this context, whether or not its mapping resolves against it :
+    /// an editor shows what can be referenced from there, a broken mapping being exactly when that
+    /// matters.
+    /// </summary>
+    private void RecordContext(
+        GraphContextResolution resolution,
+        Guid nodeId,
+        IReadOnlyList<TaskInstance> instances,
+        JToken? shared)
+    {
+        if (!NodesContexts.TryGetValue(nodeId, out List<NodePreviewContext>? contexts))
+            NodesContexts[nodeId] = contexts = [];
+
+        contexts.Add(new NodePreviewContext
+        {
+            Branches = [.. instances.Select(x => x.Effective.NodeName)],
+            Context = resolution.BuildContextFor(instances, shared),
+        });
     }
     #endregion
 
@@ -345,6 +406,7 @@ public class GraphExecutionPreview
             GraphPreviewError error = new()
             {
                 Message = message,
+                NodeId = nodeId,
                 Provenance = step.Provenance,
                 DivergenceEdge = divergence,
             };

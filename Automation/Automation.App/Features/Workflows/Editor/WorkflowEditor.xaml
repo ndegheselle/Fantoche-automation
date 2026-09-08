@@ -54,13 +54,22 @@
             <!--
                 Body of a node, outlined with the state of its last instance in the run being
                 followed : the progress of the workflow is read on the graph itself. Without a state
-                (nothing ran yet) it is a plain card.
+                (nothing ran yet) it is outlined with what the preview of the graph holds against it,
+                and a plain card when it holds up.
             -->
             <Style
                 x:Key="NodeCard"
                 BasedOn="{StaticResource Card}"
                 TargetType="Border">
                 <Style.Triggers>
+                    <!--
+                        Comes first so that a state wins over it : an error belongs to the graph and
+                        stands whether or not it ran, but what a run is doing right now is what the
+                        reader is following.
+                    -->
+                    <DataTrigger Binding="{Binding HasErrors}" Value="True">
+                        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}" />
+                    </DataTrigger>
                     <DataTrigger Binding="{Binding State}" Value="Pending">
                         <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.InfoBrush}}" />
                     </DataTrigger>
@@ -218,10 +227,23 @@
                                 </DataTemplate>
                             </nodify:Node.OutputConnectorTemplate>
 
-                            <jonts:FontIcon
-                                DataContext="{Binding Metadata}"
-                                FontSize="{DynamicResource {x:Static joufflu:Dimensions.ControlFontSizeXl}}"
-                                Style="{StaticResource ScopedMetadataIcon}" />
+                            <Grid>
+                                <jonts:FontIcon
+                                    DataContext="{Binding Metadata}"
+                                    FontSize="{DynamicResource {x:Static joufflu:Dimensions.ControlFontSizeXl}}"
+                                    Style="{StaticResource ScopedMetadataIcon}" />
+
+                                <!--  What the mapping of the node can't resolve, branch by branch  -->
+                                <jonts:FontIcon
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Top"
+                                    Foreground="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}"
+                                    Text="{x:Static jonts:LucideFontIcons.AlertCircle}"
+                                    ToolTip="{Binding ErrorsText}"
+                                    ToolTipService.ShowOnDisabled="True"
+                                    Visibility="{Binding HasErrors,
+                                                         Converter={x:Static jonverters:VisibilityConverter.Default}}" />
+                            </Grid>
                         </nodify:Node>
                     </DataTemplate>
                 </nodify:NodifyEditor.Resources>
@@ -238,7 +260,23 @@
 
                 <nodify:NodifyEditor.ConnectionTemplate>
                     <DataTemplate DataType="{x:Type viewModels:ConnectionViewModel}">
-                        <nodify:Connection Source="{Binding Source.Anchor}" Target="{Binding Target.Anchor}" />
+                        <nodify:Connection
+                            x:Name="Line"
+                            Source="{Binding Source.Anchor}"
+                            Target="{Binding Target.Anchor}" />
+                        <DataTemplate.Triggers>
+                            <!--
+                                The branch the node it leads to can't handle : the node holds up when
+                                another branch reaches it, so what is wrong is coming through here.
+                                Set from the template rather than from a style, which would drop the
+                                one Nodify gives a connection.
+                            -->
+                            <DataTrigger Binding="{Binding HasErrors}" Value="True">
+                                <Setter TargetName="Line" Property="Stroke" Value="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}" />
+                                <Setter TargetName="Line" Property="StrokeThickness" Value="3" />
+                                <Setter TargetName="Line" Property="ToolTip" Value="{Binding ErrorsText}" />
+                            </DataTrigger>
+                        </DataTemplate.Triggers>
                     </DataTemplate>
                 </nodify:NodifyEditor.ConnectionTemplate>
             </nodify:NodifyEditor>

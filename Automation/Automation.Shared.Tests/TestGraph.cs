@@ -1,4 +1,4 @@
-using Automation.Shared.Data.Execution;
+﻿using Automation.Shared.Data.Execution;
 using Automation.Shared.Data.Graph;
 using Automation.Shared.Data.Scoped;
 
@@ -118,6 +118,10 @@ internal sealed record PreviewResult(TestGraph Source, GraphExecutionPreview Pre
             return [];
         return [.. instances.Where(x => x.State == EnumTaskState.Completed)];
     }
+
+    /// <summary>The ways the node can be reached, as the preview found them.</summary>
+    public IReadOnlyList<NodePreviewContext> Contexts(string name)
+        => Preview.NodesContexts.TryGetValue(Source[name].Id, out List<NodePreviewContext>? contexts) ? contexts : [];
 
     public IReadOnlyList<GraphPreviewError> Errors(string name)
         => Preview.NodesErrors.TryGetValue(Source[name].Id, out List<GraphPreviewError>? errors) ? errors : [];

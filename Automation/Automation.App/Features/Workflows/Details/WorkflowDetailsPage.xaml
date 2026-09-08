@@ -27,7 +27,6 @@
                     Grid.Row="1"
                     VerticalAlignment="Top"
                     joufflu:Spacing.Gap="4">
-                    <CheckBox IsChecked="{Binding StopAtFirstEnd}">Stop at first end</CheckBox>
                     <CheckBox IsChecked="{Binding StopIfAnyTaskFail}">Stop if any task fail</CheckBox>
 
                     <!--  What the workflow is started with : the one schema written by hand  -->

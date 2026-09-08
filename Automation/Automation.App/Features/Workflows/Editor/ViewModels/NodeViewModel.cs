@@ -33,6 +33,22 @@ namespace Automation.App.Features.Workflows.Editor.ViewModels
         /// </summary>
         [ObservableProperty] private EnumTaskState? _state;
 
+        /// <summary>
+        /// What the preview of the graph holds against the node : a mapping that cannot resolve what
+        /// it reads, one entry per branch it is wrong on. Empty while the node holds up, and read
+        /// from the graph rather than from a run, so it shows before anything is started.
+        /// </summary>
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(HasErrors), nameof(ErrorsText))]
+        private IReadOnlyList<string> _errors = [];
+
+        public bool HasErrors => Errors.Count > 0;
+
+        /// <summary>
+        /// <see cref="Errors"/> as one block of text, which is what a tooltip shows.
+        /// </summary>
+        public string ErrorsText => string.Join(Environment.NewLine, Errors);
+
         public NodeViewModel(BaseGraphTask model)
         {
             Model = model;

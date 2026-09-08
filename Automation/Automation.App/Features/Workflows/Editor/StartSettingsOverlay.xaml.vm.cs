@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using Automation.Shared.Data.Scoped;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -178,7 +178,7 @@ namespace Automation.App.Features.Workflows.Editor
         {
             try
             {
-                return workflow.GetInputDefaults() as JObject;
+                return workflow.Graph.GetStartNodes().FirstOrDefault()?.InputTemplate as JObject;
             }
             catch (Exception)
             {

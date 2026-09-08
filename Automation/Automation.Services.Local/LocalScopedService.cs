@@ -102,9 +102,11 @@ public class LocalScopedService : IScopedService
 
         List<string> errors = workflow.Graph.GetStructureErrors();
 
-        // The schemas are written from the mappings rather than by hand : a caller reads what a
-        // workflow produces without loading its graph, so they are stored along with it.
-        errors.AddRange(workflow.DeriveSchemas());
+        // XXX : the schemas of a workflow used to be derived from the mappings of its graph as it
+        // was stored, so that a caller could read what it produces without loading the graph.
+        // Nothing derives them since the context resolution was reworked — what a graph resolves to
+        // is known by GraphExecutionPreview, which reports unresolved references rather than
+        // deducing schemas — so they stay whatever was last written to them.
 
         if (errors.Count > 0)
             throw new InvalidOperationException(string.Join(" ", errors));
