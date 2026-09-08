@@ -1,4 +1,4 @@
-using Automation.Shared.Data.Graph;
+﻿using Automation.Shared.Data.Graph;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 

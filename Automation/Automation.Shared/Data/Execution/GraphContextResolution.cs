@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using Automation.Shared.Data.Graph;
 using Automation.Shared.Data.Scoped;
 using Newtonsoft.Json.Linq;
