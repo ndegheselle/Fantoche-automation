@@ -27,6 +27,19 @@ namespace Automation.App.Features.Workflows.Editor.ViewModels
         [ObservableProperty] private bool _isSelected;
 
         /// <summary>
+        /// Whether the name is being edited on the graph itself, the label of the node standing in
+        /// for the box while it is.
+        /// </summary>
+        [ObservableProperty] private bool _isRenaming;
+
+        /// <summary>
+        /// The name being typed while <see cref="IsRenaming"/>. Held apart from the node : renaming
+        /// only reaches the graph once committed, and it goes through the history of the editor like
+        /// any other edition.
+        /// </summary>
+        [ObservableProperty] private string _nameDraft = string.Empty;
+
+        /// <summary>
         /// State of the last instance of this node in the run being followed, so the editor shows
         /// the progress of the workflow. Null while the node hasn't run yet : the state is that of
         /// a run, not of the graph, and it is cleared when a new one starts.
@@ -53,6 +66,14 @@ namespace Automation.App.Features.Workflows.Editor.ViewModels
         {
             Model = model;
             _location = new Point(model.LocationX, model.LocationY);
+
+            // The name is held by the metadata of the node, which the settings of the node edit :
+            // the label the editor draws follows it rather than being told to.
+            Model.Metadata.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName == nameof(ScopedMetadata.Name))
+                    OnPropertyChanged(nameof(Name));
+            };
 
             foreach (GraphConnector input in model.Inputs)
                 Inputs.Add(new ConnectorViewModel(this, input, isOutput: false));

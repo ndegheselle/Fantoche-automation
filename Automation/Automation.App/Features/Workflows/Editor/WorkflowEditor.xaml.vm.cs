@@ -50,7 +50,7 @@ namespace Automation.App.Features.Workflows.Editor
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(IsEditable), nameof(IsRunning))]
         [NotifyCanExecuteChangedFor(nameof(StartCommand), nameof(CancelCommand), nameof(AddCommand),
-            nameof(RemoveCommand), nameof(OpenSettingsCommand))]
+            nameof(RemoveCommand), nameof(OpenSettingsCommand), nameof(RenameCommand))]
         private TaskInstance? _runningInstance;
 
         /// <summary>
@@ -100,6 +100,7 @@ namespace Automation.App.Features.Workflows.Editor
             {
                 RemoveCommand.NotifyCanExecuteChanged();
                 OpenSettingsCommand.NotifyCanExecuteChanged();
+                RenameCommand.NotifyCanExecuteChanged();
             };
 
             // Refreshed from the history rather than from each command : an undo and a redo change
@@ -290,6 +291,74 @@ namespace Automation.App.Features.Workflows.Editor
         }
 
         private bool CanOpenSettings(NodeViewModel? node) => IsEditable && (node != null || SelectedNodes.Count == 1);
+
+        #region Renaming
+        /// <summary>
+        /// Start renaming [node] on the graph : its label becomes a box holding the name it has, and
+        /// nothing is written to the graph until what was typed is committed.
+        /// </summary>
+        [RelayCommand(CanExecute = nameof(CanRename))]
+        private void Rename(NodeViewModel? node)
+        {
+            node ??= SelectedNodes.FirstOrDefault();
+            if (node == null)
+                return;
+
+            node.NameDraft = node.Name;
+            node.IsRenaming = true;
+        }
+
+        private bool CanRename(NodeViewModel? node) => IsEditable && (node != null || SelectedNodes.Count == 1);
+
+        /// <summary>
+        /// Apply what was typed, unless it cannot name the node : a node has to be named, and a name
+        /// has to tell it apart from the others. A node several branches lead into is read by name,
+        /// so two nodes sharing one leaves a join unable to say which of them it reads — the graph
+        /// then resolves to nothing at all rather than to something wrong.
+        /// </summary>
+        [RelayCommand]
+        private void CommitRename(NodeViewModel? node)
+        {
+            // Committing closes the box, whose losing the focus commits again : whichever comes
+            // second has nothing left to do.
+            if (node == null || !node.IsRenaming)
+                return;
+
+            node.IsRenaming = false;
+
+            string name = node.NameDraft.Trim();
+            if (name == node.Name)
+                return;
+
+            if (string.IsNullOrEmpty(name))
+            {
+                _toasts.Error("A node has to be named.", $"'{node.Name}' was not renamed");
+                return;
+            }
+
+            if (Graph.Nodes.Any(x => x != node.Model && x.Name == name))
+            {
+                _toasts.Error($"'{name}' is already the name of another node.", $"'{node.Name}' was not renamed");
+                return;
+            }
+
+            string previous = node.Name;
+            History.Apply(new ReversibleAction(
+                $"Rename '{previous}' to '{name}'",
+                () => node.Model.Metadata.Name = name,
+                () => node.Model.Metadata.Name = previous));
+        }
+
+        /// <summary>
+        /// Leave the node named the way it was, whatever was typed.
+        /// </summary>
+        [RelayCommand]
+        private void CancelRename(NodeViewModel? node)
+        {
+            if (node != null)
+                node.IsRenaming = false;
+        }
+        #endregion
 
         /// <summary>
         /// Remove the selected nodes, along with the connections linked to them.

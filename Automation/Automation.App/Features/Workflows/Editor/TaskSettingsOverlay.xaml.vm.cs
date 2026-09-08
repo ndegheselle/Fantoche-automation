@@ -462,44 +462,36 @@ namespace Automation.App.Features.Workflows.Editor
 
         /// <summary>
         /// Build the edition of the graph from what was edited : the values to apply and the ones
-        /// they replace, so the editor can undo it. Every node holds its mapping, the start and the
-        /// end holding a schema of the workflow along with it.
+        /// they replace, so the editor can undo it. A node holds its mapping, the start and the end
+        /// holding a schema of the workflow along with it. Its name is edited on the graph itself.
         /// </summary>
         private IReversibleAction BuildEdition()
         {
             string? mapping = NullIfEmpty(InputMappingJson);
             string? previousMapping = Node.InputTemplateJson;
 
-            if (!HasSchema)
-            {
-                return new ReversibleAction(
-                    $"Edit the mapping of '{Node.Name}'",
-                    () => Node.InputTemplateJson = mapping,
-                    () => Node.InputTemplateJson = previousMapping);
-            }
-
-            string? schema = NullIfEmpty(SchemaJson);
-            string? previousSchema = IsStart ? Node.OutputSchemaJson : Node.InputSchemaJson;
+            string? schema = HasSchema ? NullIfEmpty(SchemaJson) : null;
+            string? previousSchema = HasSchema
+                ? (IsStart ? Node.OutputSchemaJson : Node.InputSchemaJson)
+                : null;
 
             return new ReversibleAction(
                 $"Edit '{Node.Name}'",
-                () =>
-                {
-                    Node.InputTemplateJson = mapping;
-                    Declare(schema);
-                },
-                () =>
-                {
-                    Node.InputTemplateJson = previousMapping;
-                    Declare(previousSchema);
-                });
+                () => Write(mapping, schema),
+                () => Write(previousMapping, previousSchema));
         }
 
         /// <summary>
-        /// Write [schema] where the node declares it : what the start hands over, what the end reads.
+        /// Write onto the node what the settings hold : its mapping and, on the boundary of the
+        /// workflow, the schema it declares.
         /// </summary>
-        private void Declare(string? schema)
+        private void Write(string? mapping, string? schema)
         {
+            Node.InputTemplateJson = mapping;
+
+            if (!HasSchema)
+                return;
+
             if (IsStart)
                 Node.OutputSchemaJson = schema;
             else

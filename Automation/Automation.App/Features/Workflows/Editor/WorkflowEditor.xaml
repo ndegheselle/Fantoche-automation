@@ -199,9 +199,55 @@
                 <nodify:NodifyEditor.Resources>
                     <DataTemplate DataType="{x:Type viewModels:NodeViewModel}">
                         <nodify:Node
-                            Footer="{Binding Name}"
+                            Footer="{Binding}"
                             Input="{Binding Inputs}"
                             Output="{Binding Outputs}">
+                            <!--
+                                The name of a node, edited in place : it is not only a label, a node
+                                several branches lead into being read by name.
+                            -->
+                            <nodify:Node.FooterTemplate>
+                                <DataTemplate DataType="{x:Type viewModels:NodeViewModel}">
+                                    <Grid>
+                                        <TextBlock
+                                            Text="{Binding Name}"
+                                            Visibility="{Binding IsRenaming,
+                                                                 Converter={x:Static jonverters:VisibilityConverter.Default},
+                                                                 ConverterParameter=False}">
+                                            <TextBlock.InputBindings>
+                                                <MouseBinding
+                                                    Command="{Binding DataContext.RenameCommand,
+                                                                      RelativeSource={RelativeSource AncestorType={x:Type nodify:NodifyEditor}}}"
+                                                    CommandParameter="{Binding}"
+                                                    Gesture="LeftDoubleClick" />
+                                            </TextBlock.InputBindings>
+                                        </TextBlock>
+
+                                        <TextBox
+                                            joufflu:Sizing.Size="xs"
+                                            MinWidth="90"
+                                            IsVisibleChanged="OnRenameBoxVisibleChanged"
+                                            LostKeyboardFocus="OnRenameBoxLostFocus"
+                                            Text="{Binding NameDraft, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            Visibility="{Binding IsRenaming,
+                                                                 Converter={x:Static jonverters:VisibilityConverter.Default}}">
+                                            <TextBox.InputBindings>
+                                                <KeyBinding
+                                                    Key="Return"
+                                                    Command="{Binding DataContext.CommitRenameCommand,
+                                                                      RelativeSource={RelativeSource AncestorType={x:Type nodify:NodifyEditor}}}"
+                                                    CommandParameter="{Binding}" />
+                                                <KeyBinding
+                                                    Key="Escape"
+                                                    Command="{Binding DataContext.CancelRenameCommand,
+                                                                      RelativeSource={RelativeSource AncestorType={x:Type nodify:NodifyEditor}}}"
+                                                    CommandParameter="{Binding}" />
+                                            </TextBox.InputBindings>
+                                        </TextBox>
+                                    </Grid>
+                                </DataTemplate>
+                            </nodify:Node.FooterTemplate>
+
                             <nodify:Node.InputBindings>
                                 <!--  The editor holds the command, the node only knowing its own view model  -->
                                 <MouseBinding
@@ -253,6 +299,39 @@
                         <Setter Property="BorderBrush" Value="Transparent" />
                         <!--  A running workflow can't be edited : the nodes stay where they are  -->
                         <Setter Property="IsDraggable" Value="{Binding DataContext.IsEditable, RelativeSource={RelativeSource AncestorType={x:Type nodify:NodifyEditor}}}" />
+
+                        <!--
+                            Held by the container rather than by the node it holds : Nodify reads
+                            ItemContainer.HasContextMenu to know it must leave the right click alone
+                            rather than take it for one of its own drag interactions. A menu set any
+                            deeper only opens on the second click.
+                            The menu itself lives outside the visual tree, so the commands of the
+                            editor are reached through the container the menu was opened on : its Tag
+                            holds the editor, its DataContext the node.
+                        -->
+                        <Setter Property="Tag" Value="{Binding DataContext, RelativeSource={RelativeSource AncestorType={x:Type nodify:NodifyEditor}}}" />
+                        <Setter Property="ContextMenu">
+                            <Setter.Value>
+                                <ContextMenu DataContext="{Binding PlacementTarget, RelativeSource={RelativeSource Self}}">
+                                    <MenuItem
+                                        Command="{Binding Tag.OpenSettingsCommand}"
+                                        CommandParameter="{Binding DataContext}"
+                                        Header="Open settings">
+                                        <MenuItem.Icon>
+                                            <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.SlidersHorizontal}"  />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem
+                                        Command="{Binding Tag.RenameCommand}"
+                                        CommandParameter="{Binding DataContext}"
+                                        Header="Rename">
+                                        <MenuItem.Icon>
+                                            <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Pencil}"  />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                </ContextMenu>
+                            </Setter.Value>
+                        </Setter>
                     </Style>
                 </nodify:NodifyEditor.ItemContainerStyle>
 

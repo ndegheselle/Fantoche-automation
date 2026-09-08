@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using Automation.App.Features.Workflows.Editor.ViewModels;
 using Automation.Shared.Data.Scoped;
 using CommunityToolkit.Mvvm.Input;
 using Joufflu;
@@ -45,6 +46,28 @@ namespace Automation.App.Features.Workflows.Editor
             BaseAutomationTask? task = GetTask(data);
             // Nothing can be added to a running workflow, its graph being read only.
             return task != null && task.Id != ViewModel?.Workflow.Id && ViewModel?.IsEditable == true;
+        }
+
+        /// <summary>
+        /// Hand the keyboard to the box as soon as renaming starts : the name is edited on the graph
+        /// itself, so nothing else is going to focus it.
+        /// </summary>
+        private void OnRenameBoxVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (e.NewValue is true && sender is TextBox box)
+            {
+                box.Focus();
+                box.SelectAll();
+            }
+        }
+
+        /// <summary>
+        /// Leaving the box commits what was typed : a name edited in place has no button to press.
+        /// </summary>
+        private void OnRenameBoxLostFocus(object sender, RoutedEventArgs e)
+        {
+            if (sender is FrameworkElement box && box.DataContext is NodeViewModel node)
+                ViewModel?.CommitRenameCommand.Execute(node);
         }
 
         /// <summary>
