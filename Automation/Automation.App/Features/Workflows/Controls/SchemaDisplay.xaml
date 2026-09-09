@@ -10,23 +10,20 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     d:DataContext="{d:DesignInstance Type=local:SchemaDisplay}"
     mc:Ignorable="d">
-
     <Grid>
         <!--  No schema at all : one saying nothing still says that anything goes  -->
         <TextBlock
             Style="{StaticResource Muted}"
             Text="{Binding EmptyText, RelativeSource={RelativeSource AncestorType={x:Type local:SchemaDisplay}}}"
             TextWrapping="Wrap"
-            Visibility="{Binding IsEmpty,
-                                 RelativeSource={RelativeSource AncestorType={x:Type local:SchemaDisplay}},
-                                 Converter={x:Static jonverters:VisibilityConverter.Default}}" />
+            Visibility="{Binding IsEmpty, RelativeSource={RelativeSource AncestorType={x:Type local:SchemaDisplay}}, Converter={x:Static jonverters:VisibilityConverter.Default}}" />
 
         <TreeView
             Background="Transparent"
             BorderThickness="0"
             ItemsSource="{Binding Entries, RelativeSource={RelativeSource AncestorType={x:Type local:SchemaDisplay}}}">
             <TreeView.ItemContainerStyle>
-                <Style BasedOn="{StaticResource {x:Type TreeViewItem}}" TargetType="TreeViewItem">
+                <Style BasedOn="{StaticResource TreeViewItemStyle}" TargetType="TreeViewItem">
                     <!--  Seeded once : the shape as a whole comes open, and what the reader does with it stays theirs  -->
                     <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=OneTime}" />
                 </Style>
@@ -36,17 +33,14 @@
                     <StackPanel Orientation="Horizontal" ToolTip="{Binding Description}">
                         <jonts:FontIcon Text="{Binding Icon}" />
 
-                        <TextBlock
-                            Margin="6,0,0,0"
-                            Text="{Binding Name}" />
+                        <TextBlock Margin="6,0,0,0" Text="{Binding Name}" />
 
                         <!--  What the schema requires, marked rather than spelled out  -->
                         <TextBlock
                             Foreground="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}"
                             Text="*"
                             ToolTip="Required"
-                            Visibility="{Binding IsRequired,
-                                                 Converter={x:Static jonverters:VisibilityConverter.Default}}" />
+                            Visibility="{Binding IsRequired, Converter={x:Static jonverters:VisibilityConverter.Default}}" />
 
                         <TextBlock
                             Margin="8,0,0,0"
@@ -58,8 +52,7 @@
                             Style="{StaticResource Muted}"
                             Text="{Binding Description}"
                             TextTrimming="CharacterEllipsis"
-                            Visibility="{Binding HasDescription,
-                                                 Converter={x:Static jonverters:VisibilityConverter.Default}}" />
+                            Visibility="{Binding HasDescription, Converter={x:Static jonverters:VisibilityConverter.Default}}" />
                     </StackPanel>
                 </HierarchicalDataTemplate>
             </TreeView.ItemTemplate>
