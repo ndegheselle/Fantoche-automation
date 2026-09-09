@@ -95,7 +95,6 @@
             <TreeView
                 Grid.Row="1"
                 Grid.ColumnSpan="2"
-                joufflu:Sizing.Size="xs"
                 ItemsSource="{Binding Root.Children}"
                 PreviewMouseLeftButtonUp="OnSelectionMouseLeftButtonUp"
                 QueryContinueDrag="OnSelectionQueryContinueDrag"
@@ -145,9 +144,9 @@
             </Grid.RowDefinitions>
             <!--  Path of the selected element.  -->
             <ScrollViewer
+                Grid.Row="0"
                 MaxWidth="300"
                 HorizontalAlignment="Left"
-                Grid.Row="0"
                 HorizontalScrollBarVisibility="Auto"
                 VerticalScrollBarVisibility="Disabled">
                 <ItemsControl ItemsSource="{Binding Breadcrumb}">

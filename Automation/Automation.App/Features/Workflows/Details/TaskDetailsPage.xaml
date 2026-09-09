@@ -29,7 +29,7 @@
                 <Grid Grid.Row="1" Visibility="{Binding Metadata.IsReadOnly, Mode=OneTime, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}">
                     <!--  Current package  -->
                     <Grid VerticalAlignment="Top" Visibility="{Binding HasTarget, Converter={StaticResource BoolToVisibility}}">
-                        <controls:PackageSummary DataContext="{Binding TargetPackage}" />
+                        <controls:PackageTargetSummary DataContext="{Binding Target}" />
                         <Button
                             Margin="{StaticResource {x:Static joufflu:Dimensions.SpacingThickness}}"
                             HorizontalAlignment="Right"

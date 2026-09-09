@@ -210,37 +210,34 @@
                                 <DataTemplate DataType="{x:Type viewModels:NodeViewModel}">
                                     <Grid>
                                         <TextBlock
+                                            MaxWidth="80"
                                             Text="{Binding Name}"
-                                            Visibility="{Binding IsRenaming,
-                                                                 Converter={x:Static jonverters:VisibilityConverter.Default},
-                                                                 ConverterParameter=False}">
+                                            TextAlignment="Center"
+                                            TextWrapping="Wrap"
+                                            Visibility="{Binding IsRenaming, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}">
                                             <TextBlock.InputBindings>
                                                 <MouseBinding
-                                                    Command="{Binding DataContext.RenameCommand,
-                                                                      RelativeSource={RelativeSource AncestorType={x:Type nodify:NodifyEditor}}}"
+                                                    Command="{Binding DataContext.RenameCommand, RelativeSource={RelativeSource AncestorType={x:Type nodify:NodifyEditor}}}"
                                                     CommandParameter="{Binding}"
                                                     Gesture="LeftDoubleClick" />
                                             </TextBlock.InputBindings>
                                         </TextBlock>
 
                                         <TextBox
+                                            Width="80"
                                             joufflu:Sizing.Size="xs"
-                                            MinWidth="90"
                                             IsVisibleChanged="OnRenameBoxVisibleChanged"
                                             LostKeyboardFocus="OnRenameBoxLostFocus"
                                             Text="{Binding NameDraft, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                            Visibility="{Binding IsRenaming,
-                                                                 Converter={x:Static jonverters:VisibilityConverter.Default}}">
+                                            Visibility="{Binding IsRenaming, Converter={x:Static jonverters:VisibilityConverter.Default}}">
                                             <TextBox.InputBindings>
                                                 <KeyBinding
                                                     Key="Return"
-                                                    Command="{Binding DataContext.CommitRenameCommand,
-                                                                      RelativeSource={RelativeSource AncestorType={x:Type nodify:NodifyEditor}}}"
+                                                    Command="{Binding DataContext.CommitRenameCommand, RelativeSource={RelativeSource AncestorType={x:Type nodify:NodifyEditor}}}"
                                                     CommandParameter="{Binding}" />
                                                 <KeyBinding
                                                     Key="Escape"
-                                                    Command="{Binding DataContext.CancelRenameCommand,
-                                                                      RelativeSource={RelativeSource AncestorType={x:Type nodify:NodifyEditor}}}"
+                                                    Command="{Binding DataContext.CancelRenameCommand, RelativeSource={RelativeSource AncestorType={x:Type nodify:NodifyEditor}}}"
                                                     CommandParameter="{Binding}" />
                                             </TextBox.InputBindings>
                                         </TextBox>
@@ -318,7 +315,7 @@
                                         CommandParameter="{Binding DataContext}"
                                         Header="Open settings">
                                         <MenuItem.Icon>
-                                            <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.SlidersHorizontal}"  />
+                                            <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.SlidersHorizontal}" />
                                         </MenuItem.Icon>
                                     </MenuItem>
                                     <MenuItem
@@ -326,7 +323,7 @@
                                         CommandParameter="{Binding DataContext}"
                                         Header="Rename">
                                         <MenuItem.Icon>
-                                            <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Pencil}"  />
+                                            <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Pencil}" />
                                         </MenuItem.Icon>
                                     </MenuItem>
                                 </ContextMenu>

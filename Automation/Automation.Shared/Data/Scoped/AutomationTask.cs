@@ -159,7 +159,7 @@ public class AutomationControl : AutomationTask
     {
         Id = Guid.Parse("00000000-0000-0000-0000-100000000005"),
         ParentId = Scope.Controls.Id,
-        Metadata = new ScopedMetadata(EnumScopedType.Task) { Tags = ["Control"], Name = "Map", IsReadOnly = true },
+        Metadata = new ScopedMetadata(EnumScopedType.Task) { Tags = ["Control"], Name = "Map", Icon = "\ue15e", IsReadOnly = true },
         InputSchema = new JsonSchema(),
         OutputSchema = new JsonSchema(),
     };

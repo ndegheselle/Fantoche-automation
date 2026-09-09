@@ -16,11 +16,11 @@
     xmlns:servers="clr-namespace:Automation.App.Features.Servers"
     xmlns:storage="clr-namespace:Automation.App.Features.Storage"
     xmlns:workflows="clr-namespace:Automation.App.Features.Workflows"
-    Width="1000"
-    Height="640"
+    Width="1200"
+    Height="800"
     d:DataContext="{d:DesignInstance Type=local:SpineViewModel}"
-    IconVisibility="Collapsed"
     AllowContentOverTitleBar="True"
+    IconVisibility="Collapsed"
     mc:Ignorable="d">
     <jeedback:ToastContainer Toasts="{Binding Toasts}">
         <javigation:OverlayContainer Overlays="{Binding Overlays}">

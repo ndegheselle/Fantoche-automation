@@ -152,6 +152,14 @@ namespace Automation.App.Features.Workflows.Editor
         public string Description { get; }
 
         /// <summary>
+        /// The package and class the node's task runs, null when the node is a control, a nested
+        /// workflow, or a task without a target yet : none of those have one to summarize.
+        /// </summary>
+        public PackageClassTarget? Target { get; }
+
+        public bool HasTarget => Target != null;
+
+        /// <summary>
         /// What the mapping stands for : the parameters of a task everywhere, the default values on
         /// the start.
         /// </summary>
@@ -227,6 +235,7 @@ namespace Automation.App.Features.Workflows.Editor
 
             Title = $"{node.Name} - {Describe()}";
             Description = Explain();
+            Target = (node.AutomationTask as AutomationTask)?.Target;
             MappingLabel = IsStart ? "Default values, for what the caller leaves out" : "Input mapping";
             ExpectedLabel = LabelExpected();
             _inputMappingJson = node.InputTemplateJson;

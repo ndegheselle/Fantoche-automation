@@ -16,21 +16,11 @@ namespace Automation.App.Features.Workflows.Details
                 Task.Target = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(HasTarget));
-                OnPropertyChanged(nameof(TargetPackage));
                 MarkChanged();
             }
         }
 
         public bool HasTarget => Target != null;
-
-        /// <summary>
-        /// Target as package informations, to be displayed by a
-        /// <see cref="Packages.Controls.PackageSummary"/>. The targeted class takes the description
-        /// slot, the package description not being stored on the task.
-        /// </summary>
-        public PackageInfos? TargetPackage => Target == null
-            ? null
-            : new PackageInfos() { Identifier = Target.Package, Description = Target.ClassFullName };
 
         public TaskDetailsViewModel(ScopedNode node, WorkflowsViewModel parent) : base(node, parent)
         { }
