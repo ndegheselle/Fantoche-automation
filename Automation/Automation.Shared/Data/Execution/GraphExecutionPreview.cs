@@ -154,7 +154,8 @@ public class GraphExecutionPreview
             // mapping is the defaults of the workflow and those can read "$global".
             RecordContext(resolution, start.Id, [], null);
 
-            EnqueueNext(pending, context, []);
+            foreach (PreviewStep next in NextSteps(context, []))
+                pending.Enqueue(next);
         }
 
         while (pending.TryDequeue(out PreviewStep? step))
@@ -172,22 +173,25 @@ public class GraphExecutionPreview
                 ? []
                 : step.Provenance;
 
-            EnqueueNext(pending, step.Context with { Instance = instance }, provenance);
+            foreach (PreviewStep next in NextSteps(step.Context with { Instance = instance }, provenance))
+                pending.Enqueue(next);
         }
     }
 
-    private static void EnqueueNext(Queue<PreviewStep> pending, GraphExecutionContext context, IReadOnlyList<GraphEdge> provenance)
+    /// <summary>
+    /// The steps the nodes fed by [context] are to be previewed with : one per branch leaving it,
+    /// each carrying the path it was reached by extended by the edge it left on.
+    /// </summary>
+    private static IEnumerable<PreviewStep> NextSteps(GraphExecutionContext context, IReadOnlyList<GraphEdge> provenance)
     {
-        foreach (GraphSource next in context.Graph.GetNext(context.Node))
-        {
-            pending.Enqueue(new PreviewStep
+        return context.Graph.GetNext(context.Node)
+            .Select(next => new PreviewStep
             {
                 Context = context with { Node = next.Task },
                 // The shared context walks down the branch, whatever a share upstream fed it with.
                 Shared = context.Instance.Shared,
                 Provenance = [.. provenance, next.Connection.Edge],
             });
-        }
     }
 
     private TaskInstance? PreviewNode(PreviewStep step)
