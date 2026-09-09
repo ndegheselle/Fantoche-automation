@@ -45,6 +45,16 @@
                     Visibility="{Binding IsRunning, Converter={x:Static jonverters:VisibilityConverter.Default}}">
                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.CircleStop}" />
                 </Button>
+                <!--
+                    How far the run got, counted on the nodes it went through : the graph shows which
+                    ones they are, this shows how many. It stays once the run is over, being what it
+                    amounted to.
+                -->
+                <TextBlock
+                    Margin="0,0,8,0"
+                    VerticalAlignment="Center"
+                    Text="{Binding Progress}"
+                    Visibility="{Binding HasProgress, Converter={x:Static jonverters:VisibilityConverter.Default}}" />
             </StackPanel>
         </Border>
 

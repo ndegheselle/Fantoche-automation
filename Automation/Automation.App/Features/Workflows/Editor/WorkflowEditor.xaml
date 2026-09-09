@@ -71,6 +71,9 @@
                         <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}" />
                         <Setter Property="BorderThickness" Value="2" />
                     </DataTrigger>
+                    <DataTrigger Binding="{Binding HasState}" Value="True">
+                        <Setter Property="BorderThickness" Value="2" />
+                    </DataTrigger>
                     <DataTrigger Binding="{Binding State}" Value="Pending">
                         <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.InfoBrush}}" />
                     </DataTrigger>
@@ -88,6 +91,49 @@
                     </DataTrigger>
                     <DataTrigger Binding="{Binding State}" Value="Canceled">
                         <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.WarningBrush}}" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+
+            <!--
+                State of a node in the run being followed, displayed over it. The outline of the node
+                already carries the state as a color, but a color stands for two of them (pending and
+                progressing are both awaited, waiting and canceled both interrupted) : the icon is
+                what tells them apart, and its tooltip how long the node took and what it ended on.
+            -->
+            <Style
+                x:Key="NodeStateIcon"
+                BasedOn="{StaticResource {x:Type jonts:FontIcon}}"
+                TargetType="{x:Type jonts:FontIcon}">
+                <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+                <Setter Property="ToolTip" Value="{Binding StateText}" />
+                <Setter Property="ToolTipService.InitialShowDelay" Value="0" />
+                <Setter Property="ToolTipService.ShowOnDisabled" Value="True" />
+                <Setter Property="Visibility" Value="{Binding HasState, Converter={x:Static jonverters:VisibilityConverter.Default}}" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding State}" Value="Pending">
+                        <Setter Property="Text" Value="{x:Static jonts:LucideFontIcons.Hourglass}" />
+                        <Setter Property="Foreground" Value="{DynamicResource {x:Static joufflu:Brushes.InfoBrush}}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding State}" Value="Waiting">
+                        <Setter Property="Text" Value="{x:Static jonts:LucideFontIcons.Timer}" />
+                        <Setter Property="Foreground" Value="{DynamicResource {x:Static joufflu:Brushes.WarningBrush}}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding State}" Value="Progressing">
+                        <Setter Property="Text" Value="{x:Static jonts:LucideFontIcons.Loader}" />
+                        <Setter Property="Foreground" Value="{DynamicResource {x:Static joufflu:Brushes.InfoBrush}}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding State}" Value="Completed">
+                        <Setter Property="Text" Value="{x:Static jonts:LucideFontIcons.Check}" />
+                        <Setter Property="Foreground" Value="{DynamicResource {x:Static joufflu:Brushes.SuccessBrush}}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding State}" Value="Failed">
+                        <Setter Property="Text" Value="{x:Static jonts:LucideFontIcons.AlertCircle}" />
+                        <Setter Property="Foreground" Value="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding State}" Value="Canceled">
+                        <Setter Property="Text" Value="{x:Static jonts:LucideFontIcons.CircleSlash2}" />
+                        <Setter Property="Foreground" Value="{DynamicResource {x:Static joufflu:Brushes.WarningBrush}}" />
                     </DataTrigger>
                 </Style.Triggers>
             </Style>
@@ -272,13 +318,26 @@
                             </nodify:Node.OutputConnectorTemplate>
 
                             <nodify:Node.Header>
-                                <jonts:FontIcon
-                                    Foreground="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}"
-                                    Text="{x:Static jonts:LucideFontIcons.AlertCircle}"
-                                    ToolTip="{Binding ErrorsText}"
-                                    ToolTipService.InitialShowDelay="0"
-                                    ToolTipService.ShowOnDisabled="True"
-                                    Visibility="{Binding HasErrors, Converter={x:Static jonverters:VisibilityConverter.Default}}" />
+                                <StackPanel
+                                    HorizontalAlignment="Center"
+                                    joufflu:Spacing.Gap="4"
+                                    Orientation="Horizontal">
+                                    <!--  Where the node stands in the run being followed, nothing while none is  -->
+                                    <jonts:FontIcon Style="{StaticResource NodeStateIcon}">
+                                        <jonts:FontIcon.RenderTransform>
+                                            <!--  Turned while the node is progressing. Named so the animation reaches it, and declared here rather than by the style so each node turns on its own  -->
+                                            <RotateTransform x:Name="StateIconRotation" />
+                                        </jonts:FontIcon.RenderTransform>
+                                    </jonts:FontIcon>
+
+                                    <jonts:FontIcon
+                                        Foreground="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}"
+                                        Text="{x:Static jonts:LucideFontIcons.AlertCircle}"
+                                        ToolTip="{Binding ErrorsText}"
+                                        ToolTipService.InitialShowDelay="0"
+                                        ToolTipService.ShowOnDisabled="True"
+                                        Visibility="{Binding HasErrors, Converter={x:Static jonverters:VisibilityConverter.Default}}" />
+                                </StackPanel>
                             </nodify:Node.Header>
 
                             <jonts:FontIcon
@@ -286,6 +345,31 @@
                                 FontSize="{DynamicResource {x:Static joufflu:Dimensions.ControlFontSizeXl}}"
                                 Style="{StaticResource ScopedMetadataIcon}" />
                         </nodify:Node>
+                        <DataTemplate.Triggers>
+                            <!--
+                                A node that is running is the one the reader is waiting on : its icon
+                                turns for as long as it does, so the graph tells where the run is at
+                                a glance rather than by reading every outline.
+                            -->
+                            <DataTrigger Binding="{Binding State}" Value="Progressing">
+                                <DataTrigger.EnterActions>
+                                    <BeginStoryboard x:Name="SpinStateIcon">
+                                        <Storyboard>
+                                            <DoubleAnimation
+                                                RepeatBehavior="Forever"
+                                                Storyboard.TargetName="StateIconRotation"
+                                                Storyboard.TargetProperty="Angle"
+                                                From="0"
+                                                To="360"
+                                                Duration="0:0:1.2" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </DataTrigger.EnterActions>
+                                <DataTrigger.ExitActions>
+                                    <StopStoryboard BeginStoryboardName="SpinStateIcon" />
+                                </DataTrigger.ExitActions>
+                            </DataTrigger>
+                        </DataTemplate.Triggers>
                     </DataTemplate>
                 </nodify:NodifyEditor.Resources>
 
@@ -349,6 +433,16 @@
                                 <Setter TargetName="Line" Property="Stroke" Value="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}" />
                                 <Setter TargetName="Line" Property="StrokeThickness" Value="3" />
                                 <Setter TargetName="Line" Property="ToolTip" Value="{Binding ErrorsText}" />
+                            </DataTrigger>
+                            <!--
+                                The path the run took, drawn last so it colors the branch over what
+                                the preview holds against it : a branch a run went through resolved,
+                                whatever was expected of it. Its tooltip is left alone, it is still
+                                the only place the errors are read.
+                            -->
+                            <DataTrigger Binding="{Binding IsTraversed}" Value="True">
+                                <Setter TargetName="Line" Property="Stroke" Value="{DynamicResource {x:Static joufflu:Brushes.PrimaryBrush}}" />
+                                <Setter TargetName="Line" Property="StrokeThickness" Value="3" />
                             </DataTrigger>
                         </DataTemplate.Triggers>
                     </DataTemplate>

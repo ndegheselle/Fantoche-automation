@@ -24,6 +24,12 @@ namespace Automation.App.Features.Workflows.Editor.ViewModels
         [NotifyPropertyChangedFor(nameof(HasErrors), nameof(ErrorsText))]
         private IReadOnlyList<string> _errors = [];
 
+        /// <summary>
+        /// Whether the run being followed went through this connection, the path it took being
+        /// drawn on the graph. Cleared when a new run starts, like the states of the nodes.
+        /// </summary>
+        [ObservableProperty] private bool _isTraversed;
+
         public bool HasErrors => Errors.Count > 0;
 
         /// <summary>
