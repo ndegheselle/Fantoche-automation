@@ -25,7 +25,7 @@
                 <RowDefinition />
                 <RowDefinition Height="auto" />
             </Grid.RowDefinitions>
-            <jnputs:Search Grid.Row="0" SearchText="{Binding Search, Mode=TwoWay}" Width="300" HorizontalAlignment="Left" />
+            <jnputs:Search Grid.Row="0" SearchText="{Binding Paging.Search, Mode=TwoWay}" Width="300" HorizontalAlignment="Left" />
             <DataGrid
                 Grid.Row="1"
                 AutoGenerateColumns="False"
@@ -57,8 +57,8 @@
             </DataGrid>
             <javigation:Paging
                 Grid.Row="2"
-                Capacity="{Binding Capacity, Mode=TwoWay}"
-                PageNumber="{Binding PageNumber, Mode=TwoWay}" />
+                Capacity="{Binding Paging.Capacity, Mode=TwoWay}"
+                PageNumber="{Binding Paging.PageNumber, Mode=TwoWay}" />
         </Grid>
         <Border
             x:Name="DropZone"

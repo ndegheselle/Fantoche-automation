@@ -12,9 +12,6 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     d:DataContext="{d:DesignInstance Type=local:TaskDetailsViewModel}"
     mc:Ignorable="d">
-    <UserControl.Resources>
-        <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
-    </UserControl.Resources>
     <TabControl SelectedValue="{Binding CurrentTab, Mode=TwoWay}" SelectedValuePath="Tag">
         <TabItem Header="Settings" Tag="{x:Static local:EnumDetailTab.Settings}">
             <Grid joufflu:Spacing.Gap="4">
@@ -28,7 +25,7 @@
 
                 <Grid Grid.Row="1" Visibility="{Binding Metadata.IsReadOnly, Mode=OneTime, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}">
                     <!--  Current package  -->
-                    <Grid VerticalAlignment="Top" Visibility="{Binding HasTarget, Converter={StaticResource BoolToVisibility}}">
+                    <Grid VerticalAlignment="Top" Visibility="{Binding HasTarget, Converter={x:Static jonverters:VisibilityConverter.Default}}">
                         <controls:PackageTargetSummary DataContext="{Binding Target}" />
                         <Button
                             Margin="{StaticResource {x:Static joufflu:Dimensions.SpacingThickness}}"
@@ -47,17 +44,8 @@
                     <StackPanel
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
-                        joufflu:Spacing.Gap="8">
-                        <StackPanel.Style>
-                            <Style TargetType="StackPanel">
-                                <Setter Property="Visibility" Value="Collapsed" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding HasTarget}" Value="False">
-                                        <Setter Property="Visibility" Value="Visible" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </StackPanel.Style>
+                        joufflu:Spacing.Gap="8"
+                        Visibility="{Binding HasTarget, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}">
                         <StackPanel Orientation="Horizontal">
                             <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.CircleSlash2}" />
                             <TextBlock Margin="8,0,0,0">No target, select a package to setup the task.</TextBlock>
@@ -72,27 +60,7 @@
 
                 </Grid>
 
-                <Grid Grid.Row="2">
-                    <Button
-                        HorizontalAlignment="Left"
-                        Command="{Binding DeleteCommand}"
-                        Style="{StaticResource SoftDangerButton}"
-                        Visibility="{Binding Metadata.IsReadOnly, Mode=OneTime, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}">
-                        <StackPanel Orientation="Horizontal">
-                            <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Trash}" />
-                            <TextBlock Margin="4,0,0,0">Delete</TextBlock>
-                        </StackPanel>
-                    </Button>
-                    <Button
-                        HorizontalAlignment="Right"
-                        Command="{Binding SaveCommand}"
-                        Style="{StaticResource PrimaryButton}">
-                        <StackPanel Orientation="Horizontal">
-                            <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Save}" />
-                            <TextBlock Margin="4,0,0,0">Save</TextBlock>
-                        </StackPanel>
-                    </Button>
-                </Grid>
+                <details:ScopedActions Grid.Row="2" />
             </Grid>
         </TabItem>
         <TabItem Header="History" Tag="{x:Static local:EnumDetailTab.History}">

@@ -5,6 +5,7 @@
     xmlns:controls="clr-namespace:Automation.App.Features.Workflows.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
+    xmlns:jonverters="clr-namespace:Joufflu.Converters;assembly=Joufflu"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Automation.App.Features.Workflows.Editor"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -13,22 +14,6 @@
     MinWidth="900"
     d:DataContext="{d:DesignInstance Type=local:TaskSettingsViewModel}"
     mc:Ignorable="d">
-    <UserControl.Resources>
-        <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
-
-        <!--  JSON is edited as raw text : monospaced, multi line and scrollable  -->
-        <Style
-            x:Key="JsonTextBox"
-            BasedOn="{StaticResource {x:Type TextBox}}"
-            TargetType="TextBox">
-            <Setter Property="AcceptsReturn" Value="True" />
-            <Setter Property="AcceptsTab" Value="True" />
-            <Setter Property="FontFamily" Value="Consolas" />
-            <Setter Property="HorizontalScrollBarVisibility" Value="Auto" />
-            <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
-            <Setter Property="VerticalContentAlignment" Value="Top" />
-        </Style>
-    </UserControl.Resources>
 
     <Grid joufflu:Spacing.Gap="4">
         <Grid.RowDefinitions>
@@ -39,7 +24,7 @@
         </Grid.RowDefinitions>
 
         <!--  The package and class the node's task runs, when it has one  -->
-        <packages:PackageTargetSummary DataContext="{Binding Target}" Visibility="{Binding DataContext.HasTarget, ElementName=RootElement, Converter={StaticResource BoolToVisibility}}" />
+        <packages:PackageTargetSummary DataContext="{Binding Target}" Visibility="{Binding DataContext.HasTarget, ElementName=RootElement, Converter={x:Static jonverters:VisibilityConverter.Default}}" />
 
         <!--  What the node reads, what it maps, and what comes out of it  -->
         <Grid Grid.Row="1" joufflu:Spacing.Gap="4">
@@ -113,14 +98,14 @@
                 Grid.Column="2"
                 EmptyText="{Binding EmptyExpectationText}"
                 SchemaJson="{Binding ExpectedSchemaJson}"
-                Visibility="{Binding IsExpectedReadOnly, Converter={StaticResource BoolToVisibility}}" />
+                Visibility="{Binding IsExpectedReadOnly, Converter={x:Static jonverters:VisibilityConverter.Default}}" />
             <TextBox
                 Grid.Row="1"
                 Grid.Column="2"
                 Height="auto"
                 Style="{StaticResource JsonTextBox}"
                 Text="{Binding ExpectedSchemaJson, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                Visibility="{Binding DeclaresSchema, Converter={StaticResource BoolToVisibility}}" />
+                Visibility="{Binding DeclaresSchema, Converter={x:Static jonverters:VisibilityConverter.Default}}" />
         </Grid>
 
         <!--  Errors, the validation being blocked while there is any  -->
@@ -129,7 +114,7 @@
                 Without a context the mapping is edited blind : nothing walked the graph, so a
                 reference has nothing to be resolved against and nothing can be said about it.
             -->
-            <StackPanel Orientation="Horizontal" Visibility="{Binding IsContextMissing, Converter={StaticResource BoolToVisibility}}">
+            <StackPanel Orientation="Horizontal" Visibility="{Binding IsContextMissing, Converter={x:Static jonverters:VisibilityConverter.Default}}">
                 <jonts:FontIcon Foreground="{DynamicResource {x:Static joufflu:Brushes.WarningBrush}}" Text="{x:Static jonts:LucideFontIcons.AlertTriangle}" />
                 <TextBlock
                     Margin="4,0,0,0"
@@ -138,7 +123,7 @@
                     TextWrapping="Wrap" />
             </StackPanel>
 
-            <ItemsControl ItemsSource="{Binding Errors}" Visibility="{Binding HasErrors, Converter={StaticResource BoolToVisibility}}">
+            <ItemsControl ItemsSource="{Binding Errors}" Visibility="{Binding HasErrors, Converter={x:Static jonverters:VisibilityConverter.Default}}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
@@ -149,7 +134,7 @@
                                 FontFamily="Consolas"
                                 Style="{StaticResource Muted}"
                                 Text="{Binding Branch, StringFormat='from {0}'}"
-                                Visibility="{Binding HasBranch, Converter={StaticResource BoolToVisibility}}" />
+                                Visibility="{Binding HasBranch, Converter={x:Static jonverters:VisibilityConverter.Default}}" />
                             <TextBlock
                                 Margin="4,0,0,0"
                                 Foreground="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}"

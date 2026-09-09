@@ -74,24 +74,10 @@ namespace Automation.App.Features.Workflows.Editor.History
             Raise(action);
         }
 
-        /// <summary>
-        /// Take the current state as the saved one.
-        /// </summary>
         public void MarkSaved()
         {
             _savePoint = Current;
             OnPropertyChanged(nameof(HasUnsavedChanges));
-        }
-
-        /// <summary>
-        /// Forget every action, the current state becoming the saved one.
-        /// </summary>
-        public void Clear()
-        {
-            _applied.Clear();
-            _reverted.Clear();
-            _savePoint = null;
-            NotifyChanged();
         }
 
         private void Raise(IReversibleAction action)

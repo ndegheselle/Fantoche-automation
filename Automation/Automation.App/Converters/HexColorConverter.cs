@@ -11,6 +11,8 @@ namespace Automation.App.Converters
     /// </summary>
     public class HexColorConverter : IValueConverter
     {
+        public static readonly HexColorConverter Default = new();
+
         public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
             if (value is string hex && !string.IsNullOrWhiteSpace(hex))

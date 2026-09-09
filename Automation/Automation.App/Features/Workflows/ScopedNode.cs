@@ -1,13 +1,13 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using Automation.Shared.Data.Scoped;
-using Automation.Shared.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Automation.App.Features.Workflows
 {
     /// <summary>
-    /// A <see cref="ScopedElement"/> as displayed in the tree : it knows its parent, so a path can be built from it.
+    /// A <see cref="ScopedElement"/> as displayed in the tree : it knows its parent, so a path can
+    /// be built from it.
     /// </summary>
     public partial class ScopedNode : ObservableObject
     {
@@ -26,21 +26,16 @@ namespace Automation.App.Features.Workflows
         /// </summary>
         public BaseAutomationTask? TaskElement => Element as BaseAutomationTask;
 
-        /// <summary>
-        /// Ancestors then itself, root first.
-        /// </summary>
+        /// <summary>Ancestors then itself, root first.</summary>
         public IEnumerable<ScopedNode> Path => Parent == null ? [this] : Parent.Path.Append(this);
 
         [ObservableProperty] private bool _isExpanded;
         [ObservableProperty] private bool _isSelected;
 
-        private readonly IScopedService _scoped;
-
-        public ScopedNode(ScopedElement element, ScopedNode? parent, IScopedService scoped)
+        public ScopedNode(ScopedElement element, ScopedNode? parent)
         {
             Element = element;
             Parent = parent;
-            _scoped = scoped;
             // Name and Type are read from the metadata, which the details pages edit directly.
             Element.Metadata.PropertyChanged += OnMetadataChanged;
         }
@@ -54,32 +49,39 @@ namespace Automation.App.Features.Workflows
         }
 
         /// <summary>
-        /// Fill the children from an already loaded flat list of elements, indexed by their parent :
-        /// used by the search, which returns its results along with the scopes leading to them.
+        /// Fill the branch from an already loaded flat list of elements, indexed by their parent :
+        /// the whole tree is read in one go, and so are the results of a search along with the
+        /// scopes leading to them.
         /// </summary>
         public void Load(ILookup<Guid?, ScopedElement> byParent)
         {
             Children.Clear();
             foreach (ScopedElement child in byParent[Element.Id])
             {
-                var node = new ScopedNode(child, this, _scoped);
+                var node = new ScopedNode(child, this);
                 Children.Add(node);
                 node.Load(byParent);
             }
         }
 
-        public async Task LoadAsync()
+        /// <summary>
+        /// The node standing for [elementId] within this branch, null when it holds none : the tree
+        /// can be displaying only part of itself while a search is on.
+        /// </summary>
+        public ScopedNode? Find(Guid elementId)
         {
-            if (!IsScope)
-                return;
+            if (Element.Id == elementId)
+                return this;
 
-            Children.Clear();
-            foreach (ScopedElement child in await _scoped.GetChildrensAsync(Element.Id))
-            {
-                var node = new ScopedNode(child, this, _scoped);
-                Children.Add(node);
-                await node.LoadAsync();
-            }
+            return Children.Select(child => child.Find(elementId)).FirstOrDefault(found => found != null);
+        }
+
+        /// <summary>Open every branch under this node, what it holds being buried otherwise.</summary>
+        public void ExpandAll()
+        {
+            IsExpanded = true;
+            foreach (ScopedNode child in Children)
+                child.ExpandAll();
         }
     }
 }

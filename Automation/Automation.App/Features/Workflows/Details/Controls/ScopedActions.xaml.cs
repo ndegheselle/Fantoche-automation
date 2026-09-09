@@ -2,9 +2,9 @@ using System.Windows.Controls;
 
 namespace Automation.App.Features.Workflows.Details.Controls
 {
-    public partial class InstanceDetailOverlay : UserControl
+    public partial class ScopedActions : UserControl
     {
-        public InstanceDetailOverlay()
+        public ScopedActions()
         {
             InitializeComponent();
         }

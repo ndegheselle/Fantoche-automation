@@ -4,9 +4,6 @@ using Joufflu.Themes;
 
 namespace Automation.App
 {
-    /// <summary>
-    /// Interaction logic for App.xaml
-    /// </summary>
     public partial class App : Application
     {
         private SpineViewModel? shell;
@@ -31,11 +28,8 @@ namespace Automation.App
 
         private void CurrentDomainUnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            var exception = e.ExceptionObject as Exception;
-            if (exception != null)
-            {
+            if (e.ExceptionObject is Exception exception)
                 HandleException(exception);
-            }
         }
 
         private void HandleException(Exception exception)

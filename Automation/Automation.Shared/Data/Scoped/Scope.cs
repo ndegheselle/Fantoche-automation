@@ -23,6 +23,18 @@ namespace Automation.Shared.Data.Scoped
         {
             Metadata = metadata;
         }
+
+        /// <summary>
+        /// A new element of [type] named [name] under [parentId]. Which concrete element a kind
+        /// stands for is known here rather than by whoever creates one.
+        /// </summary>
+        public static ScopedElement Create(EnumScopedType type, string name, Guid parentId) => type switch
+        {
+            EnumScopedType.Scope => new Scope(name, parentId),
+            EnumScopedType.Workflow => new AutomationWorkflow(name, parentId),
+            EnumScopedType.Task => new AutomationTask(name, parentId),
+            _ => throw new NotSupportedException($"Unknown scoped type '{type}'")
+        };
     }
 
     public partial class Scope : ScopedElement

@@ -71,8 +71,8 @@
                 Text="{Binding Total, StringFormat={}{0} executions}" />
             <javigation:Paging
                 HorizontalAlignment="Right"
-                Capacity="{Binding Capacity, Mode=TwoWay}"
-                PageNumber="{Binding PageNumber, Mode=TwoWay}" />
+                Capacity="{Binding Paging.Capacity, Mode=TwoWay}"
+                PageNumber="{Binding Paging.PageNumber, Mode=TwoWay}" />
         </Grid>
     </Grid>
 </UserControl>

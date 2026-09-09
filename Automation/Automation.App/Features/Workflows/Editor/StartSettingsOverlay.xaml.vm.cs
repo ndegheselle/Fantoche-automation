@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using Automation.App.Common;
 using Automation.Shared.Data.Scoped;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -18,15 +19,11 @@ namespace Automation.App.Features.Workflows.Editor
     /// <see cref="IsExpectingSettings"/> : a workflow taking no input is started right away.
     /// </para>
     /// </summary>
-    public partial class StartSettingsViewModel : ObservableObject
+    public partial class StartSettingsViewModel : OverlayViewModel<JToken>
     {
         public AutomationWorkflow Workflow { get; }
 
-        public string Title { get; }
-
-        /// <summary>
-        /// Schema of what the workflow expects, displayed read only.
-        /// </summary>
+        /// <summary>Schema of what the workflow expects, displayed read only.</summary>
         public string SchemaJson { get; }
 
         /// <summary>
@@ -42,19 +39,12 @@ namespace Automation.App.Features.Workflows.Editor
 
         public bool HasErrors => Errors.Count > 0;
 
-        /// <summary>
-        /// The settings to start with, only set once they have been validated.
-        /// </summary>
-        public JToken? Settings { get; private set; }
-
-        private readonly IOverlayService _overlays;
-
         public StartSettingsViewModel(AutomationWorkflow workflow, IOverlayService overlays)
+            : base(overlays)
         {
             Workflow = workflow;
-            _overlays = overlays;
-            Title = $"Start - {workflow.Metadata.Name}";
-            SchemaJson = Format(workflow.InputSchemaJson);
+            Options.Title = $"Start - {workflow.Metadata.Name}";
+            SchemaJson = Json.Format(workflow.InputSchemaJson);
             _settingsJson = BuildTemplate(workflow.InputSchema, Defaults(workflow));
 
             Errors.CollectionChanged += (_, _) =>
@@ -89,18 +79,10 @@ namespace Automation.App.Features.Workflows.Editor
         }
 
         /// <summary>
-        /// Ask for the settings of the next run of [workflow] and wait for the user to validate
-        /// them, <see langword="null"/> being returned when the start is cancelled.
+        /// Ask for the settings of the next run of [workflow], <see langword="null"/> when cancelled.
         /// </summary>
-        public static async Task<JToken?> ShowAsync(AutomationWorkflow workflow)
-        {
-            IOverlayService overlays = SpineViewModel.Instance.Overlays;
-
-            var viewModel = new StartSettingsViewModel(workflow, overlays);
-            if (await overlays.Show(viewModel, new OverlayOptions() { Title = viewModel.Title }) != true)
-                return null;
-            return viewModel.Settings;
-        }
+        public static Task<JToken?> ShowAsync(AutomationWorkflow workflow)
+            => ShowAsync(new StartSettingsViewModel(workflow, SpineViewModel.Instance.Overlays));
 
         /// <summary>
         /// Check that the settings are valid JSON and that they match what the workflow expects, so
@@ -137,16 +119,9 @@ namespace Automation.App.Features.Workflows.Editor
         }
 
         [RelayCommand(CanExecute = nameof(CanStart))]
-        private void Start()
-        {
-            Settings = JToken.Parse(SettingsJson);
-            _overlays.CloseTop(true);
-        }
+        private void Start() => Close(JToken.Parse(SettingsJson));
 
         private bool CanStart() => !HasErrors;
-
-        [RelayCommand]
-        private void Cancel() => _overlays.CloseTop(false);
 
         partial void OnSettingsJsonChanged(string value) => Refresh();
 
@@ -202,25 +177,6 @@ namespace Automation.App.Features.Workflows.Editor
             if (type.HasFlag(JsonObjectType.Object))
                 return new JObject();
             return "";
-        }
-
-        /// <summary>
-        /// The schema as it is displayed : indented, or as it was written when it can't be read as
-        /// JSON.
-        /// </summary>
-        private static string Format(string? json)
-        {
-            if (string.IsNullOrWhiteSpace(json))
-                return "";
-
-            try
-            {
-                return JToken.Parse(json).ToString(Formatting.Indented);
-            }
-            catch (Exception)
-            {
-                return json;
-            }
         }
     }
 }

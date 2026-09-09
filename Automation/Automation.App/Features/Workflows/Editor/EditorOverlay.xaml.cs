@@ -4,9 +4,6 @@ using Nodify;
 
 namespace Automation.App.Features.Workflows.Editor
 {
-    /// <summary>
-    /// Logique d'interaction pour EditorOverlay.xaml
-    /// </summary>
     public partial class EditorOverlay : UserControl
     {
         public static readonly DependencyProperty EditorProperty = DependencyProperty.Register(

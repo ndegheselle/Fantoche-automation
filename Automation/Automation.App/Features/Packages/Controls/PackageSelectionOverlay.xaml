@@ -7,6 +7,7 @@
     xmlns:javigation="clr-namespace:Joufflu.Navigation.Controls;assembly=Joufflu.Navigation"
     xmlns:jnputs="clr-namespace:Joufflu.Inputs.Controls;assembly=Joufflu.Inputs"
     xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
+    xmlns:jonverters="clr-namespace:Joufflu.Converters;assembly=Joufflu"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Automation.App.Features.Packages.Controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -14,13 +15,10 @@
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
-    <UserControl.Resources>
-        <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
-    </UserControl.Resources>
 
     <Grid MinWidth="600" MinHeight="400">
         <!--  Step 1 : package selection  -->
-        <Grid joufflu:Spacing.Gap="4" Visibility="{Binding IsPackageStep, Converter={StaticResource BoolToVisibility}}">
+        <Grid joufflu:Spacing.Gap="4" Visibility="{Binding IsPackageStep, Converter={x:Static jonverters:VisibilityConverter.Default}}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto" />
                 <RowDefinition />
@@ -28,7 +26,7 @@
                 <RowDefinition Height="auto" />
             </Grid.RowDefinitions>
 
-            <jnputs:Search Grid.Row="0" SearchText="{Binding Search, Mode=TwoWay}" />
+            <jnputs:Search Grid.Row="0" SearchText="{Binding Paging.Search, Mode=TwoWay}" />
             <DataGrid
                 Grid.Row="1"
                 AutoGenerateColumns="False"
@@ -48,8 +46,8 @@
             </DataGrid>
             <javigation:Paging
                 Grid.Row="2"
-                Capacity="{Binding Capacity, Mode=TwoWay}"
-                PageNumber="{Binding PageNumber, Mode=TwoWay}" />
+                Capacity="{Binding Paging.Capacity, Mode=TwoWay}"
+                PageNumber="{Binding Paging.PageNumber, Mode=TwoWay}" />
             <Button
                 Grid.Row="3"
                 HorizontalAlignment="Right"
@@ -63,7 +61,7 @@
         </Grid>
 
         <!--  Step 2 : version and class selection  -->
-        <Grid joufflu:Spacing.Gap="4" Visibility="{Binding IsClassStep, Converter={StaticResource BoolToVisibility}}">
+        <Grid joufflu:Spacing.Gap="4" Visibility="{Binding IsClassStep, Converter={x:Static jonverters:VisibilityConverter.Default}}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto" />
                 <RowDefinition Height="auto" />

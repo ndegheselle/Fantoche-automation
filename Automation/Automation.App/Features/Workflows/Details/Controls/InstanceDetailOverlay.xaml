@@ -159,7 +159,7 @@
             joufflu:Spacing.Gap="4"
             Orientation="Horizontal">
             <Button Command="{Binding RefreshCommand}" Style="{StaticResource SecondaryButton}">Refresh</Button>
-            <Button Command="{Binding CloseCommand}" Style="{StaticResource PrimaryButton}">Close</Button>
+            <Button Command="{Binding ValidateCommand}" Style="{StaticResource PrimaryButton}">Close</Button>
         </StackPanel>
     </Grid>
 </UserControl>

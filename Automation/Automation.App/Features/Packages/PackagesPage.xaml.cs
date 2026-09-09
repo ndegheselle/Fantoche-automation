@@ -1,12 +1,9 @@
-﻿using Automation.Shared.Base;
-using Microsoft.Win32;
+﻿using Microsoft.Win32;
+using System.Windows;
 using System.Windows.Controls;
 
 namespace Automation.App.Features.Packages
 {
-    /// <summary>
-    /// Logique d'interaction pour PackagesPage.xaml
-    /// </summary>
     public partial class PackagesPage : UserControl
     {
         public PackagesViewModel ViewModel => (PackagesViewModel)this.DataContext;
@@ -17,8 +14,7 @@ namespace Automation.App.Features.Packages
             this.Loaded += (_, __) => _ = ViewModel.RefreshAsync();
         }
 
-        #region UI events
-        private void SelectFile(object sender, System.Windows.RoutedEventArgs e)
+        private void SelectFile(object sender, RoutedEventArgs e)
         {
             var openFileDialog = new OpenFileDialog
             {
@@ -27,8 +23,7 @@ namespace Automation.App.Features.Packages
             if (openFileDialog.ShowDialog() != true)
                 return;
 
-            ViewModel.AddPackage(openFileDialog.FileName);
+            _ = ViewModel.AddPackageAsync(openFileDialog.FileName);
         }
-        #endregion
     }
 }

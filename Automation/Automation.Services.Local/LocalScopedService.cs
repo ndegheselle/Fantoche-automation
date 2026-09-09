@@ -159,6 +159,17 @@ public class LocalScopedService : IScopedService
         return await ToElementsAsync(connection, rows);
     }
 
+    public async Task<List<ScopedElement>> GetTreeAsync()
+    {
+        using var connection = _databaseFactory.Create();
+
+        var rows = await connection.QueryAsync<ScopedModel>($"""
+            SELECT {ScopedModel.Columns} FROM Scoped;
+            """);
+
+        return await ToElementsAsync(connection, rows);
+    }
+
     public async Task<ScopedElement> RemoveAsync(ScopedElement element)
     {
         using var connection = _databaseFactory.Create();

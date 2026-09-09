@@ -4,12 +4,9 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="clr-namespace:Automation.App.Features.Workflows.Details.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
-    xmlns:jonverters="clr-namespace:Joufflu.Converters;assembly=Joufflu"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Automation.App.Features.Workflows.Details"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:workflows="clr-namespace:Automation.App.Features.Workflows"
     d:DataContext="{d:DesignInstance Type=local:ScopeDetailsViewModel}"
     mc:Ignorable="d">
     <TabControl SelectedValue="{Binding CurrentTab, Mode=TwoWay}" SelectedValuePath="Tag">
@@ -23,27 +20,7 @@
 
                 <controls:MetadataEditor DataContext="{Binding Metadata}" />
 
-                <Grid Grid.Row="2">
-                    <Button
-                        HorizontalAlignment="Left"
-                        Command="{Binding DeleteCommand}"
-                        Style="{StaticResource SoftDangerButton}"
-                        Visibility="{Binding Metadata.IsReadOnly, Mode=OneTime, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}">
-                        <StackPanel Orientation="Horizontal">
-                            <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Trash}" />
-                            <TextBlock Margin="4,0,0,0">Delete</TextBlock>
-                        </StackPanel>
-                    </Button>
-                    <Button
-                        HorizontalAlignment="Right"
-                        Command="{Binding SaveCommand}"
-                        Style="{StaticResource PrimaryButton}">
-                        <StackPanel Orientation="Horizontal">
-                            <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Save}" />
-                            <TextBlock Margin="4,0,0,0">Save</TextBlock>
-                        </StackPanel>
-                    </Button>
-                </Grid>
+                <controls:ScopedActions Grid.Row="2" />
             </Grid>
         </TabItem>
         <TabItem Header="History" Tag="{x:Static local:EnumDetailTab.History}">

@@ -6,7 +6,6 @@
     xmlns:execution="clr-namespace:Automation.Shared.Data.Execution;assembly=Automation.Shared"
     xmlns:feedback="clr-namespace:Joufflu.Feedback.Controls;assembly=Joufflu.Feedback"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
-    xmlns:local="clr-namespace:Automation.App.Features.Packages.Controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     d:DataContext="{d:DesignInstance Type=execution:PackageInfos}"
     mc:Ignorable="d">

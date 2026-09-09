@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Windows;
+using Automation.App.Common;
 using Automation.Shared.Base;
 using Automation.Shared.Data.Execution;
 using Automation.Shared.Services;
@@ -12,12 +13,9 @@ namespace Automation.App.Features.Packages
 {
     public partial class PackagesViewModel : ObservableObject
     {
-        [ObservableProperty]
-        private Paginated<PackageInfos> _result = new Paginated<PackageInfos>();
+        [ObservableProperty] private Paginated<PackageInfos> _result = new();
 
-        [ObservableProperty] private string _search = "";
-        [ObservableProperty] private int _pageNumber = 1;
-        [ObservableProperty] private int _capacity = 50;
+        public SearchedPagingViewModel Paging { get; }
 
         private readonly IPackagesService _packages;
         private readonly IOverlayService _overlays;
@@ -25,27 +23,28 @@ namespace Automation.App.Features.Packages
 
         public PackagesViewModel(IPackagesService packages, IOverlayService overlays, IToastService toasts)
         {
-            this._packages = packages;
+            _packages = packages;
             _overlays = overlays;
             _toasts = toasts;
+            Paging = new SearchedPagingViewModel(RefreshAsync);
         }
 
         [RelayCommand(CanExecute = nameof(CanDropFiles))]
         public void DropFiles(IDataObject? data)
         {
             foreach (string file in GetFiles(data) ?? [])
-                AddPackage(file);
+                _ = AddPackageAsync(file);
         }
 
         [RelayCommand]
         public void OpenPackage(PackageInfos package)
         {
-            _overlays.Show(new PackageViewModel(package, _packages, _overlays), new OverlayOptions() { Title = "Package detail" });
+            _overlays.Show(new PackageViewModel(package, _packages, _overlays));
         }
 
-        public async void AddPackage(string filePaths)
+        public async Task AddPackageAsync(string filePath)
         {
-            var result = await _packages.AddAsync(filePaths);
+            var result = await _packages.AddAsync(filePath);
             if (result.Warnings.Any())
             {
                 _toasts.Warning(string.Join("\n", result.Warnings.SelectMany(x => x.Message)), "Package added with errors");
@@ -58,18 +57,8 @@ namespace Automation.App.Features.Packages
 
         public async Task RefreshAsync()
         {
-            Result = await _packages.SearchAsync(Search, new PaginationOptions() { Page = PageNumber, PageSize = Capacity });
+            Result = await _packages.SearchAsync(Paging.Search, Paging.Options);
         }
-
-        partial void OnSearchChanged(string value)
-        {
-            _pageNumber = 1;
-            _ = RefreshAsync();
-        }
-
-        partial void OnCapacityChanged(int value) => _ = RefreshAsync();
-
-        partial void OnPageNumberChanged(int value) => _ = RefreshAsync();
 
         private static bool CanDropFiles(IDataObject? data)
         {
@@ -78,6 +67,7 @@ namespace Automation.App.Features.Packages
         }
 
         private static string[]? GetFiles(IDataObject? data) => data?.GetData(DataFormats.FileDrop) as string[];
+
         /// <summary>
         /// A package, or the symbols of one : both are dropped the same way, the symbols being
         /// stored next to the package they make debuggable.

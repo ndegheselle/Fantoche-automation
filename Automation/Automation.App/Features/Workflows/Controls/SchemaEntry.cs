@@ -23,15 +23,10 @@ namespace Automation.App.Features.Workflows.Controls
         /// </summary>
         public string TypeLabel { get; }
 
-        /// <summary>
-        /// Glyph standing for the type, so a shape is read without reading it (see
-        /// <see cref="IconOf"/>).
-        /// </summary>
+        /// <summary>Glyph standing for the type, so a shape is read without reading it.</summary>
         public string Icon { get; }
 
-        /// <summary>
-        /// What the schema says of the value, empty when it says nothing.
-        /// </summary>
+        /// <summary>What the schema says of the value, empty when it says nothing.</summary>
         public string Description { get; }
 
         public bool HasDescription => Description.Length > 0;
@@ -45,7 +40,7 @@ namespace Automation.App.Features.Workflows.Controls
         /// Whether what is under it shows without being asked for. Only the shape as a whole does :
         /// that is what the reader came for, anything deeper being theirs to open.
         /// </summary>
-        public bool IsExpanded { get; private set; }
+        public bool IsExpanded { get; init; }
 
         public ObservableCollection<SchemaEntry> Children { get; } = [];
 

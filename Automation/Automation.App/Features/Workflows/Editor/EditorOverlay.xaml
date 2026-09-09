@@ -31,18 +31,18 @@
             <StackPanel joufflu:Spacing.Gap="4" Orientation="Horizontal">
                 <Button
                     joufflu:Sizing.IsSquare="True"
-                    Command="{Binding StartCommand}"
+                    Command="{Binding Run.StartCommand}"
                     Style="{StaticResource GhostButton}"
                     ToolTip="Start the workflow"
-                    Visibility="{Binding IsRunning, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}">
+                    Visibility="{Binding Run.IsRunning, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}">
                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.CirclePlay}" />
                 </Button>
                 <Button
                     joufflu:Sizing.IsSquare="True"
-                    Command="{Binding CancelCommand}"
+                    Command="{Binding Run.CancelCommand}"
                     Style="{StaticResource GhostButton}"
                     ToolTip="Cancel the running workflow"
-                    Visibility="{Binding IsRunning, Converter={x:Static jonverters:VisibilityConverter.Default}}">
+                    Visibility="{Binding Run.IsRunning, Converter={x:Static jonverters:VisibilityConverter.Default}}">
                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.CircleStop}" />
                 </Button>
                 <!--
@@ -53,8 +53,8 @@
                 <TextBlock
                     Margin="0,0,8,0"
                     VerticalAlignment="Center"
-                    Text="{Binding Progress}"
-                    Visibility="{Binding HasProgress, Converter={x:Static jonverters:VisibilityConverter.Default}}" />
+                    Text="{Binding Run.Progress}"
+                    Visibility="{Binding Run.HasProgress, Converter={x:Static jonverters:VisibilityConverter.Default}}" />
             </StackPanel>
         </Border>
 

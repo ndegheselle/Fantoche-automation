@@ -1,3 +1,4 @@
+using Automation.App.Common;
 using Automation.App.Features.Packages.Controls;
 using Automation.Shared.Data.Execution;
 using Automation.Shared.Data.Scoped;
@@ -22,7 +23,8 @@ namespace Automation.App.Features.Workflows.Details
 
         public bool HasTarget => Target != null;
 
-        public TaskDetailsViewModel(ScopedNode node, WorkflowsViewModel parent) : base(node, parent)
+        public TaskDetailsViewModel(ScopedNode node, WorkflowsViewModel parent, AppServices services)
+            : base(node, parent, services)
         { }
 
         [RelayCommand]

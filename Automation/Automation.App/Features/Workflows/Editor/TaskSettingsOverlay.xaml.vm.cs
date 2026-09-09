@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using Automation.App.Common;
 using Automation.App.Features.Workflows.Editor.History;
 using Automation.Shared.Data;
 using Automation.Shared.Data.Execution;
@@ -74,26 +75,33 @@ namespace Automation.App.Features.Workflows.Editor
 
     /// <summary>
     /// One thing wrong with the mapping, and the branch it is wrong on : a mapping can hold up when
-    /// the node is reached one way and break when it is reached another.
+    /// the node is reached one way and break when it is reached another. [Branch] is null when the
+    /// node is only reached one way and there is nothing to tell apart.
     /// </summary>
-    public class MappingError
+    public record MappingError(string Message, string? Branch = null)
     {
-        public string Message { get; }
-
-        /// <summary>
-        /// The branches feeding the node where the mapping breaks, null when the node is only
-        /// reached one way and there is nothing to tell apart.
-        /// </summary>
-        public string? Branch { get; }
-
         public bool HasBranch => Branch != null;
-
-        public MappingError(string message, string? branch = null)
-        {
-            Message = message;
-            Branch = branch;
-        }
     }
+
+    /// <summary>
+    /// What a node does with its mapping, which is the only thing telling the kinds apart.
+    /// </summary>
+    public enum EnumNodeKind
+    {
+        Task,
+        Start,
+        End,
+        Share,
+        Join,
+        Map,
+        Control
+    }
+
+    /// <summary>
+    /// How a kind of node reads : what it is called, what it does with its mapping, what the shape
+    /// in front of the mapping is the shape of, and what to say when that shape describes nothing.
+    /// </summary>
+    public record NodeKindText(string Name, string Description, string ExpectedLabel, string EmptyExpectation);
 
     /// <summary>
     /// Settings of a graph node : the mapping it runs with, edited as raw JSON between what it reads
@@ -110,14 +118,9 @@ namespace Automation.App.Features.Workflows.Editor
     /// cancelling has nothing to restore and saving stays the editor's business.
     /// </para>
     /// </summary>
-    public partial class TaskSettingsViewModel : ObservableObject
+    public partial class TaskSettingsViewModel : OverlayViewModel<IReversibleAction>
     {
         public BaseGraphTask Node { get; }
-
-        /// <summary>
-        /// Edition to apply to the graph, only set once the settings have been validated.
-        /// </summary>
-        public IReversibleAction? Edition { get; private set; }
 
         /// <summary>
         /// Mapping the node runs with, references to the context included (e.g. "$previous.Value").
@@ -142,8 +145,6 @@ namespace Automation.App.Features.Workflows.Editor
         /// nothing to be resolved against and so nothing to be checked against either.
         /// </summary>
         public bool IsContextMissing => _contexts.Count == 0;
-
-        public string Title { get; }
 
         /// <summary>
         /// What the node is about, displayed above the mapping : every node maps what it reads into
@@ -197,23 +198,19 @@ namespace Automation.App.Features.Workflows.Editor
         /// What to say when the shape expected of the mapping describes nothing : a control other
         /// than the boundary of the workflow constrains none, and a task can expect nothing too.
         /// </summary>
-        public string EmptyExpectationText => _control == null
-            ? "The task expects no particular shape."
-            : "A control constrains no shape : what it hands over is whatever its mapping produces.";
+        public string EmptyExpectationText { get; }
 
         /// <summary>
         /// The start stands for what the workflow is started with : nothing feeds it, so it reads no
         /// branch, and its mapping holds the values a caller does not give.
         /// </summary>
-        public bool IsStart => _control?.IsStart() == true;
+        public bool IsStart => _kind == EnumNodeKind.Start;
 
         /// <summary>The end stands for what the workflow hands back.</summary>
-        public bool IsEnd => _control?.IsEnd() == true;
+        public bool IsEnd => _kind == EnumNodeKind.End;
 
-        /// <summary>
-        /// The node as a control task, null when it is a regular task or a nested workflow.
-        /// </summary>
-        private readonly GraphControl? _control;
+        /// <summary>What the node does with its mapping, read once from the node it stands for.</summary>
+        private readonly EnumNodeKind _kind;
 
         /// <summary>
         /// The ways a run can reach the node, as the preview of the graph found them : what it reads
@@ -221,23 +218,23 @@ namespace Automation.App.Features.Workflows.Editor
         /// </summary>
         private readonly IReadOnlyList<NodePreviewContext> _contexts;
 
-        private readonly IOverlayService _overlays;
-
         public TaskSettingsViewModel(
             BaseGraphTask node,
             GraphExecutionPreview? preview,
             IOverlayService overlays)
+            : base(overlays)
         {
             Node = node;
-            _overlays = overlays;
-            _control = node as GraphControl;
+            _kind = KindOf(node as GraphControl);
             _contexts = preview?.NodesContexts.GetValueOrDefault(node.Id) ?? [];
 
-            Title = $"{node.Name} - {Describe()}";
-            Description = Explain();
+            NodeKindText text = TextOf(_kind);
+            Options.Title = $"{node.Name} - {text.Name}";
+            Description = text.Description;
+            ExpectedLabel = text.ExpectedLabel;
+            EmptyExpectationText = text.EmptyExpectation;
             Target = (node.AutomationTask as AutomationTask)?.Target;
             MappingLabel = IsStart ? "Default values, for what the caller leaves out" : "Input mapping";
-            ExpectedLabel = LabelExpected();
             _inputMappingJson = node.InputTemplateJson;
             // The mapping of a node produces what that node reads, except on the start : nothing
             // feeds a start, so its mapping produces what it hands over instead.
@@ -263,67 +260,73 @@ namespace Automation.App.Features.Workflows.Editor
         /// second walk of it, and one that can disagree with the one the editor is drawing.
         /// </para>
         /// </summary>
-        public static async Task<IReversibleAction?> ShowAsync(
+        public static Task<IReversibleAction?> ShowAsync(
             BaseGraphTask node,
             GraphExecutionPreview? preview)
-        {
-            IOverlayService overlays = SpineViewModel.Instance.Overlays;
+            => ShowAsync(new TaskSettingsViewModel(node, preview, SpineViewModel.Instance.Overlays));
 
-            var viewModel = new TaskSettingsViewModel(node, preview, overlays);
-            if (await overlays.Show(viewModel, new OverlayOptions() { Title = viewModel.Title }) != true)
-                return null;
-            return viewModel.Edition;
+        /// <summary>
+        /// What [control] does with its mapping, <see cref="EnumNodeKind.Task"/> when the node runs
+        /// a task or a nested workflow rather than a control.
+        /// </summary>
+        private static EnumNodeKind KindOf(GraphControl? control)
+        {
+            if (control == null)
+                return EnumNodeKind.Task;
+            if (control.IsStart())
+                return EnumNodeKind.Start;
+            if (control.IsEnd())
+                return EnumNodeKind.End;
+            if (control.IsShare())
+                return EnumNodeKind.Share;
+            if (control.IsJoin())
+                return EnumNodeKind.Join;
+            if (control.IsMap())
+                return EnumNodeKind.Map;
+            return EnumNodeKind.Control;
         }
 
         /// <summary>
-        /// What the node does with its mapping, which is the only thing telling the kinds apart.
+        /// How [kind] reads. A control other than the boundary of the workflow expects no shape :
+        /// what it hands over is whatever its mapping says, so it is worth saying that rather than
+        /// showing an empty schema without a word.
         /// </summary>
-        private string Describe()
+        private static NodeKindText TextOf(EnumNodeKind kind)
         {
-            if (_control == null)
-                return "Task";
-            if (_control.IsStart())
-                return "Start";
-            if (_control.IsEnd())
-                return "End";
-            if (_control.IsShare())
-                return "Share";
-            if (_control.IsJoin())
-                return "Join";
-            if (_control.IsMap())
-                return "Map";
-            return "Control";
-        }
+            const string controlShape = "A control constrains no shape : what it hands over is whatever its mapping produces.";
+            const string controlLabel = "Expected : a control constrains no shape";
+            const string reshape = "The mapping reshapes what one branch produces into what the next ones read.";
 
-        private string Explain()
-        {
-            if (_control == null)
-                return "The mapping is what the task runs with : it has to match what the task expects.";
-            if (_control.IsStart())
-                return "The start hands over what the workflow is started with : the schema declares its shape, the mapping holds the values a caller leaves out.";
-            if (_control.IsEnd())
-                return "The mapping is what the workflow hands back to whoever started it, and the schema declares its shape.";
-            if (_control.IsShare())
-                return "The mapping is added to the shared values, readable as \"$shared\" by every node after this one. The branch itself goes through untouched.";
-            if (_control.IsJoin())
-                return "Every branch reaching the join is waited for, then merged into what the mapping describes.";
-            return "The mapping reshapes what one branch produces into what the next ones read.";
-        }
-
-        /// <summary>
-        /// What the shape in front of the mapping is the shape of. A control other than the boundary
-        /// of the workflow expects none : what it hands over is whatever its mapping says, so it is
-        /// worth saying that rather than showing an empty schema without a word.
-        /// </summary>
-        private string LabelExpected()
-        {
-            if (_control == null)
-                return "Expected : the shape the task is run with";
-            if (_control.IsStart())
-                return "Expected : the shape the workflow is started with";
-            if (_control.IsEnd())
-                return "Expected : the shape the workflow hands back";
-            return "Expected : a control constrains no shape";
+            return kind switch
+            {
+                EnumNodeKind.Task => new(
+                    "Task",
+                    "The mapping is what the task runs with : it has to match what the task expects.",
+                    "Expected : the shape the task is run with",
+                    "The task expects no particular shape."),
+                EnumNodeKind.Start => new(
+                    "Start",
+                    "The start hands over what the workflow is started with : the schema declares its shape, the mapping holds the values a caller leaves out.",
+                    "Expected : the shape the workflow is started with",
+                    controlShape),
+                EnumNodeKind.End => new(
+                    "End",
+                    "The mapping is what the workflow hands back to whoever started it, and the schema declares its shape.",
+                    "Expected : the shape the workflow hands back",
+                    controlShape),
+                EnumNodeKind.Share => new(
+                    "Share",
+                    "The mapping is added to the shared values, readable as \"$shared\" by every node after this one. The branch itself goes through untouched.",
+                    controlLabel,
+                    controlShape),
+                EnumNodeKind.Join => new(
+                    "Join",
+                    "Every branch reaching the join is waited for, then merged into what the mapping describes.",
+                    controlLabel,
+                    controlShape),
+                EnumNodeKind.Map => new("Map", reshape, controlLabel, controlShape),
+                _ => new("Control", reshape, controlLabel, controlShape),
+            };
         }
 
         /// <summary>
@@ -336,11 +339,10 @@ namespace Automation.App.Features.Workflows.Editor
 
             foreach (NodePreviewContext context in _contexts)
             {
-                // The branch is only worth naming when there is more than one way in.
                 ContextEntry? branch = null;
-                if (_contexts.Count > 1 && context.Branches.Count > 0)
+                if (BranchLabel(context) is string label)
                 {
-                    branch = ContextEntry.Branch($"from {string.Join(", ", context.Branches)}");
+                    branch = ContextEntry.Branch($"from {label}");
                     Context.Add(branch);
                 }
 
@@ -360,6 +362,13 @@ namespace Automation.App.Features.Workflows.Editor
         }
 
         /// <summary>
+        /// The branches feeding the node through [context], only worth naming when there is more
+        /// than one way in. Null when there is nothing to tell apart.
+        /// </summary>
+        private string? BranchLabel(NodePreviewContext context)
+            => _contexts.Count > 1 && context.Branches.Count > 0 ? string.Join(", ", context.Branches) : null;
+
+        /// <summary>
         /// Check the mapping and show what it produces : both come from resolving it against what
         /// the node reads, so nothing has to be executed to know.
         /// </summary>
@@ -368,7 +377,7 @@ namespace Automation.App.Features.Workflows.Editor
             Errors.Clear();
 
             JsonSchema? expected = CheckSchema();
-            CheckJson(MappingLabel, InputMappingJson);
+            CheckMappingJson();
 
             if (!HasErrors)
                 Resolve(expected);
@@ -387,7 +396,7 @@ namespace Automation.App.Features.Workflows.Editor
 
             try
             {
-                return JsonSchema.FromJsonAsync(ExpectedSchemaJson).Result;
+                return Schemas.Parse(ExpectedSchemaJson);
             }
             catch (Exception exception)
             {
@@ -416,21 +425,21 @@ namespace Automation.App.Features.Workflows.Editor
         }
 
         /// <summary>
-        /// Add an error when [json] is filled with something that isn't JSON. An empty value is
+        /// Add an error when the mapping is filled with something that isn't JSON. An empty value is
         /// valid, it simply means the node maps nothing.
         /// </summary>
-        private void CheckJson(string label, string? json)
+        private void CheckMappingJson()
         {
-            if (string.IsNullOrWhiteSpace(json))
+            if (string.IsNullOrWhiteSpace(InputMappingJson))
                 return;
 
             try
             {
-                JToken.Parse(json);
+                JToken.Parse(InputMappingJson);
             }
             catch (Exception exception)
             {
-                Errors.Add(new MappingError($"{label} : {exception.Message}"));
+                Errors.Add(new MappingError($"{MappingLabel} : {exception.Message}"));
             }
         }
 
@@ -447,9 +456,7 @@ namespace Automation.App.Features.Workflows.Editor
 
             foreach (NodePreviewContext context in _contexts)
             {
-                string? branch = _contexts.Count > 1 && context.Branches.Count > 0
-                    ? string.Join(", ", context.Branches)
-                    : null;
+                string? branch = BranchLabel(context);
 
                 // Both are parsed again for every context : resolving moves what a reference points
                 // at into the mapping, so neither of them survives being resolved twice.
@@ -468,16 +475,9 @@ namespace Automation.App.Features.Workflows.Editor
         }
 
         [RelayCommand(CanExecute = nameof(CanValidate))]
-        private void Validate()
-        {
-            Edition = BuildEdition();
-            _overlays.CloseTop(true);
-        }
+        private void Validate() => Close(BuildEdition());
 
         private bool CanValidate() => !HasErrors;
-
-        [RelayCommand]
-        private void Cancel() => _overlays.CloseTop(false);
 
         /// <summary>
         /// Build the edition of the graph from what was edited : the values to apply and the ones
@@ -486,10 +486,10 @@ namespace Automation.App.Features.Workflows.Editor
         /// </summary>
         private IReversibleAction BuildEdition()
         {
-            string? mapping = NullIfEmpty(InputMappingJson);
+            string? mapping = Json.NullIfEmpty(InputMappingJson);
             string? previousMapping = Node.InputTemplateJson;
 
-            string? schema = DeclaresSchema ? NullIfEmpty(ExpectedSchemaJson) : null;
+            string? schema = DeclaresSchema ? Json.NullIfEmpty(ExpectedSchemaJson) : null;
             string? previousSchema = DeclaresSchema
                 ? (IsStart ? Node.OutputSchemaJson : Node.InputSchemaJson)
                 : null;
@@ -516,11 +516,6 @@ namespace Automation.App.Features.Workflows.Editor
             else
                 Node.InputSchemaJson = schema;
         }
-
-        /// <summary>
-        /// An empty text box means the node maps nothing, which is null rather than "".
-        /// </summary>
-        private static string? NullIfEmpty(string? json) => string.IsNullOrWhiteSpace(json) ? null : json;
 
         partial void OnInputMappingJsonChanged(string? value) => Refresh();
 

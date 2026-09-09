@@ -150,6 +150,18 @@ namespace Automation.Shared.Data.Graph
             else
                 Outputs = [new GraphConnector(this)];
         }
+
+        /// <summary>
+        /// A node running [task]. Which node a task is worth is known here rather than by whoever
+        /// puts one on a graph.
+        /// </summary>
+        public static BaseGraphTask For(BaseAutomationTask task) => task switch
+        {
+            AutomationWorkflow workflow => new GraphWorkflow(workflow),
+            AutomationControl control => new GraphControl(control),
+            AutomationTask automationTask => new GraphTask(automationTask),
+            _ => throw new NotSupportedException($"Unknown task type '{task.GetType().Name}'")
+        };
     }
 
     /// <summary>

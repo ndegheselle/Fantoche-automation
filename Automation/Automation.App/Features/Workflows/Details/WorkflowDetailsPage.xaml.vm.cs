@@ -1,12 +1,9 @@
-﻿using System.Collections.ObjectModel;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
+using Automation.App.Common;
 using Automation.App.Features.Workflows.Editor;
 using Automation.App.Features.Workflows.Editor.History;
-using Automation.Shared.Data.Graph;
 using Automation.Shared.Data.Scoped;
 using CommunityToolkit.Mvvm.Input;
-using Newtonsoft.Json.Linq;
-using NJsonSchema;
 
 namespace Automation.App.Features.Workflows.Details
 {
@@ -14,9 +11,7 @@ namespace Automation.App.Features.Workflows.Details
     {
         public AutomationWorkflow Workflow => Element;
 
-        /// <summary>
-        /// Graph of the workflow, edited by the editor tab.
-        /// </summary>
+        /// <summary>Graph of the workflow, edited by the editor tab.</summary>
         public WorkflowEditorViewModel Editor { get; }
 
         public bool StopIfAnyTaskFail
@@ -25,9 +20,10 @@ namespace Automation.App.Features.Workflows.Details
             set => SetSetting(value, v => Workflow.WorkflowSettings.StopIfAnyTaskFail = v);
         }
 
-        public WorkflowDetailsViewModel(ScopedNode node, WorkflowsViewModel parent) : base(node, parent)
+        public WorkflowDetailsViewModel(ScopedNode node, WorkflowsViewModel parent, AppServices services)
+            : base(node, parent, services)
         {
-            Editor = new WorkflowEditorViewModel(Workflow, SaveGraphCommand);
+            Editor = new WorkflowEditorViewModel(Workflow, SaveGraphCommand, services);
             Editor.History.PropertyChanged += (_, e) =>
             {
                 if (e.PropertyName == nameof(EditorHistory.HasUnsavedChanges))
@@ -44,14 +40,12 @@ namespace Automation.App.Features.Workflows.Details
 
         private bool CanSaveGraph => Editor.History.HasUnsavedChanges;
 
-        /// <summary>
-        /// The graph having been persisted, its history has nothing left to save.
-        /// </summary>
+        /// <summary>The graph having been persisted, its history has nothing left to save.</summary>
         protected override void OnSaved() => Editor.History.MarkSaved();
 
         /// <summary>
-        /// Store a setting on the workflow, the settings being held by the element itself rather than
-        /// by observable properties.
+        /// Store a setting on the workflow, which holds them itself rather than as observable
+        /// properties.
         /// </summary>
         private void SetSetting(bool value, Action<bool> set, [CallerMemberName] string? propertyName = null)
         {

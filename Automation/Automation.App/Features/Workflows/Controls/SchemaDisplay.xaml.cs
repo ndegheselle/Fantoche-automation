@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
+using Automation.Shared.Data;
 using NJsonSchema;
 
 namespace Automation.App.Features.Workflows.Controls
@@ -99,7 +100,7 @@ namespace Automation.App.Features.Workflows.Controls
 
             try
             {
-                return JsonSchema.FromJsonAsync(json).Result;
+                return Schemas.Parse(json);
             }
             catch
             {

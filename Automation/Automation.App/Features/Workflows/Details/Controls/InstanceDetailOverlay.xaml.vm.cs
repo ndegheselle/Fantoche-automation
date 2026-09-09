@@ -1,11 +1,10 @@
 using System.Collections.ObjectModel;
+using Automation.App.Common;
 using Automation.Shared.Data.Execution;
 using Automation.Shared.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Joufflu.Navigation;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Automation.App.Features.Workflows.Details.Controls
 {
@@ -17,25 +16,21 @@ namespace Automation.App.Features.Workflows.Details.Controls
     /// actually failed.
     /// </para>
     /// </summary>
-    public partial class InstanceDetailViewModel : ObservableObject
+    public partial class InstanceDetailViewModel : OverlayViewModel
     {
         public TaskInstance Instance { get; }
 
-        public string Title => $"Execution - {Instance.NodeName}";
-
-        /// <summary>
-        /// How long the execution took, empty while it hasn't finished.
-        /// </summary>
+        /// <summary>How long the execution took, empty while it hasn't finished.</summary>
         public string Duration => Instance.FinishedAt == null
             ? ""
-            : Format(Instance.FinishedAt.Value - Instance.CreatedAt);
+            : Durations.Format(Instance.FinishedAt.Value - Instance.CreatedAt);
 
         /// <summary>
         /// Parameters the execution ran with, the references of the graph already resolved.
         /// </summary>
-        public string ParametersJson => Format(Instance.Parameters);
+        public string ParametersJson => Json.Format(Instance.Parameters);
 
-        public string OutputJson => Format(Instance.Output);
+        public string OutputJson => Json.Format(Instance.Output);
 
         /// <summary>
         /// The instances run by this one, empty for a task. They are read again on
@@ -46,27 +41,26 @@ namespace Automation.App.Features.Workflows.Details.Controls
         public bool HasChildren => Children.Count > 0;
 
         private readonly IHistoryService _history;
-        private readonly IOverlayService _overlays;
 
         public InstanceDetailViewModel(TaskInstance instance, IHistoryService history, IOverlayService overlays)
+            : base(overlays)
         {
             Instance = instance;
             _history = history;
-            _overlays = overlays;
+            Options.Title = $"Execution - {instance.NodeName}";
 
             Children.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasChildren));
         }
 
-        /// <summary>
-        /// Show the detail of [instance] and wait for it to be closed.
-        /// </summary>
         public static async Task ShowAsync(TaskInstance instance)
         {
             IOverlayService overlays = SpineViewModel.Instance.Overlays;
 
             var viewModel = new InstanceDetailViewModel(instance, SpineViewModel.Instance.History, overlays);
+            // Read before it is shown : the detail opens on what the execution amounts to rather
+            // than filling in under the reader.
             await viewModel.RefreshAsync();
-            await overlays.Show(viewModel, new OverlayOptions() { Title = viewModel.Title });
+            await overlays.Show(viewModel);
         }
 
         /// <summary>
@@ -96,29 +90,6 @@ namespace Automation.App.Features.Workflows.Details.Controls
             => child == null ? Task.CompletedTask : ShowAsync(child);
 
         [RelayCommand]
-        private void Close() => _overlays.CloseTop(true);
-
-        /// <summary>
-        /// A value of the execution as it is displayed : indented JSON, or the text itself when it
-        /// isn't JSON (a failure is stored as its stack trace).
-        /// </summary>
-        private static string Format(JToken? token)
-        {
-            if (token == null)
-                return "";
-
-            return token.Type == JTokenType.String
-                ? token.ToString()
-                : token.ToString(Formatting.Indented);
-        }
-
-        private static string Format(TimeSpan duration)
-        {
-            if (duration < TimeSpan.FromSeconds(1))
-                return $"{duration.TotalMilliseconds:0} ms";
-            if (duration < TimeSpan.FromMinutes(1))
-                return $"{duration.TotalSeconds:0.##} s";
-            return duration.ToString(@"hh\:mm\:ss");
-        }
+        private void Validate() => Close(true);
     }
 }

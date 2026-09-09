@@ -1,4 +1,5 @@
-﻿using Automation.App.Features.Workflows.Details.Controls;
+﻿using Automation.App.Common;
+using Automation.App.Features.Workflows.Details.Controls;
 using Automation.Shared.Data.Scoped;
 using Automation.Shared.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -10,10 +11,10 @@ namespace Automation.App.Features.Workflows.Details
 {
     public enum EnumDetailTab
     {
-        Settings = 0,
-        History = 1,
-        Usages = 2,
-        Editor = 3
+        Settings,
+        History,
+        Usages,
+        Editor
     }
 
     /// <summary>
@@ -31,9 +32,7 @@ namespace Automation.App.Features.Workflows.Details
         [ObservableProperty]
         private EnumDetailTab _currentTab;
 
-        /// <summary>
-        /// Executions of the element, displayed by the history tab.
-        /// </summary>
+        /// <summary>Executions of the element, displayed by the history tab.</summary>
         public HistoryViewModel History { get; }
 
         /// <summary>
@@ -47,24 +46,28 @@ namespace Automation.App.Features.Workflows.Details
         /// </summary>
         public ScopedMetadata Metadata => Element.Metadata;
 
-        /// <summary>
-        /// Whether the metadata has been edited since the last save.
-        /// </summary>
         private bool _hasMetadataChanges;
 
         private readonly WorkflowsViewModel _parent;
-        private readonly IScopedService _scoped = SpineViewModel.Instance.Scoped;
-        private readonly IHistoryService _history = SpineViewModel.Instance.History;
-        private readonly IOverlayService _overlays = SpineViewModel.Instance.Overlays;
-        private readonly IToastService _toasts = SpineViewModel.Instance.Toasts;
 
-        protected ScopedDetailsViewModel(ScopedNode node, WorkflowsViewModel parent)
+        /// <summary>Handed down to whatever the page builds of its own.</summary>
+        protected readonly AppServices Services;
+
+        private readonly IScopedService _scoped;
+        private readonly IOverlayService _overlays;
+        private readonly IToastService _toasts;
+
+        protected ScopedDetailsViewModel(ScopedNode node, WorkflowsViewModel parent, AppServices services)
         {
             Node = node;
             _parent = parent;
+            Services = services;
+            _scoped = services.Scoped;
+            _overlays = services.Overlays;
+            _toasts = services.Toasts;
             OpenCommand = parent.OpenCommand;
-            History = new HistoryViewModel(node, _history);
-            Usages = new UsagesViewModel(node, parent, _scoped);
+            History = new HistoryViewModel(node, services.History);
+            Usages = new UsagesViewModel(node, parent, services.Scoped);
 
             // The views edit the metadata itself, so its changes are what tells the element needs
             // saving. Tags are edited through the collection rather than the property, hence the
@@ -73,9 +76,7 @@ namespace Automation.App.Features.Workflows.Details
             Metadata.Tags.CollectionChanged += (_, _) => MarkChanged();
         }
 
-        /// <summary>
-        /// Save the general infos of the element : its metadata and its own settings.
-        /// </summary>
+        /// <summary>Save the general infos of the element : its metadata and its own settings.</summary>
         [RelayCommand(CanExecute = nameof(CanSave))]
         public Task Save() => SaveElementAsync($"The {Node.Type} '{Node.Name}' has been saved.");
 
@@ -93,10 +94,7 @@ namespace Automation.App.Features.Workflows.Details
             _toasts.Success(message, $"{Node.Type} saved");
         }
 
-        /// <summary>
-        /// Records an edit, so <see cref="SaveCommand"/> is only enabled while there is something to
-        /// save.
-        /// </summary>
+        /// <summary>Record an edit, so <see cref="SaveCommand"/> is only enabled while there is one.</summary>
         protected void MarkChanged()
         {
             _hasMetadataChanges = true;
@@ -104,14 +102,12 @@ namespace Automation.App.Features.Workflows.Details
         }
 
         /// <summary>
-        /// Whether <see cref="SaveCommand"/> can currently execute : as soon as the general infos have
-        /// been edited. Whatever a page edits besides them (e.g. the workflow graph) gets its own save.
+        /// Whatever a page edits besides the general infos (e.g. the workflow graph) gets its own
+        /// save, so this one only follows them.
         /// </summary>
         protected virtual bool CanSave => _hasMetadataChanges;
 
-        /// <summary>
-        /// Called once the element has been saved, for whatever has to be reset by the page.
-        /// </summary>
+        /// <summary>Called once the element has been saved, for whatever the page has to reset.</summary>
         protected virtual void OnSaved()
         { }
 
@@ -145,8 +141,7 @@ namespace Automation.App.Features.Workflows.Details
         }
 
         /// <summary>
-        /// Whether <see cref="DeleteCommand"/> can currently execute : the built-in elements (e.g. the
-        /// control tasks every graph relies on) are read only and can't be deleted.
+        /// The built-in elements (e.g. the control tasks every graph relies on) are read only.
         /// </summary>
         protected bool CanDelete => !Metadata.IsReadOnly;
     }

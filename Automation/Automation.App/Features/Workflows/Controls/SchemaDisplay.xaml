@@ -4,14 +4,12 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
+    xmlns:jonverters="clr-namespace:Joufflu.Converters;assembly=Joufflu"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Automation.App.Features.Workflows.Controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     d:DataContext="{d:DesignInstance Type=local:SchemaDisplay}"
     mc:Ignorable="d">
-    <UserControl.Resources>
-        <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
-    </UserControl.Resources>
 
     <Grid>
         <!--  No schema at all : one saying nothing still says that anything goes  -->
@@ -21,7 +19,7 @@
             TextWrapping="Wrap"
             Visibility="{Binding IsEmpty,
                                  RelativeSource={RelativeSource AncestorType={x:Type local:SchemaDisplay}},
-                                 Converter={StaticResource BoolToVisibility}}" />
+                                 Converter={x:Static jonverters:VisibilityConverter.Default}}" />
 
         <TreeView
             Background="Transparent"
@@ -48,7 +46,7 @@
                             Text="*"
                             ToolTip="Required"
                             Visibility="{Binding IsRequired,
-                                                 Converter={StaticResource BoolToVisibility}}" />
+                                                 Converter={x:Static jonverters:VisibilityConverter.Default}}" />
 
                         <TextBlock
                             Margin="8,0,0,0"
@@ -61,7 +59,7 @@
                             Text="{Binding Description}"
                             TextTrimming="CharacterEllipsis"
                             Visibility="{Binding HasDescription,
-                                                 Converter={StaticResource BoolToVisibility}}" />
+                                                 Converter={x:Static jonverters:VisibilityConverter.Default}}" />
                     </StackPanel>
                 </HierarchicalDataTemplate>
             </TreeView.ItemTemplate>

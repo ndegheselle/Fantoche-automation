@@ -12,9 +12,6 @@
     xmlns:scoped="clr-namespace:Automation.Shared.Data.Scoped;assembly=Automation.Shared"
     d:DataContext="{d:DesignInstance Type=scoped:ScopedMetadata}"
     mc:Ignorable="d">
-    <UserControl.Resources>
-        <converters:HexColorConverter x:Key="HexColorConverter" />
-    </UserControl.Resources>
     <Grid joufflu:Spacing.Gap="2">
         <Grid.ColumnDefinitions>
             <ColumnDefinition />
@@ -41,7 +38,7 @@
             <inputs:ColorPicker
                 Width="140"
                 IsEnabled="{Binding IsReadOnly, Converter={x:Static jonverters:BooleanFlipConverter.Default}, Mode=OneTime}"
-                Color="{Binding Color, Mode=TwoWay, Converter={StaticResource HexColorConverter}}" />
+                Color="{Binding Color, Mode=TwoWay, Converter={x:Static converters:HexColorConverter.Default}}" />
         </StackPanel>
 
         <StackPanel

@@ -1,5 +1,5 @@
 ﻿using System.Collections.ObjectModel;
-using System.Windows;
+using Automation.App.Common;
 using Automation.Shared.Base;
 using Automation.Shared.Data.Execution;
 using Automation.Shared.Services;
@@ -9,21 +9,18 @@ using CommunityToolkit.Mvvm.Input;
 namespace Automation.App.Features.Workflows.Details.Controls
 {
     /// <summary>
-    /// Execution history of a scoped element : its own instances for a task or a workflow, the ones of
-    /// every task and workflow it contains for a scope.
-    /// While it is displayed it follows the executions live, the history service reporting every
-    /// instance as it is created and as it changes.
+    /// Execution history of a scoped element : its own instances for a task or a workflow, the ones
+    /// of every task and workflow it contains for a scope. While it is displayed it follows the
+    /// executions live, the history service reporting every instance as it is created and changes.
     /// </summary>
     public partial class HistoryViewModel : ObservableObject
     {
-        /// <summary>
-        /// Displayed page of instances, most recent first.
-        /// </summary>
+        /// <summary>Displayed page of instances, most recent first.</summary>
         public ObservableCollection<TaskInstance> Instances { get; } = [];
 
+        public PagingViewModel Paging { get; }
+
         [ObservableProperty] private long _total;
-        [ObservableProperty] private int _pageNumber = 1;
-        [ObservableProperty] private int _capacity = 50;
 
         private readonly ScopedNode _node;
         private readonly IHistoryService _history;
@@ -38,11 +35,11 @@ namespace Automation.App.Features.Workflows.Details.Controls
         {
             _node = node;
             _history = history;
+            Paging = new PagingViewModel(RefreshAsync);
         }
 
         /// <summary>
-        /// Start following the executions and load the first page. Called when the history is
-        /// displayed.
+        /// Start following the executions and load the first page, the history being displayed.
         /// </summary>
         public async Task SubscribeAsync()
         {
@@ -56,9 +53,7 @@ namespace Automation.App.Features.Workflows.Details.Controls
             await RefreshAsync();
         }
 
-        /// <summary>
-        /// Stop following the executions. Called when the history is not displayed anymore.
-        /// </summary>
+        /// <summary>Stop following the executions, the history not being displayed anymore.</summary>
         public void Unsubscribe()
         {
             if (!_isSubscribed)
@@ -79,9 +74,7 @@ namespace Automation.App.Features.Workflows.Details.Controls
 
         public async Task RefreshAsync()
         {
-            var page = await _history.GetByScopedAsync(
-                _node.Element.Id,
-                new PaginationOptions() { Page = PageNumber, PageSize = Capacity });
+            var page = await _history.GetByScopedAsync(_node.Element.Id, Paging.Options);
 
             Instances.Clear();
             foreach (var instance in page.Items)
@@ -89,59 +82,50 @@ namespace Automation.App.Features.Workflows.Details.Controls
             Total = page.Total;
         }
 
-        partial void OnCapacityChanged(int value) => _ = RefreshAsync();
-
-        partial void OnPageNumberChanged(int value) => _ = RefreshAsync();
-
         #region Realtime
-        /// <summary>
-        /// The ids whose executions belong to this history : the element itself, or every task and
-        /// workflow nested under it when it is a scope.
-        /// </summary>
-        private bool IsDisplayed(TaskInstance instance)
-        {
-            return instance.TaskId == _node.Element.Id;
-        }
-
         private void OnInstanceAdded(TaskInstance instance)
         {
-            // The instances are reported by the threads running the executions.
-            Dispatch(() =>
+            Ui.Dispatch(() =>
             {
-                if (!IsDisplayed(instance))
+                // Only the first page shows the executions as they start, the following ones holding
+                // older instances that a new one doesn't belong to.
+                if (Paging.PageNumber != 1)
+                    return;
+
+                // A scope covers every task and workflow under it, which only the service knows :
+                // the tree can be displaying part of itself (a search) and the branch is walked in
+                // SQL. So the page is read again rather than the instance being placed by hand.
+                if (_node.IsScope)
+                {
+                    _ = RefreshAsync();
+                    return;
+                }
+
+                if (instance.TaskId != _node.Element.Id)
                     return;
 
                 Total++;
-                // Only the first page shows the executions as they start, the following ones holding
-                // older instances that a new one doesn't belong to.
-                if (PageNumber != 1)
-                    return;
-
                 Instances.Insert(0, instance);
-                while (Instances.Count > Capacity)
+                while (Instances.Count > Paging.Capacity)
                     Instances.RemoveAt(Instances.Count - 1);
             });
         }
 
         private void OnInstanceUpdated(TaskInstance instance)
         {
-            Dispatch(() =>
+            Ui.Dispatch(() =>
             {
                 // TaskInstance doesn't notify its own changes : the row is replaced so the displayed
                 // state follows the execution.
-                int index = Instances.ToList().FindIndex(x => x.Id == instance.Id);
-                if (index >= 0)
-                    Instances[index] = instance;
-            });
-        }
+                for (int index = 0; index < Instances.Count; index++)
+                {
+                    if (Instances[index].Id != instance.Id)
+                        continue;
 
-        private static void Dispatch(Action action)
-        {
-            var dispatcher = Application.Current?.Dispatcher;
-            if (dispatcher == null || dispatcher.CheckAccess())
-                action();
-            else
-                dispatcher.Invoke(action);
+                    Instances[index] = instance;
+                    return;
+                }
+            });
         }
         #endregion
     }

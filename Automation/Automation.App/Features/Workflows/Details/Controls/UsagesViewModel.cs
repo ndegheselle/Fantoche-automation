@@ -13,14 +13,10 @@ namespace Automation.App.Features.Workflows.Details.Controls
     /// </summary>
     public partial class UsagesViewModel : ObservableObject
     {
-        /// <summary>
-        /// Nodes using the element, grouped by the workflow they belong to.
-        /// </summary>
+        /// <summary>Nodes using the element, grouped by the workflow they belong to.</summary>
         public ObservableCollection<TaskUsage> Usages { get; } = [];
 
-        /// <summary>
-        /// Whether the element is used nowhere, which is also what makes it deletable.
-        /// </summary>
+        /// <summary>Used nowhere, which is also what makes the element deletable.</summary>
         public bool IsEmpty => Usages.Count == 0;
 
         private readonly ScopedNode _node;
@@ -55,7 +51,7 @@ namespace Automation.App.Features.Workflows.Details.Controls
             if (usage == null)
                 return;
 
-            _parent.Open(_parent.Find(usage.WorkflowId));
+            _parent.Open(_parent.Root.Find(usage.WorkflowId));
         }
     }
 }

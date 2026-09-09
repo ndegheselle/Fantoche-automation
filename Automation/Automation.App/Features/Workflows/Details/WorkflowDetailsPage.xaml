@@ -5,8 +5,6 @@
     xmlns:controls="clr-namespace:Automation.App.Features.Workflows.Details.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:editor="clr-namespace:Automation.App.Features.Workflows.Editor"
-    xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
-    xmlns:jonverters="clr-namespace:Joufflu.Converters;assembly=Joufflu"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Automation.App.Features.Workflows.Details"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -29,11 +27,6 @@
                     joufflu:Spacing.Gap="4">
                     <CheckBox IsChecked="{Binding StopIfAnyTaskFail}">Stop if any task fail</CheckBox>
 
-                    <!--
-                        What the workflow is started with and what it hands back are declared by the
-                        start and the end of its graph, in the settings of those nodes : the shape
-                        sits next to the mapping producing it, and the graph is what a run reads.
-                    -->
                     <TextBlock
                         Margin="0,8,0,0"
                         Style="{StaticResource Muted}"
@@ -41,27 +34,7 @@
                         TextWrapping="Wrap" />
                 </StackPanel>
 
-                <Grid Grid.Row="2">
-                    <Button
-                        HorizontalAlignment="Left"
-                        Command="{Binding DeleteCommand}"
-                        Style="{StaticResource SoftDangerButton}"
-                        Visibility="{Binding Metadata.IsReadOnly, Mode=OneTime, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}">
-                        <StackPanel Orientation="Horizontal">
-                            <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Trash}" />
-                            <TextBlock Margin="4,0,0,0">Delete</TextBlock>
-                        </StackPanel>
-                    </Button>
-                    <Button
-                        HorizontalAlignment="Right"
-                        Command="{Binding SaveCommand}"
-                        Style="{StaticResource PrimaryButton}">
-                        <StackPanel Orientation="Horizontal">
-                            <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Save}" />
-                            <TextBlock Margin="4,0,0,0">Save</TextBlock>
-                        </StackPanel>
-                    </Button>
-                </Grid>
+                <controls:ScopedActions Grid.Row="2" />
             </Grid>
         </TabItem>
         <TabItem Header="History" Tag="{x:Static local:EnumDetailTab.History}">

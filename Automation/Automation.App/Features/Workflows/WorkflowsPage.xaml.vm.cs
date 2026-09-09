@@ -1,4 +1,5 @@
-﻿using Automation.App.Features.Workflows.Details;
+﻿using Automation.App.Common;
+using Automation.App.Features.Workflows.Details;
 using Automation.Shared.Data.Scoped;
 using Automation.Shared.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -14,37 +15,30 @@ namespace Automation.App.Features.Workflows
         public ScopedNode Root { get; }
 
         /// <summary>
-        /// Whether a search is running, the tree and its results not being displayed together.
-        /// </summary>
-        public bool IsSearching => !string.IsNullOrWhiteSpace(Search);
-
-        /// <summary>
         /// Path of the selected element, used by the breadcrumb.
         /// </summary>
         public IEnumerable<ScopedNode> Breadcrumb => Selected?.Path ?? [];
 
         [ObservableProperty] private ScopedNode? _selected;
 
-        /// <summary>
-        /// Result highlighted in the search list, the page opening it once the press it comes from
-        /// turns out to be a click rather than a drag.
-        /// </summary>
-        [ObservableProperty] private ScopedNode? _selectedResult;
-
         [ObservableProperty] private object? _details;
         [ObservableProperty] private string _search = "";
 
+        /// <summary>Handed down to the details of whatever is selected.</summary>
+        private readonly AppServices _services;
+
         private readonly IScopedService _scoped;
 
-        public WorkflowsViewModel(IScopedService scoped)
+        public WorkflowsViewModel(AppServices services)
         {
-            _scoped = scoped;
-            Root = new ScopedNode(Scope.Root, null, scoped);
+            _services = services;
+            _scoped = services.Scoped;
+            Root = new ScopedNode(Scope.Root, null);
         }
 
         public async Task RefreshAsync()
         {
-            await Root.LoadAsync();
+            Fill(await _scoped.GetTreeAsync());
             Open(Root.Children.FirstOrDefault());
         }
 
@@ -55,39 +49,31 @@ namespace Automation.App.Features.Workflows
         private async Task SearchAsync()
         {
             string search = Search;
-            if (string.IsNullOrWhiteSpace(search))
-            {
-                await Root.LoadAsync();
-                return;
-            }
+            bool isSearching = !string.IsNullOrWhiteSpace(search);
 
-            List<ScopedElement> results = await _scoped.SearchTreeAsync(search);
+            List<ScopedElement> elements = isSearching
+                ? await _scoped.SearchTreeAsync(search)
+                : await _scoped.GetTreeAsync();
 
             // Another search may have been typed while this one was running : only the last one wins.
             if (search != Search)
                 return;
 
-            // The root is the tree container and is not part of the results : its own children hang
-            // directly under it.
-            Root.Load(results.Where(x => x.Id != Root.Element.Id).ToLookup(x => x.ParentId));
-            ExpandAll(Root);
+            Fill(elements);
+
+            // The results are buried in their scopes otherwise.
+            if (isSearching)
+                Root.ExpandAll();
         }
 
         /// <summary>
-        /// Open every branch of [node], the results being buried in their scopes otherwise.
+        /// Hang [elements] under the root by their parent. The root is the tree container and is not
+        /// one of them : its own children hang directly under it.
         /// </summary>
-        private static void ExpandAll(ScopedNode node)
-        {
-            node.IsExpanded = true;
-            foreach (ScopedNode child in node.Children)
-                ExpandAll(child);
-        }
+        private void Fill(List<ScopedElement> elements)
+            => Root.Load(elements.Where(x => x.Id != Root.Element.Id).ToLookup(x => x.ParentId));
 
-        partial void OnSearchChanged(string value)
-        {
-            OnPropertyChanged(nameof(IsSearching));
-            _ = SearchAsync();
-        }
+        partial void OnSearchChanged(string value) => _ = SearchAsync();
 
         /// <summary>
         /// Create a new element of [type] in the selected scope. When the selection is not a scope
@@ -101,15 +87,8 @@ namespace Automation.App.Features.Workflows
             Guid parentId = parent.Element.Id;
             string name = await GetAvailableNameAsync(parentId, type);
 
-            ScopedElement element = type switch
-            {
-                EnumScopedType.Scope => new Scope(name, parentId),
-                EnumScopedType.Workflow => new AutomationWorkflow(name, parentId),
-                EnumScopedType.Task => new AutomationTask(name, parentId),
-                _ => throw new NotSupportedException($"Unknown scoped type '{type}'")
-            };
-
-            var node = new ScopedNode(await _scoped.CreateAsync(element), parent, _scoped);
+            ScopedElement element = ScopedElement.Create(type, name, parentId);
+            var node = new ScopedNode(await _scoped.CreateAsync(element), parent);
             parent.Children.Add(node);
             Open(node);
         }
@@ -125,26 +104,9 @@ namespace Automation.App.Features.Workflows
             return name;
         }
 
-        /// <summary>
-        /// Drop [node] and whatever it contains from the tree, once they have been deleted.
-        /// </summary>
         public void Remove(ScopedNode node)
         {
             node.Parent?.Children.Remove(node);
-        }
-
-        /// <summary>
-        /// The node standing for the element [elementId], <see langword="null"/> when the tree
-        /// doesn't currently hold it (e.g. while a search only displays part of it).
-        /// </summary>
-        public ScopedNode? Find(Guid elementId) => Find(Root, elementId);
-
-        private static ScopedNode? Find(ScopedNode node, Guid elementId)
-        {
-            if (node.Element.Id == elementId)
-                return node;
-
-            return node.Children.Select(child => Find(child, elementId)).FirstOrDefault(found => found != null);
         }
 
         [RelayCommand]
@@ -164,9 +126,9 @@ namespace Automation.App.Features.Workflows
             OnPropertyChanged(nameof(Breadcrumb));
             Details = value?.Element switch
             {
-                AutomationWorkflow => new WorkflowDetailsViewModel(value, this),
-                AutomationTask => new TaskDetailsViewModel(value, this),
-                Scope => new ScopeDetailsViewModel(value, this),
+                AutomationWorkflow => new WorkflowDetailsViewModel(value, this, _services),
+                AutomationTask => new TaskDetailsViewModel(value, this, _services),
+                Scope => new ScopeDetailsViewModel(value, this, _services),
                 _ => null
             };
         }

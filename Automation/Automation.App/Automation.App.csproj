@@ -12,7 +12,7 @@
     <PackageReference Include="Joufflu" Version="0.6.9" />
     <PackageReference Include="Joufflu.Feedback" Version="0.6.6" />
     <PackageReference Include="Joufflu.Inputs" Version="0.6.7" />
-    <PackageReference Include="Joufflu.Navigation" Version="0.6.6" />
+    <PackageReference Include="Joufflu.Navigation" Version="0.7.0" />
     <PackageReference Include="Nodify" Version="7.3.0" />
   </ItemGroup>
 

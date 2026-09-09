@@ -6,7 +6,6 @@
     xmlns:details="clr-namespace:Automation.App.Features.Workflows.Details"
     xmlns:jnputs="clr-namespace:Joufflu.Inputs.Controls;assembly=Joufflu.Inputs"
     xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
-    xmlns:jonverters="clr-namespace:Joufflu.Converters;assembly=Joufflu"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Automation.App.Features.Workflows"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"

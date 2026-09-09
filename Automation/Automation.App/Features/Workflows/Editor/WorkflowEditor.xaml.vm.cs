@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using Automation.App.Common;
 using Automation.App.Features.Workflows.Controls;
 using Automation.App.Features.Workflows.Editor.History;
 using Automation.App.Features.Workflows.Editor.ViewModels;
@@ -30,9 +31,7 @@ namespace Automation.App.Features.Workflows.Editor
 
         public ObservableCollection<ConnectionViewModel> Connections { get; } = [];
 
-        /// <summary>
-        /// Selection of the editor, filled by Nodify.
-        /// </summary>
+        /// <summary>Selection of the editor, filled by Nodify.</summary>
         public ObservableCollection<NodeViewModel> SelectedNodes { get; } = [];
 
         public EditorHistory History { get; } = new();
@@ -44,71 +43,52 @@ namespace Automation.App.Features.Workflows.Editor
         public IAsyncRelayCommand SaveCommand { get; }
 
         /// <summary>
-        /// Execution of the workflow started from the editor, null while nothing is running. The
-        /// graph can't be edited while it is set : what runs has to stay what is displayed.
+        /// The run started from the editor and followed on its graph. The graph can't be edited
+        /// while one is on : what runs has to stay what is displayed.
         /// </summary>
-        [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(IsEditable), nameof(IsRunning))]
-        [NotifyCanExecuteChangedFor(nameof(StartCommand), nameof(CancelCommand), nameof(AddCommand),
-            nameof(RemoveCommand), nameof(OpenSettingsCommand), nameof(RenameCommand))]
-        private TaskInstance? _runningInstance;
+        public WorkflowRunViewModel Run { get; }
 
-        /// <summary>
-        /// Whether the graph can be modified, false while an execution is running.
-        /// </summary>
-        public bool IsEditable => RunningInstance == null;
+        /// <summary>Whether the graph can be modified, false while an execution is running.</summary>
+        public bool IsEditable => !Run.IsRunning;
 
-        public bool IsRunning => RunningInstance != null;
-
-        /// <summary>
-        /// How far the run being displayed got, null while no run is displayed. Counted on the nodes
-        /// it went through rather than on the graph : a graph is never walked whole, its branches
-        /// leaving nodes out, so there is no total to progress towards.
-        /// </summary>
-        [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(HasProgress))]
-        private string? _progress;
-
-        public bool HasProgress => !string.IsNullOrEmpty(Progress);
-
-        /// <summary>
-        /// Viewport of the editor, used to add the new nodes where the user is actually looking.
-        /// </summary>
+        /// <summary>Viewport of the editor, so a new node lands where the user is looking.</summary>
         [ObservableProperty] private Point _viewportLocation;
         [ObservableProperty] private Size _viewportSize;
 
-        private readonly IScopedService _scoped = SpineViewModel.Instance.Scoped;
-        private readonly IExecutionService _execution = SpineViewModel.Instance.Execution;
-        private readonly IHistoryService _historyService = SpineViewModel.Instance.History;
-        private readonly IToastService _toasts = SpineViewModel.Instance.Toasts;
+        private readonly IScopedService _scoped;
+        private readonly IToastService _toasts;
 
-        /// <summary>
-        /// What the graph would run into, as the last refresh found it. Held rather than rebuilt by
-        /// whoever needs it : two previews of the same graph are two walks of it, and they can
-        /// disagree — the global context lands asynchronously, so one built before it arrives
-        /// resolves "$global" against nothing.
-        /// </summary>
-        public GraphExecutionPreview? Preview { get; private set; }
+        private readonly GraphPreviewer _previewer = new();
 
-        /// <summary>
-        /// The context of the scopes holding the workflow, which a mapping reads as "$global".
-        /// </summary>
-        private JToken? _globalContext;
+        /// <summary>What the graph would run into, as the last refresh found it.</summary>
+        public GraphExecutionPreview? Preview => _previewer.Preview;
 
-        /// <summary>
-        /// The tasks the nodes of the graph point at, kept from the load : refreshing the graph
-        /// needs them, a node handing over nothing of its own being only known through them.
-        /// </summary>
-        private Dictionary<Guid, BaseAutomationTask> _tasks = [];
-
-        public WorkflowEditorViewModel(AutomationWorkflow workflow, IAsyncRelayCommand saveCommand)
+        public WorkflowEditorViewModel(AutomationWorkflow workflow, IAsyncRelayCommand saveCommand, AppServices services)
         {
             Workflow = workflow;
             SaveCommand = saveCommand;
+            _scoped = services.Scoped;
+            _toasts = services.Toasts;
+            Run = new WorkflowRunViewModel(workflow, Nodes, Connections, SaveAsync, services);
 
             _ = LoadAsync();
             SelectedNodes.CollectionChanged += (_, _) =>
             {
+                RemoveCommand.NotifyCanExecuteChanged();
+                OpenSettingsCommand.NotifyCanExecuteChanged();
+                RenameCommand.NotifyCanExecuteChanged();
+            };
+
+            // A run turning the graph read only is a change of the editor as much as of the run :
+            // the undo / redo is a modification like any other, so it follows too.
+            Run.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName != nameof(WorkflowRunViewModel.IsRunning))
+                    return;
+
+                OnPropertyChanged(nameof(IsEditable));
+                History.IsEnabled = IsEditable;
+                AddCommand.NotifyCanExecuteChanged();
                 RemoveCommand.NotifyCanExecuteChanged();
                 OpenSettingsCommand.NotifyCanExecuteChanged();
                 RenameCommand.NotifyCanExecuteChanged();
@@ -127,10 +107,11 @@ namespace Automation.App.Features.Workflows.Editor
         private async Task LoadAsync()
         {
             Dictionary<Guid, BaseAutomationTask> tasks = [];
+            JToken? globalContext = null;
 
             try
             {
-                _globalContext = await _scoped.GetContextAsync(Workflow.Id);
+                globalContext = await _scoped.GetContextAsync(Workflow.Id);
             }
             catch
             {
@@ -154,7 +135,7 @@ namespace Automation.App.Features.Workflows.Editor
                 _toasts.Error(exception.Message, $"The tasks of '{Workflow.Metadata.Name}' could not be loaded");
             }
 
-            _tasks = tasks;
+            _previewer.Load(globalContext, tasks);
             Graph.Refresh(tasks, force: true);
 
             var connectors = new Dictionary<Guid, ConnectorViewModel>();
@@ -176,64 +157,7 @@ namespace Automation.App.Features.Workflows.Editor
             RefreshPreview();
         }
 
-        /// <summary>
-        /// What the graph would run into : the nodes whose mapping cannot resolve what they read,
-        /// and the branches they cannot resolve it on. Read from the graph rather than from a run,
-        /// so it shows while the workflow is being drawn.
-        /// </summary>
-        private void RefreshPreview()
-        {
-            Preview = null;
-
-            try
-            {
-                // Re-wired first : a node added since the last load holds connectors nothing linked
-                // to it yet, and walking the graph reads the nodes a connection leads to rather than
-                // the ids it holds.
-                Graph.Refresh(_tasks, force: true);
-
-                GraphContextResolution resolution = new() { GlobalContext = _globalContext };
-                GraphExecutionPreview preview = new();
-                preview.BuildSamples(Graph, resolution);
-
-                Preview = preview;
-            }
-            catch
-            {
-                // A graph that can't be walked at all says nothing about its nodes : showing no
-                // error is better than showing one on every one of them.
-            }
-
-            foreach (NodeViewModel node in Nodes)
-                node.Errors = Messages(Preview?.NodesErrors, node.Model.Id);
-
-            foreach (ConnectionViewModel connection in Connections)
-                connection.Errors = Messages(Preview?.EdgesErrors, connection.Model.Edge, named: true);
-        }
-
-        /// <summary>
-        /// What [errors] holds against [key], the duplicates two branches carrying the same thing
-        /// produce left out. Named when the reader needs to know which node holds them : an edge
-        /// stands for what the node it leads to cannot handle, not for something of its own.
-        /// </summary>
-        private IReadOnlyList<string> Messages<TKey>(
-            Dictionary<TKey, List<GraphPreviewError>>? errors,
-            TKey key,
-            bool named = false)
-            where TKey : notnull
-        {
-            if (errors == null || !errors.TryGetValue(key, out List<GraphPreviewError>? found))
-                return [];
-
-            return
-            [
-                .. found
-                    .Select(x => named ? $"{NameOf(x.NodeId)} : {x.Message}" : x.Message)
-                    .Distinct()
-            ];
-        }
-
-        private string NameOf(Guid nodeId) => Nodes.FirstOrDefault(x => x.Model.Id == nodeId)?.Name ?? "?";
+        private void RefreshPreview() => _previewer.Refresh(Graph, Nodes, Connections);
 
         /// <summary>
         /// Pick an existing task or workflow and add it to the graph. The workflow being edited is
@@ -254,13 +178,7 @@ namespace Automation.App.Features.Workflows.Editor
         /// </summary>
         public void Add(BaseAutomationTask task, Point? location = null)
         {
-            BaseGraphTask graphTask = task switch
-            {
-                AutomationWorkflow workflow => new GraphWorkflow(workflow),
-                AutomationControl control => new GraphControl(control),
-                AutomationTask automationTask => new GraphTask(automationTask),
-                _ => throw new NotSupportedException($"Unknown task type '{task.GetType().Name}'")
-            };
+            BaseGraphTask graphTask = BaseGraphTask.For(task);
 
             // A workflow is entered once and left once : the second start or end never makes it in.
             if (!Graph.CanAdd(graphTask))
@@ -289,10 +207,10 @@ namespace Automation.App.Features.Workflows.Editor
         /// it falls back on the selected one, the command being shared by the double click on a node
         /// and the editor toolbar.
         /// </summary>
-        [RelayCommand(CanExecute = nameof(CanOpenSettings))]
+        [RelayCommand(CanExecute = nameof(CanActOn))]
         private async Task OpenSettings(NodeViewModel? node)
         {
-            node ??= SelectedNodes.FirstOrDefault();
+            node = Target(node);
             if (node == null)
                 return;
 
@@ -301,25 +219,33 @@ namespace Automation.App.Features.Workflows.Editor
                 History.Apply(edition);
         }
 
-        private bool CanOpenSettings(NodeViewModel? node) => IsEditable && (node != null || SelectedNodes.Count == 1);
+        /// <summary>
+        /// Whether [node], or the selection it falls back on, can be acted upon : one node has to be
+        /// named, and the graph has to be editable.
+        /// </summary>
+        private bool CanActOn(NodeViewModel? node) => IsEditable && (node != null || SelectedNodes.Count == 1);
+
+        /// <summary>
+        /// [node], falling back on the selected one : the commands are shared by the toolbar, which
+        /// hands over nothing, and the graph itself, which hands over the node acted on.
+        /// </summary>
+        private NodeViewModel? Target(NodeViewModel? node) => node ?? SelectedNodes.FirstOrDefault();
 
         #region Renaming
         /// <summary>
         /// Start renaming [node] on the graph : its label becomes a box holding the name it has, and
         /// nothing is written to the graph until what was typed is committed.
         /// </summary>
-        [RelayCommand(CanExecute = nameof(CanRename))]
+        [RelayCommand(CanExecute = nameof(CanActOn))]
         private void Rename(NodeViewModel? node)
         {
-            node ??= SelectedNodes.FirstOrDefault();
+            node = Target(node);
             if (node == null)
                 return;
 
             node.NameDraft = node.Name;
             node.IsRenaming = true;
         }
-
-        private bool CanRename(NodeViewModel? node) => IsEditable && (node != null || SelectedNodes.Count == 1);
 
         /// <summary>
         /// Apply what was typed, unless it cannot name the node : a node has to be named, and a name
@@ -360,9 +286,7 @@ namespace Automation.App.Features.Workflows.Editor
                 () => node.Model.Metadata.Name = previous));
         }
 
-        /// <summary>
-        /// Leave the node named the way it was, whatever was typed.
-        /// </summary>
+        /// <summary>Leave the node named the way it was, whatever was typed.</summary>
         [RelayCommand]
         private void CancelRename(NodeViewModel? node)
         {
@@ -371,9 +295,7 @@ namespace Automation.App.Features.Workflows.Editor
         }
         #endregion
 
-        /// <summary>
-        /// Remove the selected nodes, along with the connections linked to them.
-        /// </summary>
+        /// <summary>Remove the selected nodes, along with the connections linked to them.</summary>
         [RelayCommand(CanExecute = nameof(CanRemove))]
         private void Remove()
         {
@@ -386,7 +308,7 @@ namespace Automation.App.Features.Workflows.Editor
             // anymore. The composite reverts its steps backwards, so the nodes come back before their
             // connections without that ordering having to be written a second time.
             History.Apply(new CompositeReversibleAction(
-                nodes.Count == 1 ? $"Remove '{nodes[0].Name}'" : $"Remove {nodes.Count} nodes",
+                $"Remove {nodes.Count} node(s)",
                 new ReversibleAction(
                     $"Disconnect {connections.Count} connection(s)",
                     () =>
@@ -416,7 +338,7 @@ namespace Automation.App.Features.Workflows.Editor
         private bool CanRemove => IsEditable && SelectedNodes.Count > 0;
 
         /// <summary>
-        /// Location of every node when a drag started, so the move can be recorded as a single
+        /// Location of every node when a drag started, so the move is recorded as a single
         /// reversible action once it completes.
         /// </summary>
         private readonly Dictionary<NodeViewModel, Point> _dragOrigins = [];
@@ -445,7 +367,7 @@ namespace Automation.App.Features.Workflows.Editor
                 return;
 
             History.Apply(new ReversibleAction(
-                moves.Count == 1 ? $"Move '{moves[0].Node.Name}'" : $"Move {moves.Count} nodes",
+                $"Move {moves.Count} node(s)",
                 () =>
                 {
                     foreach ((NodeViewModel node, _, Point to) in moves)
@@ -482,7 +404,7 @@ namespace Automation.App.Features.Workflows.Editor
             ConnectorViewModel source = first.IsOutput ? first : second;
             ConnectorViewModel target = first.IsOutput ? second : first;
 
-            var existingConnection = GetConnectionsBetween(source.Model, target.Model);
+            var existingConnection = FindConnection(source.Model, target.Model);
             if (existingConnection != null)
             {
                 History.Apply(new ReversibleAction(
@@ -500,84 +422,6 @@ namespace Automation.App.Features.Workflows.Editor
                 $"Connect '{source.Node.Name}' to '{target.Node.Name}'",
                 () => AddConnection(connection),
                 () => RemoveConnection(connection)));
-        }
-
-        #region Execution
-
-        /// <summary>
-        /// Instances reported between the subscription and the start handing over the instance of
-        /// the run : the executor walks the graph on a thread of its own and the first nodes are
-        /// usually reported by then, with nothing yet to match them against.
-        /// </summary>
-        private readonly List<TaskInstance> _reportedBeforeStart = [];
-
-        /// <summary>
-        /// Whether a start is being awaited, which is the only time a report is worth holding onto :
-        /// what is reported once the run is over belongs to nothing the editor follows.
-        /// </summary>
-        private bool _isStarting;
-
-        /// <summary>
-        /// Start the workflow, the graph turning read only until the execution is over. Returns as
-        /// soon as the execution started, its end being reported by the history service.
-        /// <para>
-        /// A workflow expecting an input asks for it first, the run being cancelled when the user
-        /// gives up on the settings. The graph is then saved : what runs is the persisted workflow,
-        /// so what is displayed has to be what was persisted.
-        /// </para>
-        /// </summary>
-        [RelayCommand(CanExecute = nameof(IsEditable))]
-        private async Task Start()
-        {
-            JToken? settings = null;
-            if (StartSettingsViewModel.IsExpectingSettings(Workflow))
-            {
-                settings = await StartSettingsViewModel.ShowAsync(Workflow);
-                if (settings == null)
-                    return;
-            }
-
-            if (!await SaveAsync())
-                return;
-
-            // What is displayed of a run belongs to it : the previous one is cleared rather than
-            // left over the graph of the new one.
-            ResetProgress();
-
-            // Added and updated both : a node is reported as it starts, then again as it ends.
-            _isStarting = true;
-            _historyService.InstanceAdded += OnInstanceReported;
-            _historyService.InstanceUpdated += OnInstanceReported;
-            try
-            {
-                // Started by id : what runs is the workflow just saved, read back by the executor.
-                RunningInstance = await _execution.StartAsync(Workflow.Id, settings);
-            }
-            catch (Exception exception)
-            {
-                Stop();
-                _toasts.Error(exception.Message, $"The workflow '{Workflow.Metadata.Name}' could not be started");
-                return;
-            }
-            finally
-            {
-                _isStarting = false;
-            }
-
-            // What the run reported while its start was being awaited, now that the instance it all
-            // hangs under is known.
-            List<TaskInstance> reported = [.. _reportedBeforeStart];
-            _reportedBeforeStart.Clear();
-            foreach (TaskInstance instance in reported)
-                Apply(instance);
-
-            // The execution may already be over by the time it is awaited, its end then having been
-            // reported before there was anything to match it against.
-            if (RunningInstance is TaskInstance running && (running.State & EnumTaskState.Finished) != 0)
-            {
-                Stop();
-                Report(running);
-            }
         }
 
         /// <summary>
@@ -603,203 +447,6 @@ namespace Automation.App.Features.Workflows.Editor
             // reported it.
             return !History.HasUnsavedChanges;
         }
-
-        /// <summary>
-        /// Clear what a run left on the graph : the states of the nodes, the path it took and how
-        /// far it got.
-        /// </summary>
-        private void ResetProgress()
-        {
-            foreach (NodeViewModel node in Nodes)
-                node.Follow();
-
-            foreach (ConnectionViewModel connection in Connections)
-                connection.IsTraversed = false;
-
-            _reportedBeforeStart.Clear();
-            Progress = null;
-        }
-
-        /// <summary>
-        /// Cancel the running execution. The graph only becomes editable again once the execution
-        /// actually reports itself as finished.
-        /// </summary>
-        [RelayCommand(CanExecute = nameof(IsRunning))]
-        private async Task Cancel()
-        {
-            TaskInstance? instance = RunningInstance;
-            if (instance == null)
-                return;
-
-            try
-            {
-                await _execution.CancelAsync(instance.Id);
-            }
-            catch (Exception exception)
-            {
-                _toasts.Error(exception.Message, $"The workflow '{Workflow.Metadata.Name}' could not be canceled");
-            }
-        }
-
-        /// <summary>
-        /// An instance changed while a run is being followed, reported by the thread executing it.
-        /// </summary>
-        private void OnInstanceReported(TaskInstance instance)
-        {
-            Dispatch(() =>
-            {
-                // Reported before the start handed over the instance of the run : held onto rather
-                // than dropped, it is the beginning of the very run being started.
-                if (RunningInstance == null)
-                {
-                    if (_isStarting)
-                        _reportedBeforeStart.Add(instance);
-                    return;
-                }
-
-                Apply(instance);
-            });
-        }
-
-        /// <summary>
-        /// Display what [instance] tells of the run being followed : the workflow itself, which ends
-        /// the run, or one of its nodes, whose progress is drawn on the graph.
-        /// </summary>
-        private void Apply(TaskInstance instance)
-        {
-            TaskInstance? running = RunningInstance;
-            if (running == null)
-                return;
-
-            if (running.Id == instance.Id)
-            {
-                if ((instance.State & EnumTaskState.Finished) != 0)
-                {
-                    Stop();
-                    Report(instance);
-                }
-                return;
-            }
-
-            // Only the nodes of this very run, a workflow can be running in more than one place
-            // (its own editor, a node of another graph, a schedule).
-            if (running.Id != instance.ParentInstanceId || instance.NodeId is not Guid nodeId)
-                return;
-
-            NodeViewModel? node = Nodes.FirstOrDefault(x => x.Model.Id == nodeId);
-            if (node == null)
-                return;
-
-            // The instance is only timed once it is over, what it holds meanwhile being the last
-            // change of state rather than an end.
-            bool finished = (instance.State & EnumTaskState.Finished) != 0;
-            node.Follow(
-                instance.State,
-                finished && instance.FinishedAt is DateTime end ? end - instance.CreatedAt : null,
-                instance.State == EnumTaskState.Failed ? FirstLine(instance.Output?.ToString()) : null);
-
-            Traverse(instance.Previous?.NodeId, nodeId);
-            RefreshProgress();
-        }
-
-        /// <summary>
-        /// Draw the branch the run reached [nodeId] through. Only the nodes it links are known, so
-        /// every connection between the two is drawn : as far as the instance says, that is how the
-        /// run came in.
-        /// </summary>
-        private void Traverse(Guid? previousNodeId, Guid nodeId)
-        {
-            if (previousNodeId is not Guid previous)
-                return;
-
-            foreach (ConnectionViewModel connection in Connections)
-            {
-                if (connection.Source.Node.Model.Id == previous && connection.Target.Node.Model.Id == nodeId)
-                    connection.IsTraversed = true;
-            }
-        }
-
-        /// <summary>
-        /// How far the run got, read from the nodes it went through : what it finished, and what it
-        /// still has running.
-        /// </summary>
-        private void RefreshProgress()
-        {
-            int finished = 0;
-            int running = 0;
-            foreach (NodeViewModel node in Nodes)
-            {
-                if (node.State is not EnumTaskState state)
-                    continue;
-
-                if ((state & EnumTaskState.Finished) != 0)
-                    finished++;
-                else
-                    running++;
-            }
-
-            Progress = finished == 0 && running == 0
-                ? null
-                : running == 0 ? $"{finished} done" : $"{finished} done, {running} running";
-        }
-
-        /// <summary>
-        /// Tell how the run ended, the editor being the place it was started from.
-        /// </summary>
-        private void Report(TaskInstance instance)
-        {
-            string name = Workflow.Metadata.Name;
-            switch (instance.State)
-            {
-                case EnumTaskState.Completed:
-                    _toasts.Success($"The workflow '{name}' has been executed.", "Workflow completed");
-                    break;
-                case EnumTaskState.Canceled:
-                    _toasts.Warning($"The workflow '{name}' has been canceled.", "Workflow canceled");
-                    break;
-                default:
-                    // The failure of a task is stored as its stack trace, only its first line is
-                    // worth a toast : the history holds the rest.
-                    _toasts.Error(FirstLine(instance.Output?.ToString()) ?? "The execution failed.", $"Workflow '{name}' failed");
-                    break;
-            }
-        }
-
-        private static string? FirstLine(string? text)
-        {
-            if (string.IsNullOrWhiteSpace(text))
-                return null;
-
-            string line = text.ReplaceLineEndings("\n").Split('\n')[0].Trim();
-            return string.IsNullOrEmpty(line) ? null : line;
-        }
-
-        /// <summary>
-        /// Stop following the execution, the graph becoming editable again. The states left on the
-        /// nodes are kept : they are what the run amounted to.
-        /// </summary>
-        private void Stop()
-        {
-            _historyService.InstanceAdded -= OnInstanceReported;
-            _historyService.InstanceUpdated -= OnInstanceReported;
-            RunningInstance = null;
-        }
-
-        /// <summary>
-        /// The undo / redo also modifies the graph, so it follows whether the editor is editable.
-        /// </summary>
-        partial void OnRunningInstanceChanged(TaskInstance? value) => History.IsEnabled = IsEditable;
-
-        private static void Dispatch(Action action)
-        {
-            var dispatcher = Application.Current?.Dispatcher;
-            if (dispatcher == null || dispatcher.CheckAccess())
-                action();
-            else
-                dispatcher.Invoke(action);
-        }
-
-        #endregion
 
         #region Graph edition
 
@@ -836,16 +483,9 @@ namespace Automation.App.Features.Workflows.Editor
             => Connections.Any(x => x.Source == connector || x.Target == connector);
 
 
-        /// <summary>
-        /// Get the connection between the [source] and [target] if it exist.
-        /// </summary>
-        /// <param name="source"></param>
-        /// <param name="target"></param>
-        /// <returns></returns>
-        private ConnectionViewModel? GetConnectionsBetween(GraphConnector source, GraphConnector target)
-        {
-            return Connections.FirstOrDefault(x => x.Model.SourceId == source.Id && x.Model.TargetId == target.Id);
-        }
+        /// <summary>The connection linking [source] to [target], null when there is none.</summary>
+        private ConnectionViewModel? FindConnection(GraphConnector source, GraphConnector target)
+            => Connections.FirstOrDefault(x => x.Model.SourceId == source.Id && x.Model.TargetId == target.Id);
 
         #endregion
     }

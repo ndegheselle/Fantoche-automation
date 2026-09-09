@@ -12,6 +12,12 @@ public interface IScopedService
     public Task<List<ScopedElement>> GetChildrensAsync(Guid scopeId);
 
     /// <summary>
+    /// Every element there is, as a flat list the tree is rebuilt from through their parents. Read
+    /// in one go rather than one scope at a time : a tree is displayed whole.
+    /// </summary>
+    public Task<List<ScopedElement>> GetTreeAsync();
+
+    /// <summary>
     /// The element [elementId], null when nothing is stored under that id. A workflow comes with its
     /// graph, ready to be walked.
     /// </summary>

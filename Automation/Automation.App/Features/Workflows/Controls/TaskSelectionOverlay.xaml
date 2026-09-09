@@ -32,7 +32,7 @@
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
-        <jnputs:Search SearchText="{Binding Search, Mode=TwoWay}" />
+        <jnputs:Search SearchText="{Binding Paging.Search, Mode=TwoWay}" />
 
         <DataGrid
             Grid.Row="1"
@@ -62,8 +62,8 @@
 
         <javigation:Paging
             Grid.Row="2"
-            Capacity="{Binding Capacity, Mode=TwoWay}"
-            PageNumber="{Binding PageNumber, Mode=TwoWay}" />
+            Capacity="{Binding Paging.Capacity, Mode=TwoWay}"
+            PageNumber="{Binding Paging.PageNumber, Mode=TwoWay}" />
 
         <StackPanel
             Grid.Row="3"
