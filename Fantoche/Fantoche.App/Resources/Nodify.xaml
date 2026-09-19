@@ -82,7 +82,7 @@
         <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.BorderBrush}}" />
         <Setter Property="BorderThickness" Value="{DynamicResource {x:Static joufflu:Dimensions.BorderThickness}}" />
         <Setter Property="Foreground" Value="{DynamicResource {x:Static joufflu:Brushes.ForegroundBrush}}" />
-        <Setter Property="Padding" Value="{DynamicResource {x:Static joufflu:Dimensions.ControlPaddingSm}}" />
+        <Setter Property="Padding" Value="{DynamicResource {x:Static joufflu:Dimensions.PaddingSm}}" />
     </Style>
 
     <Style BasedOn="{StaticResource {x:Type nodify:StateNode}}" TargetType="{x:Type nodify:StateNode}">

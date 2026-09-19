@@ -6,6 +6,7 @@
     xmlns:javigation="clr-namespace:Joufflu.Navigation.Controls;assembly=Joufflu.Navigation"
     xmlns:jnputs="clr-namespace:Joufflu.Inputs.Controls;assembly=Joufflu.Inputs"
     xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
+    xmlns:joolkit="clr-namespace:Joufflu.Toolkit;assembly=Joufflu"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Fantoche.App.Features.Packages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -13,13 +14,13 @@
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
-    <Grid Margin="{StaticResource {x:Static joufflu:Dimensions.SpacingThickness}}" joufflu:Spacing.Gap="4">
+    <Grid Margin="{StaticResource {x:Static joufflu:Dimensions.SpacingThickness}}" joolkit:Spacing.Gap="4">
         <Grid.RowDefinitions>
             <RowDefinition Height="3*" />
             <RowDefinition />
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0" joufflu:Spacing.Gap="4">
+        <Grid Grid.Row="0" joolkit:Spacing.Gap="4">
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto" />
                 <RowDefinition />
@@ -43,8 +44,8 @@
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <Button
-                                    joufflu:Sizing.IsSquare="True"
-                                    joufflu:Sizing.Size="sm"
+                                    joolkit:Sizing.IsSquare="True"
+                                    joolkit:Sizing.Size="sm"
                                     Command="{Binding ViewModel.OpenPackageCommand, RelativeSource={RelativeSource AncestorType={x:Type local:PackagesPage}}}"
                                     CommandParameter="{Binding}"
                                     Style="{StaticResource SecondaryButton}">
@@ -63,7 +64,7 @@
         <Border
             x:Name="DropZone"
             Grid.Row="1"
-            joufflu:DropTarget.Command="{Binding DropFilesCommand}"
+            joolkit:DropTarget.Command="{Binding DropFilesCommand}"
             AllowDrop="True"
             Background="Transparent"
             BorderThickness="{DynamicResource {x:Static joufflu:Dimensions.BorderThickness}}"
@@ -94,16 +95,16 @@
                         </Setter.Value>
                     </Setter>
                     <Style.Triggers>
-                        <Trigger Property="joufflu:DropTarget.IsDragOver" Value="True">
+                        <Trigger Property="joolkit:DropTarget.IsDragOver" Value="True">
                             <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.PrimaryBrush}}" />
                         </Trigger>
                     </Style.Triggers>
                 </Style>
             </Border.Style>
 
-            <StackPanel VerticalAlignment="Center" joufflu:Spacing.Gap="8">
+            <StackPanel VerticalAlignment="Center" joolkit:Spacing.Gap="8">
                 <jonts:FontIcon
-                    joufflu:Sizing.Size="xl"
+                    joolkit:Sizing.Size="xl"
                     Opacity="0.5"
                     Text="{x:Static jonts:LucideFontIcons.Upload}" />
                 <TextBlock HorizontalAlignment="Center">Drop here .nupkg / .snupkg or</TextBlock>

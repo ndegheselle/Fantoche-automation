@@ -5,6 +5,7 @@
     xmlns:controls="clr-namespace:Fantoche.App.Features.Packages.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
+    xmlns:joolkit="clr-namespace:Joufflu.Toolkit;assembly=Joufflu"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Fantoche.App.Features.Packages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -12,7 +13,7 @@
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
-    <Grid joufflu:Spacing.Gap="4">
+    <Grid joolkit:Spacing.Gap="4">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
@@ -38,8 +39,8 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <Button
-                                joufflu:Sizing.IsSquare="True"
-                                joufflu:Sizing.Size="sm"
+                                joolkit:Sizing.IsSquare="True"
+                                joolkit:Sizing.Size="sm"
                                 Command="{Binding ViewModel.RemoveVersionCommand, RelativeSource={RelativeSource AncestorType={x:Type local:PackageOverlay}}}"
                                 CommandParameter="{Binding}"
                                 Style="{StaticResource SoftDangerButton}">

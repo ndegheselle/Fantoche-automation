@@ -8,6 +8,7 @@
     xmlns:home="clr-namespace:Fantoche.App.Features.Home"
     xmlns:javigation="clr-namespace:Joufflu.Navigation.Controls;assembly=Joufflu.Navigation"
     xmlns:jeedback="clr-namespace:Joufflu.Feedback.Controls;assembly=Joufflu.Feedback"
+    xmlns:joolkit="clr-namespace:Joufflu.Toolkit;assembly=Joufflu"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Fantoche.App"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -29,7 +30,7 @@
                     <nav:NavigationMenu.Header>
                         <StackPanel
                             VerticalAlignment="Center"
-                            joufflu:Spacing.Gap="8"
+                            joolkit:Spacing.Gap="8"
                             Orientation="Horizontal">
                             <fonts:FontIcon FontSize="20" Text="{x:Static fonts:LucideFontIcons.Workflow}" />
                             <TextBlock

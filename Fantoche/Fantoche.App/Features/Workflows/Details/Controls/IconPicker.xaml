@@ -6,19 +6,20 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:inputs="clr-namespace:Joufflu.Inputs.Controls;assembly=Joufflu.Inputs"
     xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
+    xmlns:joolkit="clr-namespace:Joufflu.Toolkit;assembly=Joufflu"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
     <ToggleButton
         inputs:Dropdown.CloseOnClick="True"
-        joufflu:Sizing.IsSquare="True"
+        joolkit:Sizing.IsSquare="True"
         ToolTip="Select an icon">
         <jonts:FontIcon Text="{Binding SelectedIcon, ElementName=Root, TargetNullValue={x:Static jonts:LucideFontIcons.ImageOff}}" />
         <inputs:Dropdown.Popup>
             <StackPanel
                 x:Name="PopupContent"
                 Width="260"
-                joufflu:Spacing.Gap="4">
+                joolkit:Spacing.Gap="4">
                 <!--  Bound on Text rather than SearchText : the icons are already in memory, so
                       there is nothing to debounce and the grid can follow every keystroke.  -->
                 <inputs:Search Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
@@ -35,7 +36,7 @@
                                     Margin="2"
                                     Command="{Binding DataContext.SelectCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                     CommandParameter="{Binding Glyph}"
-                                    joufflu:Sizing.IsSquare="True"
+                                    joolkit:Sizing.IsSquare="True"
                                     ToolTip="{Binding Name}">
                                     <jonts:FontIcon Text="{Binding Glyph}" />
                                 </Button>

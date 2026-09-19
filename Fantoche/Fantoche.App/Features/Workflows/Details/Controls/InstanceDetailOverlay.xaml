@@ -6,6 +6,7 @@
     xmlns:jeedback="clr-namespace:Joufflu.Feedback.Controls;assembly=Joufflu.Feedback"
     xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
     xmlns:jonverters="clr-namespace:Joufflu.Converters;assembly=Joufflu"
+    xmlns:joolkit="clr-namespace:Joufflu.Toolkit;assembly=Joufflu"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Fantoche.App.Features.Workflows.Details.Controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -33,7 +34,7 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <Grid Width="720" joufflu:Spacing.Gap="8">
+    <Grid Width="720" joolkit:Spacing.Gap="8">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
@@ -43,7 +44,7 @@
 
         <!--  What ran, in which state and for how long  -->
         <Border Style="{StaticResource Card}">
-            <Grid joufflu:Spacing.Gap="2">
+            <Grid joolkit:Spacing.Gap="2">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="auto" />
@@ -55,7 +56,7 @@
                 </Grid.RowDefinitions>
 
                 <TextBlock FontWeight="Bold" Text="{Binding Instance.NodeName}" />
-                <StackPanel Grid.Row="1" Grid.ColumnSpan="2" joufflu:Spacing.Gap="8" Orientation="Horizontal">
+                <StackPanel Grid.Row="1" Grid.ColumnSpan="2" joolkit:Spacing.Gap="8" Orientation="Horizontal">
                     <TextBlock Style="{StaticResource Muted}" Text="{Binding Instance.CreatedAt}" />
                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.ArrowRight}" />
                     <TextBlock Style="{StaticResource Muted}" Text="{Binding Instance.FinishedAt}" />
@@ -63,7 +64,7 @@
                 </StackPanel>
 
                 <jeedback:Badge
-                    joufflu:Sizing.Size="xs"
+                    joolkit:Sizing.Size="xs"
                     Grid.Column="1"
                     VerticalAlignment="Center"
                     Content="{Binding Instance.State}"
@@ -72,7 +73,7 @@
         </Border>
 
         <!--  What it ran with and what it produced  -->
-        <Grid Grid.Row="1" joufflu:Spacing.Gap="4">
+        <Grid Grid.Row="1" joolkit:Spacing.Gap="4">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition />
                 <ColumnDefinition />
@@ -104,7 +105,7 @@
         <!--  The nodes a workflow ran, each opening its own detail. Hidden for a simple task.  -->
         <Grid
             Grid.Row="2"
-            joufflu:Spacing.Gap="4"
+            joolkit:Spacing.Gap="4"
             Visibility="{Binding HasChildren, Converter={x:Static jonverters:VisibilityConverter.Default}}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto" />
@@ -113,7 +114,7 @@
 
             <TextBlock Style="{StaticResource Muted}" Text="Executed nodes" />
             <DataGrid
-                joufflu:Sizing.Size="xs"
+                joolkit:Sizing.Size="xs"
                 Grid.Row="1"
                 MinHeight="160"
                 AutoGenerateColumns="False"
@@ -139,7 +140,7 @@
                             <DataTemplate>
                                 <!--  The row only knows its own instance, the command lives on the detail  -->
                                 <Button
-                                    joufflu:Sizing.IsSquare="True"
+                                    joolkit:Sizing.IsSquare="True"
                                     Command="{Binding DataContext.OpenChildCommand, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"
                                     CommandParameter="{Binding}"
                                     Style="{StaticResource GhostButton}"
@@ -156,7 +157,7 @@
         <StackPanel
             Grid.Row="3"
             HorizontalAlignment="Right"
-            joufflu:Spacing.Gap="4"
+            joolkit:Spacing.Gap="4"
             Orientation="Horizontal">
             <Button Command="{Binding RefreshCommand}" Style="{StaticResource SecondaryButton}">Refresh</Button>
             <Button Command="{Binding ValidateCommand}" Style="{StaticResource PrimaryButton}">Close</Button>

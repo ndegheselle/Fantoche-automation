@@ -5,12 +5,13 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:execution="clr-namespace:Fantoche.Shared.Data.Execution;assembly=Fantoche.Shared"
     xmlns:feedback="clr-namespace:Joufflu.Feedback.Controls;assembly=Joufflu.Feedback"
+    xmlns:joolkit="clr-namespace:Joufflu.Toolkit;assembly=Joufflu"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     d:DataContext="{d:DesignInstance Type=execution:PackageInfos}"
     mc:Ignorable="d">
     <Border Style="{StaticResource Card}">
-        <Grid joufflu:Spacing.Gap="4">
+        <Grid joolkit:Spacing.Gap="4">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition />
                 <ColumnDefinition Width="auto" />

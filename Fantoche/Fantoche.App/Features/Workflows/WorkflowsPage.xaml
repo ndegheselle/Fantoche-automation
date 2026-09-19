@@ -6,6 +6,7 @@
     xmlns:details="clr-namespace:Fantoche.App.Features.Workflows.Details"
     xmlns:jnputs="clr-namespace:Joufflu.Inputs.Controls;assembly=Joufflu.Inputs"
     xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
+    xmlns:joolkit="clr-namespace:Joufflu.Toolkit;assembly=Joufflu"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Fantoche.App.Features.Workflows"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -32,13 +33,13 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <Grid Margin="{StaticResource {x:Static joufflu:Dimensions.SpacingThickness}}" joufflu:Spacing.Gap="2">
+    <Grid Margin="{StaticResource {x:Static joufflu:Dimensions.SpacingThickness}}" joolkit:Spacing.Gap="2">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="200" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <Grid joufflu:Spacing.Gap="2">
+        <Grid joolkit:Spacing.Gap="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition />
                 <ColumnDefinition Width="auto" />
@@ -52,7 +53,7 @@
             <ToggleButton
                 Grid.Column="1"
                 jnputs:Dropdown.CloseOnClick="True"
-                joufflu:Sizing.IsSquare="True">
+                joolkit:Sizing.IsSquare="True">
                 <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Plus}" />
                 <jnputs:Dropdown.Popup>
                     <StackPanel Width="160">
@@ -109,8 +110,8 @@
                     <HierarchicalDataTemplate DataType="{x:Type local:ScopedNode}" ItemsSource="{Binding Children}">
                         <!--  The node itself is dragged, a drop target reading what it is worth to it (a workflow editor only takes tasks and workflows).  -->
                         <StackPanel
-                            joufflu:DragSource.Data="{Binding}"
-                            joufflu:Spacing.Gap="4"
+                            joolkit:DragSource.Data="{Binding}"
+                            joolkit:Spacing.Gap="4"
                             Orientation="Horizontal">
                             <StackPanel.Style>
                                 <Style TargetType="StackPanel">
@@ -118,7 +119,7 @@
                                     <Setter Property="Background" Value="Transparent" />
                                     <Style.Triggers>
                                         <!--  The original fades out while it travels.  -->
-                                        <Trigger Property="joufflu:DragSource.IsDragging" Value="True">
+                                        <Trigger Property="joolkit:DragSource.IsDragging" Value="True">
                                             <Setter Property="Opacity" Value="0.4" />
                                         </Trigger>
                                     </Style.Triggers>
@@ -136,7 +137,7 @@
             </TreeView>
         </Grid>
 
-        <Grid Grid.Column="2" joufflu:Spacing.Gap="2">
+        <Grid Grid.Column="2" joolkit:Spacing.Gap="2">
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto" />
                 <RowDefinition />

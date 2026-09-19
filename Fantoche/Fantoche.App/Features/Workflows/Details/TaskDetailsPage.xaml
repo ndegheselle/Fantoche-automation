@@ -7,6 +7,7 @@
     xmlns:details="clr-namespace:Fantoche.App.Features.Workflows.Details.Controls"
     xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
     xmlns:jonverters="clr-namespace:Joufflu.Converters;assembly=Joufflu"
+    xmlns:joolkit="clr-namespace:Joufflu.Toolkit;assembly=Joufflu"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Fantoche.App.Features.Workflows.Details"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -14,7 +15,7 @@
     mc:Ignorable="d">
     <TabControl SelectedValue="{Binding CurrentTab, Mode=TwoWay}" SelectedValuePath="Tag">
         <TabItem Header="Settings" Tag="{x:Static local:EnumDetailTab.Settings}">
-            <Grid joufflu:Spacing.Gap="4">
+            <Grid joolkit:Spacing.Gap="4">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto" />
                     <RowDefinition />
@@ -31,8 +32,8 @@
                             Margin="{StaticResource {x:Static joufflu:Dimensions.SpacingThickness}}"
                             HorizontalAlignment="Right"
                             VerticalAlignment="Top"
-                            joufflu:Sizing.IsSquare="True"
-                            joufflu:Sizing.Size="sm"
+                            joolkit:Sizing.IsSquare="True"
+                            joolkit:Sizing.Size="sm"
                             Command="{Binding RemovePackageCommand}"
                             Style="{StaticResource SoftDangerButton}"
                             ToolTip="Remove the package">
@@ -44,7 +45,7 @@
                     <StackPanel
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
-                        joufflu:Spacing.Gap="8"
+                        joolkit:Spacing.Gap="8"
                         Visibility="{Binding HasTarget, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}">
                         <StackPanel Orientation="Horizontal">
                             <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.CircleSlash2}" />

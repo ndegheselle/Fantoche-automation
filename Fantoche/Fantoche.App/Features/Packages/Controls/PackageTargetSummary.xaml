@@ -6,12 +6,13 @@
     xmlns:execution="clr-namespace:Fantoche.Shared.Data.Execution;assembly=Fantoche.Shared"
     xmlns:feedback="clr-namespace:Joufflu.Feedback.Controls;assembly=Joufflu.Feedback"
     xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
+    xmlns:joolkit="clr-namespace:Joufflu.Toolkit;assembly=Joufflu"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     d:DataContext="{d:DesignInstance Type=execution:PackageClassTarget}"
     mc:Ignorable="d">
     <Border Style="{StaticResource Card}">
-        <StackPanel joufflu:Spacing.Gap="4" Orientation="Horizontal">
+        <StackPanel joolkit:Spacing.Gap="4" Orientation="Horizontal">
             <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.FileBox}" />
             <TextBlock
                 VerticalAlignment="Center"

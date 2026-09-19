@@ -5,6 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
     xmlns:jonverters="clr-namespace:Joufflu.Converters;assembly=Joufflu"
+    xmlns:joolkit="clr-namespace:Joufflu.Toolkit;assembly=Joufflu"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Fantoche.App.Features.Workflows.Editor"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -17,7 +18,7 @@
             x:Key="EditorButton"
             BasedOn="{StaticResource GhostButton}"
             TargetType="Button">
-            <Setter Property="joufflu:Sizing.IsSquare" Value="True" />
+            <Setter Property="joolkit:Sizing.IsSquare" Value="True" />
             <Setter Property="CommandTarget" Value="{Binding Editor, RelativeSource={RelativeSource AncestorType={x:Type local:EditorOverlay}}}" />
         </Style>
     </UserControl.Resources>
@@ -28,9 +29,9 @@
             HorizontalAlignment="Center"
             VerticalAlignment="Top"
             Style="{StaticResource Card}">
-            <StackPanel joufflu:Spacing.Gap="4" Orientation="Horizontal">
+            <StackPanel joolkit:Spacing.Gap="4" Orientation="Horizontal">
                 <Button
-                    joufflu:Sizing.IsSquare="True"
+                    joolkit:Sizing.IsSquare="True"
                     Command="{Binding Run.StartCommand}"
                     Style="{StaticResource GhostButton}"
                     ToolTip="Start the workflow"
@@ -38,7 +39,7 @@
                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.CirclePlay}" />
                 </Button>
                 <Button
-                    joufflu:Sizing.IsSquare="True"
+                    joolkit:Sizing.IsSquare="True"
                     Command="{Binding Run.CancelCommand}"
                     Style="{StaticResource GhostButton}"
                     ToolTip="Cancel the running workflow"
@@ -64,7 +65,7 @@
             HorizontalAlignment="Right"
             VerticalAlignment="Center"
             Style="{StaticResource Card}">
-            <StackPanel joufflu:Spacing.Gap="4">
+            <StackPanel joolkit:Spacing.Gap="4">
                 <Button
                     Command="{x:Static nodify:EditorCommands.ZoomIn}"
                     Style="{StaticResource EditorButton}"
@@ -85,14 +86,14 @@
                 </Button>
                 <Separator />
                 <Button
-                    joufflu:Sizing.IsSquare="True"
+                    joolkit:Sizing.IsSquare="True"
                     Command="{Binding History.UndoCommand}"
                     Style="{StaticResource GhostButton}"
                     ToolTip="Undo">
                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Undo}" />
                 </Button>
                 <Button
-                    joufflu:Sizing.IsSquare="True"
+                    joolkit:Sizing.IsSquare="True"
                     Command="{Binding History.RedoCommand}"
                     Style="{StaticResource GhostButton}"
                     ToolTip="Redo">
@@ -107,23 +108,23 @@
             HorizontalAlignment="Center"
             VerticalAlignment="Bottom"
             Style="{StaticResource Card}">
-            <StackPanel joufflu:Spacing.Gap="4" Orientation="Horizontal">
+            <StackPanel joolkit:Spacing.Gap="4" Orientation="Horizontal">
                 <Button
-                    joufflu:Sizing.IsSquare="True"
+                    joolkit:Sizing.IsSquare="True"
                     Command="{Binding AddCommand}"
                     Style="{StaticResource GhostButton}"
                     ToolTip="Add a node">
                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Plus}" />
                 </Button>
                 <Button
-                    joufflu:Sizing.IsSquare="True"
+                    joolkit:Sizing.IsSquare="True"
                     Command="{Binding OpenSettingsCommand}"
                     Style="{StaticResource GhostButton}"
                     ToolTip="Settings of the selected node">
                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Settings}" />
                 </Button>
                 <Button
-                    joufflu:Sizing.IsSquare="True"
+                    joolkit:Sizing.IsSquare="True"
                     Command="{Binding RemoveCommand}"
                     Style="{StaticResource GhostButton}"
                     ToolTip="Remove the selected nodes">
@@ -134,7 +135,7 @@
                     VerticalAlignment="Stretch"
                     Fill="{DynamicResource {x:Static joufflu:Brushes.BorderBrush}}" />
                 <Button
-                    joufflu:Sizing.IsSquare="True"
+                    joolkit:Sizing.IsSquare="True"
                     Command="{Binding SaveCommand}"
                     Style="{StaticResource GhostButton}"
                     ToolTip="Save the graph">

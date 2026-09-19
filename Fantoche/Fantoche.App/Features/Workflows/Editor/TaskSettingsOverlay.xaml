@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
     xmlns:jonverters="clr-namespace:Joufflu.Converters;assembly=Joufflu"
+    xmlns:joolkit="clr-namespace:Joufflu.Toolkit;assembly=Joufflu"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Fantoche.App.Features.Workflows.Editor"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -15,7 +16,7 @@
     d:DataContext="{d:DesignInstance Type=local:TaskSettingsViewModel}"
     mc:Ignorable="d">
 
-    <Grid joufflu:Spacing.Gap="4">
+    <Grid joolkit:Spacing.Gap="4">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
             <RowDefinition />
@@ -27,7 +28,7 @@
         <packages:PackageTargetSummary DataContext="{Binding Target}" Visibility="{Binding DataContext.HasTarget, ElementName=RootElement, Converter={x:Static jonverters:VisibilityConverter.Default}}" />
 
         <!--  What the node reads, what it maps, and what comes out of it  -->
-        <Grid Grid.Row="1" joufflu:Spacing.Gap="4">
+        <Grid Grid.Row="1" joolkit:Spacing.Gap="4">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="2*" />
@@ -66,7 +67,7 @@
                 <TextBlock Style="{StaticResource Muted}" Text="{Binding MappingLabel}" />
                 <jonts:FontIcon
                     Grid.Column="1"
-                    joufflu:Tooltip.Content="{Binding Description}"
+                    joolkit:Tooltip.Content="{Binding Description}"
                     Foreground="{DynamicResource {x:Static joufflu:Brushes.InfoBrush}}"
                     Text="{x:Static jonts:LucideFontIcons.Info}" />
             </Grid>
@@ -109,7 +110,7 @@
         </Grid>
 
         <!--  Errors, the validation being blocked while there is any  -->
-        <StackPanel Grid.Row="2" joufflu:Spacing.Gap="4">
+        <StackPanel Grid.Row="2" joolkit:Spacing.Gap="4">
             <!--
                 Without a context the mapping is edited blind : nothing walked the graph, so a
                 reference has nothing to be resolved against and nothing can be said about it.
@@ -149,7 +150,7 @@
         <StackPanel
             Grid.Row="3"
             HorizontalAlignment="Right"
-            joufflu:Spacing.Gap="4"
+            joolkit:Spacing.Gap="4"
             Orientation="Horizontal">
             <Button Command="{Binding CancelCommand}" Style="{StaticResource SecondaryButton}">Cancel</Button>
             <Button Command="{Binding ValidateCommand}" Style="{StaticResource PrimaryButton}">

@@ -5,6 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
     xmlns:jonverters="clr-namespace:Joufflu.Converters;assembly=Joufflu"
+    xmlns:joolkit="clr-namespace:Joufflu.Toolkit;assembly=Joufflu"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Fantoche.App.Features.Workflows.Editor"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -207,7 +208,7 @@
     </UserControl.Resources>
     <!--  Drop target of the whole editor, the toolbars over it included, so a node can be dropped anywhere in it  -->
     <Border
-        joufflu:DropTarget.Command="{Binding DropCommand, RelativeSource={RelativeSource AncestorType={x:Type local:WorkflowEditor}}}"
+        joolkit:DropTarget.Command="{Binding DropCommand, RelativeSource={RelativeSource AncestorType={x:Type local:WorkflowEditor}}}"
         Background="{DynamicResource {x:Static joufflu:Brushes.BackgroundBrush}}"
         BorderThickness="{DynamicResource {x:Static joufflu:Dimensions.BorderThickness}}"
         ClipToBounds="True"
@@ -217,7 +218,7 @@
                 <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.BorderBrush}}" />
                 <Style.Triggers>
                     <!--  True only for a task or a workflow, what the editor refuses never lights the border up  -->
-                    <Trigger Property="joufflu:DropTarget.IsDragOver" Value="True">
+                    <Trigger Property="joolkit:DropTarget.IsDragOver" Value="True">
                         <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.PrimaryBrush}}" />
                     </Trigger>
                 </Style.Triggers>
@@ -271,7 +272,7 @@
 
                                         <TextBox
                                             Width="80"
-                                            joufflu:Sizing.Size="xs"
+                                            joolkit:Sizing.Size="xs"
                                             IsVisibleChanged="OnRenameBoxVisibleChanged"
                                             LostKeyboardFocus="OnRenameBoxLostFocus"
                                             Text="{Binding NameDraft, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -320,7 +321,7 @@
                             <nodify:Node.Header>
                                 <StackPanel
                                     HorizontalAlignment="Center"
-                                    joufflu:Spacing.Gap="4"
+                                    joolkit:Spacing.Gap="4"
                                     Orientation="Horizontal">
                                     <!--  Where the node stands in the run being followed, nothing while none is  -->
                                     <jonts:FontIcon Style="{StaticResource NodeStateIcon}">
@@ -342,7 +343,7 @@
 
                             <jonts:FontIcon
                                 DataContext="{Binding Metadata}"
-                                FontSize="{DynamicResource {x:Static joufflu:Dimensions.ControlFontSizeXl}}"
+                                FontSize="{DynamicResource {x:Static joufflu:Dimensions.FontSizeXl}}"
                                 Style="{StaticResource ScopedMetadataIcon}" />
                         </nodify:Node>
                         <DataTemplate.Triggers>

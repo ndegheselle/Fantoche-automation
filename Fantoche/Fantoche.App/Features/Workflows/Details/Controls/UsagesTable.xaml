@@ -5,19 +5,20 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
     xmlns:jonverters="clr-namespace:Joufflu.Converters;assembly=Joufflu"
+    xmlns:joolkit="clr-namespace:Joufflu.Toolkit;assembly=Joufflu"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Fantoche.App.Features.Workflows.Details.Controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     d:DataContext="{d:DesignInstance Type=local:UsagesViewModel}"
     mc:Ignorable="d">
-    <Grid joufflu:Spacing.Gap="4">
+    <Grid joolkit:Spacing.Gap="4">
         <Grid.RowDefinitions>
             <RowDefinition />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
         <DataGrid
-            joufflu:Sizing.Size="xs"
+            joolkit:Sizing.Size="xs"
             Grid.Row="0"
             AutoGenerateColumns="False"
             CanUserReorderColumns="False"
@@ -38,7 +39,7 @@
                         <DataTemplate>
                             <!--  The row only knows its own usage, the command lives on the usages  -->
                             <Button
-                                joufflu:Sizing.IsSquare="True"
+                                joolkit:Sizing.IsSquare="True"
                                 Command="{Binding DataContext.OpenWorkflowCommand, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"
                                 CommandParameter="{Binding}"
                                 Style="{StaticResource GhostButton}"

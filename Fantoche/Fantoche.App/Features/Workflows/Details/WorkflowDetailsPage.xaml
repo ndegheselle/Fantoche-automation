@@ -5,6 +5,7 @@
     xmlns:controls="clr-namespace:Fantoche.App.Features.Workflows.Details.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:editor="clr-namespace:Fantoche.App.Features.Workflows.Editor"
+    xmlns:joolkit="clr-namespace:Joufflu.Toolkit;assembly=Joufflu"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Fantoche.App.Features.Workflows.Details"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -12,7 +13,7 @@
     mc:Ignorable="d">
     <TabControl SelectedValue="{Binding CurrentTab, Mode=TwoWay}" SelectedValuePath="Tag">
         <TabItem Header="Settings" Tag="{x:Static local:EnumDetailTab.Settings}">
-            <Grid joufflu:Spacing.Gap="4">
+            <Grid joolkit:Spacing.Gap="4">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto" />
                     <RowDefinition />
@@ -24,7 +25,7 @@
                 <StackPanel
                     Grid.Row="1"
                     VerticalAlignment="Top"
-                    joufflu:Spacing.Gap="4">
+                    joolkit:Spacing.Gap="4">
                     <CheckBox IsChecked="{Binding StopIfAnyTaskFail}">Stop if any task fail</CheckBox>
 
                     <TextBlock

@@ -8,6 +8,7 @@
     xmlns:jnputs="clr-namespace:Joufflu.Inputs.Controls;assembly=Joufflu.Inputs"
     xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
     xmlns:jonverters="clr-namespace:Joufflu.Converters;assembly=Joufflu"
+    xmlns:joolkit="clr-namespace:Joufflu.Toolkit;assembly=Joufflu"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Fantoche.App.Features.Packages.Controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -18,7 +19,7 @@
 
     <Grid MinWidth="600" MinHeight="400">
         <!--  Step 1 : package selection  -->
-        <Grid joufflu:Spacing.Gap="4" Visibility="{Binding IsPackageStep, Converter={x:Static jonverters:VisibilityConverter.Default}}">
+        <Grid joolkit:Spacing.Gap="4" Visibility="{Binding IsPackageStep, Converter={x:Static jonverters:VisibilityConverter.Default}}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto" />
                 <RowDefinition />
@@ -61,7 +62,7 @@
         </Grid>
 
         <!--  Step 2 : version and class selection  -->
-        <Grid joufflu:Spacing.Gap="4" Visibility="{Binding IsClassStep, Converter={x:Static jonverters:VisibilityConverter.Default}}">
+        <Grid joolkit:Spacing.Gap="4" Visibility="{Binding IsClassStep, Converter={x:Static jonverters:VisibilityConverter.Default}}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto" />
                 <RowDefinition Height="auto" />
@@ -97,7 +98,7 @@
             <StackPanel
                 Grid.Row="4"
                 HorizontalAlignment="Right"
-                joufflu:Spacing.Gap="4"
+                joolkit:Spacing.Gap="4"
                 Orientation="Horizontal">
                 <Button Command="{Binding BackCommand}" Style="{StaticResource SecondaryButton}">
                     <StackPanel Orientation="Horizontal">

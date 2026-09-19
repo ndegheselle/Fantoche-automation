@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:javigation="clr-namespace:Joufflu.Navigation.Controls;assembly=Joufflu.Navigation"
+    xmlns:joolkit="clr-namespace:Joufflu.Toolkit;assembly=Joufflu"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:jeedback="clr-namespace:Joufflu.Feedback.Controls;assembly=Joufflu.Feedback"
     xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
@@ -18,14 +19,14 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
-    <Grid joufflu:Spacing.Gap="4">
+    <Grid joolkit:Spacing.Gap="4">
         <Grid.RowDefinitions>
             <RowDefinition />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
         <DataGrid
-            joufflu:Sizing.Size="xs"
+            joolkit:Sizing.Size="xs"
             Grid.Row="0"
             AutoGenerateColumns="False"
             CanUserReorderColumns="False"
@@ -50,7 +51,7 @@
                         <DataTemplate>
                             <!--  The row only knows its own instance, the command lives on the history  -->
                             <Button
-                                joufflu:Sizing.IsSquare="True"
+                                joolkit:Sizing.IsSquare="True"
                                 Command="{Binding DataContext.OpenDetailCommand, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"
                                 CommandParameter="{Binding}"
                                 Style="{StaticResource GhostButton}"

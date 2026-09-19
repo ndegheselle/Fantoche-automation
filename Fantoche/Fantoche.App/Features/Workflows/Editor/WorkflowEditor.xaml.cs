@@ -4,6 +4,7 @@ using Fantoche.App.Features.Workflows.Editor.ViewModels;
 using Fantoche.Shared.Data.Scoped;
 using CommunityToolkit.Mvvm.Input;
 using Joufflu;
+using Joufflu.Toolkit;
 
 namespace Fantoche.App.Features.Workflows.Editor
 {
