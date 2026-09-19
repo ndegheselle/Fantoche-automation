@@ -1,0 +1,87 @@
+using Fantoche.Dal;
+using Fantoche.Models;
+using Fantoche.Dal.Repositories;
+using Fantoche.Shared.Base;
+using Microsoft.AspNetCore.Mvc;
+using MongoDB.Driver;
+using Fantoche.Models.Work;
+using Fantoche.Shared.Data.Execution;
+using Fantoche.Shared.Data.Scoped;
+
+namespace Fantoche.Supervisor.Api.Controllers
+{
+    [ApiController]
+    [Route("scopes")]
+    public class ScopesController : BaseCrudController<Scope>
+    {
+        private ScopesRepository _repository => (ScopesRepository)_crudRepository;
+        private readonly TaskInstancesRepository _taskInstanceRepo;
+
+        public ScopesController(DatabaseConnection connection) : base(new ScopesRepository(connection))
+        {
+            _taskInstanceRepo = new TaskInstancesRepository(connection);
+        }
+
+        [HttpPost]
+        [Route("")]
+        public override async Task<ActionResult<Guid>> CreateAsync(Scope element)
+        {
+            if (element.ParentId == null)
+            {
+                return BadRequest(new Dictionary<string, string[]>()
+                {
+                    {nameof(BaseAutomationTask.ParentId), [$"A scope cannot be created without a parent."] }
+                });
+            }
+
+            if (await _repository.IsNameUsedAsync(element.ParentId.Value, element.Metadata.Name) == true)
+            {
+                return BadRequest(new Dictionary<string, string[]>()
+                {
+                    {nameof(ScopedMetadata.Name), [$"The name {element.Metadata.Name} is already used in this scope."] }
+                });
+            }
+
+            var scope = await _repository.GetByIdAsync(element.ParentId.Value);
+            if (scope == null)
+            {
+                return BadRequest(new Dictionary<string, string[]>()
+                {
+                    {nameof(ScopedMetadata.Name), [$"The parent id {element.ParentId} is invalid."] }
+                });
+            }
+
+            element.ParentTree = [..scope.ParentTree, scope.Id];
+            return await _repository.CreateAsync(element);
+        }
+
+        [HttpGet]
+        [Route("root")]
+        public async Task<Scope> GetRootAsync()
+        {
+            return await _repository.GetRootAsync();
+        }
+
+        [HttpGet]
+        [Route("{scopeId}/parents")]
+        public async Task<ActionResult<IEnumerable<Scope>>> GetParentScopes([FromRoute] Guid scopeId)
+        {
+            var scope = await _repository.GetByIdAsync(scopeId);
+            if (scope == null)
+            {
+                return BadRequest(new Dictionary<string, string[]>()
+                {
+                    {nameof(ScopedMetadata.Name), [$"The scope id {scopeId} is invalid."] }
+                });
+            }
+            return Ok(await _repository.GetByIdsAsync(scope.ParentTree));
+        }
+
+        [HttpGet]
+        [Route("{id}/instances")]
+        public async Task<Paginated<TaskInstance>> GetInstancesAsync([FromRoute] Guid id, [FromQuery] int page, [FromQuery] int pageSize)
+        {
+            return await _taskInstanceRepo.GetByScopeAsync(id, page, pageSize);
+        }
+    }
+}

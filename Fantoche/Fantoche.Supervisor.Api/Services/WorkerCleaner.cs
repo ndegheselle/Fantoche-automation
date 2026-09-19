@@ -1,0 +1,50 @@
+﻿using Fantoche.Dal;
+using Fantoche.Dal.Repositories;
+using Fantoche.Realtime;
+using Fantoche.Realtime.Clients;
+using Fantoche.Realtime.Models;
+using Fantoche.Worker.Executor;
+
+namespace Fantoche.Supervisor.Api.Business
+{
+    /// <summary>
+    /// Clean the dead workers once in a while, ensure that a task is never hanged if a server crashed.
+    /// </summary>
+    public class WorkerCleaner : BackgroundService
+    {
+        private readonly TimeSpan _cleaningInterval = TimeSpan.FromSeconds(30);
+        private readonly TaskInstancesRepository _repository;
+        private readonly WorkersRealtimeClient _workersClient;
+        private readonly RemoteTaskExecutor _executor;
+
+        public WorkerCleaner(DatabaseConnection connection, RedisConnectionManager redis, RealtimeClients clients)
+        {
+            _repository = new TaskInstancesRepository(connection);
+            _workersClient = new WorkersRealtimeClient(redis.Connection);
+            _executor = new RemoteTaskExecutor(connection, clients);
+        }
+
+        protected async override Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                await Task.Delay(_cleaningInterval, stoppingToken);
+                await _workersClient.CleanDeadWorkers();
+                await CleanUnhandledTasks();
+            }
+        }
+
+        /// <summary>
+        /// Assign the dead workers tasks that are not finished to some other workers.
+        /// </summary>
+        /// <returns></returns>
+        private async Task CleanUnhandledTasks()
+        {
+            IEnumerable<WorkerInstance> activeWorkers = await _workersClient.GetWorkersAsync();
+            foreach (var instance in await _repository.GetUnhandledAsync(activeWorkers.Select(x => x.Id)))
+            {
+                await _executor.AssignAsync(instance);
+            }
+        }
+    }
+}

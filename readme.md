@@ -1,4 +1,4 @@
-# Automation
+# Fantoche
 No-code solution to create workflow automation based on a node editor.
 
 Objectives:
@@ -25,7 +25,7 @@ Backend Requirements:
 - [Setting up a mongodb with docker in visual studio](https://medium.com/@hugo_cesar45/asp-net-core-web-api-net-8-docker-mongodb-8fab9a54f72c)
 
 Start the `docker-compose` startup project for the backend.
-Start `Automation.App` for the client.
+Start `Fantoche.App` for the client.
 
 ## Links
 

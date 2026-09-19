@@ -1,0 +1,163 @@
+﻿<UserControl
+    x:Class="Fantoche.App.Features.Workflows.Editor.TaskSettingsOverlay"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="clr-namespace:Fantoche.App.Features.Workflows.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
+    xmlns:jonverters="clr-namespace:Joufflu.Converters;assembly=Joufflu"
+    xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
+    xmlns:local="clr-namespace:Fantoche.App.Features.Workflows.Editor"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:packages="clr-namespace:Fantoche.App.Features.Packages.Controls"
+    x:Name="RootElement"
+    MinWidth="900"
+    d:DataContext="{d:DesignInstance Type=local:TaskSettingsViewModel}"
+    mc:Ignorable="d">
+
+    <Grid joufflu:Spacing.Gap="4">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+
+        <!--  The package and class the node's task runs, when it has one  -->
+        <packages:PackageTargetSummary DataContext="{Binding Target}" Visibility="{Binding DataContext.HasTarget, ElementName=RootElement, Converter={x:Static jonverters:VisibilityConverter.Default}}" />
+
+        <!--  What the node reads, what it maps, and what comes out of it  -->
+        <Grid Grid.Row="1" joufflu:Spacing.Gap="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="300" />
+            </Grid.RowDefinitions>
+
+            <TextBlock Style="{StaticResource Muted}" Text="Available (double click to insert)" />
+            <TreeView
+                x:Name="ContextTree"
+                Grid.Row="1"
+                ItemsSource="{Binding Context}"
+                MouseDoubleClick="OnContextDoubleClick">
+                <TreeView.ItemTemplate>
+                    <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock FontFamily="Consolas" Text="{Binding Name}" />
+                            <TextBlock
+                                Margin="8,0,0,0"
+                                FontFamily="Consolas"
+                                Style="{StaticResource Muted}"
+                                Text="{Binding Preview}" />
+                        </StackPanel>
+                    </HierarchicalDataTemplate>
+                </TreeView.ItemTemplate>
+            </TreeView>
+
+            <Grid Grid.Column="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Style="{StaticResource Muted}" Text="{Binding MappingLabel}" />
+                <jonts:FontIcon
+                    Grid.Column="1"
+                    joufflu:Tooltip.Content="{Binding Description}"
+                    Foreground="{DynamicResource {x:Static joufflu:Brushes.InfoBrush}}"
+                    Text="{x:Static jonts:LucideFontIcons.Info}" />
+            </Grid>
+
+            <TextBox
+                x:Name="MappingTextBox"
+                Grid.Row="1"
+                Grid.Column="1"
+                Height="auto"
+                Style="{StaticResource JsonTextBox}"
+                Text="{Binding InputMappingJson, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+            <!--
+                The shape the mapping has to produce, which is what the reader needs in front of them
+                while writing one. Theirs to declare on the start and the end, the boundary of the
+                workflow being what a caller reads it by ; read from the task everywhere else.
+            -->
+            <TextBlock
+                Grid.Column="2"
+                Style="{StaticResource Muted}"
+                Text="{Binding ExpectedLabel}" />
+            <!--
+                Read as a tree where the shape is only shown, and as the schema itself where the node
+                declares it : editing one means editing the schema, reading one means reading the
+                values it describes.
+            -->
+            <controls:SchemaDisplay
+                Grid.Row="1"
+                Grid.Column="2"
+                EmptyText="{Binding EmptyExpectationText}"
+                SchemaJson="{Binding ExpectedSchemaJson}"
+                Visibility="{Binding IsExpectedReadOnly, Converter={x:Static jonverters:VisibilityConverter.Default}}" />
+            <TextBox
+                Grid.Row="1"
+                Grid.Column="2"
+                Height="auto"
+                Style="{StaticResource JsonTextBox}"
+                Text="{Binding ExpectedSchemaJson, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                Visibility="{Binding DeclaresSchema, Converter={x:Static jonverters:VisibilityConverter.Default}}" />
+        </Grid>
+
+        <!--  Errors, the validation being blocked while there is any  -->
+        <StackPanel Grid.Row="2" joufflu:Spacing.Gap="4">
+            <!--
+                Without a context the mapping is edited blind : nothing walked the graph, so a
+                reference has nothing to be resolved against and nothing can be said about it.
+            -->
+            <StackPanel Orientation="Horizontal" Visibility="{Binding IsContextMissing, Converter={x:Static jonverters:VisibilityConverter.Default}}">
+                <jonts:FontIcon Foreground="{DynamicResource {x:Static joufflu:Brushes.WarningBrush}}" Text="{x:Static jonts:LucideFontIcons.AlertTriangle}" />
+                <TextBlock
+                    Margin="4,0,0,0"
+                    Foreground="{DynamicResource {x:Static joufflu:Brushes.WarningBrush}}"
+                    Text="The graph could not be walked up to this node : the references are neither resolved nor checked."
+                    TextWrapping="Wrap" />
+            </StackPanel>
+
+            <ItemsControl ItemsSource="{Binding Errors}" Visibility="{Binding HasErrors, Converter={x:Static jonverters:VisibilityConverter.Default}}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <jonts:FontIcon Foreground="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}" Text="{x:Static jonts:LucideFontIcons.AlertCircle}" />
+                            <!--  The branch it is wrong on, when the node is reached more than one way  -->
+                            <TextBlock
+                                Margin="4,0,0,0"
+                                FontFamily="Consolas"
+                                Style="{StaticResource Muted}"
+                                Text="{Binding Branch, StringFormat='from {0}'}"
+                                Visibility="{Binding HasBranch, Converter={x:Static jonverters:VisibilityConverter.Default}}" />
+                            <TextBlock
+                                Margin="4,0,0,0"
+                                Foreground="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}"
+                                Text="{Binding Message}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+
+        <StackPanel
+            Grid.Row="3"
+            HorizontalAlignment="Right"
+            joufflu:Spacing.Gap="4"
+            Orientation="Horizontal">
+            <Button Command="{Binding CancelCommand}" Style="{StaticResource SecondaryButton}">Cancel</Button>
+            <Button Command="{Binding ValidateCommand}" Style="{StaticResource PrimaryButton}">
+                <StackPanel Orientation="Horizontal">
+                    <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Save}" />
+                    <TextBlock Margin="4,0,0,0">Apply</TextBlock>
+                </StackPanel>
+            </Button>
+        </StackPanel>
+    </Grid>
+</UserControl>

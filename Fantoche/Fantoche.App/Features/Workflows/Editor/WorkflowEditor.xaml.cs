@@ -1,0 +1,77 @@
+﻿using System.Windows;
+using System.Windows.Controls;
+using Fantoche.App.Features.Workflows.Editor.ViewModels;
+using Fantoche.Shared.Data.Scoped;
+using CommunityToolkit.Mvvm.Input;
+using Joufflu;
+
+namespace Fantoche.App.Features.Workflows.Editor
+{
+    public partial class WorkflowEditor : UserControl
+    {
+        public WorkflowEditorViewModel? ViewModel => DataContext as WorkflowEditorViewModel;
+
+        /// <summary>
+        /// Drop of a node dragged out of the tree, added to the graph where it landed. Held by the
+        /// view rather than by the view model : turning the drop position into graph coordinates
+        /// needs the editor and its viewport.
+        /// </summary>
+        public IRelayCommand<IDataObject> DropCommand { get; }
+
+        public WorkflowEditor()
+        {
+            InitializeComponent();
+            DropCommand = new RelayCommand<IDataObject>(OnDrop, CanDrop);
+        }
+
+        private void OnDrop(IDataObject? data)
+        {
+            if (GetTask(data) is not BaseAutomationTask task || data is not DropData drop)
+                return;
+
+            // The drop is placed on the border holding the target, which the editor translates to
+            // the graph itself.
+            ViewModel?.Add(task, Editor.GetLocationInsideEditor(drop.Position, drop.Target));
+        }
+
+        /// <summary>
+        /// Only a task or a workflow can be dropped, a scope having nothing to run, and the workflow
+        /// being edited can't contain itself.
+        /// </summary>
+        private bool CanDrop(IDataObject? data)
+        {
+            BaseAutomationTask? task = GetTask(data);
+            // Nothing can be added to a running workflow, its graph being read only.
+            return task != null && task.Id != ViewModel?.Workflow.Id && ViewModel?.IsEditable == true;
+        }
+
+        /// <summary>
+        /// Hand the keyboard to the box as soon as renaming starts : the name is edited on the graph
+        /// itself, so nothing else is going to focus it.
+        /// </summary>
+        private void OnRenameBoxVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (e.NewValue is true && sender is TextBox box)
+            {
+                box.Focus();
+                box.SelectAll();
+            }
+        }
+
+        /// <summary>
+        /// Leaving the box commits what was typed : a name edited in place has no button to press.
+        /// </summary>
+        private void OnRenameBoxLostFocus(object sender, RoutedEventArgs e)
+        {
+            if (sender is FrameworkElement box && box.DataContext is NodeViewModel node)
+                ViewModel?.CommitRenameCommand.Execute(node);
+        }
+
+        /// <summary>
+        /// What the dragged node is worth to the editor, <see langword="null"/> for anything else
+        /// than a task or a workflow coming from the tree.
+        /// </summary>
+        private static BaseAutomationTask? GetTask(IDataObject? data)
+            => (data?.GetData(typeof(ScopedNode)) as ScopedNode)?.TaskElement;
+    }
+}

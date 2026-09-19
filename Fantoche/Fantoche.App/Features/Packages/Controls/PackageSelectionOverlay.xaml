@@ -1,0 +1,117 @@
+﻿<UserControl
+    x:Class="Fantoche.App.Features.Packages.Controls.PackageSelectionOverlay"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="clr-namespace:Fantoche.App.Features.Packages.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:javigation="clr-namespace:Joufflu.Navigation.Controls;assembly=Joufflu.Navigation"
+    xmlns:jnputs="clr-namespace:Joufflu.Inputs.Controls;assembly=Joufflu.Inputs"
+    xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
+    xmlns:jonverters="clr-namespace:Joufflu.Converters;assembly=Joufflu"
+    xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
+    xmlns:local="clr-namespace:Fantoche.App.Features.Packages.Controls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DataContext="{d:DesignInstance Type=local:PackageSelectionViewModel}"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    mc:Ignorable="d">
+
+    <Grid MinWidth="600" MinHeight="400">
+        <!--  Step 1 : package selection  -->
+        <Grid joufflu:Spacing.Gap="4" Visibility="{Binding IsPackageStep, Converter={x:Static jonverters:VisibilityConverter.Default}}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition />
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="auto" />
+            </Grid.RowDefinitions>
+
+            <jnputs:Search Grid.Row="0" SearchText="{Binding Paging.Search, Mode=TwoWay}" />
+            <DataGrid
+                Grid.Row="1"
+                AutoGenerateColumns="False"
+                CanUserReorderColumns="False"
+                IsReadOnly="True"
+                ItemsSource="{Binding Result.Items}"
+                SelectedItem="{Binding SelectedPackage, Mode=TwoWay}"
+                SelectionMode="Single">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Binding="{Binding Identifier.Id}" Header="Id" />
+                    <DataGridTextColumn Binding="{Binding Identifier.Version}" Header="Version" />
+                    <DataGridTextColumn
+                        Width="*"
+                        Binding="{Binding Description}"
+                        Header="Description" />
+                </DataGrid.Columns>
+            </DataGrid>
+            <javigation:Paging
+                Grid.Row="2"
+                Capacity="{Binding Paging.Capacity, Mode=TwoWay}"
+                PageNumber="{Binding Paging.PageNumber, Mode=TwoWay}" />
+            <Button
+                Grid.Row="3"
+                HorizontalAlignment="Right"
+                Command="{Binding NextCommand}"
+                Style="{StaticResource PrimaryButton}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Margin="0,0,4,0">Next</TextBlock>
+                    <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.ArrowRight}" />
+                </StackPanel>
+            </Button>
+        </Grid>
+
+        <!--  Step 2 : version and class selection  -->
+        <Grid joufflu:Spacing.Gap="4" Visibility="{Binding IsClassStep, Converter={x:Static jonverters:VisibilityConverter.Default}}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="auto" />
+                <RowDefinition />
+                <RowDefinition Height="auto" />
+            </Grid.RowDefinitions>
+
+            <controls:PackageSummary DataContext="{Binding SelectedPackage}" />
+
+            <TextBlock Grid.Row="1" Style="{StaticResource Lead}">Version</TextBlock>
+            <ComboBox
+                Grid.Row="2"
+                ItemsSource="{Binding Versions}"
+                SelectedItem="{Binding SelectedVersion, Mode=TwoWay}" />
+
+            <DataGrid
+                Grid.Row="3"
+                AutoGenerateColumns="False"
+                CanUserReorderColumns="False"
+                IsReadOnly="True"
+                ItemsSource="{Binding Classes}"
+                SelectedItem="{Binding SelectedClass, Mode=TwoWay}"
+                SelectionMode="Single">
+                <DataGrid.Columns>
+                    <DataGridTextColumn
+                        Binding="{Binding ClassFullName}"
+                        Header="Name" />
+                    <DataGridTextColumn Binding="{Binding Dll}" Header="Dll" />
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <StackPanel
+                Grid.Row="4"
+                HorizontalAlignment="Right"
+                joufflu:Spacing.Gap="4"
+                Orientation="Horizontal">
+                <Button Command="{Binding BackCommand}" Style="{StaticResource SecondaryButton}">
+                    <StackPanel Orientation="Horizontal">
+                        <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.ArrowLeft}" />
+                        <TextBlock Margin="4,0,0,0">Back</TextBlock>
+                    </StackPanel>
+                </Button>
+                <Button Command="{Binding ValidateCommand}" Style="{StaticResource PrimaryButton}">
+                    <StackPanel Orientation="Horizontal">
+                        <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Check}" />
+                        <TextBlock Margin="4,0,0,0">Select</TextBlock>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

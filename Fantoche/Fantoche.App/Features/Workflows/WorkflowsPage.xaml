@@ -1,0 +1,190 @@
+﻿<UserControl
+    x:Class="Fantoche.App.Features.Workflows.WorkflowsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:details="clr-namespace:Fantoche.App.Features.Workflows.Details"
+    xmlns:jnputs="clr-namespace:Joufflu.Inputs.Controls;assembly=Joufflu.Inputs"
+    xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
+    xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
+    xmlns:local="clr-namespace:Fantoche.App.Features.Workflows"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:scoped="clr-namespace:Fantoche.Shared.Data.Scoped;assembly=Fantoche.Shared"
+    d:DataContext="{d:DesignInstance Type=local:WorkflowsViewModel}"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Features/Workflows/Controls/ScopedIcon.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <DataTemplate DataType="{x:Type details:ScopeDetailsViewModel}">
+                <details:ScopeDetailsPage />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type details:WorkflowDetailsViewModel}">
+                <details:WorkflowDetailsPage />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type details:TaskDetailsViewModel}">
+                <details:TaskDetailsPage />
+            </DataTemplate>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid Margin="{StaticResource {x:Static joufflu:Dimensions.SpacingThickness}}" joufflu:Spacing.Gap="2">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Grid joufflu:Spacing.Gap="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition Width="auto" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+
+            <jnputs:Search SearchText="{Binding Search, Mode=TwoWay}" />
+            <ToggleButton
+                Grid.Column="1"
+                jnputs:Dropdown.CloseOnClick="True"
+                joufflu:Sizing.IsSquare="True">
+                <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Plus}" />
+                <jnputs:Dropdown.Popup>
+                    <StackPanel Width="160">
+                        <Button
+                            HorizontalContentAlignment="Left"
+                            Command="{Binding CreateCommand}"
+                            CommandParameter="{x:Static scoped:EnumScopedType.Scope}"
+                            Style="{StaticResource GhostButton}">
+                            <StackPanel Orientation="Horizontal">
+                                <jonts:FontIcon DataContext="{x:Static scoped:EnumScopedType.Scope}" Style="{StaticResource ScopedIcon}" />
+                                <TextBlock Margin="8,0,0,0">Add a scope</TextBlock>
+                            </StackPanel>
+                        </Button>
+                        <Button
+                            HorizontalContentAlignment="Left"
+                            Command="{Binding CreateCommand}"
+                            CommandParameter="{x:Static scoped:EnumScopedType.Workflow}"
+                            Style="{StaticResource GhostButton}">
+                            <StackPanel Orientation="Horizontal">
+                                <jonts:FontIcon DataContext="{x:Static scoped:EnumScopedType.Workflow}" Style="{StaticResource ScopedIcon}" />
+                                <TextBlock Margin="8,0,0,0">Add a workflow</TextBlock>
+                            </StackPanel>
+                        </Button>
+                        <Button
+                            HorizontalContentAlignment="Left"
+                            Command="{Binding CreateCommand}"
+                            CommandParameter="{x:Static scoped:EnumScopedType.Task}"
+                            Style="{StaticResource GhostButton}">
+                            <StackPanel Orientation="Horizontal">
+                                <jonts:FontIcon DataContext="{x:Static scoped:EnumScopedType.Task}" Style="{StaticResource ScopedIcon}" />
+                                <TextBlock Margin="8,0,0,0">Add a task</TextBlock>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </jnputs:Dropdown.Popup>
+            </ToggleButton>
+
+            <!--  Tree of every scope, workflow and task, the root scope only holding them.  -->
+            <TreeView
+                Grid.Row="1"
+                Grid.ColumnSpan="2"
+                ItemsSource="{Binding Root.Children}"
+                PreviewMouseLeftButtonUp="OnSelectionMouseLeftButtonUp"
+                QueryContinueDrag="OnSelectionQueryContinueDrag"
+                SelectedItemChanged="OnTreeSelectionChanged">
+                <TreeView.ItemContainerStyle>
+                    <Style BasedOn="{StaticResource TreeViewItemStyle}" TargetType="{x:Type TreeViewItem}">
+                        <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                        <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+                        <Setter Property="VerticalContentAlignment" Value="Stretch" />
+                    </Style>
+                </TreeView.ItemContainerStyle>
+                <TreeView.ItemTemplate>
+                    <HierarchicalDataTemplate DataType="{x:Type local:ScopedNode}" ItemsSource="{Binding Children}">
+                        <!--  The node itself is dragged, a drop target reading what it is worth to it (a workflow editor only takes tasks and workflows).  -->
+                        <StackPanel
+                            joufflu:DragSource.Data="{Binding}"
+                            joufflu:Spacing.Gap="4"
+                            Orientation="Horizontal">
+                            <StackPanel.Style>
+                                <Style TargetType="StackPanel">
+                                    <!--  Hit tested as a whole : the row is grabbed wherever it is pressed, not only on the icon and the name.  -->
+                                    <Setter Property="Background" Value="Transparent" />
+                                    <Style.Triggers>
+                                        <!--  The original fades out while it travels.  -->
+                                        <Trigger Property="joufflu:DragSource.IsDragging" Value="True">
+                                            <Setter Property="Opacity" Value="0.4" />
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </StackPanel.Style>
+                            <!--  The panel fills the row, its content stays centered in it.  -->
+                            <jonts:FontIcon
+                                VerticalAlignment="Center"
+                                DataContext="{Binding Metadata}"
+                                Style="{StaticResource ScopedMetadataIcon}" />
+                            <TextBlock VerticalAlignment="Center" Text="{Binding Name}" />
+                        </StackPanel>
+                    </HierarchicalDataTemplate>
+                </TreeView.ItemTemplate>
+            </TreeView>
+        </Grid>
+
+        <Grid Grid.Column="2" joufflu:Spacing.Gap="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <!--  Path of the selected element.  -->
+            <ScrollViewer
+                Grid.Row="0"
+                MaxWidth="300"
+                HorizontalAlignment="Left"
+                HorizontalScrollBarVisibility="Auto"
+                VerticalScrollBarVisibility="Disabled">
+                <ItemsControl ItemsSource="{Binding Breadcrumb}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type local:ScopedNode}">
+                            <StackPanel Orientation="Horizontal">
+                                <jonts:FontIcon Foreground="{DynamicResource {x:Static joufflu:Brushes.Foreground100Brush}}" Text="{x:Static jonts:LucideFontIcons.ChevronRight}">
+                                    <jonts:FontIcon.Style>
+                                        <Style BasedOn="{StaticResource {x:Type jonts:FontIcon}}" TargetType="{x:Type jonts:FontIcon}">
+                                            <Style.Triggers>
+                                                <!--  No separator before the first element of the path.  -->
+                                                <DataTrigger Binding="{Binding Parent}" Value="{x:Null}">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </jonts:FontIcon.Style>
+                                </jonts:FontIcon>
+                                <Button
+                                    Command="{Binding ViewModel.OpenCommand, RelativeSource={RelativeSource AncestorType={x:Type local:WorkflowsPage}}}"
+                                    CommandParameter="{Binding}"
+                                    Style="{StaticResource GhostButton}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <jonts:FontIcon DataContext="{Binding Metadata}" Style="{StaticResource ScopedMetadataIcon}" />
+                                        <TextBlock Margin="4,0,0,0" Text="{Binding Name}" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <ContentControl Grid.Row="1" Content="{Binding Details}" />
+        </Grid>
+    </Grid>
+</UserControl>

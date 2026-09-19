@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Joufflu" Version="0.6.9" />
+    <PackageReference Include="Joufflu.Feedback" Version="0.6.6" />
+    <PackageReference Include="Joufflu.Inputs" Version="0.6.7" />
+    <PackageReference Include="Joufflu.Navigation" Version="0.7.0" />
+    <PackageReference Include="Nodify" Version="7.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Fantoche.Services.Local\Fantoche.Services.Local.csproj" />
+    <ProjectReference Include="..\Fantoche.Shared\Fantoche.Shared.csproj" />
+  </ItemGroup>
+
+</Project>

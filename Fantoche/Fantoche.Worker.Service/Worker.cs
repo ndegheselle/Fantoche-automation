@@ -1,0 +1,57 @@
+using Fantoche.Dal;
+using Fantoche.Dal.Repositories;
+using Fantoche.Models.Work;
+using Fantoche.Realtime;
+using Fantoche.Realtime.Clients;
+using Fantoche.Realtime.Models;
+using Fantoche.Shared.Data.Execution;
+using Fantoche.Shared.Data.Task;
+using Fantoche.Worker.Executor;
+using Fantoche.Worker.Packages;
+
+namespace Fantoche.Worker.Service
+{
+    public class Worker : BackgroundService
+    {
+        private readonly TaskInstancesRepository _instanceRepo;
+        private readonly NodeExecutor _executor;
+        private readonly WorkerRealtimeClient _workerClient;
+
+        private TaskCompletionSource? _waitingForTask;
+
+        public Worker(
+            ILogger<Worker> logger,
+            WorkerInstance instance,
+            DatabaseConnection connection,
+            RedisConnectionManager redis,
+            IPackageManagement packageManagement)
+        {
+            _instanceRepo = new TaskInstancesRepository(connection);
+            _executor = new LocalTaskExecutor(connection, packageManagement);
+            _workerClient = new WorkersRealtimeClient(redis.Connection).ByWorker(instance.Id);
+        }
+
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            _workerClient.Tasks.Subscribe(new Progress<Guid>((id) => _waitingForTask?.SetResult()));
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                // Execute all the queued tasks
+                Guid? taskId;
+                do
+                {
+                    taskId = await _workerClient.Tasks.DequeueAsync();
+                    if (taskId != null)
+                    {
+                        TaskInstance instance = await _instanceRepo.GetByIdAsync(taskId.Value);
+                        await _executor.ExecuteAsync(instance);
+                    }
+                } while (taskId != null);
+
+                // Wait for a new task
+                _waitingForTask = new TaskCompletionSource(stoppingToken);
+                await _waitingForTask.Task;
+            }
+        }
+    }
+}
