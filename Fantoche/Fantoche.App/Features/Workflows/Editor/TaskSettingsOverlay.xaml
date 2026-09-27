@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="clr-namespace:Fantoche.App.Features.Workflows.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:data="clr-namespace:Joufflu.Data.Controls;assembly=Joufflu.Data"
     xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
     xmlns:jonverters="clr-namespace:Joufflu.Converters;assembly=Joufflu"
     xmlns:joolkit="clr-namespace:Joufflu.Toolkit;assembly=Joufflu"
@@ -39,12 +40,8 @@
                 <RowDefinition Height="300" />
             </Grid.RowDefinitions>
 
-            <TextBlock Style="{StaticResource Muted}" Text="Available (double click to insert)" />
-            <TreeView
-                x:Name="ContextTree"
-                Grid.Row="1"
-                ItemsSource="{Binding Context}"
-                MouseDoubleClick="OnContextDoubleClick">
+            <TextBlock Style="{StaticResource Muted}" Text="Available (force a field to reference one)" />
+            <TreeView Grid.Row="1" ItemsSource="{Binding Context}">
                 <TreeView.ItemTemplate>
                     <HierarchicalDataTemplate ItemsSource="{Binding Children}">
                         <StackPanel Orientation="Horizontal">
@@ -72,41 +69,35 @@
                     Text="{x:Static jonts:LucideFontIcons.Info}" />
             </Grid>
 
-            <TextBox
-                x:Name="MappingTextBox"
+            <!--  Filled in against the schema of the task, built from scratch everywhere else  -->
+            <data:DataFill
                 Grid.Row="1"
                 Grid.Column="1"
-                Height="auto"
-                Style="{StaticResource JsonTextBox}"
-                Text="{Binding InputMappingJson, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                ManualValues="{Binding References}"
+                Node="{Binding Mapping, Mode=OneWay}"
+                Visibility="{Binding IsFilled, Converter={x:Static jonverters:VisibilityConverter.Default}}" />
+            <data:DataEdit
+                Grid.Row="1"
+                Grid.Column="1"
+                ManualValues="{Binding References}"
+                Node="{Binding Mapping, Mode=OneWay}"
+                Visibility="{Binding IsFilled, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}" />
 
             <!--
                 The shape the mapping has to produce, which is what the reader needs in front of them
-                while writing one. Theirs to declare on the start and the end, the boundary of the
-                workflow being what a caller reads it by ; read from the task everywhere else.
+                while writing one. Deduced from the expected object on the start and the end, the
+                boundary of the workflow being what a caller reads it by ; read from the task
+                everywhere else.
             -->
             <TextBlock
                 Grid.Column="2"
                 Style="{StaticResource Muted}"
                 Text="{Binding ExpectedLabel}" />
-            <!--
-                Read as a tree where the shape is only shown, and as the schema itself where the node
-                declares it : editing one means editing the schema, reading one means reading the
-                values it describes.
-            -->
             <controls:SchemaDisplay
                 Grid.Row="1"
                 Grid.Column="2"
                 EmptyText="{Binding EmptyExpectationText}"
-                SchemaJson="{Binding ExpectedSchemaJson}"
-                Visibility="{Binding IsExpectedReadOnly, Converter={x:Static jonverters:VisibilityConverter.Default}}" />
-            <TextBox
-                Grid.Row="1"
-                Grid.Column="2"
-                Height="auto"
-                Style="{StaticResource JsonTextBox}"
-                Text="{Binding ExpectedSchemaJson, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                Visibility="{Binding DeclaresSchema, Converter={x:Static jonverters:VisibilityConverter.Default}}" />
+                SchemaJson="{Binding ExpectedSchemaJson}" />
         </Grid>
 
         <!--  Errors, the validation being blocked while there is any  -->
