@@ -37,10 +37,5 @@ namespace Fantoche.App.Common
                 ? token.ToString()
                 : token.ToString(Formatting.Indented);
         }
-
-        /// <summary>
-        /// An empty text box means nothing is mapped, which is null rather than "".
-        /// </summary>
-        public static string? NullIfEmpty(string? json) => string.IsNullOrWhiteSpace(json) ? null : json;
     }
 }

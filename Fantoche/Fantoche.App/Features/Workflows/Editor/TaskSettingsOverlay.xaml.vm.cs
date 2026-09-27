@@ -1,5 +1,4 @@
 ﻿using System.Collections.ObjectModel;
-using Fantoche.App.Common;
 using Fantoche.App.Features.Workflows.Editor.History;
 using Fantoche.Shared.Data;
 using Fantoche.Shared.Data.Execution;
@@ -7,6 +6,7 @@ using Fantoche.Shared.Data.Graph;
 using Fantoche.Shared.Data.Scoped;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Joufflu.Data.Model;
 using Joufflu.Navigation;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -104,9 +104,10 @@ namespace Fantoche.App.Features.Workflows.Editor
     public record NodeKindText(string Name, string Description, string ExpectedLabel, string EmptyExpectation);
 
     /// <summary>
-    /// Settings of a graph node : the mapping it runs with, edited as raw JSON between what it reads
-    /// (the branches reaching it, the shared values and the context of its scopes) and what comes
-    /// out of it once the references are resolved.
+    /// Settings of a graph node : the mapping it runs with, edited as a tree between what it reads
+    /// (the branches reaching it, the shared values and the context of its scopes) and the shape
+    /// expected of it. A field references what the node reads by being forced to one of
+    /// <see cref="References"/>.
     /// <para>
     /// A node is read once per context a run can reach it with (see
     /// <see cref="GraphExecutionPreview"/>), so the mapping is checked against every branch leading
@@ -124,8 +125,23 @@ namespace Fantoche.App.Features.Workflows.Editor
 
         /// <summary>
         /// Mapping the node runs with, references to the context included (e.g. "$previous.Value").
+        /// Filled in against the schema of the task when it has one (see <see cref="IsFilled"/>),
+        /// built from scratch otherwise : on the start and the end, it is the expected object the
+        /// schema of the workflow is deduced from.
         /// </summary>
-        [ObservableProperty] private string? _inputMappingJson;
+        public DataObject Mapping { get; }
+
+        /// <summary>
+        /// Whether the mapping is filled in against the schema of the task rather than built from
+        /// scratch.
+        /// </summary>
+        public bool IsFilled { get; }
+
+        /// <summary>
+        /// What a field of the mapping can be forced to : the references of what the node reads, and
+        /// the ones the mapping already holds, even those the context no longer has.
+        /// </summary>
+        public IReadOnlyList<DataManualValue> References { get; }
 
         /// <summary>
         /// What the node reads, one root per branch reaching it : a reference is written from there.
@@ -171,10 +187,10 @@ namespace Fantoche.App.Features.Workflows.Editor
         /// writing one. Read from what the node declares : what it reads everywhere, except on the
         /// start whose mapping produces what it hands over instead.
         /// <para>
-        /// Editable on the start and the end only : they are the boundary of the workflow, so those
-        /// two shapes are what a caller reads it by (see
+        /// Deduced from the mapping on the start and the end : they are the boundary of the workflow,
+        /// so those two shapes are what a caller reads it by (see
         /// <see cref="AutomationWorkflow.DeriveSchemas"/>). Everywhere else the shape belongs to the
-        /// task the node runs and is only shown.
+        /// task the node runs.
         /// </para>
         /// </summary>
         [ObservableProperty] private string? _expectedSchemaJson;
@@ -184,12 +200,6 @@ namespace Fantoche.App.Features.Workflows.Editor
         /// in doing.
         /// </summary>
         public bool DeclaresSchema => IsStart || IsEnd;
-
-        /// <summary>
-        /// Whether the expected shape is only shown : it belongs to the task the node runs rather
-        /// than to the node.
-        /// </summary>
-        public bool IsExpectedReadOnly => !DeclaresSchema;
 
         /// <summary>What the expected shape is the shape of.</summary>
         public string ExpectedLabel { get; }
@@ -234,19 +244,33 @@ namespace Fantoche.App.Features.Workflows.Editor
             ExpectedLabel = text.ExpectedLabel;
             EmptyExpectationText = text.EmptyExpectation;
             Target = (node.AutomationTask as AutomationTask)?.Target;
-            MappingLabel = IsStart ? "Default values, for what the caller leaves out" : "Input mapping";
-            _inputMappingJson = node.InputTemplateJson;
+            MappingLabel = _kind switch
+            {
+                EnumNodeKind.Start => "Expected object, its values being the defaults for what the caller leaves out",
+                EnumNodeKind.End => "Expected object, what the workflow hands back",
+                _ => "Input mapping",
+            };
             // The mapping of a node produces what that node reads, except on the start : nothing
             // feeds a start, so its mapping produces what it hands over instead.
             _expectedSchemaJson = IsStart ? node.OutputSchemaJson : node.InputSchemaJson;
 
             LoadContext();
 
+            JToken? mapping = ParseMapping(node.InputTemplateJson);
+            References = ReferencesOf(mapping);
+
+            DataObject? filled = FromSchema(_expectedSchemaJson);
+            IsFilled = filled != null && !DeclaresSchema;
+            Mapping = filled ?? (mapping as JObject)?.ToDataNode() as DataObject ?? new DataObject(null);
+            if (mapping != null)
+                Mapping.Load(mapping, References);
+
             Errors.CollectionChanged += (_, _) =>
             {
                 OnPropertyChanged(nameof(HasErrors));
                 ValidateCommand.NotifyCanExecuteChanged();
             };
+            Mapping.Changed += (_, _) => Refresh();
 
             Refresh();
         }
@@ -295,6 +319,7 @@ namespace Fantoche.App.Features.Workflows.Editor
         {
             const string controlShape = "A control constrains no shape : what it hands over is whatever its mapping produces.";
             const string controlLabel = "Expected : a control constrains no shape";
+            const string boundaryShape = "Add properties to the expected object to declare its shape.";
             const string reshape = "The mapping reshapes what one branch produces into what the next ones read.";
 
             return kind switch
@@ -306,14 +331,14 @@ namespace Fantoche.App.Features.Workflows.Editor
                     "The task expects no particular shape."),
                 EnumNodeKind.Start => new(
                     "Start",
-                    "The start hands over what the workflow is started with : the schema declares its shape, the mapping holds the values a caller leaves out.",
-                    "Expected : the shape the workflow is started with",
-                    controlShape),
+                    "The start hands over what the workflow is started with : the expected object declares its shape, its values being the defaults a caller can leave out.",
+                    "Deduced : the shape the workflow is started with",
+                    boundaryShape),
                 EnumNodeKind.End => new(
                     "End",
-                    "The mapping is what the workflow hands back to whoever started it, and the schema declares its shape.",
-                    "Expected : the shape the workflow hands back",
-                    controlShape),
+                    "The expected object is what the workflow hands back to whoever started it, the shape it declares being deduced from it.",
+                    "Deduced : the shape the workflow hands back",
+                    boundaryShape),
                 EnumNodeKind.Share => new(
                     "Share",
                     "The mapping is added to the shared values, readable as \"$shared\" by every node after this one. The branch itself goes through untouched.",
@@ -362,6 +387,64 @@ namespace Fantoche.App.Features.Workflows.Editor
         }
 
         /// <summary>
+        /// The references a field can be forced to : every value of what the node reads, then the
+        /// references [mapping] holds that the context doesn't, so loading it loses none of them.
+        /// </summary>
+        private IReadOnlyList<DataManualValue> ReferencesOf(JToken? mapping)
+        {
+            IEnumerable<string> read = Flatten(Context)
+                .Select(entry => entry.Reference)
+                .Where(reference => reference.Length > 0);
+
+            IEnumerable<string> held = (mapping as JContainer)?.DescendantsAndSelf()
+                .Where(token => token.Type == JTokenType.String)
+                .Select(token => (string)token!)
+                .Where(value => value.StartsWith('$')) ?? [];
+
+            return [.. read.Concat(held).Distinct().Select(reference => new DataManualValue(null, reference))];
+        }
+
+        private static IEnumerable<ContextEntry> Flatten(IEnumerable<ContextEntry> entries)
+            => entries.SelectMany(entry => Flatten(entry.Children).Prepend(entry));
+
+        /// <summary>
+        /// [json] as a token, null when there is none or it isn't JSON. Dates are kept as the text
+        /// they are written as, the tree converting them where the schema says so.
+        /// </summary>
+        private static JToken? ParseMapping(string? json)
+        {
+            if (string.IsNullOrWhiteSpace(json))
+                return null;
+
+            try
+            {
+                using var reader = new JsonTextReader(new System.IO.StringReader(json)) { DateParseHandling = DateParseHandling.None };
+                return JToken.ReadFrom(reader);
+            }
+            catch (JsonException)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// The tree of the object [json] describes, null when it describes none : the mapping is then
+        /// built from scratch. A schema that can't be read is reported by <see cref="CheckSchema"/>.
+        /// </summary>
+        private static DataObject? FromSchema(string? json)
+        {
+            try
+            {
+                JsonSchema? schema = Schemas.Parse(json)?.ActualSchema;
+                return schema?.IsObject == true ? schema.ToDataNode() as DataObject : null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
         /// The branches feeding the node through [context], only worth naming when there is more
         /// than one way in. Null when there is nothing to tell apart.
         /// </summary>
@@ -376,21 +459,30 @@ namespace Fantoche.App.Features.Workflows.Editor
         {
             Errors.Clear();
 
-            JsonSchema? expected = CheckSchema();
-            CheckMappingJson();
+            JsonSchema? expected = DeclaresSchema ? DeduceSchema() : CheckSchema();
+            CheckKeys();
 
             if (!HasErrors)
                 Resolve(expected);
         }
 
         /// <summary>
-        /// The schema the node declares, null when it declares none or when what it holds is not one.
+        /// The schema the start or the end declares, deduced from the expected object : null while
+        /// that object holds nothing, which declares nothing.
+        /// </summary>
+        private JsonSchema? DeduceSchema()
+        {
+            JsonSchema? schema = Mapping.Properties.Count > 0 ? Mapping.ToJsonSchema() : null;
+            ExpectedSchemaJson = schema?.ToJson();
+            return schema;
+        }
+
+        /// <summary>
+        /// The schema of the task the node runs, null when it has none or when what it holds is not one.
         /// </summary>
         private JsonSchema? CheckSchema()
         {
-            // Checked wherever there is a shape to check against, whether the node declares it or
-            // takes it from the task it runs : a mapping producing something the task cannot be run
-            // with is wrong either way.
+            // A mapping producing something the task cannot be run with is wrong.
             if (string.IsNullOrWhiteSpace(ExpectedSchemaJson))
                 return null;
 
@@ -425,23 +517,19 @@ namespace Fantoche.App.Features.Workflows.Editor
         }
 
         /// <summary>
-        /// Add an error when the mapping is filled with something that isn't JSON. An empty value is
-        /// valid, it simply means the node maps nothing.
+        /// Add an error per key used twice in the same object : only one of them would be written.
         /// </summary>
-        private void CheckMappingJson()
+        private void CheckKeys()
         {
-            if (string.IsNullOrWhiteSpace(InputMappingJson))
-                return;
-
-            try
+            foreach (DataNode node in NodesOf(Mapping))
             {
-                JToken.Parse(InputMappingJson);
-            }
-            catch (Exception exception)
-            {
-                Errors.Add(new MappingError($"{MappingLabel} : {exception.Message}"));
+                foreach (string error in node.GetErrors(nameof(DataNode.Key)).OfType<string>())
+                    Errors.Add(new MappingError(error));
             }
         }
+
+        private static IEnumerable<DataNode> NodesOf(DataNode node)
+            => node is IDataParent parent ? parent.Children.SelectMany(NodesOf).Prepend(node) : [node];
 
         /// <summary>
         /// Resolve the mapping against every context the node can be reached with — the very way a
@@ -451,16 +539,13 @@ namespace Fantoche.App.Features.Workflows.Editor
         /// </summary>
         private void Resolve(JsonSchema? expected)
         {
-            if (string.IsNullOrWhiteSpace(InputMappingJson))
-                return;
-
             foreach (NodePreviewContext context in _contexts)
             {
                 string? branch = BranchLabel(context);
 
-                // Both are parsed again for every context : resolving moves what a reference points
+                // Both are built again for every context : resolving moves what a reference points
                 // at into the mapping, so neither of them survives being resolved twice.
-                JToken template = JToken.Parse(InputMappingJson);
+                JToken template = Mapping.ToToken()!;
                 JObject values = (JObject)context.Context.DeepClone();
 
                 ReferenceReplaceResult result = ReferencesHandler.ReplaceReferences(template, values);
@@ -486,10 +571,10 @@ namespace Fantoche.App.Features.Workflows.Editor
         /// </summary>
         private IReversibleAction BuildEdition()
         {
-            string? mapping = Json.NullIfEmpty(InputMappingJson);
+            string mapping = Mapping.ToToken()!.ToString(Formatting.Indented);
             string? previousMapping = Node.InputTemplateJson;
 
-            string? schema = DeclaresSchema ? Json.NullIfEmpty(ExpectedSchemaJson) : null;
+            string? schema = DeclaresSchema ? ExpectedSchemaJson : null;
             string? previousSchema = DeclaresSchema
                 ? (IsStart ? Node.OutputSchemaJson : Node.InputSchemaJson)
                 : null;
@@ -516,9 +601,5 @@ namespace Fantoche.App.Features.Workflows.Editor
             else
                 Node.InputSchemaJson = schema;
         }
-
-        partial void OnInputMappingJsonChanged(string? value) => Refresh();
-
-        partial void OnExpectedSchemaJsonChanged(string? value) => Refresh();
     }
 }
