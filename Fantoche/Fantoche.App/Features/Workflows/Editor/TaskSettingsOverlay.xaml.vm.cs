@@ -202,13 +202,18 @@ namespace Fantoche.App.Features.Workflows.Editor
             Context = (DataObject)ContextOf().ToDataNode();
 
             JToken? mapping = Json.Parse(node.InputTemplateJson);
-            References = ReferencesOf(mapping);
+            List<DataManualValue> read = ReadReferences();
 
             DataObject? filled = FromSchema(_expectedSchemaJson);
             IsFilled = filled != null && !DeclaresSchema;
             Mapping = filled ?? (mapping as JObject)?.ToDataNode() as DataObject ?? new DataObject(null);
             if (mapping != null)
-                Mapping.Load(mapping, References);
+            {
+                // Untyped, what the mapping holds fits whatever field it is in rather than being
+                // loaded as the literal text it is written as.
+                Mapping.Load(mapping, [.. read, .. Json.ReferencesIn(mapping).Distinct().Select(reference => new DataManualValue(null, reference))]);
+            }
+            References = [.. read, .. TypeHeldReferences(read)];
 
             Errors.CollectionChanged += (_, _) =>
             {
@@ -324,25 +329,65 @@ namespace Fantoche.App.Features.Workflows.Editor
             => new(context.Context.Properties().Where(property => !IsStart || property.Name == "global"));
 
         /// <summary>
-        /// The references a field can be forced to : every value of what the node reads, then the
-        /// references [mapping] holds that the context doesn't, so loading it loses none of them.
+        /// The references to every value of what the node reads, typed by what it holds so a field
+        /// is only offered what fits it. A reference holding a different type on another branch is
+        /// offered once per type ; one holding null is left out, an untyped entry fitting any field.
         /// </summary>
-        private IReadOnlyList<DataManualValue> ReferencesOf(JToken? mapping)
-        {
-            IEnumerable<string> read = _contexts
+        private List<DataManualValue> ReadReferences()
+            => [.. _contexts
                 .SelectMany(context => Readable(context).Properties())
-                .SelectMany(property => ReferencesTo(property.Value, $"${property.Name}"));
+                .SelectMany(property => ReferencesTo(property.Value, $"${property.Name}"))
+                .Where(entry => entry.Type != null)
+                .Distinct()];
 
-            return [.. read.Concat(Json.ReferencesIn(mapping)).Distinct().Select(reference => new DataManualValue(null, reference))];
+        /// <summary>
+        /// Type after the field holding them the references the mapping was loaded with untyped,
+        /// none of [read] fitting there, and return those not already offered : kept untyped, they
+        /// would be offered to every field.
+        /// </summary>
+        private List<DataManualValue> TypeHeldReferences(List<DataManualValue> read)
+        {
+            List<DataManualValue> held = [];
+            foreach (DataNode node in NodesOf(Mapping))
+            {
+                if (node is not { IsManual: true, ManualEntry: { Type: null, Value: string reference } } || !reference.StartsWith('$'))
+                    continue;
+
+                var entry = new DataManualValue(node.Type, reference);
+                node.ManualEntry = entry;
+                if (!read.Contains(entry) && !held.Contains(entry))
+                    held.Add(entry);
+            }
+            return held;
         }
 
         /// <summary>
         /// [reference], then the reference of every value under it : an array is read whole.
         /// </summary>
-        private static IEnumerable<string> ReferencesTo(JToken value, string reference)
-            => value is JObject values
-                ? values.Properties().SelectMany(property => ReferencesTo(property.Value, $"{reference}.{property.Name}")).Prepend(reference)
-                : [reference];
+        private static IEnumerable<DataManualValue> ReferencesTo(JToken value, string reference)
+        {
+            var entry = new DataManualValue(TypeOf(value), reference);
+            return value is JObject values
+                ? values.Properties().SelectMany(property => ReferencesTo(property.Value, $"{reference}.{property.Name}")).Prepend(entry)
+                : [entry];
+        }
+
+        /// <summary>
+        /// The type of field [value] can be forced into, null when it is null : nothing says what
+        /// it holds once the node runs.
+        /// </summary>
+        private static EnumDataType? TypeOf(JToken value) => value.Type switch
+        {
+            JTokenType.Object => EnumDataType.Object,
+            JTokenType.Array => EnumDataType.Array,
+            JTokenType.Integer => EnumDataType.Integer,
+            JTokenType.Float => EnumDataType.Number,
+            JTokenType.Boolean => EnumDataType.Boolean,
+            JTokenType.Date => EnumDataType.DateTime,
+            JTokenType.TimeSpan => EnumDataType.TimeSpan,
+            JTokenType.Null or JTokenType.Undefined => null,
+            _ => EnumDataType.String,
+        };
 
         /// <summary>
         /// The tree of the object [json] describes, null when it describes none : the mapping is then
