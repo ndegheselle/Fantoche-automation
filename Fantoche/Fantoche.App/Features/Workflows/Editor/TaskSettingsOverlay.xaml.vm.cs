@@ -17,64 +17,6 @@ using NJsonSchema.Validation;
 namespace Fantoche.App.Features.Workflows.Editor
 {
     /// <summary>
-    /// One entry of the context a node reads : a value it can reference, or an object holding some.
-    /// </summary>
-    public class ContextEntry
-    {
-        public string Name { get; }
-
-        /// <summary>
-        /// What has to be written in the mapping to read this value, e.g. "$previous.Value".
-        /// </summary>
-        public string Reference { get; }
-
-        /// <summary>
-        /// An example of what the value holds, so the shape is readable without expanding it.
-        /// </summary>
-        public string Preview { get; }
-
-        public ObservableCollection<ContextEntry> Children { get; } = [];
-
-        /// <summary>
-        /// A row standing for one of the ways into the node rather than for a value : it groups what
-        /// that branch hands over, so it holds no reference and previews nothing of its own.
-        /// </summary>
-        public static ContextEntry Branch(string name) => new ContextEntry(name);
-
-        private ContextEntry(string name)
-        {
-            Name = name;
-            Reference = string.Empty;
-            Preview = string.Empty;
-        }
-
-        public ContextEntry(string name, string reference, JToken? value)
-        {
-            Name = name;
-            Reference = reference;
-            Preview = Summarize(value);
-
-            if (value is JObject values)
-            {
-                foreach (JProperty property in values.Properties())
-                    Children.Add(new ContextEntry(property.Name, $"{reference}.{property.Name}", property.Value));
-            }
-        }
-
-        /// <summary>
-        /// What the value looks like in one line : an object is only worth its shape, the entries
-        /// under it saying the rest.
-        /// </summary>
-        private static string Summarize(JToken? value) => value switch
-        {
-            null or { Type: JTokenType.Null } => "null",
-            JObject => "{ }",
-            JArray array => $"[ {array.Count} ]",
-            _ => value.ToString(Formatting.None),
-        };
-    }
-
-    /// <summary>
     /// One thing wrong with the mapping, and the branch it is wrong on : a mapping can hold up when
     /// the node is reached one way and break when it is reached another. [Branch] is null when the
     /// node is only reached one way and there is nothing to tell apart.
@@ -145,9 +87,11 @@ namespace Fantoche.App.Features.Workflows.Editor
         public IReadOnlyList<DataManualValue> References { get; }
 
         /// <summary>
-        /// What the node reads, one root per branch reaching it : a reference is written from there.
+        /// What the node reads, under one property per branch when more than one reaches it : a
+        /// reference is written from "previous", "shared" or "global" with a "$" in front, e.g.
+        /// "$previous.Value".
         /// </summary>
-        public ObservableCollection<ContextEntry> Context { get; } = [];
+        public DataObject Context { get; }
 
         /// <summary>
         /// What is wrong with the current mapping, blocking the validation while not empty.
@@ -255,7 +199,7 @@ namespace Fantoche.App.Features.Workflows.Editor
             // feeds a start, so its mapping produces what it hands over instead.
             _expectedSchemaJson = IsStart ? node.OutputSchemaJson : node.InputSchemaJson;
 
-            LoadContext();
+            Context = (DataObject)ContextOf().ToDataNode();
 
             JToken? mapping = Json.Parse(node.InputTemplateJson);
             References = ReferencesOf(mapping);
@@ -356,36 +300,28 @@ namespace Fantoche.App.Features.Workflows.Editor
         }
 
         /// <summary>
-        /// Build what the node reads : one root per context reaching it, holding "$previous",
-        /// "$shared" and "$global" as they would be read from there.
+        /// What the node reads : the context it is reached with, or one property per branch holding
+        /// the context read from there when there is more than one to tell apart.
         /// </summary>
-        private void LoadContext()
+        private JObject ContextOf()
         {
-            Context.Clear();
-
-            foreach (NodePreviewContext context in _contexts)
+            var context = new JObject();
+            foreach (NodePreviewContext reached in _contexts)
             {
-                ContextEntry? branch = null;
-                if (BranchLabel(context) is string label)
-                {
-                    branch = ContextEntry.Branch($"from {label}");
-                    Context.Add(branch);
-                }
-
-                foreach (JProperty property in context.Context.Properties())
-                {
-                    // Nothing runs before the start, so it has no branch and no shared value to read.
-                    if (IsStart && property.Name != "global")
-                        continue;
-
-                    var entry = new ContextEntry($"${property.Name}", $"${property.Name}", property.Value);
-                    if (branch != null)
-                        branch.Children.Add(entry);
-                    else
-                        Context.Add(entry);
-                }
+                if (BranchLabel(reached) is string label)
+                    context[$"from {label}"] = Readable(reached);
+                else
+                    context.Merge(Readable(reached));
             }
+            return context;
         }
+
+        /// <summary>
+        /// A copy of what [context] lets the node read : nothing runs before the start, so it has no
+        /// branch and no shared value to read.
+        /// </summary>
+        private JObject Readable(NodePreviewContext context)
+            => new(context.Context.Properties().Where(property => !IsStart || property.Name == "global"));
 
         /// <summary>
         /// The references a field can be forced to : every value of what the node reads, then the
@@ -393,15 +329,20 @@ namespace Fantoche.App.Features.Workflows.Editor
         /// </summary>
         private IReadOnlyList<DataManualValue> ReferencesOf(JToken? mapping)
         {
-            IEnumerable<string> read = Flatten(Context)
-                .Select(entry => entry.Reference)
-                .Where(reference => reference.Length > 0);
+            IEnumerable<string> read = _contexts
+                .SelectMany(context => Readable(context).Properties())
+                .SelectMany(property => ReferencesTo(property.Value, $"${property.Name}"));
 
             return [.. read.Concat(Json.ReferencesIn(mapping)).Distinct().Select(reference => new DataManualValue(null, reference))];
         }
 
-        private static IEnumerable<ContextEntry> Flatten(IEnumerable<ContextEntry> entries)
-            => entries.SelectMany(entry => Flatten(entry.Children).Prepend(entry));
+        /// <summary>
+        /// [reference], then the reference of every value under it : an array is read whole.
+        /// </summary>
+        private static IEnumerable<string> ReferencesTo(JToken value, string reference)
+            => value is JObject values
+                ? values.Properties().SelectMany(property => ReferencesTo(property.Value, $"{reference}.{property.Name}")).Prepend(reference)
+                : [reference];
 
         /// <summary>
         /// The tree of the object [json] describes, null when it describes none : the mapping is then
