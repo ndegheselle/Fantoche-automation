@@ -1,10 +1,9 @@
 ﻿using System.Collections.ObjectModel;
 using Fantoche.App.Common;
 using Fantoche.Shared.Data.Scoped;
-using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Joufflu.Data.Model;
 using Joufflu.Navigation;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NJsonSchema;
 
@@ -12,8 +11,8 @@ namespace Fantoche.App.Features.Workflows.Editor
 {
     /// <summary>
     /// Settings a workflow is started with : the input the executor validates against the
-    /// <see cref="BaseAutomationTask.InputSchema"/> of the workflow, edited as raw JSON next to the
-    /// schema expecting it.
+    /// <see cref="BaseAutomationTask.InputSchema"/> of the workflow, filled in as a tree built from
+    /// that schema, next to the schema itself.
     /// <para>
     /// Only displayed when the workflow actually expects something, see
     /// <see cref="IsExpectingSettings"/> : a workflow taking no input is started right away.
@@ -27,10 +26,16 @@ namespace Fantoche.App.Features.Workflows.Editor
         public string SchemaJson { get; }
 
         /// <summary>
-        /// The settings the run is started with, prefilled with an empty value per expected
-        /// property so there is only the values left to type.
+        /// The settings the run is started with, prefilled with the defaults of the start and with an
+        /// empty value for the rest, so there is only the values left to fill in.
         /// </summary>
-        [ObservableProperty] private string _settingsJson;
+        public DataObject Settings { get; }
+
+        /// <summary>
+        /// What a field can be forced to : the references the defaults of the start hold, so they
+        /// are handed over as written rather than lost.
+        /// </summary>
+        public IReadOnlyList<DataManualValue> References { get; }
 
         /// <summary>
         /// What is wrong with the current settings, blocking the start while not empty.
@@ -45,13 +50,24 @@ namespace Fantoche.App.Features.Workflows.Editor
             Workflow = workflow;
             Options.Title = $"Start - {workflow.Metadata.Name}";
             SchemaJson = Json.Format(workflow.InputSchemaJson);
-            _settingsJson = BuildTemplate(workflow.InputSchema, Defaults(workflow));
+
+            JToken? defaults = Defaults(workflow);
+            References = [.. Json.ReferencesIn(defaults).Distinct().Select(reference => new DataManualValue(null, reference))];
+            Settings = FromSchema(workflow) ?? new DataObject(null);
+
+            // The defaults are displayed rather than left out : what is filled in here wins over them
+            // (see GraphContextResolution.MergeContexts), so an empty value would replace one.
+            var values = (JObject)Settings.ToToken()!;
+            if (defaults != null)
+                values.Merge(defaults, new JsonMergeSettings { MergeArrayHandling = MergeArrayHandling.Replace });
+            Settings.Load(values, References);
 
             Errors.CollectionChanged += (_, _) =>
             {
                 OnPropertyChanged(nameof(HasErrors));
                 StartCommand.NotifyCanExecuteChanged();
             };
+            Settings.Changed += (_, _) => Refresh();
 
             Refresh();
         }
@@ -85,23 +101,12 @@ namespace Fantoche.App.Features.Workflows.Editor
             => ShowAsync(new StartSettingsViewModel(workflow, SpineViewModel.Instance.Overlays));
 
         /// <summary>
-        /// Check that the settings are valid JSON and that they match what the workflow expects, so
-        /// a run isn't started just to fail on its first node.
+        /// Check that the settings match what the workflow expects, so a run isn't started just to
+        /// fail on its first node.
         /// </summary>
         private void Refresh()
         {
             Errors.Clear();
-
-            JToken? settings;
-            try
-            {
-                settings = JToken.Parse(SettingsJson);
-            }
-            catch (Exception exception)
-            {
-                Errors.Add($"Settings : {exception.Message}");
-                return;
-            }
 
             JsonSchema? schema;
             try
@@ -114,69 +119,53 @@ namespace Fantoche.App.Features.Workflows.Editor
                 return;
             }
 
-            foreach (var error in schema?.Validate(settings) ?? [])
+            if (schema != null && !schema.ActualSchema.IsObject)
+            {
+                Errors.Add("Schema : the workflow has to be started with an object.");
+                return;
+            }
+
+            foreach (var error in schema?.Validate(Settings.ToToken()!) ?? [])
                 Errors.Add($"{error.Path} : {error.Kind}");
         }
 
         [RelayCommand(CanExecute = nameof(CanStart))]
-        private void Start() => Close(JToken.Parse(SettingsJson));
+        private void Start() => Close(Settings.ToToken());
 
         private bool CanStart() => !HasErrors;
 
-        partial void OnSettingsJsonChanged(string value) => Refresh();
-
         /// <summary>
-        /// An object holding an empty value per expected property : what the workflow is asking for,
-        /// left to fill in. Anything the schema doesn't describe as an object falls back on an empty
-        /// object.
+        /// The tree of what [workflow] expects, null when its schema can't be read or describes no
+        /// object : <see cref="Refresh"/> is where that is reported.
         /// </summary>
-        private static string BuildTemplate(JsonSchema? schema, JObject? defaults)
+        private static DataObject? FromSchema(AutomationWorkflow workflow)
         {
-            var template = new JObject();
-            if (schema != null)
+            try
             {
-                // The default values are displayed rather than left out : what is typed here wins
-                // over them (see <see cref="AutomationWorkflow.ApplyInputDefaults"/>), so an empty
-                // placeholder would silently replace a default with nothing.
-                foreach ((string name, JsonSchemaProperty property) in schema.ActualProperties)
-                    template[name] = defaults?[name]?.DeepClone() ?? EmptyValue(property);
+                JsonSchema? schema = workflow.InputSchema?.ActualSchema;
+                return schema?.IsObject == true ? schema.ToDataNode() as DataObject : null;
             }
-
-            return template.ToString(Formatting.Indented);
+            catch (Exception)
+            {
+                return null;
+            }
         }
 
         /// <summary>
         /// What the start of [workflow] hands over for the values the caller doesn't give, null when
         /// it holds none or when what it holds can't be read.
         /// </summary>
-        private static JObject? Defaults(AutomationWorkflow workflow)
+        private static JToken? Defaults(AutomationWorkflow workflow)
         {
             try
             {
-                return workflow.Graph.GetStartNodes().FirstOrDefault()?.InputTemplate as JObject;
+                return Json.Parse(workflow.Graph.GetStartNodes().FirstOrDefault()?.InputTemplateJson) as JObject;
             }
             catch (Exception)
             {
                 // The settings of the workflow are where that is reported, not the start of a run.
                 return null;
             }
-        }
-
-        private static JToken EmptyValue(JsonSchema schema)
-        {
-            if (schema.Default != null)
-                return JToken.FromObject(schema.Default);
-
-            JsonObjectType type = schema.Type;
-            if (type.HasFlag(JsonObjectType.Integer) || type.HasFlag(JsonObjectType.Number))
-                return 0;
-            if (type.HasFlag(JsonObjectType.Boolean))
-                return false;
-            if (type.HasFlag(JsonObjectType.Array))
-                return new JArray();
-            if (type.HasFlag(JsonObjectType.Object))
-                return new JObject();
-            return "";
         }
     }
 }

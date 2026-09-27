@@ -4,6 +4,7 @@ using Fantoche.Shared.Data;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Data.Graph;
 using Fantoche.Shared.Data.Scoped;
+using Fantoche.App.Common;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Joufflu.Data.Model;
@@ -256,7 +257,7 @@ namespace Fantoche.App.Features.Workflows.Editor
 
             LoadContext();
 
-            JToken? mapping = ParseMapping(node.InputTemplateJson);
+            JToken? mapping = Json.Parse(node.InputTemplateJson);
             References = ReferencesOf(mapping);
 
             DataObject? filled = FromSchema(_expectedSchemaJson);
@@ -396,36 +397,11 @@ namespace Fantoche.App.Features.Workflows.Editor
                 .Select(entry => entry.Reference)
                 .Where(reference => reference.Length > 0);
 
-            IEnumerable<string> held = (mapping as JContainer)?.DescendantsAndSelf()
-                .Where(token => token.Type == JTokenType.String)
-                .Select(token => (string)token!)
-                .Where(value => value.StartsWith('$')) ?? [];
-
-            return [.. read.Concat(held).Distinct().Select(reference => new DataManualValue(null, reference))];
+            return [.. read.Concat(Json.ReferencesIn(mapping)).Distinct().Select(reference => new DataManualValue(null, reference))];
         }
 
         private static IEnumerable<ContextEntry> Flatten(IEnumerable<ContextEntry> entries)
             => entries.SelectMany(entry => Flatten(entry.Children).Prepend(entry));
-
-        /// <summary>
-        /// [json] as a token, null when there is none or it isn't JSON. Dates are kept as the text
-        /// they are written as, the tree converting them where the schema says so.
-        /// </summary>
-        private static JToken? ParseMapping(string? json)
-        {
-            if (string.IsNullOrWhiteSpace(json))
-                return null;
-
-            try
-            {
-                using var reader = new JsonTextReader(new System.IO.StringReader(json)) { DateParseHandling = DateParseHandling.None };
-                return JToken.ReadFrom(reader);
-            }
-            catch (JsonException)
-            {
-                return null;
-            }
-        }
 
         /// <summary>
         /// The tree of the object [json] describes, null when it describes none : the mapping is then

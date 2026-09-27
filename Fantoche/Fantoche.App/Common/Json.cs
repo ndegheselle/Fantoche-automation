@@ -37,5 +37,34 @@ namespace Fantoche.App.Common
                 ? token.ToString()
                 : token.ToString(Formatting.Indented);
         }
+
+        /// <summary>
+        /// [json] as a token, null when there is none or it isn't JSON. Dates are kept as the text
+        /// they are written as, a Joufflu.Data tree converting them where its schema says so.
+        /// </summary>
+        public static JToken? Parse(string? json)
+        {
+            if (string.IsNullOrWhiteSpace(json))
+                return null;
+
+            try
+            {
+                using var reader = new JsonTextReader(new System.IO.StringReader(json)) { DateParseHandling = DateParseHandling.None };
+                return JToken.ReadFrom(reader);
+            }
+            catch (JsonException)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// The context references [token] holds (e.g. "$previous.Value"), in the order they are met.
+        /// </summary>
+        public static IEnumerable<string> ReferencesIn(JToken? token)
+            => (token as JContainer)?.DescendantsAndSelf()
+                .Where(value => value.Type == JTokenType.String)
+                .Select(value => (string)value!)
+                .Where(value => value.StartsWith('$')) ?? [];
     }
 }
