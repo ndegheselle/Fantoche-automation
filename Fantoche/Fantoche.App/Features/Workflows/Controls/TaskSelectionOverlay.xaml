@@ -40,7 +40,7 @@
             AutoGenerateColumns="False"
             CanUserReorderColumns="False"
             IsReadOnly="True"
-            ItemsSource="{Binding Result.Items}"
+            ItemsSource="{Binding Found.Items}"
             SelectedItem="{Binding Selected, Mode=TwoWay}"
             SelectionMode="Single">
             <DataGrid.InputBindings>

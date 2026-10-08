@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using Fantoche.App.Common;
 using Fantoche.Shared.Data.Scoped;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Joufflu.Data.Model;
 using Joufflu.Navigation;
@@ -18,9 +19,13 @@ namespace Fantoche.App.Features.Workflows.Editor
     /// <see cref="IsExpectingSettings"/> : a workflow taking no input is started right away.
     /// </para>
     /// </summary>
-    public partial class StartSettingsViewModel : OverlayViewModel<JToken>
+    public partial class StartSettingsViewModel : ObservableObject, IOverlayContent<JToken>
     {
         public AutomationWorkflow Workflow { get; }
+
+        public OverlayOptions Options { get; }
+
+        public JToken? Result => Settings.ToToken();
 
         /// <summary>Schema of what the workflow expects, displayed read only.</summary>
         public string SchemaJson { get; }
@@ -44,11 +49,13 @@ namespace Fantoche.App.Features.Workflows.Editor
 
         public bool HasErrors => Errors.Count > 0;
 
-        public StartSettingsViewModel(AutomationWorkflow workflow, IOverlayService overlays)
-            : base(overlays)
+        private readonly IOverlayer _overlayer;
+
+        public StartSettingsViewModel(AutomationWorkflow workflow, IOverlayer overlayer)
         {
             Workflow = workflow;
-            Options.Title = $"Start - {workflow.Metadata.Name}";
+            _overlayer = overlayer;
+            Options = new OverlayOptions() { Title = $"Start - {workflow.Metadata.Name}" };
             SchemaJson = Json.Format(workflow.InputSchemaJson);
 
             JToken? defaults = Defaults(workflow);
@@ -98,7 +105,7 @@ namespace Fantoche.App.Features.Workflows.Editor
         /// Ask for the settings of the next run of [workflow], <see langword="null"/> when cancelled.
         /// </summary>
         public static Task<JToken?> ShowAsync(AutomationWorkflow workflow)
-            => ShowAsync(new StartSettingsViewModel(workflow, SpineViewModel.Instance.Overlays));
+            => SpineViewModel.Instance.Overlayer.ShowAsync(new StartSettingsViewModel(workflow, SpineViewModel.Instance.Overlayer));
 
         /// <summary>
         /// Check that the settings match what the workflow expects, so a run isn't started just to
@@ -130,7 +137,10 @@ namespace Fantoche.App.Features.Workflows.Editor
         }
 
         [RelayCommand(CanExecute = nameof(CanStart))]
-        private void Start() => Close(Settings.ToToken());
+        private void Start() => _overlayer.Validate(this);
+
+        [RelayCommand]
+        private void Cancel() => _overlayer.Cancel(this);
 
         private bool CanStart() => !HasErrors;
 

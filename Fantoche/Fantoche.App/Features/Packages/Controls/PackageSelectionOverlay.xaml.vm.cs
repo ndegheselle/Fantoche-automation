@@ -18,7 +18,7 @@ namespace Fantoche.App.Features.Packages.Controls
     /// <summary>
     /// Pick a class to run : a package first, then one of the classes a version of it holds.
     /// </summary>
-    public partial class PackageSelectionViewModel : OverlayViewModel<PackageClassTarget>
+    public partial class PackageSelectionViewModel : ObservableObject, IOverlayContent<PackageClassTarget>
     {
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(IsPackageStep), nameof(IsClassStep))]
@@ -28,7 +28,7 @@ namespace Fantoche.App.Features.Packages.Controls
         public bool IsClassStep => Step == EnumPackageSelectionStep.Class;
 
         // Step 1 : package selection
-        [ObservableProperty] private Paginated<PackageInfos> _result = new();
+        [ObservableProperty] private Paginated<PackageInfos> _found = new();
 
         public SearchedPagingViewModel Paging { get; }
 
@@ -46,14 +46,32 @@ namespace Fantoche.App.Features.Packages.Controls
         [NotifyCanExecuteChangedFor(nameof(ValidateCommand))]
         private ClassTarget? _selectedClass;
 
-        private readonly IPackagesService _packages;
+        public OverlayOptions Options { get; }
 
-        public PackageSelectionViewModel(IPackagesService packages, IOverlayService overlays)
-            : base(overlays)
+        /// <summary>The class picked, with the version it was picked from, null while incomplete.</summary>
+        public PackageClassTarget? Result
+            => SelectedPackage == null || SelectedVersion == null || SelectedClass == null
+                ? null
+                : new PackageClassTarget()
+                {
+                    ClassFullName = SelectedClass.ClassFullName,
+                    Dll = SelectedClass.Dll,
+                    Package = new PackageIdentifier()
+                    {
+                        Id = SelectedPackage.Identifier.Id,
+                        Version = SelectedVersion
+                    }
+                };
+
+        private readonly IPackagesService _packages;
+        private readonly IOverlayer _overlayer;
+
+        public PackageSelectionViewModel(IPackagesService packages, IOverlayer overlayer)
         {
             _packages = packages;
+            _overlayer = overlayer;
             Paging = new SearchedPagingViewModel(RefreshAsync);
-            Options.Title = "Select a class";
+            Options = new OverlayOptions() { Title = "Select a class" };
 
             _ = RefreshAsync();
         }
@@ -62,13 +80,13 @@ namespace Fantoche.App.Features.Packages.Controls
         /// Show the selection overlay and wait for a class to be picked, null when dismissed.
         /// </summary>
         public static Task<PackageClassTarget?> ShowAsync()
-            => ShowAsync(new PackageSelectionViewModel(
+            => SpineViewModel.Instance.Overlayer.ShowAsync(new PackageSelectionViewModel(
                 SpineViewModel.Instance.Packages,
-                SpineViewModel.Instance.Overlays));
+                SpineViewModel.Instance.Overlayer));
 
         public async Task RefreshAsync()
         {
-            Result = await _packages.SearchAsync(Paging.Search, Paging.Options);
+            Found = await _packages.SearchAsync(Paging.Search, Paging.Options);
         }
 
         [RelayCommand(CanExecute = nameof(CanGoNext))]
@@ -101,22 +119,10 @@ namespace Fantoche.App.Features.Packages.Controls
         }
 
         [RelayCommand(CanExecute = nameof(CanValidate))]
-        public void Validate()
-        {
-            if (SelectedPackage == null || SelectedVersion == null || SelectedClass == null)
-                return;
+        public void Validate() => _overlayer.Validate(this);
 
-            Close(new PackageClassTarget()
-            {
-                ClassFullName = SelectedClass.ClassFullName,
-                Dll = SelectedClass.Dll,
-                Package = new PackageIdentifier()
-                {
-                    Id = SelectedPackage.Identifier.Id,
-                    Version = SelectedVersion
-                }
-            });
-        }
+        [RelayCommand]
+        private void Cancel() => _overlayer.Cancel(this);
 
         private bool CanGoNext() => SelectedPackage != null;
 

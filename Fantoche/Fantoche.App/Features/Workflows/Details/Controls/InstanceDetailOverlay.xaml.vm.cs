@@ -1,9 +1,9 @@
 using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Fantoche.App.Common;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Services;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using Joufflu.Navigation;
 
 namespace Fantoche.App.Features.Workflows.Details.Controls
@@ -16,9 +16,10 @@ namespace Fantoche.App.Features.Workflows.Details.Controls
     /// actually failed.
     /// </para>
     /// </summary>
-    public partial class InstanceDetailViewModel : OverlayViewModel
+    public partial class InstanceDetailViewModel : ObservableObject, IOverlayContent
     {
         public TaskInstance Instance { get; }
+        public OverlayOptions Options { get; }
 
         /// <summary>How long the execution took, empty while it hasn't finished.</summary>
         public string Duration => Instance.FinishedAt == null
@@ -41,26 +42,27 @@ namespace Fantoche.App.Features.Workflows.Details.Controls
         public bool HasChildren => Children.Count > 0;
 
         private readonly IHistoryService _history;
+        private readonly IOverlayer _overlayer;
 
-        public InstanceDetailViewModel(TaskInstance instance, IHistoryService history, IOverlayService overlays)
-            : base(overlays)
+        public InstanceDetailViewModel(TaskInstance instance, IHistoryService history, IOverlayer overlayer)
         {
             Instance = instance;
             _history = history;
-            Options.Title = $"Execution - {instance.NodeName}";
+            _overlayer = overlayer;
+            Options = new OverlayOptions() { Title = $"Execution - {instance.NodeName}" };
 
             Children.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasChildren));
         }
 
         public static async Task ShowAsync(TaskInstance instance)
         {
-            IOverlayService overlays = SpineViewModel.Instance.Overlays;
+            IOverlayer overlayer = SpineViewModel.Instance.Overlayer;
 
-            var viewModel = new InstanceDetailViewModel(instance, SpineViewModel.Instance.History, overlays);
+            var viewModel = new InstanceDetailViewModel(instance, SpineViewModel.Instance.History, overlayer);
             // Read before it is shown : the detail opens on what the execution amounts to rather
             // than filling in under the reader.
             await viewModel.RefreshAsync();
-            await overlays.Show(viewModel);
+            await overlayer.ShowAsync(viewModel);
         }
 
         /// <summary>
@@ -90,6 +92,6 @@ namespace Fantoche.App.Features.Workflows.Details.Controls
             => child == null ? Task.CompletedTask : ShowAsync(child);
 
         [RelayCommand]
-        private void Validate() => Close(true);
+        private void Validate() => _overlayer.Validate(this);
     }
 }

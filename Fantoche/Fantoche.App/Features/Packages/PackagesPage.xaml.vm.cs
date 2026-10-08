@@ -18,10 +18,10 @@ namespace Fantoche.App.Features.Packages
         public SearchedPagingViewModel Paging { get; }
 
         private readonly IPackagesService _packages;
-        private readonly IOverlayService _overlays;
+        private readonly IOverlayer _overlays;
         private readonly IToastService _toasts;
 
-        public PackagesViewModel(IPackagesService packages, IOverlayService overlays, IToastService toasts)
+        public PackagesViewModel(IPackagesService packages, IOverlayer overlays, IToastService toasts)
         {
             _packages = packages;
             _overlays = overlays;
@@ -39,7 +39,7 @@ namespace Fantoche.App.Features.Packages
         [RelayCommand]
         public void OpenPackage(PackageInfos package)
         {
-            _overlays.Show(new PackageViewModel(package, _packages, _overlays));
+            _overlays.ShowAsync(new PackageViewModel(package, _packages, _overlays));
         }
 
         public async Task AddPackageAsync(string filePath)

@@ -54,7 +54,7 @@ namespace Fantoche.App.Features.Workflows.Details
         protected readonly AppServices Services;
 
         private readonly IScopedService _scoped;
-        private readonly IOverlayService _overlays;
+        private readonly IOverlayer _overlays;
         private readonly IToastService _toasts;
 
         protected ScopedDetailsViewModel(ScopedNode node, WorkflowsViewModel parent, AppServices services)
@@ -63,7 +63,7 @@ namespace Fantoche.App.Features.Workflows.Details
             _parent = parent;
             Services = services;
             _scoped = services.Scoped;
-            _overlays = services.Overlays;
+            _overlays = services.Overlayer;
             _toasts = services.Toasts;
             OpenCommand = parent.OpenCommand;
             History = new HistoryViewModel(node, services.History);

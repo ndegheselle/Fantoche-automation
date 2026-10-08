@@ -62,9 +62,14 @@ namespace Fantoche.App.Features.Workflows.Editor
     /// cancelling has nothing to restore and saving stays the editor's business.
     /// </para>
     /// </summary>
-    public partial class TaskSettingsViewModel : OverlayViewModel<IReversibleAction>
+    public partial class TaskSettingsViewModel : ObservableObject, IOverlayContent<IReversibleAction>
     {
         public BaseGraphTask Node { get; }
+
+        public OverlayOptions Options { get; }
+
+        /// <summary>The edition to apply to the graph, built once validated.</summary>
+        public IReversibleAction? Result => BuildEdition();
 
         /// <summary>
         /// Mapping the node runs with, references to the context included (e.g. "$previous.Value").
@@ -167,6 +172,8 @@ namespace Fantoche.App.Features.Workflows.Editor
         /// <summary>What the node does with its mapping, read once from the node it stands for.</summary>
         private readonly EnumNodeKind _kind;
 
+        private readonly IOverlayer _overlayer;
+
         /// <summary>
         /// The ways a run can reach the node, as the preview of the graph found them : what it reads
         /// and which branches fed it. Empty when the graph could not be walked.
@@ -176,15 +183,15 @@ namespace Fantoche.App.Features.Workflows.Editor
         public TaskSettingsViewModel(
             BaseGraphTask node,
             GraphExecutionPreview? preview,
-            IOverlayService overlays)
-            : base(overlays)
+            IOverlayer overlayer)
         {
             Node = node;
+            _overlayer = overlayer;
             _kind = KindOf(node as GraphControl);
             _contexts = preview?.NodesContexts.GetValueOrDefault(node.Id) ?? [];
 
             NodeKindText text = TextOf(_kind);
-            Options.Title = $"{node.Name} - {text.Name}";
+            Options = new OverlayOptions() { Title = $"{node.Name} - {text.Name}" };
             Description = text.Description;
             ExpectedLabel = text.ExpectedLabel;
             EmptyExpectationText = text.EmptyExpectation;
@@ -237,7 +244,7 @@ namespace Fantoche.App.Features.Workflows.Editor
         public static Task<IReversibleAction?> ShowAsync(
             BaseGraphTask node,
             GraphExecutionPreview? preview)
-            => ShowAsync(new TaskSettingsViewModel(node, preview, SpineViewModel.Instance.Overlays));
+            => SpineViewModel.Instance.Overlayer.ShowAsync(new TaskSettingsViewModel(node, preview, SpineViewModel.Instance.Overlayer));
 
         /// <summary>
         /// What [control] does with its mapping, <see cref="EnumNodeKind.Task"/> when the node runs
@@ -522,7 +529,10 @@ namespace Fantoche.App.Features.Workflows.Editor
         }
 
         [RelayCommand(CanExecute = nameof(CanValidate))]
-        private void Validate() => Close(BuildEdition());
+        private void Validate() => _overlayer.Validate(this);
+
+        [RelayCommand]
+        private void Cancel() => _overlayer.Cancel(this);
 
         private bool CanValidate() => !HasErrors;
 

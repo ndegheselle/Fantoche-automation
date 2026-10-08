@@ -25,7 +25,7 @@ public class SpineViewModel : ObservableObject
 
     #region UI
     public Navigator Navigator { get; }
-    public OverlayService Overlays { get; } = new();
+    public Overlayer Overlayer { get; } = new();
     public ToastService Toasts { get; } = new();
     #endregion
 
@@ -56,7 +56,7 @@ public class SpineViewModel : ObservableObject
             new LocalExecutionService(scoped, history, packages.PackageManagement),
             history,
             packages,
-            Overlays,
+            Overlayer,
             Toasts);
 
         // Take the cost of opening the database off the first navigation.
@@ -66,7 +66,7 @@ public class SpineViewModel : ObservableObject
         {
             new HomeViewModel(),
             new WorkflowsViewModel(Services),
-            new PackagesViewModel(Packages, Overlays, Toasts),
+            new PackagesViewModel(Packages, Overlayer, Toasts),
             new ServersViewModel(),
             new StorageViewModel(),
         }.ToDictionary(x => x.GetType());

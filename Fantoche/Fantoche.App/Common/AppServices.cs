@@ -14,6 +14,6 @@ namespace Fantoche.App.Common
         IExecutionService Execution,
         IHistoryService History,
         IPackagesService Packages,
-        IOverlayService Overlays,
+        IOverlayer Overlayer,
         IToastService Toasts);
 }

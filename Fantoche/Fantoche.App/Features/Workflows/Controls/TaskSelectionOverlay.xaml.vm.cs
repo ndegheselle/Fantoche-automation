@@ -11,9 +11,13 @@ namespace Fantoche.App.Features.Workflows.Controls
     /// <summary>
     /// Search among every task and workflow to pick one, for instance to add it to a graph.
     /// </summary>
-    public partial class TaskSelectionViewModel : OverlayViewModel<BaseAutomationTask>
+    public partial class TaskSelectionViewModel : ObservableObject, IOverlayContent<BaseAutomationTask>
     {
-        [ObservableProperty] private Paginated<BaseAutomationTask> _result = new();
+        [ObservableProperty] private Paginated<BaseAutomationTask> _found = new();
+
+        public OverlayOptions Options { get; }
+
+        public BaseAutomationTask? Result => Selected;
 
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(ValidateCommand))]
@@ -27,14 +31,15 @@ namespace Fantoche.App.Features.Workflows.Controls
         private readonly Guid? _excludedId;
 
         private readonly IScopedService _scoped;
+        private readonly IOverlayer _overlayer;
 
-        public TaskSelectionViewModel(IScopedService scoped, IOverlayService overlays, Guid? excludedId = null)
-            : base(overlays)
+        public TaskSelectionViewModel(IScopedService scoped, IOverlayer overlayer, Guid? excludedId = null)
         {
             _scoped = scoped;
+            _overlayer = overlayer;
             _excludedId = excludedId;
             Paging = new SearchedPagingViewModel(RefreshAsync);
-            Options.Title = "Select a task or a workflow";
+            Options = new OverlayOptions() { Title = "Select a task or a workflow" };
 
             _ = RefreshAsync();
         }
@@ -44,24 +49,23 @@ namespace Fantoche.App.Features.Workflows.Controls
         /// <see langword="null"/> when dismissed.
         /// </summary>
         public static Task<BaseAutomationTask?> ShowAsync(Guid? excludedId = null)
-            => ShowAsync(new TaskSelectionViewModel(
+            => SpineViewModel.Instance.Overlayer.ShowAsync(new TaskSelectionViewModel(
                 SpineViewModel.Instance.Scoped,
-                SpineViewModel.Instance.Overlays,
+                SpineViewModel.Instance.Overlayer,
                 excludedId));
 
         public async Task RefreshAsync()
         {
             Paginated<BaseAutomationTask> page = await _scoped.SearchAsync(Paging.Search, Paging.Options);
             page.Items.RemoveAll(x => x.Id == _excludedId);
-            Result = page;
+            Found = page;
         }
 
         [RelayCommand(CanExecute = nameof(CanValidate))]
-        public void Validate()
-        {
-            if (Selected != null)
-                Close(Selected);
-        }
+        public void Validate() => _overlayer.Validate(this);
+
+        [RelayCommand]
+        private void Cancel() => _overlayer.Cancel(this);
 
         private bool CanValidate() => Selected != null;
     }
