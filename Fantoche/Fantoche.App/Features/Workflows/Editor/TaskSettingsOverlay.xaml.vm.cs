@@ -146,6 +146,14 @@ namespace Fantoche.App.Features.Workflows.Editor
         [ObservableProperty] private string? _expectedSchemaJson;
 
         /// <summary>
+        /// The object <see cref="ExpectedSchemaJson"/> describes, read only. Null when the schema
+        /// describes no object, which is then told by <see cref="EmptyExpectationText"/>.
+        /// </summary>
+        [ObservableProperty] private DataObject? _expectedNode;
+
+        partial void OnExpectedSchemaJsonChanged(string? value) => ExpectedNode = FromSchema(value);
+
+        /// <summary>
         /// Whether the expected shape is the node to declare, which the start and the end are alone
         /// in doing.
         /// </summary>
@@ -205,6 +213,7 @@ namespace Fantoche.App.Features.Workflows.Editor
             // The mapping of a node produces what that node reads, except on the start : nothing
             // feeds a start, so its mapping produces what it hands over instead.
             _expectedSchemaJson = IsStart ? node.OutputSchemaJson : node.InputSchemaJson;
+            _expectedNode = FromSchema(_expectedSchemaJson);
 
             Context = (DataObject)ContextOf().ToDataNode();
 

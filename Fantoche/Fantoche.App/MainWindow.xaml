@@ -24,7 +24,7 @@
     IconVisibility="Collapsed"
     mc:Ignorable="d">
     <jeedback:ToastContainer Toasts="{Binding Toasts}">
-        <javigation:OverlayContainer Overlays="{Binding Overlays}">
+        <javigation:OverlayContainer Overlays="{Binding Overlayer}">
             <DockPanel>
                 <nav:NavigationMenu DockPanel.Dock="Left" Navigator="{Binding Navigator}">
                     <nav:NavigationMenu.Header>
