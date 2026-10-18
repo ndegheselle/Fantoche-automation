@@ -21,7 +21,6 @@
     Height="800"
     d:DataContext="{d:DesignInstance Type=local:SpineViewModel}"
     AllowContentOverTitleBar="True"
-    IconVisibility="Collapsed"
     mc:Ignorable="d">
     <jeedback:ToastContainer Toasts="{Binding Toasts}">
         <javigation:OverlayContainer Overlays="{Binding Overlayer}">

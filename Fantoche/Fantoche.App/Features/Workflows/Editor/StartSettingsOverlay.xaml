@@ -13,7 +13,7 @@
     d:DataContext="{d:DesignInstance Type=local:StartSettingsViewModel}"
     mc:Ignorable="d">
 
-    <Grid joolkit:Spacing.Gap="4">
+    <Grid joolkit:Spacing.Gap="4" Width="800">
         <Grid.RowDefinitions>
             <RowDefinition />
             <RowDefinition Height="auto" />
