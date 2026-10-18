@@ -2,7 +2,7 @@ using Fantoche.Plugins;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Supervisor.Api;
 using Fantoche.Worker.Executor;
-using Fantoche.Worker.Remote;
+using Fantoche.Worker.Executor.Remote;
 using Fantoche.Worker.Storage;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;

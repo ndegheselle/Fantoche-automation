@@ -9,7 +9,7 @@ using Fantoche.Services.Local;
 using Fantoche.Services.Local.Database;
 using Fantoche.Shared.Services;
 using Fantoche.Worker.Executor;
-using Fantoche.Worker.Remote;
+using Fantoche.Worker.Executor.Remote;
 using Fantoche.Worker.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Joufflu.Feedback;

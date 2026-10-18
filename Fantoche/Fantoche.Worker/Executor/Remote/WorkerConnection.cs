@@ -2,10 +2,9 @@ using System.Collections.Concurrent;
 using Fantoche.Plugins.Shared;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Remote;
-using Fantoche.Worker.Executor;
 using Microsoft.AspNetCore.SignalR.Client;
 
-namespace Fantoche.Worker.Remote;
+namespace Fantoche.Worker.Executor.Remote;
 
 /// <summary>
 /// A worker as the supervisor knows it : it runs the executions the supervisor sends and reports

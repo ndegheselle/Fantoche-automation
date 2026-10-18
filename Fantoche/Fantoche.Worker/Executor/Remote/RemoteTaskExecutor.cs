@@ -3,11 +3,10 @@ using Fantoche.Plugins.Shared;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Data.Scoped;
 using Fantoche.Shared.Remote;
-using Fantoche.Worker.Executor;
 using Microsoft.AspNetCore.SignalR.Client;
 using Newtonsoft.Json.Linq;
 
-namespace Fantoche.Worker.Remote;
+namespace Fantoche.Worker.Executor.Remote;
 
 /// <summary>
 /// Run the tasks on the workers of a supervisor. What the worker reports along the way is relayed
