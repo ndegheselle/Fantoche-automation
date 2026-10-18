@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using Fantoche.Plugins.Shared;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Data.Graph;
 using Fantoche.Shared.Data.Scoped;
@@ -33,13 +34,14 @@ public class LocalExecutionService : IExecutionService, IDisposable
     public LocalExecutionService(
         LocalScopedService scopedService,
         LocalHistoryService historyService,
-        LocalPackageManagement packageManagement)
+        LocalPackageManagement packageManagement,
+        IStorage storage)
     {
         _scopedService = scopedService;
         _historyService = historyService;
 
-        _workflowExecutor = new WorkflowExecutor(packageManagement);
-        _nodeExecutor = new NodeExecutor(packageManagement, _workflowExecutor);
+        _workflowExecutor = new WorkflowExecutor(packageManagement, storage);
+        _nodeExecutor = new NodeExecutor(packageManagement, storage, _workflowExecutor);
     }
 
     public void Dispose()

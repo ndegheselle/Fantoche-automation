@@ -8,6 +8,7 @@ using Fantoche.App.Features.Workflows;
 using Fantoche.Services.Local;
 using Fantoche.Services.Local.Database;
 using Fantoche.Shared.Services;
+using Fantoche.Worker.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Joufflu.Feedback;
 using Joufflu.Navigation;
@@ -53,7 +54,7 @@ public class SpineViewModel : ObservableObject
         var scoped = new LocalScopedService(databaseFactory);
         Services = new AppServices(
             scoped,
-            new LocalExecutionService(scoped, history, packages.PackageManagement),
+            new LocalExecutionService(scoped, history, packages.PackageManagement, new LocalStorage(Path.Combine(Settings.LocalFolderPath, "storage"))),
             history,
             packages,
             Overlayer,

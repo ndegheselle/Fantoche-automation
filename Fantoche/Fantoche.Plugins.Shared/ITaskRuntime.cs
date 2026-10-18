@@ -14,6 +14,11 @@ public interface ITaskRuntime
     IProgress<TaskNotification>? Progress { get; }
 
     /// <summary>
+    /// Files and tables shared between the tasks.
+    /// </summary>
+    IStorage Storage { get; }
+
+    /// <summary>
     /// Deactivate the output (even if the task completed it)
     /// </summary>
     public void DeactivateOutput(bool deactivate = true);

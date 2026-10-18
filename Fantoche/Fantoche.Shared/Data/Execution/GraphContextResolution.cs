@@ -188,7 +188,7 @@ public class GraphContextResolution
 
         JObject inputContext = BuildContextFor(instances, sharedContext);
 
-        var replacementResult = ReferencesHandler.ReplaceReferences(node.InputTemplate, inputContext);
+        var replacementResult = ReferencesHandler.ReplaceReferences(node.InputTemplate, inputContext, node.InputSchema);
         // Reference replacement errors
         if (replacementResult.HasErrors)
         {
