@@ -1,57 +1,50 @@
-using Fantoche.Dal;
-using Fantoche.Dal.Repositories;
-using Fantoche.Models.Work;
 using Fantoche.Realtime;
-using Fantoche.Realtime.Clients;
-using Fantoche.Realtime.Models;
-using Fantoche.Shared.Data.Execution;
-using Fantoche.Shared.Data.Task;
 using Fantoche.Worker.Executor;
 using Fantoche.Worker.Packages;
+using Fantoche.Worker.Storage;
 
-namespace Fantoche.Worker.Service
+namespace Fantoche.Worker.Service;
+
+/// <summary>
+/// Run the tasks the supervisor sends, with the packages and the storage of this machine.
+/// <para>
+/// Configured by : SUPERVISOR_URL, WORKER_ID, WORKER_CAPACITY (executions run at once) and
+/// DATA_FOLDER (holding the "nuget" packages folder, their cache and the storage).
+/// </para>
+/// </summary>
+public class Worker : BackgroundService
 {
-    public class Worker : BackgroundService
+    private readonly ILogger<Worker> _logger;
+    private readonly IConfiguration _configuration;
+
+    public Worker(ILogger<Worker> logger, IConfiguration configuration)
     {
-        private readonly TaskInstancesRepository _instanceRepo;
-        private readonly NodeExecutor _executor;
-        private readonly WorkerRealtimeClient _workerClient;
+        _logger = logger;
+        _configuration = configuration;
+    }
 
-        private TaskCompletionSource? _waitingForTask;
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        Uri supervisor = new(_configuration["SUPERVISOR_URL"] ?? "http://localhost:5165");
+        string workerId = _configuration["WORKER_ID"] ?? Environment.MachineName;
+        int capacity = _configuration.GetValue("WORKER_CAPACITY", Environment.ProcessorCount);
+        string dataFolder = _configuration["DATA_FOLDER"] ?? "/app/data";
 
-        public Worker(
-            ILogger<Worker> logger,
-            WorkerInstance instance,
-            DatabaseConnection connection,
-            RedisConnectionManager redis,
-            IPackageManagement packageManagement)
+        var packages = new LocalPackageManagement(Path.Combine(dataFolder, "nuget"), Path.Combine(dataFolder, "cache"));
+        using var storage = new LocalStorage(Path.Combine(dataFolder, "storage"));
+        using var executor = new LocalTaskExecutor(packages, storage);
+        await using var connection = new WorkerConnection(supervisor, workerId, capacity, executor);
+
+        _logger.LogInformation("Worker [{WorkerId}] connecting to [{Supervisor}] to run up to {Capacity} executions at once.", workerId, supervisor, capacity);
+        await connection.StartAsync(stoppingToken);
+
+        try
         {
-            _instanceRepo = new TaskInstancesRepository(connection);
-            _executor = new LocalTaskExecutor(connection, packageManagement);
-            _workerClient = new WorkersRealtimeClient(redis.Connection).ByWorker(instance.Id);
+            await Task.Delay(Timeout.Infinite, stoppingToken);
         }
-
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        catch (OperationCanceledException)
         {
-            _workerClient.Tasks.Subscribe(new Progress<Guid>((id) => _waitingForTask?.SetResult()));
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                // Execute all the queued tasks
-                Guid? taskId;
-                do
-                {
-                    taskId = await _workerClient.Tasks.DequeueAsync();
-                    if (taskId != null)
-                    {
-                        TaskInstance instance = await _instanceRepo.GetByIdAsync(taskId.Value);
-                        await _executor.ExecuteAsync(instance);
-                    }
-                } while (taskId != null);
-
-                // Wait for a new task
-                _waitingForTask = new TaskCompletionSource(stoppingToken);
-                await _waitingForTask.Task;
-            }
+            await connection.StopAsync();
         }
     }
 }

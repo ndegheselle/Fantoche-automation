@@ -22,10 +22,21 @@ Backend Requirements:
 
 ## Getting started
 
-- [Setting up a mongodb with docker in visual studio](https://medium.com/@hugo_cesar45/asp-net-core-web-api-net-8-docker-mongodb-8fab9a54f72c)
+Start `Fantoche.App` for the client : every task runs in the application by default.
 
-Start the `docker-compose` startup project for the backend.
-Start `Fantoche.App` for the client.
+### Remote execution
+
+A task or a workflow set to "Run on a worker" (in its settings) is sent to a worker through the supervisor, the rest keeps running in the application. A remote workflow runs whole on a single worker.
+
+- Start the `docker-compose` startup project (or `Fantoche.Supervisor.Api` and `Fantoche.Worker.Service`).
+- Set `FANTOCHE_SUPERVISOR_URL` (e.g. `http://localhost:8080/`) before starting `Fantoche.App`. Without it, a task set to run on a worker fails.
+- A worker is configured with `SUPERVISOR_URL`, `WORKER_ID`, `WORKER_CAPACITY` (executions run at once) and `DATA_FOLDER` (holding the `nuget` packages folder, their cache and the storage).
+
+Current limits :
+
+- The workers load the packages from their own `nuget` folder : it has to hold the packages of the application (shared volume).
+- The storage (tables and files) is per machine : a table created on a worker can't be read by a task running in the application, and the other way around.
+- The supervisor has no authentication.
 
 ## Links
 
@@ -36,8 +47,6 @@ Start `Fantoche.App` for the client.
 
 # TODO
 
-- Handle communication between client and supervisor with signalR
-    - Display workflow progress in realtime
 - Scripting language to handle contexte change in tasks settings
 - Generic way to create UI form for settings
     - Also handle validation and types with this ?
@@ -53,6 +62,7 @@ Start `Fantoche.App` for the client.
 # ToThink
 
 - Allow multiple supervisor and more complex worker assignation
-    - Allow a workflow to be executed by only one worker for optomizations
-- optimize and simplify signalR and redis communication
+- Serve the packages from the supervisor (a nuget feed) rather than a folder shared with the workers
+- Share the storage between the application and the workers
+- Re-dispatch the executions of a lost worker rather than failing them
 - display potential errors in workflow creation

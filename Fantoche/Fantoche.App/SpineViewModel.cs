@@ -5,9 +5,11 @@ using Fantoche.App.Features.Packages;
 using Fantoche.App.Features.Servers;
 using Fantoche.App.Features.Storage;
 using Fantoche.App.Features.Workflows;
+using Fantoche.Realtime;
 using Fantoche.Services.Local;
 using Fantoche.Services.Local.Database;
 using Fantoche.Shared.Services;
+using Fantoche.Worker.Executor;
 using Fantoche.Worker.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Joufflu.Feedback;
@@ -52,9 +54,12 @@ public class SpineViewModel : ObservableObject
         var history = new LocalHistoryService(databaseFactory);
         var packages = new LocalPackagesService(Settings.PackagesFolderPath, Path.Join(Settings.LocalFolderPath, "cache"));
         var scoped = new LocalScopedService(databaseFactory);
+        var storage = new LocalStorage(Path.Combine(Settings.LocalFolderPath, "storage"));
+        var remote = Settings.SupervisorUrl == null ? null : new RemoteTaskExecutor(Settings.SupervisorUrl);
+        var executor = new MixedTaskExecutor(packages.PackageManagement, storage, remote);
         Services = new AppServices(
             scoped,
-            new LocalExecutionService(scoped, history, packages.PackageManagement, new LocalStorage(Path.Combine(Settings.LocalFolderPath, "storage"))),
+            new LocalExecutionService(scoped, history, executor),
             history,
             packages,
             Overlayer,

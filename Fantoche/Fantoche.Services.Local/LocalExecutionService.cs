@@ -1,20 +1,18 @@
 ﻿using System.Collections.Concurrent;
-using Fantoche.Plugins.Shared;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Data.Graph;
 using Fantoche.Shared.Data.Scoped;
 using Fantoche.Shared.Services;
 using Fantoche.Worker.Executor;
-using Fantoche.Worker.Packages;
 using Newtonsoft.Json.Linq;
 
 namespace Fantoche.Services.Local;
 
 /// <summary>
-/// Run the tasks and workflows in the process of the application, and store every instance they
-/// produce in the local history.
+/// Run the tasks and workflows with the given executor (in the application or on a worker), and
+/// store every instance they produce in the local history.
 /// </summary>
-public class LocalExecutionService : IExecutionService, IDisposable
+public class LocalExecutionService : IExecutionService
 {
     private class RunningExecution
     {
@@ -26,27 +24,18 @@ public class LocalExecutionService : IExecutionService, IDisposable
     private readonly LocalScopedService _scopedService;
     private readonly LocalHistoryService _historyService;
 
-    private readonly WorkflowExecutor _workflowExecutor;
-    private readonly NodeExecutor _nodeExecutor;
+    private readonly ITaskExecutor _executor;
 
     private readonly ConcurrentDictionary<Guid, RunningExecution> _running = [];
 
     public LocalExecutionService(
         LocalScopedService scopedService,
         LocalHistoryService historyService,
-        LocalPackageManagement packageManagement,
-        IStorage storage)
+        ITaskExecutor executor)
     {
         _scopedService = scopedService;
         _historyService = historyService;
-
-        _workflowExecutor = new WorkflowExecutor(packageManagement, storage);
-        _nodeExecutor = new NodeExecutor(packageManagement, storage, _workflowExecutor);
-    }
-
-    public void Dispose()
-    {
-        _nodeExecutor.Dispose();
+        _executor = executor;
     }
 
     public async Task<TaskInstance> StartAsync(Guid taskId, JToken? parameters = null)
@@ -127,7 +116,7 @@ public class LocalExecutionService : IExecutionService, IDisposable
 
         try
         {
-            instance = await _nodeExecutor.ExecuteAsync(task, instance, progress, running.Cancellation.Token);
+            instance = await _executor.ExecuteAsync(task, instance, progress, running.Cancellation.Token);
         }
         catch (Exception ex)
         {

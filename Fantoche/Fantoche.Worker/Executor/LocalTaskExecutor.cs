@@ -12,9 +12,10 @@ public class ExecutionException : Exception
 }
 
 /// <summary>
-/// Handle the concrete execution of a task
+/// Run a task in this process : load its package and execute it, a workflow being walked by a
+/// <see cref="WorkflowExecutor"/>.
 /// </summary>
-public class NodeExecutor : IDisposable
+public class LocalTaskExecutor : ITaskExecutor, IDisposable
 {
     private readonly IPackageManagement _packages;
     private readonly IStorage _storage;
@@ -24,9 +25,12 @@ public class NodeExecutor : IDisposable
     /// </summary>
     private readonly Dictionary<string, TaskLoader> _cachedTaskLoaders = [];
 
-    public NodeExecutor(IPackageManagement packageManagement, IStorage storage, WorkflowExecutor workflowExecutor)
+    /// <param name="workflowExecutor">
+    /// What the workflows are walked with, by default one running their nodes here as well.
+    /// </param>
+    public LocalTaskExecutor(IPackageManagement packageManagement, IStorage storage, WorkflowExecutor? workflowExecutor = null)
     {
-        _workflowExecutor = workflowExecutor;
+        _workflowExecutor = workflowExecutor ?? new WorkflowExecutor(this);
         _packages = packageManagement;
         _storage = storage;
     }
@@ -106,13 +110,15 @@ public class NodeExecutor : IDisposable
         string dllPath =
             await _packages.DownloadPackageAsync(target.Package.Id, target.Package.Version, target.Dll);
 
+        // The branches of a workflow and the executions of a worker share the cache.
         TaskLoader loader;
-        if (_cachedTaskLoaders.TryGetValue(dllPath, out TaskLoader? cached))
-            loader = cached;
-        else
+        lock (_cachedTaskLoaders)
         {
-            loader = new TaskLoader(dllPath);
-            _cachedTaskLoaders.Add(dllPath, loader);
+            if (!_cachedTaskLoaders.TryGetValue(dllPath, out loader!))
+            {
+                loader = new TaskLoader(dllPath);
+                _cachedTaskLoaders.Add(dllPath, loader);
+            }
         }
 
         var task = loader.CreateInstance(target.ClassFullName);

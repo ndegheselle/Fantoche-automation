@@ -17,11 +17,18 @@ public record WorkflowExecutionContext : GraphExecutionContext
 
 public class WorkflowExecutor
 {
-    private readonly NodeExecutor _executor;
+    private readonly ITaskExecutor _executor;
 
+    /// <summary>A walk running every node in this process.</summary>
     public WorkflowExecutor(IPackageManagement packageManagement, IStorage storage)
     {
-        _executor = new NodeExecutor(packageManagement, storage, this);
+        _executor = new LocalTaskExecutor(packageManagement, storage, this);
+    }
+
+    /// <summary>A walk running every node with [executor].</summary>
+    public WorkflowExecutor(ITaskExecutor executor)
+    {
+        _executor = executor;
     }
 
     // FIXME : in the workflowInstance the Workflow should have a Graph up to date, this should be indicated somewhere or forced

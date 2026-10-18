@@ -31,13 +31,6 @@ internal sealed record NodeReport(string NodeName, EnumTaskState State, JToken? 
 /// </summary>
 internal sealed class WorkflowRun
 {
-    private sealed class Sink<T> : IProgress<T>
-    {
-        private readonly Action<T> _report;
-        public Sink(Action<T> report) => _report = report;
-        public void Report(T value) => _report(value);
-    }
-
     private readonly List<NodeReport> _reports = [];
     private readonly List<TaskNotification> _notifications = [];
     private readonly object _lock = new();

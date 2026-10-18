@@ -5,9 +5,7 @@
       "commandVersion": "1.0",
       "serviceActions": {
         "Fantoche.supervisor.api": "StartDebugging",
-        "Fantoche.worker.service": "StartWithoutDebugging",
-        "mongo": "StartWithoutDebugging",
-        "redis": "StartWithoutDebugging"
+        "Fantoche.worker.service": "StartWithoutDebugging"
       }
     }
   }

@@ -6,9 +6,22 @@ using NJsonSchema;
 
 namespace Fantoche.Shared.Data.Scoped;
 
+/// <summary>
+/// Where a task is run.
+/// </summary>
+public enum EnumExecutionMode
+{
+    /// <summary>In the process starting it.</summary>
+    Local,
+    /// <summary>On a worker, through the supervisor.</summary>
+    Remote
+}
+
 public class TaskSettings
 {
     public bool IsPassingThrough { get; set; } = false;
+
+    public EnumExecutionMode Execution { get; set; } = EnumExecutionMode.Local;
 }
 
 [JsonDerivedType(typeof(AutomationTask), "task")]
