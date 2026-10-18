@@ -39,6 +39,19 @@ public class TableRef
 }
 
 /// <summary>
+/// References to the row of a table a task iterates on : "$row.index" (from 0) and
+/// "$row.columns.name" (or "$row.columns['unit price']"). Only the task knows the row, so the engine
+/// leaves these references untouched for it to resolve.
+/// </summary>
+public static class RowScope
+{
+    public const string Root = "$row";
+
+    public static bool IsReference(string value)
+        => value == Root || value.StartsWith($"{Root}.") || value.StartsWith($"{Root}[");
+}
+
+/// <summary>
 /// Handle on a file of the <see cref="IStorage"/>.
 /// </summary>
 [JsonSchemaExtensionData(KnownTypes.SchemaKey, KnownTypes.File)]

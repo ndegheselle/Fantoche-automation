@@ -51,6 +51,11 @@ internal static class PluginTasks
         "Fantoche.Plugins.Tables.CsvImportTask", "CsvImport",
         JsonSchema.FromType<CsvImportParameters>(), JsonSchema.FromType<TableRef>());
 
+    /// <summary>Keeps the rows of a table matching its conditions, in a new table.</summary>
+    public static readonly AutomationTask Filter = Make(
+        "Fantoche.Plugins.Tables.FilterTask", "Filter",
+        JsonSchema.FromType<FilterParameters>(), JsonSchema.FromType<TableRef>());
+
     /// <summary>A task pointing at a class the assembly doesn't hold.</summary>
     public static readonly AutomationTask UnknownClass = Make(
         "Fantoche.Plugins.NotATask", "UnknownClass",

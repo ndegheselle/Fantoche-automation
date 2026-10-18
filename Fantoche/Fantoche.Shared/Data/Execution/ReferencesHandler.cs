@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Fantoche.Plugins.Shared;
+using Newtonsoft.Json.Linq;
 
 namespace Fantoche.Shared.Data;
 
@@ -40,6 +41,10 @@ public static class ReferencesHandler
     private static JToken ReplaceReferences(JToken template, JToken context, out List<string> errors)
     {
         errors = [];
+        // Only the task iterating the table knows the row.
+        if (template is JValue { Value: string value } && RowScope.IsReference(value))
+            return template;
+
         var reference = GetReferencePath(template);
         // Is a reference
         if (!string.IsNullOrEmpty(reference))
