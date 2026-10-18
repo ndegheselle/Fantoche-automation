@@ -90,6 +90,18 @@ internal static class Samples
         Id(0x13), "LoopGate", "Fantoche.Plugins.LoopGateTask",
         Schema(("Value", "integer"), ("Max", "integer"), ("WhileUnder", "boolean")), EmptySchema, passThrough: true);
 
+    private static readonly AutomationTask CsvImport = MakeTask(
+        Id(0x14), "CsvImport", "Fantoche.Plugins.Tables.CsvImportTask",
+        Schema(("Path", "string")), TableSchema);
+
+    private static readonly AutomationTask Filter = MakeTask(
+        Id(0x15), "Filter", "Fantoche.Plugins.Tables.FilterTask",
+        FilterInputSchema, TableSchema);
+
+    private static readonly AutomationTask Pdf = MakeTask(
+        Id(0x16), "Pdf", "Fantoche.Plugins.Tables.PdfTask",
+        PdfInputSchema, PdfOutputSchema);
+
     #endregion
 
     public static IEnumerable<ScopedElement> Build()
@@ -101,9 +113,13 @@ internal static class Samples
             Delay,
             PassThrough,
             LoopGate,
+            CsvImport,
+            Filter,
+            Pdf,
             BuildLinear(),
             BuildBranches(),
             BuildLoop(),
+            BuildExample(),
         ];
 
         // The schemas of a workflow are declared by its start and its end, the element only holding
@@ -235,6 +251,49 @@ internal static class Samples
         return workflow;
     }
 
+    /// <summary>
+    /// A minimal real life case : a CSV loaded into a table, its rows filtered, then a PDF saved per
+    /// remaining row.
+    /// <code>
+    /// Start -> Import -> Filter(amount > 10) -> Pdf -> End
+    /// </code>
+    /// Started with the path of a CSV having a "name" and an "amount" column, e.g.
+    /// "name,amount\nalice,10\nbob,20". Expected output : the files bob.pdf and so on.
+    /// </summary>
+    private static AutomationWorkflow BuildExample()
+    {
+        AutomationWorkflow workflow = MakeWorkflow(Id(0x23), "Example");
+
+        GraphControl start = StartNode(0, 0, Schema(("Path", "string")));
+        GraphTask import = Node(new GraphTask(CsvImport), "Import", 220, 0,
+            new { Path = "$previous.Path" });
+        GraphTask filter = Node(new GraphTask(Filter), "Filter", 440, 0,
+            new
+            {
+                Source = "$previous",
+                Conditions = new[] { new { Left = "$row.columns.amount", Operator = "Greater", Right = 10 } },
+                MatchAll = true,
+            });
+        GraphTask pdf = Node(new GraphTask(Pdf), "Pdf", 660, 0,
+            new
+            {
+                Source = "$previous",
+                FileName = "$row.columns.name",
+                Title = "$row.columns.name",
+                Fields = new[] { new { Label = "Amount", Value = "$row.columns.amount" } },
+            });
+        GraphControl end = EndNode(880, 0, new { Files = "$previous.Files" }, Schema(("Files", "array")));
+
+        Add(workflow, start, import, filter, pdf, end);
+
+        workflow.Graph.Connect(start, import);
+        workflow.Graph.Connect(import, filter);
+        workflow.Graph.Connect(filter, pdf);
+        workflow.Graph.Connect(pdf, end);
+
+        return workflow;
+    }
+
     #region Building blocks
 
     private const string EmptySchema = "{\"type\":\"object\"}";
@@ -246,6 +305,44 @@ internal static class Samples
     private static readonly string WorkflowInputSchema = Schema(("Value", "integer"));
     private static readonly string WorkflowOutputSchema = Schema(("Value", "integer"), ("Message", "string"));
 
+    /// <summary>
+    /// The package the sample tasks run : it has to be added to the packages for the samples to run.
+    /// </summary>
+    private static readonly Version PluginsVersion = new("1.1.0");
+
+    /// <summary>
+    /// The schemas of the table tasks, with the markers of the engine : a table handle
+    /// ("x-fantoche-type") and the fields evaluated per row ("x-fantoche-scope").
+    /// </summary>
+    private const string TableSchema = """
+        {"type":"object","x-fantoche-type":"table","properties":{
+            "Id":{"type":"string"},
+            "Columns":{"type":"array","items":{"type":"object","properties":{"Name":{"type":"string"},"Type":{"type":"string"}}}}}}
+        """;
+
+    private const string FilterInputSchema = """
+        {"type":"object","properties":{
+            "Source":{"type":"object","x-fantoche-type":"table"},
+            "Conditions":{"type":"array","x-fantoche-scope":"row","items":{"type":"object","properties":{
+                "Left":{},
+                "Operator":{"type":"string","enum":["Equal","NotEqual","Greater","GreaterOrEqual","Less","LessOrEqual","Contains"]},
+                "Right":{}}}},
+            "MatchAll":{"type":"boolean"}}}
+        """;
+
+    private const string PdfInputSchema = """
+        {"type":"object","properties":{
+            "Source":{"type":"object","x-fantoche-type":"table"},
+            "FileName":{"x-fantoche-scope":"row"},
+            "Title":{"x-fantoche-scope":"row"},
+            "Fields":{"type":"array","x-fantoche-scope":"row","items":{"type":"object","properties":{"Label":{},"Value":{}}}}}}
+        """;
+
+    private const string PdfOutputSchema = """
+        {"type":"object","properties":{
+            "Files":{"type":"array","items":{"type":"object","x-fantoche-type":"file","properties":{"Id":{"type":"string"},"Name":{"type":"string"}}}}}}
+        """;
+
     private static Guid Id(byte index) => new Guid($"00000000-0000-0000-0000-2000000000{index:x2}");
 
     /// <summary>
@@ -253,18 +350,18 @@ internal static class Samples
     /// what it produces : the control itself knows no shape, and anything reading the graph — a run,
     /// or the preview an editor shows of it — reads "$previous" of the first node from there.
     /// </summary>
-    private static GraphControl StartNode(double x, double y)
+    private static GraphControl StartNode(double x, double y, string? schema = null)
         => Node(
-            new GraphControl(AutomationControl.StartTask) { OutputSchemaJson = WorkflowInputSchema },
+            new GraphControl(AutomationControl.StartTask) { OutputSchemaJson = schema ?? WorkflowInputSchema },
             "Start", x, y);
 
     /// <summary>
     /// The end of a workflow, declaring what it hands back : what an end reads is the output of the
     /// workflow, so the shape is declared on the node producing it.
     /// </summary>
-    private static GraphControl EndNode(double x, double y, object mapping)
+    private static GraphControl EndNode(double x, double y, object mapping, string? schema = null)
         => Node(
-            new GraphControl(AutomationControl.EndTask) { InputSchemaJson = WorkflowOutputSchema },
+            new GraphControl(AutomationControl.EndTask) { InputSchemaJson = schema ?? WorkflowOutputSchema },
             "End", x, y, mapping);
 
     private static AutomationTask MakeTask(
@@ -283,7 +380,7 @@ internal static class Samples
             {
                 Dll = "Fantoche.Plugins",
                 ClassFullName = className,
-                Package = new PackageIdentifier() { Id = "Fantoche.Plugins", Version = new Version("1.0.2") }
+                Package = new PackageIdentifier() { Id = "Fantoche.Plugins", Version = PluginsVersion }
             },
             InputSchemaJson = inputSchema,
             OutputSchemaJson = outputSchema,
