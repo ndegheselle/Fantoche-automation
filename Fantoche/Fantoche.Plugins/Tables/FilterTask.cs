@@ -49,9 +49,6 @@ public class FilterParameters
 /// </summary>
 public class FilterTask : BaseTask<FilterParameters, TableRef>
 {
-    private const string IndexReference = $"{RowScope.Root}.index";
-    private const string ColumnsReference = $"{RowScope.Root}.columns";
-
     public override Task<TableRef> DoAsync(FilterParameters parameters, ITaskRuntime runtime, CancellationToken? cancellation = null)
     {
         Dictionary<string, object?> values = [];
@@ -101,28 +98,11 @@ public class FilterTask : BaseTask<FilterParameters, TableRef>
 
     private static string RowReferenceSql(string reference)
     {
-        if (reference == IndexReference)
+        if (reference == RowReference.Index)
             return "rowid";
 
-        string column = ColumnOf(reference)
-            ?? throw new ArgumentException($"[{reference}] is not a row reference, expected \"{IndexReference}\" or \"{ColumnsReference}.<name>\".");
+        string column = RowReference.ColumnOf(reference);
         return Quote(column);
-    }
-
-    /// <summary>
-    /// The column [reference] points at, as "$row.columns.name" or "$row.columns['unit price']".
-    /// </summary>
-    private static string? ColumnOf(string reference)
-    {
-        if (!reference.StartsWith(ColumnsReference))
-            return null;
-
-        string path = reference[ColumnsReference.Length..];
-        if (path.Length > 1 && path.StartsWith('.'))
-            return path[1..];
-        if (path.Length > 4 && path.StartsWith("['") && path.EndsWith("']"))
-            return path[2..^2];
-        return null;
     }
 
     private static string Quote(string identifier) => $"\"{identifier.Replace("\"", "\"\"")}\"";

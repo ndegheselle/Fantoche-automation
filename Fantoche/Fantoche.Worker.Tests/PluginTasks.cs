@@ -56,6 +56,11 @@ internal static class PluginTasks
         "Fantoche.Plugins.Tables.FilterTask", "Filter",
         JsonSchema.FromType<FilterParameters>(), JsonSchema.FromType<TableRef>());
 
+    /// <summary>Saves a PDF per row of a table.</summary>
+    public static readonly AutomationTask Pdf = Make(
+        "Fantoche.Plugins.Tables.PdfTask", "Pdf",
+        JsonSchema.FromType<PdfParameters>(), JsonSchema.FromType<PdfOutput>());
+
     /// <summary>A task pointing at a class the assembly doesn't hold.</summary>
     public static readonly AutomationTask UnknownClass = Make(
         "Fantoche.Plugins.NotATask", "UnknownClass",
