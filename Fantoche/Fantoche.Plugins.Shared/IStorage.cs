@@ -65,11 +65,6 @@ public class FileRef
 public interface IStorage
 {
     /// <summary>
-    /// Create a table from a CSV file, its columns and their types being detected from the content.
-    /// </summary>
-    Task<TableRef> ImportCsvAsync(string path, CancellationToken cancellation = default);
-
-    /// <summary>
     /// Create a table from the result of [query], a DuckDB SQL select reading other tables by their
     /// <see cref="TableRef.Id"/>, e.g. <c>$"SELECT * FROM {source.Id} WHERE amount > $min"</c>.
     /// </summary>

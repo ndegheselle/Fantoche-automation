@@ -25,13 +25,8 @@ internal sealed class LocalStorageTests
             Directory.Delete(_folder, true);
     }
 
-    private async Task<TableRef> ImportAsync(string csv)
-    {
-        Directory.CreateDirectory(_folder);
-        string path = Path.Combine(_folder, $"{Guid.NewGuid():N}.csv");
-        await File.WriteAllTextAsync(path, csv);
-        return await _storage.ImportCsvAsync(path);
-    }
+    private Task<TableRef> PeopleAsync()
+        => _storage.CreateTableAsync("SELECT * FROM (VALUES ('alice', 10), ('bob', 20), ('carol', 30)) AS people(name, amount)");
 
     private static async Task<List<IReadOnlyDictionary<string, object?>>> ToListAsync(IAsyncEnumerable<IReadOnlyDictionary<string, object?>> rows)
     {
@@ -42,18 +37,18 @@ internal sealed class LocalStorageTests
     }
 
     [Test]
-    public async Task ImportCsv_DetectsTheColumns()
+    public async Task CreateTable_ReportsTheColumnsOfTheResult()
     {
-        TableRef table = await ImportAsync("name,amount\nalice,10\nbob,20\n");
+        TableRef table = await PeopleAsync();
 
         Assert.That(table.Columns.Select(x => (x.Name, x.Type)),
-            Is.EqualTo(new[] { ("name", "VARCHAR"), ("amount", "BIGINT") }));
+            Is.EqualTo(new[] { ("name", "VARCHAR"), ("amount", "INTEGER") }));
     }
 
     [Test]
-    public async Task ReadRows_KeepsTheOrderOfTheFile()
+    public async Task ReadRows_KeepsTheOrderOfTheQuery()
     {
-        TableRef table = await ImportAsync("name,amount\nalice,10\nbob,20\ncarol,30\n");
+        TableRef table = await PeopleAsync();
 
         var rows = await ToListAsync(_storage.ReadRowsAsync(table));
 
@@ -63,7 +58,7 @@ internal sealed class LocalStorageTests
     [Test]
     public async Task CreateTable_ReadsOtherTablesById()
     {
-        TableRef source = await ImportAsync("name,amount\nalice,10\nbob,20\ncarol,30\n");
+        TableRef source = await PeopleAsync();
 
         TableRef filtered = await _storage.CreateTableAsync(
             $"SELECT upper(name) AS name FROM {source.Id} WHERE amount >= $min ORDER BY amount",

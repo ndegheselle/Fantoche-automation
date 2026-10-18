@@ -46,9 +46,6 @@ public sealed class LocalStorage : IStorage, IDisposable
 
     #region Tables
 
-    public Task<TableRef> ImportCsvAsync(string path, CancellationToken cancellation = default)
-        => CreateTableAsync("SELECT * FROM read_csv_auto($path)", new Dictionary<string, object?> { ["path"] = path }, cancellation);
-
     public async Task<TableRef> CreateTableAsync(string query, IReadOnlyDictionary<string, object?>? parameters = null,
         CancellationToken cancellation = default)
     {

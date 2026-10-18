@@ -44,7 +44,7 @@ internal sealed class CsvImportTaskTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(table.Columns.Select(x => x.Name), Is.EqualTo(new[] { "name", "amount" }));
+            Assert.That(table.Columns.Select(x => (x.Name, x.Type)), Is.EqualTo(new[] { ("name", "VARCHAR"), ("amount", "BIGINT") }));
             Assert.That(names, Is.EqualTo(new[] { "alice", "bob" }));
         });
     }

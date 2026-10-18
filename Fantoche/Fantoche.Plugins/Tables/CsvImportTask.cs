@@ -18,7 +18,9 @@ public class CsvImportTask : BaseTask<CsvImportParameters, TableRef>
 {
     public override async Task<TableRef> DoAsync(CsvImportParameters parameters, ITaskRuntime runtime, CancellationToken? cancellation = null)
     {
-        TableRef table = await runtime.Storage.ImportCsvAsync(parameters.Path, cancellation ?? CancellationToken.None);
+        // DuckDB detects the columns and their types from the content.
+        Dictionary<string, object?> values = new() { ["path"] = parameters.Path };
+        TableRef table = await runtime.Storage.CreateTableAsync("SELECT * FROM read_csv_auto($path)", values, cancellation ?? CancellationToken.None);
 
         runtime.Progress?.Report(new TaskNotification
         {
