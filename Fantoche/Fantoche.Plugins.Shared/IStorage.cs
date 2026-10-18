@@ -2,17 +2,6 @@ using NJsonSchema.Annotations;
 
 namespace Fantoche.Plugins.Shared;
 
-/// <summary>
-/// Types the engine knows : their schema is tagged with <see cref="SchemaKey"/> rather than read as
-/// any other object, so an editor can handle them on their own (e.g. a table picker).
-/// </summary>
-public static class KnownTypes
-{
-    public const string SchemaKey = "x-fantoche-type";
-    public const string Table = "table";
-    public const string File = "file";
-}
-
 public class TableColumn
 {
     public string Name { get; set; } = "";
