@@ -21,17 +21,15 @@ public sealed class LocalStorage : IStorage, IDisposable
     private readonly string _connectionString;
 
     /// <summary>
-    /// Kept open for the lifetime of the storage so the database stays loaded : the connections of a
-    /// process on the same file share it. Every operation opens one of its own, a connection being
-    /// unusable by several threads at once.
+    /// Opened on first use and held until disposal, see <see cref="KeepDatabaseLoaded"/>.
     /// </summary>
-    private readonly Lazy<DuckDBConnection> _connection;
+    private readonly Lazy<DuckDBConnection> _keepAliveConnection;
 
     public LocalStorage(string folder)
     {
         _filesFolder = Path.Combine(folder, "files");
         _connectionString = $"Data Source={Path.Combine(folder, "tables.duckdb")}";
-        _connection = new(() =>
+        _keepAliveConnection = new(() =>
         {
             Directory.CreateDirectory(folder);
             var connection = new DuckDBConnection(_connectionString);
@@ -42,8 +40,8 @@ public sealed class LocalStorage : IStorage, IDisposable
 
     public void Dispose()
     {
-        if (_connection.IsValueCreated)
-            _connection.Value.Dispose();
+        if (_keepAliveConnection.IsValueCreated)
+            _keepAliveConnection.Value.Dispose();
     }
 
     #region Tables
@@ -99,13 +97,23 @@ public sealed class LocalStorage : IStorage, IDisposable
         return columns;
     }
 
+    /// <summary>
+    /// Every operation opens a connection of its own, a connection being unusable by several threads
+    /// at once.
+    /// </summary>
     private DuckDBConnection Open()
     {
-        _ = _connection.Value;
+        KeepDatabaseLoaded();
         var connection = new DuckDBConnection(_connectionString);
         connection.Open();
         return connection;
     }
+
+    /// <summary>
+    /// DuckDB unloads a database once its last connection closes : holding one open spares reloading
+    /// it on every operation. The first call also creates the folder of the storage.
+    /// </summary>
+    private void KeepDatabaseLoaded() => _ = _keepAliveConnection.Value;
 
     /// <summary>
     /// [table] as it is written in a query, only once checked to be a table this storage named.
