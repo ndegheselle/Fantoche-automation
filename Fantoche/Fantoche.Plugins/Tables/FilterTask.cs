@@ -98,10 +98,10 @@ public class FilterTask : BaseTask<FilterParameters, TableRef>
 
     private static string RowReferenceSql(string reference)
     {
-        if (reference == RowReference.Index)
+        if (reference == RowScope.Index)
             return "rowid";
 
-        string column = RowReference.ColumnOf(reference);
+        string column = RowScope.ColumnOf(reference);
         return Quote(column);
     }
 

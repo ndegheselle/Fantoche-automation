@@ -24,7 +24,7 @@ public class PdfParameters
     /// Name of the file of each row, ".pdf" being added : usually a reference to a column identifying the row.
     /// </summary>
     [JsonSchemaExtensionData(RowScope.SchemaKey, RowScope.Name)]
-    public object? FileName { get; set; } = RowReference.Index;
+    public object? FileName { get; set; } = RowScope.Index;
 
     [JsonSchemaExtensionData(RowScope.SchemaKey, RowScope.Name)]
     public object? Title { get; set; }
@@ -115,10 +115,10 @@ public class PdfTask : BaseTask<PdfParameters, PdfOutput>
     {
         if (operand is not string reference || !RowScope.IsReference(reference))
             return operand;
-        if (reference == RowReference.Index)
+        if (reference == RowScope.Index)
             return index;
 
-        string column = RowReference.ColumnOf(reference);
+        string column = RowScope.ColumnOf(reference);
         return row.TryGetValue(column, out object? value)
             ? value
             : throw new ArgumentException($"Column [{column}] not found in the table.");

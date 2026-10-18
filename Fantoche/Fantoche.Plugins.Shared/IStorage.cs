@@ -36,12 +36,29 @@ public class TableRef
 public static class RowScope
 {
     public const string Root = "$row";
+    public const string Index = $"{Root}.index";
+    private const string Columns = $"{Root}.columns";
 
     public const string SchemaKey = "x-fantoche-scope";
     public const string Name = "row";
 
     public static bool IsReference(string value)
         => value == Root || value.StartsWith($"{Root}.") || value.StartsWith($"{Root}[");
+
+    /// <summary>
+    /// The column [reference] points at, as "$row.columns.name" or "$row.columns['unit price']".
+    /// Only called on references other than <see cref="Index"/>.
+    /// </summary>
+    public static string ColumnOf(string reference)
+    {
+        string path = reference.StartsWith(Columns) ? reference[Columns.Length..] : "";
+        if (path.Length > 1 && path.StartsWith('.'))
+            return path[1..];
+        if (path.Length > 4 && path.StartsWith("['") && path.EndsWith("']"))
+            return path[2..^2];
+
+        throw new ArgumentException($"[{reference}] is not a row reference, expected \"{Index}\" or \"{Columns}.<name>\".");
+    }
 }
 
 /// <summary>
