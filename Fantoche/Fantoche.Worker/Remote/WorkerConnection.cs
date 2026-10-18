@@ -5,7 +5,7 @@ using Fantoche.Shared.Remote;
 using Fantoche.Worker.Executor;
 using Microsoft.AspNetCore.SignalR.Client;
 
-namespace Fantoche.Realtime;
+namespace Fantoche.Worker.Remote;
 
 /// <summary>
 /// A worker as the supervisor knows it : it runs the executions the supervisor sends and reports

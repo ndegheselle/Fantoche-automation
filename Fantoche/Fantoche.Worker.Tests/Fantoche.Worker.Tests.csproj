@@ -28,7 +28,6 @@
     <ProjectReference Include="..\Fantoche.Plugins\Fantoche.Plugins.csproj" />
     <ProjectReference Include="..\Fantoche.Worker\Fantoche.Worker.csproj" />
     <!-- The remote execution is tested end to end : a supervisor, a worker and a caller. -->
-    <ProjectReference Include="..\Fantoche.Realtime\Fantoche.Realtime.csproj" />
     <ProjectReference Include="..\Fantoche.Supervisor.Api\Fantoche.Supervisor.Api.csproj" />
   </ItemGroup>
 

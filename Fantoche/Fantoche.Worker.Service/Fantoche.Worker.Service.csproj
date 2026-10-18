@@ -14,7 +14,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Fantoche.Realtime\Fantoche.Realtime.csproj" />
     <ProjectReference Include="..\Fantoche.Worker\Fantoche.Worker.csproj" />
   </ItemGroup>
 </Project>

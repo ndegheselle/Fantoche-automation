@@ -7,7 +7,7 @@ using Fantoche.Worker.Executor;
 using Microsoft.AspNetCore.SignalR.Client;
 using Newtonsoft.Json.Linq;
 
-namespace Fantoche.Realtime;
+namespace Fantoche.Worker.Remote;
 
 /// <summary>
 /// Run the tasks on the workers of a supervisor. What the worker reports along the way is relayed
