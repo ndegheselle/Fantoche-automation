@@ -1,4 +1,5 @@
-﻿using Fantoche.Shared.Data.Execution;
+﻿using Fantoche.Plugins.Shared;
+using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Data.Graph;
 using Fantoche.Worker.Packages;
 using Newtonsoft.Json.Linq;
@@ -18,9 +19,9 @@ public class WorkflowExecutor
 {
     private readonly NodeExecutor _executor;
 
-    public WorkflowExecutor(IPackageManagement packageManagement)
+    public WorkflowExecutor(IPackageManagement packageManagement, IStorage storage)
     {
-        _executor = new NodeExecutor(packageManagement, this);
+        _executor = new NodeExecutor(packageManagement, storage, this);
     }
 
     // FIXME : in the workflowInstance the Workflow should have a Graph up to date, this should be indicated somewhere or forced

@@ -17,16 +17,18 @@ public class ExecutionException : Exception
 public class NodeExecutor : IDisposable
 {
     private readonly IPackageManagement _packages;
+    private readonly IStorage _storage;
     private readonly WorkflowExecutor _workflowExecutor;
     /// <summary>
     /// Task loaders cached by DLL path.
     /// </summary>
     private readonly Dictionary<string, TaskLoader> _cachedTaskLoaders = [];
 
-    public NodeExecutor(IPackageManagement packageManagement, WorkflowExecutor workflowExecutor)
+    public NodeExecutor(IPackageManagement packageManagement, IStorage storage, WorkflowExecutor workflowExecutor)
     {
         _workflowExecutor = workflowExecutor;
         _packages = packageManagement;
+        _storage = storage;
     }
 
     public void Dispose()
@@ -124,7 +126,7 @@ public class NodeExecutor : IDisposable
         if (instance.Parameters != null && task.Input?.Type != null)
             parameter = instance.Parameters.ToObject(task.Input.Type);
 
-        var runtime = new TaskRuntime(progress?.Notifications);
+        var runtime = new TaskRuntime(progress?.Notifications, _storage);
         var result = await task.DoAsync(parameter, runtime, cancellation);
 
         if (result != null)
