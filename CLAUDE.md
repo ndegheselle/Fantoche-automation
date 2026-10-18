@@ -22,4 +22,14 @@ Goal: minimize the mental overhead needed to read, change and trust the code.
 - **Removing is progress**: delete unused code and features.
 - **Challenge decisions**: question whether a new functionality is relevant to the project.
 
+## Tests
+
+- **Test what would hurt**: cover business rules and anything that's hard to spot in production. Skip trivial code like getters, mappings, framework glue and plain UI layout.
+- **One reason to fail**: test behavior, not implementation. Each test checks one behavior, and its name describes that behavior (`rejects_order_when_stock_is_empty`).
+- **A bug fix comes with a test**: reproduce the bug first, then fix it.
+- **Tests have a cost too**: if a test breaks often for no real reason, or guards code that no longer matters, delete it.
+- **Mock only the edges**: fake what's slow or external (network, payment), not your own code.
+- **Fast and deterministic**: a flaky test is worse than no test. Fix it or delete it.
+- **Coverage is not a goal**: use it to find untested critical paths, never as a target to hit.
+
 > When a rule hurts readability in a specific case, readability wins. Explain the exception in a comment.
