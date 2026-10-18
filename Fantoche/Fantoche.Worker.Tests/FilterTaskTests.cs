@@ -112,6 +112,27 @@ internal sealed class FilterTaskTests
     }
 
     [Test]
+    public async Task RowReferenceOutsideTheConditions_IsRefusedBeforeTheFilterRuns()
+    {
+        string path = Path.Combine(_folder, "people.csv");
+        await File.WriteAllTextAsync(path, Csv);
+
+        TestWorkflow workflow = new TestWorkflow("Filter", requireOutput: false)
+            .Start()
+            .Task("Import", PluginTasks.CsvImport, new { Path = "$previous.Path" })
+            .Task("Filter", PluginTasks.Filter, new { Source = "$previous", MatchAll = "$row.index" })
+            .End(new { Table = "$previous" })
+            .Chain("Start", "Import", "Filter", "End");
+        (WorkflowRun run, Exception? error) = await workflow.TryRunAsync(new { Path = path });
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(error?.Message, Does.Contain("[$row.index] is only available in a field evaluated per row."));
+            Assert.That(run.Of("Filter"), Is.Empty);
+        });
+    }
+
+    [Test]
     public async Task UnknownRowReference_FailsTheFilter()
     {
         WorkflowRun run = await RunAsync([Condition("$row.nope", "Equal", 1)]);

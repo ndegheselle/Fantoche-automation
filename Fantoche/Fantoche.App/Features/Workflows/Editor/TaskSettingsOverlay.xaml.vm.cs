@@ -526,7 +526,7 @@ namespace Fantoche.App.Features.Workflows.Editor
                 JToken template = Mapping.ToToken()!;
                 JObject values = (JObject)context.Context.DeepClone();
 
-                ReferenceReplaceResult result = ReferencesHandler.ReplaceReferences(template, values);
+                ReferenceReplaceResult result = ReferencesHandler.ReplaceReferences(template, values, expected);
                 foreach (string error in result.Errors)
                     Errors.Add(new MappingError(error, branch));
 

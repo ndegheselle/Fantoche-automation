@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using Fantoche.Plugins.Shared;
+using NJsonSchema.Annotations;
 
 namespace Fantoche.Plugins.Tables;
 
@@ -28,6 +29,8 @@ public class FilterCondition
 public class FilterParameters
 {
     public TableRef Source { get; set; } = new();
+
+    [JsonSchemaExtensionData(RowScope.SchemaKey, RowScope.Name)]
     public List<FilterCondition> Conditions { get; set; } = [];
 
     /// <summary>

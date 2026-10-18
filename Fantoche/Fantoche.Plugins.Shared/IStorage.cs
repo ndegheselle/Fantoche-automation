@@ -41,11 +41,15 @@ public class TableRef
 /// <summary>
 /// References to the row of a table a task iterates on : "$row.index" (from 0) and
 /// "$row.columns.name" (or "$row.columns['unit price']"). Only the task knows the row, so the engine
-/// leaves these references untouched for it to resolve.
+/// leaves these references untouched for it to resolve, in the properties marked as evaluated per row :
+/// <c>[JsonSchemaExtensionData(RowScope.SchemaKey, RowScope.Name)]</c>.
 /// </summary>
 public static class RowScope
 {
     public const string Root = "$row";
+
+    public const string SchemaKey = "x-fantoche-scope";
+    public const string Name = "row";
 
     public static bool IsReference(string value)
         => value == Root || value.StartsWith($"{Root}.") || value.StartsWith($"{Root}[");
