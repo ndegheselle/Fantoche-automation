@@ -1,0 +1,65 @@
+<UserControl
+    x:Class="Fantoche.App.Features.Settings.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:jonverters="clr-namespace:Joufflu.Converters;assembly=Joufflu"
+    xmlns:joolkit="clr-namespace:Joufflu.Toolkit;assembly=Joufflu"
+    xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
+    xmlns:local="clr-namespace:Fantoche.App.Features.Settings"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DataContext="{d:DesignInstance Type=local:SettingsViewModel}"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    mc:Ignorable="d">
+    <StackPanel
+        MaxWidth="600"
+        Margin="{StaticResource {x:Static joufflu:Dimensions.SpacingThickness}}"
+        HorizontalAlignment="Left"
+        joolkit:Spacing.Gap="4">
+        <TextBlock FontSize="16" FontWeight="SemiBold">Settings</TextBlock>
+
+        <StackPanel>
+            <TextBlock Style="{StaticResource Muted}">Theme</TextBlock>
+            <ComboBox
+                Width="200"
+                HorizontalAlignment="Left"
+                ItemsSource="{Binding Themes}"
+                SelectedItem="{Binding Theme, Mode=TwoWay}" />
+        </StackPanel>
+
+        <TextBlock
+            Margin="0,12,0,0"
+            FontWeight="SemiBold"
+            Text="Execution" />
+        <TextBlock
+            Style="{StaticResource Muted}"
+            Text="Applied when the application starts again."
+            TextWrapping="Wrap" />
+
+        <CheckBox IsChecked="{Binding IsStandalone}">Standalone</CheckBox>
+        <TextBlock
+            Style="{StaticResource Muted}"
+            Text="The database, the packages and the storage are kept in the application and no task runs on a worker. Only for debugging or very particular uses."
+            TextWrapping="Wrap" />
+
+        <StackPanel joolkit:Spacing.Gap="4" Visibility="{Binding IsStandalone, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}">
+            <StackPanel>
+                <TextBlock Style="{StaticResource Muted}">Supervisor address</TextBlock>
+                <TextBox Text="{Binding SupervisorUrl, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+            <StackPanel>
+                <TextBlock Style="{StaticResource Muted}">Shared folder (the packages and the storage of the workers)</TextBlock>
+                <TextBox Text="{Binding SharedFolder, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+        </StackPanel>
+
+        <Button
+            Margin="0,8,0,0"
+            HorizontalAlignment="Left"
+            Command="{Binding SaveCommand}"
+            Style="{StaticResource PrimaryButton}">
+            Save
+        </Button>
+    </StackPanel>
+</UserControl>

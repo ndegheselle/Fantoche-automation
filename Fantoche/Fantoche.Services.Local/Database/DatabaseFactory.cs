@@ -22,6 +22,11 @@ namespace Fantoche.Services.Local.Database
 
             _connectionString = $"Data Source={sqliteDbPath}";
 
+            // Kept by the file once set : the writes stop waiting on the readers and on a sync of the
+            // whole file each, which is what bounds the history a supervisor stores.
+            using (var connection = Create())
+                connection.Execute("PRAGMA journal_mode=WAL;");
+
             // The database is ready to be read from as soon as the factory is built : the tables
             // are created when they are missing, and a database that never held anything is given
             // its starting content.

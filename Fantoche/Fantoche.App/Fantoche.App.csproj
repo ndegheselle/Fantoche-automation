@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Fantoche.Services.Local\Fantoche.Services.Local.csproj" />
+    <ProjectReference Include="..\Fantoche.Services.Remote\Fantoche.Services.Remote.csproj" />
     <ProjectReference Include="..\Fantoche.Shared\Fantoche.Shared.csproj" />
   </ItemGroup>
 

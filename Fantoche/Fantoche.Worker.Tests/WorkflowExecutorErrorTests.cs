@@ -231,7 +231,7 @@ internal sealed class WorkflowExecutorErrorTests
     [Test]
     public async Task GlobalContext_OfTheRunIsReadByTheNodes()
     {
-        // The context of the scopes the workflow belongs to, see LocalExecutionService.
+        // The context of the scopes the workflow belongs to, see ExecutionService.
         TestWorkflow workflow = new TestWorkflow("Global")
             .Start()
             .Task("First", PluginTasks.Test, new { Message = "first", Value = "$global.Value", Add = 1 })

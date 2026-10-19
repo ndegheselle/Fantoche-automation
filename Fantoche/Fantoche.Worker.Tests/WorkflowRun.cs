@@ -1,6 +1,7 @@
 using Fantoche.Plugins.Shared;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Worker.Executor;
+using Fantoche.Worker.Storage;
 using Newtonsoft.Json.Linq;
 
 namespace Fantoche.Worker.Tests;
@@ -30,13 +31,6 @@ internal sealed record NodeReport(string NodeName, EnumTaskState State, JToken? 
 /// </summary>
 internal sealed class WorkflowRun
 {
-    private sealed class Sink<T> : IProgress<T>
-    {
-        private readonly Action<T> _report;
-        public Sink(Action<T> report) => _report = report;
-        public void Report(T value) => _report(value);
-    }
-
     private readonly List<NodeReport> _reports = [];
     private readonly List<TaskNotification> _notifications = [];
     private readonly object _lock = new();
@@ -46,6 +40,11 @@ internal sealed class WorkflowRun
 
     /// <summary>The packages the tasks were loaded from.</summary>
     public TestPackageManagement Packages { get; } = new();
+
+    /// <summary>
+    /// The storage the tasks were given : a folder of its own per run, created only if a task uses it.
+    /// </summary>
+    public LocalStorage Storage { get; } = new(Path.Combine(Path.GetTempPath(), "fantoche-tests", Guid.NewGuid().ToString("N")));
 
     /// <summary>Every state change reported, in order.</summary>
     public IReadOnlyList<NodeReport> Reports
@@ -90,7 +89,7 @@ internal sealed class WorkflowRun
 
     private Task<WorkflowInstance> RunAsync(WorkflowInstance instance, CancellationToken? cancellation)
     {
-        WorkflowExecutor executor = new(Packages);
+        WorkflowExecutor executor = new(Packages, Storage);
         TaskInstancesProgress progress = new()
         {
             StateChanges = new Sink<TaskInstance>(x =>

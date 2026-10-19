@@ -6,12 +6,31 @@
     <Nullable>enable</Nullable>
     <Title>Base automation plugins</Title>
     <PackageIcon></PackageIcon>
-    <Version>1.0.2</Version>
+    <Version>1.1.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Fantoche.Plugins.Shared\Fantoche.Plugins.Shared.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <!-- 6.5 and later are AGPL : stay on the MIT 6.2 line. -->
+    <PackageReference Include="PDFsharp" Version="6.2.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Tables\Fonts\DejaVuSans.ttf" LogicalName="DejaVuSans.ttf" />
+  </ItemGroup>
+
+  <!-- A worker extracts a plugin package alone, without its dependencies : they are packed next to the plugin. -->
+  <PropertyGroup>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);PackDependencies</TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+  <Target Name="PackDependencies" DependsOnTargets="ResolvePackageAssets">
+    <ItemGroup>
+      <BuildOutputInPackage Include="@(RuntimeCopyLocalItems)" Condition="'%(RuntimeCopyLocalItems.NuGetPackageId)' == 'PDFsharp' Or '%(RuntimeCopyLocalItems.NuGetPackageId)' == 'Microsoft.Extensions.Logging.Abstractions'" />
+    </ItemGroup>
+  </Target>
   <PropertyGroup>
   	<IncludeSymbols>true</IncludeSymbols>
   	<SymbolPackageFormat>snupkg</SymbolPackageFormat>

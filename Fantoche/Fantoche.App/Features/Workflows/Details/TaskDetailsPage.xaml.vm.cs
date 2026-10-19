@@ -23,6 +23,17 @@ namespace Fantoche.App.Features.Workflows.Details
 
         public bool HasTarget => Target != null;
 
+        public bool RunOnWorker
+        {
+            get => Task.Settings.Execution == EnumExecutionMode.Remote;
+            set
+            {
+                Task.Settings.Execution = value ? EnumExecutionMode.Remote : EnumExecutionMode.Local;
+                OnPropertyChanged();
+                MarkChanged();
+            }
+        }
+
         public TaskDetailsViewModel(ScopedNode node, WorkflowsViewModel parent, AppServices services)
             : base(node, parent, services)
         { }

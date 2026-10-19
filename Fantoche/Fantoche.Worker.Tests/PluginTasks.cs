@@ -1,4 +1,6 @@
 using Fantoche.Plugins;
+using Fantoche.Plugins.Shared;
+using Fantoche.Plugins.Tables;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Data.Scoped;
 using NJsonSchema;
@@ -43,6 +45,21 @@ internal static class PluginTasks
     public static readonly AutomationTask LoopGate = Make(
         "Fantoche.Plugins.LoopGateTask", "LoopGate",
         JsonSchema.FromType<LoopGateParameters>(), new JsonSchema(), passThrough: true);
+
+    /// <summary>Loads a CSV file into a table of the storage, handing over its <see cref="TableRef"/>.</summary>
+    public static readonly AutomationTask CsvImport = Make(
+        "Fantoche.Plugins.Tables.CsvImportTask", "CsvImport",
+        JsonSchema.FromType<CsvImportParameters>(), JsonSchema.FromType<TableRef>());
+
+    /// <summary>Keeps the rows of a table matching its conditions, in a new table.</summary>
+    public static readonly AutomationTask Filter = Make(
+        "Fantoche.Plugins.Tables.FilterTask", "Filter",
+        JsonSchema.FromType<FilterParameters>(), JsonSchema.FromType<TableRef>());
+
+    /// <summary>Saves a PDF per row of a table.</summary>
+    public static readonly AutomationTask Pdf = Make(
+        "Fantoche.Plugins.Tables.PdfTask", "Pdf",
+        JsonSchema.FromType<PdfParameters>(), JsonSchema.FromType<PdfOutput>());
 
     /// <summary>A task pointing at a class the assembly doesn't hold.</summary>
     public static readonly AutomationTask UnknownClass = Make(

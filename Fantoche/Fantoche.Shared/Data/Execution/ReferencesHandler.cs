@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Fantoche.Plugins.Shared;
+using Newtonsoft.Json.Linq;
+using NJsonSchema;
 
 namespace Fantoche.Shared.Data;
 
@@ -23,9 +25,14 @@ public static class ReferencesHandler
     {
     }
 
-    public static ReferenceReplaceResult ReplaceReferences(JToken template, JToken context)
+    /// <param name="schema">
+    /// Schema of what the template produces : the properties it marks as evaluated per row (see
+    /// <see cref="RowScope"/>) are the only ones where a row reference is allowed.
+    /// </param>
+    public static ReferenceReplaceResult ReplaceReferences(JToken template, JToken context, JsonSchema? schema = null)
     {
-        var resultToken = ReplaceReferences(template, context, out var errors);
+        IReadOnlyList<string> rowScoped = RowScopedProperties(schema);
+        var resultToken = ReplaceReferences(template, context, rowScoped, out var errors);
         var result = new ReferenceReplaceResult(resultToken, errors);
         return result;
     }
@@ -37,9 +44,17 @@ public static class ReferencesHandler
     /// <param name="context">Context the references points to</param>
     /// <param name="result"></param>
     /// <returns></returns>
-    private static JToken ReplaceReferences(JToken template, JToken context, out List<string> errors)
+    private static JToken ReplaceReferences(JToken template, JToken context, IReadOnlyList<string> rowScoped, out List<string> errors)
     {
         errors = [];
+        // Only the task iterating the table knows the row, it resolves these references itself.
+        if (template is JValue { Value: string value } && RowScope.IsReference(value))
+        {
+            if (!rowScoped.Any(property => IsUnder(template.Path, property)))
+                errors.Add($"[{value}] is only available in a field evaluated per row.");
+            return template;
+        }
+
         var reference = GetReferencePath(template);
         // Is a reference
         if (!string.IsNullOrEmpty(reference))
@@ -55,19 +70,33 @@ public static class ReferencesHandler
 
             // Recursive reference
             if (IsReference(contextToken))
-                ReplaceReferences(contextToken, context, out errors);
+                ReplaceReferences(contextToken, context, rowScoped, out errors);
         }
         else
         {
             foreach (var child in template.Children())
             {
-                ReplaceReferences(child, context, out var childErrors);
+                ReplaceReferences(child, context, rowScoped, out var childErrors);
                 errors.AddRange(childErrors);
             }
 
         }
         return template;
     }
+
+    private static IReadOnlyList<string> RowScopedProperties(JsonSchema? schema)
+    {
+        if (schema == null)
+            return [];
+
+        return [.. schema.ActualSchema.ActualProperties
+            .Where(property => property.Value.ExtensionData?.TryGetValue(RowScope.SchemaKey, out object? scope) == true
+                && Equals(scope, RowScope.Name))
+            .Select(property => property.Key)];
+    }
+
+    private static bool IsUnder(string path, string property)
+        => path == property || path.StartsWith($"{property}.") || path.StartsWith($"{property}[");
 
     /// <summary>
     /// Check if a token is a reference to the context.

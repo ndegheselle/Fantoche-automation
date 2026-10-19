@@ -20,6 +20,7 @@
                     <RowDefinition Height="auto" />
                     <RowDefinition />
                     <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
                 </Grid.RowDefinitions>
 
                 <details:MetadataEditor DataContext="{Binding Metadata}" />
@@ -61,7 +62,15 @@
 
                 </Grid>
 
-                <details:ScopedActions Grid.Row="2" />
+                <CheckBox
+                    Grid.Row="2"
+                    IsChecked="{Binding RunOnWorker}"
+                    ToolTip="Run the task on a worker of the supervisor rather than in the application."
+                    Visibility="{Binding Metadata.IsReadOnly, Mode=OneTime, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}">
+                    Run on a worker
+                </CheckBox>
+
+                <details:ScopedActions Grid.Row="3" />
             </Grid>
         </TabItem>
         <TabItem Header="History" Tag="{x:Static local:EnumDetailTab.History}">

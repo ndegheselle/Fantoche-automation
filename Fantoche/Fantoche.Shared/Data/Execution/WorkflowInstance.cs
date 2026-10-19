@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Text.Json.Serialization;
 using Fantoche.Plugins.Shared;
 using Fantoche.Shared.Data.Scoped;
 using Newtonsoft.Json.Linq;
@@ -21,7 +22,7 @@ public class WorkflowInstance : TaskInstance
     /// <summary>
     /// Workflow definition being executed.
     /// </summary>
-
+    [JsonIgnore]
     public AutomationWorkflow Workflow { get; }
 
     public JToken? GlobalContext { get; set; }
@@ -29,12 +30,13 @@ public class WorkflowInstance : TaskInstance
     /// <summary>
     /// Instances created during this workflow execution, indexed by graph node id.
     /// </summary>
-
+    [JsonIgnore]
     public ConcurrentDictionary<Guid, List<TaskInstance>> NodeInstances { get; } = [];
 
     /// <summary>
     /// Cancellation source owned by the workflow
     /// </summary>
+    [JsonIgnore]
     public CancellationTokenSource WorkflowCts { get; } = new();
 
     public WorkflowInstance(AutomationWorkflow workflow)
