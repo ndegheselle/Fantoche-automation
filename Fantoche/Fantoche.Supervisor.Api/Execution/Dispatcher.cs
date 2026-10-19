@@ -1,16 +1,21 @@
 using Fantoche.Plugins.Shared;
+using Fantoche.Services.Local;
 using Fantoche.Shared.Data.Execution;
+using Fantoche.Shared.Data.Scoped;
 using Fantoche.Shared.Remote;
+using Fantoche.Shared.Services;
 using Microsoft.AspNetCore.SignalR;
+using Newtonsoft.Json.Linq;
 
-namespace Fantoche.Supervisor.Api;
+namespace Fantoche.Supervisor.Api.Execution;
 
 public record WorkerInfo(string Id, int Capacity, int Running);
 
 /// <summary>
-/// Hand the executions of the callers to the workers, and route what the workers report back to the
-/// caller of each execution. Everything is kept in memory : an execution only lives as long as the
-/// connections of its caller and its worker.
+/// Hand the executions of the callers to the workers : the task is read from the database, the
+/// states the workers report are stored in the history, and the outcome is sent back to the caller.
+/// The executions themselves are kept in memory : one only lives as long as the connections of its
+/// caller and its worker.
 /// </summary>
 public class Dispatcher
 {
@@ -30,6 +35,8 @@ public class Dispatcher
         public string? WorkerConnectionId { get; set; }
     }
 
+    private readonly LocalScopedService _scoped;
+    private readonly LocalHistoryService _history;
     private readonly IHubContext<CallerHub, ICallerClient> _callers;
     private readonly IHubContext<WorkerHub, IWorkerClient> _workers;
 
@@ -39,8 +46,14 @@ public class Dispatcher
     /// <summary>Executions waiting for a worker, the canceled ones being skipped once dequeued.</summary>
     private readonly Queue<Guid> _queue = [];
 
-    public Dispatcher(IHubContext<CallerHub, ICallerClient> callers, IHubContext<WorkerHub, IWorkerClient> workers)
+    public Dispatcher(
+        LocalScopedService scoped,
+        LocalHistoryService history,
+        IHubContext<CallerHub, ICallerClient> callers,
+        IHubContext<WorkerHub, IWorkerClient> workers)
     {
+        _scoped = scoped;
+        _history = history;
         _callers = callers;
         _workers = workers;
     }
@@ -53,15 +66,32 @@ public class Dispatcher
 
     #region Callers
 
-    public Task SubmitAsync(string callerConnectionId, RemoteExecution request)
+    public async Task SubmitAsync(string callerConnectionId, ExecutionRequest request)
     {
-        Guid executionId = request.Instance.Id;
+        TaskInstance instance = request.ToInstance();
+        RemoteExecution execution;
+        try
+        {
+            BaseAutomationTask task = await _scoped.LoadRunnableAsync(request.TaskId);
+            execution = RemoteExecution.From(task, instance, request.GlobalContext);
+        }
+        catch (ExecutionException exception)
+        {
+            // Not stored : the instance would point at a task the database doesn't hold.
+            instance.State = EnumTaskState.Failed;
+            instance.Output = JToken.FromObject(exception.Message);
+            await _callers.Clients.Client(callerConnectionId).Completed(instance);
+            return;
+        }
+
+        // Stored before the worker reports anything : the instances of the nodes point at it.
+        await _history.SaveAsync(instance);
         lock (_lock)
         {
-            _executions[executionId] = new Execution { CallerConnectionId = callerConnectionId, Request = request };
-            _queue.Enqueue(executionId);
+            _executions[instance.Id] = new Execution { CallerConnectionId = callerConnectionId, Request = execution };
+            _queue.Enqueue(instance.Id);
         }
-        return DispatchAsync();
+        await DispatchAsync();
     }
 
     public async Task CancelAsync(string callerConnectionId, Guid executionId)
@@ -82,7 +112,7 @@ public class Dispatcher
         if (workerConnectionId != null)
             await _workers.Clients.Client(workerConnectionId).Cancel(executionId);
         else
-            await _callers.Clients.Client(callerConnectionId).Completed(execution.Request.Instance.Finished(EnumTaskState.Canceled));
+            await FinishAsync(callerConnectionId, execution.Request.Instance, EnumTaskState.Canceled);
     }
 
     /// <summary>
@@ -123,43 +153,45 @@ public class Dispatcher
     /// </summary>
     public async Task RemoveWorkerAsync(string connectionId)
     {
-        List<(string CallerConnectionId, RemoteInstance Instance)> lost = [];
+        string workerId;
+        List<Execution> lost = [];
         lock (_lock)
         {
             if (!_workersByConnection.Remove(connectionId, out var worker))
                 return;
 
+            workerId = worker.Id;
             foreach (Guid executionId in worker.Running)
             {
-                if (!_executions.Remove(executionId, out var execution))
-                    continue;
-                RemoteInstance failed = execution.Request.Instance.Finished(EnumTaskState.Failed, $"The worker '{worker.Id}' running the task was lost.");
-                lost.Add((execution.CallerConnectionId, failed));
+                if (_executions.Remove(executionId, out var execution))
+                    lost.Add(execution);
             }
         }
 
-        var completions = lost.Select(x => _callers.Clients.Client(x.CallerConnectionId).Completed(x.Instance));
-        await Task.WhenAll(completions);
+        foreach (Execution execution in lost)
+            await FinishAsync(execution.CallerConnectionId, execution.Request.Instance, EnumTaskState.Failed, $"The worker '{workerId}' running the task was lost.");
     }
 
-    public Task ReportStateAsync(Guid executionId, RemoteInstance instance)
-    {
-        string? callerConnectionId = CallerOf(executionId);
-        if (callerConnectionId == null)
-            return Task.CompletedTask;
-        return _callers.Clients.Client(callerConnectionId).StateChanged(executionId, instance);
-    }
+    /// <summary>
+    /// Stored whoever it is for : the history is pushed to every application.
+    /// </summary>
+    public Task ReportStateAsync(TaskInstance instance) => _history.SaveAsync(instance);
 
     public Task ReportNotificationAsync(Guid executionId, TaskNotification notification)
     {
-        string? callerConnectionId = CallerOf(executionId);
+        string? callerConnectionId;
+        lock (_lock)
+            callerConnectionId = _executions.GetValueOrDefault(executionId)?.CallerConnectionId;
+
         if (callerConnectionId == null)
             return Task.CompletedTask;
         return _callers.Clients.Client(callerConnectionId).Notified(executionId, notification);
     }
 
-    public async Task CompleteAsync(string workerConnectionId, RemoteInstance instance)
+    public async Task CompleteAsync(string workerConnectionId, TaskInstance instance)
     {
+        await _history.SaveAsync(instance);
+
         Execution? execution;
         lock (_lock)
         {
@@ -177,10 +209,17 @@ public class Dispatcher
 
     #endregion
 
-    private string? CallerOf(Guid executionId)
+    /// <summary>
+    /// End [instance] without a worker having run it to its end : stored, then sent to its caller.
+    /// </summary>
+    private async Task FinishAsync(string callerConnectionId, TaskInstance instance, EnumTaskState state, string? error = null)
     {
-        lock (_lock)
-            return _executions.GetValueOrDefault(executionId)?.CallerConnectionId;
+        instance.State = state;
+        if (error != null)
+            instance.Output = JToken.FromObject(error);
+
+        await _history.SaveAsync(instance);
+        await _callers.Clients.Client(callerConnectionId).Completed(instance);
     }
 
     /// <summary>

@@ -14,7 +14,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Fantoche.Shared\Fantoche.Shared.csproj" />
+    <!-- The database lives here : the applications and the workers reach it through the supervisor. -->
+    <ProjectReference Include="..\Fantoche.Services.Local\Fantoche.Services.Local.csproj" />
   </ItemGroup>
 
 </Project>

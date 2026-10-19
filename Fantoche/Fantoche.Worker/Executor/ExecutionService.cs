@@ -1,18 +1,16 @@
 ﻿using System.Collections.Concurrent;
 using Fantoche.Shared.Data.Execution;
-using Fantoche.Shared.Data.Graph;
 using Fantoche.Shared.Data.Scoped;
 using Fantoche.Shared.Services;
-using Fantoche.Worker.Executor;
 using Newtonsoft.Json.Linq;
 
-namespace Fantoche.Services.Local;
+namespace Fantoche.Worker.Executor;
 
 /// <summary>
 /// Run the tasks and workflows with the given executor (in the application or on a worker), and
-/// store every instance they produce in the local history.
+/// store every instance they produce in the history, wherever the services keep it.
 /// </summary>
-public class LocalExecutionService : IExecutionService
+public class ExecutionService : IExecutionService
 {
     private class RunningExecution
     {
@@ -21,16 +19,16 @@ public class LocalExecutionService : IExecutionService
         public required TaskCompletionSource<TaskInstance> Completion { get; init; }
     }
 
-    private readonly LocalScopedService _scopedService;
-    private readonly LocalHistoryService _historyService;
+    private readonly IScopedService _scopedService;
+    private readonly IHistoryService _historyService;
 
     private readonly ITaskExecutor _executor;
 
     private readonly ConcurrentDictionary<Guid, RunningExecution> _running = [];
 
-    public LocalExecutionService(
-        LocalScopedService scopedService,
-        LocalHistoryService historyService,
+    public ExecutionService(
+        IScopedService scopedService,
+        IHistoryService historyService,
         ITaskExecutor executor)
     {
         _scopedService = scopedService;
@@ -40,18 +38,14 @@ public class LocalExecutionService : IExecutionService
 
     public async Task<TaskInstance> StartAsync(Guid taskId, JToken? parameters = null)
     {
-        return await StartAsync(await LoadTaskAsync(taskId), parameters);
-    }
+        BaseAutomationTask task = await _scopedService.LoadRunnableAsync(taskId);
 
-    public async Task<TaskInstance> StartAsync(BaseAutomationTask task, JToken? parameters = null)
-    {
         // The context of the scopes containing the element is read once, when the execution starts.
         JToken globalContext = await _scopedService.GetContextAsync(task.Id);
 
         TaskInstance instance;
         if (task is AutomationWorkflow workflow)
         {
-            await RefreshGraphAsync(workflow);
             instance = new WorkflowInstance(workflow)
             {
                 Parameters = parameters,
@@ -135,61 +129,15 @@ public class LocalExecutionService : IExecutionService
     }
 
     /// <summary>
-    /// Load the task or workflow [taskId], ready to be executed.
-    /// </summary>
-    private async Task<BaseAutomationTask> LoadTaskAsync(Guid taskId)
-    {
-        ScopedElement element = await _scopedService.GetAsync(taskId)
-            ?? throw new Shared.Services.ExecutionException($"Unknown element '{taskId}'.");
-
-        if (element is not BaseAutomationTask task)
-            throw new Shared.Services.ExecutionException($"The element '{element.Metadata.Name}' is not a task or a workflow.");
-
-        return task;
-    }
-
-    /// <summary>
-    /// Load the tasks the nodes of [workflow] point to and refresh its graph, sub workflows included :
-    /// what the executor needs to walk the graph.
-    /// </summary>
-    private async Task RefreshGraphAsync(AutomationWorkflow workflow, HashSet<Guid>? visited = null)
-    {
-        visited ??= [];
-        if (!visited.Add(workflow.Id))
-            return;
-
-        // The controls are left out by the store, the graph knows them on its own.
-        var nodesIds = await _scopedService.GetGraphTaskIdsAsync(workflow.Id);
-
-        var elements = await _scopedService.GetAsync(nodesIds);
-
-        Dictionary<Guid, BaseAutomationTask> tasks = [];
-        foreach (var element in elements)
-        {
-            if (element is BaseAutomationTask task)
-                tasks[task.Id] = task;
-        }
-
-        var missing = nodesIds.Where(id => !tasks.ContainsKey(id)).ToList();
-        if (missing.Count > 0)
-            throw new Shared.Services.ExecutionException($"The workflow '{workflow.Metadata.Name}' points at unknown tasks : {string.Join(", ", missing)}.");
-
-        foreach (var child in tasks.Values.OfType<AutomationWorkflow>())
-            await RefreshGraphAsync(child, visited);
-
-        workflow.Graph.Refresh(tasks, force: true);
-    }
-
-    /// <summary>
     /// Stores every reported instance as it changes. The reports are handled on the thread of the
     /// executor rather than posted like a <see cref="Progress{T}"/> would : the states of a same
     /// instance have to reach the history in the order they happened.
     /// </summary>
     private class HistoryProgress : IProgress<TaskInstance>
     {
-        private readonly LocalHistoryService _historyService;
+        private readonly IHistoryService _historyService;
 
-        public HistoryProgress(LocalHistoryService historyService)
+        public HistoryProgress(IHistoryService historyService)
         {
             _historyService = historyService;
         }

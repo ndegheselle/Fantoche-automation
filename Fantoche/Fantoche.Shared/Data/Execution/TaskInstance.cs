@@ -42,10 +42,13 @@ namespace Fantoche.Shared.Data.Execution
         public JToken? Parameters { get; set; }
         public JToken? Output { get; set; }
 
+        /// <summary>Only known while the instance is being driven by an executor, not persisted.</summary>
+        [JsonIgnore]
         public TaskInstance? Previous { get; set; }
         /// <summary>
         /// Get the effective instance for passing through task, the graph need to be loaded (instance -> node -> automation task)
         /// </summary>
+        [JsonIgnore]
         public TaskInstance Effective =>
             Node?.AutomationTask?.Settings.IsPassingThrough == true ?
             Previous?.Effective ?? throw new Exception("Only the start task can't have previous instance. A start instance can't be pass through.") :

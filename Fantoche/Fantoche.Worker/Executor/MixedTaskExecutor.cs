@@ -16,7 +16,7 @@ public sealed class MixedTaskExecutor : ITaskExecutor, IDisposable
     private readonly LocalTaskExecutor _local;
     private readonly ITaskExecutor? _remote;
 
-    /// <param name="remote">What the remote tasks are run with, null when there is nowhere to send them.</param>
+    /// <param name="remote">What the remote tasks are run with, null in standalone mode : there is no worker to send them to.</param>
     public MixedTaskExecutor(IPackageManagement packageManagement, IStorage storage, ITaskExecutor? remote)
     {
         _remote = remote;
@@ -39,7 +39,7 @@ public sealed class MixedTaskExecutor : ITaskExecutor, IDisposable
 
         // Running it here instead would hide that the setting is not honored.
         instance.State = EnumTaskState.Failed;
-        instance.Output = JToken.FromObject($"The task '{task.Metadata.Name}' runs on a worker, but no supervisor is configured.");
+        instance.Output = JToken.FromObject($"The task '{task.Metadata.Name}' runs on a worker, which the standalone mode doesn't have.");
         return Task.FromResult(instance);
     }
 }

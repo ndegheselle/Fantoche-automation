@@ -2,7 +2,9 @@ using System.Collections.Concurrent;
 using Fantoche.Plugins.Shared;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Remote;
+using Newtonsoft.Json.Linq;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Fantoche.Worker.Executor.Remote;
 
@@ -21,13 +23,74 @@ public sealed class WorkerConnection : IAsyncDisposable
     }
 
     /// <summary>
-    /// Reports synchronously : the states of an instance have to leave in the order they happened.
+    /// Reports synchronously : the states of an instance have to leave in the order they happened,
+    /// and before the executor changes the instance again.
     /// </summary>
-    private sealed class Reporter<T> : IProgress<T>
+    private sealed class StatesReporter : IProgress<TaskInstance>
     {
-        private readonly Func<T, Task> _report;
-        public Reporter(Func<T, Task> report) => _report = report;
-        public void Report(T value) => _report(value).GetAwaiter().GetResult();
+        private readonly Func<TaskInstance, Task> _report;
+        public StatesReporter(Func<TaskInstance, Task> report) => _report = report;
+        public void Report(TaskInstance value) => _report(value).GetAwaiter().GetResult();
+    }
+
+    /// <summary>
+    /// Keeps the last notification and sends it at most every <see cref="Interval"/>, without holding
+    /// the task : a task may notify on every row it handles, which would flood the supervisor.
+    /// </summary>
+    private sealed class ThrottledNotifications : IProgress<TaskNotification>
+    {
+        private static readonly TimeSpan Interval = TimeSpan.FromMilliseconds(200);
+
+        private readonly Func<TaskNotification, Task> _send;
+        private readonly object _lock = new();
+        private TaskNotification? _pending;
+        private bool _isScheduled;
+
+        public ThrottledNotifications(Func<TaskNotification, Task> send) => _send = send;
+
+        public void Report(TaskNotification value)
+        {
+            lock (_lock)
+            {
+                _pending = value;
+                if (_isScheduled)
+                    return;
+                _isScheduled = true;
+            }
+            _ = SendLaterAsync();
+        }
+
+        /// <summary>
+        /// Send what is pending right away, so the last notification of a task isn't lost.
+        /// </summary>
+        public async Task FlushAsync()
+        {
+            TaskNotification? pending;
+            lock (_lock)
+            {
+                pending = _pending;
+                _pending = null;
+                _isScheduled = false;
+            }
+
+            if (pending == null)
+                return;
+
+            try
+            {
+                await _send(pending.Value);
+            }
+            catch
+            {
+                // A notification only informs : losing it to a lost connection breaks nothing.
+            }
+        }
+
+        private async Task SendLaterAsync()
+        {
+            await Task.Delay(Interval);
+            await FlushAsync();
+        }
     }
 
     private readonly HubConnection _connection;
@@ -45,6 +108,7 @@ public sealed class WorkerConnection : IAsyncDisposable
         _connection = new HubConnectionBuilder()
             .WithUrl(new Uri(supervisor, SupervisorRoutes.Workers))
             .WithAutomaticReconnect(new RetryForever())
+            .AddJsonProtocol(options => FantocheJson.Configure(options.PayloadSerializerOptions))
             .Build();
 
         // Not awaited : the connection doesn't receive anything else while a handler runs.
@@ -98,30 +162,35 @@ public sealed class WorkerConnection : IAsyncDisposable
         CancellationTokenSource cancellation = new();
         _running[executionId] = cancellation;
 
-        RemoteInstance result;
+        ThrottledNotifications notifications = new(x =>
+            _connection.SendAsync(nameof(IWorkerHub.ReportNotification), executionId, x));
+
+        TaskInstance result;
         try
         {
             var (task, instance) = execution.Unpack();
             TaskInstancesProgress progress = new()
             {
-                StateChanges = new Reporter<TaskInstance>(x =>
-                    _connection.InvokeAsync(nameof(IWorkerHub.ReportState), executionId, RemoteInstance.From(x))),
-                Notifications = new Reporter<TaskNotification>(x =>
-                    _connection.InvokeAsync(nameof(IWorkerHub.ReportNotification), executionId, x)),
+                StateChanges = new StatesReporter(x =>
+                    _connection.InvokeAsync(nameof(IWorkerHub.ReportState), executionId, x)),
+                Notifications = notifications,
             };
 
-            instance = await _executor.ExecuteAsync(task, instance, progress, cancellation.Token);
-            result = RemoteInstance.From(instance);
+            result = await _executor.ExecuteAsync(task, instance, progress, cancellation.Token);
         }
         catch (Exception ex)
         {
             // The executor reports the failures of the task itself, this is about setting it up.
-            result = execution.Instance.Finished(EnumTaskState.Failed, ex.ToString());
+            result = execution.Instance;
+            result.State = EnumTaskState.Failed;
+            result.Output = JToken.FromObject(ex.ToString());
         }
         finally
         {
             _running.TryRemove(executionId, out _);
         }
+
+        await notifications.FlushAsync();
 
         try
         {

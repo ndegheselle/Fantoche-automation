@@ -1,7 +1,7 @@
 using Fantoche.Shared.Remote;
 using Microsoft.AspNetCore.SignalR;
 
-namespace Fantoche.Supervisor.Api;
+namespace Fantoche.Supervisor.Api.Execution;
 
 public class CallerHub : Hub<ICallerClient>, ICallerHub
 {
@@ -12,7 +12,7 @@ public class CallerHub : Hub<ICallerClient>, ICallerHub
         _dispatcher = dispatcher;
     }
 
-    public Task Execute(RemoteExecution execution) => _dispatcher.SubmitAsync(Context.ConnectionId, execution);
+    public Task Execute(ExecutionRequest request) => _dispatcher.SubmitAsync(Context.ConnectionId, request);
 
     public Task Cancel(Guid executionId) => _dispatcher.CancelAsync(Context.ConnectionId, executionId);
 

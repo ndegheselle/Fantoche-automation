@@ -4,17 +4,18 @@ using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Data.Scoped;
 using Fantoche.Shared.Remote;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
 
 namespace Fantoche.Worker.Executor.Remote;
 
 /// <summary>
-/// Run the tasks on the workers of a supervisor. What the worker reports along the way is relayed
-/// to the progress of the caller, as if the task ran here.
+/// Run the tasks on the workers of a supervisor. Only the instance is sent : the supervisor reads
+/// the task from its database, and stores what the worker reports along the way.
 /// </summary>
 public sealed class RemoteTaskExecutor : ITaskExecutor, IAsyncDisposable
 {
-    private sealed record PendingExecution(TaskInstancesProgress? Progress, TaskCompletionSource<RemoteInstance> Completion);
+    private sealed record PendingExecution(TaskInstancesProgress? Progress, TaskCompletionSource<TaskInstance> Completion);
 
     private readonly HubConnection _connection;
     private readonly SemaphoreSlim _connecting = new(1, 1);
@@ -24,11 +25,11 @@ public sealed class RemoteTaskExecutor : ITaskExecutor, IAsyncDisposable
     {
         _connection = new HubConnectionBuilder()
             .WithUrl(new Uri(supervisor, SupervisorRoutes.Callers))
+            .AddJsonProtocol(options => FantocheJson.Configure(options.PayloadSerializerOptions))
             .Build();
 
-        _connection.On<Guid, RemoteInstance>(nameof(ICallerClient.StateChanged), OnStateChanged);
         _connection.On<Guid, TaskNotification>(nameof(ICallerClient.Notified), OnNotified);
-        _connection.On<RemoteInstance>(nameof(ICallerClient.Completed), OnCompleted);
+        _connection.On<TaskInstance>(nameof(ICallerClient.Completed), OnCompleted);
         _connection.Closed += OnClosed;
     }
 
@@ -44,18 +45,22 @@ public sealed class RemoteTaskExecutor : ITaskExecutor, IAsyncDisposable
         TaskInstancesProgress? progress = null,
         CancellationToken? cancellation = null)
     {
-        PendingExecution pending = new(progress, new TaskCompletionSource<RemoteInstance>(TaskCreationOptions.RunContinuationsAsynchronously));
+        PendingExecution pending = new(progress, new TaskCompletionSource<TaskInstance>(TaskCreationOptions.RunContinuationsAsynchronously));
         _pending[instance.Id] = pending;
         try
         {
-            RemoteExecution execution = RemoteExecution.From(task, instance);
+            ExecutionRequest request = ExecutionRequest.From(instance);
             await ConnectAsync();
-            await _connection.InvokeAsync(nameof(ICallerHub.Execute), execution);
+            await _connection.InvokeAsync(nameof(ICallerHub.Execute), request);
 
             // The worker is the one stopping the task : the outcome still comes back as a completion.
             using var registration = cancellation?.Register(() => _ = CancelAsync(instance.Id));
-            RemoteInstance result = await pending.Completion.Task;
-            result.ApplyResultTo(instance);
+            TaskInstance result = await pending.Completion.Task;
+
+            instance.State = result.State;
+            instance.Output = result.Output;
+            // Set after the state, which stamps its own.
+            instance.FinishedAt = result.FinishedAt;
         }
         catch (Exception ex)
         {
@@ -96,19 +101,13 @@ public sealed class RemoteTaskExecutor : ITaskExecutor, IAsyncDisposable
         }
     }
 
-    private void OnStateChanged(Guid executionId, RemoteInstance instance)
-    {
-        if (_pending.TryGetValue(executionId, out var pending))
-            pending.Progress?.StateChanges?.Report(instance.ToInstance());
-    }
-
     private void OnNotified(Guid executionId, TaskNotification notification)
     {
         if (_pending.TryGetValue(executionId, out var pending))
             pending.Progress?.Notifications?.Report(notification);
     }
 
-    private void OnCompleted(RemoteInstance instance)
+    private void OnCompleted(TaskInstance instance)
     {
         if (_pending.TryGetValue(instance.Id, out var pending))
             pending.Completion.TrySetResult(instance);

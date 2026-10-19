@@ -2,13 +2,55 @@ using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Data.Graph;
 using Fantoche.Shared.Data.Scoped;
 using Fantoche.Shared.Services;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Fantoche.Shared.Remote;
 
 /// <summary>
-/// A task to run on a worker, with everything the worker needs to run it.
+/// What a caller sends to run a task on a worker : the instance to run, the supervisor reading
+/// everything else from its database.
+/// </summary>
+public class ExecutionRequest
+{
+    public required Guid InstanceId { get; init; }
+    public required Guid TaskId { get; init; }
+    public Guid? NodeId { get; init; }
+    public Guid? ParentInstanceId { get; init; }
+    public string NodeName { get; init; } = "";
+    public JToken? Parameters { get; init; }
+
+    /// <summary>
+    /// Only for a workflow : the context the run started from, a nested workflow reading the one of
+    /// the run holding it (see <see cref="WorkflowInstance.GlobalContext"/>).
+    /// </summary>
+    public JToken? GlobalContext { get; init; }
+
+    public static ExecutionRequest From(TaskInstance instance) => new()
+    {
+        InstanceId = instance.Id,
+        TaskId = instance.TaskId,
+        NodeId = instance.NodeId,
+        ParentInstanceId = instance.ParentInstanceId,
+        NodeName = instance.NodeName,
+        Parameters = instance.Parameters,
+        GlobalContext = (instance as WorkflowInstance)?.GlobalContext,
+    };
+
+    public TaskInstance ToInstance() => new()
+    {
+        Id = InstanceId,
+        TaskId = TaskId,
+        NodeId = NodeId,
+        ParentInstanceId = ParentInstanceId,
+        NodeName = NodeName,
+        Parameters = Parameters,
+        State = EnumTaskState.Progressing,
+    };
+}
+
+/// <summary>
+/// A task as the supervisor hands it to a worker, with everything the worker needs to run it : the
+/// worker reads no database.
 /// </summary>
 public class RemoteExecution
 {
@@ -20,12 +62,16 @@ public class RemoteExecution
     /// </summary>
     public List<BaseAutomationTask> GraphTasks { get; init; } = [];
 
-    public required RemoteInstance Instance { get; init; }
+    public required TaskInstance Instance { get; init; }
+
+    /// <summary>See <see cref="ExecutionRequest.GlobalContext"/>.</summary>
+    public JToken? GlobalContext { get; init; }
 
     /// <summary>
-    /// [task] run with [instance], the graph of a workflow having to be refreshed.
+    /// [task] run with [instance], the graph of a workflow having to be loaded (see
+    /// <see cref="ScopedServiceExtensions.LoadRunnableAsync"/>).
     /// </summary>
-    public static RemoteExecution From(BaseAutomationTask task, TaskInstance instance)
+    public static RemoteExecution From(BaseAutomationTask task, TaskInstance instance, JToken? globalContext)
     {
         Dictionary<Guid, BaseAutomationTask> graphTasks = [];
         if (task is AutomationWorkflow workflow)
@@ -35,7 +81,8 @@ public class RemoteExecution
         {
             Task = task,
             GraphTasks = [.. graphTasks.Values],
-            Instance = RemoteInstance.From(instance),
+            Instance = instance,
+            GlobalContext = globalContext,
         };
     }
 
@@ -46,15 +93,24 @@ public class RemoteExecution
     public (BaseAutomationTask Task, TaskInstance Instance) Unpack()
     {
         if (Task is not AutomationWorkflow workflow)
-            return (Task, Instance.ToInstance());
+            return (Task, Instance);
 
         Dictionary<Guid, BaseAutomationTask> tasks = GraphTasks.ToDictionary(x => x.Id);
         workflow.Graph.Refresh(tasks, force: true);
         foreach (AutomationWorkflow nested in tasks.Values.OfType<AutomationWorkflow>())
             nested.Graph.Refresh(tasks, force: true);
 
-        WorkflowInstance instance = new(workflow);
-        Instance.CopyTo(instance);
+        WorkflowInstance instance = new(workflow)
+        {
+            Id = Instance.Id,
+            NodeId = Instance.NodeId,
+            ParentInstanceId = Instance.ParentInstanceId,
+            NodeName = Instance.NodeName,
+            Parameters = Instance.Parameters,
+            CreatedAt = Instance.CreatedAt,
+            State = Instance.State,
+            GlobalContext = GlobalContext,
+        };
         return (workflow, instance);
     }
 
@@ -75,88 +131,4 @@ public class RemoteExecution
                 CollectGraphTasks(nested, tasks);
         }
     }
-}
-
-/// <summary>
-/// The stored data of a <see cref="TaskInstance"/>, as it travels between the caller, the supervisor
-/// and a worker. The instance itself can't : it links the ones before it and the node it runs.
-/// </summary>
-public record RemoteInstance
-{
-    public Guid Id { get; init; }
-    public Guid TaskId { get; init; }
-    public Guid? NodeId { get; init; }
-    public Guid? ParentInstanceId { get; init; }
-    public string NodeName { get; init; } = "";
-    public string? Shared { get; init; }
-    public string? Parameters { get; init; }
-    public string? Output { get; init; }
-    /// <summary>Only for a workflow, see <see cref="WorkflowInstance.GlobalContext"/>.</summary>
-    public string? GlobalContext { get; init; }
-    public EnumTaskState State { get; init; }
-    public DateTime CreatedAt { get; init; }
-    public DateTime? FinishedAt { get; init; }
-
-    public static RemoteInstance From(TaskInstance instance) => new()
-    {
-        Id = instance.Id,
-        TaskId = instance.TaskId,
-        NodeId = instance.NodeId,
-        ParentInstanceId = instance.ParentInstanceId,
-        NodeName = instance.NodeName,
-        Shared = Write(instance.Shared),
-        Parameters = Write(instance.Parameters),
-        Output = Write(instance.Output),
-        GlobalContext = Write((instance as WorkflowInstance)?.GlobalContext),
-        State = instance.State,
-        CreatedAt = instance.CreatedAt,
-        FinishedAt = instance.FinishedAt,
-    };
-
-    public TaskInstance ToInstance()
-    {
-        TaskInstance instance = new();
-        CopyTo(instance);
-        return instance;
-    }
-
-    /// <summary>
-    /// Copy onto [instance] what running it changed.
-    /// </summary>
-    public void ApplyResultTo(TaskInstance instance)
-    {
-        instance.State = State;
-        instance.Output = Read(Output);
-        // Set after the state, which stamps its own.
-        instance.FinishedAt = FinishedAt;
-    }
-
-    /// <summary>
-    /// This instance ended without having run to its end, with [error] as its output.
-    /// </summary>
-    public RemoteInstance Finished(EnumTaskState state, string? error = null) => this with
-    {
-        State = state,
-        Output = error == null ? Output : Write(JToken.FromObject(error)),
-        FinishedAt = DateTime.UtcNow,
-    };
-
-    internal void CopyTo(TaskInstance instance)
-    {
-        instance.Id = Id;
-        instance.TaskId = TaskId;
-        instance.NodeId = NodeId;
-        instance.ParentInstanceId = ParentInstanceId;
-        instance.NodeName = NodeName;
-        instance.Shared = Read(Shared);
-        instance.Parameters = Read(Parameters);
-        instance.CreatedAt = CreatedAt;
-        if (instance is WorkflowInstance workflowInstance)
-            workflowInstance.GlobalContext = Read(GlobalContext);
-        ApplyResultTo(instance);
-    }
-
-    private static string? Write(JToken? token) => token?.ToString(Formatting.None);
-
-    private static JToken? Read(string? json) => json == null ? null : JToken.Parse(json);
 }

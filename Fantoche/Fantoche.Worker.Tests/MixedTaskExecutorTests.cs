@@ -39,13 +39,7 @@ internal sealed class MixedTaskExecutorTests
     }
 
     private readonly TestPackageManagement _packages = new();
-    private LocalStorage _storage = null!;
-
-    [SetUp]
-    public void SetUp() => _storage = new(Path.Combine(Path.GetTempPath(), "fantoche-tests", Guid.NewGuid().ToString("N")));
-
-    [TearDown]
-    public void TearDown() => _storage.Dispose();
+    private readonly LocalStorage _storage = new(Path.Combine(Path.GetTempPath(), "fantoche-tests", Guid.NewGuid().ToString("N")));
 
     private static AutomationTask RemoteTest()
     {
@@ -114,7 +108,7 @@ internal sealed class MixedTaskExecutorTests
     }
 
     [Test]
-    public async Task RemoteTask_WithoutSupervisor_Fails()
+    public async Task RemoteTask_InStandaloneMode_Fails()
     {
         using MixedTaskExecutor executor = new(_packages, _storage, remote: null);
         TaskInstance instance = new() { Parameters = JToken.FromObject(new Plugins.TestParameters { Value = 1 }) };
@@ -124,7 +118,7 @@ internal sealed class MixedTaskExecutorTests
         Assert.Multiple(() =>
         {
             Assert.That(result.State, Is.EqualTo(EnumTaskState.Failed));
-            Assert.That(result.Output?.Value<string>(), Does.Contain("no supervisor is configured"));
+            Assert.That(result.Output?.Value<string>(), Does.Contain("standalone mode"));
         });
     }
 }
