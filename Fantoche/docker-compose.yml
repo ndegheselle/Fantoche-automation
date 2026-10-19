@@ -5,9 +5,16 @@ services:
     build:
       context: .
       dockerfile: Fantoche.Supervisor.Api/Dockerfile
+    environment:
+      - DATA_FOLDER=/app/data
+      - SHARED_FOLDER=/app/shared
     ports:
       - "8080:8080"
       - "8081:8081"
+    volumes:
+      - ./volumes/supervisor:/app/data
+      # The packages and the storage, shared with the workers and the applications.
+      - ./volumes/shared:/app/shared
 
   Fantoche.worker.service:
     image: ${DOCKER_REGISTRY-}automationworkerservice
@@ -20,6 +27,6 @@ services:
       - SUPERVISOR_URL=http://Fantoche.supervisor.api:8080
       - WORKER_ID=DEFAULT_WORKER
       - DATA_FOLDER=/app/data
+      - SHARED_FOLDER=/app/shared
     volumes:
-      # The packages the tasks are loaded from, the same ones the application uses.
-      - ./volumes/nugetlocal:/app/data/nuget
+      - ./volumes/shared:/app/shared

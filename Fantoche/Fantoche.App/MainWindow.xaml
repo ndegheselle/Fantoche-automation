@@ -22,6 +22,17 @@
     d:DataContext="{d:DesignInstance Type=local:SpineViewModel}"
     AllowContentOverTitleBar="True"
     mc:Ignorable="d">
+    <controls:ThemedWindow.TitleBarContent>
+        <Button
+            HorizontalAlignment="Right"
+            joolkit:Sizing.IsSquare="True"
+            joolkit:Sizing.Size="sm"
+            Command="{Binding OpenSettingsCommand}"
+            Style="{StaticResource GhostButton}"
+            ToolTip="Settings">
+            <fonts:FontIcon Text="{x:Static fonts:LucideFontIcons.Settings}" />
+        </Button>
+    </controls:ThemedWindow.TitleBarContent>
     <jeedback:ToastContainer Toasts="{Binding Toasts}">
         <javigation:OverlayContainer Overlays="{Binding Overlayer}">
             <DockPanel>

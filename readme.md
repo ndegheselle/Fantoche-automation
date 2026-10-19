@@ -22,21 +22,23 @@ Backend Requirements:
 
 ## Getting started
 
-Start `Fantoche.App` for the client : every task runs in the application by default.
+1. Start the `docker-compose` startup project (or `Fantoche.Supervisor.Api` and `Fantoche.Worker.Service`).
+2. Start `Fantoche.App`, and set the supervisor address and the shared folder in its settings (gear of the title bar).
 
-### Remote execution
+### Modes
 
-A task or a workflow set to "Run on a worker" (in its settings) is sent to a worker through the supervisor, the rest keeps running in the application. A remote workflow runs whole on a single worker.
+- **Supervisor** (default) : the supervisor holds the database, the application and the workers reach it through its API. A task or a workflow set to "Run on a worker" is sent to a worker, the rest runs in the application. A workflow is handed whole to a single worker.
+- **Standalone** : the application keeps its own database, packages and storage, and has no worker (a task set to run on one fails). Only for debugging or very particular uses.
 
-- Start the `docker-compose` startup project (or `Fantoche.Supervisor.Api` and `Fantoche.Worker.Service`).
-- Set `FANTOCHE_SUPERVISOR_URL` (e.g. `http://localhost:8080/`) before starting `Fantoche.App`. Without it, a task set to run on a worker fails.
-- A worker is configured with `SUPERVISOR_URL`, `WORKER_ID`, `WORKER_CAPACITY` (executions run at once) and `DATA_FOLDER` (holding the `nuget` packages folder, their cache and the storage).
+The mode, the supervisor and the shared folder are applied when the application starts.
 
-Current limits :
+### Configuration
 
-- The workers load the packages from their own `nuget` folder : it has to hold the packages of the application (shared volume).
-- The storage (tables and files) is per machine : a table created on a worker can't be read by a task running in the application, and the other way around.
-- The supervisor has no authentication.
+- Supervisor : `DATA_FOLDER` (its database, the cache of the packages) and `SHARED_FOLDER`.
+- Worker : `SUPERVISOR_URL`, `WORKER_ID`, `WORKER_CAPACITY` (executions run at once), `DATA_FOLDER` (the cache of the packages) and `SHARED_FOLDER`.
+- The shared folder holds the `nuget` packages and the `storage` (tables and files). The supervisor, the workers and the application all reach it : everything flows between tasks through their parameters or the storage. Tasks writing the same data at once is for the workflow to avoid.
+
+The supervisor has no authentication yet.
 
 ## Links
 
@@ -62,7 +64,6 @@ Current limits :
 # ToThink
 
 - Allow multiple supervisor and more complex worker assignation
-- Serve the packages from the supervisor (a nuget feed) rather than a folder shared with the workers
-- Share the storage between the application and the workers
 - Re-dispatch the executions of a lost worker rather than failing them
+- Resume a workflow after a crash (would need the previous instance and the shared context to be stored)
 - display potential errors in workflow creation
