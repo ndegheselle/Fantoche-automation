@@ -44,7 +44,7 @@ namespace Fantoche.App.Features.Workflows.Editor
     /// How a kind of node reads : what it is called, what it does with its mapping, what the shape
     /// in front of the mapping is the shape of, and what to say when that shape describes nothing.
     /// </summary>
-    public record NodeKindText(string Name, string Description, string ExpectedLabel, string EmptyExpectation);
+    public record NodeKindText(string Name, string ExpectedLabel, string EmptyExpectation);
 
     /// <summary>
     /// Settings of a graph node : the mapping it runs with, edited as a tree between what it reads
@@ -111,12 +111,6 @@ namespace Fantoche.App.Features.Workflows.Editor
         /// nothing to be resolved against and so nothing to be checked against either.
         /// </summary>
         public bool IsContextMissing => _contexts.Count == 0;
-
-        /// <summary>
-        /// What the node is about, displayed above the mapping : every node maps what it reads into
-        /// what it hands over, only what is done with the result changes.
-        /// </summary>
-        public string Description { get; }
 
         /// <summary>
         /// The package and class the node's task runs, null when the node is a control, a nested
@@ -200,7 +194,6 @@ namespace Fantoche.App.Features.Workflows.Editor
 
             NodeKindText text = TextOf(_kind);
             Options = new OverlayOptions() { Title = $"{node.Name} - {text.Name}" };
-            Description = text.Description;
             ExpectedLabel = text.ExpectedLabel;
             EmptyExpectationText = text.EmptyExpectation;
             Target = (node.AutomationTask as AutomationTask)?.Target;
@@ -284,39 +277,33 @@ namespace Fantoche.App.Features.Workflows.Editor
         private static NodeKindText TextOf(EnumNodeKind kind)
         {
             const string controlShape = "A control constrains no shape : what it hands over is whatever its mapping produces.";
-            const string controlLabel = "Expected : a control constrains no shape";
+            const string controlLabel = "Dynamic schema";
             const string boundaryShape = "Add properties to the expected object to declare its shape.";
-            const string reshape = "The mapping reshapes what one branch produces into what the next ones read.";
 
             return kind switch
             {
                 EnumNodeKind.Task => new(
                     "Task",
-                    "The mapping is what the task runs with : it has to match what the task expects.",
-                    "Expected : the shape the task is run with",
+                    "Schema of the task",
                     "The task expects no particular shape."),
                 EnumNodeKind.Start => new(
                     "Start",
-                    "The start hands over what the workflow is started with : the expected object declares its shape, its values being the defaults a caller can leave out.",
-                    "Deduced : the shape the workflow is started with",
+                    "Input schema",
                     boundaryShape),
                 EnumNodeKind.End => new(
                     "End",
-                    "The expected object is what the workflow hands back to whoever started it, the shape it declares being deduced from it.",
-                    "Deduced : the shape the workflow hands back",
+                    "Output schema",
                     boundaryShape),
                 EnumNodeKind.Share => new(
                     "Share",
-                    "The mapping is added to the shared values, readable as \"$shared\" by every node after this one. The branch itself goes through untouched.",
                     controlLabel,
                     controlShape),
                 EnumNodeKind.Join => new(
                     "Join",
-                    "Every branch reaching the join is waited for, then merged into what the mapping describes.",
                     controlLabel,
                     controlShape),
-                EnumNodeKind.Map => new("Map", reshape, controlLabel, controlShape),
-                _ => new("Control", reshape, controlLabel, controlShape),
+                EnumNodeKind.Map => new("Map", controlLabel, controlShape),
+                _ => new("Control", controlLabel, controlShape),
             };
         }
 

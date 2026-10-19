@@ -13,44 +13,21 @@
     d:DataContext="{d:DesignInstance Type=local:StartSettingsViewModel}"
     mc:Ignorable="d">
 
-    <Grid joolkit:Spacing.Gap="4" Width="800">
+    <Grid
+        Width="800"
+        Margin="0,4,0,0"
+        joolkit:Spacing.Gap="4">
         <Grid.RowDefinitions>
             <RowDefinition />
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
-        <!--  What the run is started with, next to the schema expecting it  -->
-        <Grid joolkit:Spacing.Gap="4">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition />
-                <ColumnDefinition />
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="auto" />
-                <RowDefinition />
-            </Grid.RowDefinitions>
-
-            <TextBlock Style="{StaticResource Muted}" Text="Settings" />
-            <data:DataFill
-                Grid.Row="1"
-                Height="240"
-                ManualValues="{Binding References}"
-                Node="{Binding Settings, Mode=OneWay}" />
-
-            <TextBlock
-                Grid.Column="1"
-                Style="{StaticResource Muted}"
-                Text="Expected" />
-            <TextBox
-                Grid.Row="1"
-                Grid.Column="1"
-                Height="240"
-                Padding="4"
-                IsReadOnly="True"
-                Style="{StaticResource JsonTextBox}"
-                Text="{Binding SchemaJson, Mode=OneWay}" />
-        </Grid>
+        <data:DataFill
+            Grid.Row="1"
+            Height="240"
+            ManualValues="{Binding References}"
+            Node="{Binding Settings, Mode=OneWay}" />
 
         <!--  Errors, the start being blocked while there is any  -->
         <ItemsControl

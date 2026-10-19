@@ -23,7 +23,7 @@ namespace Fantoche.App.Features.Packages
             if (openFileDialog.ShowDialog() != true)
                 return;
 
-            _ = ViewModel.AddPackageAsync(openFileDialog.FileName);
+            _ = ViewModel.AddPackagesAsync([openFileDialog.FileName]);
         }
     }
 }

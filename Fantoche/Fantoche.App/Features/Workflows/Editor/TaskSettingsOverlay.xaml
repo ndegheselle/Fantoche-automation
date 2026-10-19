@@ -16,7 +16,7 @@
     d:DataContext="{d:DesignInstance Type=local:TaskSettingsViewModel}"
     mc:Ignorable="d">
 
-    <Grid joolkit:Spacing.Gap="4">
+    <Grid Margin="0,4,0,0" joolkit:Spacing.Gap="2">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
             <RowDefinition />
@@ -42,18 +42,10 @@
             <TextBlock Style="{StaticResource Muted}" Text="Available (force a field to reference one)" />
             <data:DataDisplay Grid.Row="1" Node="{Binding Context, Mode=OneWay}" />
 
-            <Grid Grid.Column="1">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition />
-                    <ColumnDefinition Width="auto" />
-                </Grid.ColumnDefinitions>
-                <TextBlock Style="{StaticResource Muted}" Text="{Binding MappingLabel}" />
-                <jonts:FontIcon
-                    Grid.Column="1"
-                    joolkit:Tooltip.Content="{Binding Description}"
-                    Foreground="{DynamicResource {x:Static joufflu:Brushes.InfoBrush}}"
-                    Text="{x:Static jonts:LucideFontIcons.Info}" />
-            </Grid>
+            <TextBlock
+                Grid.Column="1"
+                Style="{StaticResource Muted}"
+                Text="{Binding MappingLabel}" />
 
             <!--  Filled in against the schema of the task, built from scratch everywhere else  -->
             <data:DataFill

@@ -307,8 +307,10 @@ internal static class Samples
 
     /// <summary>
     /// The package the sample tasks run : it has to be added to the packages for the samples to run.
+    /// A property rather than a field : the task fields above are initialized first, and would read a
+    /// field declared after them as null.
     /// </summary>
-    private static readonly Version PluginsVersion = new("1.1.0");
+    private static Version PluginsVersion => new("1.1.0");
 
     /// <summary>
     /// The schemas of the table tasks, with the markers of the engine : a table handle

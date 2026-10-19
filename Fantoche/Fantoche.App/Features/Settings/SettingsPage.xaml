@@ -2,64 +2,103 @@
     x:Class="Fantoche.App.Features.Settings.SettingsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:core="clr-namespace:System;assembly=mscorlib"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
     xmlns:jonverters="clr-namespace:Joufflu.Converters;assembly=Joufflu"
     xmlns:joolkit="clr-namespace:Joufflu.Toolkit;assembly=Joufflu"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Fantoche.App.Features.Settings"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Padding="{StaticResource {x:Static joufflu:Dimensions.SpacingThickness}}"
     d:DataContext="{d:DesignInstance Type=local:SettingsViewModel}"
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
-    <StackPanel
-        MaxWidth="600"
-        Margin="{StaticResource {x:Static joufflu:Dimensions.SpacingThickness}}"
-        HorizontalAlignment="Left"
-        joolkit:Spacing.Gap="4">
+    <Grid Margin="{StaticResource {x:Static joufflu:Dimensions.TitleBarHeightOffset}}" joolkit:Spacing.Gap="4">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+
         <TextBlock FontSize="16" FontWeight="SemiBold">Settings</TextBlock>
+        <GroupBox Grid.Row="1" Header="Apperence">
+            <Grid Grid.Column="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="120" />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <TextBlock VerticalAlignment="Center" Style="{StaticResource Muted}">
+                    Theme
+                </TextBlock>
+                <ComboBox
+                    Grid.Column="1"
+                    ItemsSource="{Binding Themes}"
+                    SelectedItem="{Binding Theme, Mode=TwoWay}" />
+            </Grid>
+        </GroupBox>
+        <GroupBox Grid.Row="2" Header="Execution">
+            <StackPanel joolkit:Spacing.Gap="4">
+                <Grid Grid.Column="1" joolkit:Spacing.Gap="4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="120" />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
 
-        <StackPanel>
-            <TextBlock Style="{StaticResource Muted}">Theme</TextBlock>
-            <ComboBox
-                Width="200"
-                HorizontalAlignment="Left"
-                ItemsSource="{Binding Themes}"
-                SelectedItem="{Binding Theme, Mode=TwoWay}" />
-        </StackPanel>
+                    <CheckBox Grid.Column="1" IsChecked="{Binding IsStandalone}">Standalone</CheckBox>
+                    <TextBlock
+                        Grid.Row="1"
+                        Grid.Column="1"
+                        FontSize="11"
+                        Style="{StaticResource Muted}">
+                        Applied when the application starts again.
+                    </TextBlock>
+                </Grid>
 
-        <TextBlock
-            Margin="0,12,0,0"
-            FontWeight="SemiBold"
-            Text="Execution" />
-        <TextBlock
-            Style="{StaticResource Muted}"
-            Text="Applied when the application starts again."
-            TextWrapping="Wrap" />
+                <Grid joolkit:Spacing.Gap="4" Visibility="{Binding IsStandalone, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="120" />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
 
-        <CheckBox IsChecked="{Binding IsStandalone}">Standalone</CheckBox>
-        <TextBlock
-            Style="{StaticResource Muted}"
-            Text="The database, the packages and the storage are kept in the application and no task runs on a worker. Only for debugging or very particular uses."
-            TextWrapping="Wrap" />
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
 
-        <StackPanel joolkit:Spacing.Gap="4" Visibility="{Binding IsStandalone, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}">
-            <StackPanel>
-                <TextBlock Style="{StaticResource Muted}">Supervisor address</TextBlock>
-                <TextBox Text="{Binding SupervisorUrl, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock VerticalAlignment="Center" Style="{StaticResource Muted}">
+                        Supervisor address
+                    </TextBlock>
+                    <TextBox Grid.Column="1" Text="{Binding SupervisorUrl, UpdateSourceTrigger=PropertyChanged}" />
+
+
+                    <TextBlock
+                        Grid.Row="1"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource Muted}">
+                        Shared folder
+                    </TextBlock>
+                    <TextBox
+                        Grid.Row="1"
+                        Grid.Column="1"
+                        Text="{Binding SharedFolder, UpdateSourceTrigger=PropertyChanged}" />
+
+                </Grid>
             </StackPanel>
-            <StackPanel>
-                <TextBlock Style="{StaticResource Muted}">Shared folder (the packages and the storage of the workers)</TextBlock>
-                <TextBox Text="{Binding SharedFolder, UpdateSourceTrigger=PropertyChanged}" />
-            </StackPanel>
-        </StackPanel>
-
+        </GroupBox>
         <Button
-            Margin="0,8,0,0"
-            HorizontalAlignment="Left"
+            Grid.Row="3"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Bottom"
             Command="{Binding SaveCommand}"
             Style="{StaticResource PrimaryButton}">
             Save
         </Button>
-    </StackPanel>
+    </Grid>
 </UserControl>

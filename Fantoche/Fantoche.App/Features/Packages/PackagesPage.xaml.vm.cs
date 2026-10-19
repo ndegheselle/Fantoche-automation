@@ -30,10 +30,9 @@ namespace Fantoche.App.Features.Packages
         }
 
         [RelayCommand(CanExecute = nameof(CanDropFiles))]
-        public void DropFiles(IDataObject? data)
+        public Task DropFiles(IDataObject? data)
         {
-            foreach (string file in GetFiles(data) ?? [])
-                _ = AddPackageAsync(file);
+            return AddPackagesAsync(GetFiles(data) ?? []);
         }
 
         [RelayCommand]
@@ -42,7 +41,14 @@ namespace Fantoche.App.Features.Packages
             _overlays.ShowAsync(new PackageViewModel(package, _packages, _overlays));
         }
 
-        public async Task AddPackageAsync(string filePath)
+        public async Task AddPackagesAsync(IEnumerable<string> filePaths)
+        {
+            foreach (string filePath in filePaths)
+                await AddPackageAsync(filePath);
+            await RefreshAsync();
+        }
+
+        private async Task AddPackageAsync(string filePath)
         {
             var result = await _packages.AddAsync(filePath);
             if (result.Warnings.Any())
