@@ -22,10 +22,23 @@ Backend Requirements:
 
 ## Getting started
 
-- [Setting up a mongodb with docker in visual studio](https://medium.com/@hugo_cesar45/asp-net-core-web-api-net-8-docker-mongodb-8fab9a54f72c)
+1. Start the `docker-compose` startup project (or `Fantoche.Supervisor.Api` and `Fantoche.Worker.Service`).
+2. Start `Fantoche.App`, and set the supervisor address and the shared folder in its settings (gear of the title bar).
 
-Start the `docker-compose` startup project for the backend.
-Start `Fantoche.App` for the client.
+### Modes
+
+- **Supervisor** (default) : the supervisor holds the database, the application and the workers reach it through its API. A task or a workflow set to "Run on a worker" is sent to a worker, the rest runs in the application. A workflow is handed whole to a single worker.
+- **Standalone** : the application keeps its own database, packages and storage, and has no worker (a task set to run on one fails). Only for debugging or very particular uses.
+
+The mode, the supervisor and the shared folder are applied when the application starts.
+
+### Configuration
+
+- Supervisor : `DATA_FOLDER` (its database, the cache of the packages) and `SHARED_FOLDER`.
+- Worker : `SUPERVISOR_URL`, `WORKER_ID`, `WORKER_CAPACITY` (executions run at once), `DATA_FOLDER` (the cache of the packages) and `SHARED_FOLDER`.
+- The shared folder holds the `nuget` packages and the `storage` (tables and files). The supervisor, the workers and the application all reach it : everything flows between tasks through their parameters or the storage. Tasks writing the same data at once is for the workflow to avoid.
+
+The supervisor has no authentication yet.
 
 ## Links
 
@@ -36,8 +49,6 @@ Start `Fantoche.App` for the client.
 
 # TODO
 
-- Handle communication between client and supervisor with signalR
-    - Display workflow progress in realtime
 - Scripting language to handle contexte change in tasks settings
 - Generic way to create UI form for settings
     - Also handle validation and types with this ?
@@ -53,6 +64,6 @@ Start `Fantoche.App` for the client.
 # ToThink
 
 - Allow multiple supervisor and more complex worker assignation
-    - Allow a workflow to be executed by only one worker for optomizations
-- optimize and simplify signalR and redis communication
+- Re-dispatch the executions of a lost worker rather than failing them
+- Resume a workflow after a crash (would need the previous instance and the shared context to be stored)
 - display potential errors in workflow creation

@@ -20,6 +20,12 @@ namespace Fantoche.App.Features.Workflows.Details
             set => SetSetting(value, v => Workflow.WorkflowSettings.StopIfAnyTaskFail = v);
         }
 
+        public bool RunOnWorker
+        {
+            get => Workflow.Settings.Execution == EnumExecutionMode.Remote;
+            set => SetSetting(value, v => Workflow.Settings.Execution = v ? EnumExecutionMode.Remote : EnumExecutionMode.Local);
+        }
+
         public WorkflowDetailsViewModel(ScopedNode node, WorkflowsViewModel parent, AppServices services)
             : base(node, parent, services)
         {

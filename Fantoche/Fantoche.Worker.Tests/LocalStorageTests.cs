@@ -20,7 +20,6 @@ internal sealed class LocalStorageTests
     [TearDown]
     public void TearDown()
     {
-        _storage.Dispose();
         if (Directory.Exists(_folder))
             Directory.Delete(_folder, true);
     }
@@ -71,6 +70,19 @@ internal sealed class LocalStorageTests
             Assert.That(filtered.Columns.Select(x => x.Name), Is.EqualTo(new[] { "name" }));
             Assert.That(rows.Select(x => x["name"]), Is.EqualTo(new[] { "BOB", "CAROL" }));
         });
+    }
+
+    [Test]
+    public async Task Table_IsReadByAnotherStorageOnTheSameFolder()
+    {
+        // Two storages on one folder : two machines sharing it.
+        LocalStorage other = new(_folder);
+        TableRef source = await PeopleAsync();
+
+        TableRef filtered = await other.CreateTableAsync($"SELECT name FROM {source.Id} WHERE amount > 15");
+        var rows = await ToListAsync(_storage.ReadRowsAsync(filtered));
+
+        Assert.That(rows.Select(x => x["name"]), Is.EqualTo(new[] { "bob", "carol" }));
     }
 
     [Test]

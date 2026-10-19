@@ -1,47 +1,32 @@
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using DuckDB.NET.Data;
 using Fantoche.Plugins.Shared;
 
 namespace Fantoche.Worker.Storage;
 
 /// <summary>
-/// Storage on the local disk : tables in a DuckDB database, files in a folder, both under the
-/// given folder. Nothing is created until a task uses it.
+/// Storage in a folder, which may be shared between machines : every table is a Parquet file of its
+/// own, files are kept as they are. Tables are immutable, so a file never changes once written and
+/// several processes read the same folder without stepping on each other. Nothing is created until a
+/// task uses it.
 /// <para>
 /// The handles a task is given come from its parameters, so their ids are checked before reaching
 /// a query or a path.
 /// </para>
 /// </summary>
-public sealed class LocalStorage : IStorage, IDisposable
+public sealed class LocalStorage : IStorage
 {
     private const string TablePrefix = "t_";
+    private static readonly Regex TableIds = new($@"\b{TablePrefix}[0-9a-f]{{32}}\b", RegexOptions.Compiled);
 
+    private readonly string _tablesFolder;
     private readonly string _filesFolder;
-
-    private readonly string _connectionString;
-
-    /// <summary>
-    /// Opened on first use and held until disposal, see <see cref="KeepDatabaseLoaded"/>.
-    /// </summary>
-    private readonly Lazy<DuckDBConnection> _keepAliveConnection;
 
     public LocalStorage(string folder)
     {
+        _tablesFolder = Path.Combine(folder, "tables");
         _filesFolder = Path.Combine(folder, "files");
-        _connectionString = $"Data Source={Path.Combine(folder, "tables.duckdb")}";
-        _keepAliveConnection = new(() =>
-        {
-            Directory.CreateDirectory(folder);
-            var connection = new DuckDBConnection(_connectionString);
-            connection.Open();
-            return connection;
-        });
-    }
-
-    public void Dispose()
-    {
-        if (_keepAliveConnection.IsValueCreated)
-            _keepAliveConnection.Value.Dispose();
     }
 
     #region Tables
@@ -50,26 +35,37 @@ public sealed class LocalStorage : IStorage, IDisposable
         CancellationToken cancellation = default)
     {
         string id = $"{TablePrefix}{Guid.NewGuid():N}";
-        using DuckDBConnection connection = Open();
+        string path = PathOf(id);
+        // Written under another name first, so a reader never finds a table half written.
+        string partialPath = $"{path}.partial";
+        Directory.CreateDirectory(_tablesFolder);
 
+        using DuckDBConnection connection = await OpenAsync(query, cancellation);
         using (DuckDBCommand command = connection.CreateCommand())
         {
-            command.CommandText = $"CREATE TABLE {id} AS {query}";
+            command.CommandText = $"CREATE TEMP TABLE {id} AS {query}";
             foreach (var parameter in parameters ?? new Dictionary<string, object?>())
                 command.Parameters.Add(new DuckDBParameter(parameter.Key, parameter.Value));
             await command.ExecuteNonQueryAsync(cancellation);
         }
 
-        return new TableRef { Id = id, Columns = await ColumnsAsync(connection, id, cancellation) };
+        using (DuckDBCommand command = connection.CreateCommand())
+        {
+            command.CommandText = $"COPY {id} TO {Literal(partialPath)} (FORMAT parquet)";
+            await command.ExecuteNonQueryAsync(cancellation);
+        }
+        File.Move(partialPath, path);
+
+        return new TableRef { Id = id, Columns = await ColumnsAsync(connection, path, cancellation) };
     }
 
     public async IAsyncEnumerable<IReadOnlyDictionary<string, object?>> ReadRowsAsync(TableRef table,
         [EnumeratorCancellation] CancellationToken cancellation = default)
     {
-        string id = Identifier(table);
-        using DuckDBConnection connection = Open();
+        string path = PathOf(Identifier(table));
+        using DuckDBConnection connection = await OpenAsync("", cancellation);
         using DuckDBCommand command = connection.CreateCommand();
-        command.CommandText = $"SELECT * FROM {id} ORDER BY rowid";
+        command.CommandText = $"SELECT * FROM read_parquet({Literal(path)})";
 
         using var reader = await command.ExecuteReaderAsync(cancellation);
         while (await reader.ReadAsync(cancellation))
@@ -81,11 +77,13 @@ public sealed class LocalStorage : IStorage, IDisposable
         }
     }
 
-    private static async Task<List<TableColumn>> ColumnsAsync(DuckDBConnection connection, string id, CancellationToken cancellation)
+    /// <summary>
+    /// The columns as they were stored, which is what reading the table gives back.
+    /// </summary>
+    private static async Task<List<TableColumn>> ColumnsAsync(DuckDBConnection connection, string path, CancellationToken cancellation)
     {
         using DuckDBCommand command = connection.CreateCommand();
-        command.CommandText = "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = $table ORDER BY ordinal_position";
-        command.Parameters.Add(new DuckDBParameter("table", id));
+        command.CommandText = $"DESCRIBE SELECT * FROM read_parquet({Literal(path)})";
 
         List<TableColumn> columns = [];
         using var reader = await command.ExecuteReaderAsync(cancellation);
@@ -95,22 +93,35 @@ public sealed class LocalStorage : IStorage, IDisposable
     }
 
     /// <summary>
-    /// Every operation opens a connection of its own, a connection being unusable by several threads
+    /// An in-memory database holding the tables [query] names, loaded from their files. Loaded rather
+    /// than read through a view : the plugins rely on the <c>rowid</c> of a table, in the order of its
+    /// rows, which only a table has. One per operation : a connection is unusable by several threads
     /// at once.
     /// </summary>
-    private DuckDBConnection Open()
+    private async Task<DuckDBConnection> OpenAsync(string query, CancellationToken cancellation)
     {
-        KeepDatabaseLoaded();
-        var connection = new DuckDBConnection(_connectionString);
+        var connection = new DuckDBConnection("Data Source=:memory:");
         connection.Open();
+
+        var ids = TableIds.Matches(query).Select(x => x.Value).Distinct();
+        foreach (string id in ids)
+        {
+            // Left out when unknown : the query then fails on it, naming it.
+            string path = PathOf(id);
+            if (!File.Exists(path))
+                continue;
+
+            using DuckDBCommand command = connection.CreateCommand();
+            command.CommandText = $"CREATE TEMP TABLE {id} AS SELECT * FROM read_parquet({Literal(path)})";
+            await command.ExecuteNonQueryAsync(cancellation);
+        }
+
         return connection;
     }
 
-    /// <summary>
-    /// DuckDB unloads a database once its last connection closes : holding one open spares reloading
-    /// it on every operation. The first call also creates the folder of the storage.
-    /// </summary>
-    private void KeepDatabaseLoaded() => _ = _keepAliveConnection.Value;
+    private string PathOf(string tableId) => Path.Combine(_tablesFolder, $"{tableId}.parquet");
+
+    private static string Literal(string path) => $"'{path.Replace("'", "''")}'";
 
     /// <summary>
     /// [table] as it is written in a query, only once checked to be a table this storage named.
