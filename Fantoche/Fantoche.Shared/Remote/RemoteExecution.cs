@@ -7,48 +7,6 @@ using Newtonsoft.Json.Linq;
 namespace Fantoche.Shared.Remote;
 
 /// <summary>
-/// What a caller sends to run a task on a worker : the instance to run, the supervisor reading
-/// everything else from its database.
-/// </summary>
-public class ExecutionRequest
-{
-    public required Guid InstanceId { get; init; }
-    public required Guid TaskId { get; init; }
-    public Guid? NodeId { get; init; }
-    public Guid? ParentInstanceId { get; init; }
-    public string NodeName { get; init; } = "";
-    public JToken? Parameters { get; init; }
-
-    /// <summary>
-    /// Only for a workflow : the context the run started from, a nested workflow reading the one of
-    /// the run holding it (see <see cref="WorkflowInstance.GlobalContext"/>).
-    /// </summary>
-    public JToken? GlobalContext { get; init; }
-
-    public static ExecutionRequest From(TaskInstance instance) => new()
-    {
-        InstanceId = instance.Id,
-        TaskId = instance.TaskId,
-        NodeId = instance.NodeId,
-        ParentInstanceId = instance.ParentInstanceId,
-        NodeName = instance.NodeName,
-        Parameters = instance.Parameters,
-        GlobalContext = (instance as WorkflowInstance)?.GlobalContext,
-    };
-
-    public TaskInstance ToInstance() => new()
-    {
-        Id = InstanceId,
-        TaskId = TaskId,
-        NodeId = NodeId,
-        ParentInstanceId = ParentInstanceId,
-        NodeName = NodeName,
-        Parameters = Parameters,
-        State = EnumTaskState.Progressing,
-    };
-}
-
-/// <summary>
 /// A task as the supervisor hands it to a worker, with everything the worker needs to run it : the
 /// worker reads no database.
 /// </summary>
@@ -64,7 +22,7 @@ public class RemoteExecution
 
     public required TaskInstance Instance { get; init; }
 
-    /// <summary>See <see cref="ExecutionRequest.GlobalContext"/>.</summary>
+    /// <summary>See <see cref="ICallerHub.Execute"/>.</summary>
     public JToken? GlobalContext { get; init; }
 
     /// <summary>

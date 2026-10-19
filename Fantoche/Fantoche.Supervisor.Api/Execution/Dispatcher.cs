@@ -66,14 +66,15 @@ public class Dispatcher
 
     #region Callers
 
-    public async Task SubmitAsync(string callerConnectionId, ExecutionRequest request)
+    public async Task SubmitAsync(string callerConnectionId, TaskInstance instance, JToken? globalContext)
     {
-        TaskInstance instance = request.ToInstance();
+        // Whatever the caller sent, the instance runs from now on.
+        instance.State = EnumTaskState.Progressing;
         RemoteExecution execution;
         try
         {
-            BaseAutomationTask task = await _scoped.LoadRunnableAsync(request.TaskId);
-            execution = RemoteExecution.From(task, instance, request.GlobalContext);
+            BaseAutomationTask task = await _scoped.LoadRunnableAsync(instance.TaskId);
+            execution = RemoteExecution.From(task, instance, globalContext);
         }
         catch (ExecutionException exception)
         {

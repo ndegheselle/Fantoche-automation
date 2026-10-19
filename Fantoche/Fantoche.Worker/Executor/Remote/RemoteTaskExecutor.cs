@@ -49,9 +49,9 @@ public sealed class RemoteTaskExecutor : ITaskExecutor, IAsyncDisposable
         _pending[instance.Id] = pending;
         try
         {
-            ExecutionRequest request = ExecutionRequest.From(instance);
+            JToken? globalContext = (instance as WorkflowInstance)?.GlobalContext;
             await ConnectAsync();
-            await _connection.InvokeAsync(nameof(ICallerHub.Execute), request);
+            await _connection.InvokeAsync(nameof(ICallerHub.Execute), instance, globalContext);
 
             // The worker is the one stopping the task : the outcome still comes back as a completion.
             using var registration = cancellation?.Register(() => _ = CancelAsync(instance.Id));

@@ -142,6 +142,27 @@ internal sealed class RemoteExecutionTests
     }
 
     [Test]
+    public async Task Workflow_ReadsTheGlobalContextItWasStartedWith()
+    {
+        await ConnectWorkerAsync();
+        TestWorkflow line = new TestWorkflow("Global")
+            .Start()
+            .Task("First", await StoreTestAsync(), new { Message = "first", Value = "$previous.Value", Add = "$global.Bonus" })
+            .End(new { Value = "$previous.Value", Message = "$previous.Message" })
+            .Chain("Start", "First", "End");
+        AutomationWorkflow workflow = await StoreAsync(line.Workflow);
+        WorkflowInstance instance = new(workflow)
+        {
+            Parameters = JToken.FromObject(new { Value = 1 }),
+            GlobalContext = JToken.FromObject(new { Bonus = 100 }),
+        };
+
+        TaskInstance result = await _caller.ExecuteAsync(workflow, instance);
+
+        Assert.That(result.Output?["Value"]?.Value<int>(), Is.EqualTo(101));
+    }
+
+    [Test]
     public async Task Workflow_NodesAreStoredInTheHistoryOfTheSupervisor()
     {
         await ConnectWorkerAsync();
