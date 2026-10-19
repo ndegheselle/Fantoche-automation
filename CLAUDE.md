@@ -36,7 +36,7 @@ Goal: catch what would hurt, at the lowest maintenance cost. Other coding rules 
 - **Fast and deterministic**: no reliance on time, order, or shared state.
 
 *When to delete a test* :
-- **It’s unstable**: if it's breaks often without catching real bugs, fix it or delete it.
+- **It’s unstable**: if it breaks often without catching real bugs, fix it or delete it.
 - **It's unused** : it guards code or behavior that no longer matters.
 
 *Testing the UI* :
