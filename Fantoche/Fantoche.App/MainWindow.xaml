@@ -74,7 +74,7 @@
                     </nav:NavigationItem>
                 </nav:NavigationMenu>
 
-                <ContentControl Margin="{StaticResource {x:Static joufflu:Dimensions.TitleBarHeightOffset}}" Content="{Binding Navigator.CurrentPage}" />
+                <ContentControl Content="{Binding Navigator.CurrentPage}" />
             </DockPanel>
         </javigation:OverlayContainer>
     </jeedback:ToastContainer>
