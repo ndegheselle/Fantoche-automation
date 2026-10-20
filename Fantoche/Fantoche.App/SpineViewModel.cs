@@ -3,9 +3,9 @@ using System.Net.Http;
 using Fantoche.App.Common;
 using Fantoche.App.Features.Home;
 using Fantoche.App.Features.Packages;
-using Fantoche.App.Features.Servers;
 using Fantoche.App.Features.Settings;
 using Fantoche.App.Features.Storage;
+using Fantoche.App.Features.Workers;
 using Fantoche.App.Features.Workflows;
 using Fantoche.Services.Local;
 using Fantoche.Services.Local.Database;
@@ -62,8 +62,8 @@ public class SpineViewModel : ObservableObject
             new HomeViewModel(),
             new WorkflowsViewModel(Services),
             new PackagesViewModel(Packages, Overlayer, Toasts),
-            new ServersViewModel(),
-            new StorageViewModel(),
+            new WorkersViewModel(Execution, Services.Workers),
+            new StorageViewModel(Services.Storage, Scoped),
             new SettingsViewModel(Settings, Toasts),
         }.ToDictionary(x => x.GetType());
 
@@ -85,13 +85,13 @@ public class SpineViewModel : ObservableObject
         var history = new LocalHistoryService(databaseFactory);
         var packages = new LocalPackagesService(Settings.PackagesFolderPath, Path.Join(Settings.LocalFolderPath, "cache"));
         var scoped = new LocalScopedService(databaseFactory);
-        var storage = new LocalStorage(Path.Combine(Settings.LocalFolderPath, "storage"));
+        var storage = new StorageFolder(Path.Combine(Settings.LocalFolderPath, "storage"));
         var executor = new MixedTaskExecutor(packages.PackageManagement, storage, remote: null);
 
         // Take the cost of opening the database off the first navigation.
         _ = Task.Run(() => DatabaseFactory.WarmUpDatabase(databaseFactory));
 
-        return new AppServices(scoped, new ExecutionService(scoped, history, executor), history, packages, Overlayer, Toasts);
+        return new AppServices(scoped, new ExecutionService(scoped, history, executor), history, packages, storage, Workers: null, Overlayer, Toasts);
     }
 
     /// <summary>
@@ -107,13 +107,13 @@ public class SpineViewModel : ObservableObject
         var packages = new RemotePackagesService(http);
         var scoped = new RemoteScopedService(http);
         var packageManagement = new LocalPackageManagement(Path.Combine(Settings.SharedFolder, "nuget"), Path.Join(Settings.LocalFolderPath, "cache"));
-        var storage = new LocalStorage(Path.Combine(Settings.SharedFolder, "storage"));
+        var storage = new StorageFolder(Path.Combine(Settings.SharedFolder, "storage"));
         var executor = new MixedTaskExecutor(packageManagement, storage, new RemoteTaskExecutor(supervisor));
 
         // Listens to the changes of the history as soon as the supervisor is up.
         _ = history.StartAsync();
 
-        return new AppServices(scoped, new ExecutionService(scoped, history, executor), history, packages, Overlayer, Toasts);
+        return new AppServices(scoped, new ExecutionService(scoped, history, executor), history, packages, storage, new RemoteWorkersService(http), Overlayer, Toasts);
     }
 
     private object? Resolve(Type target) => _pages.GetValueOrDefault(target);

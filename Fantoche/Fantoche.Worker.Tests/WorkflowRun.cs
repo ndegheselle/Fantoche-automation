@@ -42,9 +42,13 @@ internal sealed class WorkflowRun
     public TestPackageManagement Packages { get; } = new();
 
     /// <summary>
-    /// The storage the tasks were given : a folder of its own per run, created only if a task uses it.
+    /// The folder of the storage the tasks were given : one of its own per run, created only if a
+    /// task uses it.
     /// </summary>
-    public LocalStorage Storage { get; } = new(Path.Combine(Path.GetTempPath(), "fantoche-tests", Guid.NewGuid().ToString("N")));
+    public StorageFolder StorageFolder { get; } = new(Path.Combine(Path.GetTempPath(), "fantoche-tests", Guid.NewGuid().ToString("N")));
+
+    /// <summary>The storage as the tasks of the run saw it.</summary>
+    public LocalStorage Storage => StorageFolder.For(Instance.EffectiveStorageOwner);
 
     /// <summary>Every state change reported, in order.</summary>
     public IReadOnlyList<NodeReport> Reports
@@ -89,7 +93,7 @@ internal sealed class WorkflowRun
 
     private Task<WorkflowInstance> RunAsync(WorkflowInstance instance, CancellationToken? cancellation)
     {
-        WorkflowExecutor executor = new(Packages, Storage);
+        WorkflowExecutor executor = new(Packages, StorageFolder);
         TaskInstancesProgress progress = new()
         {
             StateChanges = new Sink<TaskInstance>(x =>

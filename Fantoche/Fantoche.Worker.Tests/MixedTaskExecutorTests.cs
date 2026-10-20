@@ -39,7 +39,7 @@ internal sealed class MixedTaskExecutorTests
     }
 
     private readonly TestPackageManagement _packages = new();
-    private readonly LocalStorage _storage = new(Path.Combine(Path.GetTempPath(), "fantoche-tests", Guid.NewGuid().ToString("N")));
+    private readonly StorageFolder _storage = new(Path.Combine(Path.GetTempPath(), "fantoche-tests", Guid.NewGuid().ToString("N")));
 
     private static AutomationTask RemoteTest()
     {

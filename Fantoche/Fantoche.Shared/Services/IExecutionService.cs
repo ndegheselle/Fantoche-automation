@@ -36,7 +36,8 @@ public interface IExecutionService
     public Task CancelAsync(Guid instanceId);
 
     /// <summary>
-    /// The executions currently running, most recently started first.
+    /// The executions started from here that run in this process, most recently started first : the
+    /// ones handed to a worker are in its queue.
     /// </summary>
-    public IReadOnlyCollection<TaskInstance> GetRunning();
+    public IReadOnlyCollection<TaskInstance> GetRunningLocally();
 }

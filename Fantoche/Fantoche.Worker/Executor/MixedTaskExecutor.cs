@@ -1,7 +1,7 @@
-using Fantoche.Plugins.Shared;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Data.Scoped;
 using Fantoche.Worker.Packages;
+using Fantoche.Worker.Storage;
 using Newtonsoft.Json.Linq;
 
 namespace Fantoche.Worker.Executor;
@@ -17,7 +17,7 @@ public sealed class MixedTaskExecutor : ITaskExecutor, IDisposable
     private readonly ITaskExecutor? _remote;
 
     /// <param name="remote">What the remote tasks are run with, null in standalone mode : there is no worker to send them to.</param>
-    public MixedTaskExecutor(IPackageManagement packageManagement, IStorage storage, ITaskExecutor? remote)
+    public MixedTaskExecutor(IPackageManagement packageManagement, StorageFolder storage, ITaskExecutor? remote)
     {
         _remote = remote;
         _local = new LocalTaskExecutor(packageManagement, storage, new WorkflowExecutor(this));

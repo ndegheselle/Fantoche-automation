@@ -1,5 +1,6 @@
 using Fantoche.Plugins.Shared;
 using Fantoche.Shared.Data.Execution;
+using Fantoche.Worker.Storage;
 
 namespace Fantoche.Worker.Tests;
 
@@ -61,6 +62,34 @@ internal sealed class CsvImportTaskTests
         {
             Assert.That(import.State, Is.EqualTo(EnumTaskState.Failed));
             Assert.That(import.Output?.ToString(), Does.Contain(path));
+        });
+    }
+
+    [Test]
+    public async Task Import_OfANestedWorkflow_IsStoredUnderTheOutermostRun()
+    {
+        string path = Path.Combine(_folder, "people.csv");
+        await File.WriteAllTextAsync(path, "name,amount\nalice,10\n");
+        // Declaring an output, which gives the node of the nested workflow an output to be chained by.
+        TestWorkflow inner = new TestWorkflow("Inner")
+            .Start()
+            .Task("Import", PluginTasks.CsvImport, new { Path = "$previous.Path" })
+            .End(new { Table = "$previous" })
+            .Chain("Start", "Import", "End");
+        TestWorkflow outer = new TestWorkflow("Outer", requireOutput: false)
+            .Start()
+            .Nested("Inner", inner, new { Path = "$previous.Path" })
+            .End(new { Table = "$previous.Table" })
+            .Chain("Start", "Inner", "End");
+
+        WorkflowRun run = await outer.RunAsync(new { Path = path });
+        TaskStorageUsage usage = run.StorageFolder.MeasureUsage().Single();
+
+        // The storage is measured by run : what a run saved has to be found under where it started.
+        Assert.Multiple(() =>
+        {
+            Assert.That(usage.TaskId, Is.EqualTo(outer.Workflow.Id));
+            Assert.That(usage.Runs, Is.EqualTo(1));
         });
     }
 }

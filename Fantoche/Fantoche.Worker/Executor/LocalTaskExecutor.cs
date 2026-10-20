@@ -2,6 +2,7 @@
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Data.Scoped;
 using Fantoche.Worker.Packages;
+using Fantoche.Worker.Storage;
 using Newtonsoft.Json.Linq;
 
 namespace Fantoche.Worker.Executor;
@@ -18,7 +19,7 @@ public class ExecutionException : Exception
 public class LocalTaskExecutor : ITaskExecutor, IDisposable
 {
     private readonly IPackageManagement _packages;
-    private readonly IStorage _storage;
+    private readonly StorageFolder _storage;
     private readonly WorkflowExecutor _workflowExecutor;
     /// <summary>
     /// Task loaders cached by DLL path.
@@ -28,7 +29,7 @@ public class LocalTaskExecutor : ITaskExecutor, IDisposable
     /// <param name="workflowExecutor">
     /// What the workflows are walked with, by default one running their nodes here as well.
     /// </param>
-    public LocalTaskExecutor(IPackageManagement packageManagement, IStorage storage, WorkflowExecutor? workflowExecutor = null)
+    public LocalTaskExecutor(IPackageManagement packageManagement, StorageFolder storage, WorkflowExecutor? workflowExecutor = null)
     {
         _workflowExecutor = workflowExecutor ?? new WorkflowExecutor(this);
         _packages = packageManagement;
@@ -132,7 +133,8 @@ public class LocalTaskExecutor : ITaskExecutor, IDisposable
         if (instance.Parameters != null && task.Input?.Type != null)
             parameter = instance.Parameters.ToObject(task.Input.Type);
 
-        var runtime = new TaskRuntime(progress?.Notifications, _storage);
+        LocalStorage storage = _storage.For(instance.EffectiveStorageOwner);
+        var runtime = new TaskRuntime(progress?.Notifications, storage);
         var result = await task.DoAsync(parameter, runtime, cancellation);
 
         if (result != null)

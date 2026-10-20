@@ -14,8 +14,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:nav="clr-namespace:Joufflu.Navigation.Controls;assembly=Joufflu.Navigation"
     xmlns:packages="clr-namespace:Fantoche.App.Features.Packages"
-    xmlns:servers="clr-namespace:Fantoche.App.Features.Servers"
     xmlns:storage="clr-namespace:Fantoche.App.Features.Storage"
+    xmlns:workers="clr-namespace:Fantoche.App.Features.Workers"
     xmlns:workflows="clr-namespace:Fantoche.App.Features.Workflows"
     Width="1200"
     Height="800"
@@ -71,11 +71,11 @@
                     </nav:NavigationItem>
 
                     <nav:NavigationTitle>Admin</nav:NavigationTitle>
-                    <nav:NavigationItem TargetType="{x:Type servers:ServersViewModel}">
+                    <nav:NavigationItem TargetType="{x:Type workers:WorkersViewModel}">
                         <nav:NavigationItem.Icon>
                             <fonts:FontIcon Text="{x:Static fonts:LucideFontIcons.Server}" />
                         </nav:NavigationItem.Icon>
-                        Servers
+                        Workers
                     </nav:NavigationItem>
                     <nav:NavigationItem TargetType="{x:Type storage:StorageViewModel}">
                         <nav:NavigationItem.Icon>

@@ -6,10 +6,10 @@
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:packages="clr-namespace:Fantoche.App.Features.Packages"
     xmlns:packagesControls="clr-namespace:Fantoche.App.Features.Packages.Controls"
-    xmlns:servers="clr-namespace:Fantoche.App.Features.Servers"
     xmlns:settings="clr-namespace:Fantoche.App.Features.Settings"
     xmlns:storage="clr-namespace:Fantoche.App.Features.Storage"
     xmlns:system="clr-namespace:System;assembly=mscorlib"
+    xmlns:workers="clr-namespace:Fantoche.App.Features.Workers"
     xmlns:workflows="clr-namespace:Fantoche.App.Features.Workflows"
     xmlns:workflowsControls="clr-namespace:Fantoche.App.Features.Workflows.Controls"
     xmlns:workflowsDetailsControls="clr-namespace:Fantoche.App.Features.Workflows.Details.Controls"
@@ -67,8 +67,8 @@
                 <packagesControls:PackageSelectionOverlay />
             </DataTemplate>
 
-            <DataTemplate DataType="{x:Type servers:ServersViewModel}">
-                <servers:ServersPage />
+            <DataTemplate DataType="{x:Type workers:WorkersViewModel}">
+                <workers:WorkersPage />
             </DataTemplate>
 
             <DataTemplate DataType="{x:Type storage:StorageViewModel}">

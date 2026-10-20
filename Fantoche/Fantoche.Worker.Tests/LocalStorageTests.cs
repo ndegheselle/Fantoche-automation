@@ -1,5 +1,6 @@
 using System.Text;
 using Fantoche.Plugins.Shared;
+using Fantoche.Shared.Data.Execution;
 using Fantoche.Worker.Storage;
 
 namespace Fantoche.Worker.Tests;
@@ -8,14 +9,18 @@ namespace Fantoche.Worker.Tests;
 internal sealed class LocalStorageTests
 {
     private string _folder = null!;
+    private StorageFolder _storageFolder = null!;
     private LocalStorage _storage = null!;
 
     [SetUp]
     public void SetUp()
     {
         _folder = Path.Combine(Path.GetTempPath(), "fantoche-tests", Guid.NewGuid().ToString("N"));
-        _storage = new LocalStorage(_folder);
+        _storageFolder = new StorageFolder(_folder);
+        _storage = _storageFolder.For(NewRun());
     }
+
+    private static StorageOwner NewRun() => new(Guid.NewGuid(), Guid.NewGuid());
 
     [TearDown]
     public void TearDown()
@@ -73,10 +78,10 @@ internal sealed class LocalStorageTests
     }
 
     [Test]
-    public async Task Table_IsReadByAnotherStorageOnTheSameFolder()
+    public async Task Table_IsReadByAnotherRun()
     {
-        // Two storages on one folder : two machines sharing it.
-        LocalStorage other = new(_folder);
+        // Another run on the same folder : another machine sharing it as well.
+        LocalStorage other = _storageFolder.For(NewRun());
         TableRef source = await PeopleAsync();
 
         TableRef filtered = await other.CreateTableAsync($"SELECT name FROM {source.Id} WHERE amount > 15");
@@ -85,10 +90,11 @@ internal sealed class LocalStorageTests
         Assert.That(rows.Select(x => x["name"]), Is.EqualTo(new[] { "bob", "carol" }));
     }
 
-    [Test]
-    public async Task ReadRows_RefusesATableItDidNotName()
+    [TestCase("t_x; DROP TABLE y")]
+    [TestCase("t_00000000000000000000000000000001_00000000000000000000000000000002_../x")]
+    public async Task ReadRows_RefusesATableItDidNotName(string id)
     {
-        var table = new TableRef { Id = "t_x; DROP TABLE y" };
+        var table = new TableRef { Id = id };
 
         Assert.ThrowsAsync<ArgumentException>(async () => await ToListAsync(_storage.ReadRowsAsync(table)));
     }
@@ -116,5 +122,22 @@ internal sealed class LocalStorageTests
         var file = new FileRef { Id = Guid.NewGuid().ToString("N"), Name = name };
 
         Assert.ThrowsAsync<ArgumentException>(() => _storage.OpenFileAsync(file));
+    }
+
+    [Test]
+    public async Task Usage_CountsWhatARunSavedUnderItsTask()
+    {
+        StorageOwner run = NewRun();
+        await _storageFolder.For(run).SaveFileAsync("report.txt", new MemoryStream(new byte[100]));
+        await _storageFolder.For(run with { InstanceId = Guid.NewGuid() }).SaveFileAsync("report.txt", new MemoryStream(new byte[50]));
+
+        TaskStorageUsage usage = _storageFolder.MeasureUsage().Single();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(usage.TaskId, Is.EqualTo(run.TaskId));
+            Assert.That(usage.Runs, Is.EqualTo(2));
+            Assert.That(usage.Bytes, Is.EqualTo(150));
+        });
     }
 }

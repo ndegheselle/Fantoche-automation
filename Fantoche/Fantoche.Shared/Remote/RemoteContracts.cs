@@ -81,3 +81,21 @@ public interface IWorkerClient
 
     Task Cancel(Guid executionId);
 }
+
+/// <summary>
+/// An execution as the workers are supervised with.
+/// </summary>
+/// <param name="Name">The name of the task or workflow run.</param>
+public record ExecutionSummary(Guid InstanceId, Guid TaskId, string Name, DateTime CreatedAt);
+
+/// <summary>
+/// A worker connected to the supervisor, and the executions it is running : its queue, which never
+/// holds more than its capacity.
+/// </summary>
+public record WorkerInfo(string Id, int Capacity, IReadOnlyList<ExecutionSummary> Running);
+
+/// <summary>
+/// What the supervisor runs : its workers, and the executions waiting for one of them to have room,
+/// the oldest first.
+/// </summary>
+public record WorkersOverview(IReadOnlyList<WorkerInfo> Workers, IReadOnlyList<ExecutionSummary> Waiting);

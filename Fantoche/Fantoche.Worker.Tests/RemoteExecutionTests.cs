@@ -2,6 +2,7 @@ using Fantoche.Plugins;
 using Fantoche.Services.Remote;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Data.Scoped;
+using Fantoche.Shared.Remote;
 using Fantoche.Supervisor.Api;
 using Fantoche.Supervisor.Api.Execution;
 using Fantoche.Worker.Executor;
@@ -47,7 +48,7 @@ internal sealed class RemoteExecutionTests
         _http = new HttpClient { BaseAddress = _supervisorUrl };
         _scoped = new RemoteScopedService(_http);
         _history = new RemoteHistoryService(_http);
-        _workerExecutor = new LocalTaskExecutor(new TestPackageManagement(), new LocalStorage(Path.Combine(sharedFolder, "storage")));
+        _workerExecutor = new LocalTaskExecutor(new TestPackageManagement(), new StorageFolder(Path.Combine(sharedFolder, "storage")));
         _caller = new RemoteTaskExecutor(_supervisorUrl);
     }
 
@@ -75,7 +76,7 @@ internal sealed class RemoteExecutionTests
     private async Task WaitUntilRunningAsync()
     {
         Dispatcher dispatcher = _supervisor.Services.GetRequiredService<Dispatcher>();
-        while (dispatcher.GetWorkers().Sum(x => x.Running) == 0)
+        while (dispatcher.GetOverview().Workers.Sum(x => x.Running.Count) == 0)
             await Task.Delay(20);
     }
 
@@ -238,6 +239,27 @@ internal sealed class RemoteExecutionTests
         TaskInstance result = await execution;
 
         Assert.That(result.State, Is.EqualTo(EnumTaskState.Canceled));
+    }
+
+    [Test]
+    public async Task Supervisor_ListsTheTaskInTheQueueOfItsWorker()
+    {
+        await ConnectWorkerAsync();
+        AutomationTask delay = await StoreDelayAsync();
+        using CancellationTokenSource cancellation = new();
+
+        Task<TaskInstance> execution = _caller.ExecuteAsync(delay, InstanceOf(delay, new { DelayMs = 60_000 }), cancellation: cancellation.Token);
+        await WaitUntilRunningAsync();
+        WorkersOverview overview = await new RemoteWorkersService(_http).GetOverviewAsync();
+        await cancellation.CancelAsync();
+        await execution;
+
+        WorkerInfo worker = overview.Workers.Single();
+        Assert.Multiple(() =>
+        {
+            Assert.That(worker.Id, Is.EqualTo("test-worker"));
+            Assert.That(worker.Running.Select(x => x.Name), Is.EqualTo(new[] { "Delay" }));
+        });
     }
 
     [Test]

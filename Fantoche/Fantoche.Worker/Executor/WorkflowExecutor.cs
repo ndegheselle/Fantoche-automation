@@ -1,7 +1,7 @@
-﻿using Fantoche.Plugins.Shared;
-using Fantoche.Shared.Data.Execution;
+﻿using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Data.Graph;
 using Fantoche.Worker.Packages;
+using Fantoche.Worker.Storage;
 using Newtonsoft.Json.Linq;
 
 namespace Fantoche.Worker.Executor;
@@ -20,7 +20,7 @@ public class WorkflowExecutor
     private readonly ITaskExecutor _executor;
 
     /// <summary>A walk running every node in this process.</summary>
-    public WorkflowExecutor(IPackageManagement packageManagement, IStorage storage)
+    public WorkflowExecutor(IPackageManagement packageManagement, StorageFolder storage)
     {
         _executor = new LocalTaskExecutor(packageManagement, storage, this);
     }
@@ -131,6 +131,9 @@ public class WorkflowExecutor
         var instance = context.Resolution.CreateInstance(context.Node, parameters.Token, EnumTaskState.Progressing, context.Instance);
         // The shared context walks down the branch, whatever a share upstream fed it with.
         instance.Shared = context.Instance.Shared;
+        // Stored under the run of the workflow, which a nested workflow hands down to its own nodes :
+        // a run is measured whole, under where it started.
+        instance.StorageOwner = context.WorkflowInstance.EffectiveStorageOwner;
         progress?.StateChanges?.Report(instance);
         instance = await _executor.ExecuteAsync(
             context.Node.AutomationTask ?? throw new ExecutionException("Workflow tasks are not loaded (is the graph refreshed?)."),

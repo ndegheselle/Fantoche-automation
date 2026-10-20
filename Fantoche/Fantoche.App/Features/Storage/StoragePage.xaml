@@ -1,11 +1,152 @@
-<UserControl x:Class="Fantoche.App.Features.Storage.StoragePage"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             mc:Ignorable="d"
-             d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-        <TextBlock>Storage</TextBlock>
+<UserControl
+    x:Class="Fantoche.App.Features.Storage.StoragePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
+    xmlns:joolkit="clr-namespace:Joufflu.Toolkit;assembly=Joufflu"
+    xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
+    xmlns:local="clr-namespace:Fantoche.App.Features.Storage"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Padding="{StaticResource {x:Static joufflu:Dimensions.SpacingThickness}}"
+    d:DataContext="{d:DesignInstance Type=local:StorageViewModel}"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/Fantoche.App;component/Features/Workflows/Controls/ScopedIcon.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid Margin="{StaticResource {x:Static joufflu:Dimensions.TitleBarHeightOffset}}" joolkit:Spacing.Gap="4">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+
+        <DockPanel Grid.Row="0">
+            <Button
+                DockPanel.Dock="Right"
+                joolkit:Sizing.IsSquare="True"
+                joolkit:Sizing.Size="sm"
+                Command="{Binding RefreshCommand}"
+                Style="{StaticResource GhostButton}"
+                ToolTip="Refresh">
+                <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.RefreshCw}" />
+            </Button>
+            <TextBlock
+                VerticalAlignment="Center"
+                FontSize="16"
+                FontWeight="SemiBold">
+                Storage
+            </TextBlock>
+        </DockPanel>
+
+        <GroupBox Grid.Row="1" Header="Folder">
+            <Grid joolkit:Spacing.Gap="4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="120" />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition />
+                    <RowDefinition />
+                    <RowDefinition />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+
+                <TextBlock VerticalAlignment="Center" Style="{StaticResource Muted}">Path</TextBlock>
+                <!--  Read only rather than a text block : the path is copied to be opened elsewhere.  -->
+                <TextBox
+                    Grid.Column="1"
+                    IsReadOnly="True"
+                    Text="{Binding Folder, Mode=OneWay}" />
+
+                <TextBlock
+                    Grid.Row="1"
+                    VerticalAlignment="Center"
+                    Style="{StaticResource Muted}">
+                    Used by the storage
+                </TextBlock>
+                <TextBlock
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    Text="{Binding Used}" />
+
+                <TextBlock
+                    Grid.Row="2"
+                    VerticalAlignment="Center"
+                    Style="{StaticResource Muted}">
+                    Free on the disk
+                </TextBlock>
+                <TextBlock
+                    Grid.Row="2"
+                    Grid.Column="1"
+                    Text="{Binding Free}" />
+
+                <TextBlock
+                    Grid.Row="3"
+                    VerticalAlignment="Center"
+                    Style="{StaticResource Muted}">
+                    Size of the disk
+                </TextBlock>
+                <TextBlock
+                    Grid.Row="3"
+                    Grid.Column="1"
+                    Text="{Binding DiskSize}" />
+
+                <ProgressBar
+                    Grid.Row="4"
+                    Grid.Column="1"
+                    Height="6"
+                    Maximum="1"
+                    ToolTip="Part of the disk taken"
+                    Value="{Binding DiskShare, Mode=OneWay}" />
+            </Grid>
+        </GroupBox>
+
+        <GroupBox Grid.Row="2" Header="By workflow / task">
+            <DataGrid
+                joolkit:Sizing.Size="xs"
+                AutoGenerateColumns="False"
+                CanUserReorderColumns="False"
+                HeadersVisibility="Column"
+                IsReadOnly="True"
+                ItemsSource="{Binding Tasks}">
+                <DataGrid.Columns>
+                    <DataGridTemplateColumn Width="*" Header="Name">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate DataType="{x:Type local:StoredTaskItem}">
+                                <StackPanel joolkit:Spacing.Gap="4" Orientation="Horizontal">
+                                    <jonts:FontIcon
+                                        VerticalAlignment="Center"
+                                        DataContext="{Binding Metadata}"
+                                        Style="{StaticResource ScopedMetadataIcon}" />
+                                    <TextBlock VerticalAlignment="Center" Text="{Binding Name}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Binding="{Binding Runs}" Header="Runs" />
+                    <DataGridTextColumn Binding="{Binding Size}" Header="Size" />
+                    <DataGridTemplateColumn Width="120" Header="Share">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate DataType="{x:Type local:StoredTaskItem}">
+                                <ProgressBar
+                                    Height="6"
+                                    VerticalAlignment="Center"
+                                    Maximum="1"
+                                    Value="{Binding Share, Mode=OneWay}" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </GroupBox>
     </Grid>
 </UserControl>

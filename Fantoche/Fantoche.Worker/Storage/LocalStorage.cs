@@ -2,31 +2,34 @@ using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using DuckDB.NET.Data;
 using Fantoche.Plugins.Shared;
+using Fantoche.Shared.Data.Execution;
 
 namespace Fantoche.Worker.Storage;
 
 /// <summary>
-/// Storage in a folder, which may be shared between machines : every table is a Parquet file of its
-/// own, files are kept as they are. Tables are immutable, so a file never changes once written and
-/// several processes read the same folder without stepping on each other. Nothing is created until a
-/// task uses it.
+/// The storage as a task of a run sees it, in a <see cref="StorageFolder"/> which may be shared
+/// between machines : every table is a Parquet file of its own, files are kept as they are. Tables
+/// are immutable, so a file never changes once written and several processes read the same folder
+/// without stepping on each other. Nothing is created until a task uses it.
 /// <para>
-/// The handles a task is given come from its parameters, so their ids are checked before reaching
-/// a query or a path.
+/// What a task saves goes to the folder of its run, and its handle names that run : a task reads the
+/// tables and files of any run, the ones of the workflow it belongs to as well as the ones it was
+/// handed as parameters. Those handles come from its parameters, so their ids are checked before
+/// reaching a query or a path.
 /// </para>
 /// </summary>
 public sealed class LocalStorage : IStorage
 {
     private const string TablePrefix = "t_";
-    private static readonly Regex TableIds = new($@"\b{TablePrefix}[0-9a-f]{{32}}\b", RegexOptions.Compiled);
+    private static readonly Regex TableIds = new($@"\b{TablePrefix}[0-9a-f]{{32}}_[0-9a-f]{{32}}_[0-9a-f]{{32}}\b", RegexOptions.Compiled);
 
-    private readonly string _tablesFolder;
-    private readonly string _filesFolder;
+    private readonly StorageFolder _folder;
+    private readonly StorageOwner _owner;
 
-    public LocalStorage(string folder)
+    public LocalStorage(StorageFolder folder, StorageOwner owner)
     {
-        _tablesFolder = Path.Combine(folder, "tables");
-        _filesFolder = Path.Combine(folder, "files");
+        _folder = folder;
+        _owner = owner;
     }
 
     #region Tables
@@ -34,11 +37,11 @@ public sealed class LocalStorage : IStorage
     public async Task<TableRef> CreateTableAsync(string query, IReadOnlyDictionary<string, object?>? parameters = null,
         CancellationToken cancellation = default)
     {
-        string id = $"{TablePrefix}{Guid.NewGuid():N}";
+        string id = $"{TablePrefix}{HandleId(_owner, Guid.NewGuid())}";
         string path = PathOf(id);
         // Written under another name first, so a reader never finds a table half written.
         string partialPath = $"{path}.partial";
-        Directory.CreateDirectory(_tablesFolder);
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
 
         using DuckDBConnection connection = await OpenAsync(query, cancellation);
         using (DuckDBCommand command = connection.CreateCommand())
@@ -119,7 +122,15 @@ public sealed class LocalStorage : IStorage
         return connection;
     }
 
-    private string PathOf(string tableId) => Path.Combine(_tablesFolder, $"{tableId}.parquet");
+    /// <summary>
+    /// Where the table [tableId] is stored, which only a table this storage named has.
+    /// </summary>
+    private string PathOf(string tableId)
+    {
+        if (!tableId.StartsWith(TablePrefix) || !TryParseHandleId(tableId[TablePrefix.Length..], out var owner, out Guid table))
+            throw new ArgumentException($"[{tableId}] is not a table of the storage.");
+        return Path.Combine(_folder.PathOf(owner), "tables", $"{table:N}.parquet");
+    }
 
     private static string Literal(string path) => $"'{path.Replace("'", "''")}'";
 
@@ -128,7 +139,7 @@ public sealed class LocalStorage : IStorage
     /// </summary>
     private static string Identifier(TableRef table)
     {
-        if (!table.Id.StartsWith(TablePrefix) || !Guid.TryParseExact(table.Id[TablePrefix.Length..], "N", out _))
+        if (!table.Id.StartsWith(TablePrefix) || !TryParseHandleId(table.Id[TablePrefix.Length..], out _, out _))
             throw new ArgumentException($"[{table.Id}] is not a table of the storage.", nameof(table));
         return table.Id;
     }
@@ -139,7 +150,7 @@ public sealed class LocalStorage : IStorage
 
     public async Task<FileRef> SaveFileAsync(string name, Stream content, CancellationToken cancellation = default)
     {
-        var file = new FileRef { Id = Guid.NewGuid().ToString("N"), Name = name };
+        var file = new FileRef { Id = HandleId(_owner, Guid.NewGuid()), Name = name };
         string path = PathOf(file);
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
 
@@ -156,12 +167,34 @@ public sealed class LocalStorage : IStorage
     /// </summary>
     private string PathOf(FileRef file)
     {
-        if (!Guid.TryParseExact(file.Id, "N", out _))
+        if (!TryParseHandleId(file.Id, out var owner, out Guid id))
             throw new ArgumentException($"[{file.Id}] is not a file of the storage.", nameof(file));
         if (string.IsNullOrWhiteSpace(file.Name) || file.Name != Path.GetFileName(file.Name) || file.Name is "." or "..")
             throw new ArgumentException($"[{file.Name}] is not a valid file name.", nameof(file));
-        return Path.Combine(_filesFolder, file.Id, file.Name);
+        return Path.Combine(_folder.PathOf(owner), "files", $"{id:N}", file.Name);
     }
 
     #endregion
+
+    /// <summary>
+    /// The id of a handle : the run holding the item, then the item, as "{task}_{instance}_{item}".
+    /// </summary>
+    private static string HandleId(StorageOwner owner, Guid item) => $"{owner.TaskId:N}_{owner.InstanceId:N}_{item:N}";
+
+    private static bool TryParseHandleId(string id, out StorageOwner owner, out Guid item)
+    {
+        owner = new StorageOwner(Guid.Empty, Guid.Empty);
+        item = Guid.Empty;
+
+        string[] parts = id.Split('_');
+        if (parts.Length != 3)
+            return false;
+        if (!Guid.TryParseExact(parts[0], "N", out Guid taskId) || !Guid.TryParseExact(parts[1], "N", out Guid instanceId))
+            return false;
+        if (!Guid.TryParseExact(parts[2], "N", out item))
+            return false;
+
+        owner = new StorageOwner(taskId, instanceId);
+        return true;
+    }
 }

@@ -33,6 +33,20 @@ namespace Fantoche.Shared.Data.Execution
         public string NodeName { get; set; } = string.Empty;
 
         /// <summary>
+        /// The run the files and tables of the instance are kept under : the outermost workflow run
+        /// holding it, set by the workflow creating the instance. Null for a run of its own. Travels
+        /// with the instance while it runs (to a worker and back), not kept in the history.
+        /// </summary>
+        public StorageOwner? StorageOwner { get; set; }
+
+        /// <summary>
+        /// <see cref="StorageOwner"/>, the instance itself when it runs on its own.
+        /// </summary>
+        [JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
+        public StorageOwner EffectiveStorageOwner => StorageOwner ?? new StorageOwner(TaskId, Id);
+
+        /// <summary>
         /// The state of the shared context then reaching this instance.
         /// </summary>
         public JToken? Shared { get; set; }

@@ -37,6 +37,7 @@ The mode, the supervisor and the shared folder are applied when the application 
 - Supervisor : `DATA_FOLDER` (its database, the cache of the packages) and `SHARED_FOLDER`.
 - Worker : `SUPERVISOR_URL`, `WORKER_ID`, `WORKER_CAPACITY` (executions run at once), `DATA_FOLDER` (the cache of the packages) and `SHARED_FOLDER`.
 - The shared folder holds the `nuget` packages and the `storage` (tables and files). The supervisor, the workers and the application all reach it : everything flows between tasks through their parameters or the storage. Tasks writing the same data at once is for the workflow to avoid.
+- The storage keeps what a run saved under `{workflow or task id}/{instance id}`, the nodes of a workflow (nested workflows included) under the run of the workflow. The Storage page of the application shows what each workflow or task takes.
 
 The supervisor has no authentication yet.
 
@@ -58,7 +59,7 @@ The supervisor has no authentication yet.
 - handle read and write tasks in the interface
 - Supervisor
 
-- Display workers list and allow supervision
+- Allow supervising the workers from their page (it only lists them and their queue)
 - Workflow validation with potential errors prompting (infinite loop. dead branches, ...)
 
 # ToThink

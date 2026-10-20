@@ -64,6 +64,7 @@ public class RemoteExecution
             NodeId = Instance.NodeId,
             ParentInstanceId = Instance.ParentInstanceId,
             NodeName = Instance.NodeName,
+            StorageOwner = Instance.StorageOwner,
             Parameters = Instance.Parameters,
             CreatedAt = Instance.CreatedAt,
             State = Instance.State,

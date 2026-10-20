@@ -48,7 +48,7 @@ public static class SupervisorApp
 
         app.MapHub<CallerHub>($"/{SupervisorRoutes.Callers}");
         app.MapHub<WorkerHub>($"/{SupervisorRoutes.Workers}");
-        app.MapGet("/workers", (Dispatcher dispatcher) => dispatcher.GetWorkers());
+        app.MapGet("/workers", (Dispatcher dispatcher) => dispatcher.GetOverview());
 
         return app;
     }

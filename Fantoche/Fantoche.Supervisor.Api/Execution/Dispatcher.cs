@@ -9,8 +9,6 @@ using Newtonsoft.Json.Linq;
 
 namespace Fantoche.Supervisor.Api.Execution;
 
-public record WorkerInfo(string Id, int Capacity, int Running);
-
 /// <summary>
 /// Hand the executions of the callers to the workers : the task is read from the database, the
 /// states the workers report are stored in the history, and the outcome is sent back to the caller.
@@ -58,10 +56,33 @@ public class Dispatcher
         _workers = workers;
     }
 
-    public IReadOnlyList<WorkerInfo> GetWorkers()
+    public WorkersOverview GetOverview()
     {
         lock (_lock)
-            return [.. _workersByConnection.Values.Select(x => new WorkerInfo(x.Id, x.Capacity, x.Running.Count))];
+        {
+            // Left out once dropped : a canceled execution stays queued until it is dequeued, and on
+            // its worker until the worker reports it stopped.
+            List<WorkerInfo> workers = [];
+            foreach (Worker worker in _workersByConnection.Values.OrderBy(x => x.Id))
+            {
+                List<ExecutionSummary> running = [.. worker.Running
+                    .Where(_executions.ContainsKey)
+                    .Select(x => SummaryOf(_executions[x]))];
+                workers.Add(new WorkerInfo(worker.Id, worker.Capacity, running));
+            }
+
+            List<ExecutionSummary> waiting = [.. _queue
+                .Where(_executions.ContainsKey)
+                .Select(x => SummaryOf(_executions[x]))];
+
+            return new WorkersOverview(workers, waiting);
+        }
+    }
+
+    private static ExecutionSummary SummaryOf(Execution execution)
+    {
+        TaskInstance instance = execution.Request.Instance;
+        return new ExecutionSummary(instance.Id, instance.TaskId, execution.Request.Task.Metadata.Name, instance.CreatedAt);
     }
 
     #region Callers

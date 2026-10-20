@@ -15,6 +15,8 @@ public class ExecutionService : IExecutionService
     private class RunningExecution
     {
         public required TaskInstance Instance { get; init; }
+        /// <summary>Run in this process rather than handed to a worker.</summary>
+        public required bool IsLocal { get; init; }
         public required CancellationTokenSource Cancellation { get; init; }
         public required TaskCompletionSource<TaskInstance> Completion { get; init; }
     }
@@ -64,6 +66,9 @@ public class ExecutionService : IExecutionService
         var running = new RunningExecution()
         {
             Instance = instance,
+            // Where the executor sends it. A workflow walked here is local, its nodes running on a
+            // worker being in the queue of their worker.
+            IsLocal = task.Settings.Execution == EnumExecutionMode.Local,
             Cancellation = new CancellationTokenSource(),
             Completion = new TaskCompletionSource<TaskInstance>(TaskCreationOptions.RunContinuationsAsynchronously),
         };
@@ -92,9 +97,10 @@ public class ExecutionService : IExecutionService
         return Task.CompletedTask;
     }
 
-    public IReadOnlyCollection<TaskInstance> GetRunning()
+    public IReadOnlyCollection<TaskInstance> GetRunningLocally()
     {
         return _running.Values
+            .Where(x => x.IsLocal)
             .Select(x => x.Instance)
             .OrderByDescending(x => x.CreatedAt)
             .ToList();
