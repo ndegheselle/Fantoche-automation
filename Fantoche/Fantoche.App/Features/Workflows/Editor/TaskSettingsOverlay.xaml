@@ -24,10 +24,8 @@
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
-        <!--  The package and class the node's task runs, when it has one  -->
         <packages:PackageTargetSummary DataContext="{Binding Target}" Visibility="{Binding DataContext.HasTarget, ElementName=RootElement, Converter={x:Static jonverters:VisibilityConverter.Default}}" />
 
-        <!--  What the node reads, what it maps, and what comes out of it  -->
         <Grid Grid.Row="1" joolkit:Spacing.Gap="4">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
@@ -45,9 +43,8 @@
             <TextBlock
                 Grid.Column="1"
                 Style="{StaticResource Muted}"
-                Text="{Binding MappingLabel}" />
+                Text="{Binding Texts.MappingLabel}" />
 
-            <!--  Filled in against the schema of the task, built from scratch everywhere else  -->
             <data:DataFill
                 Grid.Row="1"
                 Grid.Column="1"
@@ -61,16 +58,10 @@
                 Node="{Binding Mapping, Mode=OneWay}"
                 Visibility="{Binding IsFilled, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}" />
 
-            <!--
-                The shape the mapping has to produce, which is what the reader needs in front of them
-                while writing one. Deduced from the expected object on the start and the end, the
-                boundary of the workflow being what a caller reads it by ; read from the task
-                everywhere else.
-            -->
             <TextBlock
                 Grid.Column="2"
                 Style="{StaticResource Muted}"
-                Text="{Binding ExpectedLabel}" />
+                Text="{Binding Texts.ExpectedLabel}" />
             <data:DataDisplay
                 Grid.Row="1"
                 Grid.Column="2"
@@ -79,17 +70,12 @@
                 Grid.Row="1"
                 Grid.Column="2"
                 Style="{StaticResource Muted}"
-                Text="{Binding EmptyExpectationText}"
+                Text="{Binding Texts.EmptyExpectation}"
                 TextWrapping="Wrap"
                 Visibility="{Binding ExpectedNode, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}" />
         </Grid>
 
-        <!--  Errors, the validation being blocked while there is any  -->
         <StackPanel Grid.Row="2" joolkit:Spacing.Gap="4">
-            <!--
-                Without a context the mapping is edited blind : nothing walked the graph, so a
-                reference has nothing to be resolved against and nothing can be said about it.
-            -->
             <StackPanel Orientation="Horizontal" Visibility="{Binding IsContextMissing, Converter={x:Static jonverters:VisibilityConverter.Default}}">
                 <jonts:FontIcon Foreground="{DynamicResource {x:Static joufflu:Brushes.WarningBrush}}" Text="{x:Static jonts:LucideFontIcons.AlertTriangle}" />
                 <TextBlock
@@ -104,7 +90,6 @@
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
                             <jonts:FontIcon Foreground="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}" Text="{x:Static jonts:LucideFontIcons.AlertCircle}" />
-                            <!--  The branch it is wrong on, when the node is reached more than one way  -->
                             <TextBlock
                                 Margin="4,0,0,0"
                                 FontFamily="Consolas"
