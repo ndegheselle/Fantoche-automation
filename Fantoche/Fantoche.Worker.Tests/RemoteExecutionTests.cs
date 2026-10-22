@@ -39,7 +39,6 @@ internal sealed class RemoteExecutionTests
         _supervisor = SupervisorApp.Build([
             "--urls", "http://127.0.0.1:0",
             $"--DATA_FOLDER={Path.Combine(_folder, "supervisor")}",
-            $"--SHARED_FOLDER={sharedFolder}",
             "--Logging:LogLevel:Default=Warning"]);
         await _supervisor.StartAsync();
         _supervisorUrl = new Uri($"{_supervisor.Urls.First()}/");

@@ -7,14 +7,12 @@ services:
       dockerfile: Fantoche.Supervisor.Api/Dockerfile
     environment:
       - DATA_FOLDER=/app/data
-      - SHARED_FOLDER=/app/shared
     ports:
       - "8080:8080"
       - "8081:8081"
     volumes:
+      # The database and the packages, served to the workers and the applications.
       - ./volumes/supervisor:/app/data
-      # The packages and the storage, shared with the workers and the applications.
-      - ./volumes/shared:/app/shared
 
   Fantoche.worker.service:
     image: ${DOCKER_REGISTRY-}automationworkerservice
@@ -29,4 +27,5 @@ services:
       - DATA_FOLDER=/app/data
       - SHARED_FOLDER=/app/shared
     volumes:
+      # The storage, shared with the other workers and the applications.
       - ./volumes/shared:/app/shared

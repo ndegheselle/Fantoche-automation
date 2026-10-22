@@ -5,7 +5,7 @@ using Fantoche.Shared.Services;
 namespace Fantoche.Services.Remote;
 
 /// <summary>
-/// The packages kept by the supervisor, in the folder it shares with the workers.
+/// The packages kept by the supervisor, which the workers download from it.
 /// </summary>
 public class RemotePackagesService : IPackagesService
 {

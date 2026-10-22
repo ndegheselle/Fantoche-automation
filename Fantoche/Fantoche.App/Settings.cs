@@ -36,8 +36,8 @@ namespace Fantoche.App
         public string SupervisorUrl { get; set; } = "http://localhost:8080/";
 
         /// <summary>
-        /// The folder shared with the supervisor and the workers (its "nuget" packages and its
-        /// "storage"), which the tasks run in the application read and write as well.
+        /// The folder holding the "storage" shared with the workers, which the tasks run in the
+        /// application read and write as well.
         /// </summary>
         public string SharedFolder { get; set; } = "";
 

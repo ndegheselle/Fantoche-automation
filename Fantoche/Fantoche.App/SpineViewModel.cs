@@ -116,8 +116,8 @@ public class SpineViewModel : ObservableObject
     }
 
     /// <summary>
-    /// The data kept by the supervisor. The tasks run in the application read the packages and the
-    /// storage the workers do, from the shared folder.
+    /// The data kept by the supervisor. The tasks run in the application download their packages from
+    /// it, and read the storage the workers do from the shared folder.
     /// </summary>
     private AppServices CreateSupervisorServices()
     {
@@ -127,7 +127,7 @@ public class SpineViewModel : ObservableObject
         var history = new RemoteHistoryService(http);
         var packages = new RemotePackagesService(http);
         var scoped = new RemoteScopedService(http);
-        var packageManagement = new PackageCache(new PackageFolder(Path.Combine(Settings.SharedFolder, "nuget")), Path.Join(Settings.LocalFolderPath, "cache"));
+        var packageManagement = new PackageCache(new SupervisorPackageSource(http), Path.Join(Settings.LocalFolderPath, "cache"));
         var storage = new LocalStorage(Path.Combine(Settings.SharedFolder, "storage"));
         var executor = new MixedTaskExecutor(packageManagement, storage, new RemoteTaskExecutor(supervisor));
 

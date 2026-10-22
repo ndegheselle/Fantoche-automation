@@ -40,13 +40,4 @@ internal sealed class PackageCacheTests
         });
     }
 
-    [Test]
-    public async Task Add_RefusesAVersionAlreadyAdded()
-    {
-        string upload = Path.Combine(_folder, "upload");
-        await _packages.AddAsync(TestNupkg.Write(upload, "Tests.Package", "1.0.0"));
-
-        // The caches would keep the assemblies of the first one.
-        await Assert.ThrowsAsync<InvalidOperationException>(() => _packages.AddAsync(TestNupkg.Write(upload, "Tests.Package", "1.0.0")));
-    }
 }

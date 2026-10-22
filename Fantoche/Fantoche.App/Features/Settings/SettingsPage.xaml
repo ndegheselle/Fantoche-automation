@@ -83,7 +83,7 @@
                         Grid.Row="1"
                         VerticalAlignment="Center"
                         Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}">
-                        Shared folder
+                        Shared storage folder
                     </TextBlock>
                     <TextBox
                         Grid.Row="1"
