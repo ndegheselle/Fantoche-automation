@@ -96,7 +96,7 @@ internal sealed class LocalStorageTests
     {
         var table = new TableRef { Id = id };
 
-        Assert.ThrowsAsync<ArgumentException>(async () => await ToListAsync(_storage.ReadRowsAsync(table)));
+        await Assert.ThrowsAsync<ArgumentException>(async () => await ToListAsync(_storage.ReadRowsAsync(table)));
     }
 
     [Test]
@@ -117,11 +117,13 @@ internal sealed class LocalStorageTests
     [TestCase("../outside.txt")]
     [TestCase("..")]
     [TestCase("")]
-    public void OpenFile_RefusesANameLeavingItsFolder(string name)
+    public async Task OpenFile_RefusesANameLeavingItsFolder(string name)
     {
-        var file = new FileRef { Id = Guid.NewGuid().ToString("N"), Name = name };
+        // The id of a stored file, so only the name can be refused.
+        FileRef saved = await _storage.SaveFileAsync("report.txt", new MemoryStream());
+        var file = new FileRef { Id = saved.Id, Name = name };
 
-        Assert.ThrowsAsync<ArgumentException>(() => _storage.OpenFileAsync(file));
+        await Assert.ThrowsAsync<ArgumentException>(() => _storage.OpenFileAsync(file));
     }
 
     [Test]
