@@ -31,7 +31,7 @@
 
                     <TextBlock
                         Margin="0,8,0,0"
-                        Style="{StaticResource Muted}"
+                        Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}"
                         Text="The input and the output of the workflow are edited on the start and the end of its graph, from the editor tab."
                         TextWrapping="Wrap" />
                 </StackPanel>

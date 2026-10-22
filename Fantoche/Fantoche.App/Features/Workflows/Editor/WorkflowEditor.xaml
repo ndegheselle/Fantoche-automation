@@ -247,6 +247,7 @@
                     <DataTemplate DataType="{x:Type viewModels:NodeViewModel}">
                         <nodify:Node
                             Footer="{Binding}"
+                            Foreground="{DynamicResource {x:Static joufflu:Brushes.Foreground100Brush}}"
                             Input="{Binding Inputs}"
                             Output="{Binding Outputs}">
                             <!--
@@ -303,6 +304,7 @@
                                 <DataTemplate DataType="{x:Type viewModels:ConnectorViewModel}">
                                     <nodify:NodeInput
                                         Anchor="{Binding Anchor, Mode=OneWayToSource}"
+                                        Background="Transparent"
                                         Header="{Binding Name}"
                                         IsConnected="{Binding IsConnected}"
                                         IsEnabled="{Binding DataContext.IsEditable, RelativeSource={RelativeSource AncestorType={x:Type nodify:NodifyEditor}}}" />
@@ -312,6 +314,7 @@
                                 <DataTemplate DataType="{x:Type viewModels:ConnectorViewModel}">
                                     <nodify:NodeOutput
                                         Anchor="{Binding Anchor, Mode=OneWayToSource}"
+                                        Background="Transparent"
                                         Header="{Binding Name}"
                                         IsConnected="{Binding IsConnected}"
                                         IsEnabled="{Binding DataContext.IsEditable, RelativeSource={RelativeSource AncestorType={x:Type nodify:NodifyEditor}}}" />

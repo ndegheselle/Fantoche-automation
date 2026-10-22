@@ -15,6 +15,7 @@ namespace Fantoche.App
             AppDomain.CurrentDomain.UnhandledException += CurrentDomainUnhandledException;
 
             shell = SpineViewModel.Instance;
+            Resources.MergedDictionaries.Add(shell.ViewTemplates);
 
             // Restored before the first window shows, so it opens with the right theme.
             ThemeManager.Instance.Theme = shell.Settings.Theme;

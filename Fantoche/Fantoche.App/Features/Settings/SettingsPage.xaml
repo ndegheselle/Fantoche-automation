@@ -15,7 +15,7 @@
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
-    <Grid Margin="{StaticResource {x:Static joufflu:Dimensions.TitleBarHeightOffset}}" joolkit:Spacing.Gap="4">
+    <Grid joolkit:Spacing.Gap="4">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
@@ -30,7 +30,7 @@
                     <ColumnDefinition Width="120" />
                     <ColumnDefinition />
                 </Grid.ColumnDefinitions>
-                <TextBlock VerticalAlignment="Center" Style="{StaticResource Muted}">
+                <TextBlock VerticalAlignment="Center" Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}">
                     Theme
                 </TextBlock>
                 <ComboBox
@@ -56,7 +56,8 @@
                         Grid.Row="1"
                         Grid.Column="1"
                         FontSize="11"
-                        Style="{StaticResource Muted}">
+                        Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}"
+                        TextWrapping="Wrap">
                         Applied when the application starts again.
                     </TextBlock>
                 </Grid>
@@ -72,7 +73,7 @@
                         <RowDefinition />
                     </Grid.RowDefinitions>
 
-                    <TextBlock VerticalAlignment="Center" Style="{StaticResource Muted}">
+                    <TextBlock VerticalAlignment="Center" Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}">
                         Supervisor address
                     </TextBlock>
                     <TextBox Grid.Column="1" Text="{Binding SupervisorUrl, UpdateSourceTrigger=PropertyChanged}" />
@@ -81,7 +82,7 @@
                     <TextBlock
                         Grid.Row="1"
                         VerticalAlignment="Center"
-                        Style="{StaticResource Muted}">
+                        Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}">
                         Shared folder
                     </TextBlock>
                     <TextBox

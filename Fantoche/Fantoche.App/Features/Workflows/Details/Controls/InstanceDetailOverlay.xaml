@@ -57,10 +57,10 @@
 
                 <TextBlock FontWeight="Bold" Text="{Binding Instance.NodeName}" />
                 <StackPanel Grid.Row="1" Grid.ColumnSpan="2" joolkit:Spacing.Gap="8" Orientation="Horizontal">
-                    <TextBlock Style="{StaticResource Muted}" Text="{Binding Instance.CreatedAt}" />
+                    <TextBlock Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}" Text="{Binding Instance.CreatedAt}" />
                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.ArrowRight}" />
-                    <TextBlock Style="{StaticResource Muted}" Text="{Binding Instance.FinishedAt}" />
-                    <TextBlock Style="{StaticResource Muted}" Text="{Binding Duration}" />
+                    <TextBlock Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}" Text="{Binding Instance.FinishedAt}" />
+                    <TextBlock Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}" Text="{Binding Duration}" />
                 </StackPanel>
 
                 <jeedback:Badge
@@ -83,7 +83,7 @@
                 <RowDefinition />
             </Grid.RowDefinitions>
 
-            <TextBlock Style="{StaticResource Muted}" Text="Parameters" />
+            <TextBlock Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}" Text="Parameters" />
             <TextBox
                 Grid.Row="1"
                 Height="140"
@@ -92,7 +92,7 @@
 
             <TextBlock
                 Grid.Column="1"
-                Style="{StaticResource Muted}"
+                Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}"
                 Text="Output" />
             <TextBox
                 Grid.Row="1"
@@ -112,7 +112,7 @@
                 <RowDefinition />
             </Grid.RowDefinitions>
 
-            <TextBlock Style="{StaticResource Muted}" Text="Executed nodes" />
+            <TextBlock Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}" Text="Executed nodes" />
             <DataGrid
                 joolkit:Sizing.Size="xs"
                 Grid.Row="1"
