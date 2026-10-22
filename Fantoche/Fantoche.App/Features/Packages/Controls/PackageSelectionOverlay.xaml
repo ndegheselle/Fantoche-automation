@@ -73,7 +73,7 @@
 
             <controls:PackageSummary DataContext="{Binding SelectedPackage}" />
 
-            <TextBlock Grid.Row="1" Style="{StaticResource Lead}">Version</TextBlock>
+            <TextBlock Grid.Row="1" joolkit:Sizing.Size="lg">Version</TextBlock>
             <ComboBox
                 Grid.Row="2"
                 ItemsSource="{Binding Versions}"

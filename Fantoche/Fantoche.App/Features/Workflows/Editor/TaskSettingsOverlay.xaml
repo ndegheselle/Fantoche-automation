@@ -37,12 +37,12 @@
                 <RowDefinition Height="300" />
             </Grid.RowDefinitions>
 
-            <TextBlock Style="{StaticResource Muted}" Text="Available (force a field to reference one)" />
+            <TextBlock Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}" Text="Available (force a field to reference one)" />
             <data:DataDisplay Grid.Row="1" Node="{Binding Context, Mode=OneWay}" />
 
             <TextBlock
                 Grid.Column="1"
-                Style="{StaticResource Muted}"
+                Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}"
                 Text="{Binding Texts.MappingLabel}" />
 
             <data:DataFill
@@ -60,7 +60,7 @@
 
             <TextBlock
                 Grid.Column="2"
-                Style="{StaticResource Muted}"
+                Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}"
                 Text="{Binding Texts.ExpectedLabel}" />
             <data:DataDisplay
                 Grid.Row="1"
@@ -69,7 +69,7 @@
             <TextBlock
                 Grid.Row="1"
                 Grid.Column="2"
-                Style="{StaticResource Muted}"
+                Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}"
                 Text="{Binding Texts.EmptyExpectation}"
                 TextWrapping="Wrap"
                 Visibility="{Binding ExpectedNode, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}" />
@@ -93,7 +93,7 @@
                             <TextBlock
                                 Margin="4,0,0,0"
                                 FontFamily="Consolas"
-                                Style="{StaticResource Muted}"
+                                Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}"
                                 Text="{Binding Branch, StringFormat='from {0}'}"
                                 Visibility="{Binding HasBranch, Converter={x:Static jonverters:VisibilityConverter.Default}}" />
                             <TextBlock

@@ -1,12 +1,17 @@
 ﻿using System.IO;
 using System.Net.Http;
+using System.Windows;
 using Fantoche.App.Common;
 using Fantoche.App.Features.Home;
 using Fantoche.App.Features.Packages;
+using Fantoche.App.Features.Packages.Controls;
 using Fantoche.App.Features.Settings;
 using Fantoche.App.Features.Storage;
 using Fantoche.App.Features.Workers;
 using Fantoche.App.Features.Workflows;
+using Fantoche.App.Features.Workflows.Controls;
+using Fantoche.App.Features.Workflows.Details.Controls;
+using Fantoche.App.Features.Workflows.Editor;
 using Fantoche.Services.Local;
 using Fantoche.Services.Local.Database;
 using Fantoche.Services.Remote;
@@ -51,23 +56,39 @@ public class SpineViewModel : ObservableObject
 
     public IRelayCommand OpenSettingsCommand { get; }
 
-    private readonly Dictionary<Type, object> _pages;
+    /// <summary>
+    /// The view drawing each registered view model, merged into the application resources so a page
+    /// or an overlay is drawn wherever it is shown.
+    /// </summary>
+    public ResourceDictionary ViewTemplates { get; } = new();
+
+    /// <summary>How to build each page, keyed by its type, which is what the menu items target.</summary>
+    private readonly Dictionary<Type, Func<object>> _factories = new();
+
+    /// <summary>Built the first time they are navigated to, then kept so a page keeps its state.</summary>
+    private readonly Dictionary<Type, object> _pages = new();
 
     private SpineViewModel()
     {
         Services = Settings.IsStandalone ? CreateStandaloneServices() : CreateSupervisorServices();
 
-        _pages = new object[]
-        {
-            new HomeViewModel(),
-            new WorkflowsViewModel(Services),
-            new PackagesViewModel(Packages, Overlayer, Toasts),
-            new WorkersViewModel(Execution, Services.Workers),
-            new StorageViewModel(Services.Storage, Scoped),
-            new SettingsViewModel(Settings, Toasts),
-        }.ToDictionary(x => x.GetType());
+        Register<HomeViewModel, HomePage>(() => new());
+        Register<SettingsViewModel, SettingsPage>(() => new(Settings, Toasts));
 
-        Navigator = new Navigator(Resolve);
+        Register<WorkflowsViewModel, WorkflowsPage>(() => new(Services));
+        RegisterView<TaskSelectionViewModel, TaskSelectionOverlay>();
+        RegisterView<TaskSettingsViewModel, TaskSettingsOverlay>();
+        RegisterView<StartSettingsViewModel, StartSettingsOverlay>();
+        RegisterView<InstanceDetailViewModel, InstanceDetailOverlay>();
+
+        Register<PackagesViewModel, PackagesPage>(() => new(Packages, Overlayer, Toasts));
+        RegisterView<PackageViewModel, PackageOverlay>();
+        RegisterView<PackageSelectionViewModel, PackageSelectionOverlay>();
+
+        Register<WorkersViewModel, WorkersPage>(() => new(Execution, Services.Workers));
+        Register<StorageViewModel, StoragePage>(() => new(Services.Storage, Scoped));
+
+        Navigator = new Navigator(ResolvePage);
         OpenSettingsCommand = new RelayCommand(() => Navigator.Navigate(typeof(SettingsViewModel)));
         // Land on a page at startup.
         Navigator.Navigate(typeof(HomeViewModel));
@@ -116,5 +137,35 @@ public class SpineViewModel : ObservableObject
         return new AppServices(scoped, new ExecutionService(scoped, history, executor), history, packages, storage, new RemoteWorkersService(http), Overlayer, Toasts);
     }
 
-    private object? Resolve(Type target) => _pages.GetValueOrDefault(target);
+    /// <summary>Registers a page view model along with the view drawing it.</summary>
+    private void Register<TViewModel, TView>(Func<TViewModel> create)
+        where TViewModel : notnull
+        where TView : FrameworkElement, new()
+    {
+        _factories[typeof(TViewModel)] = () => create();
+        RegisterView<TViewModel, TView>();
+    }
+
+    /// <summary>Draws every <typeparamref name="TViewModel"/> with a new <typeparamref name="TView"/>.</summary>
+    private void RegisterView<TViewModel, TView>() where TView : FrameworkElement, new()
+    {
+        var template = new DataTemplate(typeof(TViewModel))
+        {
+            VisualTree = new FrameworkElementFactory(typeof(TView)),
+        };
+        ViewTemplates.Add(template.DataTemplateKey, template);
+    }
+
+    private object ResolvePage(Type target)
+    {
+        if (_pages.TryGetValue(target, out object? page))
+            return page;
+
+        if (!_factories.TryGetValue(target, out Func<object>? create))
+            throw new InvalidOperationException($"No page registered for {target.Name}.");
+
+        page = create();
+        _pages[target] = page;
+        return page;
+    }
 }

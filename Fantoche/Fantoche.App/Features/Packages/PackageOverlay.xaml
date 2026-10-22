@@ -24,7 +24,7 @@
 
         <controls:PackageSummary DataContext="{Binding Package}" />
 
-        <TextBlock Grid.Row="1" Style="{StaticResource Lead}">Versions</TextBlock>
+        <TextBlock Grid.Row="1" joolkit:Sizing.Size="lg">Versions</TextBlock>
         <DataGrid
             Grid.Row="2"
             AutoGenerateColumns="False"
@@ -52,7 +52,7 @@
             </DataGrid.Columns>
         </DataGrid>
 
-        <TextBlock Grid.Row="3" Style="{StaticResource Lead}">Classes</TextBlock>
+        <TextBlock Grid.Row="3" joolkit:Sizing.Size="lg">Classes</TextBlock>
         <DataGrid
             Grid.Row="4"
             AutoGenerateColumns="False"

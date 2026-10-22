@@ -21,7 +21,7 @@
                 <RowDefinition />
             </Grid.RowDefinitions>
             <StackPanel Orientation="Horizontal">
-                <TextBlock VerticalAlignment="Center" Style="{StaticResource Lead}" Text="{Binding Identifier.Id}" />
+                <TextBlock VerticalAlignment="Center" joolkit:Sizing.Size="lg" Text="{Binding Identifier.Id}" />
                 <feedback:Badge Margin="4,0,0,0" Content="{Binding Identifier.Version}" />
             </StackPanel>
 
