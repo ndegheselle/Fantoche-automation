@@ -107,7 +107,7 @@ public class SpineViewModel : ObservableObject
         var packages = new LocalPackagesService(Settings.PackagesFolderPath, Path.Join(Settings.LocalFolderPath, "cache"));
         var scoped = new LocalScopedService(databaseFactory);
         var storage = new LocalStorage(Path.Combine(Settings.LocalFolderPath, "storage"));
-        var executor = new MixedTaskExecutor(packages.PackageManagement, storage, remote: null);
+        var executor = new MixedTaskExecutor(packages.Cache, storage, remote: null);
 
         // Take the cost of opening the database off the first navigation.
         _ = Task.Run(() => DatabaseFactory.WarmUpDatabase(databaseFactory));
@@ -127,7 +127,7 @@ public class SpineViewModel : ObservableObject
         var history = new RemoteHistoryService(http);
         var packages = new RemotePackagesService(http);
         var scoped = new RemoteScopedService(http);
-        var packageManagement = new LocalPackageManagement(Path.Combine(Settings.SharedFolder, "nuget"), Path.Join(Settings.LocalFolderPath, "cache"));
+        var packageManagement = new PackageCache(new PackageFolder(Path.Combine(Settings.SharedFolder, "nuget")), Path.Join(Settings.LocalFolderPath, "cache"));
         var storage = new LocalStorage(Path.Combine(Settings.SharedFolder, "storage"));
         var executor = new MixedTaskExecutor(packageManagement, storage, new RemoteTaskExecutor(supervisor));
 

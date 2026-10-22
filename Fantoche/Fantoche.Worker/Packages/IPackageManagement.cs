@@ -4,7 +4,7 @@ namespace Fantoche.Worker.Packages;
 /// Where the assemblies holding the tasks are resolved from : what an executor needs of a package
 /// source is the path of the dll it has to load, whatever it took to get it there.
 /// <para>
-/// Abstracted from <see cref="LocalPackageManagement"/> so an executor can be run against
+/// Abstracted from <see cref="PackageCache"/> so an executor can be run against
 /// assemblies already sitting on disk, with no nuget package to pack nor download.
 /// </para>
 /// </summary>

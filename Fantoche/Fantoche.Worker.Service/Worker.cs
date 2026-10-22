@@ -32,7 +32,7 @@ public class Worker : BackgroundService
         string dataFolder = _configuration["DATA_FOLDER"] ?? "/app/data";
         string sharedFolder = _configuration["SHARED_FOLDER"] ?? "/app/shared";
 
-        var packages = new LocalPackageManagement(Path.Combine(sharedFolder, "nuget"), Path.Combine(dataFolder, "cache"));
+        var packages = new PackageCache(new PackageFolder(Path.Combine(sharedFolder, "nuget")), Path.Combine(dataFolder, "cache"));
         var storage = new LocalStorage(Path.Combine(sharedFolder, "storage"));
         using var executor = new LocalTaskExecutor(packages, storage);
         await using var connection = new WorkerConnection(supervisor, workerId, capacity, executor);
