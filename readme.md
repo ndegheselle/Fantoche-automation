@@ -47,6 +47,7 @@ The supervisor has no authentication yet.
 - [Fontawesome](https://fontawesome.com/) icons
 - [PropertyChanged.Fody](https://www.nuget.org/packages/PropertyChanged.Fody) for boilerplate
 - [Nodify](https://miroiu.github.io/nodify/) for the node editor
+- [PDFsharp](https://www.pdfsharp.com/) for the PDF task, used under the AGPL (set by the task, PDFsharp refusing to render without a license)
 
 # TODO
 
