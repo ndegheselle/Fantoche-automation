@@ -264,6 +264,6 @@ internal sealed class RemoteExecutionTests
         AutomationTask test = await StoreTestAsync();
         await StoreLineAsync(test);
 
-        Assert.ThrowsAsync<InvalidOperationException>(() => _scoped.RemoveAsync(test));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _scoped.RemoveAsync(test));
     }
 }
