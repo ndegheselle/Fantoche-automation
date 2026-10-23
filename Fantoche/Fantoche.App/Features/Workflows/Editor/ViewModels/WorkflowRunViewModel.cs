@@ -73,15 +73,17 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
             IReadOnlyCollection<NodeViewModel> nodes,
             IReadOnlyCollection<ConnectionViewModel> connections,
             Func<Task<bool>> saveAsync,
-            AppServices services)
+            IExecutionService execution,
+            IHistoryService history,
+            IToastService toasts)
         {
             _workflow = workflow;
             _nodes = nodes;
             _connections = connections;
             _saveAsync = saveAsync;
-            _execution = services.Execution;
-            _history = services.History;
-            _toasts = services.Toasts;
+            _execution = execution;
+            _history = history;
+            _toasts = toasts;
         }
 
         /// <summary>

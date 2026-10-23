@@ -15,6 +15,7 @@
     <PackageReference Include="Joufflu.Inputs" Version="0.10.0" />
     <PackageReference Include="Joufflu.Navigation" Version="0.10.0" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Common" Version="10.0.13" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.13" />
     <PackageReference Include="Nodify" Version="7.3.0" />
   </ItemGroup>
 

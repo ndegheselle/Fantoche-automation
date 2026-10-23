@@ -63,13 +63,19 @@ namespace Fantoche.App.Features.Workflows.Editor
         /// <summary>What the graph would run into, as the last refresh found it.</summary>
         public GraphExecutionPreview? Preview => _previewer.Preview;
 
-        public WorkflowEditorViewModel(AutomationWorkflow workflow, IAsyncRelayCommand saveCommand, AppServices services)
+        public WorkflowEditorViewModel(
+            AutomationWorkflow workflow,
+            IAsyncRelayCommand saveCommand,
+            IScopedService scoped,
+            IExecutionService execution,
+            IHistoryService history,
+            IToastService toasts)
         {
             Workflow = workflow;
             SaveCommand = saveCommand;
-            _scoped = services.Scoped;
-            _toasts = services.Toasts;
-            Run = new WorkflowRunViewModel(workflow, Nodes, Connections, SaveAsync, services);
+            _scoped = scoped;
+            _toasts = toasts;
+            Run = new WorkflowRunViewModel(workflow, Nodes, Connections, SaveAsync, execution, history, toasts);
 
             _ = LoadAsync();
             SelectedNodes.CollectionChanged += (_, _) =>

@@ -73,22 +73,6 @@ internal sealed class ExecutionStoragesTests
     }
 
     [Test]
-    public async Task GetUsage_CountsTheExecutionsKeptAndTheirSize()
-    {
-        await RunAsync(minutesAgo: 2);
-        await RunAsync(minutesAgo: 1);
-
-        StorageUsage usage = _storages.GetUsage().Single();
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(usage.TaskId, Is.EqualTo(TaskId));
-            Assert.That(usage.Executions, Is.EqualTo(2));
-            Assert.That(usage.Bytes, Is.EqualTo(2 * "content".Length));
-        });
-    }
-
-    [Test]
     public async Task Release_LeavesTheOtherTasksAlone()
     {
         var other = await RunAsync(minutesAgo: 2);

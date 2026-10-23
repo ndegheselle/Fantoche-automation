@@ -5,7 +5,6 @@
     xmlns:controls="clr-namespace:Joufflu.Controls;assembly=Joufflu"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:fonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
-    xmlns:home="clr-namespace:Fantoche.App.Features.Home"
     xmlns:javigation="clr-namespace:Joufflu.Navigation.Controls;assembly=Joufflu.Navigation"
     xmlns:jeedback="clr-namespace:Joufflu.Feedback.Controls;assembly=Joufflu.Feedback"
     xmlns:joolkit="clr-namespace:Joufflu.Toolkit;assembly=Joufflu"
@@ -14,8 +13,6 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:nav="clr-namespace:Joufflu.Navigation.Controls;assembly=Joufflu.Navigation"
     xmlns:packages="clr-namespace:Fantoche.App.Features.Packages"
-    xmlns:servers="clr-namespace:Fantoche.App.Features.Servers"
-    xmlns:storage="clr-namespace:Fantoche.App.Features.Storage"
     xmlns:workers="clr-namespace:Fantoche.App.Features.Workers"
     xmlns:workflows="clr-namespace:Fantoche.App.Features.Workflows"
     Width="1200"
@@ -51,13 +48,6 @@
                         </StackPanel>
                     </nav:NavigationMenu.Header>
 
-                    <nav:NavigationItem TargetType="{x:Type home:HomeViewModel}">
-                        <nav:NavigationItem.Icon>
-                            <fonts:FontIcon Text="{x:Static fonts:LucideFontIcons.Home}" />
-                        </nav:NavigationItem.Icon>
-                        Home
-                    </nav:NavigationItem>
-
                     <nav:NavigationItem TargetType="{x:Type workflows:WorkflowsViewModel}">
                         <nav:NavigationItem.Icon>
                             <fonts:FontIcon Text="{x:Static fonts:LucideFontIcons.Boxes}" />
@@ -72,23 +62,11 @@
                     </nav:NavigationItem>
 
                     <nav:NavigationTitle>Admin</nav:NavigationTitle>
-                    <nav:NavigationItem TargetType="{x:Type servers:ServersViewModel}">
-                        <nav:NavigationItem.Icon>
-                            <fonts:FontIcon Text="{x:Static fonts:LucideFontIcons.Server}" />
-                        </nav:NavigationItem.Icon>
-                        Servers
-                    </nav:NavigationItem>
                     <nav:NavigationItem TargetType="{x:Type workers:WorkersViewModel}">
                         <nav:NavigationItem.Icon>
                             <fonts:FontIcon Text="{x:Static fonts:LucideFontIcons.Cpu}" />
                         </nav:NavigationItem.Icon>
                         Workers
-                    </nav:NavigationItem>
-                    <nav:NavigationItem TargetType="{x:Type storage:StorageViewModel}">
-                        <nav:NavigationItem.Icon>
-                            <fonts:FontIcon Text="{x:Static fonts:LucideFontIcons.Database}" />
-                        </nav:NavigationItem.Icon>
-                        Storage
                     </nav:NavigationItem>
                 </nav:NavigationMenu>
 

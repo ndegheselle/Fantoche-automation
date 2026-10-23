@@ -46,7 +46,7 @@ flowchart TD
 | Workers the supervisor dispatches to | The application | The worker services (`Fantoche.Worker.Service`) |
 | A node set to "Run on a worker" | Runs on the application, in an execution of its own | Runs on a worker service |
 
-Both supervisors implement `ISupervisor`, which is all the application and the workers know of them. That is why the mode only changes how the application is built (`SpineViewModel.CreateServices`), never what it does.
+Both supervisors implement `ISupervisor`, which is all the application and the workers know of them. That is why the mode only changes how the application is built (`SpineViewModel.AddServices`), never what it does.
 
 In the process, the messages are copied the way the wire would copy them (`FantocheJson.Copy`). The caller and the worker never share an instance, so a bug can't hide in one mode only.
 
@@ -94,7 +94,7 @@ Only the last executions of each task or workflow keep their folder: 10 by defau
 - The older folders are deleted when an execution ends, but never the folder of an execution still running.
 - The count is taken from the task or workflow the execution started from. On a worker, that is the node it was sent.
 
-A table or file named in the history therefore only exists on the worker that wrote it, and only while it is within the retention count. For the same reason, the Storage page of the application only shows the storage of the application's worker.
+A table or file named in the history therefore only exists on the worker that wrote it, and only while it is within the retention count.
 
 ## Workers and pending executions
 
@@ -102,6 +102,7 @@ The supervisor keeps its executions in memory only, so it pushes what it dispatc
 - The `Dispatcher` raises `StatusChanged` with the whole status whenever a worker comes or goes, or an execution is queued, handed out or over.
 - In remote mode, the supervisor API pushes it on the `hubs/dispatch` hub, and `GET /dispatch/status` reads it. After a reconnection, the client reads it again: what was pushed meanwhile is lost.
 - The Workers page reads the status once when shown, then follows the changes until hidden. It shows each worker with what it runs, and the executions waiting for room, in the order they will be handed out.
+- The application is always listed first. Its executions started in the application run on its own worker without going through the supervisor, so the page reads them from the execution service (`IExecutionService.RunningChanged`). In standalone mode, the application is also the supervisor's worker: both are shown as one row.
 
 ## Packages and caches
 

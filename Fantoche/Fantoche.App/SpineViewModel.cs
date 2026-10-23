@@ -1,12 +1,10 @@
 ﻿using System.IO;
 using System.Windows;
-using Fantoche.App.Common;
-using Fantoche.App.Features.Home;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Fantoche.App.Features.Packages;
 using Fantoche.App.Features.Packages.Controls;
-using Fantoche.App.Features.Servers;
 using Fantoche.App.Features.Settings;
-using Fantoche.App.Features.Storage;
 using Fantoche.App.Features.Workers;
 using Fantoche.App.Features.Workflows;
 using Fantoche.App.Features.Workflows.Controls;
@@ -17,11 +15,9 @@ using Fantoche.Services.Remote;
 using Fantoche.Shared.Services;
 using Fantoche.Worker;
 using Fantoche.Worker.Executor;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using Joufflu.Feedback;
 using Joufflu.Navigation;
-using Joufflu.Navigation.Controls;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Fantoche.App;
 
@@ -42,13 +38,12 @@ public class SpineViewModel : ObservableObject
     #region services
     public Settings Settings { get; } = Settings.Load();
 
-    /// <summary>What the pages are built with.</summary>
-    public AppServices Services { get; }
+    /// <summary>What the pages are built with : the services, and the pages themselves.</summary>
+    private readonly ServiceProvider _provider;
 
-    public IPackagesService Packages => Services.Packages;
-    public IHistoryService History => Services.History;
-    public IScopedService Scoped => Services.Scoped;
-    public IExecutionService Execution => Services.Execution;
+    public IPackagesService Packages => _provider.GetRequiredService<IPackagesService>();
+    public IHistoryService History => _provider.GetRequiredService<IHistoryService>();
+    public IScopedService Scoped => _provider.GetRequiredService<IScopedService>();
     #endregion
 
     public IRelayCommand OpenSettingsCommand { get; }
@@ -59,54 +54,84 @@ public class SpineViewModel : ObservableObject
     /// </summary>
     public ResourceDictionary ViewTemplates { get; } = new();
 
-    /// <summary>How to build each page, keyed by its type, which is what the menu items target.</summary>
-    private readonly Dictionary<Type, Func<object>> _factories = new();
-
-    /// <summary>Built the first time they are navigated to, then kept so a page keeps its state.</summary>
-    private readonly Dictionary<Type, object> _pages = new();
-
     private SpineViewModel()
     {
-        Services = CreateServices();
+        ServiceCollection services = new();
+        AddServices(services);
+        AddPages(services);
+        _provider = services.BuildServiceProvider();
+        RegisterViews();
 
-        Register<HomeViewModel, HomePage>(() => new());
-        Register<SettingsViewModel, SettingsPage>(() => new(Settings, Toasts));
-
-        Register<WorkflowsViewModel, WorkflowsPage>(() => new(Services));
-        RegisterView<TaskSelectionViewModel, TaskSelectionOverlay>();
-        RegisterView<TaskSettingsViewModel, TaskSettingsOverlay>();
-        RegisterView<StartSettingsViewModel, StartSettingsOverlay>();
-        RegisterView<InstanceDetailViewModel, InstanceDetailOverlay>();
-
-        Register<PackagesViewModel, PackagesPage>(() => new(Packages, Overlayer, Toasts));
-        RegisterView<PackageViewModel, PackageOverlay>();
-        RegisterView<PackageSelectionViewModel, PackageSelectionOverlay>();
-
-        Register<ServersViewModel, ServersPage>(() => new());
-        Register<WorkersViewModel, WorkersPage>(() => new(Services.Supervisor.Dispatch, Scoped));
-        Register<StorageViewModel, StoragePage>(() => new(Services.Worker, Scoped));
-
-        Navigator = new Navigator(ResolvePage);
+        Navigator = new Navigator(_provider.GetRequiredService);
         OpenSettingsCommand = new RelayCommand(() => Navigator.Navigate(typeof(SettingsViewModel)));
         // Land on a page at startup.
-        Navigator.Navigate(typeof(HomeViewModel));
+        Navigator.Navigate(typeof(WorkflowsViewModel));
     }
 
     /// <summary>
     /// The supervisor (in the application in standalone mode, reached through its API otherwise)
-    /// and the worker of the application, which runs what the application starts.
+    /// with its services, the worker of the application, which runs what the application starts,
+    /// and what the shell itself offers the pages.
     /// </summary>
-    private AppServices CreateServices()
+    private void AddServices(ServiceCollection services)
     {
         ISupervisor supervisor = Settings.IsStandalone ? CreateLocalSupervisor() : CreateSupervisorClient();
         LocalWorker worker = LocalWorker.InFolder(supervisor, Path.Combine(Settings.LocalFolderPath, "worker"));
 
         // Alone, the application is the only worker there is to run the tasks set to run on one.
-        if (Settings.IsStandalone)
-            _ = supervisor.AddWorkerAsync(worker, Settings.ApplicationName, Environment.ProcessorCount);
+        string? dispatchId = Settings.IsStandalone ? Settings.ApplicationName : null;
+        if (dispatchId != null)
+            _ = supervisor.AddWorkerAsync(worker, dispatchId, Environment.ProcessorCount);
 
-        var execution = new ExecutionService(supervisor.Scoped, supervisor.History, worker);
-        return new AppServices(supervisor, worker, supervisor.Scoped, execution, supervisor.History, supervisor.Packages, Overlayer, Toasts);
+        services.AddSingleton(supervisor);
+        services.AddSingleton(supervisor.Scoped);
+        services.AddSingleton(supervisor.History);
+        services.AddSingleton(supervisor.Packages);
+        services.AddSingleton(supervisor.Dispatch);
+        services.AddSingleton<IExecutionService>(new ExecutionService(supervisor.Scoped, supervisor.History, worker));
+        services.AddSingleton(new ApplicationWorker(dispatchId));
+
+        services.AddSingleton(Settings);
+        services.AddSingleton<IOverlayer>(Overlayer);
+        services.AddSingleton<IToastService>(Toasts);
+    }
+
+    /// <summary>
+    /// The pages of the menu, which the navigator asks for by type. Singletons : built the first
+    /// time they are navigated to, then kept so a page keeps its state. A page follows the events
+    /// of a service only while it is shown (subscribed on load, unsubscribed on unload).
+    /// <para>
+    /// The overlays and the details of an element aren't here : each is built for the data it
+    /// shows, which only the code opening it has.
+    /// </para>
+    /// </summary>
+    private static void AddPages(ServiceCollection services)
+    {
+        services.AddSingleton<SettingsViewModel>();
+        services.AddSingleton<WorkflowsViewModel>();
+        services.AddSingleton<PackagesViewModel>();
+        services.AddSingleton<WorkersViewModel>();
+    }
+
+    /// <summary>
+    /// The view drawing each page and overlay, wherever its view model is shown (see
+    /// <see cref="ViewTemplates"/>).
+    /// </summary>
+    private void RegisterViews()
+    {
+        RegisterView<SettingsViewModel, SettingsPage>();
+
+        RegisterView<WorkflowsViewModel, WorkflowsPage>();
+        RegisterView<TaskSelectionViewModel, TaskSelectionOverlay>();
+        RegisterView<TaskSettingsViewModel, TaskSettingsOverlay>();
+        RegisterView<StartSettingsViewModel, StartSettingsOverlay>();
+        RegisterView<InstanceDetailViewModel, InstanceDetailOverlay>();
+
+        RegisterView<PackagesViewModel, PackagesPage>();
+        RegisterView<PackageViewModel, PackageOverlay>();
+        RegisterView<PackageSelectionViewModel, PackageSelectionOverlay>();
+
+        RegisterView<WorkersViewModel, WorkersPage>();
     }
 
     private ISupervisor CreateLocalSupervisor()
@@ -126,15 +151,6 @@ public class SpineViewModel : ObservableObject
         return supervisor;
     }
 
-    /// <summary>Registers a page view model along with the view drawing it.</summary>
-    private void Register<TViewModel, TView>(Func<TViewModel> create)
-        where TViewModel : notnull
-        where TView : FrameworkElement, new()
-    {
-        _factories[typeof(TViewModel)] = () => create();
-        RegisterView<TViewModel, TView>();
-    }
-
     /// <summary>Draws every <typeparamref name="TViewModel"/> with a new <typeparamref name="TView"/>.</summary>
     private void RegisterView<TViewModel, TView>() where TView : FrameworkElement, new()
     {
@@ -143,18 +159,5 @@ public class SpineViewModel : ObservableObject
             VisualTree = new FrameworkElementFactory(typeof(TView)),
         };
         ViewTemplates.Add(template.DataTemplateKey, template);
-    }
-
-    private object ResolvePage(Type target)
-    {
-        if (_pages.TryGetValue(target, out object? page))
-            return page;
-
-        if (!_factories.TryGetValue(target, out Func<object>? create))
-            throw new InvalidOperationException($"No page registered for {target.Name}.");
-
-        page = create();
-        _pages[target] = page;
-        return page;
     }
 }

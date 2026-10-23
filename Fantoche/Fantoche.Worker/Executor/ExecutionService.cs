@@ -26,6 +26,8 @@ public class ExecutionService : IExecutionService
 
     private readonly ConcurrentDictionary<Guid, RunningExecution> _running = [];
 
+    public event Action? RunningChanged;
+
     public ExecutionService(
         IScopedService scopedService,
         IHistoryService historyService,
@@ -68,6 +70,7 @@ public class ExecutionService : IExecutionService
             Completion = new TaskCompletionSource<TaskInstance>(TaskCreationOptions.RunContinuationsAsynchronously),
         };
         _running[instance.Id] = running;
+        RunningChanged?.Invoke();
 
         // Starting doesn't wait for the end of the run : the caller follows it through the history.
         _ = Task.Run(() => RunAsync(task, running));
@@ -125,6 +128,7 @@ public class ExecutionService : IExecutionService
             _running.TryRemove(running.Instance.Id, out _);
             running.Cancellation.Dispose();
             running.Completion.TrySetResult(instance);
+            RunningChanged?.Invoke();
         }
     }
 

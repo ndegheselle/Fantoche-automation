@@ -11,11 +11,25 @@ namespace Fantoche.App.Features.Workflows.Details.Controls
     {
         public HistoryViewModel? ViewModel => DataContext as HistoryViewModel;
 
+        /// <summary>
+        /// The view model subscribed on load : the DataContext can already be cleared when the table
+        /// is unloaded (another element opened).
+        /// </summary>
+        private HistoryViewModel? _subscribed;
+
         public HistoryTable()
         {
             InitializeComponent();
-            Loaded += (_, _) => _ = ViewModel?.SubscribeAsync();
-            Unloaded += (_, _) => ViewModel?.Unsubscribe();
+            Loaded += (_, _) =>
+            {
+                _subscribed = ViewModel;
+                _ = _subscribed?.SubscribeAsync();
+            };
+            Unloaded += (_, _) =>
+            {
+                _subscribed?.Unsubscribe();
+                _subscribed = null;
+            };
         }
     }
 }

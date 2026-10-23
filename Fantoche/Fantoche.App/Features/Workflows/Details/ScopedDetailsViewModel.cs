@@ -50,24 +50,26 @@ namespace Fantoche.App.Features.Workflows.Details
 
         private readonly WorkflowsViewModel _parent;
 
-        /// <summary>Handed down to whatever the page builds of its own.</summary>
-        protected readonly AppServices Services;
-
         private readonly IScopedService _scoped;
         private readonly IOverlayer _overlays;
         private readonly IToastService _toasts;
 
-        protected ScopedDetailsViewModel(ScopedNode node, WorkflowsViewModel parent, AppServices services)
+        protected ScopedDetailsViewModel(
+            ScopedNode node,
+            WorkflowsViewModel parent,
+            IScopedService scoped,
+            IHistoryService history,
+            IOverlayer overlays,
+            IToastService toasts)
         {
             Node = node;
             _parent = parent;
-            Services = services;
-            _scoped = services.Scoped;
-            _overlays = services.Overlayer;
-            _toasts = services.Toasts;
+            _scoped = scoped;
+            _overlays = overlays;
+            _toasts = toasts;
             OpenCommand = parent.OpenCommand;
-            History = new HistoryViewModel(node, services.History);
-            Usages = new UsagesViewModel(node, parent, services.Scoped);
+            History = new HistoryViewModel(node, history);
+            Usages = new UsagesViewModel(node, parent, scoped);
 
             // The views edit the metadata itself, so its changes are what tells the element needs
             // saving. Tags are edited through the collection rather than the property, hence the

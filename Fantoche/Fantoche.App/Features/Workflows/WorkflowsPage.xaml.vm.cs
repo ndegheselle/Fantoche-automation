@@ -1,9 +1,9 @@
-﻿using Fantoche.App.Common;
-using Fantoche.App.Features.Workflows.Details;
+﻿using Fantoche.App.Features.Workflows.Details;
 using Fantoche.Shared.Data.Scoped;
 using Fantoche.Shared.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Fantoche.App.Features.Workflows
 {
@@ -24,15 +24,18 @@ namespace Fantoche.App.Features.Workflows
         [ObservableProperty] private object? _details;
         [ObservableProperty] private string _search = "";
 
-        /// <summary>Handed down to the details of whatever is selected.</summary>
-        private readonly AppServices _services;
+        /// <summary>
+        /// Builds the details of whatever is selected : they are made for one element, which the
+        /// container can't hand them.
+        /// </summary>
+        private readonly IServiceProvider _services;
 
         private readonly IScopedService _scoped;
 
-        public WorkflowsViewModel(AppServices services)
+        public WorkflowsViewModel(IServiceProvider services, IScopedService scoped)
         {
             _services = services;
-            _scoped = services.Scoped;
+            _scoped = scoped;
             Root = new ScopedNode(Scope.Root, null);
         }
 
@@ -126,9 +129,9 @@ namespace Fantoche.App.Features.Workflows
             OnPropertyChanged(nameof(Breadcrumb));
             Details = value?.Element switch
             {
-                AutomationWorkflow => new WorkflowDetailsViewModel(value, this, _services),
-                AutomationTask => new TaskDetailsViewModel(value, this, _services),
-                Scope => new ScopeDetailsViewModel(value, this, _services),
+                AutomationWorkflow => ActivatorUtilities.CreateInstance<WorkflowDetailsViewModel>(_services, value, this),
+                AutomationTask => ActivatorUtilities.CreateInstance<TaskDetailsViewModel>(_services, value, this),
+                Scope => ActivatorUtilities.CreateInstance<ScopeDetailsViewModel>(_services, value, this),
                 _ => null
             };
         }

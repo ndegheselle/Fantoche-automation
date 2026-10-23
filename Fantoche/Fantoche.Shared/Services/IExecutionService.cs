@@ -39,4 +39,9 @@ public interface IExecutionService
     /// The executions currently running, most recently started first.
     /// </summary>
     public IReadOnlyCollection<TaskInstance> GetRunning();
+
+    /// <summary>
+    /// Raised when an execution starts or ends, so <see cref="GetRunning"/> changed.
+    /// </summary>
+    public event Action? RunningChanged;
 }

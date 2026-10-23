@@ -1,88 +1,144 @@
 using Fantoche.App.Common;
+using Fantoche.Shared.Data.Execution;
+using Fantoche.Shared.Data.Scoped;
 using Fantoche.Shared.Remote;
 using Fantoche.Shared.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Fantoche.App.Features.Workers
 {
-    public record WorkerRow(string Id, int Running, int Capacity)
+    /// <summary>
+    /// The worker of the application, as the supervisor knows it : [DispatchId] is the id it was
+    /// added to the workers of the supervisor under, null when it isn't one of them (remote mode).
+    /// </summary>
+    public record ApplicationWorker(string? DispatchId);
+
+    /// <param name="Capacity">Null for the application : what it starts itself isn't limited.</param>
+    public record WorkerRow(string Id, int Running, int? Capacity)
     {
-        public string Load => $"{Running} / {Capacity}";
+        public string Load => Capacity == null ? $"{Running}" : $"{Running} / {Capacity}";
     }
 
     /// <summary>An execution running on [Worker], or waiting for one when it is null.</summary>
     public record ExecutionRow(string? Worker, string TaskName, DateTime CreatedAt);
 
     /// <summary>
-    /// What the supervisor dispatches : its workers, what they run and what waits for room on one,
-    /// followed as the supervisor pushes its changes.
+    /// The workers and what they run : the application first, with the executions it started
+    /// itself, then the workers of the supervisor and what waits for room on one. Followed as the
+    /// application and the supervisor tell their changes.
     /// </summary>
     public partial class WorkersViewModel : ObservableObject
     {
+        public const string ApplicationName = "This application";
+
         [ObservableProperty] private List<WorkerRow> _workers = [];
         [ObservableProperty] private List<ExecutionRow> _running = [];
         [ObservableProperty] private List<ExecutionRow> _pending = [];
 
         private readonly IDispatchService _dispatch;
+        private readonly IExecutionService _execution;
         private readonly IScopedService _scoped;
+        private readonly ApplicationWorker _application;
 
         /// <summary>The page can be shown again before it was hidden : never subscribed twice.</summary>
         private bool _isSubscribed;
 
-        /// <summary>
-        /// Counts the statuses received : the names of a status are read before it is shown, and a
-        /// newer one may have arrived in the meantime.
-        /// </summary>
-        private int _lastStatus;
+        /// <summary>The last status of the supervisor, shown again along with the application's changes.</summary>
+        private DispatchStatus _dispatchStatus = new([], []);
 
-        public WorkersViewModel(IDispatchService dispatch, IScopedService scoped)
+        /// <summary>
+        /// Counts the changes shown : the names are read before a change is shown, and a newer one
+        /// may have arrived in the meantime.
+        /// </summary>
+        private int _lastChange;
+
+        public WorkersViewModel(IDispatchService dispatch, IExecutionService execution, IScopedService scoped, ApplicationWorker application)
         {
             _dispatch = dispatch;
+            _execution = execution;
             _scoped = scoped;
+            _application = application;
         }
 
-        /// <summary>Start following the dispatch and read it, the page being displayed.</summary>
+        /// <summary>Start following the workers and read them, the page being displayed.</summary>
         public async Task SubscribeAsync()
         {
             if (!_isSubscribed)
             {
                 _dispatch.StatusChanged += OnStatusChanged;
+                _execution.RunningChanged += OnRunningChanged;
                 _isSubscribed = true;
             }
 
-            await RefreshAsync();
+            // Shown alone first : the application is there even when the supervisor isn't reachable.
+            await ShowAsync();
+            _dispatchStatus = await _dispatch.GetStatusAsync();
+            await ShowAsync();
         }
 
-        /// <summary>Stop following the dispatch, the page not being displayed anymore.</summary>
+        /// <summary>Stop following the workers, the page not being displayed anymore.</summary>
         public void Unsubscribe()
         {
             if (!_isSubscribed)
                 return;
 
             _dispatch.StatusChanged -= OnStatusChanged;
+            _execution.RunningChanged -= OnRunningChanged;
             _isSubscribed = false;
         }
 
-        private async Task RefreshAsync()
+        private void OnStatusChanged(DispatchStatus status) => Ui.Post(() =>
         {
-            DispatchStatus status = await _dispatch.GetStatusAsync();
-            await ShowAsync(status);
-        }
+            _dispatchStatus = status;
+            _ = ShowAsync();
+        });
 
-        private void OnStatusChanged(DispatchStatus status) => Ui.Post(() => _ = ShowAsync(status));
+        private void OnRunningChanged() => Ui.Post(() => _ = ShowAsync());
 
-        private async Task ShowAsync(DispatchStatus status)
+        private async Task ShowAsync()
         {
-            int current = ++_lastStatus;
-            var running = status.Workers.SelectMany(worker => worker.Running.Select(execution => (Worker: worker.Id, Execution: execution))).ToList();
-            var taskIds = running.Select(x => x.Execution.TaskId).Concat(status.Pending.Select(x => x.TaskId));
-            var names = await TaskNames.ResolveAsync(_scoped, taskIds);
-            if (current != _lastStatus)
+            int current = ++_lastChange;
+            DispatchStatus status = _dispatchStatus;
+            IReadOnlyCollection<TaskInstance> local = _execution.GetRunning();
+
+            // In standalone mode the application is also a worker of the supervisor : one row.
+            WorkerStatus? dispatched = status.Workers.FirstOrDefault(x => x.Id == _application.DispatchId);
+            List<WorkerStatus> others = [.. status.Workers.Where(x => x != dispatched)];
+
+            List<(string Worker, Guid TaskId, DateTime CreatedAt)> running =
+            [
+                .. local.Select(x => (ApplicationName, x.TaskId, x.CreatedAt)),
+                .. (dispatched?.Running ?? []).Select(x => (ApplicationName, x.TaskId, x.CreatedAt)),
+                .. others.SelectMany(worker => worker.Running.Select(x => (worker.Id, x.TaskId, x.CreatedAt))),
+            ];
+            var taskIds = running.Select(x => x.TaskId).Concat(status.Pending.Select(x => x.TaskId));
+            var names = await GetNamesAsync(taskIds);
+            if (current != _lastChange)
                 return;
 
-            Workers = [.. status.Workers.Select(x => new WorkerRow(x.Id, x.Running.Count, x.Capacity))];
-            Running = [.. running.Select(x => new ExecutionRow(x.Worker, names[x.Execution.TaskId].Name, x.Execution.CreatedAt))];
-            Pending = [.. status.Pending.Select(x => new ExecutionRow(null, names[x.TaskId].Name, x.CreatedAt))];
+            int applicationRunning = local.Count + (dispatched?.Running.Count ?? 0);
+            Workers =
+            [
+                new WorkerRow(ApplicationName, applicationRunning, null),
+                .. others.Select(x => new WorkerRow(x.Id, x.Running.Count, x.Capacity)),
+            ];
+            Running = [.. running.Select(x => new ExecutionRow(x.Worker, names[x.TaskId], x.CreatedAt))];
+            Pending = [.. status.Pending.Select(x => new ExecutionRow(null, names[x.TaskId], x.CreatedAt))];
+        }
+
+        /// <summary>
+        /// The names of [taskIds], read in one go. An execution can outlive its task : a removed one
+        /// is still listed, under its id.
+        /// </summary>
+        private async Task<Dictionary<Guid, string>> GetNamesAsync(IEnumerable<Guid> taskIds)
+        {
+            List<Guid> ids = [.. taskIds.Distinct()];
+            if (ids.Count == 0)
+                return [];
+
+            List<ScopedElement> elements = await _scoped.GetAsync(ids);
+            Dictionary<Guid, string> found = elements.ToDictionary(x => x.Id, x => x.Metadata.Name);
+            return ids.ToDictionary(id => id, id => found.GetValueOrDefault(id) ?? $"Removed ({id:N})");
         }
     }
 }

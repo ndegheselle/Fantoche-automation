@@ -3,7 +3,10 @@ using Fantoche.App.Common;
 using Fantoche.App.Features.Workflows.Editor;
 using Fantoche.App.Features.Workflows.Editor.History;
 using Fantoche.Shared.Data.Scoped;
+using Fantoche.Shared.Services;
 using CommunityToolkit.Mvvm.Input;
+using Joufflu.Feedback;
+using Joufflu.Navigation;
 
 namespace Fantoche.App.Features.Workflows.Details
 {
@@ -38,10 +41,17 @@ namespace Fantoche.App.Features.Workflows.Details
             }
         }
 
-        public WorkflowDetailsViewModel(ScopedNode node, WorkflowsViewModel parent, AppServices services)
-            : base(node, parent, services)
+        public WorkflowDetailsViewModel(
+            ScopedNode node,
+            WorkflowsViewModel parent,
+            IScopedService scoped,
+            IHistoryService history,
+            IExecutionService execution,
+            IOverlayer overlays,
+            IToastService toasts)
+            : base(node, parent, scoped, history, overlays, toasts)
         {
-            Editor = new WorkflowEditorViewModel(Workflow, SaveGraphCommand, services);
+            Editor = new WorkflowEditorViewModel(Workflow, SaveGraphCommand, scoped, execution, history, toasts);
             Editor.History.PropertyChanged += (_, e) =>
             {
                 if (e.PropertyName == nameof(EditorHistory.HasUnsavedChanges))
