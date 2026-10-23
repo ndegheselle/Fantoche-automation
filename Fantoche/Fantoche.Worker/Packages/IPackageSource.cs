@@ -2,7 +2,7 @@ namespace Fantoche.Worker.Packages;
 
 /// <summary>
 /// Where a <see cref="PackageCache"/> fetches the package files from : the folder holding them
-/// (<see cref="PackageFolder"/>) or the supervisor serving its own (<see cref="SupervisorPackageSource"/>).
+/// (<see cref="PackageFolder"/>), the one of a supervisor in the same process or served by its API.
 /// </summary>
 public interface IPackageSource
 {

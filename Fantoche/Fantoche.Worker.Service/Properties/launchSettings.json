@@ -5,8 +5,7 @@
       "environmentVariables": {
         "DOTNET_ENVIRONMENT": "Development",
         "SUPERVISOR_URL": "http://localhost:5165",
-        "DATA_FOLDER": "data",
-        "SHARED_FOLDER": "shared"
+        "DATA_FOLDER": "data"
       },
       "dotnetRunMessages": true
     },

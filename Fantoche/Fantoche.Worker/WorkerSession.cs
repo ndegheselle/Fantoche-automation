@@ -3,25 +3,16 @@ using Fantoche.Plugins.Shared;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Remote;
 using Newtonsoft.Json.Linq;
-using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.Extensions.DependencyInjection;
 
-namespace Fantoche.Worker.Executor.Remote;
+namespace Fantoche.Worker;
 
 /// <summary>
-/// A worker as the supervisor knows it : it runs the executions the supervisor sends and reports
-/// on them as they progress.
+/// A <see cref="LocalWorker"/> as the supervisor knows it : it runs the executions the supervisor
+/// dispatches and reports on them as they progress, whatever carries the messages (the hub of a
+/// remote supervisor or a call to the one of the process).
 /// </summary>
-public sealed class WorkerConnection : IAsyncDisposable
+public sealed class WorkerSession : IWorkerClient
 {
-    /// <summary>
-    /// A worker waits for the supervisor however long it takes to come back.
-    /// </summary>
-    private sealed class RetryForever : IRetryPolicy
-    {
-        public TimeSpan? NextRetryDelay(RetryContext retryContext) => TimeSpan.FromSeconds(5);
-    }
-
     /// <summary>
     /// Reports synchronously : the states of an instance have to leave in the order they happened,
     /// and before the executor changes the instance again.
@@ -93,67 +84,42 @@ public sealed class WorkerConnection : IAsyncDisposable
         }
     }
 
-    private readonly HubConnection _connection;
-    private readonly string _workerId;
-    private readonly int _capacity;
-    private readonly ITaskExecutor _executor;
+    private readonly LocalWorker _worker;
+    private readonly IWorkerHub _supervisor;
     private readonly ConcurrentDictionary<Guid, CancellationTokenSource> _running = [];
 
-    public WorkerConnection(Uri supervisor, string workerId, int capacity, ITaskExecutor executor)
+    /// <param name="supervisor">What the executions are reported through.</param>
+    public WorkerSession(LocalWorker worker, IWorkerHub supervisor)
     {
-        _workerId = workerId;
-        _capacity = capacity;
-        _executor = executor;
-
-        _connection = new HubConnectionBuilder()
-            .WithUrl(new Uri(supervisor, SupervisorRoutes.Workers))
-            .WithAutomaticReconnect(new RetryForever())
-            .AddJsonProtocol(options => FantocheJson.Configure(options.PayloadSerializerOptions))
-            .Build();
-
-        // Not awaited : the connection doesn't receive anything else while a handler runs.
-        _connection.On<RemoteExecution>(nameof(IWorkerClient.Execute), execution => { _ = RunAsync(execution); });
-        _connection.On<Guid>(nameof(IWorkerClient.Cancel), Cancel);
-        // The supervisor fails the executions of a connection it lost : running them is pointless.
-        _connection.Reconnecting += _ =>
-        {
-            CancelAll();
-            return Task.CompletedTask;
-        };
-        _connection.Reconnected += _ => RegisterAsync();
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        CancelAll();
-        await _connection.DisposeAsync();
+        _worker = worker;
+        _supervisor = supervisor;
     }
 
     /// <summary>
-    /// Connect to the supervisor, waiting for it to be up, and register to it.
+    /// Run apart rather than awaited : the transport doesn't hand anything else over while it waits,
+    /// a cancel included, and a supervisor of the same process would wait on the whole run.
     /// </summary>
-    public async Task StartAsync(CancellationToken cancellation)
+    public Task Execute(RemoteExecution execution)
     {
-        while (true)
-        {
-            try
-            {
-                await _connection.StartAsync(cancellation);
-                break;
-            }
-            catch (HttpRequestException)
-            {
-                await Task.Delay(TimeSpan.FromSeconds(5), cancellation);
-            }
-        }
-
-        await RegisterAsync();
+        _ = Task.Run(() => RunAsync(execution));
+        return Task.CompletedTask;
     }
 
-    public Task StopAsync() => _connection.StopAsync();
+    public Task Cancel(Guid executionId)
+    {
+        if (_running.TryGetValue(executionId, out var cancellation))
+            cancellation.Cancel();
+        return Task.CompletedTask;
+    }
 
-    private Task RegisterAsync()
-        => _connection.InvokeAsync(nameof(IWorkerHub.Register), _workerId, _capacity);
+    /// <summary>
+    /// The supervisor fails the executions of a worker it lost : running them is pointless.
+    /// </summary>
+    public void CancelAll()
+    {
+        foreach (CancellationTokenSource cancellation in _running.Values)
+            cancellation.Cancel();
+    }
 
     private async Task RunAsync(RemoteExecution execution)
     {
@@ -162,21 +128,18 @@ public sealed class WorkerConnection : IAsyncDisposable
         CancellationTokenSource cancellation = new();
         _running[executionId] = cancellation;
 
-        ThrottledNotifications notifications = new(x =>
-            _connection.SendAsync(nameof(IWorkerHub.ReportNotification), executionId, x));
+        ThrottledNotifications notifications = new(x => _supervisor.ReportNotification(executionId, x));
 
         TaskInstance result;
         try
         {
-            var (task, instance) = execution.Unpack();
             TaskInstancesProgress progress = new()
             {
-                StateChanges = new StatesReporter(x =>
-                    _connection.InvokeAsync(nameof(IWorkerHub.ReportState), executionId, x)),
+                StateChanges = new StatesReporter(x => _supervisor.ReportState(executionId, x)),
                 Notifications = notifications,
             };
 
-            result = await _executor.ExecuteAsync(task, instance, progress, cancellation.Token);
+            result = await _worker.ExecuteDispatchedAsync(execution, progress, cancellation.Token);
         }
         catch (Exception ex)
         {
@@ -194,23 +157,11 @@ public sealed class WorkerConnection : IAsyncDisposable
 
         try
         {
-            await _connection.InvokeAsync(nameof(IWorkerHub.Complete), result);
+            await _supervisor.Complete(result);
         }
         catch
         {
             // The connection was lost : the supervisor already failed the execution.
         }
-    }
-
-    private void Cancel(Guid executionId)
-    {
-        if (_running.TryGetValue(executionId, out var cancellation))
-            cancellation.Cancel();
-    }
-
-    private void CancelAll()
-    {
-        foreach (CancellationTokenSource cancellation in _running.Values)
-            cancellation.Cancel();
     }
 }

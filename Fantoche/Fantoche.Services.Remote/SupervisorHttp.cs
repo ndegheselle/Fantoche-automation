@@ -78,6 +78,31 @@ internal sealed class SupervisorHttp
         return await ReadAsync<T>(response);
     }
 
+    public async Task PutStreamAsync(string url, Stream content)
+    {
+        using StreamContent body = new(content);
+        using HttpResponseMessage response = await _client.PutAsync(url, body);
+        await EnsureSuccessAsync(response);
+    }
+
+    /// <summary>
+    /// The content of [url], read as it is downloaded : disposing the stream releases the response.
+    /// </summary>
+    public async Task<Stream> OpenStreamAsync(string url)
+    {
+        HttpResponseMessage response = await _client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+        try
+        {
+            await EnsureSuccessAsync(response);
+        }
+        catch
+        {
+            response.Dispose();
+            throw;
+        }
+        return await response.Content.ReadAsStreamAsync();
+    }
+
     /// <summary>[value] escaped to be a parameter of an url.</summary>
     public static string Query(object? value) => Uri.EscapeDataString(value?.ToString() ?? "");
 

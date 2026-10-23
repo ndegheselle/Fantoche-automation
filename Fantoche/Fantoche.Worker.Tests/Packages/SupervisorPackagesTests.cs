@@ -32,7 +32,7 @@ internal sealed class SupervisorPackagesTests
 
         _http = new HttpClient { BaseAddress = new Uri($"{_supervisor.Urls.First()}/") };
         _packages = new RemotePackagesService(_http);
-        _workerCache = new PackageCache(new SupervisorPackageSource(_http), Path.Combine(_folder, "worker"));
+        _workerCache = new PackageCache(new RemotePackageSource(_http), Path.Combine(_folder, "worker"));
     }
 
     [TearDown]

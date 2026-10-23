@@ -1,16 +1,14 @@
-using Fantoche.Worker.Executor;
-using Fantoche.Worker.Executor.Remote;
-using Fantoche.Worker.Packages;
-using Fantoche.Worker.Storage;
+using Fantoche.Services.Remote;
+using Fantoche.Worker;
 
 namespace Fantoche.Worker.Service;
 
 /// <summary>
-/// Run the tasks the supervisor sends, with the packages and the storage of this machine.
+/// A <see cref="LocalWorker"/> added to the workers of a remote supervisor : it runs the tasks the
+/// supervisor dispatches to it.
 /// <para>
-/// Configured by : SUPERVISOR_URL, WORKER_ID, WORKER_CAPACITY (executions run at once),
-/// DATA_FOLDER (the cache of the packages downloaded from the supervisor) and SHARED_FOLDER (the
-/// "storage", shared with the other workers and the applications).
+/// Configured by : SUPERVISOR_URL, WORKER_ID, WORKER_CAPACITY (executions run at once) and
+/// DATA_FOLDER (the data of the worker, see <see cref="LocalWorker.InFolder"/>).
 /// </para>
 /// </summary>
 public class Worker : BackgroundService
@@ -26,20 +24,17 @@ public class Worker : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        Uri supervisor = new(_configuration["SUPERVISOR_URL"] ?? "http://localhost:5165");
+        string supervisorUrl = _configuration["SUPERVISOR_URL"] ?? "http://localhost:5165";
+        Uri supervisorAddress = new(supervisorUrl.EndsWith('/') ? supervisorUrl : $"{supervisorUrl}/");
         string workerId = _configuration["WORKER_ID"] ?? Environment.MachineName;
         int capacity = _configuration.GetValue("WORKER_CAPACITY", Environment.ProcessorCount);
         string dataFolder = _configuration["DATA_FOLDER"] ?? "/app/data";
-        string sharedFolder = _configuration["SHARED_FOLDER"] ?? "/app/shared";
 
-        using var http = new HttpClient { BaseAddress = supervisor };
-        var packages = new PackageCache(new SupervisorPackageSource(http), Path.Combine(dataFolder, "cache"));
-        var storage = new LocalStorage(Path.Combine(sharedFolder, "storage"));
-        using var executor = new LocalTaskExecutor(packages, storage);
-        await using var connection = new WorkerConnection(supervisor, workerId, capacity, executor);
+        await using var supervisor = new SupervisorClient(supervisorAddress);
+        using var worker = LocalWorker.InFolder(supervisor, dataFolder);
 
-        _logger.LogInformation("Worker [{WorkerId}] connecting to [{Supervisor}] to run up to {Capacity} executions at once.", workerId, supervisor, capacity);
-        await connection.StartAsync(stoppingToken);
+        _logger.LogInformation("Worker [{WorkerId}] connecting to [{Supervisor}] to run up to {Capacity} executions at once.", workerId, supervisorAddress, capacity);
+        await using IAsyncDisposable registration = await supervisor.AddWorkerAsync(worker, workerId, capacity, stoppingToken);
 
         try
         {
@@ -47,7 +42,7 @@ public class Worker : BackgroundService
         }
         catch (OperationCanceledException)
         {
-            await connection.StopAsync();
+            // Stopping : the registration is disposed on the way out.
         }
     }
 }

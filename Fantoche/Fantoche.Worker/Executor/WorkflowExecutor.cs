@@ -20,9 +20,9 @@ public class WorkflowExecutor
     private readonly ITaskExecutor _executor;
 
     /// <summary>A walk running every node in this process.</summary>
-    public WorkflowExecutor(IPackageManagement packageManagement, IStorage storage)
+    public WorkflowExecutor(TaskLoaders tasks, IStorage storage)
     {
-        _executor = new LocalTaskExecutor(packageManagement, storage, this);
+        _executor = new LocalTaskExecutor(tasks, storage, this);
     }
 
     /// <summary>A walk running every node with [executor].</summary>

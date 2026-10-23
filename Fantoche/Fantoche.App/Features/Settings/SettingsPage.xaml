@@ -68,28 +68,10 @@
                         <ColumnDefinition />
                     </Grid.ColumnDefinitions>
 
-                    <Grid.RowDefinitions>
-                        <RowDefinition />
-                        <RowDefinition />
-                    </Grid.RowDefinitions>
-
                     <TextBlock VerticalAlignment="Center" Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}">
                         Supervisor address
                     </TextBlock>
                     <TextBox Grid.Column="1" Text="{Binding SupervisorUrl, UpdateSourceTrigger=PropertyChanged}" />
-
-
-                    <TextBlock
-                        Grid.Row="1"
-                        VerticalAlignment="Center"
-                        Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}">
-                        Shared storage folder
-                    </TextBlock>
-                    <TextBox
-                        Grid.Row="1"
-                        Grid.Column="1"
-                        Text="{Binding SharedFolder, UpdateSourceTrigger=PropertyChanged}" />
-
                 </Grid>
             </StackPanel>
         </GroupBox>

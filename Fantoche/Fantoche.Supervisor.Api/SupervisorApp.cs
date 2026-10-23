@@ -1,5 +1,4 @@
 using Fantoche.Services.Local;
-using Fantoche.Services.Local.Database;
 using Fantoche.Shared.Remote;
 using Fantoche.Supervisor.Api.Data;
 using Fantoche.Supervisor.Api.Execution;
@@ -7,11 +6,11 @@ using Fantoche.Supervisor.Api.Execution;
 namespace Fantoche.Supervisor.Api;
 
 /// <summary>
-/// The entry point of the applications and the workers : it holds the database, hands the tasks to
-/// the workers and relays what they report. It never runs a task itself.
+/// The entry point of the applications and the workers : the HTTP API and the hubs carrying the
+/// calls to a <see cref="LocalSupervisor"/>, which holds the database, hands the tasks to the
+/// workers and relays what they report. It never runs a task itself.
 /// <para>
-/// Configured by : DATA_FOLDER (its database, the "nuget" packages it serves to the workers and their
-/// cache).
+/// Configured by : DATA_FOLDER (the folder of the supervisor, see <see cref="LocalSupervisor"/>).
 /// </para>
 /// </summary>
 public static class SupervisorApp
@@ -21,11 +20,13 @@ public static class SupervisorApp
         var builder = WebApplication.CreateBuilder(args);
         string dataFolder = builder.Configuration["DATA_FOLDER"] ?? "data";
 
-        var database = new DatabaseFactory(Path.Combine(dataFolder, "fantoche.db"));
-        builder.Services.AddSingleton(new LocalScopedService(database));
-        builder.Services.AddSingleton(new LocalHistoryService(database));
-        builder.Services.AddSingleton(new LocalPackagesService(Path.Combine(dataFolder, "nuget"), Path.Combine(dataFolder, "cache")));
-        builder.Services.AddSingleton<Dispatcher>();
+        var supervisor = new LocalSupervisor(dataFolder);
+        builder.Services.AddSingleton(supervisor);
+        builder.Services.AddSingleton(supervisor.Scoped);
+        builder.Services.AddSingleton(supervisor.History);
+        builder.Services.AddSingleton(supervisor.Packages);
+        builder.Services.AddSingleton(supervisor.Transit);
+        builder.Services.AddSingleton(supervisor.Dispatcher);
 
         builder.Services.AddExceptionHandler<ErrorHandler>();
         builder.Services.AddProblemDetails();
@@ -44,6 +45,7 @@ public static class SupervisorApp
         ScopedApi.Map(app);
         HistoryApi.Map(app);
         PackagesApi.Map(app);
+        TransitApi.Map(app);
 
         app.MapHub<CallerHub>($"/{SupervisorRoutes.Callers}");
         app.MapHub<WorkerHub>($"/{SupervisorRoutes.Workers}");

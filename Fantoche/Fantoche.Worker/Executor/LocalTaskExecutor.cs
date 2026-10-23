@@ -13,32 +13,22 @@ public class ExecutionException : Exception
 
 /// <summary>
 /// Run a task in this process : load its package and execute it, a workflow being walked by a
-/// <see cref="WorkflowExecutor"/>.
+/// <see cref="WorkflowExecutor"/>. Built for an execution, with its storage.
 /// </summary>
-public class LocalTaskExecutor : ITaskExecutor, IDisposable
+public class LocalTaskExecutor : ITaskExecutor
 {
-    private readonly IPackageManagement _packages;
+    private readonly TaskLoaders _tasks;
     private readonly IStorage _storage;
     private readonly WorkflowExecutor _workflowExecutor;
-    /// <summary>
-    /// Task loaders cached by DLL path.
-    /// </summary>
-    private readonly Dictionary<string, TaskLoader> _cachedTaskLoaders = [];
 
     /// <param name="workflowExecutor">
     /// What the workflows are walked with, by default one running their nodes here as well.
     /// </param>
-    public LocalTaskExecutor(IPackageManagement packageManagement, IStorage storage, WorkflowExecutor? workflowExecutor = null)
+    public LocalTaskExecutor(TaskLoaders tasks, IStorage storage, WorkflowExecutor? workflowExecutor = null)
     {
         _workflowExecutor = workflowExecutor ?? new WorkflowExecutor(this);
-        _packages = packageManagement;
+        _tasks = tasks;
         _storage = storage;
-    }
-
-    public void Dispose()
-    {
-        foreach (var loader in _cachedTaskLoaders)
-            loader.Value.Dispose();
     }
 
     public async Task<TaskInstance> ExecuteAsync(
@@ -107,21 +97,7 @@ public class LocalTaskExecutor : ITaskExecutor, IDisposable
         if (automationTask.Target is not PackageClassTarget target)
             throw new ExecutionException("Task target is not a package.");
 
-        string dllPath =
-            await _packages.DownloadPackageAsync(target.Package.Id, target.Package.Version, target.Dll);
-
-        // The branches of a workflow and the executions of a worker share the cache.
-        TaskLoader loader;
-        lock (_cachedTaskLoaders)
-        {
-            if (!_cachedTaskLoaders.TryGetValue(dllPath, out loader!))
-            {
-                loader = new TaskLoader(dllPath);
-                _cachedTaskLoaders.Add(dllPath, loader);
-            }
-        }
-
-        var task = loader.CreateInstance(target.ClassFullName);
+        var task = await _tasks.CreateAsync(target);
 
         // Pass-through with no parameters: nothing to deserialize, nothing for the plugin
         // to do — short-circuit before forcing a TInput-typed conversion that would throw.

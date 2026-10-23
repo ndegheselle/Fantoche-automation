@@ -21,6 +21,7 @@
                     <RowDefinition />
                     <RowDefinition Height="auto" />
                     <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
                 </Grid.RowDefinitions>
 
                 <details:MetadataEditor DataContext="{Binding Metadata}" />
@@ -70,7 +71,17 @@
                     Run on a worker
                 </CheckBox>
 
-                <details:ScopedActions Grid.Row="3" />
+                <StackPanel
+                    Grid.Row="3"
+                    joolkit:Spacing.Gap="4"
+                    Orientation="Horizontal"
+                    ToolTip="How many of its last executions keep the tables and files they wrote, on each worker running it."
+                    Visibility="{Binding Metadata.IsReadOnly, Mode=OneTime, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}">
+                    <TextBlock VerticalAlignment="Center">Executions keeping their storage</TextBlock>
+                    <TextBox Width="60" Text="{Binding StorageRetention, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+
+                <details:ScopedActions Grid.Row="4" />
             </Grid>
         </TabItem>
         <TabItem Header="History" Tag="{x:Static local:EnumDetailTab.History}">

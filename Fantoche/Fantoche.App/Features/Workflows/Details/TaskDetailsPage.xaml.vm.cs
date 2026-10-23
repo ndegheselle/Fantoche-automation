@@ -34,6 +34,18 @@ namespace Fantoche.App.Features.Workflows.Details
             }
         }
 
+        /// <summary>See <see cref="TaskSettings.StorageRetention"/>.</summary>
+        public int StorageRetention
+        {
+            get => Task.Settings.StorageRetention;
+            set
+            {
+                Task.Settings.StorageRetention = Math.Max(value, 0);
+                OnPropertyChanged();
+                MarkChanged();
+            }
+        }
+
         public TaskDetailsViewModel(ScopedNode node, WorkflowsViewModel parent, AppServices services)
             : base(node, parent, services)
         { }

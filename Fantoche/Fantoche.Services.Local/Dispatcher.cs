@@ -1,13 +1,12 @@
 using Fantoche.Plugins.Shared;
-using Fantoche.Services.Local;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Data.Scoped;
 using Fantoche.Shared.Remote;
 using Fantoche.Shared.Services;
-using Microsoft.AspNetCore.SignalR;
+using Fantoche.Worker.Storage;
 using Newtonsoft.Json.Linq;
 
-namespace Fantoche.Supervisor.Api.Execution;
+namespace Fantoche.Services.Local;
 
 public record WorkerInfo(string Id, int Capacity, int Running);
 
@@ -16,12 +15,17 @@ public record WorkerInfo(string Id, int Capacity, int Running);
 /// states the workers report are stored in the history, and the outcome is sent back to the caller.
 /// The executions themselves are kept in memory : one only lives as long as the connections of its
 /// caller and its worker.
+/// <para>
+/// A caller and a worker are known by the id of their connection, whatever carries their messages
+/// (a hub of the supervisor API, or a call in the same process).
+/// </para>
 /// </summary>
 public class Dispatcher
 {
     private sealed class Worker
     {
         public required string ConnectionId { get; init; }
+        public required IWorkerClient Client { get; init; }
         public required string Id { get; init; }
         public required int Capacity { get; init; }
         public HashSet<Guid> Running { get; } = [];
@@ -30,15 +34,15 @@ public class Dispatcher
     private sealed class Execution
     {
         public required string CallerConnectionId { get; init; }
+        public required ICallerClient Caller { get; init; }
         public required RemoteExecution Request { get; init; }
         /// <summary>Null while it waits for a worker.</summary>
-        public string? WorkerConnectionId { get; set; }
+        public Worker? Worker { get; set; }
     }
 
     private readonly LocalScopedService _scoped;
     private readonly LocalHistoryService _history;
-    private readonly IHubContext<CallerHub, ICallerClient> _callers;
-    private readonly IHubContext<WorkerHub, IWorkerClient> _workers;
+    private readonly IStorageTransit _transit;
 
     private readonly object _lock = new();
     private readonly Dictionary<string, Worker> _workersByConnection = [];
@@ -46,16 +50,11 @@ public class Dispatcher
     /// <summary>Executions waiting for a worker, the canceled ones being skipped once dequeued.</summary>
     private readonly Queue<Guid> _queue = [];
 
-    public Dispatcher(
-        LocalScopedService scoped,
-        LocalHistoryService history,
-        IHubContext<CallerHub, ICallerClient> callers,
-        IHubContext<WorkerHub, IWorkerClient> workers)
+    public Dispatcher(LocalScopedService scoped, LocalHistoryService history, IStorageTransit transit)
     {
         _scoped = scoped;
         _history = history;
-        _callers = callers;
-        _workers = workers;
+        _transit = transit;
     }
 
     public IReadOnlyList<WorkerInfo> GetWorkers()
@@ -66,7 +65,7 @@ public class Dispatcher
 
     #region Callers
 
-    public async Task SubmitAsync(string callerConnectionId, TaskInstance instance, JToken? globalContext)
+    public async Task SubmitAsync(string callerConnectionId, ICallerClient caller, TaskInstance instance, JToken? globalContext)
     {
         // Whatever the caller sent, the instance runs from now on.
         instance.State = EnumTaskState.Progressing;
@@ -81,7 +80,7 @@ public class Dispatcher
             // Not stored : the instance would point at a task the database doesn't hold.
             instance.State = EnumTaskState.Failed;
             instance.Output = JToken.FromObject(exception.Message);
-            await _callers.Clients.Client(callerConnectionId).Completed(instance);
+            await caller.Completed(instance);
             return;
         }
 
@@ -89,7 +88,7 @@ public class Dispatcher
         await _history.SaveAsync(instance);
         lock (_lock)
         {
-            _executions[instance.Id] = new Execution { CallerConnectionId = callerConnectionId, Request = execution };
+            _executions[instance.Id] = new Execution { CallerConnectionId = callerConnectionId, Caller = caller, Request = execution };
             _queue.Enqueue(instance.Id);
         }
         await DispatchAsync();
@@ -98,54 +97,58 @@ public class Dispatcher
     public async Task CancelAsync(string callerConnectionId, Guid executionId)
     {
         Execution? execution;
-        string? workerConnectionId;
+        Worker? worker;
         lock (_lock)
         {
             if (!_executions.TryGetValue(executionId, out execution) || execution.CallerConnectionId != callerConnectionId)
                 return;
 
-            workerConnectionId = execution.WorkerConnectionId;
-            if (workerConnectionId == null)
+            worker = execution.Worker;
+            if (worker == null)
                 _executions.Remove(executionId);
         }
 
         // A running execution is stopped by its worker, which completes it as canceled.
-        if (workerConnectionId != null)
-            await _workers.Clients.Client(workerConnectionId).Cancel(executionId);
+        if (worker != null)
+            await worker.Client.Cancel(executionId);
         else
-            await FinishAsync(callerConnectionId, execution.Request.Instance, EnumTaskState.Canceled);
+            await FinishAsync(execution, EnumTaskState.Canceled);
     }
 
     /// <summary>
-    /// Nobody is left to hear about the executions of [callerConnectionId] : they are dropped and the
-    /// running ones stopped.
+    /// Nobody is left to hear about the executions of [callerConnectionId] : they are dropped, the
+    /// running ones stopped, and what they had in transit forgotten.
     /// </summary>
     public async Task RemoveCallerAsync(string callerConnectionId)
     {
-        List<(Guid ExecutionId, string WorkerConnectionId)> running = [];
+        List<(Guid ExecutionId, Worker? Worker)> dropped = [];
         lock (_lock)
         {
             var executions = _executions.Where(x => x.Value.CallerConnectionId == callerConnectionId).ToList();
             foreach (var (executionId, execution) in executions)
             {
                 _executions.Remove(executionId);
-                if (execution.WorkerConnectionId != null)
-                    running.Add((executionId, execution.WorkerConnectionId));
+                dropped.Add((executionId, execution.Worker));
             }
         }
 
-        var cancels = running.Select(x => _workers.Clients.Client(x.WorkerConnectionId).Cancel(x.ExecutionId));
+        var cancels = dropped
+            .Where(x => x.Worker != null)
+            .Select(x => x.Worker!.Client.Cancel(x.ExecutionId));
         await Task.WhenAll(cancels);
+
+        var clears = dropped.Select(x => _transit.ClearAsync(x.ExecutionId));
+        await Task.WhenAll(clears);
     }
 
     #endregion
 
     #region Workers
 
-    public Task AddWorkerAsync(string connectionId, string workerId, int capacity)
+    public Task AddWorkerAsync(string connectionId, IWorkerClient client, string workerId, int capacity)
     {
         lock (_lock)
-            _workersByConnection[connectionId] = new Worker { ConnectionId = connectionId, Id = workerId, Capacity = capacity };
+            _workersByConnection[connectionId] = new Worker { ConnectionId = connectionId, Client = client, Id = workerId, Capacity = capacity };
         return DispatchAsync();
     }
 
@@ -170,7 +173,7 @@ public class Dispatcher
         }
 
         foreach (Execution execution in lost)
-            await FinishAsync(execution.CallerConnectionId, execution.Request.Instance, EnumTaskState.Failed, $"The worker '{workerId}' running the task was lost.");
+            await FinishAsync(execution, EnumTaskState.Failed, $"The worker '{workerId}' running the task was lost.");
     }
 
     /// <summary>
@@ -180,13 +183,13 @@ public class Dispatcher
 
     public Task ReportNotificationAsync(Guid executionId, TaskNotification notification)
     {
-        string? callerConnectionId;
+        ICallerClient? caller;
         lock (_lock)
-            callerConnectionId = _executions.GetValueOrDefault(executionId)?.CallerConnectionId;
+            caller = _executions.GetValueOrDefault(executionId)?.Caller;
 
-        if (callerConnectionId == null)
+        if (caller == null)
             return Task.CompletedTask;
-        return _callers.Clients.Client(callerConnectionId).Notified(executionId, notification);
+        return caller.Notified(executionId, notification);
     }
 
     public async Task CompleteAsync(string workerConnectionId, TaskInstance instance)
@@ -203,7 +206,7 @@ public class Dispatcher
 
         // Unknown when its caller left in the meantime.
         if (execution != null)
-            await _callers.Clients.Client(execution.CallerConnectionId).Completed(instance);
+            await execution.Caller.Completed(instance);
 
         await DispatchAsync();
     }
@@ -211,16 +214,17 @@ public class Dispatcher
     #endregion
 
     /// <summary>
-    /// End [instance] without a worker having run it to its end : stored, then sent to its caller.
+    /// End [execution] without a worker having run it to its end : stored, then sent to its caller.
     /// </summary>
-    private async Task FinishAsync(string callerConnectionId, TaskInstance instance, EnumTaskState state, string? error = null)
+    private async Task FinishAsync(Execution execution, EnumTaskState state, string? error = null)
     {
+        TaskInstance instance = execution.Request.Instance;
         instance.State = state;
         if (error != null)
             instance.Output = JToken.FromObject(error);
 
         await _history.SaveAsync(instance);
-        await _callers.Clients.Client(callerConnectionId).Completed(instance);
+        await execution.Caller.Completed(instance);
     }
 
     /// <summary>
@@ -228,7 +232,7 @@ public class Dispatcher
     /// </summary>
     private async Task DispatchAsync()
     {
-        List<(string WorkerConnectionId, RemoteExecution Request)> assigned = [];
+        List<(Worker Worker, RemoteExecution Request)> assigned = [];
         lock (_lock)
         {
             while (_queue.Count > 0)
@@ -244,13 +248,13 @@ public class Dispatcher
                 if (!_executions.TryGetValue(executionId, out var execution))
                     continue;
 
-                execution.WorkerConnectionId = worker.ConnectionId;
+                execution.Worker = worker;
                 worker.Running.Add(executionId);
-                assigned.Add((worker.ConnectionId, execution.Request));
+                assigned.Add((worker, execution.Request));
             }
         }
 
-        var sends = assigned.Select(x => _workers.Clients.Client(x.WorkerConnectionId).Execute(x.Request));
+        var sends = assigned.Select(x => x.Worker.Client.Execute(x.Request));
         await Task.WhenAll(sends);
     }
 }

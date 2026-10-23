@@ -1,7 +1,9 @@
 using Fantoche.Plugins;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Data.Scoped;
+using Fantoche.Services.Local;
 using Fantoche.Worker.Executor;
+using Fantoche.Worker.Packages;
 using Fantoche.Worker.Storage;
 using Newtonsoft.Json.Linq;
 using NJsonSchema;
@@ -38,8 +40,11 @@ internal sealed class MixedTaskExecutorTests
         }
     }
 
-    private readonly TestPackageManagement _packages = new();
-    private readonly LocalStorage _storage = new(Path.Combine(Path.GetTempPath(), "fantoche-tests", Guid.NewGuid().ToString("N")));
+    private static string TempFolder() => Path.Combine(Path.GetTempPath(), "fantoche-tests", Guid.NewGuid().ToString("N"));
+
+    private readonly TaskLoaders _tasks = new(new TestPackageManagement());
+    private readonly LocalStorage _storage = new(TempFolder());
+    private readonly LocalStorageTransit _transit = new(TempFolder());
 
     private static AutomationTask RemoteTest()
     {
@@ -53,7 +58,7 @@ internal sealed class MixedTaskExecutorTests
     public async Task Workflow_SendsOnlyItsRemoteNodesToTheRemoteExecutor()
     {
         FakeRemote remote = new();
-        using MixedTaskExecutor executor = new(_packages, _storage, remote);
+        MixedTaskExecutor executor = new(_tasks, _storage, remote, _transit);
         WorkflowInstance instance = new TestWorkflow("Mixed")
             .Start()
             .Task("Local", PluginTasks.Test, new { Message = "local", Value = "$previous.Value", Add = 1 })
@@ -70,7 +75,7 @@ internal sealed class MixedTaskExecutorTests
     [Test]
     public async Task RemoteNode_HandsItsOutputToTheNextNode()
     {
-        using MixedTaskExecutor executor = new(_packages, _storage, new FakeRemote());
+        MixedTaskExecutor executor = new(_tasks, _storage, new FakeRemote(), _transit);
         WorkflowInstance instance = new TestWorkflow("Mixed")
             .Start()
             .Task("Remote", RemoteTest(), new { Message = "remote", Value = "$previous.Value", Add = 1 })
@@ -88,7 +93,7 @@ internal sealed class MixedTaskExecutorTests
     public async Task RemoteWorkflow_IsSentWhole()
     {
         FakeRemote remote = new();
-        using MixedTaskExecutor executor = new(_packages, _storage, remote);
+        MixedTaskExecutor executor = new(_tasks, _storage, remote, _transit);
         TestWorkflow nested = new TestWorkflow("Nested")
             .Start()
             .Task("NestedTask", PluginTasks.Test, new { Message = "nested", Value = "$previous.Value", Add = 1 })
@@ -105,20 +110,5 @@ internal sealed class MixedTaskExecutorTests
         await executor.ExecuteAsync(instance.Workflow, instance);
 
         Assert.That(remote.Ran, Is.EqualTo(new[] { "Nested" }));
-    }
-
-    [Test]
-    public async Task RemoteTask_InStandaloneMode_Fails()
-    {
-        using MixedTaskExecutor executor = new(_packages, _storage, remote: null);
-        TaskInstance instance = new() { Parameters = JToken.FromObject(new Plugins.TestParameters { Value = 1 }) };
-
-        TaskInstance result = await executor.ExecuteAsync(RemoteTest(), instance);
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.State, Is.EqualTo(EnumTaskState.Failed));
-            Assert.That(result.Output?.Value<string>(), Does.Contain("standalone mode"));
-        });
     }
 }
