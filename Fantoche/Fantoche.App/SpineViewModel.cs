@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using System.Net.Http;
 using System.Windows;
 using Fantoche.App.Common;
 using Fantoche.App.Features.Home;
@@ -13,13 +12,10 @@ using Fantoche.App.Features.Workflows.Controls;
 using Fantoche.App.Features.Workflows.Details.Controls;
 using Fantoche.App.Features.Workflows.Editor;
 using Fantoche.Services.Local;
-using Fantoche.Services.Local.Database;
 using Fantoche.Services.Remote;
 using Fantoche.Shared.Services;
+using Fantoche.Worker;
 using Fantoche.Worker.Executor;
-using Fantoche.Worker.Executor.Remote;
-using Fantoche.Worker.Packages;
-using Fantoche.Worker.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Joufflu.Feedback;
@@ -70,7 +66,7 @@ public class SpineViewModel : ObservableObject
 
     private SpineViewModel()
     {
-        Services = Settings.IsStandalone ? CreateStandaloneServices() : CreateSupervisorServices();
+        Services = CreateServices();
 
         Register<HomeViewModel, HomePage>(() => new());
         Register<SettingsViewModel, SettingsPage>(() => new(Settings, Toasts));
@@ -95,46 +91,36 @@ public class SpineViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Everything in the application : its own database, packages and storage, and no worker to
-    /// send a task to (one set to run on a worker fails).
+    /// The supervisor (in the application in standalone mode, reached through its API otherwise)
+    /// and the worker of the application, which runs what the application starts.
     /// </summary>
-    private AppServices CreateStandaloneServices()
+    private AppServices CreateServices()
     {
-        // The factory puts the schema and the starting content in place as it is built.
-        var databaseFactory = new DatabaseFactory(Path.Combine(Settings.LocalFolderPath, "Fantoche.db"));
+        ISupervisor supervisor = Settings.IsStandalone ? CreateLocalSupervisor() : CreateSupervisorClient();
+        LocalWorker worker = LocalWorker.InFolder(supervisor, Path.Combine(Settings.LocalFolderPath, "worker"));
 
-        var history = new LocalHistoryService(databaseFactory);
-        var packages = new LocalPackagesService(Settings.PackagesFolderPath, Path.Join(Settings.LocalFolderPath, "cache"));
-        var scoped = new LocalScopedService(databaseFactory);
-        var storage = new LocalStorage(Path.Combine(Settings.LocalFolderPath, "storage"));
-        var executor = new MixedTaskExecutor(packages.Cache, storage, remote: null);
+        // Alone, the application is the only worker there is to run the tasks set to run on one.
+        if (Settings.IsStandalone)
+            _ = supervisor.AddWorkerAsync(worker, Settings.ApplicationName, Environment.ProcessorCount);
 
-        // Take the cost of opening the database off the first navigation.
-        _ = Task.Run(() => DatabaseFactory.WarmUpDatabase(databaseFactory));
-
-        return new AppServices(scoped, new ExecutionService(scoped, history, executor), history, packages, Overlayer, Toasts);
+        var execution = new ExecutionService(supervisor.Scoped, supervisor.History, worker);
+        return new AppServices(supervisor.Scoped, execution, supervisor.History, supervisor.Packages, Overlayer, Toasts);
     }
 
-    /// <summary>
-    /// The data kept by the supervisor. The tasks run in the application download their packages from
-    /// it, and read the storage the workers do from the shared folder.
-    /// </summary>
-    private AppServices CreateSupervisorServices()
+    private ISupervisor CreateLocalSupervisor()
     {
-        Uri supervisor = Settings.SupervisorAddress;
-        var http = new HttpClient { BaseAddress = supervisor };
+        var supervisor = new LocalSupervisor(Path.Combine(Settings.LocalFolderPath, "supervisor"));
+        // Take the cost of opening the database off the first navigation.
+        _ = Task.Run(supervisor.WarmUpDatabase);
+        return supervisor;
+    }
 
-        var history = new RemoteHistoryService(http);
-        var packages = new RemotePackagesService(http);
-        var scoped = new RemoteScopedService(http);
-        var packageManagement = new PackageCache(new SupervisorPackageSource(http), Path.Join(Settings.LocalFolderPath, "cache"));
-        var storage = new LocalStorage(Path.Combine(Settings.SharedFolder, "storage"));
-        var executor = new MixedTaskExecutor(packageManagement, storage, new RemoteTaskExecutor(supervisor));
-
+    private ISupervisor CreateSupervisorClient()
+    {
+        var supervisor = new SupervisorClient(Settings.SupervisorAddress);
         // Listens to the changes of the history as soon as the supervisor is up.
-        _ = history.StartAsync();
-
-        return new AppServices(scoped, new ExecutionService(scoped, history, executor), history, packages, Overlayer, Toasts);
+        _ = supervisor.History.StartAsync();
+        return supervisor;
     }
 
     /// <summary>Registers a page view model along with the view drawing it.</summary>

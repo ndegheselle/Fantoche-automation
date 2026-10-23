@@ -1,11 +1,12 @@
 using Fantoche.Plugins;
+using Fantoche.Plugins.Shared;
+using Fantoche.Plugins.Tables;
+using Fantoche.Services.Local;
 using Fantoche.Services.Remote;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Data.Scoped;
 using Fantoche.Supervisor.Api;
-using Fantoche.Supervisor.Api.Execution;
 using Fantoche.Worker.Executor;
-using Fantoche.Worker.Executor.Remote;
 using Fantoche.Worker.Storage;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,57 +16,85 @@ using NJsonSchema;
 namespace Fantoche.Worker.Tests;
 
 /// <summary>
-/// A task run through a supervisor, on a worker, as an application sees it. Every part is the real
-/// one, talking over the loopback : the supervisor with its database, the worker and the caller.
+/// Executions sent to a worker through a supervisor, as an application sees them. Every part is the
+/// real one, and every test runs against both supervisors : the one of the process (standalone
+/// mode) and a remote one reached over the loopback, which have to behave the same.
 /// </summary>
-[TestFixture]
-internal sealed class RemoteExecutionTests
+[TestFixture(Mode.Local)]
+[TestFixture(Mode.Remote)]
+internal sealed class SupervisorExecutionTests
 {
+    public enum Mode
+    {
+        Local,
+        Remote,
+    }
+
+    private readonly Mode _mode;
     private string _folder = null!;
-    private WebApplication _supervisor = null!;
-    private Uri _supervisorUrl = null!;
-    private HttpClient _http = null!;
-    private RemoteScopedService _scoped = null!;
-    private RemoteHistoryService _history = null!;
-    private LocalTaskExecutor _workerExecutor = null!;
-    private WorkerConnection? _worker;
+    private WebApplication? _api;
+    private ISupervisor _supervisor = null!;
+    private Dispatcher _dispatcher = null!;
+    /// <summary>The worker the supervisor dispatches to.</summary>
+    private LocalWorker _worker = null!;
+    /// <summary>The worker of the application, which runs what the application starts.</summary>
+    private LocalWorker _application = null!;
+    private IAsyncDisposable? _registration;
     private RemoteTaskExecutor _caller = null!;
+
+    public SupervisorExecutionTests(Mode mode)
+    {
+        _mode = mode;
+    }
 
     [SetUp]
     public async Task SetUp()
     {
         _folder = Path.Combine(Path.GetTempPath(), "fantoche-tests", Guid.NewGuid().ToString("N"));
-        string sharedFolder = Path.Combine(_folder, "shared");
-        _supervisor = SupervisorApp.Build([
-            "--urls", "http://127.0.0.1:0",
-            $"--DATA_FOLDER={Path.Combine(_folder, "supervisor")}",
-            "--Logging:LogLevel:Default=Warning"]);
-        await _supervisor.StartAsync();
-        _supervisorUrl = new Uri($"{_supervisor.Urls.First()}/");
+        Directory.CreateDirectory(_folder);
+        string supervisorFolder = Path.Combine(_folder, "supervisor");
 
-        _http = new HttpClient { BaseAddress = _supervisorUrl };
-        _scoped = new RemoteScopedService(_http);
-        _history = new RemoteHistoryService(_http);
-        _workerExecutor = new LocalTaskExecutor(new TestPackageManagement(), new LocalStorage(Path.Combine(sharedFolder, "storage")));
-        _caller = new RemoteTaskExecutor(_supervisorUrl);
+        if (_mode == Mode.Local)
+        {
+            LocalSupervisor supervisor = new(supervisorFolder);
+            _dispatcher = supervisor.Dispatcher;
+            _supervisor = supervisor;
+        }
+        else
+        {
+            _api = SupervisorApp.Build([
+                "--urls", "http://127.0.0.1:0",
+                $"--DATA_FOLDER={supervisorFolder}",
+                "--Logging:LogLevel:Default=Warning"]);
+            await _api.StartAsync();
+            _dispatcher = _api.Services.GetRequiredService<Dispatcher>();
+
+            SupervisorClient client = new(new Uri($"{_api.Urls.First()}/"));
+            await client.History.StartAsync();
+            _supervisor = client;
+        }
+
+        _worker = new LocalWorker(_supervisor, new TestPackageManagement(), Path.Combine(_folder, "worker"));
+        _application = new LocalWorker(_supervisor, new TestPackageManagement(), Path.Combine(_folder, "application"));
+        _caller = new RemoteTaskExecutor(_supervisor);
     }
 
     [TearDown]
     public async Task TearDown()
     {
-        await _caller.DisposeAsync();
-        if (_worker != null)
-            await _worker.DisposeAsync();
-        await _history.DisposeAsync();
-        _workerExecutor.Dispose();
-        _http.Dispose();
-        await _supervisor.DisposeAsync();
+        if (_registration != null)
+            await _registration.DisposeAsync();
+        if (_supervisor is IAsyncDisposable client)
+            await client.DisposeAsync();
+        if (_api != null)
+            await _api.DisposeAsync();
+        _worker.Dispose();
+        _application.Dispose();
     }
 
-    private async Task ConnectWorkerAsync()
+    private async Task ConnectWorkerAsync(LocalWorker? worker = null)
     {
-        _worker = new WorkerConnection(_supervisorUrl, "test-worker", capacity: 2, _workerExecutor);
-        await _worker.StartAsync(CancellationToken.None);
+        _registration = await _supervisor.AddWorkerAsync(worker ?? _worker, "test-worker", capacity: 2);
     }
 
     /// <summary>
@@ -73,8 +102,7 @@ internal sealed class RemoteExecutionTests
     /// </summary>
     private async Task WaitUntilRunningAsync()
     {
-        Dispatcher dispatcher = _supervisor.Services.GetRequiredService<Dispatcher>();
-        while (dispatcher.GetWorkers().Sum(x => x.Running) == 0)
+        while (_dispatcher.GetWorkers().Sum(x => x.Running) == 0)
             await Task.Delay(20);
     }
 
@@ -82,7 +110,7 @@ internal sealed class RemoteExecutionTests
     private async Task<T> StoreAsync<T>(T task) where T : BaseAutomationTask
     {
         task.ParentId = Scope.Root.Id;
-        await _scoped.CreateAsync(task);
+        await _supervisor.Scoped.CreateAsync(task);
         return task;
     }
 
@@ -109,6 +137,51 @@ internal sealed class RemoteExecutionTests
         NodeName = task.Metadata.Name,
         Parameters = JToken.FromObject(parameters),
     };
+
+    /// <summary>
+    /// Run, as the application starts it, a workflow sending a table it imported to a worker and
+    /// reading back what the worker made of it : <c>Start ─> Import ─> Filter (on a worker) ─> Copy ─> End</c>.
+    /// </summary>
+    private async Task<TaskInstance> RunTablesWorkflowAsync()
+    {
+        AutomationTask import = await StoreAsync(PluginTasks.Make("Fantoche.Plugins.Tables.CsvImportTask", "CsvImport",
+            JsonSchema.FromType<CsvImportParameters>(), JsonSchema.FromType<TableRef>()));
+        AutomationTask filter = PluginTasks.Make("Fantoche.Plugins.Tables.FilterTask", "Filter",
+            JsonSchema.FromType<FilterParameters>(), JsonSchema.FromType<TableRef>());
+        filter.Settings.Execution = EnumExecutionMode.Remote;
+        await StoreAsync(filter);
+        AutomationTask copy = await StoreAsync(PluginTasks.Make("Fantoche.Plugins.Tables.FilterTask", "Copy",
+            JsonSchema.FromType<FilterParameters>(), JsonSchema.FromType<TableRef>()));
+
+        object over10 = new { Left = "$row.columns.amount", Operator = "Greater", Right = 10 };
+        TestWorkflow tables = new TestWorkflow("Tables", requireOutput: false)
+            .Start()
+            .Task("Import", import, new { Path = "$previous.Path" })
+            .Task("Filter", filter, new { Source = "$previous", Conditions = new[] { over10 }, MatchAll = true })
+            .Task("Copy", copy, new { Source = "$previous", Conditions = Array.Empty<object>(), MatchAll = true })
+            .End(new { Table = "$previous" })
+            .Chain("Start", "Import", "Filter", "Copy", "End");
+        AutomationWorkflow workflow = await StoreAsync(tables.Workflow);
+
+        string csv = Path.Combine(_folder, "people.csv");
+        await File.WriteAllTextAsync(csv, "name,amount\nalice,10\nbob,20\ncarol,30\n");
+
+        ExecutionService execution = new(_supervisor.Scoped, _supervisor.History, _application);
+        TaskInstance started = await execution.StartAsync(workflow.Id, JToken.FromObject(new { Path = csv }));
+        return await execution.WaitAsync(started.Id);
+    }
+
+    /// <summary>The names in [table], read from the storage the application left it in.</summary>
+    private async Task<List<object?>> NamesInTheApplicationAsync(TableRef table)
+    {
+        string file = Directory.GetFiles(Path.Combine(_folder, "application"), $"{table.Id}.parquet", SearchOption.AllDirectories).Single();
+        LocalStorage storage = new(Path.GetDirectoryName(Path.GetDirectoryName(file))!);
+
+        List<object?> names = [];
+        await foreach (var row in storage.ReadRowsAsync(table))
+            names.Add(row["name"]);
+        return names;
+    }
 
     [Test]
     public async Task Task_CompletesWithWhatTheWorkerProduced()
@@ -169,29 +242,28 @@ internal sealed class RemoteExecutionTests
         TaskInstance instance = InstanceOf(workflow, new { Value = 1 });
 
         await _caller.ExecuteAsync(workflow, instance);
-        var nodes = await _history.GetChildrenAsync(instance.Id);
+        var nodes = await _supervisor.History.GetChildrenAsync(instance.Id);
 
         Assert.That(nodes.Single(x => x.NodeName == "First").State, Is.EqualTo(EnumTaskState.Completed));
     }
 
     [Test]
-    public async Task History_PushesTheChangesToTheApplications()
+    public async Task History_TellsTheApplicationsAboutTheChanges()
     {
         await ConnectWorkerAsync();
-        await _history.StartAsync();
         AutomationTask test = await StoreTestAsync();
         TaskInstance instance = InstanceOf(test, new { Value = 1, Add = 2 });
         TaskCompletionSource<TaskInstance> completed = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        _history.InstanceUpdated += x =>
+        _supervisor.History.InstanceUpdated += x =>
         {
             if (x.Id == instance.Id && x.State == EnumTaskState.Completed)
                 completed.TrySetResult(x);
         };
 
         await _caller.ExecuteAsync(test, instance);
-        TaskInstance pushed = await completed.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        TaskInstance told = await completed.Task.WaitAsync(TimeSpan.FromSeconds(10));
 
-        Assert.That(pushed.Output?["Value"]?.Value<int>(), Is.EqualTo(3));
+        Assert.That(told.Output?["Value"]?.Value<int>(), Is.EqualTo(3));
     }
 
     [Test]
@@ -247,7 +319,8 @@ internal sealed class RemoteExecutionTests
 
         Task<TaskInstance> execution = _caller.ExecuteAsync(delay, InstanceOf(delay, new { DelayMs = 60_000 }));
         await WaitUntilRunningAsync();
-        await _worker!.StopAsync();
+        await _registration!.DisposeAsync();
+        _registration = null;
         TaskInstance result = await execution;
 
         Assert.Multiple(() =>
@@ -263,6 +336,29 @@ internal sealed class RemoteExecutionTests
         AutomationTask test = await StoreTestAsync();
         await StoreLineAsync(test);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => _scoped.RemoveAsync(test));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _supervisor.Scoped.RemoveAsync(test));
+    }
+
+    [Test]
+    public async Task NodeOnAWorker_ReadsAndHandsBackTheStorageOfTheApplication()
+    {
+        await ConnectWorkerAsync();
+
+        TaskInstance result = await RunTablesWorkflowAsync();
+        TableRef table = result.Output!["Table"]!.ToObject<TableRef>()!;
+
+        Assert.That(await NamesInTheApplicationAsync(table), Is.EqualTo(new[] { "bob", "carol" }));
+    }
+
+    [Test]
+    public async Task ApplicationAsItsOwnWorker_RunsTheNodesSetToRunOnAWorker()
+    {
+        // As in standalone mode : the application is the only worker.
+        await ConnectWorkerAsync(_application);
+
+        TaskInstance result = await RunTablesWorkflowAsync();
+        TableRef table = result.Output!["Table"]!.ToObject<TableRef>()!;
+
+        Assert.That(await NamesInTheApplicationAsync(table), Is.EqualTo(new[] { "bob", "carol" }));
     }
 }

@@ -16,6 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Fantoche.Worker\Fantoche.Worker.csproj" />
+    <ProjectReference Include="..\Fantoche.Services.Remote\Fantoche.Services.Remote.csproj" />
   </ItemGroup>
 </Project>

@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Fantoche.Shared\Fantoche.Shared.csproj" />
+    <ProjectReference Include="..\Fantoche.Worker\Fantoche.Worker.csproj" />
   </ItemGroup>
 
 </Project>

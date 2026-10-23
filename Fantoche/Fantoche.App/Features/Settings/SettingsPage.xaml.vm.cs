@@ -33,16 +33,12 @@ namespace Fantoche.App.Features.Settings
         [ObservableProperty]
         private string _supervisorUrl;
 
-        [ObservableProperty]
-        private string _sharedFolder;
-
         public SettingsViewModel(AppSettings settings, IToastService toasts)
         {
             _settings = settings;
             _toasts = toasts;
             _isStandalone = settings.IsStandalone;
             _supervisorUrl = settings.SupervisorUrl;
-            _sharedFolder = settings.SharedFolder;
         }
 
         [RelayCommand]
@@ -56,7 +52,6 @@ namespace Fantoche.App.Features.Settings
 
             _settings.IsStandalone = IsStandalone;
             _settings.SupervisorUrl = SupervisorUrl;
-            _settings.SharedFolder = SharedFolder;
             _settings.Save();
             _toasts.Success("They will be applied when the application starts again.", "Settings saved");
         }

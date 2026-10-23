@@ -2,14 +2,15 @@ using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using DuckDB.NET.Data;
 using Fantoche.Plugins.Shared;
+using Newtonsoft.Json.Linq;
 
 namespace Fantoche.Worker.Storage;
 
 /// <summary>
-/// Storage in a folder, which may be shared between machines : every table is a Parquet file of its
-/// own, files are kept as they are. Tables are immutable, so a file never changes once written and
-/// several processes read the same folder without stepping on each other. Nothing is created until a
-/// task uses it.
+/// Storage in a folder, the one of an execution (see <see cref="ExecutionStorages"/>) : every table
+/// is a Parquet file of its own, files are kept as they are. Tables are immutable, so a file never
+/// changes once written and the branches of a workflow read it without stepping on each other.
+/// Nothing is created until a task uses it.
 /// <para>
 /// The handles a task is given come from its parameters, so their ids are checked before reaching
 /// a query or a path.
@@ -18,13 +19,16 @@ namespace Fantoche.Worker.Storage;
 public sealed class LocalStorage : IStorage
 {
     private const string TablePrefix = "t_";
+    private const string FilePrefix = "f_";
     private static readonly Regex TableIds = new($@"\b{TablePrefix}[0-9a-f]{{32}}\b", RegexOptions.Compiled);
 
+    private readonly string _folder;
     private readonly string _tablesFolder;
     private readonly string _filesFolder;
 
     public LocalStorage(string folder)
     {
+        _folder = folder;
         _tablesFolder = Path.Combine(folder, "tables");
         _filesFolder = Path.Combine(folder, "files");
     }
@@ -139,7 +143,7 @@ public sealed class LocalStorage : IStorage
 
     public async Task<FileRef> SaveFileAsync(string name, Stream content, CancellationToken cancellation = default)
     {
-        var file = new FileRef { Id = Guid.NewGuid().ToString("N"), Name = name };
+        var file = new FileRef { Id = $"{FilePrefix}{Guid.NewGuid():N}", Name = name };
         string path = PathOf(file);
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
 
@@ -156,11 +160,91 @@ public sealed class LocalStorage : IStorage
     /// </summary>
     private string PathOf(FileRef file)
     {
-        if (!Guid.TryParseExact(file.Id, "N", out _))
+        if (!file.Id.StartsWith(FilePrefix) || !Guid.TryParseExact(file.Id[FilePrefix.Length..], "N", out _))
             throw new ArgumentException($"[{file.Id}] is not a file of the storage.", nameof(file));
         if (string.IsNullOrWhiteSpace(file.Name) || file.Name != Path.GetFileName(file.Name) || file.Name is "." or "..")
             throw new ArgumentException($"[{file.Name}] is not a valid file name.", nameof(file));
         return Path.Combine(_filesFolder, file.Id, file.Name);
+    }
+
+    #endregion
+
+    #region Transfer
+
+    private static readonly Regex ItemIds = new($"^(?:{TablePrefix}|{FilePrefix})[0-9a-f]{{32}}$", RegexOptions.Compiled);
+    private static readonly Regex ItemPaths = new($@"^(?:tables/{TablePrefix}[0-9a-f]{{32}}\.parquet|files/{FilePrefix}[0-9a-f]{{32}}/[^/\\]+)$", RegexOptions.Compiled);
+
+    /// <summary>
+    /// The ids of the tables and files [token] points at, wherever they are in it : a handle is
+    /// told by its id alone, so a value of any shape (a list of files, a row holding a table) is
+    /// covered.
+    /// </summary>
+    public static IEnumerable<string> IdsIn(JToken? token)
+    {
+        IEnumerable<JToken> tokens = token switch
+        {
+            null => [],
+            JContainer container => container.DescendantsAndSelf(),
+            _ => [token],
+        };
+
+        return tokens
+            .Where(x => x.Type == JTokenType.String)
+            .Select(x => x.Value<string>()!)
+            .Where(x => ItemIds.IsMatch(x))
+            .Distinct();
+    }
+
+    /// <summary>
+    /// The files holding the table or the file [id], relative to the folder of the storage and
+    /// separated by "/". Empty when the storage doesn't hold it.
+    /// </summary>
+    public IReadOnlyList<string> ItemsOf(string id)
+    {
+        if (!ItemIds.IsMatch(id))
+            return [];
+
+        if (id.StartsWith(TablePrefix))
+            return File.Exists(PathOf(id)) ? [$"tables/{id}.parquet"] : [];
+
+        string folder = Path.Combine(_filesFolder, id);
+        if (!Directory.Exists(folder))
+            return [];
+        return [.. Directory.GetFiles(folder).Select(x => $"files/{id}/{Path.GetFileName(x)}")];
+    }
+
+    public bool HasItem(string item) => File.Exists(FullPathOf(item));
+
+    public Stream OpenItem(string item) => File.OpenRead(FullPathOf(item));
+
+    /// <summary>
+    /// Store [content] as [item], which another storage named : a table or a file never changing,
+    /// it is kept under the same path so the handles pointing at it stay valid.
+    /// </summary>
+    public async Task ImportItemAsync(string item, Stream content, CancellationToken cancellation = default)
+    {
+        string path = FullPathOf(item);
+        // Written under another name first, so a reader never finds an item half written.
+        string partialPath = $"{path}.partial";
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+
+        await using (FileStream stream = File.Create(partialPath))
+            await content.CopyToAsync(stream, cancellation);
+        File.Move(partialPath, path, overwrite: true);
+    }
+
+    /// <summary>
+    /// Whether [item] is a path this storage would name : the only paths a transfer is let to
+    /// write.
+    /// </summary>
+    public static bool IsItem(string item)
+        => ItemPaths.IsMatch(item) && Path.GetFileName(item) is not ("." or "..");
+
+    private string FullPathOf(string item)
+    {
+        if (!IsItem(item))
+            throw new ArgumentException($"[{item}] is not an item of the storage.", nameof(item));
+        return Path.Combine(_folder, item);
     }
 
     #endregion

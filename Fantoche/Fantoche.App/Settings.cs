@@ -6,9 +6,13 @@ using Joufflu.Themes;
 namespace Fantoche.App
 {
     /// <summary>
-    /// Settings of the application, kept in "settings.json" of its local folder. The mode, the
-    /// supervisor and the shared folder are read once, when the application starts : the services
-    /// are built from them, so changing them takes a restart.
+    /// Settings of the application, kept in "settings.json" of its local folder. The mode and the
+    /// supervisor are read once, when the application starts : the services are built from them, so
+    /// changing them takes a restart.
+    /// <para>
+    /// The local folder also holds the data of the worker of the application ("worker") and, in
+    /// standalone mode, of its supervisor ("supervisor").
+    /// </para>
     /// </summary>
     public class Settings
     {
@@ -21,25 +25,15 @@ namespace Fantoche.App
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData, Environment.SpecialFolderOption.Create),
             ApplicationName);
 
-        /// <summary>The packages of the standalone mode.</summary>
-        [JsonIgnore]
-        public string PackagesFolderPath { get; } = Path.Combine(Directory.GetCurrentDirectory(), "nuggets");
-
         public string Theme { get; set; } = ThemeManager.System;
 
         /// <summary>
-        /// Everything is kept and run in the application : its own database, packages and storage,
-        /// and no worker. Only for debugging or very particular uses.
+        /// The supervisor is run in the application rather than reached through its API, the
+        /// application being its only worker. Only for debugging or very particular uses.
         /// </summary>
         public bool IsStandalone { get; set; }
 
         public string SupervisorUrl { get; set; } = "http://localhost:8080/";
-
-        /// <summary>
-        /// The folder holding the "storage" shared with the workers, which the tasks run in the
-        /// application read and write as well.
-        /// </summary>
-        public string SharedFolder { get; set; } = "";
 
         /// <summary>
         /// <see cref="SupervisorUrl"/> as the base of the addresses of the supervisor.
@@ -48,11 +42,6 @@ namespace Fantoche.App
         public Uri SupervisorAddress => new(SupervisorUrl.EndsWith('/') ? SupervisorUrl : $"{SupervisorUrl}/");
 
         private string FilePath => Path.Combine(LocalFolderPath, "settings.json");
-
-        public Settings()
-        {
-            SharedFolder = Path.Combine(LocalFolderPath, "shared");
-        }
 
         /// <summary>
         /// The saved settings, the defaults when there are none or they can't be read.

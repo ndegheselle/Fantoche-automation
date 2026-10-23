@@ -1,6 +1,7 @@
 using Fantoche.Plugins.Shared;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Worker.Executor;
+using Fantoche.Worker.Packages;
 using Fantoche.Worker.Storage;
 using Newtonsoft.Json.Linq;
 
@@ -89,7 +90,7 @@ internal sealed class WorkflowRun
 
     private Task<WorkflowInstance> RunAsync(WorkflowInstance instance, CancellationToken? cancellation)
     {
-        WorkflowExecutor executor = new(Packages, Storage);
+        WorkflowExecutor executor = new(new TaskLoaders(Packages), Storage);
         TaskInstancesProgress progress = new()
         {
             StateChanges = new Sink<TaskInstance>(x =>

@@ -12,9 +12,8 @@ using NuGet.Versioning;
 namespace Fantoche.Worker.Packages;
 
 /// <summary>
-/// The folder the packages are added to, read as a nuget source : kept by the supervisor, or by the
-/// application in standalone mode. The ones running the tasks only read the files, through a
-/// <see cref="PackageCache"/>.
+/// The folder the packages are added to, read as a nuget source : kept by the supervisor. The
+/// workers running the tasks only read the files, through a <see cref="PackageCache"/>.
 /// </summary>
 public class PackageFolder : IPackageSource
 {

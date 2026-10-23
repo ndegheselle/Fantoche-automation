@@ -1,17 +1,18 @@
 using System.Net;
+using Fantoche.Worker.Packages;
 
-namespace Fantoche.Worker.Packages;
+namespace Fantoche.Services.Remote;
 
 /// <summary>
-/// The packages the supervisor holds, downloaded from its API : what a worker, or an application
-/// running a task itself, extracts into its <see cref="PackageCache"/>.
+/// The packages the supervisor holds, downloaded from its API : what a worker extracts into its
+/// <see cref="PackageCache"/>.
 /// </summary>
-public sealed class SupervisorPackageSource : IPackageSource
+public sealed class RemotePackageSource : IPackageSource
 {
     private readonly HttpClient _client;
 
     /// <param name="client">Its base address being the supervisor.</param>
-    public SupervisorPackageSource(HttpClient client)
+    public RemotePackageSource(HttpClient client)
     {
         _client = client;
     }

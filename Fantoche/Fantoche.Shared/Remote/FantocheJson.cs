@@ -13,6 +13,13 @@ public static class FantocheJson
     public static JsonSerializerOptions Options { get; } = Configure(new JsonSerializerOptions(JsonSerializerDefaults.Web));
 
     /// <summary>
+    /// [value] as the other end of a channel reads it : what a message carries without crossing
+    /// one, so it is never shared between its sender and its receiver.
+    /// </summary>
+    public static T Copy<T>(T value)
+        => JsonSerializer.Deserialize<T>(JsonSerializer.Serialize(value, Options), Options)!;
+
+    /// <summary>
     /// Add to [options] what the model needs : the JSON values (<see cref="JToken"/>) the instances
     /// and the contexts are made of.
     /// </summary>

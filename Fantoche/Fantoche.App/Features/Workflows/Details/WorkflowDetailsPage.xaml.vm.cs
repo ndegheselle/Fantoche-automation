@@ -26,6 +26,18 @@ namespace Fantoche.App.Features.Workflows.Details
             set => SetSetting(value, v => Workflow.Settings.Execution = v ? EnumExecutionMode.Remote : EnumExecutionMode.Local);
         }
 
+        /// <summary>See <see cref="TaskSettings.StorageRetention"/>.</summary>
+        public int StorageRetention
+        {
+            get => Workflow.Settings.StorageRetention;
+            set
+            {
+                Workflow.Settings.StorageRetention = Math.Max(value, 0);
+                OnPropertyChanged();
+                MarkChanged();
+            }
+        }
+
         public WorkflowDetailsViewModel(ScopedNode node, WorkflowsViewModel parent, AppServices services)
             : base(node, parent, services)
         {

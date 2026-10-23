@@ -4,8 +4,7 @@ namespace Fantoche.Supervisor.Api.Data;
 
 /// <summary>
 /// The packages the tasks are loaded from, see <see cref="Shared.Services.IPackagesService"/>. The
-/// workers and the applications download their files to run the tasks (see
-/// <see cref="Worker.Packages.SupervisorPackageSource"/>).
+/// workers download their files to run the tasks.
 /// </summary>
 public static class PackagesApi
 {

@@ -1,6 +1,7 @@
 using System.Text;
 using Fantoche.Plugins.Shared;
 using Fantoche.Worker.Storage;
+using Newtonsoft.Json.Linq;
 
 namespace Fantoche.Worker.Tests;
 
@@ -73,19 +74,6 @@ internal sealed class LocalStorageTests
     }
 
     [Test]
-    public async Task Table_IsReadByAnotherStorageOnTheSameFolder()
-    {
-        // Two storages on one folder : two machines sharing it.
-        LocalStorage other = new(_folder);
-        TableRef source = await PeopleAsync();
-
-        TableRef filtered = await other.CreateTableAsync($"SELECT name FROM {source.Id} WHERE amount > 15");
-        var rows = await ToListAsync(_storage.ReadRowsAsync(filtered));
-
-        Assert.That(rows.Select(x => x["name"]), Is.EqualTo(new[] { "bob", "carol" }));
-    }
-
-    [Test]
     public async Task ReadRows_RefusesATableItDidNotName()
     {
         var table = new TableRef { Id = "t_x; DROP TABLE y" };
@@ -113,8 +101,43 @@ internal sealed class LocalStorageTests
     [TestCase("")]
     public async Task OpenFile_RefusesANameLeavingItsFolder(string name)
     {
-        var file = new FileRef { Id = Guid.NewGuid().ToString("N"), Name = name };
+        var file = new FileRef { Id = $"f_{Guid.NewGuid():N}", Name = name };
 
         await Assert.ThrowsAsync<ArgumentException>(() => _storage.OpenFileAsync(file));
+    }
+
+    [Test]
+    public async Task IdsIn_FindsTheHandlesWhereverTheyAre()
+    {
+        TableRef table = await PeopleAsync();
+        FileRef file = await _storage.SaveFileAsync("report.pdf", new MemoryStream(Encoding.UTF8.GetBytes("content")));
+        JToken output = JToken.FromObject(new { Source = table, Report = new { Files = new[] { file } }, Name = "t_not-an-id" });
+
+        Assert.That(LocalStorage.IdsIn(output), Is.EquivalentTo(new[] { table.Id, file.Id }));
+    }
+
+    [Test]
+    public async Task ImportedItem_IsReadWithTheHandleOfTheStorageItCameFrom()
+    {
+        TableRef table = await PeopleAsync();
+        LocalStorage other = new(Path.Combine(_folder, "other"));
+
+        foreach (string item in _storage.ItemsOf(table.Id))
+        {
+            await using Stream content = _storage.OpenItem(item);
+            await other.ImportItemAsync(item, content);
+        }
+        var rows = await ToListAsync(other.ReadRowsAsync(table));
+
+        Assert.That(rows.Select(x => x["name"]), Is.EqualTo(new[] { "alice", "bob", "carol" }));
+    }
+
+    [TestCase("../outside.parquet")]
+    [TestCase("tables/../../outside.parquet")]
+    [TestCase("files/f_0123456789abcdef0123456789abcdef/..")]
+    [TestCase("database.db")]
+    public async Task ImportItem_RefusesAPathItWouldNotName(string item)
+    {
+        await Assert.ThrowsAsync<ArgumentException>(() => _storage.ImportItemAsync(item, new MemoryStream()));
     }
 }

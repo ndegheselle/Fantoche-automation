@@ -6,18 +6,13 @@ using Fantoche.Worker.Packages;
 namespace Fantoche.Services.Local;
 
 /// <summary>
-/// The packages of a folder, and the assemblies extracted from them to check what they hold : the
-/// ones of the supervisor, or of the application in standalone mode.
+/// The packages of the supervisor, kept in a folder, and the assemblies extracted from them to
+/// check what they hold. The workers extract their own from its files (see <see cref="IPackageSource"/>).
 /// </summary>
-public class LocalPackagesService : IPackagesService
+public class LocalPackagesService : IPackagesService, IPackageSource
 {
     private readonly PackageFolder _folder;
     private readonly PackageCache _cache;
-
-    /// <summary>
-    /// The assemblies the tasks are loaded from, for whoever executes them on this machine.
-    /// </summary>
-    public PackageCache Cache => _cache;
 
     /// <param name="loadSymbols">
     /// Whether the symbol packages are extracted along with the assemblies, so the tasks can be
