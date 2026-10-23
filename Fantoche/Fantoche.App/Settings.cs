@@ -11,7 +11,7 @@ namespace Fantoche.App
     /// changing them takes a restart.
     /// <para>
     /// The local folder also holds the data of the worker of the application ("worker") and, in
-    /// standalone mode, of its supervisor ("supervisor").
+    /// standalone mode, the one of its supervisor (see <see cref="Services.Local.LocalSupervisor"/>).
     /// </para>
     /// </summary>
     public class Settings

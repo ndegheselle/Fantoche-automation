@@ -53,7 +53,7 @@ The mode and the supervisor are applied when the application starts.
 
 - Supervisor : `DATA_FOLDER` (its database, the `nuget` packages, their cache and the storage in `transit`).
 - Worker : `SUPERVISOR_URL`, `WORKER_ID`, `WORKER_CAPACITY` (executions run at once) and `DATA_FOLDER` (the `cache` of the packages and the `storage` of its executions).
-- Application : its local folder (`%AppData%/Automation`) holds the data of its worker (`worker`) and, in standalone mode, of its supervisor (`supervisor`).
+- Application : its local folder (`%AppData%/Automation`) holds the data of its worker (`worker`) and, in standalone mode, the one of its supervisor (as in its `DATA_FOLDER`).
 - The packages are added to the supervisor, which serves them : a worker, or the application running a task itself, downloads a package the first time it needs it and extracts it in its own cache. A version can't be added twice, since the caches would keep the first one : publish a changed package under a new version.
 - Each worker (the application's included) has its own `storage` (tables and files), a folder per execution : everything flows between tasks through their parameters or the storage. Once on a worker an execution stays on it, so it only reads its own storage. When a node is sent to a worker, the tables and files its parameters point at go along with it through the supervisor (`transit`), and the ones its output points at come back the same way.
 - Only the last executions of a task or a workflow keep their storage, on each worker : 10 by default, set on the task or the workflow ("Executions keeping their storage"). The older ones are removed as an execution ends.

@@ -109,7 +109,7 @@ public class SpineViewModel : ObservableObject
 
     private ISupervisor CreateLocalSupervisor()
     {
-        var supervisor = new LocalSupervisor(Path.Combine(Settings.LocalFolderPath, "supervisor"));
+        var supervisor = new LocalSupervisor(Settings.LocalFolderPath);
         // Take the cost of opening the database off the first navigation.
         _ = Task.Run(supervisor.WarmUpDatabase);
         return supervisor;
