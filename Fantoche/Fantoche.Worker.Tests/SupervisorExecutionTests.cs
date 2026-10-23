@@ -76,8 +76,8 @@ internal sealed class SupervisorExecutionTests
             _supervisor = client;
         }
 
-        _worker = new LocalWorker(_supervisor, new TestPackageManagement(), Path.Combine(_folder, "worker"));
-        _application = new LocalWorker(_supervisor, new TestPackageManagement(), Path.Combine(_folder, "application"));
+        _worker = new LocalWorker(new TestPackageManagement(), Path.Combine(_folder, "worker"));
+        _application = new LocalWorker(new TestPackageManagement(), Path.Combine(_folder, "application"));
         _caller = new RemoteTaskExecutor(_supervisor);
     }
 
@@ -141,18 +141,15 @@ internal sealed class SupervisorExecutionTests
     };
 
     /// <summary>
-    /// Run, as the application starts it, a workflow importing a table and filtering it, its filter
-    /// node being set to run on a worker : <c>Start ─> Import ─> Filter (on a worker) ─> Copy ─> End</c>.
+    /// A stored workflow importing a table and filtering it, and the parameters pointing at the file
+    /// it imports : <c>Start ─> Import ─> Filter ─> Copy ─> End</c>.
     /// </summary>
-    /// <param name="execution">Where the workflow itself is set to run.</param>
-    private async Task<TaskInstance> RunTablesWorkflowAsync(EnumExecutionMode execution)
+    private async Task<(AutomationWorkflow Workflow, object Parameters)> StoreTablesWorkflowAsync()
     {
         AutomationTask import = await StoreAsync(PluginTasks.Make("Fantoche.Plugins.Tables.CsvImportTask", "CsvImport",
             JsonSchema.FromType<CsvImportParameters>(), JsonSchema.FromType<TableRef>()));
-        AutomationTask filter = PluginTasks.Make("Fantoche.Plugins.Tables.FilterTask", "Filter",
-            JsonSchema.FromType<FilterParameters>(), JsonSchema.FromType<TableRef>());
-        filter.Settings.Execution = EnumExecutionMode.Remote;
-        await StoreAsync(filter);
+        AutomationTask filter = await StoreAsync(PluginTasks.Make("Fantoche.Plugins.Tables.FilterTask", "Filter",
+            JsonSchema.FromType<FilterParameters>(), JsonSchema.FromType<TableRef>()));
         AutomationTask copy = await StoreAsync(PluginTasks.Make("Fantoche.Plugins.Tables.FilterTask", "Copy",
             JsonSchema.FromType<FilterParameters>(), JsonSchema.FromType<TableRef>()));
 
@@ -164,15 +161,31 @@ internal sealed class SupervisorExecutionTests
             .Task("Copy", copy, new { Source = "$previous", Conditions = Array.Empty<object>(), MatchAll = true })
             .End(new { Table = "$previous" })
             .Chain("Start", "Import", "Filter", "Copy", "End");
-        tables.Workflow.Settings.Execution = execution;
         AutomationWorkflow workflow = await StoreAsync(tables.Workflow);
 
         string csv = Path.Combine(_folder, "people.csv");
         await File.WriteAllTextAsync(csv, "name,amount\nalice,10\nbob,20\ncarol,30\n");
+        return (workflow, new { Path = csv });
+    }
 
+    /// <summary>The table the tables workflow ends with, started as the application starts it.</summary>
+    private async Task<TableRef> RunTablesInTheApplicationAsync()
+    {
+        var (workflow, parameters) = await StoreTablesWorkflowAsync();
         ExecutionService service = new(_supervisor.Scoped, _supervisor.History, _application);
-        TaskInstance started = await service.StartAsync(workflow.Id, JToken.FromObject(new { Path = csv }));
-        return await service.WaitAsync(started.Id);
+        TaskInstance started = await service.StartAsync(workflow.Id, JToken.FromObject(parameters));
+        TaskInstance result = await service.WaitAsync(started.Id);
+        return result.Output!["Table"]!.ToObject<TableRef>()!;
+    }
+
+    /// <summary>
+    /// The table the tables workflow ends with, dispatched by the supervisor as a scheduled item is.
+    /// </summary>
+    private async Task<TableRef> DispatchTablesAsync()
+    {
+        var (workflow, parameters) = await StoreTablesWorkflowAsync();
+        TaskInstance result = await _caller.ExecuteAsync(workflow, InstanceOf(workflow, parameters));
+        return result.Output!["Table"]!.ToObject<TableRef>()!;
     }
 
     /// <summary>The files of [table] in the storage of the worker kept in [workerFolder].</summary>
@@ -381,13 +394,11 @@ internal sealed class SupervisorExecutionTests
     }
 
     [Test]
-    public async Task WorkflowStartedInTheApplication_RunsItsNodesSetToRunOnAWorkerThere()
+    public async Task WorkflowStartedInTheApplication_RunsThereEvenWithAWorkerConnected()
     {
         await ConnectWorkerAsync();
 
-        TaskInstance result = await RunTablesWorkflowAsync(EnumExecutionMode.Local);
-        TableRef table = result.Output!["Table"]!.ToObject<TableRef>()!;
-
+        TableRef table = await RunTablesInTheApplicationAsync();
         List<object?> names = await NamesInAsync("application", table);
 
         Assert.Multiple(() =>
@@ -398,13 +409,11 @@ internal sealed class SupervisorExecutionTests
     }
 
     [Test]
-    public async Task WorkflowSetToRunOnAWorker_RunsWholeOnIt()
+    public async Task DispatchedWorkflow_KeepsItsTablesOnTheWorker()
     {
         await ConnectWorkerAsync();
 
-        TaskInstance result = await RunTablesWorkflowAsync(EnumExecutionMode.Remote);
-        TableRef table = result.Output!["Table"]!.ToObject<TableRef>()!;
-
+        TableRef table = await DispatchTablesAsync();
         List<object?> names = await NamesInAsync("worker", table);
 
         Assert.Multiple(() =>
@@ -415,13 +424,12 @@ internal sealed class SupervisorExecutionTests
     }
 
     [Test]
-    public async Task ApplicationAsItsOwnWorker_RunsTheWorkflowsSetToRunOnAWorker()
+    public async Task ApplicationAsItsOwnWorker_RunsWhatIsDispatched()
     {
         // As in standalone mode : the application is the only worker.
         await ConnectWorkerAsync(_application);
 
-        TaskInstance result = await RunTablesWorkflowAsync(EnumExecutionMode.Remote);
-        TableRef table = result.Output!["Table"]!.ToObject<TableRef>()!;
+        TableRef table = await DispatchTablesAsync();
 
         Assert.That(await NamesInAsync("application", table), Is.EqualTo(new[] { "bob", "carol" }));
     }

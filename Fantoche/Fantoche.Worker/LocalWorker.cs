@@ -17,22 +17,19 @@ namespace Fantoche.Worker;
 /// </para>
 /// <para>
 /// Once an execution started somewhere, everything of it stays there : a workflow runs all its
-/// nodes where it runs, whatever their own setting, and its tables and files never leave the
-/// storage of its run.
+/// nodes where it runs, and its tables and files never leave the storage of its run.
 /// </para>
 /// </summary>
 public sealed class LocalWorker : ITaskExecutor, IDisposable
 {
     private readonly TaskLoaders _tasks;
     private readonly ExecutionStorages _storages;
-    private readonly RemoteTaskExecutor _remote;
 
     /// <param name="storageFolder">Where the storage of its executions is kept.</param>
-    public LocalWorker(ISupervisor supervisor, IPackageManagement packages, string storageFolder)
+    public LocalWorker(IPackageManagement packages, string storageFolder)
     {
         _tasks = new TaskLoaders(packages);
         _storages = new ExecutionStorages(storageFolder);
-        _remote = new RemoteTaskExecutor(supervisor);
     }
 
     /// <summary>
@@ -42,42 +39,17 @@ public sealed class LocalWorker : ITaskExecutor, IDisposable
     public static LocalWorker InFolder(ISupervisor supervisor, string dataFolder)
     {
         PackageCache packages = new(supervisor.PackageFiles, Path.Combine(dataFolder, "cache"));
-        return new LocalWorker(supervisor, packages, Path.Combine(dataFolder, "storage"));
+        return new LocalWorker(packages, Path.Combine(dataFolder, "storage"));
     }
 
     public void Dispose() => _tasks.Dispose();
 
-    /// <summary>
-    /// An execution started in this process : sent whole to the supervisor when [task] is set to
-    /// run on a worker (see <see cref="TaskSettings.Execution"/>), run here otherwise.
-    /// </summary>
-    public Task<TaskInstance> ExecuteAsync(
+    /// <summary>An execution started in this process.</summary>
+    public async Task<TaskInstance> ExecuteAsync(
         BaseAutomationTask task,
         TaskInstance instance,
         TaskInstancesProgress? progress = null,
         CancellationToken? cancellation = null)
-    {
-        if (task.Settings.Execution == EnumExecutionMode.Remote)
-            return _remote.ExecuteAsync(task, instance, progress, cancellation);
-
-        return RunHereAsync(task, instance, progress, cancellation);
-    }
-
-    /// <summary>An execution the supervisor dispatched.</summary>
-    public Task<TaskInstance> ExecuteDispatchedAsync(
-        RemoteExecution execution,
-        TaskInstancesProgress progress,
-        CancellationToken cancellation)
-    {
-        var (task, instance) = execution.Unpack();
-        return RunHereAsync(task, instance, progress, cancellation);
-    }
-
-    private async Task<TaskInstance> RunHereAsync(
-        BaseAutomationTask task,
-        TaskInstance instance,
-        TaskInstancesProgress? progress,
-        CancellationToken? cancellation)
     {
         LocalStorage storage = _storages.Open(task.Id, instance);
         try
@@ -89,5 +61,15 @@ public sealed class LocalWorker : ITaskExecutor, IDisposable
         {
             _storages.Release(task.Id, instance, task.Settings.StorageRetention);
         }
+    }
+
+    /// <summary>An execution the supervisor dispatched.</summary>
+    public Task<TaskInstance> ExecuteDispatchedAsync(
+        RemoteExecution execution,
+        TaskInstancesProgress progress,
+        CancellationToken cancellation)
+    {
+        var (task, instance) = execution.Unpack();
+        return ExecuteAsync(task, instance, progress, cancellation);
     }
 }

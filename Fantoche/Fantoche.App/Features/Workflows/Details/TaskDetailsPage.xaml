@@ -21,7 +21,6 @@
                     <RowDefinition />
                     <RowDefinition Height="auto" />
                     <RowDefinition Height="auto" />
-                    <RowDefinition Height="auto" />
                 </Grid.RowDefinitions>
 
                 <details:MetadataEditor DataContext="{Binding Metadata}" />
@@ -63,16 +62,8 @@
 
                 </Grid>
 
-                <CheckBox
-                    Grid.Row="2"
-                    IsChecked="{Binding RunOnWorker}"
-                    ToolTip="When started, run the task on a worker of the supervisor rather than in the application. As a node of a workflow, it runs wherever the workflow runs."
-                    Visibility="{Binding Metadata.IsReadOnly, Mode=OneTime, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}">
-                    Run on a worker
-                </CheckBox>
-
                 <StackPanel
-                    Grid.Row="3"
+                    Grid.Row="2"
                     joolkit:Spacing.Gap="4"
                     Orientation="Horizontal"
                     ToolTip="How many of its last executions keep the tables and files they wrote, on each worker running it."
@@ -81,7 +72,7 @@
                     <TextBox Width="60" Text="{Binding StorageRetention, UpdateSourceTrigger=PropertyChanged}" />
                 </StackPanel>
 
-                <details:ScopedActions Grid.Row="4" />
+                <details:ScopedActions Grid.Row="3" />
             </Grid>
         </TabItem>
         <TabItem Header="History" Tag="{x:Static local:EnumDetailTab.History}">

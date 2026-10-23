@@ -27,7 +27,6 @@
                     VerticalAlignment="Top"
                     joolkit:Spacing.Gap="4">
                     <CheckBox IsChecked="{Binding StopIfAnyTaskFail}">Stop if any task fail</CheckBox>
-                    <CheckBox IsChecked="{Binding RunOnWorker}" ToolTip="When started, run the whole workflow on a single worker of the supervisor rather than in the application. Nested in another workflow, it runs wherever that one runs.">Run on a worker</CheckBox>
                     <StackPanel
                         joolkit:Spacing.Gap="4"
                         Orientation="Horizontal"

@@ -6,23 +6,9 @@ using NJsonSchema;
 
 namespace Fantoche.Shared.Data.Scoped;
 
-/// <summary>
-/// Where a task or workflow runs when it is started. Only read for the element an execution
-/// starts from : the nodes of a workflow run wherever the workflow runs.
-/// </summary>
-public enum EnumExecutionMode
-{
-    /// <summary>In the process starting it.</summary>
-    Local,
-    /// <summary>On a worker, through the supervisor.</summary>
-    Remote
-}
-
 public class TaskSettings
 {
     public bool IsPassingThrough { get; set; } = false;
-
-    public EnumExecutionMode Execution { get; set; } = EnumExecutionMode.Local;
 
     /// <summary>
     /// How many of its last executions keep the tables and files they wrote, on each worker

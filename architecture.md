@@ -2,7 +2,9 @@
 
 The standalone and remote modes run the same code: one supervisor (`LocalSupervisor`) and one kind of worker (`LocalWorker`). A remote supervisor only adds an HTTP/SignalR layer between them, and a remote worker only adds a hub connection.
 
-One rule keeps the interactions simple: once a worker (the application's included) starts an execution, everything of it stays there. Every node of a workflow runs where the workflow runs, and its tables and files never leave the storage of its run.
+Two rules keep the interactions simple:
+- What the application starts runs in the application. The workers run what the supervisor dispatches to them: the scheduled items (to come).
+- Once a worker (the application's included) starts an execution, everything of it stays there. Every node of a workflow runs where the workflow runs, and its tables and files never leave the storage of its run.
 
 ## Standalone and remote
 
@@ -40,42 +42,44 @@ flowchart TD
 | Supervisor | `LocalSupervisor` in the application | `LocalSupervisor` behind `Fantoche.Supervisor.Api`, reached with `SupervisorClient` |
 | Transport | Calls in the process, messages copied as over the wire | HTTP for the data, SignalR hubs for the executions and the history |
 | Workers the supervisor dispatches to | The application | The worker services (`Fantoche.Worker.Service`) |
-| A task or workflow started with "Run on a worker" | Runs on the application, in an execution of its own | Runs whole on a worker service |
+| A task or workflow started from the application | Runs in the application | Runs in the application |
 
 Both supervisors implement `ISupervisor`, which is all the application and the workers know of them. That is why the mode only changes how the application is built (`SpineViewModel.AddServices`), never what it does.
 
 In the process, the messages are copied the way the wire would copy them (`FantocheJson.Copy`). The caller and the worker never share an instance, so a bug can't hide in one mode only.
 
-## An execution sent to a worker
+## An execution dispatched to a worker
 
-"Run on a worker" (`TaskSettings.Execution`) is only read for the task or workflow an execution starts from. Such an execution is sent whole to the supervisor, and the worker it is handed to runs all of it:
+An execution is handed whole to the supervisor (`ICallerHub.Execute`, what `RemoteTaskExecutor` calls), and the worker it is dispatched to runs all of it:
 
 ```mermaid
 sequenceDiagram
-    participant App as Application
+    participant Caller
     participant Supervisor
     participant Worker
 
-    App->>Supervisor: Execute(instance)
+    Caller->>Supervisor: Execute(instance)
     Supervisor->>Supervisor: load the task, store the instance, queue it
     Supervisor->>Worker: Execute (least busy worker with room)
     Worker->>Worker: run it, every node here, in its own storage
     Worker-->>Supervisor: states and notifications (stored in the history)
     Worker->>Supervisor: Complete(instance)
-    Supervisor->>App: Completed(instance)
+    Supervisor->>Caller: Completed(instance)
 ```
 
-- The setting of a node is ignored: a workflow started in the application runs all its nodes in the application, and one started on a worker runs them all on that worker.
 - Only JSON travels: the parameters and the output. A table or file the output points at stays in the storage of the worker that wrote it.
+- Nothing in the application dispatches yet: the scheduled items will.
 
-### Why no node is sent to a worker
+### Why nothing started by hand is sent to a worker
 
 Sending a single node of a workflow to a worker was implemented, then removed. Each worker only reads its own storage, so the tables and files a node needed had to travel with it, through a transit held by the supervisor:
 - the caller put the items the parameters pointed at in the transit, the worker took them into its storage, and the output came back the same way;
 - the items were found by their ids anywhere in the JSON, and kept their ids once copied, so the `TableRef` and `FileRef` stayed valid;
 - each side emptied the transit as it took the items, and the supervisor cleared it when a caller disconnected or when it started.
 
-It worked, but it took a transit store in the supervisor, an HTTP API to stream it, a copy of every table a node read or wrote, and the cleanup of what a lost execution left behind. Few workflows need a node of theirs elsewhere, and such a node can be made a workflow of its own, started on a worker.
+It worked, but it took a transit store in the supervisor, an HTTP API to stream it, a copy of every table a node read or wrote, and the cleanup of what a lost execution left behind. Few workflows need a node of theirs elsewhere, and such a node can be made a workflow of its own.
+
+A "Run on a worker" setting on the tasks and workflows, sending a whole execution started from the application to a worker, was removed too. A run started by hand is for building and checking a workflow, close to the editor and the local files. Where an execution runs belongs to what schedules it, not to the task or workflow itself.
 
 ## Storage and retention
 

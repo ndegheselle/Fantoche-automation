@@ -27,7 +27,7 @@ See [architecture.md](architecture.md) : the standalone and remote modes, where 
 
 ### Modes
 
-- **Supervisor** (default) : the supervisor holds the database, the application and the workers reach it through its API. A task or a workflow set to "Run on a worker" is sent to a worker, the rest runs in the worker of the application. A workflow is handed whole to a single worker, and its nodes all run where it runs.
+- **Supervisor** (default) : the supervisor holds the database, the application and the workers reach it through its API. What the application starts runs in the worker of the application, the worker services run what the supervisor dispatches (the scheduled items, to come). A workflow is handed whole to a single worker, and its nodes all run where it runs.
 - **Standalone** : the supervisor runs in the application, which is its only worker. Only for debugging or very particular uses.
 
 The mode and the supervisor are applied when the application starts.
