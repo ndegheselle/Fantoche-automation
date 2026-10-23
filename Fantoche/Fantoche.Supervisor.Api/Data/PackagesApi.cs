@@ -3,8 +3,9 @@ using Fantoche.Services.Local;
 namespace Fantoche.Supervisor.Api.Data;
 
 /// <summary>
-/// The packages the tasks are loaded from, kept in the shared folder the workers read them from,
-/// see <see cref="Shared.Services.IPackagesService"/>.
+/// The packages the tasks are loaded from, see <see cref="Shared.Services.IPackagesService"/>. The
+/// workers and the applications download their files to run the tasks (see
+/// <see cref="Worker.Packages.SupervisorPackageSource"/>).
 /// </summary>
 public static class PackagesApi
 {
@@ -19,7 +20,14 @@ public static class PackagesApi
         packages.MapGet("/{id}/versions", (LocalPackagesService service, string id) => service.GetVersionsAsync(id));
         packages.MapGet("/{id}/{version}/classes", (LocalPackagesService service, string id, Version version)
             => service.GetClassesAsync(id, version));
+        packages.MapGet("/{id}/{version}/file", async (LocalPackagesService service, string id, Version version)
+            => FileResult(await service.OpenPackageAsync(id, version)));
+        packages.MapGet("/{id}/{version}/symbols", async (LocalPackagesService service, string id, Version version)
+            => FileResult(await service.OpenSymbolsAsync(id, version)));
     }
+
+    private static IResult FileResult(Stream? file)
+        => file == null ? TypedResults.NotFound() : TypedResults.Stream(file, "application/octet-stream");
 
     /// <summary>
     /// The package is added from a file : the uploaded one is kept under its own name the time it

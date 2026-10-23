@@ -90,7 +90,7 @@ internal sealed class LocalStorageTests
     {
         var table = new TableRef { Id = "t_x; DROP TABLE y" };
 
-        Assert.ThrowsAsync<ArgumentException>(async () => await ToListAsync(_storage.ReadRowsAsync(table)));
+        await Assert.ThrowsAsync<ArgumentException>(async () => await ToListAsync(_storage.ReadRowsAsync(table)));
     }
 
     [Test]
@@ -111,10 +111,10 @@ internal sealed class LocalStorageTests
     [TestCase("../outside.txt")]
     [TestCase("..")]
     [TestCase("")]
-    public void OpenFile_RefusesANameLeavingItsFolder(string name)
+    public async Task OpenFile_RefusesANameLeavingItsFolder(string name)
     {
         var file = new FileRef { Id = Guid.NewGuid().ToString("N"), Name = name };
 
-        Assert.ThrowsAsync<ArgumentException>(() => _storage.OpenFileAsync(file));
+        await Assert.ThrowsAsync<ArgumentException>(() => _storage.OpenFileAsync(file));
     }
 }

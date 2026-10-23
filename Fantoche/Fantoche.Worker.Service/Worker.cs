@@ -9,8 +9,8 @@ namespace Fantoche.Worker.Service;
 /// Run the tasks the supervisor sends, with the packages and the storage of this machine.
 /// <para>
 /// Configured by : SUPERVISOR_URL, WORKER_ID, WORKER_CAPACITY (executions run at once),
-/// DATA_FOLDER (the cache of the packages) and SHARED_FOLDER (the "nuget" packages and the
-/// "storage", shared with the supervisor and the other workers).
+/// DATA_FOLDER (the cache of the packages downloaded from the supervisor) and SHARED_FOLDER (the
+/// "storage", shared with the other workers and the applications).
 /// </para>
 /// </summary>
 public class Worker : BackgroundService
@@ -32,7 +32,8 @@ public class Worker : BackgroundService
         string dataFolder = _configuration["DATA_FOLDER"] ?? "/app/data";
         string sharedFolder = _configuration["SHARED_FOLDER"] ?? "/app/shared";
 
-        var packages = new LocalPackageManagement(Path.Combine(sharedFolder, "nuget"), Path.Combine(dataFolder, "cache"));
+        using var http = new HttpClient { BaseAddress = supervisor };
+        var packages = new PackageCache(new SupervisorPackageSource(http), Path.Combine(dataFolder, "cache"));
         var storage = new LocalStorage(Path.Combine(sharedFolder, "storage"));
         using var executor = new LocalTaskExecutor(packages, storage);
         await using var connection = new WorkerConnection(supervisor, workerId, capacity, executor);
