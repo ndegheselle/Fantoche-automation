@@ -7,6 +7,7 @@ using Fantoche.App.Features.Packages.Controls;
 using Fantoche.App.Features.Servers;
 using Fantoche.App.Features.Settings;
 using Fantoche.App.Features.Storage;
+using Fantoche.App.Features.Workers;
 using Fantoche.App.Features.Workflows;
 using Fantoche.App.Features.Workflows.Controls;
 using Fantoche.App.Features.Workflows.Details.Controls;
@@ -82,7 +83,8 @@ public class SpineViewModel : ObservableObject
         RegisterView<PackageSelectionViewModel, PackageSelectionOverlay>();
 
         Register<ServersViewModel, ServersPage>(() => new());
-        Register<StorageViewModel, StoragePage>(() => new());
+        Register<WorkersViewModel, WorkersPage>(() => new(Services.Supervisor.Dispatch, Scoped));
+        Register<StorageViewModel, StoragePage>(() => new(Services.Worker, Scoped));
 
         Navigator = new Navigator(ResolvePage);
         OpenSettingsCommand = new RelayCommand(() => Navigator.Navigate(typeof(SettingsViewModel)));
@@ -104,7 +106,7 @@ public class SpineViewModel : ObservableObject
             _ = supervisor.AddWorkerAsync(worker, Settings.ApplicationName, Environment.ProcessorCount);
 
         var execution = new ExecutionService(supervisor.Scoped, supervisor.History, worker);
-        return new AppServices(supervisor.Scoped, execution, supervisor.History, supervisor.Packages, Overlayer, Toasts);
+        return new AppServices(supervisor, worker, supervisor.Scoped, execution, supervisor.History, supervisor.Packages, Overlayer, Toasts);
     }
 
     private ISupervisor CreateLocalSupervisor()
@@ -118,8 +120,9 @@ public class SpineViewModel : ObservableObject
     private ISupervisor CreateSupervisorClient()
     {
         var supervisor = new SupervisorClient(Settings.SupervisorAddress);
-        // Listens to the changes of the history as soon as the supervisor is up.
+        // Listens to the changes of the history and of the dispatch as soon as the supervisor is up.
         _ = supervisor.History.StartAsync();
+        _ = supervisor.Dispatch.StartAsync();
         return supervisor;
     }
 

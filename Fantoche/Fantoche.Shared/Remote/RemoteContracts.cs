@@ -13,6 +13,7 @@ public static class SupervisorRoutes
     public const string Callers = "hubs/callers";
     public const string Workers = "hubs/workers";
     public const string History = "hubs/history";
+    public const string Dispatch = "hubs/dispatch";
 }
 
 /// <summary>
@@ -54,6 +55,14 @@ public interface IHistoryClient
     Task InstanceAdded(TaskInstance instance);
 
     Task InstanceUpdated(TaskInstance instance);
+}
+
+/// <summary>
+/// What the supervisor pushes to every application : what it dispatches, as it changes.
+/// </summary>
+public interface IDispatchClient
+{
+    Task StatusChanged(DispatchStatus status);
 }
 
 /// <summary>

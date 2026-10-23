@@ -45,6 +45,9 @@ public sealed class LocalWorker : ITaskExecutor, IDisposable
 
     public void Dispose() => _tasks.Dispose();
 
+    /// <summary>The space the storage of its executions takes, for each task or workflow.</summary>
+    public List<StorageUsage> GetStorageUsage() => _storages.GetUsage();
+
     /// <summary>
     /// An execution started in this process : the nodes set to run on a worker are sent to the
     /// supervisor.

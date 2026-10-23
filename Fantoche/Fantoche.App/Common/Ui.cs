@@ -17,5 +17,18 @@ namespace Fantoche.App.Common
             else
                 dispatcher.Invoke(action);
         }
+
+        /// <summary>
+        /// Queue [action] on the UI thread without waiting for it, in the order it was posted : for
+        /// an event raised while its source holds a lock the UI thread may be waiting for.
+        /// </summary>
+        public static void Post(Action action)
+        {
+            var dispatcher = Application.Current?.Dispatcher;
+            if (dispatcher == null)
+                action();
+            else
+                dispatcher.BeginInvoke(action);
+        }
     }
 }

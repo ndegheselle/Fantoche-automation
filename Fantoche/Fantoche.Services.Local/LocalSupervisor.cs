@@ -101,6 +101,7 @@ public sealed class LocalSupervisor : ISupervisor
     IPackagesService ISupervisor.Packages => Packages;
     IPackageSource ISupervisor.PackageFiles => Packages;
     IStorageTransit ISupervisor.Transit => Transit;
+    IDispatchService ISupervisor.Dispatch => Dispatcher;
 
     public LocalSupervisor(string dataFolder)
     {

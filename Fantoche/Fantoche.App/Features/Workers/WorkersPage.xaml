@@ -1,0 +1,80 @@
+<UserControl
+    x:Class="Fantoche.App.Features.Workers.WorkersPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:joolkit="clr-namespace:Joufflu.Toolkit;assembly=Joufflu"
+    xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
+    xmlns:local="clr-namespace:Fantoche.App.Features.Workers"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DataContext="{d:DesignInstance Type=local:WorkersViewModel}"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    mc:Ignorable="d">
+    <Grid Margin="{StaticResource {x:Static joufflu:Dimensions.SpacingThickness}}" joolkit:Spacing.Gap="4">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="2*" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="2*" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" FontWeight="SemiBold" Text="Workers" />
+        <DataGrid
+            Grid.Row="1"
+            AutoGenerateColumns="False"
+            CanUserReorderColumns="False"
+            IsReadOnly="True"
+            ItemsSource="{Binding Workers}">
+            <DataGrid.Columns>
+                <DataGridTextColumn
+                    Width="*"
+                    Binding="{Binding Id}"
+                    Header="Worker" />
+                <DataGridTextColumn
+                    Binding="{Binding Load}"
+                    Header="Running / capacity"
+                    SortMemberPath="Running" />
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <TextBlock Grid.Row="2" FontWeight="SemiBold" Text="Running" />
+        <DataGrid
+            Grid.Row="3"
+            AutoGenerateColumns="False"
+            CanUserReorderColumns="False"
+            IsReadOnly="True"
+            ItemsSource="{Binding Running}">
+            <DataGrid.Columns>
+                <DataGridTextColumn
+                    Width="*"
+                    Binding="{Binding TaskName}"
+                    Header="Task / workflow" />
+                <DataGridTextColumn Binding="{Binding Worker}" Header="Worker" />
+                <DataGridTextColumn
+                    Binding="{Binding CreatedAt, StringFormat=\{0:g\}}"
+                    Header="Started" />
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <TextBlock Grid.Row="4" FontWeight="SemiBold" Text="Pending" />
+        <DataGrid
+            Grid.Row="5"
+            AutoGenerateColumns="False"
+            CanUserReorderColumns="False"
+            IsReadOnly="True"
+            ItemsSource="{Binding Pending}">
+            <DataGrid.Columns>
+                <DataGridTextColumn
+                    Width="*"
+                    Binding="{Binding TaskName}"
+                    Header="Task / workflow" />
+                <DataGridTextColumn
+                    Binding="{Binding CreatedAt, StringFormat=\{0:g\}}"
+                    Header="Queued" />
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</UserControl>

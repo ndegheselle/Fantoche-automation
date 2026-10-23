@@ -16,6 +16,7 @@
     xmlns:packages="clr-namespace:Fantoche.App.Features.Packages"
     xmlns:servers="clr-namespace:Fantoche.App.Features.Servers"
     xmlns:storage="clr-namespace:Fantoche.App.Features.Storage"
+    xmlns:workers="clr-namespace:Fantoche.App.Features.Workers"
     xmlns:workflows="clr-namespace:Fantoche.App.Features.Workflows"
     Width="1200"
     Height="800"
@@ -76,6 +77,12 @@
                             <fonts:FontIcon Text="{x:Static fonts:LucideFontIcons.Server}" />
                         </nav:NavigationItem.Icon>
                         Servers
+                    </nav:NavigationItem>
+                    <nav:NavigationItem TargetType="{x:Type workers:WorkersViewModel}">
+                        <nav:NavigationItem.Icon>
+                            <fonts:FontIcon Text="{x:Static fonts:LucideFontIcons.Cpu}" />
+                        </nav:NavigationItem.Icon>
+                        Workers
                     </nav:NavigationItem>
                     <nav:NavigationItem TargetType="{x:Type storage:StorageViewModel}">
                         <nav:NavigationItem.Icon>

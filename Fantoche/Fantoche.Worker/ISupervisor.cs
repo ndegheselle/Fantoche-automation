@@ -28,6 +28,8 @@ public interface ISupervisor
     /// </summary>
     ICallerHub ConnectCaller(ICallerClient caller);
 
+    IDispatchService Dispatch { get; }
+
     /// <summary>
     /// Add [worker] to the ones the executions are dispatched to, until the returned registration
     /// is disposed. Waits for the supervisor to be reachable.

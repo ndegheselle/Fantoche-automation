@@ -8,8 +8,6 @@ using Newtonsoft.Json.Linq;
 
 namespace Fantoche.Services.Local;
 
-public record WorkerInfo(string Id, int Capacity, int Running);
-
 /// <summary>
 /// Hand the executions of the callers to the workers : the task is read from the database, the
 /// states the workers report are stored in the history, and the outcome is sent back to the caller.
@@ -20,7 +18,7 @@ public record WorkerInfo(string Id, int Capacity, int Running);
 /// (a hub of the supervisor API, or a call in the same process).
 /// </para>
 /// </summary>
-public class Dispatcher
+public class Dispatcher : IDispatchService
 {
     private sealed class Worker
     {
@@ -49,6 +47,10 @@ public class Dispatcher
     private readonly Dictionary<Guid, Execution> _executions = [];
     /// <summary>Executions waiting for a worker, the canceled ones being skipped once dequeued.</summary>
     private readonly Queue<Guid> _queue = [];
+    /// <summary>Taken to read and raise a status at once, so they are raised in the order they were read.</summary>
+    private readonly object _notifyLock = new();
+
+    public event Action<DispatchStatus>? StatusChanged;
 
     public Dispatcher(LocalScopedService scoped, LocalHistoryService history, IStorageTransit transit)
     {
@@ -57,10 +59,40 @@ public class Dispatcher
         _transit = transit;
     }
 
-    public IReadOnlyList<WorkerInfo> GetWorkers()
+    public Task<DispatchStatus> GetStatusAsync() => Task.FromResult(GetStatus());
+
+    public DispatchStatus GetStatus()
     {
         lock (_lock)
-            return [.. _workersByConnection.Values.Select(x => new WorkerInfo(x.Id, x.Capacity, x.Running.Count))];
+        {
+            // A running execution whose caller left is dropped while its worker is still stopping it.
+            List<WorkerStatus> workers = [.. _workersByConnection.Values.Select(x => new WorkerStatus(
+                x.Id,
+                x.Capacity,
+                [.. x.Running.Where(_executions.ContainsKey).Select(id => StatusOf(_executions[id]))]))];
+
+            // The canceled ones stay in the queue until dequeued, but are gone from the executions.
+            List<ExecutionStatus> pending = [.. _queue
+                .Where(_executions.ContainsKey)
+                .Select(id => StatusOf(_executions[id]))];
+
+            return new DispatchStatus(workers, pending);
+        }
+    }
+
+    private void NotifyStatusChanged()
+    {
+        lock (_notifyLock)
+        {
+            DispatchStatus status = GetStatus();
+            StatusChanged?.Invoke(status);
+        }
+    }
+
+    private static ExecutionStatus StatusOf(Execution execution)
+    {
+        TaskInstance instance = execution.Request.Instance;
+        return new ExecutionStatus(instance.Id, instance.TaskId, instance.CreatedAt);
     }
 
     #region Callers
@@ -112,7 +144,10 @@ public class Dispatcher
         if (worker != null)
             await worker.Client.Cancel(executionId);
         else
+        {
+            NotifyStatusChanged();
             await FinishAsync(execution, EnumTaskState.Canceled);
+        }
     }
 
     /// <summary>
@@ -131,6 +166,8 @@ public class Dispatcher
                 dropped.Add((executionId, execution.Worker));
             }
         }
+        if (dropped.Count > 0)
+            NotifyStatusChanged();
 
         var cancels = dropped
             .Where(x => x.Worker != null)
@@ -171,6 +208,7 @@ public class Dispatcher
                     lost.Add(execution);
             }
         }
+        NotifyStatusChanged();
 
         foreach (Execution execution in lost)
             await FinishAsync(execution, EnumTaskState.Failed, $"The worker '{workerId}' running the task was lost.");
@@ -253,6 +291,10 @@ public class Dispatcher
                 assigned.Add((worker, execution.Request));
             }
         }
+
+        // Also what was just queued, a worker that came or an execution that ended : every change
+        // to the dispatch goes through here.
+        NotifyStatusChanged();
 
         var sends = assigned.Select(x => x.Worker.Client.Execute(x.Request));
         await Task.WhenAll(sends);

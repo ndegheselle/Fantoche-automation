@@ -94,7 +94,14 @@ Only the last executions of each task or workflow keep their folder: 10 by defau
 - The older folders are deleted when an execution ends, but never the folder of an execution still running.
 - The count is taken from the task or workflow the execution started from. On a worker, that is the node it was sent.
 
-A table or file named in the history therefore only exists on the worker that wrote it, and only while it is within the retention count.
+A table or file named in the history therefore only exists on the worker that wrote it, and only while it is within the retention count. For the same reason, the Storage page of the application only shows the storage of the application's worker.
+
+## Workers and pending executions
+
+The supervisor keeps its executions in memory only, so it pushes what it dispatches rather than storing it (`ISupervisor.Dispatch`):
+- The `Dispatcher` raises `StatusChanged` with the whole status whenever a worker comes or goes, or an execution is queued, handed out or over.
+- In remote mode, the supervisor API pushes it on the `hubs/dispatch` hub, and `GET /dispatch/status` reads it. After a reconnection, the client reads it again: what was pushed meanwhile is lost.
+- The Workers page reads the status once when shown, then follows the changes until hidden. It shows each worker with what it runs, and the executions waiting for room, in the order they will be handed out.
 
 ## Packages and caches
 

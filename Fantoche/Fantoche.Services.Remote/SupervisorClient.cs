@@ -23,12 +23,15 @@ public sealed class SupervisorClient : ISupervisor, IAsyncDisposable
     public RemotePackagesService Packages { get; }
     public RemotePackageSource PackageFiles { get; }
     public RemoteStorageTransit Transit { get; }
+    /// <summary>Its changes are only heard once <see cref="RemoteDispatchService.StartAsync"/> connected.</summary>
+    public RemoteDispatchService Dispatch { get; }
 
     IScopedService ISupervisor.Scoped => Scoped;
     IHistoryService ISupervisor.History => History;
     IPackagesService ISupervisor.Packages => Packages;
     IPackageSource ISupervisor.PackageFiles => PackageFiles;
     IStorageTransit ISupervisor.Transit => Transit;
+    IDispatchService ISupervisor.Dispatch => Dispatch;
 
     /// <param name="address">The base of the addresses of the supervisor, ending with a "/".</param>
     public SupervisorClient(Uri address)
@@ -40,6 +43,7 @@ public sealed class SupervisorClient : ISupervisor, IAsyncDisposable
         Packages = new RemotePackagesService(_http);
         PackageFiles = new RemotePackageSource(_http);
         Transit = new RemoteStorageTransit(_http);
+        Dispatch = new RemoteDispatchService(_http);
     }
 
     public async ValueTask DisposeAsync()
@@ -51,6 +55,7 @@ public sealed class SupervisorClient : ISupervisor, IAsyncDisposable
         foreach (RemoteCallerConnection caller in callers)
             await caller.DisposeAsync();
         await History.DisposeAsync();
+        await Dispatch.DisposeAsync();
         _http.Dispose();
     }
 

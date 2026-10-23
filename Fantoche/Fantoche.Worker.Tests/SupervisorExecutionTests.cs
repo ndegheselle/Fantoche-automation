@@ -5,6 +5,7 @@ using Fantoche.Services.Local;
 using Fantoche.Services.Remote;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Data.Scoped;
+using Fantoche.Shared.Remote;
 using Fantoche.Supervisor.Api;
 using Fantoche.Worker.Executor;
 using Fantoche.Worker.Storage;
@@ -71,6 +72,7 @@ internal sealed class SupervisorExecutionTests
 
             SupervisorClient client = new(new Uri($"{_api.Urls.First()}/"));
             await client.History.StartAsync();
+            await client.Dispatch.StartAsync();
             _supervisor = client;
         }
 
@@ -102,7 +104,7 @@ internal sealed class SupervisorExecutionTests
     /// </summary>
     private async Task WaitUntilRunningAsync()
     {
-        while (_dispatcher.GetWorkers().Sum(x => x.Running) == 0)
+        while (_dispatcher.GetStatus().Workers.Sum(x => x.Running.Count) == 0)
             await Task.Delay(20);
     }
 
@@ -309,6 +311,34 @@ internal sealed class SupervisorExecutionTests
         TaskInstance result = await execution;
 
         Assert.That(result.State, Is.EqualTo(EnumTaskState.Canceled));
+    }
+
+    [Test]
+    public async Task Status_IsPushedWithWhatTheWorkersRunAndWhatWaitsForRoom()
+    {
+        await ConnectWorkerAsync();
+        AutomationTask delay = await StoreDelayAsync();
+        using CancellationTokenSource cancellation = new();
+        TaskCompletionSource<DispatchStatus> full = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        _supervisor.Dispatch.StatusChanged += status =>
+        {
+            if (status.Pending.Count > 0)
+                full.TrySetResult(status);
+        };
+
+        // One more than the capacity of the worker.
+        List<Task<TaskInstance>> executions = [.. Enumerable.Range(0, 3)
+            .Select(_ => _caller.ExecuteAsync(delay, InstanceOf(delay, new { DelayMs = 60_000 }), cancellation: cancellation.Token))];
+        DispatchStatus status = await full.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        await cancellation.CancelAsync();
+        await Task.WhenAll(executions);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(status.Workers.Single().Id, Is.EqualTo("test-worker"));
+            Assert.That(status.Workers.Single().Running.Select(x => x.TaskId), Is.EqualTo(new[] { delay.Id, delay.Id }));
+            Assert.That(status.Pending.Select(x => x.TaskId), Is.EqualTo(new[] { delay.Id }));
+        });
     }
 
     [Test]

@@ -46,10 +46,10 @@ public static class SupervisorApp
         HistoryApi.Map(app);
         PackagesApi.Map(app);
         TransitApi.Map(app);
+        DispatchApi.Map(app);
 
         app.MapHub<CallerHub>($"/{SupervisorRoutes.Callers}");
         app.MapHub<WorkerHub>($"/{SupervisorRoutes.Workers}");
-        app.MapGet("/workers", (Dispatcher dispatcher) => dispatcher.GetWorkers());
 
         return app;
     }

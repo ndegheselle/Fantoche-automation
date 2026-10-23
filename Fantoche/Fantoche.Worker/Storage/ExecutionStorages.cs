@@ -67,6 +67,47 @@ public sealed class ExecutionStorages
         }
     }
 
+    /// <summary>
+    /// The disk space taken by the executions kept for each task or workflow, read off the folders :
+    /// they are what holds the storage, whichever process wrote it.
+    /// </summary>
+    public List<StorageUsage> GetUsage()
+    {
+        if (!Directory.Exists(_folder))
+            return [];
+
+        List<StorageUsage> usages = [];
+        foreach (string taskFolder in Directory.GetDirectories(_folder))
+        {
+            // Not a task folder : nothing of ours.
+            if (!Guid.TryParseExact(Path.GetFileName(taskFolder), "N", out Guid taskId))
+                continue;
+
+            string[] executions = Directory.GetDirectories(taskFolder);
+            long bytes = executions.Sum(SizeOf);
+            usages.Add(new StorageUsage(taskId, executions.Length, bytes));
+        }
+        return usages;
+    }
+
+    /// <summary>
+    /// A file can vanish while it is counted : the retention removes the folders of old executions
+    /// at any time.
+    /// </summary>
+    private static long SizeOf(string folder)
+    {
+        long bytes = 0;
+        try
+        {
+            foreach (string file in Directory.EnumerateFiles(folder, "*", SearchOption.AllDirectories))
+                bytes += new FileInfo(file).Length;
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+        }
+        return bytes;
+    }
+
     private string FolderOf(Guid taskId, TaskInstance instance)
     {
         string created = instance.CreatedAt.ToUniversalTime().ToString("yyyyMMdd'T'HHmmssfffffff", CultureInfo.InvariantCulture);

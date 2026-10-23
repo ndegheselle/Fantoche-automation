@@ -13,14 +13,6 @@ namespace Fantoche.Services.Remote;
 /// </summary>
 public sealed class RemoteHistoryService : IHistoryService, IAsyncDisposable
 {
-    /// <summary>
-    /// The application keeps listening however long the supervisor takes to come back.
-    /// </summary>
-    private sealed class RetryForever : IRetryPolicy
-    {
-        public TimeSpan? NextRetryDelay(RetryContext retryContext) => TimeSpan.FromSeconds(5);
-    }
-
     private readonly SupervisorHttp _http;
     private readonly HubConnection _events;
 
