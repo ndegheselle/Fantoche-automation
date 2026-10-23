@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using Fantoche.App.Common;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Services;
+using Joufflu.Feedback;
 using Joufflu.Navigation;
 
 namespace Fantoche.App.Features.Workflows.Details.Controls
@@ -14,6 +15,10 @@ namespace Fantoche.App.Features.Workflows.Details.Controls
     /// <para>
     /// A sub instance opens its own detail, so a nested workflow is walked down to the task that
     /// actually failed.
+    /// </para>
+    /// <para>
+    /// An interrupted run is resumed from here : by this application for the runs it started, by the
+    /// supervisor for the ones it dispatched.
     /// </para>
     /// </summary>
     public partial class InstanceDetailViewModel : ObservableObject, IOverlayContent
@@ -41,14 +46,34 @@ namespace Fantoche.App.Features.Workflows.Details.Controls
 
         public bool HasChildren => Children.Count > 0;
 
-        private readonly IHistoryService _history;
-        private readonly IOverlayer _overlayer;
+        /// <summary>
+        /// Whether this application can resume the run : an interrupted one it started, or one the
+        /// supervisor dispatched. The rest of the rules are checked as it is resumed.
+        /// </summary>
+        public bool CanResume => Instance.ParentInstanceId == null
+            && Instance.State == EnumTaskState.Interrupted
+            && (Instance.ApplicationId == null || Instance.ApplicationId == Environment.MachineName);
 
-        public InstanceDetailViewModel(TaskInstance instance, IHistoryService history, IOverlayer overlayer)
+        private readonly IHistoryService _history;
+        private readonly IExecutionService _execution;
+        private readonly IDispatchService _dispatch;
+        private readonly IOverlayer _overlayer;
+        private readonly IToastService _toasts;
+
+        public InstanceDetailViewModel(
+            TaskInstance instance,
+            IHistoryService history,
+            IExecutionService execution,
+            IDispatchService dispatch,
+            IOverlayer overlayer,
+            IToastService toasts)
         {
             Instance = instance;
             _history = history;
+            _execution = execution;
+            _dispatch = dispatch;
             _overlayer = overlayer;
+            _toasts = toasts;
             Options = new OverlayOptions() { Title = $"Execution - {instance.NodeName}" };
 
             Children.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasChildren));
@@ -56,9 +81,10 @@ namespace Fantoche.App.Features.Workflows.Details.Controls
 
         public static async Task ShowAsync(TaskInstance instance)
         {
-            IOverlayer overlayer = SpineViewModel.Instance.Overlayer;
+            SpineViewModel shell = SpineViewModel.Instance;
+            IOverlayer overlayer = shell.Overlayer;
 
-            var viewModel = new InstanceDetailViewModel(instance, SpineViewModel.Instance.History, overlayer);
+            var viewModel = new InstanceDetailViewModel(instance, shell.History, shell.Execution, shell.Dispatch, overlayer, shell.Toasts);
             // Read before it is shown : the detail opens on what the execution amounts to rather
             // than filling in under the reader.
             await viewModel.RefreshAsync();
@@ -90,6 +116,29 @@ namespace Fantoche.App.Features.Workflows.Details.Controls
         [RelayCommand]
         private Task OpenChild(TaskInstance? child)
             => child == null ? Task.CompletedTask : ShowAsync(child);
+
+        /// <summary>
+        /// Resume the run where it was interrupted, then close the detail : the history follows it
+        /// from there.
+        /// </summary>
+        [RelayCommand]
+        private async Task Resume()
+        {
+            try
+            {
+                if (Instance.ApplicationId == null)
+                    await _dispatch.ResumeAsync(Instance.Id);
+                else
+                    await _execution.ResumeAsync(Instance.Id);
+            }
+            catch (Exception exception)
+            {
+                _toasts.Error(exception.Message, $"The run of '{Instance.NodeName}' could not be resumed");
+                return;
+            }
+
+            _overlayer.Validate(this);
+        }
 
         [RelayCommand]
         private void Validate() => _overlayer.Validate(this);

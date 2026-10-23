@@ -11,7 +11,8 @@ namespace Fantoche.Services.Local;
 /// Hand the executions of the callers to the workers : the task is read from the database, the
 /// states the workers report are stored in the history, and the outcome is sent back to the caller.
 /// The executions themselves are kept in memory : one only lives as long as the connections of its
-/// caller and its worker.
+/// caller and its worker. A run whose worker is lost is interrupted, and can be resumed on any
+/// worker from what the history holds of it (see <see cref="ResumeAsync"/>).
 /// <para>
 /// A caller and a worker are known by the id of their connection, whatever carries their messages
 /// (a hub of the supervisor API, or a call in the same process).
@@ -30,8 +31,9 @@ public class Dispatcher : IDispatchService
 
     private sealed class Execution
     {
-        public required string CallerConnectionId { get; init; }
-        public required ICallerClient Caller { get; init; }
+        /// <summary>Null for a resumed run, which nobody waits on but the history.</summary>
+        public string? CallerConnectionId { get; set; }
+        public ICallerClient? Caller { get; set; }
         public required RemoteExecution Request { get; init; }
         /// <summary>Null while it waits for a worker.</summary>
         public Worker? Worker { get; set; }
@@ -94,15 +96,17 @@ public class Dispatcher : IDispatchService
 
     #region Callers
 
-    public async Task SubmitAsync(string callerConnectionId, ICallerClient caller, TaskInstance instance, JToken? globalContext)
+    public async Task SubmitAsync(string callerConnectionId, ICallerClient caller, TaskInstance instance)
     {
-        // Whatever the caller sent, the instance runs from now on.
+        // Whatever the caller sent, the instance runs from now on, on the workers of the supervisor.
         instance.State = EnumTaskState.Progressing;
+        instance.ApplicationId = null;
         RemoteExecution execution;
         try
         {
             BaseAutomationTask task = await _scoped.LoadRunnableAsync(instance.TaskId);
-            execution = RemoteExecution.From(task, instance, globalContext);
+            instance.DefinitionHash = RunDefinition.HashOf(task);
+            execution = RemoteExecution.From(task, instance);
         }
         catch (ExecutionException exception)
         {
@@ -120,6 +124,33 @@ public class Dispatcher : IDispatchService
             _executions[instance.Id] = new Execution { CallerConnectionId = callerConnectionId, Caller = caller, Request = execution };
             _queue.Enqueue(instance.Id);
         }
+        await DispatchAsync();
+    }
+
+    /// <summary>
+    /// Queue the interrupted run [runId] again : the worker it is handed to walks it again from
+    /// what the history holds of it, running its interrupted nodes again.
+    /// </summary>
+    /// <exception cref="ExecutionException">The run can't be resumed, see <see cref="RunResumption"/>.</exception>
+    public async Task ResumeAsync(Guid runId)
+    {
+        TaskInstance run = await _history.GetAsync(runId)
+            ?? throw new ExecutionException($"Unknown execution '{runId}'.");
+        BaseAutomationTask task = await _scoped.LoadRunnableAsync(run.TaskId);
+        RunResumption.EnsureResumable(run, task, applicationId: null);
+        IReadOnlyList<TaskInstance> stored = await _history.GetDescendantsAsync(run.Id);
+
+        run.State = EnumTaskState.Progressing;
+        Execution execution = new() { Request = RemoteExecution.From(task, run, stored) };
+        lock (_lock)
+        {
+            // Resumed twice at once : both read it interrupted.
+            if (!_executions.TryAdd(run.Id, execution))
+                throw new ExecutionException("The run is already resumed.");
+            _queue.Enqueue(run.Id);
+        }
+
+        await _history.SaveAsync(run);
         await DispatchAsync();
     }
 
@@ -148,27 +179,32 @@ public class Dispatcher : IDispatchService
     }
 
     /// <summary>
-    /// Nobody is left to hear about the executions of [callerConnectionId] : they are dropped and the
-    /// running ones stopped.
+    /// Nobody is left to hear about the executions of [callerConnectionId] : the waiting ones are
+    /// canceled, the running ones stopped by their worker, which still reports them to the end.
     /// </summary>
     public async Task RemoveCallerAsync(string callerConnectionId)
     {
-        List<(Guid ExecutionId, Worker? Worker)> dropped = [];
+        List<Execution> pending = [];
+        List<(Guid ExecutionId, Worker Worker)> running = [];
         lock (_lock)
         {
             var executions = _executions.Where(x => x.Value.CallerConnectionId == callerConnectionId).ToList();
             foreach (var (executionId, execution) in executions)
             {
-                _executions.Remove(executionId);
-                dropped.Add((executionId, execution.Worker));
+                execution.CallerConnectionId = null;
+                execution.Caller = null;
+                if (execution.Worker != null)
+                    running.Add((executionId, execution.Worker));
+                else if (_executions.Remove(executionId))
+                    pending.Add(execution);
             }
         }
-        if (dropped.Count > 0)
+        if (pending.Count > 0)
             NotifyStatusChanged();
 
-        var cancels = dropped
-            .Where(x => x.Worker != null)
-            .Select(x => x.Worker!.Client.Cancel(x.ExecutionId));
+        foreach (Execution execution in pending)
+            await FinishAsync(execution, EnumTaskState.Canceled);
+        var cancels = running.Select(x => x.Worker.Client.Cancel(x.ExecutionId));
         await Task.WhenAll(cancels);
     }
 
@@ -184,18 +220,17 @@ public class Dispatcher : IDispatchService
     }
 
     /// <summary>
-    /// The executions [connectionId] was running are failed : nothing will report on them anymore.
+    /// The executions [connectionId] was running are interrupted : nothing will report on them
+    /// anymore, they wait for someone to resume them.
     /// </summary>
     public async Task RemoveWorkerAsync(string connectionId)
     {
-        string workerId;
         List<Execution> lost = [];
         lock (_lock)
         {
             if (!_workersByConnection.Remove(connectionId, out var worker))
                 return;
 
-            workerId = worker.Id;
             foreach (Guid executionId in worker.Running)
             {
                 if (_executions.Remove(executionId, out var execution))
@@ -205,13 +240,20 @@ public class Dispatcher : IDispatchService
         NotifyStatusChanged();
 
         foreach (Execution execution in lost)
-            await FinishAsync(execution, EnumTaskState.Failed, $"The worker '{workerId}' running the task was lost.");
+            await InterruptAsync(execution);
     }
 
     /// <summary>
-    /// Stored whoever it is for : the history is pushed to every application.
+    /// Stored whoever it is for : the history is pushed to every application. Dropped when it comes
+    /// from a worker that isn't running the execution anymore : one that lost its connection and
+    /// reconnected meanwhile reports on a run that was interrupted, and maybe resumed elsewhere.
     /// </summary>
-    public Task ReportStateAsync(TaskInstance instance) => _history.SaveAsync(instance);
+    public Task ReportStateAsync(string workerConnectionId, Guid executionId, TaskInstance instance)
+    {
+        if (!IsRunBy(workerConnectionId, executionId))
+            return Task.CompletedTask;
+        return _history.SaveAsync(instance);
+    }
 
     public Task ReportNotificationAsync(Guid executionId, TaskNotification notification)
     {
@@ -224,23 +266,30 @@ public class Dispatcher : IDispatchService
         return caller.Notified(executionId, notification);
     }
 
+    /// <summary>Dropped as a state is, see <see cref="ReportStateAsync"/>.</summary>
     public async Task CompleteAsync(string workerConnectionId, TaskInstance instance)
     {
-        await _history.SaveAsync(instance);
-
         Execution? execution;
         lock (_lock)
         {
-            if (_workersByConnection.TryGetValue(workerConnectionId, out var worker))
-                worker.Running.Remove(instance.Id);
+            if (!IsRunBy(workerConnectionId, instance.Id))
+                return;
+
+            _workersByConnection[workerConnectionId].Running.Remove(instance.Id);
             _executions.Remove(instance.Id, out execution);
         }
 
-        // Unknown when its caller left in the meantime.
-        if (execution != null)
+        await _history.SaveAsync(instance);
+        if (execution?.Caller != null)
             await execution.Caller.Completed(instance);
 
         await DispatchAsync();
+    }
+
+    private bool IsRunBy(string workerConnectionId, Guid executionId)
+    {
+        lock (_lock)
+            return _executions.TryGetValue(executionId, out var execution) && execution.Worker?.ConnectionId == workerConnectionId;
     }
 
     #endregion
@@ -248,15 +297,29 @@ public class Dispatcher : IDispatchService
     /// <summary>
     /// End [execution] without a worker having run it to its end : stored, then sent to its caller.
     /// </summary>
-    private async Task FinishAsync(Execution execution, EnumTaskState state, string? error = null)
+    private async Task FinishAsync(Execution execution, EnumTaskState state)
     {
         TaskInstance instance = execution.Request.Instance;
         instance.State = state;
-        if (error != null)
-            instance.Output = JToken.FromObject(error);
 
         await _history.SaveAsync(instance);
-        await execution.Caller.Completed(instance);
+        if (execution.Caller != null)
+            await execution.Caller.Completed(instance);
+    }
+
+    /// <summary>
+    /// [execution] lost its worker : interrupted in the history along with the nodes it was
+    /// running, and sent to its caller as such.
+    /// </summary>
+    private async Task InterruptAsync(Execution execution)
+    {
+        Guid runId = execution.Request.Instance.Id;
+        await _history.InterruptRunAsync(runId);
+        if (execution.Caller == null)
+            return;
+
+        TaskInstance interrupted = await _history.GetAsync(runId) ?? execution.Request.Instance;
+        await execution.Caller.Completed(interrupted);
     }
 
     /// <summary>

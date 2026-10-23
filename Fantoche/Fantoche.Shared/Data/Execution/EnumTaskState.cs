@@ -31,8 +31,13 @@
         /// </summary>
         Canceled = 32,
         /// <summary>
+        /// Stopped by a crash or a lost worker, nothing runs it anymore : a run in this state can be
+        /// resumed, its interrupted nodes running again.
+        /// </summary>
+        Interrupted = 64,
+        /// <summary>
         /// Task is finished
         /// </summary>
-        Finished = Completed | Failed | Canceled
+        Finished = Completed | Failed | Canceled | Interrupted
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Net.Http;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -46,6 +47,8 @@ public class SpineViewModel : ObservableObject
     public IPackagesService Packages => _provider.GetRequiredService<IPackagesService>();
     public IHistoryService History => _provider.GetRequiredService<IHistoryService>();
     public IScopedService Scoped => _provider.GetRequiredService<IScopedService>();
+    public IExecutionService Execution => _provider.GetRequiredService<IExecutionService>();
+    public IDispatchService Dispatch => _provider.GetRequiredService<IDispatchService>();
     #endregion
 
     public IRelayCommand OpenSettingsCommand { get; }
@@ -92,7 +95,10 @@ public class SpineViewModel : ObservableObject
         services.AddSingleton(supervisor.History);
         services.AddSingleton(supervisor.Packages);
         services.AddSingleton(supervisor.Dispatch);
-        services.AddSingleton<IExecutionService>(new ExecutionService(supervisor.Scoped, supervisor.History, worker));
+        // The machine name stays the same from one start to the next : the application finds its runs again.
+        ExecutionService execution = new(supervisor.Scoped, supervisor.History, worker, Environment.MachineName);
+        _ = InterruptLeftRunsAsync(execution);
+        services.AddSingleton<IExecutionService>(execution);
         services.AddSingleton(new ApplicationWorker(dispatchId));
 
         services.AddSingleton(Settings);
@@ -140,6 +146,26 @@ public class SpineViewModel : ObservableObject
         RegisterView<SchedulerViewModel, SchedulerPage>();
 
         RegisterView<WorkersViewModel, WorkersPage>();
+    }
+
+    /// <summary>
+    /// What the application left running when it last stopped is interrupted, so it can be resumed.
+    /// The supervisor is waited for in remote mode.
+    /// </summary>
+    private static async Task InterruptLeftRunsAsync(ExecutionService execution)
+    {
+        while (true)
+        {
+            try
+            {
+                await execution.InterruptLeftRunsAsync();
+                return;
+            }
+            catch (HttpRequestException)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(5));
+            }
+        }
     }
 
     /// <param name="storageFolder">The storage of the worker of the application, its only worker.</param>

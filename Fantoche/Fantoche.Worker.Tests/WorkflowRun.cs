@@ -12,9 +12,10 @@ namespace Fantoche.Worker.Tests;
 /// mutated in between (progressing then completed), so what it held then is copied rather than
 /// referenced.
 /// </summary>
-internal sealed record NodeReport(string NodeName, EnumTaskState State, JToken? Parameters, JToken? Output)
+internal sealed record NodeReport(Guid Id, string NodeName, EnumTaskState State, JToken? Parameters, JToken? Output)
 {
     public static NodeReport Of(TaskInstance instance) => new(
+        instance.Id,
         instance.NodeName,
         instance.State,
         instance.Parameters?.DeepClone(),

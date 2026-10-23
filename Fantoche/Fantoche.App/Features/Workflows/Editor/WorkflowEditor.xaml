@@ -93,6 +93,9 @@
                     <DataTrigger Binding="{Binding State}" Value="Canceled">
                         <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.WarningBrush}}" />
                     </DataTrigger>
+                    <DataTrigger Binding="{Binding State}" Value="Interrupted">
+                        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}" />
+                    </DataTrigger>
                 </Style.Triggers>
             </Style>
 
@@ -135,6 +138,10 @@
                     <DataTrigger Binding="{Binding State}" Value="Canceled">
                         <Setter Property="Text" Value="{x:Static jonts:LucideFontIcons.CircleSlash2}" />
                         <Setter Property="Foreground" Value="{DynamicResource {x:Static joufflu:Brushes.WarningBrush}}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding State}" Value="Interrupted">
+                        <Setter Property="Text" Value="{x:Static jonts:LucideFontIcons.Unplug}" />
+                        <Setter Property="Foreground" Value="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}" />
                     </DataTrigger>
                 </Style.Triggers>
             </Style>

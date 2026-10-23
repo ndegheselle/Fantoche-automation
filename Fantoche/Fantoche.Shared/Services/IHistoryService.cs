@@ -14,6 +14,20 @@ public interface IHistoryService
     public Task<IReadOnlyList<TaskInstance>> GetChildrenAsync(Guid instanceId);
 
     /// <summary>
+    /// Every instance run under [instanceId], oldest first : the ones of its nested workflows too,
+    /// what a resumed run is walked again from.
+    /// </summary>
+    public Task<IReadOnlyList<TaskInstance>> GetDescendantsAsync(Guid instanceId);
+
+    /// <summary>
+    /// Mark the runs of [applicationId] (null for the ones the supervisor dispatches) started before
+    /// [startedBefore] and left unfinished as interrupted, with the instances they were running.
+    /// Called as the application or the supervisor starts : nothing runs what they started before.
+    /// Returns the runs.
+    /// </summary>
+    public Task<IReadOnlyList<TaskInstance>> InterruptRunsAsync(string? applicationId, DateTime startedBefore);
+
+    /// <summary>
     /// The instance [instanceId] as it was last saved, null when nothing ran under that id.
     /// </summary>
     public Task<TaskInstance?> GetAsync(Guid instanceId);

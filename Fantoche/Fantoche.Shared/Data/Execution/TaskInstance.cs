@@ -42,6 +42,34 @@ namespace Fantoche.Shared.Data.Execution
         public JToken? Parameters { get; set; }
         public JToken? Output { get; set; }
 
+        /// <summary>
+        /// Only for the instance of a workflow : the context of the scopes the run started from, what
+        /// the mappings of its nodes read as "$global.*". Stored so a resumed run reads the same one.
+        /// </summary>
+        public JToken? GlobalContext { get; set; }
+
+        /// <summary>
+        /// Only for the instance of a run : the application running it (its machine name), null when
+        /// the supervisor dispatches it to its workers. Only that application can resume it.
+        /// </summary>
+        public string? ApplicationId { get; set; }
+
+        /// <summary>
+        /// Only for the instance of a run : what the definitions it started from hash to (see
+        /// <see cref="RunDefinition"/>). A run is only resumed on the same definitions.
+        /// </summary>
+        public string? DefinitionHash { get; set; }
+
+        /// <summary>
+        /// The instances this one carries on from : the one before it, every branch that reached it
+        /// for a join, none for the start of a run. Stored, unlike <see cref="Previous"/>, so a run
+        /// can be walked again from its history.
+        /// <para>
+        /// Replaced rather than added to : a join is reported while other branches reach it.
+        /// </para>
+        /// </summary>
+        public IReadOnlyList<Guid> PreviousIds { get; set; } = [];
+
         /// <summary>Only known while the instance is being driven by an executor, not persisted.</summary>
         [JsonIgnore]
         public TaskInstance? Previous { get; set; }
@@ -84,7 +112,8 @@ namespace Fantoche.Shared.Data.Execution
 
         public void Link(TaskInstance previous)
         {
-            this.Previous = previous;
+            Previous = previous;
+            PreviousIds = [previous.Id];
         }
     }
 }

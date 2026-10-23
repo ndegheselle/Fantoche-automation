@@ -4,7 +4,7 @@ The standalone and remote modes run the same code: one supervisor (`LocalSupervi
 
 Two rules keep the interactions simple:
 - What the application starts runs in the application. The workers run what the supervisor dispatches to them: the scheduled items (to come).
-- Once a worker (the application's included) starts an execution, everything of it stays there. Every node of a workflow runs where the workflow runs, and its tables and files never leave the storage of its run.
+- Once a worker (the application's included) starts an execution, everything of it stays there. Every node of a workflow runs where the workflow runs, and its tables and files never leave the storage of its run. An interrupted run is resumed by whoever can reach that storage (see [Interrupted runs](#interrupted-runs)).
 
 ## Standalone and remote
 
@@ -67,7 +67,8 @@ sequenceDiagram
     Supervisor->>Caller: Completed(instance)
 ```
 
-- Only JSON travels: the parameters and the output. A table or file the output points at stays in the storage of the worker that wrote it.
+- Only JSON travels: the parameters and the output. A table or file the output points at stays in the storage of its run.
+- A worker lost while running an execution leaves it interrupted. A worker that reconnects meanwhile can't report on it anymore: its states are dropped.
 - Nothing in the application dispatches yet: the scheduled items will.
 
 ### Why nothing started by hand is sent to a worker
@@ -80,6 +81,30 @@ Sending a single node of a workflow to a worker was implemented, then removed. E
 It worked, but it took a transit store in the supervisor, an HTTP API to stream it, a copy of every table a node read or wrote, and the cleanup of what a lost execution left behind. Few workflows need a node of theirs elsewhere, and such a node can be made a workflow of its own.
 
 A "Run on a worker" setting on the tasks and workflows, sending a whole execution started from the application to a worker, was removed too. A run started by hand is for building and checking a workflow, close to the editor and the local files. Where an execution runs belongs to what schedules it, not to the task or workflow itself.
+
+## Interrupted runs
+
+A run cut short by a crash or a lost worker is marked `Interrupted`, then resumed by hand from the detail of the execution ("Resume").
+
+| A run started by | Is interrupted when | Is resumed by |
+| --- | --- | --- |
+| The application | The application starts again: it interrupts what it left running | The same application only (`TaskInstance.ApplicationId`, its machine name) |
+| The supervisor (dispatched) | Its worker is lost, or the supervisor starts again | The supervisor, on any worker with room |
+
+Resuming walks the run again from its history (`WorkflowExecutor`, with `WorkflowInstance.StoredInstances`):
+- A node that was running runs again from its start, with the parameters it was given. Every task can run more than once, so a task with side effects has to bear it.
+- A completed node is kept. Its next nodes that were never reached run.
+- A join still waiting keeps the branches that already arrived (`TaskInstance.PreviousIds` holds them), and waits for the others.
+- A nested workflow resumes from its own history.
+- A run that reached its end is only closed.
+
+What the history stores for this:
+- Each instance stores the ids of the instances it carries on from (`PreviousIds`) and the shared context it was given. Pass-through nodes and loops are walked again from these links.
+- The run stores its global context and a hash of what it depends on (`RunDefinition`): the nodes, their mappings, their connections and the tasks they run. A run whose workflow changed since it started is refused.
+
+A remote run carries on in the storage of its first worker, so the workers share their storage (`STORAGE_FOLDER`).
+
+The executions still live in memory only (`ExecutionService`, `Dispatcher` and `WorkerSession` keep a handle on each running one, to cancel it or send it back to its caller). Resuming doesn't need them: everything it reads is in the history.
 
 ## Schedules
 

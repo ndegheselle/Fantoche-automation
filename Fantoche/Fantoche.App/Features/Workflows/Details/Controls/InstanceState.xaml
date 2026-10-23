@@ -31,6 +31,9 @@
             <DataTrigger Binding="{Binding State}" Value="Canceled">
                 <Setter Property="Variant" Value="Warning" />
             </DataTrigger>
+            <DataTrigger Binding="{Binding State}" Value="Interrupted">
+                <Setter Property="Variant" Value="Danger" />
+            </DataTrigger>
         </Style.Triggers>
     </Style>
 </ResourceDictionary>

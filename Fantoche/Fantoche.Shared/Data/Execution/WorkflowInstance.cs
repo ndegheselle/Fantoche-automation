@@ -25,7 +25,12 @@ public class WorkflowInstance : TaskInstance
     [JsonIgnore]
     public AutomationWorkflow Workflow { get; }
 
-    public JToken? GlobalContext { get; set; }
+    /// <summary>
+    /// What the history holds of a run being resumed : every instance it ran, the ones of its
+    /// nested runs included. Empty for a run starting.
+    /// </summary>
+    [JsonIgnore]
+    public IReadOnlyList<TaskInstance> StoredInstances { get; set; } = [];
 
     /// <summary>
     /// Instances created during this workflow execution, indexed by graph node id.
@@ -43,5 +48,32 @@ public class WorkflowInstance : TaskInstance
     {
         Workflow = workflow;
         TaskId = workflow.Id;
+    }
+
+    /// <summary>
+    /// [stored], an instance of [workflow] as the history or a message holds it, made one that can
+    /// drive the workflow again.
+    /// </summary>
+    public static WorkflowInstance From(AutomationWorkflow workflow, TaskInstance stored)
+    {
+        WorkflowInstance instance = new(workflow)
+        {
+            Id = stored.Id,
+            NodeId = stored.NodeId,
+            ParentInstanceId = stored.ParentInstanceId,
+            NodeName = stored.NodeName,
+            Shared = stored.Shared,
+            Parameters = stored.Parameters,
+            Output = stored.Output,
+            GlobalContext = stored.GlobalContext,
+            ApplicationId = stored.ApplicationId,
+            DefinitionHash = stored.DefinitionHash,
+            PreviousIds = stored.PreviousIds,
+            CreatedAt = stored.CreatedAt,
+            State = stored.State,
+        };
+        // Assigning the state stamps FinishedAt, the stored value has to stay the one of the run.
+        instance.FinishedAt = stored.FinishedAt;
+        return instance;
     }
 }

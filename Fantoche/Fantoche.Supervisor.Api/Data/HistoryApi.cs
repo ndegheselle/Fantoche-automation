@@ -30,6 +30,9 @@ public static class HistoryApi
             return instance == null ? Results.NotFound() : TypedResults.Ok(instance);
         });
         history.MapGet("/instances/{id:guid}/children", (LocalHistoryService service, Guid id) => service.GetChildrenAsync(id));
+        history.MapGet("/instances/{id:guid}/descendants", (LocalHistoryService service, Guid id) => service.GetDescendantsAsync(id));
+        history.MapPost("/runs/interrupt", (LocalHistoryService service, string? applicationId, DateTime startedBefore)
+            => service.InterruptRunsAsync(applicationId, startedBefore));
         history.MapPut("/instances", (LocalHistoryService service, TaskInstance instance) => service.SaveAsync(instance));
 
         app.MapHub<HistoryHub>($"/{SupervisorRoutes.History}");

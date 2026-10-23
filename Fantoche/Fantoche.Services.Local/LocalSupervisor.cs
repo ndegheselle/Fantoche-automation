@@ -6,7 +6,6 @@ using Fantoche.Shared.Services;
 using Fantoche.Worker;
 using Fantoche.Worker.Packages;
 using Fantoche.Worker.Storage;
-using Newtonsoft.Json.Linq;
 
 namespace Fantoche.Services.Local;
 
@@ -40,8 +39,8 @@ public sealed class LocalSupervisor : ISupervisor
             _caller = caller;
         }
 
-        public Task Execute(TaskInstance instance, JToken? globalContext)
-            => _dispatcher.SubmitAsync(_connectionId, this, FantocheJson.Copy(instance), globalContext?.DeepClone());
+        public Task Execute(TaskInstance instance)
+            => _dispatcher.SubmitAsync(_connectionId, this, FantocheJson.Copy(instance));
 
         public Task Cancel(Guid executionId) => _dispatcher.CancelAsync(_connectionId, executionId);
 
@@ -52,7 +51,7 @@ public sealed class LocalSupervisor : ISupervisor
 
     /// <summary>
     /// A worker of this process, its messages copied the same way (see <see cref="CallerLink"/>).
-    /// Removing it is losing its connection : the supervisor fails what it was running, and what
+    /// Removing it is losing its connection : the supervisor interrupts what it was running, and what
     /// it still sends about it is lost.
     /// </summary>
     private sealed class WorkerLink : IWorkerHub, IWorkerClient, IAsyncDisposable
@@ -78,7 +77,7 @@ public sealed class LocalSupervisor : ISupervisor
         public Task Register(string workerId, int capacity) => _dispatcher.AddWorkerAsync(_connectionId, this, workerId, capacity);
 
         public Task ReportState(Guid executionId, TaskInstance instance)
-            => _isRemoved ? Task.CompletedTask : _dispatcher.ReportStateAsync(FantocheJson.Copy(instance));
+            => _isRemoved ? Task.CompletedTask : _dispatcher.ReportStateAsync(_connectionId, executionId, FantocheJson.Copy(instance));
 
         public Task ReportNotification(Guid executionId, TaskNotification notification)
             => _isRemoved ? Task.CompletedTask : _dispatcher.ReportNotificationAsync(executionId, notification);
@@ -118,6 +117,11 @@ public sealed class LocalSupervisor : ISupervisor
         History = new LocalHistoryService(_database);
         Packages = new LocalPackagesService(Path.Combine(dataFolder, "nuget"), Path.Combine(dataFolder, "cache"));
         Dispatcher = new Dispatcher(Scoped, History);
+
+        // Nothing the supervisor dispatched outlives it : what the history holds as running was cut
+        // short. Run apart so a caller holding a synchronization context doesn't wait on itself.
+        DateTime startedAt = DateTime.UtcNow;
+        Task.Run(() => History.InterruptRunsAsync(applicationId: null, startedAt)).GetAwaiter().GetResult();
     }
 
     /// <summary>Take the cost of opening the database off the first read.</summary>

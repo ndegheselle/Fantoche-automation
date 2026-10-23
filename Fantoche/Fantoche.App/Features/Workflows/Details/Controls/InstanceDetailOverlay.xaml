@@ -159,6 +159,13 @@
             HorizontalAlignment="Right"
             joolkit:Spacing.Gap="4"
             Orientation="Horizontal">
+            <Button
+                Command="{Binding ResumeCommand}"
+                Style="{StaticResource SecondaryButton}"
+                ToolTip="Run the interrupted nodes again and carry on from there"
+                Visibility="{Binding CanResume, Converter={x:Static jonverters:VisibilityConverter.Default}}">
+                Resume
+            </Button>
             <Button Command="{Binding RefreshCommand}" Style="{StaticResource SecondaryButton}">Refresh</Button>
             <Button Command="{Binding ValidateCommand}" Style="{StaticResource PrimaryButton}">Close</Button>
         </StackPanel>

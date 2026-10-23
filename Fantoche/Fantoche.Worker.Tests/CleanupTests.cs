@@ -85,4 +85,20 @@ internal sealed class CleanupTests
             Assert.That(Directory.Exists(recent.Storage), Is.True);
         });
     }
+
+    [Test]
+    public async Task StoredRun_IsDatedInUtcWhenReadBack()
+    {
+        var stored = await RunAsync(daysAgo: 1);
+
+        TaskInstance? read = await _supervisor.History.GetAsync(stored.Run.Id);
+
+        // Its storage is named after its date : read as local time, a resumed run would look for it
+        // under another name on a machine off UTC.
+        Assert.Multiple(() =>
+        {
+            Assert.That(read?.CreatedAt.Kind, Is.EqualTo(DateTimeKind.Utc));
+            Assert.That(read?.CreatedAt, Is.EqualTo(stored.Run.CreatedAt));
+        });
+    }
 }

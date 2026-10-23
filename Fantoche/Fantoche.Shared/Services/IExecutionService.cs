@@ -25,6 +25,14 @@ public interface IExecutionService
     public Task<TaskInstance> StartAsync(Guid taskId, JToken? parameters = null);
 
     /// <summary>
+    /// Resume the interrupted run [runId] this application started : its interrupted nodes run
+    /// again, the rest of it carrying on from what the history holds. Returns as soon as it runs,
+    /// like <see cref="StartAsync"/>.
+    /// </summary>
+    /// <exception cref="ExecutionException">The run can't be resumed, see <see cref="Data.Execution.RunResumption"/>.</exception>
+    public Task<TaskInstance> ResumeAsync(Guid runId);
+
+    /// <summary>
     /// Wait for the execution [instanceId] to be finished and return its final instance.
     /// Returns the persisted instance right away when the execution is already over.
     /// </summary>
