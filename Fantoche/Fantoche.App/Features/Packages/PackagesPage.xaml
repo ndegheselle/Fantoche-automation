@@ -26,7 +26,11 @@
                 <RowDefinition />
                 <RowDefinition Height="auto" />
             </Grid.RowDefinitions>
-            <jnputs:Search Grid.Row="0" SearchText="{Binding Paging.Search, Mode=TwoWay}" Width="300" HorizontalAlignment="Left" />
+            <jnputs:Search
+                Grid.Row="0"
+                Width="300"
+                HorizontalAlignment="Left"
+                SearchText="{Binding Paging.Search, Mode=TwoWay}" />
             <DataGrid
                 Grid.Row="1"
                 AutoGenerateColumns="False"
@@ -49,7 +53,7 @@
                                     Command="{Binding ViewModel.OpenPackageCommand, RelativeSource={RelativeSource AncestorType={x:Type local:PackagesPage}}}"
                                     CommandParameter="{Binding}"
                                     Style="{StaticResource SecondaryButton}">
-                                    <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.ArrowRight}" />
+                                    <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.ChevronRight}" />
                                 </Button>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
