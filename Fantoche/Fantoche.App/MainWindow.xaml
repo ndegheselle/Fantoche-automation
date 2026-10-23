@@ -71,7 +71,7 @@
                 </nav:NavigationMenu>
 
                 <!--  A page that validates itself (INotifyDataErrorInfo) would otherwise put the whole host in error.  -->
-                <ContentControl Margin="{DynamicResource {x:Static joufflu:Dimensions.TitleBarHeightOffset}}" Content="{Binding Navigator.CurrentPage, ValidatesOnNotifyDataErrors=False}" />
+                <ContentControl Content="{Binding Navigator.CurrentPage, ValidatesOnNotifyDataErrors=False}" />
             </DockPanel>
         </javigation:OverlayContainer>
     </jeedback:ToastContainer>
