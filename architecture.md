@@ -87,9 +87,9 @@ A "Run on a worker" setting on the tasks and workflows, sending a whole executio
 - They're edited in its Schedules tab, each change saved right away. The Scheduler page lists them all and lays out their runs over the next 7 days, hour by hour, to see where they pile up.
 - Nothing runs them yet: the supervisor will dispatch them to the workers.
 
-## Storage and retention
+## Storage and cleanup
 
-Each worker, the application's included, keeps one storage folder per execution it runs. The nodes of a workflow write into the folder of its run.
+Each execution has its own storage folder. The nodes of a workflow write into the folder of its run.
 
 ```text
 storage/
@@ -99,11 +99,12 @@ storage/
       files/f_{id}/{name}
 ```
 
-Only the last executions of each task or workflow keep their folder: 10 by default, set on the task or the workflow ("Executions keeping their storage", `TaskSettings.StorageRetention`). Each worker applies this to its own folders:
-- The older folders are deleted when an execution ends, but never the folder of an execution still running.
-- The count is taken from the task or workflow the execution started from, wherever it runs.
+- The remote workers share one storage folder (`STORAGE_FOLDER`, a volume mounted in every worker and in the supervisor). The application keeps its own.
+- The executions are kept for a month. Once a day, the supervisor removes the older ones: their history (the instances of a run go with it) and their folders in the storage it is given (`STORAGE_FOLDER`, or the storage of the application in standalone mode).
+- In remote mode, the application cleans its own storage by the same rule when it starts, since the supervisor can't reach it.
+- The age is read from the name of the folder, not from the history. A folder whose name doesn't follow the pattern is left alone.
 
-A table or file named in the history therefore only exists on the worker that wrote it, and only while it is within the retention count.
+A table or file named in the history therefore only exists in the storage that execution wrote to, and only for a month.
 
 ## Workers and pending executions
 

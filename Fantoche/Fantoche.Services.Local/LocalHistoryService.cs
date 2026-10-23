@@ -8,9 +8,10 @@ using Dapper;
 namespace Fantoche.Services.Local;
 
 /// <summary>
-/// SQLite-backed history of task instances. Nothing removes them : an instance hangs under the
-/// task it ran and, for the node of a run, under the instance of the run itself, so removing a
-/// task takes its whole history along.
+/// SQLite-backed history of task instances. An instance hangs under the task it ran and, for the
+/// node of a run, under the instance of the run itself, so removing a task or a run takes its whole
+/// history along. The supervisor removes the executions older than a month (see
+/// <see cref="LocalSupervisor.CleanUpAsync"/>).
 /// </summary>
 public class LocalHistoryService : IHistoryService
 {
@@ -98,6 +99,26 @@ public class LocalHistoryService : IHistoryService
             new { instanceId });
 
         return [.. rows.Select(x => x.ToInstance())];
+    }
+
+    /// <summary>
+    /// Remove the executions started before [cutoff], the instances they ran going along.
+    /// </summary>
+    public async Task DeleteStartedBeforeAsync(DateTime cutoff)
+    {
+        await _writeLock.WaitAsync();
+        try
+        {
+            using var connection = _databaseFactory.Create();
+            await connection.ExecuteAsync("""
+                DELETE FROM TaskInstances WHERE ParentInstanceId IS NULL AND CreatedAt < @cutoff;
+                """,
+                new { cutoff = cutoff.ToUniversalTime() });
+        }
+        finally
+        {
+            _writeLock.Release();
+        }
     }
 
     /// <summary>

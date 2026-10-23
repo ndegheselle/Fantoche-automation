@@ -5,6 +5,7 @@ using Fantoche.Shared.Remote;
 using Fantoche.Shared.Services;
 using Fantoche.Worker;
 using Fantoche.Worker.Packages;
+using Fantoche.Worker.Storage;
 using Newtonsoft.Json.Linq;
 
 namespace Fantoche.Services.Local;
@@ -16,6 +17,9 @@ namespace Fantoche.Services.Local;
 /// <para>
 /// Its data folder holds its database ("fantoche.db"), the packages ("nuget"), the assemblies
 /// extracted from them to check what they hold ("cache").
+/// </para>
+/// <para>
+/// The executions are kept a month, their history and their storage (see <see cref="CleanUpAsync"/>).
 /// </para>
 /// </summary>
 public sealed class LocalSupervisor : ISupervisor
@@ -88,6 +92,7 @@ public sealed class LocalSupervisor : ISupervisor
     }
 
     private readonly DatabaseFactory _database;
+    private readonly string? _storageFolder;
 
     public LocalScopedService Scoped { get; }
     public LocalHistoryService History { get; }
@@ -100,8 +105,13 @@ public sealed class LocalSupervisor : ISupervisor
     IPackageSource ISupervisor.PackageFiles => Packages;
     IDispatchService ISupervisor.Dispatch => Dispatcher;
 
-    public LocalSupervisor(string dataFolder)
+    /// <param name="storageFolder">
+    /// The storage the workers share, cleaned along with the history. Null when the supervisor
+    /// doesn't reach it.
+    /// </param>
+    public LocalSupervisor(string dataFolder, string? storageFolder = null)
     {
+        _storageFolder = storageFolder;
         // The factory puts the schema and the starting content in place as it is built.
         _database = new DatabaseFactory(Path.Combine(dataFolder, "fantoche.db"));
         Scoped = new LocalScopedService(_database);
@@ -112,6 +122,46 @@ public sealed class LocalSupervisor : ISupervisor
 
     /// <summary>Take the cost of opening the database off the first read.</summary>
     public void WarmUpDatabase() => DatabaseFactory.WarmUpDatabase(_database);
+
+    /// <summary>
+    /// Remove the executions started more than a month before [now] : their history and, when the
+    /// supervisor reaches it, their storage.
+    /// </summary>
+    public async Task CleanUpAsync(DateTime now)
+    {
+        DateTime cutoff = CleanupCutoff(now);
+        await History.DeleteStartedBeforeAsync(cutoff);
+        if (_storageFolder != null)
+            ExecutionStorages.RemoveStartedBefore(_storageFolder, cutoff);
+    }
+
+    /// <summary>What [now] keeps : the executions started since.</summary>
+    public static DateTime CleanupCutoff(DateTime now) => now.AddMonths(-1);
+
+    /// <summary>Clean up now, then once a day until [cancellation].</summary>
+    public async Task RunCleanupAsync(CancellationToken cancellation)
+    {
+        using PeriodicTimer timer = new(TimeSpan.FromDays(1));
+        try
+        {
+            do
+            {
+                try
+                {
+                    await CleanUpAsync(DateTime.UtcNow);
+                }
+                catch (Exception exception) when (exception is not OperationCanceledException)
+                {
+                    // Nothing is lost by keeping an execution one more day : the next tick retries.
+                }
+            }
+            while (await timer.WaitForNextTickAsync(cancellation));
+        }
+        catch (OperationCanceledException)
+        {
+            // Stopping.
+        }
+    }
 
     public ICallerHub ConnectCaller(ICallerClient caller) => new CallerLink(Dispatcher, caller);
 

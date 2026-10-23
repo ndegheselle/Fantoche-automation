@@ -27,18 +27,6 @@ namespace Fantoche.App.Features.Workflows.Details
             set => SetSetting(value, v => Workflow.WorkflowSettings.StopIfAnyTaskFail = v);
         }
 
-        /// <summary>See <see cref="TaskSettings.StorageRetention"/>.</summary>
-        public int StorageRetention
-        {
-            get => Workflow.Settings.StorageRetention;
-            set
-            {
-                Workflow.Settings.StorageRetention = Math.Max(value, 0);
-                OnPropertyChanged();
-                MarkChanged();
-            }
-        }
-
         public WorkflowDetailsViewModel(
             ScopedNode node,
             WorkflowsViewModel parent,

@@ -16,6 +16,7 @@ using Fantoche.Services.Remote;
 using Fantoche.Shared.Services;
 using Fantoche.Worker;
 using Fantoche.Worker.Executor;
+using Fantoche.Worker.Storage;
 using Joufflu.Feedback;
 using Joufflu.Navigation;
 using Microsoft.Extensions.DependencyInjection;
@@ -76,8 +77,10 @@ public class SpineViewModel : ObservableObject
     /// </summary>
     private void AddServices(ServiceCollection services)
     {
-        ISupervisor supervisor = Settings.IsStandalone ? CreateLocalSupervisor() : CreateSupervisorClient();
-        LocalWorker worker = LocalWorker.InFolder(supervisor, Path.Combine(Settings.LocalFolderPath, "worker"));
+        string workerFolder = Path.Combine(Settings.LocalFolderPath, "worker");
+        string storageFolder = Path.Combine(workerFolder, "storage");
+        ISupervisor supervisor = Settings.IsStandalone ? CreateLocalSupervisor(storageFolder) : CreateSupervisorClient(storageFolder);
+        LocalWorker worker = LocalWorker.InFolder(supervisor, workerFolder, storageFolder);
 
         // Alone, the application is the only worker there is to run the tasks set to run on one.
         string? dispatchId = Settings.IsStandalone ? Settings.ApplicationName : null;
@@ -139,20 +142,27 @@ public class SpineViewModel : ObservableObject
         RegisterView<WorkersViewModel, WorkersPage>();
     }
 
-    private ISupervisor CreateLocalSupervisor()
+    /// <param name="storageFolder">The storage of the worker of the application, its only worker.</param>
+    private ISupervisor CreateLocalSupervisor(string storageFolder)
     {
-        var supervisor = new LocalSupervisor(Settings.LocalFolderPath);
+        var supervisor = new LocalSupervisor(Settings.LocalFolderPath, storageFolder);
         // Take the cost of opening the database off the first navigation.
         _ = Task.Run(supervisor.WarmUpDatabase);
+        _ = supervisor.RunCleanupAsync(CancellationToken.None);
         return supervisor;
     }
 
-    private ISupervisor CreateSupervisorClient()
+    /// <param name="storageFolder">
+    /// The storage of the worker of the application, out of reach of the supervisor : cleaned here
+    /// by the same rule.
+    /// </param>
+    private ISupervisor CreateSupervisorClient(string storageFolder)
     {
         var supervisor = new SupervisorClient(Settings.SupervisorAddress);
         // Listens to the changes of the history and of the dispatch as soon as the supervisor is up.
         _ = supervisor.History.StartAsync();
         _ = supervisor.Dispatch.StartAsync();
+        _ = Task.Run(() => ExecutionStorages.RemoveStartedBefore(storageFolder, LocalSupervisor.CleanupCutoff(DateTime.UtcNow)));
         return supervisor;
     }
 

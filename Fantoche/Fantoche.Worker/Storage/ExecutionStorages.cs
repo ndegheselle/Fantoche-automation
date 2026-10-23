@@ -1,75 +1,76 @@
 using System.Globalization;
 using Fantoche.Shared.Data.Execution;
-using Fantoche.Shared.Data.Scoped;
 
 namespace Fantoche.Worker.Storage;
 
 /// <summary>
-/// The storage of a worker : a <see cref="LocalStorage"/> of its own for each execution it runs,
+/// The storage of the executions : a <see cref="LocalStorage"/> of its own for each of them,
 /// <c>{folder}/{taskId}/{created}-{instanceId}</c>, the nodes of a workflow writing in the one of
-/// its run. Only the last executions of each task keep theirs (see
-/// <see cref="TaskSettings.StorageRetention"/>).
+/// its run. The folder only depends on the execution, so a resumed run finds its storage again
+/// whichever worker sharing the folder resumes it.
 /// </summary>
 public sealed class ExecutionStorages
 {
-    private readonly string _folder;
+    private const string CreatedFormat = "yyyyMMdd'T'HHmmssfffffff";
 
-    /// <summary>The folders of the executions running, never removed.</summary>
-    private readonly HashSet<string> _inUse = [];
+    private readonly string _folder;
 
     public ExecutionStorages(string folder)
     {
         _folder = folder;
     }
 
-    /// <summary>
-    /// The storage of [instance], an execution of [taskId], kept until <see cref="Release"/>.
-    /// </summary>
-    public LocalStorage Open(Guid taskId, TaskInstance instance)
-    {
-        string folder = FolderOf(taskId, instance);
-        lock (_inUse)
-            _inUse.Add(folder);
-        return new LocalStorage(folder);
-    }
+    /// <summary>The storage of [instance], an execution of [taskId].</summary>
+    public LocalStorage Open(Guid taskId, TaskInstance instance) => new(FolderOf(taskId, instance));
 
     /// <summary>
-    /// [instance] is over : remove the storage of the executions of [taskId] but the [keep] last
-    /// ones and the ones still running.
+    /// Remove the storage of every execution of [folder] started before [cutoff]. Read from the
+    /// names of the folders rather than from the history : the supervisor cleaning the history
+    /// doesn't hold the folders of an application.
     /// </summary>
-    public void Release(Guid taskId, TaskInstance instance, int keep)
+    public static void RemoveStartedBefore(string folder, DateTime cutoff)
     {
-        string taskFolder = Path.Combine(_folder, taskId.ToString("N"));
-        List<string> removed;
-        lock (_inUse)
-        {
-            _inUse.Remove(FolderOf(taskId, instance));
-            if (!Directory.Exists(taskFolder))
-                return;
+        if (!Directory.Exists(folder))
+            return;
 
-            // Named after their creation, so the most recent come first.
-            removed = [.. Directory.GetDirectories(taskFolder)
-                .OrderByDescending(x => Path.GetFileName(x), StringComparer.Ordinal)
-                .Skip(Math.Max(keep, 0))
-                .Where(x => !_inUse.Contains(x))];
-        }
-
-        foreach (string folder in removed)
+        IEnumerable<string> executions = Directory.GetDirectories(folder).SelectMany(Directory.GetDirectories);
+        foreach (string execution in executions)
         {
+            DateTime? created = CreatedOf(execution);
+            if (created == null || created >= cutoff.ToUniversalTime())
+                continue;
+
             try
             {
-                Directory.Delete(folder, true);
+                Directory.Delete(execution, true);
             }
             catch (IOException)
             {
-                // Still read by something (an editor holding a file open) : the next release retries.
+                // Still read by something (an editor holding a file open) : the next cleanup retries.
             }
         }
     }
 
     private string FolderOf(Guid taskId, TaskInstance instance)
     {
-        string created = instance.CreatedAt.ToUniversalTime().ToString("yyyyMMdd'T'HHmmssfffffff", CultureInfo.InvariantCulture);
+        string created = instance.CreatedAt.ToUniversalTime().ToString(CreatedFormat, CultureInfo.InvariantCulture);
         return Path.Combine(_folder, taskId.ToString("N"), $"{created}-{instance.Id:N}");
+    }
+
+    /// <summary>When the execution of [folder] started, null for a folder this didn't name.</summary>
+    private static DateTime? CreatedOf(string folder)
+    {
+        string name = Path.GetFileName(folder);
+        int separator = name.IndexOf('-');
+        if (separator < 0)
+            return null;
+
+        bool isNamed = DateTime.TryParseExact(
+            name[..separator],
+            CreatedFormat,
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal,
+            out DateTime created);
+        return isNamed ? created : null;
     }
 }
