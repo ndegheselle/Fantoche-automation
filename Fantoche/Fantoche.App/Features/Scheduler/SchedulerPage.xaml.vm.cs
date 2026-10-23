@@ -1,4 +1,5 @@
 using Fantoche.App.Common;
+using Fantoche.App.Features.Workflows;
 using Fantoche.Shared.Data;
 using Fantoche.Shared.Data.Scoped;
 using Fantoche.Shared.Services;
@@ -9,7 +10,7 @@ using Newtonsoft.Json;
 namespace Fantoche.App.Features.Scheduler
 {
     /// <summary>A schedule of a task or workflow, as the scheduler page lists it.</summary>
-    public record ScheduledRow(string Name, EnumScopedType Type, string Cron, DateTime? NextRun, string Parameters);
+    public record ScheduledRow(Guid TaskId, string Name,EnumScopedType Type, string Cron, DateTime? NextRun, string Parameters);
 
     /// <summary>
     /// Every schedule there is, and how their runs spread over the next days. The schedules are
@@ -26,10 +27,23 @@ namespace Fantoche.App.Features.Scheduler
         [ObservableProperty] private string _summary = "";
 
         private readonly IScopedService _scoped;
+        private readonly WorkflowsViewModel _workflows;
 
-        public SchedulerViewModel(IScopedService scoped)
+        public SchedulerViewModel(IScopedService scoped, WorkflowsViewModel workflows)
         {
             _scoped = scoped;
+            _workflows = workflows;
+        }
+
+        /// <summary>Open the task or workflow [row] starts, where its schedules are edited.</summary>
+        [RelayCommand]
+        private void OpenTask(ScheduledRow? row)
+        {
+            if (row == null)
+                return;
+
+            _workflows.OpenWhenShown(row.TaskId);
+            SpineViewModel.Instance.Navigator.Navigate(typeof(WorkflowsViewModel));
         }
 
         [RelayCommand]
@@ -43,6 +57,7 @@ namespace Fantoche.App.Features.Scheduler
             DateTime now = DateTime.Now;
             Rows = [.. schedules
                 .Select(x => new ScheduledRow(
+                    x.Task.Id,
                     x.Task.Metadata.Name,
                     x.Task.Metadata.Type,
                     x.Schedule.Cron,

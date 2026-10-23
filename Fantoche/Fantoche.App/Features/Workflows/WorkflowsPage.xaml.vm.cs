@@ -32,6 +32,12 @@ namespace Fantoche.App.Features.Workflows
 
         private readonly IScopedService _scoped;
 
+        /// <summary>
+        /// Element another page asked to open (see <see cref="OpenWhenShown"/>), opened by the next
+        /// refresh instead of the first one : the tree is only loaded once the page is shown.
+        /// </summary>
+        private Guid? _toOpen;
+
         public WorkflowsViewModel(IServiceProvider services, IScopedService scoped)
         {
             _services = services;
@@ -42,8 +48,14 @@ namespace Fantoche.App.Features.Workflows
         public async Task RefreshAsync()
         {
             Fill(await _scoped.GetTreeAsync());
-            Open(Root.Children.FirstOrDefault());
+
+            ScopedNode? requested = _toOpen is Guid id ? Root.Find(id) : null;
+            _toOpen = null;
+            Open(requested ?? Root.Children.FirstOrDefault());
         }
+
+        /// <summary>Open the element [elementId] once the page is next shown.</summary>
+        public void OpenWhenShown(Guid elementId) => _toOpen = elementId;
 
         /// <summary>
         /// Rebuild the tree with the tasks and workflows matching <see cref="Search"/> and the scopes

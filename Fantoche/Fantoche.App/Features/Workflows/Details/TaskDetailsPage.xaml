@@ -17,62 +17,64 @@
         <TabItem Header="Settings" Tag="{x:Static local:EnumDetailTab.Settings}">
             <Grid joolkit:Spacing.Gap="4">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="auto" />
                     <RowDefinition />
-                    <RowDefinition Height="auto" />
                     <RowDefinition Height="auto" />
                 </Grid.RowDefinitions>
 
-                <details:MetadataEditor DataContext="{Binding Metadata}" />
+                <StackPanel joolkit:Spacing.Gap="4">
 
-                <Grid Grid.Row="1" Visibility="{Binding Metadata.IsReadOnly, Mode=OneTime, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}">
-                    <!--  Current package  -->
-                    <Grid VerticalAlignment="Top" Visibility="{Binding HasTarget, Converter={x:Static jonverters:VisibilityConverter.Default}}">
-                        <controls:PackageTargetSummary DataContext="{Binding Target}" />
-                        <Button
-                            Margin="{StaticResource {x:Static joufflu:Dimensions.SpacingThickness}}"
-                            HorizontalAlignment="Right"
-                            VerticalAlignment="Top"
-                            joolkit:Sizing.IsSquare="True"
-                            joolkit:Sizing.Size="sm"
-                            Command="{Binding RemovePackageCommand}"
-                            Style="{StaticResource SoftDangerButton}"
-                            ToolTip="Remove the package">
-                            <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Trash}" />
-                        </Button>
+                    <details:MetadataEditor DataContext="{Binding Metadata}" />
+
+                    <TextBlock Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}">Task</TextBlock>
+                    <Grid Visibility="{Binding Metadata.IsReadOnly, Mode=OneTime, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}">
+                        <!--  Current package  -->
+                        <Grid VerticalAlignment="Top" Visibility="{Binding HasTarget, Converter={x:Static jonverters:VisibilityConverter.Default}}">
+                            <controls:PackageTargetSummary DataContext="{Binding Target}" />
+                            <Button
+                                Margin="{StaticResource {x:Static joufflu:Dimensions.SpacingThickness}}"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Top"
+                                joolkit:Sizing.IsSquare="True"
+                                joolkit:Sizing.Size="sm"
+                                Command="{Binding RemovePackageCommand}"
+                                Style="{StaticResource SoftDangerButton}"
+                                ToolTip="Remove the package">
+                                <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Trash}" />
+                            </Button>
+                        </Grid>
+
+                        <!--  No package yet  -->
+                        <StackPanel
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            joolkit:Spacing.Gap="4"
+                            Visibility="{Binding HasTarget, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}">
+                            <StackPanel Orientation="Horizontal">
+                                <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.CircleSlash2}" />
+                                <TextBlock Margin="8,0,0,0">No target, select a package to setup the task.</TextBlock>
+                            </StackPanel>
+                            <Button HorizontalAlignment="Center" Command="{Binding SelectPackageCommand}">
+                                <StackPanel Orientation="Horizontal">
+                                    <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Package}" />
+                                    <TextBlock Margin="4,0,0,0">Select package</TextBlock>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+
                     </Grid>
 
-                    <!--  No package yet  -->
+                    <TextBlock Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}">Execution settings</TextBlock>
                     <StackPanel
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        joolkit:Spacing.Gap="8"
-                        Visibility="{Binding HasTarget, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}">
-                        <StackPanel Orientation="Horizontal">
-                            <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.CircleSlash2}" />
-                            <TextBlock Margin="8,0,0,0">No target, select a package to setup the task.</TextBlock>
-                        </StackPanel>
-                        <Button HorizontalAlignment="Center" Command="{Binding SelectPackageCommand}">
-                            <StackPanel Orientation="Horizontal">
-                                <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Package}" />
-                                <TextBlock Margin="4,0,0,0">Select package</TextBlock>
-                            </StackPanel>
-                        </Button>
+                        joolkit:Spacing.Gap="4"
+                        Orientation="Horizontal"
+                        ToolTip="How many of its last executions keep the tables and files they wrote, on each worker running it."
+                        Visibility="{Binding Metadata.IsReadOnly, Mode=OneTime, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}">
+                        <TextBlock VerticalAlignment="Center">Executions keeping their storage</TextBlock>
+                        <TextBox Width="60" Text="{Binding StorageRetention, UpdateSourceTrigger=PropertyChanged}" />
                     </StackPanel>
-
-                </Grid>
-
-                <StackPanel
-                    Grid.Row="2"
-                    joolkit:Spacing.Gap="4"
-                    Orientation="Horizontal"
-                    ToolTip="How many of its last executions keep the tables and files they wrote, on each worker running it."
-                    Visibility="{Binding Metadata.IsReadOnly, Mode=OneTime, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}">
-                    <TextBlock VerticalAlignment="Center">Executions keeping their storage</TextBlock>
-                    <TextBox Width="60" Text="{Binding StorageRetention, UpdateSourceTrigger=PropertyChanged}" />
                 </StackPanel>
 
-                <details:ScopedActions Grid.Row="3" />
+                <details:ScopedActions Grid.Row="1" />
             </Grid>
         </TabItem>
         <TabItem Header="History" Tag="{x:Static local:EnumDetailTab.History}">

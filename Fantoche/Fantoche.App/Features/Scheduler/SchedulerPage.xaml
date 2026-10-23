@@ -8,10 +8,10 @@
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Fantoche.App.Features.Scheduler"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Margin="{DynamicResource {x:Static joufflu:Dimensions.TitleBarHeightOffset}}"
     d:DataContext="{d:DesignInstance Type=local:SchedulerViewModel}"
     d:DesignHeight="600"
     d:DesignWidth="1000"
-    Margin="{DynamicResource {x:Static joufflu:Dimensions.TitleBarHeightOffset}}"
     mc:Ignorable="d">
     <UserControl.Resources>
         <!--  The days are labelled in a column of their own, left of the hours  -->
@@ -94,7 +94,7 @@
                                             ToolTip="{Binding ToolTip}">
                                             <Grid>
                                                 <Border
-                                                    Background="{DynamicResource {x:Static joufflu:Brushes.PrimaryBrush}}"
+                                                    Background="red"
                                                     CornerRadius="2"
                                                     Opacity="{Binding Intensity}" />
                                                 <TextBlock
@@ -136,6 +136,21 @@
                     Width="*"
                     Binding="{Binding Parameters}"
                     Header="Parameters" />
+                <DataGridTemplateColumn>
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <!--  The row only knows its own schedule, the command lives on the page  -->
+                            <Button
+                                joolkit:Sizing.IsSquare="True"
+                                Command="{Binding DataContext.OpenTaskCommand, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"
+                                CommandParameter="{Binding}"
+                                Style="{StaticResource GhostButton}"
+                                ToolTip="Open the task or workflow">
+                                <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.ChevronRight}" />
+                            </Button>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
     </Grid>

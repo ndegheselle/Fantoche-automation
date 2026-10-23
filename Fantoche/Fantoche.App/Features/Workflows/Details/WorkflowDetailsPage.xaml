@@ -26,7 +26,9 @@
                     Grid.Row="1"
                     VerticalAlignment="Top"
                     joolkit:Spacing.Gap="4">
-                    <CheckBox IsChecked="{Binding StopIfAnyTaskFail}">Stop if any task fail</CheckBox>
+
+                    <TextBlock Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}">Execution settings</TextBlock>
+
                     <StackPanel
                         joolkit:Spacing.Gap="4"
                         Orientation="Horizontal"
@@ -34,12 +36,7 @@
                         <TextBlock VerticalAlignment="Center">Executions keeping their storage</TextBlock>
                         <TextBox Width="60" Text="{Binding StorageRetention, UpdateSourceTrigger=PropertyChanged}" />
                     </StackPanel>
-
-                    <TextBlock
-                        Margin="0,8,0,0"
-                        Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}"
-                        Text="The input and the output of the workflow are edited on the start and the end of its graph, from the editor tab."
-                        TextWrapping="Wrap" />
+                    <CheckBox IsChecked="{Binding StopIfAnyTaskFail}">Stop if any task fail</CheckBox>
                 </StackPanel>
 
                 <controls:ScopedActions Grid.Row="2" />
