@@ -1,3 +1,4 @@
+using Fantoche.App.Features.Workflows.Controls;
 using Fantoche.App.Common;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Data.Scoped;
@@ -99,7 +100,7 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
         private async Task Start()
         {
             JToken? settings = null;
-            if (StartSettingsViewModel.IsExpectingSettings(_workflow))
+            if (ParametersForm.IsExpectingParameters(_workflow))
             {
                 settings = await StartSettingsViewModel.ShowAsync(_workflow);
                 if (settings == null)

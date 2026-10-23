@@ -81,6 +81,12 @@ It worked, but it took a transit store in the supervisor, an HTTP API to stream 
 
 A "Run on a worker" setting on the tasks and workflows, sending a whole execution started from the application to a worker, was removed too. A run started by hand is for building and checking a workflow, close to the editor and the local files. Where an execution runs belongs to what schedules it, not to the task or workflow itself.
 
+## Schedules
+
+- A task or workflow holds its schedules (`BaseAutomationTask.Schedules`): a standard cron (`minute hour day-of-month month day-of-week`, read in local time) and the parameters each run starts with, checked against its input schema.
+- They're edited in its Schedules tab, each change saved right away. The Scheduler page lists them all and lays out their runs over the next 7 days, hour by hour, to see where they pile up.
+- Nothing runs them yet: the supervisor will dispatch them to the workers.
+
 ## Storage and retention
 
 Each worker, the application's included, keeps one storage folder per execution it runs. The nodes of a workflow write into the folder of its run.

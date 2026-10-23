@@ -4,6 +4,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="clr-namespace:Fantoche.App.Features.Workflows.Details.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:data="clr-namespace:Joufflu.Data.Controls;assembly=Joufflu.Data"
+    xmlns:jonverters="clr-namespace:Joufflu.Converters;assembly=Joufflu"
     xmlns:joolkit="clr-namespace:Joufflu.Toolkit;assembly=Joufflu"
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Fantoche.App.Features.Workflows.Details"
@@ -20,6 +22,27 @@
                 </Grid.RowDefinitions>
 
                 <controls:MetadataEditor DataContext="{Binding Metadata}" />
+
+                <Grid
+                    Grid.Row="1"
+                    joolkit:Spacing.Gap="4"
+                    Visibility="{Binding Metadata.IsReadOnly, Mode=OneTime, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto" />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+                    <StackPanel>
+                        <TextBlock Text="Parameters" />
+                        <TextBlock
+                            Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}"
+                            Text="The global context of every task and workflow in the scope, over the one of its parents. A value can point at a parent's one ($name)."
+                            TextWrapping="Wrap" />
+                    </StackPanel>
+                    <data:DataEdit
+                        Grid.Row="1"
+                        ManualValues="{Binding References}"
+                        Node="{Binding Parameters, Mode=OneWay}" />
+                </Grid>
 
                 <controls:ScopedActions Grid.Row="2" />
             </Grid>

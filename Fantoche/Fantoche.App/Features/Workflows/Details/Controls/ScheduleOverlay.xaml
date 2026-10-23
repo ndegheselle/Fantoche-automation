@@ -1,0 +1,84 @@
+<UserControl
+    x:Class="Fantoche.App.Features.Workflows.Details.Controls.ScheduleOverlay"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="clr-namespace:Fantoche.App.Features.Workflows.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
+    xmlns:jonverters="clr-namespace:Joufflu.Converters;assembly=Joufflu"
+    xmlns:joolkit="clr-namespace:Joufflu.Toolkit;assembly=Joufflu"
+    xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
+    xmlns:local="clr-namespace:Fantoche.App.Features.Workflows.Details.Controls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DataContext="{d:DesignInstance Type=local:ScheduleViewModel}"
+    mc:Ignorable="d">
+
+    <Grid
+        Width="800"
+        Margin="0,4,0,0"
+        joolkit:Spacing.Gap="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+
+        <Grid joolkit:Spacing.Gap="8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition Width="auto" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel joolkit:Spacing.Gap="4">
+                <TextBlock Text="Cron" />
+                <TextBox FontFamily="Consolas" Text="{Binding Cron, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock
+                    Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}"
+                    Text="minute hour day-of-month month day-of-week, in local time (e.g. 0 6 * * 1-5 : 6:00 on the working days)"
+                    TextWrapping="Wrap" />
+                <StackPanel Orientation="Horizontal" Visibility="{Binding CronError, Converter={x:Static jonverters:VisibilityConverter.Default}}">
+                    <jonts:FontIcon Foreground="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}" Text="{x:Static jonts:LucideFontIcons.AlertCircle}" />
+                    <TextBlock
+                        Margin="4,0,0,0"
+                        Foreground="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}"
+                        Text="{Binding CronError}"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" joolkit:Spacing.Gap="4">
+                <TextBlock Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}" Text="Next runs" />
+                <ItemsControl ItemsSource="{Binding NextRuns}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding StringFormat=\{0:ddd dd MMM yyyy HH:mm\}}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </Grid>
+
+        <StackPanel Grid.Row="1" joolkit:Spacing.Gap="4">
+            <TextBlock Text="Parameters" />
+            <controls:ParametersFormView DataContext="{Binding Parameters}" Visibility="{Binding Parameters, Converter={x:Static jonverters:VisibilityConverter.Default}}" />
+            <TextBlock
+                Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}"
+                Text="The element expects no parameters."
+                Visibility="{Binding Parameters, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}" />
+        </StackPanel>
+
+        <StackPanel
+            Grid.Row="2"
+            HorizontalAlignment="Right"
+            joolkit:Spacing.Gap="4"
+            Orientation="Horizontal">
+            <Button Command="{Binding CancelCommand}" Style="{StaticResource SecondaryButton}">Cancel</Button>
+            <Button Command="{Binding ValidateCommand}" Style="{StaticResource PrimaryButton}">
+                <StackPanel Orientation="Horizontal">
+                    <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Save}" />
+                    <TextBlock Margin="4,0,0,0">Save</TextBlock>
+                </StackPanel>
+            </Button>
+        </StackPanel>
+    </Grid>
+</UserControl>

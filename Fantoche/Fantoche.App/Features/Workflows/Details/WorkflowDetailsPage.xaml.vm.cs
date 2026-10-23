@@ -4,6 +4,7 @@ using Fantoche.App.Features.Workflows.Editor;
 using Fantoche.App.Features.Workflows.Editor.History;
 using Fantoche.Shared.Data.Scoped;
 using Fantoche.Shared.Services;
+using Fantoche.App.Features.Workflows.Details.Controls;
 using CommunityToolkit.Mvvm.Input;
 using Joufflu.Feedback;
 using Joufflu.Navigation;
@@ -16,6 +17,9 @@ namespace Fantoche.App.Features.Workflows.Details
 
         /// <summary>Graph of the workflow, edited by the editor tab.</summary>
         public WorkflowEditorViewModel Editor { get; }
+
+        /// <summary>When the workflow is started on its own, displayed by the schedules tab.</summary>
+        public SchedulesViewModel Schedules { get; }
 
         public bool StopIfAnyTaskFail
         {
@@ -46,6 +50,7 @@ namespace Fantoche.App.Features.Workflows.Details
             : base(node, parent, scoped, history, overlays, toasts)
         {
             Editor = new WorkflowEditorViewModel(Workflow, SaveGraphCommand, scoped, execution, history, toasts);
+            Schedules = new SchedulesViewModel(Workflow, overlays, () => SaveElementAsync($"The schedules of the workflow '{Node.Name}' have been saved."));
             Editor.History.PropertyChanged += (_, e) =>
             {
                 if (e.PropertyName == nameof(EditorHistory.HasUnsavedChanges))

@@ -48,6 +48,9 @@
         <TabItem Header="History" Tag="{x:Static local:EnumDetailTab.History}">
             <controls:HistoryTable DataContext="{Binding History}" />
         </TabItem>
+        <TabItem Header="Schedules" Tag="{x:Static local:EnumDetailTab.Schedules}">
+            <controls:SchedulesTable DataContext="{Binding Schedules}" />
+        </TabItem>
         <TabItem Header="Usages" Tag="{x:Static local:EnumDetailTab.Usages}">
             <controls:UsagesTable DataContext="{Binding Usages}" />
         </TabItem>

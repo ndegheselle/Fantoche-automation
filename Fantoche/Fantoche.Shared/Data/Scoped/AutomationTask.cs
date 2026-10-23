@@ -78,6 +78,7 @@ public abstract class BaseAutomationTask : ScopedElement
         }
     }
 
+    /// <summary>When the element is started on its own : the scheduled items the workers run.</summary>
     public List<Schedule> Schedules { get; set; } = [];
 
     public TaskSettings Settings { get; set; } = new();

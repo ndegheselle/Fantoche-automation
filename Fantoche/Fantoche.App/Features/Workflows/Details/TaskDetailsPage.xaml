@@ -78,6 +78,12 @@
         <TabItem Header="History" Tag="{x:Static local:EnumDetailTab.History}">
             <details:HistoryTable DataContext="{Binding History}" />
         </TabItem>
+        <TabItem
+            Header="Schedules"
+            Tag="{x:Static local:EnumDetailTab.Schedules}"
+            Visibility="{Binding Metadata.IsReadOnly, Mode=OneTime, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}">
+            <details:SchedulesTable DataContext="{Binding Schedules}" />
+        </TabItem>
         <TabItem Header="Usages" Tag="{x:Static local:EnumDetailTab.Usages}">
             <details:UsagesTable DataContext="{Binding Usages}" />
         </TabItem>

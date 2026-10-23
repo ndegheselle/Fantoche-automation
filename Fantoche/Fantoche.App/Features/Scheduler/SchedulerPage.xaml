@@ -1,0 +1,142 @@
+<UserControl
+    x:Class="Fantoche.App.Features.Scheduler.SchedulerPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
+    xmlns:joolkit="clr-namespace:Joufflu.Toolkit;assembly=Joufflu"
+    xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
+    xmlns:local="clr-namespace:Fantoche.App.Features.Scheduler"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DataContext="{d:DesignInstance Type=local:SchedulerViewModel}"
+    d:DesignHeight="600"
+    d:DesignWidth="1000"
+    Margin="{DynamicResource {x:Static joufflu:Dimensions.TitleBarHeightOffset}}"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <!--  The days are labelled in a column of their own, left of the hours  -->
+        <GridLength x:Key="DayLabelWidth">90</GridLength>
+    </UserControl.Resources>
+
+    <Grid Margin="{StaticResource {x:Static joufflu:Dimensions.SpacingThickness}}" joolkit:Spacing.Gap="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+
+        <DockPanel>
+            <Button
+                joolkit:Sizing.IsSquare="True"
+                joolkit:Sizing.Size="sm"
+                Command="{Binding RefreshCommand}"
+                DockPanel.Dock="Right"
+                Style="{StaticResource SecondaryButton}"
+                ToolTip="Refresh">
+                <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.RefreshCw}" />
+            </Button>
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock FontWeight="SemiBold" Text="Runs per hour, over the next days" />
+                <TextBlock Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}" Text="{Binding Summary}" />
+            </StackPanel>
+        </DockPanel>
+
+        <!--  Distribution : a day per row, an hour per column, the darker the busier  -->
+        <StackPanel Grid.Row="1" joolkit:Spacing.Gap="2">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="{StaticResource DayLabelWidth}" />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <ItemsControl Grid.Column="1" ItemsSource="{Binding Hours}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="24" Rows="1" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock
+                                HorizontalAlignment="Center"
+                                FontSize="10"
+                                Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}"
+                                Text="{Binding StringFormat=\{0:00\}}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Grid>
+
+            <ItemsControl ItemsSource="{Binding Distribution}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="{StaticResource DayLabelWidth}" />
+                                <ColumnDefinition />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock VerticalAlignment="Center" Text="{Binding Date, StringFormat=\{0:ddd dd MMM\}}" />
+                            <ItemsControl Grid.Column="1" ItemsSource="{Binding Hours}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <UniformGrid Columns="24" Rows="1" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border
+                                            Height="26"
+                                            Margin="1"
+                                            Background="Transparent"
+                                            BorderBrush="{DynamicResource {x:Static joufflu:Brushes.BorderBrush}}"
+                                            BorderThickness="1"
+                                            CornerRadius="3"
+                                            ToolTip="{Binding ToolTip}">
+                                            <Grid>
+                                                <Border
+                                                    Background="{DynamicResource {x:Static joufflu:Brushes.PrimaryBrush}}"
+                                                    CornerRadius="2"
+                                                    Opacity="{Binding Intensity}" />
+                                                <TextBlock
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    FontSize="10"
+                                                    Text="{Binding CountText}" />
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+
+        <TextBlock
+            Grid.Row="2"
+            Margin="0,8,0,0"
+            FontWeight="SemiBold"
+            Text="Schedules" />
+        <DataGrid
+            Grid.Row="3"
+            AutoGenerateColumns="False"
+            CanUserReorderColumns="False"
+            IsReadOnly="True"
+            ItemsSource="{Binding Rows}">
+            <DataGrid.Columns>
+                <DataGridTextColumn Binding="{Binding Name}" Header="Task / workflow" />
+                <DataGridTextColumn Binding="{Binding Type}" Header="Type" />
+                <DataGridTextColumn
+                    Binding="{Binding Cron}"
+                    FontFamily="Consolas"
+                    Header="Cron" />
+                <DataGridTextColumn Binding="{Binding NextRun, StringFormat=\{0:ddd dd MMM yyyy HH:mm\}}" Header="Next run" />
+                <DataGridTextColumn
+                    Width="*"
+                    Binding="{Binding Parameters}"
+                    Header="Parameters" />
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</UserControl>

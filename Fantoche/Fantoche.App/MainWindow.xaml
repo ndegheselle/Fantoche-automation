@@ -13,6 +13,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:nav="clr-namespace:Joufflu.Navigation.Controls;assembly=Joufflu.Navigation"
     xmlns:packages="clr-namespace:Fantoche.App.Features.Packages"
+    xmlns:scheduler="clr-namespace:Fantoche.App.Features.Scheduler"
     xmlns:workers="clr-namespace:Fantoche.App.Features.Workers"
     xmlns:workflows="clr-namespace:Fantoche.App.Features.Workflows"
     Width="1200"
@@ -60,8 +61,12 @@
                         </nav:NavigationItem.Icon>
                         Packages
                     </nav:NavigationItem>
-
-                    <nav:NavigationTitle>Admin</nav:NavigationTitle>
+                    <nav:NavigationItem TargetType="{x:Type scheduler:SchedulerViewModel}">
+                        <nav:NavigationItem.Icon>
+                            <fonts:FontIcon Text="{x:Static fonts:LucideFontIcons.CalendarClock}" />
+                        </nav:NavigationItem.Icon>
+                        Scheduler
+                    </nav:NavigationItem>
                     <nav:NavigationItem TargetType="{x:Type workers:WorkersViewModel}">
                         <nav:NavigationItem.Icon>
                             <fonts:FontIcon Text="{x:Static fonts:LucideFontIcons.Cpu}" />

@@ -14,6 +14,7 @@ namespace Fantoche.App.Features.Workflows.Details
         Settings,
         History,
         Usages,
+        Schedules,
         Editor
     }
 

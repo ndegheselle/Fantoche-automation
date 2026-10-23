@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Fantoche.App.Features.Packages;
 using Fantoche.App.Features.Packages.Controls;
+using Fantoche.App.Features.Scheduler;
 using Fantoche.App.Features.Settings;
 using Fantoche.App.Features.Workers;
 using Fantoche.App.Features.Workflows;
@@ -110,6 +111,7 @@ public class SpineViewModel : ObservableObject
         services.AddSingleton<SettingsViewModel>();
         services.AddSingleton<WorkflowsViewModel>();
         services.AddSingleton<PackagesViewModel>();
+        services.AddSingleton<SchedulerViewModel>();
         services.AddSingleton<WorkersViewModel>();
     }
 
@@ -126,10 +128,13 @@ public class SpineViewModel : ObservableObject
         RegisterView<TaskSettingsViewModel, TaskSettingsOverlay>();
         RegisterView<StartSettingsViewModel, StartSettingsOverlay>();
         RegisterView<InstanceDetailViewModel, InstanceDetailOverlay>();
+        RegisterView<ScheduleViewModel, ScheduleOverlay>();
 
         RegisterView<PackagesViewModel, PackagesPage>();
         RegisterView<PackageViewModel, PackageOverlay>();
         RegisterView<PackageSelectionViewModel, PackageSelectionOverlay>();
+
+        RegisterView<SchedulerViewModel, SchedulerPage>();
 
         RegisterView<WorkersViewModel, WorkersPage>();
     }
