@@ -36,7 +36,18 @@ internal sealed class ExecutionStoragesTests
         return (instance, storage, file);
     }
 
-    private static bool Holds(LocalStorage storage, FileRef file) => storage.ItemsOf(file.Id).Count > 0;
+    private static bool Holds(LocalStorage storage, FileRef file)
+    {
+        try
+        {
+            using Stream content = storage.OpenFileAsync(file).GetAwaiter().GetResult();
+            return true;
+        }
+        catch (Exception exception) when (exception is FileNotFoundException or DirectoryNotFoundException)
+        {
+            return false;
+        }
+    }
 
     [Test]
     public async Task Release_KeepsTheStorageOfTheLastExecutionsOnly()

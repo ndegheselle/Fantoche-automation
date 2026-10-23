@@ -1,7 +1,6 @@
 using Fantoche.Shared.Remote;
 using Fantoche.Shared.Services;
 using Fantoche.Worker.Packages;
-using Fantoche.Worker.Storage;
 
 namespace Fantoche.Worker;
 
@@ -20,8 +19,6 @@ public interface ISupervisor
 
     /// <summary>The files of the packages, which a worker extracts to load the tasks from.</summary>
     IPackageSource PackageFiles { get; }
-
-    IStorageTransit Transit { get; }
 
     /// <summary>
     /// What [caller] sends executions to the workers with, hearing back about them as they run.

@@ -7,7 +7,8 @@ using NJsonSchema;
 namespace Fantoche.Shared.Data.Scoped;
 
 /// <summary>
-/// Where a task is run.
+/// Where a task or workflow runs when it is started. Only read for the element an execution
+/// starts from : the nodes of a workflow run wherever the workflow runs.
 /// </summary>
 public enum EnumExecutionMode
 {

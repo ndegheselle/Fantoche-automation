@@ -3,7 +3,6 @@ using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Data.Scoped;
 using Fantoche.Shared.Remote;
 using Fantoche.Shared.Services;
-using Fantoche.Worker.Storage;
 using Newtonsoft.Json.Linq;
 
 namespace Fantoche.Services.Local;
@@ -40,7 +39,6 @@ public class Dispatcher : IDispatchService
 
     private readonly LocalScopedService _scoped;
     private readonly LocalHistoryService _history;
-    private readonly IStorageTransit _transit;
 
     private readonly object _lock = new();
     private readonly Dictionary<string, Worker> _workersByConnection = [];
@@ -52,11 +50,10 @@ public class Dispatcher : IDispatchService
 
     public event Action<DispatchStatus>? StatusChanged;
 
-    public Dispatcher(LocalScopedService scoped, LocalHistoryService history, IStorageTransit transit)
+    public Dispatcher(LocalScopedService scoped, LocalHistoryService history)
     {
         _scoped = scoped;
         _history = history;
-        _transit = transit;
     }
 
     public Task<DispatchStatus> GetStatusAsync() => Task.FromResult(GetStatus());
@@ -151,8 +148,8 @@ public class Dispatcher : IDispatchService
     }
 
     /// <summary>
-    /// Nobody is left to hear about the executions of [callerConnectionId] : they are dropped, the
-    /// running ones stopped, and what they had in transit forgotten.
+    /// Nobody is left to hear about the executions of [callerConnectionId] : they are dropped and the
+    /// running ones stopped.
     /// </summary>
     public async Task RemoveCallerAsync(string callerConnectionId)
     {
@@ -173,9 +170,6 @@ public class Dispatcher : IDispatchService
             .Where(x => x.Worker != null)
             .Select(x => x.Worker!.Client.Cancel(x.ExecutionId));
         await Task.WhenAll(cancels);
-
-        var clears = dropped.Select(x => _transit.ClearAsync(x.ExecutionId));
-        await Task.WhenAll(clears);
     }
 
     #endregion

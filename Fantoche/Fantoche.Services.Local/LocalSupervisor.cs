@@ -5,18 +5,17 @@ using Fantoche.Shared.Remote;
 using Fantoche.Shared.Services;
 using Fantoche.Worker;
 using Fantoche.Worker.Packages;
-using Fantoche.Worker.Storage;
 using Newtonsoft.Json.Linq;
 
 namespace Fantoche.Services.Local;
 
 /// <summary>
-/// The supervisor itself : the database, the packages, the storage in transit and the dispatch of
-/// the executions to the workers. Run by the application in standalone mode and by the supervisor
+/// The supervisor itself : the database, the packages and the dispatch of the executions to the
+/// workers. Run by the application in standalone mode and by the supervisor
 /// API otherwise, which only carries its calls over HTTP and its hubs.
 /// <para>
 /// Its data folder holds its database ("fantoche.db"), the packages ("nuget"), the assemblies
-/// extracted from them to check what they hold ("cache") and the storage in transit ("transit").
+/// extracted from them to check what they hold ("cache").
 /// </para>
 /// </summary>
 public sealed class LocalSupervisor : ISupervisor
@@ -93,14 +92,12 @@ public sealed class LocalSupervisor : ISupervisor
     public LocalScopedService Scoped { get; }
     public LocalHistoryService History { get; }
     public LocalPackagesService Packages { get; }
-    public LocalStorageTransit Transit { get; }
     public Dispatcher Dispatcher { get; }
 
     IScopedService ISupervisor.Scoped => Scoped;
     IHistoryService ISupervisor.History => History;
     IPackagesService ISupervisor.Packages => Packages;
     IPackageSource ISupervisor.PackageFiles => Packages;
-    IStorageTransit ISupervisor.Transit => Transit;
     IDispatchService ISupervisor.Dispatch => Dispatcher;
 
     public LocalSupervisor(string dataFolder)
@@ -110,9 +107,7 @@ public sealed class LocalSupervisor : ISupervisor
         Scoped = new LocalScopedService(_database);
         History = new LocalHistoryService(_database);
         Packages = new LocalPackagesService(Path.Combine(dataFolder, "nuget"), Path.Combine(dataFolder, "cache"));
-        Transit = new LocalStorageTransit(Path.Combine(dataFolder, "transit"));
-        Transit.Reset();
-        Dispatcher = new Dispatcher(Scoped, History, Transit);
+        Dispatcher = new Dispatcher(Scoped, History);
     }
 
     /// <summary>Take the cost of opening the database off the first read.</summary>

@@ -18,7 +18,7 @@ Backend Requirements:
 
 ## Architecture
 
-See [architecture.md](architecture.md) : the standalone and remote modes, the storage of the executions and its transit between workers, the packages and their caches.
+See [architecture.md](architecture.md) : the standalone and remote modes, where an execution runs and its storage, the packages and their caches.
 
 ## Getting started
 
@@ -27,7 +27,7 @@ See [architecture.md](architecture.md) : the standalone and remote modes, the st
 
 ### Modes
 
-- **Supervisor** (default) : the supervisor holds the database, the application and the workers reach it through its API. A task or a workflow set to "Run on a worker" is sent to a worker, the rest runs in the worker of the application. A workflow is handed whole to a single worker.
+- **Supervisor** (default) : the supervisor holds the database, the application and the workers reach it through its API. A task or a workflow set to "Run on a worker" is sent to a worker, the rest runs in the worker of the application. A workflow is handed whole to a single worker, and its nodes all run where it runs.
 - **Standalone** : the supervisor runs in the application, which is its only worker. Only for debugging or very particular uses.
 
 The mode and the supervisor are applied when the application starts.

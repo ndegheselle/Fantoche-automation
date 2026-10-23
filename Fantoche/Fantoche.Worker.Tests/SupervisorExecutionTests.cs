@@ -141,10 +141,11 @@ internal sealed class SupervisorExecutionTests
     };
 
     /// <summary>
-    /// Run, as the application starts it, a workflow sending a table it imported to a worker and
-    /// reading back what the worker made of it : <c>Start ─> Import ─> Filter (on a worker) ─> Copy ─> End</c>.
+    /// Run, as the application starts it, a workflow importing a table and filtering it, its filter
+    /// node being set to run on a worker : <c>Start ─> Import ─> Filter (on a worker) ─> Copy ─> End</c>.
     /// </summary>
-    private async Task<TaskInstance> RunTablesWorkflowAsync()
+    /// <param name="execution">Where the workflow itself is set to run.</param>
+    private async Task<TaskInstance> RunTablesWorkflowAsync(EnumExecutionMode execution)
     {
         AutomationTask import = await StoreAsync(PluginTasks.Make("Fantoche.Plugins.Tables.CsvImportTask", "CsvImport",
             JsonSchema.FromType<CsvImportParameters>(), JsonSchema.FromType<TableRef>()));
@@ -163,20 +164,30 @@ internal sealed class SupervisorExecutionTests
             .Task("Copy", copy, new { Source = "$previous", Conditions = Array.Empty<object>(), MatchAll = true })
             .End(new { Table = "$previous" })
             .Chain("Start", "Import", "Filter", "Copy", "End");
+        tables.Workflow.Settings.Execution = execution;
         AutomationWorkflow workflow = await StoreAsync(tables.Workflow);
 
         string csv = Path.Combine(_folder, "people.csv");
         await File.WriteAllTextAsync(csv, "name,amount\nalice,10\nbob,20\ncarol,30\n");
 
-        ExecutionService execution = new(_supervisor.Scoped, _supervisor.History, _application);
-        TaskInstance started = await execution.StartAsync(workflow.Id, JToken.FromObject(new { Path = csv }));
-        return await execution.WaitAsync(started.Id);
+        ExecutionService service = new(_supervisor.Scoped, _supervisor.History, _application);
+        TaskInstance started = await service.StartAsync(workflow.Id, JToken.FromObject(new { Path = csv }));
+        return await service.WaitAsync(started.Id);
     }
 
-    /// <summary>The names in [table], read from the storage the application left it in.</summary>
-    private async Task<List<object?>> NamesInTheApplicationAsync(TableRef table)
+    /// <summary>The files of [table] in the storage of the worker kept in [workerFolder].</summary>
+    private string[] FilesOf(string workerFolder, TableRef table)
     {
-        string file = Directory.GetFiles(Path.Combine(_folder, "application"), $"{table.Id}.parquet", SearchOption.AllDirectories).Single();
+        string folder = Path.Combine(_folder, workerFolder);
+        if (!Directory.Exists(folder))
+            return [];
+        return Directory.GetFiles(folder, $"{table.Id}.parquet", SearchOption.AllDirectories);
+    }
+
+    /// <summary>The names in [table], read from the storage of the worker kept in [workerFolder].</summary>
+    private async Task<List<object?>> NamesInAsync(string workerFolder, TableRef table)
+    {
+        string file = FilesOf(workerFolder, table).Single();
         LocalStorage storage = new(Path.GetDirectoryName(Path.GetDirectoryName(file))!);
 
         List<object?> names = [];
@@ -370,25 +381,48 @@ internal sealed class SupervisorExecutionTests
     }
 
     [Test]
-    public async Task NodeOnAWorker_ReadsAndHandsBackTheStorageOfTheApplication()
+    public async Task WorkflowStartedInTheApplication_RunsItsNodesSetToRunOnAWorkerThere()
     {
         await ConnectWorkerAsync();
 
-        TaskInstance result = await RunTablesWorkflowAsync();
+        TaskInstance result = await RunTablesWorkflowAsync(EnumExecutionMode.Local);
         TableRef table = result.Output!["Table"]!.ToObject<TableRef>()!;
 
-        Assert.That(await NamesInTheApplicationAsync(table), Is.EqualTo(new[] { "bob", "carol" }));
+        List<object?> names = await NamesInAsync("application", table);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(names, Is.EqualTo(new[] { "bob", "carol" }));
+            Assert.That(FilesOf("worker", table), Is.Empty);
+        });
     }
 
     [Test]
-    public async Task ApplicationAsItsOwnWorker_RunsTheNodesSetToRunOnAWorker()
+    public async Task WorkflowSetToRunOnAWorker_RunsWholeOnIt()
+    {
+        await ConnectWorkerAsync();
+
+        TaskInstance result = await RunTablesWorkflowAsync(EnumExecutionMode.Remote);
+        TableRef table = result.Output!["Table"]!.ToObject<TableRef>()!;
+
+        List<object?> names = await NamesInAsync("worker", table);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(names, Is.EqualTo(new[] { "bob", "carol" }));
+            Assert.That(FilesOf("application", table), Is.Empty);
+        });
+    }
+
+    [Test]
+    public async Task ApplicationAsItsOwnWorker_RunsTheWorkflowsSetToRunOnAWorker()
     {
         // As in standalone mode : the application is the only worker.
         await ConnectWorkerAsync(_application);
 
-        TaskInstance result = await RunTablesWorkflowAsync();
+        TaskInstance result = await RunTablesWorkflowAsync(EnumExecutionMode.Remote);
         TableRef table = result.Output!["Table"]!.ToObject<TableRef>()!;
 
-        Assert.That(await NamesInTheApplicationAsync(table), Is.EqualTo(new[] { "bob", "carol" }));
+        Assert.That(await NamesInAsync("application", table), Is.EqualTo(new[] { "bob", "carol" }));
     }
 }

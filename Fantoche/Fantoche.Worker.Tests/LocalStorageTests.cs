@@ -105,39 +105,4 @@ internal sealed class LocalStorageTests
 
         await Assert.ThrowsAsync<ArgumentException>(() => _storage.OpenFileAsync(file));
     }
-
-    [Test]
-    public async Task IdsIn_FindsTheHandlesWhereverTheyAre()
-    {
-        TableRef table = await PeopleAsync();
-        FileRef file = await _storage.SaveFileAsync("report.pdf", new MemoryStream(Encoding.UTF8.GetBytes("content")));
-        JToken output = JToken.FromObject(new { Source = table, Report = new { Files = new[] { file } }, Name = "t_not-an-id" });
-
-        Assert.That(LocalStorage.IdsIn(output), Is.EquivalentTo(new[] { table.Id, file.Id }));
-    }
-
-    [Test]
-    public async Task ImportedItem_IsReadWithTheHandleOfTheStorageItCameFrom()
-    {
-        TableRef table = await PeopleAsync();
-        LocalStorage other = new(Path.Combine(_folder, "other"));
-
-        foreach (string item in _storage.ItemsOf(table.Id))
-        {
-            await using Stream content = _storage.OpenItem(item);
-            await other.ImportItemAsync(item, content);
-        }
-        var rows = await ToListAsync(other.ReadRowsAsync(table));
-
-        Assert.That(rows.Select(x => x["name"]), Is.EqualTo(new[] { "alice", "bob", "carol" }));
-    }
-
-    [TestCase("../outside.parquet")]
-    [TestCase("tables/../../outside.parquet")]
-    [TestCase("files/f_0123456789abcdef0123456789abcdef/..")]
-    [TestCase("database.db")]
-    public async Task ImportItem_RefusesAPathItWouldNotName(string item)
-    {
-        await Assert.ThrowsAsync<ArgumentException>(() => _storage.ImportItemAsync(item, new MemoryStream()));
-    }
 }

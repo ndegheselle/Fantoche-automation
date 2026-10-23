@@ -9,19 +9,22 @@ namespace Fantoche.Worker;
 
 /// <summary>
 /// What runs the tasks and workflows, in the application as in the worker service : the packages
-/// downloaded from the supervisor, a storage for each execution (see <see cref="ExecutionStorages"/>)
-/// and the tasks set to run on a worker sent through the supervisor.
+/// downloaded from the supervisor and a storage for each execution (see <see cref="ExecutionStorages"/>).
 /// <para>
 /// It runs the executions started in its process (as an <see cref="ITaskExecutor"/>, see
 /// <see cref="ExecutionService"/>) and, once added to the workers of the supervisor (see
 /// <see cref="ISupervisor.AddWorkerAsync"/>), the ones the supervisor dispatches to it.
+/// </para>
+/// <para>
+/// Once an execution started somewhere, everything of it stays there : a workflow runs all its
+/// nodes where it runs, whatever their own setting, and its tables and files never leave the
+/// storage of its run.
 /// </para>
 /// </summary>
 public sealed class LocalWorker : ITaskExecutor, IDisposable
 {
     private readonly TaskLoaders _tasks;
     private readonly ExecutionStorages _storages;
-    private readonly IStorageTransit _transit;
     private readonly RemoteTaskExecutor _remote;
 
     /// <param name="storageFolder">Where the storage of its executions is kept.</param>
@@ -29,7 +32,6 @@ public sealed class LocalWorker : ITaskExecutor, IDisposable
     {
         _tasks = new TaskLoaders(packages);
         _storages = new ExecutionStorages(storageFolder);
-        _transit = supervisor.Transit;
         _remote = new RemoteTaskExecutor(supervisor);
     }
 
@@ -46,49 +48,42 @@ public sealed class LocalWorker : ITaskExecutor, IDisposable
     public void Dispose() => _tasks.Dispose();
 
     /// <summary>
-    /// An execution started in this process : the nodes set to run on a worker are sent to the
-    /// supervisor.
+    /// An execution started in this process : sent whole to the supervisor when [task] is set to
+    /// run on a worker (see <see cref="TaskSettings.Execution"/>), run here otherwise.
     /// </summary>
-    public async Task<TaskInstance> ExecuteAsync(
+    public Task<TaskInstance> ExecuteAsync(
         BaseAutomationTask task,
         TaskInstance instance,
         TaskInstancesProgress? progress = null,
         CancellationToken? cancellation = null)
     {
-        LocalStorage storage = _storages.Open(task.Id, instance);
-        try
-        {
-            MixedTaskExecutor executor = new(_tasks, storage, _remote, _transit);
-            return await executor.ExecuteAsync(task, instance, progress, cancellation);
-        }
-        finally
-        {
-            _storages.Release(task.Id, instance, task.Settings.StorageRetention);
-        }
+        if (task.Settings.Execution == EnumExecutionMode.Remote)
+            return _remote.ExecuteAsync(task, instance, progress, cancellation);
+
+        return RunHereAsync(task, instance, progress, cancellation);
     }
 
-    /// <summary>
-    /// An execution the supervisor dispatched : the storage it is handed is taken from the
-    /// transit, and the storage its output points at sent back.
-    /// </summary>
-    public async Task<TaskInstance> ExecuteDispatchedAsync(
+    /// <summary>An execution the supervisor dispatched.</summary>
+    public Task<TaskInstance> ExecuteDispatchedAsync(
         RemoteExecution execution,
         TaskInstancesProgress progress,
         CancellationToken cancellation)
     {
         var (task, instance) = execution.Unpack();
+        return RunHereAsync(task, instance, progress, cancellation);
+    }
+
+    private async Task<TaskInstance> RunHereAsync(
+        BaseAutomationTask task,
+        TaskInstance instance,
+        TaskInstancesProgress? progress,
+        CancellationToken? cancellation)
+    {
         LocalStorage storage = _storages.Open(task.Id, instance);
         try
         {
-            await StorageTransfer.ReceiveAsync(_transit, instance.Id, storage);
-
-            // Once on a worker an execution stays on it : its nodes all run here, whatever their setting.
             LocalTaskExecutor executor = new(_tasks, storage);
-            TaskInstance result = await executor.ExecuteAsync(task, instance, progress, cancellation);
-
-            if (result.State == EnumTaskState.Completed)
-                await StorageTransfer.SendAsync(storage, result.Output, _transit, instance.Id);
-            return result;
+            return await executor.ExecuteAsync(task, instance, progress, cancellation);
         }
         finally
         {

@@ -2,9 +2,7 @@
 
 The standalone and remote modes run the same code: one supervisor (`LocalSupervisor`) and one kind of worker (`LocalWorker`). A remote supervisor only adds an HTTP/SignalR layer between them, and a remote worker only adds a hub connection.
 
-Two rules keep the interactions simple:
-- Once an execution is on a worker, it stays there: every node of a workflow sent to a worker runs on that worker.
-- Only an execution started in the application sends nodes to a worker (intensive tasks, specific authorizations, ...).
+One rule keeps the interactions simple: once a worker (the application's included) starts an execution, everything of it stays there. Every node of a workflow runs where the workflow runs, and its tables and files never leave the storage of its run.
 
 ## Standalone and remote
 
@@ -16,7 +14,6 @@ flowchart TD
         supervisor[LocalSupervisor] <-- calls in the process --> worker[LocalWorker]
     end
     supervisor --> db[(SQLite)]
-    supervisor --> transit[Transit]
     worker --> storage[Storage of the application]
 ```
 
@@ -34,7 +31,6 @@ flowchart TD
     client <-- HTTP / SignalR --> api
     connection <-- HTTP / SignalR --> api
     supervisor --> db[(SQLite)]
-    supervisor --> transit[Transit]
     worker --> storage[Storage of the application]
     remoteWorker --> workerStorage[Storage of the worker]
 ```
@@ -44,39 +40,42 @@ flowchart TD
 | Supervisor | `LocalSupervisor` in the application | `LocalSupervisor` behind `Fantoche.Supervisor.Api`, reached with `SupervisorClient` |
 | Transport | Calls in the process, messages copied as over the wire | HTTP for the data, SignalR hubs for the executions and the history |
 | Workers the supervisor dispatches to | The application | The worker services (`Fantoche.Worker.Service`) |
-| A node set to "Run on a worker" | Runs on the application, in an execution of its own | Runs on a worker service |
+| A task or workflow started with "Run on a worker" | Runs on the application, in an execution of its own | Runs whole on a worker service |
 
 Both supervisors implement `ISupervisor`, which is all the application and the workers know of them. That is why the mode only changes how the application is built (`SpineViewModel.AddServices`), never what it does.
 
 In the process, the messages are copied the way the wire would copy them (`FantocheJson.Copy`). The caller and the worker never share an instance, so a bug can't hide in one mode only.
 
-## A node sent to a worker
+## An execution sent to a worker
 
-Each worker only reads its own storage. The tables and files a node needs therefore travel with it, through the transit of the supervisor:
+"Run on a worker" (`TaskSettings.Execution`) is only read for the task or workflow an execution starts from. Such an execution is sent whole to the supervisor, and the worker it is handed to runs all of it:
 
 ```mermaid
 sequenceDiagram
-    participant App as Application worker
-    participant Transit as Transit (supervisor)
+    participant App as Application
     participant Supervisor
     participant Worker
 
-    App->>Transit: put the items its parameters point at
     App->>Supervisor: Execute(instance)
     Supervisor->>Supervisor: load the task, store the instance, queue it
     Supervisor->>Worker: Execute (least busy worker with room)
-    Worker->>Transit: take the inputs into its execution storage, clear
-    Worker->>Worker: run it, every node here
+    Worker->>Worker: run it, every node here, in its own storage
     Worker-->>Supervisor: states and notifications (stored in the history)
-    Worker->>Transit: put the items its output points at
     Worker->>Supervisor: Complete(instance)
     Supervisor->>App: Completed(instance)
-    App->>Transit: take the outputs into its execution storage, clear
 ```
 
-- **What travels.** `StorageTransfer` finds the tables (`t_<id>`) and files (`f_<id>`) anywhere in the parameters or the output, by their id. Only those are copied, never the whole storage.
-- **Ids never change.** Tables and files are immutable, so a copy keeps its id, and the `TableRef` or `FileRef` in the JSON stays valid. An item that is already there isn't copied again.
-- **The transit is emptied.** Each side clears what it took. The supervisor also clears the transit of a caller that disconnects, and empties all of it when it starts: executions only live in its memory, so none survive a restart.
+- The setting of a node is ignored: a workflow started in the application runs all its nodes in the application, and one started on a worker runs them all on that worker.
+- Only JSON travels: the parameters and the output. A table or file the output points at stays in the storage of the worker that wrote it.
+
+### Why no node is sent to a worker
+
+Sending a single node of a workflow to a worker was implemented, then removed. Each worker only reads its own storage, so the tables and files a node needed had to travel with it, through a transit held by the supervisor:
+- the caller put the items the parameters pointed at in the transit, the worker took them into its storage, and the output came back the same way;
+- the items were found by their ids anywhere in the JSON, and kept their ids once copied, so the `TableRef` and `FileRef` stayed valid;
+- each side emptied the transit as it took the items, and the supervisor cleared it when a caller disconnected or when it started.
+
+It worked, but it took a transit store in the supervisor, an HTTP API to stream it, a copy of every table a node read or wrote, and the cleanup of what a lost execution left behind. Few workflows need a node of theirs elsewhere, and such a node can be made a workflow of its own, started on a worker.
 
 ## Storage and retention
 
@@ -92,7 +91,7 @@ storage/
 
 Only the last executions of each task or workflow keep their folder: 10 by default, set on the task or the workflow ("Executions keeping their storage", `TaskSettings.StorageRetention`). Each worker applies this to its own folders:
 - The older folders are deleted when an execution ends, but never the folder of an execution still running.
-- The count is taken from the task or workflow the execution started from. On a worker, that is the node it was sent.
+- The count is taken from the task or workflow the execution started from, wherever it runs.
 
 A table or file named in the history therefore only exists on the worker that wrote it, and only while it is within the retention count.
 
@@ -128,7 +127,6 @@ Supervisor (DATA_FOLDER, or %AppData%/Automation in standalone mode)
   fantoche.db       database: scopes, tasks, workflows, history
   nuget/            the packages added
   cache/            the packages extracted to check what they hold
-  transit/          the storage on its way between a caller and a worker
 
 Worker (DATA_FOLDER, or %AppData%/Automation/worker for the application)
   cache/            the packages extracted to run the tasks

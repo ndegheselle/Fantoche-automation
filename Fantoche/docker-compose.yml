@@ -11,7 +11,7 @@ services:
       - "8080:8080"
       - "8081:8081"
     volumes:
-      # The database, the packages served to the workers and the storage in transit.
+      # The database and the packages served to the workers.
       - ./volumes/supervisor:/app/data
 
   Fantoche.worker.service:

@@ -2,7 +2,6 @@ using Fantoche.Shared.Remote;
 using Fantoche.Shared.Services;
 using Fantoche.Worker;
 using Fantoche.Worker.Packages;
-using Fantoche.Worker.Storage;
 
 namespace Fantoche.Services.Remote;
 
@@ -22,7 +21,6 @@ public sealed class SupervisorClient : ISupervisor, IAsyncDisposable
     public RemoteHistoryService History { get; }
     public RemotePackagesService Packages { get; }
     public RemotePackageSource PackageFiles { get; }
-    public RemoteStorageTransit Transit { get; }
     /// <summary>Its changes are only heard once <see cref="RemoteDispatchService.StartAsync"/> connected.</summary>
     public RemoteDispatchService Dispatch { get; }
 
@@ -30,7 +28,6 @@ public sealed class SupervisorClient : ISupervisor, IAsyncDisposable
     IHistoryService ISupervisor.History => History;
     IPackagesService ISupervisor.Packages => Packages;
     IPackageSource ISupervisor.PackageFiles => PackageFiles;
-    IStorageTransit ISupervisor.Transit => Transit;
     IDispatchService ISupervisor.Dispatch => Dispatch;
 
     /// <param name="address">The base of the addresses of the supervisor, ending with a "/".</param>
@@ -42,7 +39,6 @@ public sealed class SupervisorClient : ISupervisor, IAsyncDisposable
         History = new RemoteHistoryService(_http);
         Packages = new RemotePackagesService(_http);
         PackageFiles = new RemotePackageSource(_http);
-        Transit = new RemoteStorageTransit(_http);
         Dispatch = new RemoteDispatchService(_http);
     }
 

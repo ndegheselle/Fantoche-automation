@@ -25,7 +25,6 @@ public static class SupervisorApp
         builder.Services.AddSingleton(supervisor.Scoped);
         builder.Services.AddSingleton(supervisor.History);
         builder.Services.AddSingleton(supervisor.Packages);
-        builder.Services.AddSingleton(supervisor.Transit);
         builder.Services.AddSingleton(supervisor.Dispatcher);
 
         builder.Services.AddExceptionHandler<ErrorHandler>();
@@ -45,7 +44,6 @@ public static class SupervisorApp
         ScopedApi.Map(app);
         HistoryApi.Map(app);
         PackagesApi.Map(app);
-        TransitApi.Map(app);
         DispatchApi.Map(app);
 
         app.MapHub<CallerHub>($"/{SupervisorRoutes.Callers}");
