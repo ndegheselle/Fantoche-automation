@@ -24,6 +24,12 @@ public interface IScopedService
     public Task<ScopedElement?> GetAsync(Guid elementId);
 
     /// <summary>
+    /// The workflow [workflowId] with its graph as it was at [version], rebuilt from the latest one :
+    /// what a past run ran. Null when the workflow is unknown or never had that version.
+    /// </summary>
+    public Task<AutomationWorkflow?> GetVersionAsync(Guid workflowId, int version);
+
+    /// <summary>
     /// The elements [elementIds], the unknown ones simply left out.
     /// </summary>
     public Task<List<ScopedElement>> GetAsync(IReadOnlyCollection<Guid> elementIds);

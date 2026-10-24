@@ -25,6 +25,12 @@ public static class ScopedApi
             ScopedElement? element = await scoped.GetAsync(id);
             return element == null ? Results.NotFound() : TypedResults.Ok(element);
         });
+        elements.MapGet("/{id:guid}/versions/{version:int}", async (LocalScopedService scoped, Guid id, int version) =>
+        {
+            AutomationWorkflow? workflow = await scoped.GetVersionAsync(id, version);
+            // Written as the base type the client reads, with the name of its concrete type.
+            return workflow == null ? Results.NotFound() : TypedResults.Ok<ScopedElement>(workflow);
+        });
         elements.MapPost("/", (LocalScopedService scoped, ScopedElement element) => scoped.CreateAsync(element));
         elements.MapPut("/{id:guid}", (LocalScopedService scoped, Guid id, ScopedElement element) =>
         {

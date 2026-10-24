@@ -46,7 +46,7 @@ public class LocalScopedService : IScopedService
             transaction);
 
         if (element is AutomationWorkflow workflow)
-            await GraphStore.ReplaceAsync(connection, transaction, workflow);
+            workflow.Version = await GraphStore.CreateAsync(connection, transaction, workflow);
 
         transaction.Commit();
 
@@ -73,8 +73,9 @@ public class LocalScopedService : IScopedService
         if (updated == 0)
             throw new KeyNotFoundException();
 
+        // A graph that changed is a new version of the workflow, the runs keeping theirs.
         if (element is AutomationWorkflow workflow)
-            await GraphStore.ReplaceAsync(connection, transaction, workflow);
+            workflow.Version = await GraphStore.SaveAsync(connection, transaction, workflow);
 
         transaction.Commit();
 
@@ -88,6 +89,25 @@ public class LocalScopedService : IScopedService
     public async Task<ScopedElement?> GetAsync(Guid elementId)
     {
         return (await GetAsync([elementId])).FirstOrDefault();
+    }
+
+    public async Task<AutomationWorkflow?> GetVersionAsync(Guid workflowId, int version)
+    {
+        if (await GetAsync(workflowId) is not AutomationWorkflow workflow)
+            return null;
+        if (workflow.Version == version)
+            return workflow;
+
+        using var connection = _databaseFactory.Create();
+        TasksGraph? graph = await GraphStore.LoadVersionAsync(connection, workflowId, version);
+        if (graph == null)
+            return null;
+
+        workflow.Graph = graph;
+        workflow.Version = version;
+        // Declared by the start and the end of the graph, which may differ from the latest ones.
+        workflow.DeriveSchemas();
+        return workflow;
     }
 
     /// <summary>
@@ -355,7 +375,7 @@ public class LocalScopedService : IScopedService
 
         var graphs = await GraphStore.LoadAsync(connection, [.. workflows.Select(x => x.Id)]);
         foreach (AutomationWorkflow workflow in workflows)
-            workflow.Graph = graphs[workflow.Id];
+            (workflow.Graph, workflow.Version) = graphs[workflow.Id];
 
         return elements;
     }

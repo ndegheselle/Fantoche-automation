@@ -42,10 +42,10 @@ public static class DatabaseSeeder
             elements.Select(ScopedModel.From).ToList(),
             transaction);
 
-        // The graphs are written the way an edit writes them. Waiting on them here is harmless :
+        // The graphs are written the way a creation writes them. Waiting on them here is harmless :
         // nothing else can be reading the database before the seed is done.
         foreach (AutomationWorkflow workflow in elements.OfType<AutomationWorkflow>())
-            GraphStore.ReplaceAsync(connection, transaction, workflow).GetAwaiter().GetResult();
+            GraphStore.CreateAsync(connection, transaction, workflow).GetAwaiter().GetResult();
 
         transaction.Commit();
     }
