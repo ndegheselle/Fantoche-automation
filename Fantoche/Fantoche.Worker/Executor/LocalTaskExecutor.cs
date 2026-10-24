@@ -80,12 +80,11 @@ public class LocalTaskExecutor : ITaskExecutor
         TaskInstancesProgress? progress = null,
         CancellationToken? cancellation = null)
     {
-        instance = await _workflowExecutor.ExecuteAsync(
+        // Completed by its end, or paused.
+        return await _workflowExecutor.ExecuteAsync(
             instance,
             progress,
             cancellation);
-        instance.State = EnumTaskState.Completed;
-        return instance;
     }
 
     private async Task<TaskInstance> ExecuteTaskAsync(

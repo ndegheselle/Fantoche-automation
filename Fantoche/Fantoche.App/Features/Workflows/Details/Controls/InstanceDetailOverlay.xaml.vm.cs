@@ -47,11 +47,11 @@ namespace Fantoche.App.Features.Workflows.Details.Controls
         public bool HasChildren => Children.Count > 0;
 
         /// <summary>
-        /// Whether this application can resume the run : an interrupted one it started, or one the
-        /// supervisor dispatched. The rest of the rules are checked as it is resumed.
+        /// Whether this application can resume the run : an interrupted or paused one it started, or
+        /// one the supervisor dispatched. The rest of the rules are checked as it is resumed.
         /// </summary>
         public bool CanResume => Instance.ParentInstanceId == null
-            && Instance.State == EnumTaskState.Interrupted
+            && Instance.State is EnumTaskState.Interrupted or EnumTaskState.Paused
             && (Instance.ApplicationId == null || Instance.ApplicationId == Environment.MachineName);
 
         private readonly IHistoryService _history;

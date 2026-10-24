@@ -4,7 +4,7 @@ The standalone and remote modes run the same code: one supervisor (`LocalSupervi
 
 Two rules keep the interactions simple:
 - What the application starts runs in the application. The workers run what the supervisor dispatches to them: the scheduled items (to come).
-- Once a worker (the application's included) starts an execution, everything of it stays there. Every node of a workflow runs where the workflow runs, and its tables and files never leave the storage of its run. An interrupted run is resumed by whoever can reach that storage (see [Interrupted runs](#interrupted-runs)).
+- Once a worker (the application's included) starts an execution, everything of it stays there. Every node of a workflow runs where the workflow runs, and its tables and files never leave the storage of its run. An interrupted run is resumed by whoever can reach that storage (see [Interrupted and paused runs](#interrupted-and-paused-runs)).
 
 ## Standalone and remote
 
@@ -82,9 +82,9 @@ It worked, but it took a transit store in the supervisor, an HTTP API to stream 
 
 A "Run on a worker" setting on the tasks and workflows, sending a whole execution started from the application to a worker, was removed too. A run started by hand is for building and checking a workflow, close to the editor and the local files. Where an execution runs belongs to what schedules it, not to the task or workflow itself.
 
-## Interrupted runs
+## Interrupted and paused runs
 
-A run cut short by a crash or a lost worker is marked `Interrupted`, then resumed by hand from the detail of the execution ("Resume").
+A run cut short by a crash or a lost worker is marked `Interrupted`. A run the user pauses from the editor is marked `Paused`: the nodes it runs finish, no other task starts (the controls still pass, so a run whose tasks are over reaches its end), and its nested runs pause with it. Both are resumed by hand, from the editor or from the detail of the execution ("Resume"), and both can be stopped instead, which cancels them for good.
 
 | A run started by | Is interrupted when | Is resumed by |
 | --- | --- | --- |
@@ -97,7 +97,7 @@ Several copies of the application can run side by side on a machine:
 - In standalone mode, the copies share the database, but the history is only pushed live within a copy: another copy's runs show once the page is read again.
 
 Resuming walks the run again from its history (`WorkflowExecutor`, with `WorkflowInstance.StoredInstances`):
-- A node that was running runs again from its start, with the parameters it was given. Every task can run more than once, so a task with side effects has to bear it.
+- A node that was running runs again from its start, with the parameters it was given. Every task can run more than once after a crash, so a task with side effects has to bear it. A pause lets the nodes finish, so nothing runs twice.
 - A completed node is kept. Its next nodes that were never reached run.
 - A join still waiting keeps the branches that already arrived (`TaskInstance.PreviousIds` holds them), and waits for the others.
 - A nested workflow resumes from its own history.

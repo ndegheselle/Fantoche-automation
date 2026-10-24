@@ -50,6 +50,7 @@ public class WorkflowExecutor
         GraphContextResolution resolution = new GraphContextResolution(workflowInstance.Id)
         {
             GlobalContext = workflowInstance.GlobalContext,
+            PauseRequested = workflowInstance.PauseRequested,
         };
 
         // A resumed run carries on from what its history holds, a new one from the start of its graph.
@@ -60,6 +61,14 @@ public class WorkflowExecutor
 
         var results = await Task.WhenAll(branches);
         var endInstances = results.SelectMany(r => r).ToList();
+
+        // Paused before reaching its end : what it didn't start is what a resume carries on with.
+        if (endInstances.Count == 0 && workflowInstance.PauseRequested.IsCancellationRequested)
+        {
+            workflowInstance.State = EnumTaskState.Paused;
+            progress?.StateChanges?.Report(workflowInstance);
+            return workflowInstance;
+        }
 
         return EndAsync(workflowInstance, endInstances, progress);
     }
@@ -134,7 +143,8 @@ public class WorkflowExecutor
 
             // Only a task can be left running : a control is reported once resolved, a join waiting
             // being the exception, and it waits on.
-            bool wasRunning = instance.State is EnumTaskState.Pending or EnumTaskState.Progressing or EnumTaskState.Interrupted;
+            // A nested run paused along with this one resumes the same way.
+            bool wasRunning = instance.State is EnumTaskState.Pending or EnumTaskState.Progressing or EnumTaskState.Interrupted or EnumTaskState.Paused;
             if (wasRunning && instance.Node is not GraphControl)
             {
                 instance.State = EnumTaskState.Progressing;
@@ -198,6 +208,12 @@ public class WorkflowExecutor
         // Control nodes are driven by the workflow itself, they never reach the node executor.
         if (context.Node is GraphControl control)
             return await RunControlBranchAsync(context, progress, cancellation);
+
+        // Pausing : the task isn't started, a resume finds the node before it with nothing after.
+        // The controls still pass, running no code of the user : a run whose last task is over
+        // reaches its end rather than pausing on it.
+        if (context.WorkflowInstance.PauseRequested.IsCancellationRequested)
+            return [];
 
         var parameters = context.Resolution.GetInputFor(context.Node, context.Instance, context.Instance.Shared);
 

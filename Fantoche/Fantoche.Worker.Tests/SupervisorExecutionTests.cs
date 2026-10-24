@@ -189,6 +189,31 @@ internal sealed class SupervisorExecutionTests
         return run;
     }
 
+    /// <summary>
+    /// A stored workflow waiting before it runs [test] : <c>Start ─> Wait ─> First(+10) ─> End</c>.
+    /// Paused while it waits, it is resumed with First.
+    /// </summary>
+    private async Task<AutomationWorkflow> StoreWaitingLineAsync()
+    {
+        AutomationTask test = await StoreTestAsync();
+        AutomationTask delay = await StoreDelayAsync();
+        TestWorkflow line = new TestWorkflow("Waiting line")
+            .Start()
+            .Task("Wait", delay, new { DelayMs = 300 })
+            .Task("First", test, new { Message = "first", Value = "$previous.Value", Add = 10 })
+            .End(new { Value = "$previous.Value", Message = "$previous.Message" })
+            .Chain("Start", "Wait", "First", "End");
+        return await StoreAsync(line.Workflow);
+    }
+
+    /// <summary>[node] of [runId] reached [state] in the history.</summary>
+    private async Task WaitForNodeAsync(Guid runId, string node, EnumTaskState state)
+    {
+        using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(10));
+        while (!(await _supervisor.History.GetChildrenAsync(runId)).Any(x => x.NodeName == node && x.State == state))
+            await Task.Delay(10, timeout.Token);
+    }
+
     /// <summary>The line workflow as the history holds it while [sessionId] runs it.</summary>
     private async Task<TaskInstance> StoreRunningLineAsync(string applicationId, string sessionId)
     {
@@ -541,6 +566,43 @@ internal sealed class SupervisorExecutionTests
         await ApplicationExecution().InterruptLeftRunsAsync();
 
         Assert.That((await _supervisor.History.GetAsync(running.Id))?.State, Is.EqualTo(EnumTaskState.Progressing));
+    }
+
+    [Test]
+    public async Task PausedRun_IsResumedByTheApplication()
+    {
+        AutomationWorkflow workflow = await StoreWaitingLineAsync();
+        ExecutionService execution = ApplicationExecution();
+
+        TaskInstance started = await execution.StartAsync(workflow.Id, JToken.FromObject(new { Value = 1 }));
+        await WaitForNodeAsync(started.Id, "Wait", EnumTaskState.Progressing);
+        await execution.PauseAsync(started.Id);
+        TaskInstance paused = await execution.WaitAsync(started.Id);
+        await execution.ResumeAsync(started.Id);
+        TaskInstance resumed = await execution.WaitAsync(started.Id);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(paused.State, Is.EqualTo(EnumTaskState.Paused));
+            Assert.That(resumed.State, Is.EqualTo(EnumTaskState.Completed));
+            Assert.That(resumed.Output?["Value"]?.Value<int>(), Is.EqualTo(11));
+        });
+    }
+
+    [Test]
+    public async Task StoppingAPausedRun_CancelsIt()
+    {
+        AutomationWorkflow workflow = await StoreWaitingLineAsync();
+        ExecutionService execution = ApplicationExecution();
+        TaskInstance started = await execution.StartAsync(workflow.Id, JToken.FromObject(new { Value = 1 }));
+        await WaitForNodeAsync(started.Id, "Wait", EnumTaskState.Progressing);
+        await execution.PauseAsync(started.Id);
+        await execution.WaitAsync(started.Id);
+
+        await execution.CancelAsync(started.Id);
+
+        Assert.That((await _supervisor.History.GetAsync(started.Id))?.State, Is.EqualTo(EnumTaskState.Canceled));
+        await Assert.ThrowsAsync<Shared.Services.ExecutionException>(() => execution.ResumeAsync(started.Id), "a canceled run isn't resumed");
     }
 
     [Test]

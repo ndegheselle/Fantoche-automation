@@ -67,6 +67,10 @@ public class GraphContextResolution
     }
 
     public JToken? GlobalContext { get; set; }
+
+    /// <summary>See <see cref="WorkflowInstance.PauseRequested"/>, handed to the nested runs as the global context is.</summary>
+    public CancellationToken PauseRequested { get; init; }
+
     public ConcurrentDictionary<Guid, List<TaskInstance>> NodeInstances { get; } = [];
 
     /// <summary>
@@ -83,7 +87,7 @@ public class GraphContextResolution
         // A workflow reached as a node of another one is a run of its own : it walks its graph with
         // a resolution of its own, which the global context has to be handed over to.
         if (node.AutomationTask is AutomationWorkflow workflow)
-            instance = new WorkflowInstance(workflow) { GlobalContext = GlobalContext };
+            instance = new WorkflowInstance(workflow) { GlobalContext = GlobalContext, PauseRequested = PauseRequested };
         else
             instance = new TaskInstance();
 
@@ -130,6 +134,8 @@ public class GraphContextResolution
             TaskInstance held = node.AutomationTask is AutomationWorkflow workflow
                 ? WorkflowInstance.From(workflow, instance)
                 : instance;
+            if (held is WorkflowInstance nested)
+                nested.PauseRequested = PauseRequested;
             held.Node = node;
             restored[held.Id] = held;
 

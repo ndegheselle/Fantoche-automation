@@ -33,6 +33,13 @@ public class WorkflowInstance : TaskInstance
     public IReadOnlyList<TaskInstance> StoredInstances { get; set; } = [];
 
     /// <summary>
+    /// Requested once the run is to pause : the nodes running finish, no other task starts, and
+    /// the run ends <see cref="EnumTaskState.Paused"/>. Handed to its nested runs.
+    /// </summary>
+    [JsonIgnore]
+    public CancellationToken PauseRequested { get; set; }
+
+    /// <summary>
     /// Instances created during this workflow execution, indexed by graph node id.
     /// </summary>
     [JsonIgnore]

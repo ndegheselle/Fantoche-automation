@@ -17,6 +17,8 @@ public class ExecutionService : IExecutionService
     {
         public required TaskInstance Instance { get; init; }
         public required CancellationTokenSource Cancellation { get; init; }
+        /// <summary>See <see cref="WorkflowInstance.PauseRequested"/>.</summary>
+        public required CancellationTokenSource Pause { get; init; }
         public required TaskCompletionSource<TaskInstance> Completion { get; init; }
     }
 
@@ -125,10 +127,13 @@ public class ExecutionService : IExecutionService
         {
             Instance = instance,
             Cancellation = new CancellationTokenSource(),
+            Pause = new CancellationTokenSource(),
             Completion = new TaskCompletionSource<TaskInstance>(TaskCreationOptions.RunContinuationsAsynchronously),
         };
         if (!_running.TryAdd(instance.Id, running))
             throw new Shared.Services.ExecutionException("The run is already resumed.");
+        if (instance is WorkflowInstance workflow)
+            workflow.PauseRequested = running.Pause.Token;
         RunningChanged?.Invoke();
 
         _ = Task.Run(() => RunAsync(task, running));
@@ -144,10 +149,36 @@ public class ExecutionService : IExecutionService
             ?? throw new Shared.Services.ExecutionException($"Unknown execution '{instanceId}'.");
     }
 
-    public Task CancelAsync(Guid instanceId)
+    public async Task CancelAsync(Guid instanceId)
     {
         if (_running.TryGetValue(instanceId, out var running))
+        {
             running.Cancellation.Cancel();
+            return;
+        }
+
+        TaskInstance? run = await _historyService.GetAsync(instanceId);
+        if (run == null)
+            return;
+
+        // A paused or interrupted run only waits to be resumed : stopping it is giving up on it.
+        if (run.State is EnumTaskState.Paused or EnumTaskState.Interrupted && run.ApplicationId == _applicationId)
+        {
+            run.State = EnumTaskState.Canceled;
+            await _historyService.SaveAsync(run);
+            return;
+        }
+
+        if ((run.State & EnumTaskState.Finished) == 0)
+            throw new Shared.Services.ExecutionException("The run is run by another application : only it can stop it.");
+    }
+
+    public Task PauseAsync(Guid instanceId)
+    {
+        if (!_running.TryGetValue(instanceId, out var running))
+            throw new Shared.Services.ExecutionException("The run isn't run by this application : only the one running it can pause it.");
+
+        running.Pause.Cancel();
         return Task.CompletedTask;
     }
 
@@ -183,6 +214,7 @@ public class ExecutionService : IExecutionService
             await _historyService.SaveAsync(instance);
             _running.TryRemove(running.Instance.Id, out _);
             running.Cancellation.Dispose();
+            running.Pause.Dispose();
             running.Completion.TrySetResult(instance);
             RunningChanged?.Invoke();
         }
