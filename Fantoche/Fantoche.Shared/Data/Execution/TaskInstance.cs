@@ -98,18 +98,29 @@ namespace Fantoche.Shared.Data.Execution
             this;
 
         private EnumTaskState _state;
+
+        /// <summary>
+        /// Where the instance stands. Reaching a state that ends it stamps <see cref="FinishedAt"/>,
+        /// leaving it (a resume) clears it. Read back from the history, the stored stamp is set again
+        /// once the state is.
+        /// </summary>
         public EnumTaskState State
         {
             get => _state;
             set
             {
-                if ((_state & EnumTaskState.Finished) == 0)
+                bool isFinished = (value & EnumTaskState.Finished) != 0;
+                if (!isFinished)
+                    FinishedAt = null;
+                else if (value != _state)
                     FinishedAt = DateTime.UtcNow;
                 _state = value;
             }
         }
 
         public DateTime CreatedAt { get; set; }
+
+        /// <summary>When the instance reached the state it ended on, null while it is not over.</summary>
         public DateTime? FinishedAt { get; set; }
 
         /// <summary>
