@@ -314,14 +314,6 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
                 Apply(instance);
             ReleaseHeldReports();
             EndIfOver();
-
-            int missing = instances.Count(x => x.NodeId is Guid nodeId && _nodes.All(node => node.Model.Id != nodeId));
-            if (missing > 0)
-            {
-                _toasts.Warning(
-                    "The workflow changed since it ran : what they did isn't drawn.",
-                    $"{missing} node(s) of the run aren't in the graph anymore");
-            }
         }
 
         /// <summary>

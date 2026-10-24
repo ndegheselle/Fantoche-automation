@@ -209,29 +209,29 @@ namespace Fantoche.App.Features.Workflows.Editor
         {
             await _loading;
 
+            // A run is only drawn on the graph it ran : not on changes that were never saved, and
+            // replacing the edited graph by a past one would lose them along with the undo.
+            if (History.HasUnsavedChanges)
+            {
+                _toasts.Warning("Save or undo the changes of the graph to see a run of it.", "The graph has unsaved changes");
+                return;
+            }
+
             bool isPastVersion = run.WorkflowVersion is int version && version != Workflow.Version;
-            if (isPastVersion)
-                await TryShowVersionAsync(run.WorkflowVersion!.Value);
-            else if (PastVersion != null)
+            if (isPastVersion && !await TryShowVersionAsync(run.WorkflowVersion!.Value))
+                return;
+            if (!isPastVersion && PastVersion != null)
                 await ShowCurrentAsync();
 
             await Run.ShowAsync(run);
         }
 
         /// <summary>
-        /// Show the past version [version] of the graph in place of the edited one. Refused while the
-        /// edited one holds unsaved changes : they would be lost, the undo going along.
+        /// Show the past version [version] of the graph in place of the edited one, which holds no
+        /// unsaved changes. False when it can't be read.
         /// </summary>
-        private async Task TryShowVersionAsync(int version)
+        private async Task<bool> TryShowVersionAsync(int version)
         {
-            if (History.HasUnsavedChanges)
-            {
-                _toasts.Warning(
-                    $"Save or undo the changes of the graph to see the version {version} the run ran on : it is drawn on the edited graph meanwhile.",
-                    "The graph has unsaved changes");
-                return;
-            }
-
             AutomationWorkflow? past;
             try
             {
@@ -240,13 +240,13 @@ namespace Fantoche.App.Features.Workflows.Editor
             catch (Exception exception)
             {
                 _toasts.Error(exception.Message, $"The version {version} of '{Workflow.Metadata.Name}' could not be read");
-                return;
+                return false;
             }
 
             if (past == null)
             {
                 _toasts.Warning($"The workflow '{Workflow.Metadata.Name}' has no version {version} anymore.", "Version not found");
-                return;
+                return false;
             }
 
             Run.Close();
@@ -254,6 +254,7 @@ namespace Fantoche.App.Features.Workflows.Editor
             History.Clear();
             await WrapAsync(past.Graph);
             PastVersion = version;
+            return true;
         }
 
         /// <summary>Show the edited graph again, the latest version, in place of a past one.</summary>
