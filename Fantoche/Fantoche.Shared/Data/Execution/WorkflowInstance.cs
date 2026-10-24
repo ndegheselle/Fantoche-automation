@@ -76,7 +76,7 @@ public class WorkflowInstance : TaskInstance
             GlobalContext = stored.GlobalContext,
             ApplicationId = stored.ApplicationId,
             SessionId = stored.SessionId,
-            DefinitionHash = stored.DefinitionHash,
+            NestedVersions = stored.NestedVersions,
             WorkflowVersion = stored.WorkflowVersion,
             PreviousIds = stored.PreviousIds,
             CreatedAt = stored.CreatedAt,

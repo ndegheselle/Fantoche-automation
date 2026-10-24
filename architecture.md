@@ -105,8 +105,8 @@ Resuming walks the run again from its history (`WorkflowExecutor`, with `Workflo
 
 What the history stores for this:
 - Each instance stores the ids of the instances it carries on from (`PreviousIds`) and the shared context it was given. Pass-through nodes and loops are walked again from these links.
-- The run stores its global context, the version of the graph it ran (`TaskInstance.WorkflowVersion`) and a hash of what it depends on (`RunDefinition`): the nodes, their mappings, their connections and the tasks they run.
-- A run resumes on the version of the graph it ran, whatever the workflow became since (see [Workflow versions](#workflow-versions)). Its nested workflows and its tasks are read as they are now: when one of them changed, the hash differs and the resume is refused.
+- The run stores its global context, the version of the graph it ran (`TaskInstance.WorkflowVersion`) and the version of every workflow nested in it (`TaskInstance.NestedVersions`).
+- A run resumes on these versions, whatever the workflows became since (see [Workflow versions](#workflow-versions)). The tasks are read as they are now: a resumed node runs the package its task points at today.
 
 A remote run carries on in the storage of its first worker, so the workers share their storage (`STORAGE_FOLDER`).
 
@@ -114,7 +114,7 @@ The executions still live in memory only (`ExecutionService`, `Dispatcher` and `
 
 ## Workflow versions
 
-Each save that changes the graph of a workflow adds a version (`AutomationWorkflow.Version`), and every instance of a workflow keeps the version it ran (`TaskInstance.WorkflowVersion`). A run opened from the history is drawn on its own version, read only, and resumed on it.
+Each save that changes the graph of a workflow adds a version (`AutomationWorkflow.Version`), and every instance of a workflow keeps the version it ran (`TaskInstance.WorkflowVersion`), a run also keeping the versions of its nested workflows. A run opened from the history is drawn on its own version, read only, and resumed on it.
 
 The versions are stored as reverse diffs, so a past version costs only what changed:
 

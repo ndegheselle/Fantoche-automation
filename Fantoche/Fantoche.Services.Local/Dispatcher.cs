@@ -109,8 +109,9 @@ public class Dispatcher : IDispatchService
         try
         {
             BaseAutomationTask task = await _scoped.LoadRunnableAsync(instance.TaskId);
-            instance.DefinitionHash = RunDefinition.HashOf(task);
-            instance.WorkflowVersion = (task as AutomationWorkflow)?.Version;
+            AutomationWorkflow? workflow = task as AutomationWorkflow;
+            instance.WorkflowVersion = workflow?.Version;
+            instance.NestedVersions = workflow == null ? null : ScopedServiceExtensions.NestedVersionsOf(workflow);
             execution = RemoteExecution.From(task, instance);
         }
         catch (ExecutionException exception)
@@ -141,8 +142,8 @@ public class Dispatcher : IDispatchService
     {
         TaskInstance run = await _history.GetAsync(runId)
             ?? throw new ExecutionException($"Unknown execution '{runId}'.");
-        BaseAutomationTask task = await _scoped.LoadRunnableAsync(run.TaskId, run.WorkflowVersion);
-        RunResumption.EnsureResumable(run, task, applicationId: null);
+        RunResumption.EnsureResumable(run, applicationId: null);
+        BaseAutomationTask task = await _scoped.LoadRunnableAsync(run.TaskId, run.WorkflowVersion, run.NestedVersions);
         IReadOnlyList<TaskInstance> stored = await _history.GetDescendantsAsync(run.Id);
 
         // Resumed twice at once, by this supervisor or another one : both read it interrupted.

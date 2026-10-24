@@ -237,26 +237,4 @@ internal sealed class ResumeWorkflowTests
             Assert.That(run.Instance.Output?["Value"]?.Value<int>(), Is.EqualTo(111));
         });
     }
-
-    [Test]
-    public void Definition_ChangesWithAMapping()
-    {
-        TestWorkflow line = BuildLine();
-        string before = RunDefinition.HashOf(line.Refreshed());
-
-        line["Second"].InputTemplateJson = """{ "Message": "changed", "Value": "$previous.Value", "Add": 1 }""";
-
-        Assert.That(RunDefinition.HashOf(line.Refreshed()), Is.Not.EqualTo(before));
-    }
-
-    [Test]
-    public void Definition_IgnoresWhereANodeIsDrawn()
-    {
-        TestWorkflow line = BuildLine();
-        string before = RunDefinition.HashOf(line.Refreshed());
-
-        line["Second"].LocationX += 200;
-
-        Assert.That(RunDefinition.HashOf(line.Refreshed()), Is.EqualTo(before));
-    }
 }

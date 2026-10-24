@@ -148,7 +148,7 @@ internal sealed class SupervisorExecutionTests
     /// interrupted right after First completed. First is stored as having produced 42, which it
     /// can't compute from the parameters : a run ending on it carried on from the history.
     /// </summary>
-    private async Task<TaskInstance> StoreInterruptedLineAsync(string? applicationId, string? definitionHash = null)
+    private async Task<TaskInstance> StoreInterruptedLineAsync(string? applicationId)
     {
         AutomationWorkflow stored = await StoreLineAsync(await StoreTestAsync());
         AutomationWorkflow workflow = (AutomationWorkflow)await Shared.Services.ScopedServiceExtensions.LoadRunnableAsync(_supervisor.Scoped, stored.Id);
@@ -161,7 +161,7 @@ internal sealed class SupervisorExecutionTests
             NodeName = workflow.Metadata.Name,
             Parameters = JToken.FromObject(new { Value = 1 }),
             ApplicationId = applicationId,
-            DefinitionHash = definitionHash ?? RunDefinition.HashOf(workflow),
+            NestedVersions = [],
             State = EnumTaskState.Interrupted,
         };
         TaskInstance start = new()
@@ -568,15 +568,6 @@ internal sealed class SupervisorExecutionTests
     {
         await ConnectWorkerAsync();
         TaskInstance interrupted = await StoreInterruptedLineAsync(ApplicationId);
-
-        await Assert.ThrowsAsync<Shared.Services.ExecutionException>(() => _supervisor.Dispatch.ResumeAsync(interrupted.Id));
-    }
-
-    [Test]
-    public async Task RunOfAChangedWorkflow_IsNotResumed()
-    {
-        await ConnectWorkerAsync();
-        TaskInstance interrupted = await StoreInterruptedLineAsync(applicationId: null, definitionHash: "before the change");
 
         await Assert.ThrowsAsync<Shared.Services.ExecutionException>(() => _supervisor.Dispatch.ResumeAsync(interrupted.Id));
     }

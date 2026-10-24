@@ -307,7 +307,7 @@ public class LocalHistoryService : IHistoryService
                         GlobalContext = @GlobalContext,
                         ApplicationId = @ApplicationId,
                         SessionId = @SessionId,
-                        DefinitionHash = @DefinitionHash,
+                        NestedVersions = @NestedVersions,
                         State = @State,
                         CreatedAt = @CreatedAt,
                         FinishedAt = @FinishedAt

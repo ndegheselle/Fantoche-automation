@@ -83,7 +83,7 @@ public class ExecutionService : IExecutionService
         instance.NodeName = task.Metadata.Name;
         instance.ApplicationId = _applicationId;
         instance.SessionId = _sessions.CurrentId;
-        instance.DefinitionHash = RunDefinition.HashOf(task);
+        instance.NestedVersions = task is AutomationWorkflow started ? ScopedServiceExtensions.NestedVersionsOf(started) : null;
         instance.State = EnumTaskState.Progressing;
         await _historyService.SaveAsync(instance);
 
@@ -95,8 +95,8 @@ public class ExecutionService : IExecutionService
     {
         TaskInstance run = await _historyService.GetAsync(runId)
             ?? throw new Shared.Services.ExecutionException($"Unknown execution '{runId}'.");
-        BaseAutomationTask task = await _scopedService.LoadRunnableAsync(run.TaskId, run.WorkflowVersion);
-        RunResumption.EnsureResumable(run, task, _applicationId);
+        RunResumption.EnsureResumable(run, _applicationId);
+        BaseAutomationTask task = await _scopedService.LoadRunnableAsync(run.TaskId, run.WorkflowVersion, run.NestedVersions);
 
         // A task simply runs again, a workflow carries on from what its history holds.
         TaskInstance instance = run;
