@@ -208,6 +208,8 @@ public class SpineViewModel : ObservableObject
         // Take the cost of opening the database off the first navigation.
         _ = Task.Run(supervisor.WarmUpDatabase);
         _ = supervisor.RunCleanupAsync(CancellationToken.None);
+        // Started on the worker of the application, its only worker.
+        _ = supervisor.Scheduler.RunAsync(CancellationToken.None);
         return supervisor;
     }
 

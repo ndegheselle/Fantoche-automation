@@ -10,9 +10,9 @@ using Fantoche.Worker.Storage;
 namespace Fantoche.Services.Local;
 
 /// <summary>
-/// The supervisor itself : the database, the packages and the dispatch of the executions to the
-/// workers. Run by the application in standalone mode and by the supervisor
-/// API otherwise, which only carries its calls over HTTP and its hubs.
+/// The supervisor itself : the database, the packages, the dispatch of the executions to the
+/// workers and the schedules starting them. Run by the application in standalone mode and by the
+/// supervisor API otherwise, which only carries its calls over HTTP and its hubs.
 /// <para>
 /// Its data folder holds its database ("fantoche.db"), the packages ("nuget"), the assemblies
 /// extracted from them to check what they hold ("cache").
@@ -98,6 +98,7 @@ public sealed class LocalSupervisor : ISupervisor
     public LocalHistoryService History { get; }
     public LocalPackagesService Packages { get; }
     public Dispatcher Dispatcher { get; }
+    public Scheduler Scheduler { get; }
     /// <summary>The supervisors sharing its database : copies of the application in standalone mode.</summary>
     public RunnerSessions Sessions { get; }
 
@@ -121,6 +122,7 @@ public sealed class LocalSupervisor : ISupervisor
         Packages = new LocalPackagesService(Path.Combine(dataFolder, "nuget"), Path.Combine(dataFolder, "cache"));
         Sessions = new RunnerSessions(Path.Combine(dataFolder, "sessions"));
         Dispatcher = new Dispatcher(Scoped, History, Sessions.CurrentId);
+        Scheduler = new Scheduler(_database, Dispatcher);
 
         // Nothing a supervisor dispatched outlives it : what the history holds as running for a
         // supervisor that is gone was cut short. Run apart so a caller holding a synchronization
@@ -145,6 +147,7 @@ public sealed class LocalSupervisor : ISupervisor
                 _storages.Remove(run);
         }
         await History.DeleteStartedBeforeAsync(cutoff);
+        await Scheduler.ForgetBeforeAsync(cutoff);
     }
 
     /// <summary>Clean up now, then once a day until [cancellation].</summary>

@@ -91,6 +91,7 @@ namespace Fantoche.Services.Local.Database
             connection.Execute(GraphConnectorModel.Schema);
             connection.Execute(GraphConnectionModel.Schema);
             connection.Execute(GraphVersionModel.Schema);
+            connection.Execute(ScheduledStartModel.Schema);
 
             RenameLegacyColumns(connection);
         }

@@ -8,7 +8,7 @@ namespace Fantoche.Supervisor.Api;
 /// <summary>
 /// The entry point of the applications and the workers : the HTTP API and the hubs carrying the
 /// calls to a <see cref="LocalSupervisor"/>, which holds the database, hands the tasks to the
-/// workers and relays what they report. It never runs a task itself.
+/// workers, starts the scheduled ones and relays what they report. It never runs a task itself.
 /// <para>
 /// Configured by : DATA_FOLDER (the folder of the supervisor, see <see cref="LocalSupervisor"/>) and
 /// STORAGE_FOLDER (the storage the workers share, cleaned with the history, left alone when unset).
@@ -52,6 +52,7 @@ public static class SupervisorApp
         app.MapHub<WorkerHub>($"/{SupervisorRoutes.Workers}");
 
         app.Lifetime.ApplicationStarted.Register(() => _ = supervisor.RunCleanupAsync(app.Lifetime.ApplicationStopping));
+        app.Lifetime.ApplicationStarted.Register(() => _ = supervisor.Scheduler.RunAsync(app.Lifetime.ApplicationStopping));
 
         return app;
     }

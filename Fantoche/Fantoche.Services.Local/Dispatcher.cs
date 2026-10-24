@@ -31,7 +31,7 @@ public class Dispatcher : IDispatchService
 
     private sealed class Execution
     {
-        /// <summary>Null for a resumed run, which nobody waits on but the history.</summary>
+        /// <summary>Null for a resumed or scheduled run, which nobody waits on but the history.</summary>
         public string? CallerConnectionId { get; set; }
         public ICallerClient? Caller { get; set; }
         public required RemoteExecution Request { get; init; }
@@ -101,18 +101,10 @@ public class Dispatcher : IDispatchService
 
     public async Task SubmitAsync(string callerConnectionId, ICallerClient caller, TaskInstance instance)
     {
-        // Whatever the caller sent, the instance runs from now on, on the workers of the supervisor.
-        instance.State = EnumTaskState.Progressing;
-        instance.ApplicationId = null;
-        instance.SessionId = _sessionId;
-        RemoteExecution execution;
+        BaseAutomationTask task;
         try
         {
-            BaseAutomationTask task = await _scoped.LoadRunnableAsync(instance.TaskId);
-            AutomationWorkflow? workflow = task as AutomationWorkflow;
-            instance.WorkflowVersion = workflow?.Version;
-            instance.NestedVersions = workflow == null ? null : ScopedServiceExtensions.NestedVersionsOf(workflow);
-            execution = RemoteExecution.From(task, instance);
+            task = await _scoped.LoadRunnableAsync(instance.TaskId);
         }
         catch (ExecutionException exception)
         {
@@ -122,6 +114,53 @@ public class Dispatcher : IDispatchService
             await caller.Completed(instance);
             return;
         }
+
+        await QueueAsync(task, instance, callerConnectionId, caller);
+    }
+
+    /// <summary>
+    /// Start [taskId], named [name], with [parameters] : what a schedule starts, which nobody waits on
+    /// but the history. One that can't be loaded is stored as failed, the history being the only
+    /// place telling it.
+    /// </summary>
+    public async Task<TaskInstance> StartAsync(Guid taskId, string name, JToken? parameters)
+    {
+        TaskInstance instance = new() { TaskId = taskId, NodeName = name, Parameters = parameters };
+        BaseAutomationTask task;
+        try
+        {
+            task = await _scoped.LoadRunnableAsync(taskId);
+        }
+        catch (ExecutionException exception)
+        {
+            instance.State = EnumTaskState.Failed;
+            instance.Output = JToken.FromObject(exception.Message);
+            await _history.SaveAsync(instance);
+            return instance;
+        }
+
+        // The context of the scopes containing the workflow is read once, when the run starts.
+        if (task is AutomationWorkflow)
+            instance.GlobalContext = await _scoped.GetContextAsync(taskId);
+
+        await QueueAsync(task, instance, callerConnectionId: null, caller: null);
+        return instance;
+    }
+
+    /// <summary>
+    /// Queue [instance], an execution of [task], for the workers. [caller] is told the outcome, when
+    /// someone waits on it.
+    /// </summary>
+    private async Task QueueAsync(BaseAutomationTask task, TaskInstance instance, string? callerConnectionId, ICallerClient? caller)
+    {
+        // Whatever the caller sent, the instance runs from now on, on the workers of the supervisor.
+        instance.State = EnumTaskState.Progressing;
+        instance.ApplicationId = null;
+        instance.SessionId = _sessionId;
+        AutomationWorkflow? workflow = task as AutomationWorkflow;
+        instance.WorkflowVersion = workflow?.Version;
+        instance.NestedVersions = workflow == null ? null : ScopedServiceExtensions.NestedVersionsOf(workflow);
+        RemoteExecution execution = RemoteExecution.From(task, instance);
 
         // Stored before the worker reports anything : the instances of the nodes point at it.
         await _history.SaveAsync(instance);
