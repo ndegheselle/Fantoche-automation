@@ -1,0 +1,106 @@
+:root {
+    color-scheme: light dark;
+    --surface: #ffffff;
+    --border: #d4d4d8;
+    --accent: #2563eb;
+    --danger: #dc2626;
+    font-family: system-ui, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --surface: #27272a;
+        --border: #3f3f46;
+    }
+}
+
+body {
+    margin: 0;
+    padding: 16px;
+}
+
+h1 {
+    font-size: 1.25rem;
+    margin: 0 0 4px;
+}
+
+.hint {
+    margin: 0 0 12px;
+    opacity: 0.7;
+}
+
+.review {
+    display: flex;
+    gap: 12px;
+    height: 65vh;
+}
+
+#files {
+    flex: 0 0 240px;
+    list-style: none;
+    margin: 0;
+    overflow: auto;
+    padding: 0;
+}
+
+#files li {
+    align-items: center;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    display: flex;
+    gap: 6px;
+    margin-bottom: 6px;
+    padding: 4px 8px;
+}
+
+#files li.selected {
+    border-color: var(--accent);
+}
+
+#files .name {
+    background: none;
+    border: none;
+    cursor: pointer;
+    flex: 1;
+    overflow: hidden;
+    padding: 2px;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#preview {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    flex: 1;
+}
+
+#error {
+    color: var(--danger);
+}
+
+.actions {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 16px;
+}
+
+#count {
+    margin-right: auto;
+    opacity: 0.7;
+}
+
+button {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 14px;
+}
+
+button.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+}

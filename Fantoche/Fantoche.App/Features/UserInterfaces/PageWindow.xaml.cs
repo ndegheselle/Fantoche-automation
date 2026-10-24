@@ -1,6 +1,7 @@
 using System.IO;
 using System.Windows;
 using Fantoche.Worker.Packages;
+using Fantoche.Worker.Storage;
 using Fantoche.Worker.UserInterfaces;
 using Microsoft.Web.WebView2.Core;
 using Newtonsoft.Json;
@@ -10,7 +11,7 @@ namespace Fantoche.App.Features.UserInterfaces
 {
     /// <summary>
     /// The page of a user interface task, until the user answers it or closes it. It only reaches
-    /// the files of its folder (see <see cref="PageFiles"/>), and talks to the application through
+    /// the files of its folder and the storage its input points at (see <see cref="PageFiles"/>), and talks to the application through
     /// <c>window.fantoche</c> alone : no other window, navigation nor object of the application.
     /// </summary>
     public partial class PageWindow : Window
@@ -42,6 +43,15 @@ namespace Fantoche.App.Features.UserInterfaces
                     close() {
                         window.chrome.webview.postMessage({ type: 'close' });
                     },
+                    fileUrl(file) {
+                        return `__STORAGE__files/${encodeURIComponent(file.Id)}/${encodeURIComponent(file.Name)}`;
+                    },
+                    async readTable(table, { offset = 0, limit = __LIMIT__ } = {}) {
+                        const response = await fetch(`__STORAGE__tables/${encodeURIComponent(table.Id)}?offset=${offset}&limit=${limit}`);
+                        if (!response.ok)
+                            throw new Error(await response.text());
+                        return response.json();
+                    },
                 });
             })();
             """;
@@ -54,11 +64,11 @@ namespace Fantoche.App.Features.UserInterfaces
         private bool _isAnswered;
         private bool _isSubmitting;
 
-        private PageWindow(string title, string folder, JToken? input, string userDataFolder, Func<JToken, Task<string?>> submit)
+        private PageWindow(string title, string folder, LocalStorage storage, JToken? input, string userDataFolder, Func<JToken, Task<string?>> submit)
         {
             InitializeComponent();
             Title = title;
-            _files = new PageFiles(folder);
+            _files = new PageFiles(folder, storage, input);
             _input = input;
             _userDataFolder = userDataFolder;
             _submit = submit;
@@ -71,10 +81,11 @@ namespace Fantoche.App.Features.UserInterfaces
         /// Show the page of [folder] with [input] until it is answered (true) or closed (false).
         /// [submit] takes the answer, telling why it was refused, null once it is stored.
         /// </summary>
+        /// <param name="storage">The storage of the run, whose files and tables [input] points at.</param>
         /// <param name="userDataFolder">Where the browser keeps its data, shared by the pages.</param>
-        public static Task<bool> ShowAsync(string title, string folder, JToken? input, string userDataFolder, Func<JToken, Task<string?>> submit)
+        public static Task<bool> ShowAsync(string title, string folder, LocalStorage storage, JToken? input, string userDataFolder, Func<JToken, Task<string?>> submit)
         {
-            PageWindow window = new(title, folder, input, userDataFolder, submit)
+            PageWindow window = new(title, folder, storage, input, userDataFolder, submit)
             {
                 Owner = Application.Current.MainWindow,
             };
@@ -112,15 +123,28 @@ namespace Fantoche.App.Features.UserInterfaces
                     e.Cancel = true;
             };
             browser.AddWebResourceRequestedFilter("*", CoreWebView2WebResourceContext.All);
-            browser.WebResourceRequested += (_, e) =>
+            browser.WebResourceRequested += async (_, e) =>
             {
-                PageResponse response = _files.Read(e.Request.Uri);
-                e.Response = browser.Environment.CreateWebResourceResponse(response.Content, response.Status, response.Reason, response.Headers);
+                // The storage is read asynchronously : the browser waits for the response until completed.
+                CoreWebView2Deferral deferral = e.GetDeferral();
+                try
+                {
+                    PageResponse response = await _files.ReadAsync(e.Request.Uri);
+                    e.Response = browser.Environment.CreateWebResourceResponse(response.Content, response.Status, response.Reason, response.Headers);
+                }
+                finally
+                {
+                    deferral.Complete();
+                }
             };
             browser.WebMessageReceived += async (_, e) => await OnMessageAsync(e.WebMessageAsJson);
 
             string input = _input?.ToString(Formatting.None) ?? "null";
-            await browser.AddScriptToExecuteOnDocumentCreatedAsync(ContractScript.Replace("__INPUT__", input));
+            string contract = ContractScript
+                .Replace("__INPUT__", input)
+                .Replace("__STORAGE__", PageFiles.StoragePath)
+                .Replace("__LIMIT__", PageFiles.DefaultRowsLimit.ToString());
+            await browser.AddScriptToExecuteOnDocumentCreatedAsync(contract);
             browser.Navigate(PageFiles.Index.ToString());
         }
 

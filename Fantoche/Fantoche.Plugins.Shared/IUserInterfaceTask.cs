@@ -7,7 +7,14 @@ namespace Fantoche.Plugins.Shared;
 /// <para>
 /// The page reads what the task was given as <c>window.fantoche.input</c>, and answers with
 /// <c>window.fantoche.answer(value)</c> : a promise rejected when the answer doesn't fit the output
-/// of the task, the page being closed once it does. It only reaches the files of its own folder.
+/// of the task, the page being closed once it does. It only reaches the files of its own folder, and
+/// the <see cref="FileRef"/> and <see cref="TableRef"/> of its input :
+/// <list type="bullet">
+/// <item><c>window.fantoche.fileUrl(file)</c> : the url of the file, for an <c>img</c>, an
+/// <c>iframe</c> or a <c>fetch</c>.</item>
+/// <item><c>await window.fantoche.readTable(table, { offset, limit })</c> : <c>{ Columns, Total, Rows }</c>,
+/// [limit] rows from [offset] (100 by default, 1000 at most), each by column name.</item>
+/// </list>
 /// </para>
 /// </summary>
 public interface IUserInterfaceTask : ITask

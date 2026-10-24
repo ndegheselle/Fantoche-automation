@@ -2,6 +2,7 @@ using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Data.Scoped;
 using Fantoche.Shared.Services;
 using Fantoche.Worker;
+using Fantoche.Worker.Storage;
 
 namespace Fantoche.App.Features.UserInterfaces
 {
@@ -66,13 +67,14 @@ namespace Fantoche.App.Features.UserInterfaces
         public async Task<TaskInstance?> AnswerAsync(TaskInstance instance)
         {
             // Checked before the page is shown : what the user fills in would be refused afterwards.
-            await UserAnswers.GetAnswerableRunAsync(_history, instance, _applicationId);
+            TaskInstance answerable = await UserAnswers.GetAnswerableRunAsync(_history, instance, _applicationId);
             if (await _scoped.LoadRunnableAsync(instance.TaskId) is not AutomationTask task)
                 throw new ExecutionException($"'{instance.NodeName}' isn't a task.");
             string folder = await _worker.GetPageFolderAsync(task);
+            LocalStorage storage = _worker.OpenStorage(answerable);
 
             TaskInstance? run = null;
-            bool isAnswered = await PageWindow.ShowAsync(instance.NodeName, folder, instance.Parameters, _browserFolder, async answer =>
+            bool isAnswered = await PageWindow.ShowAsync(instance.NodeName, folder, storage, instance.Parameters, _browserFolder, async answer =>
             {
                 try
                 {

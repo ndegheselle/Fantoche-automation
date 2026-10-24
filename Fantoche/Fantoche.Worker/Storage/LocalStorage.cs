@@ -1,3 +1,4 @@
+using System.Data.Common;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using DuckDB.NET.Data;
@@ -5,6 +6,9 @@ using Fantoche.Plugins.Shared;
 using Newtonsoft.Json.Linq;
 
 namespace Fantoche.Worker.Storage;
+
+/// <summary>A slice of the rows of a table, see <see cref="LocalStorage.ReadPageAsync"/>.</summary>
+public sealed record TablePage(List<TableColumn> Columns, long Total, List<IReadOnlyDictionary<string, object?>> Rows);
 
 /// <summary>
 /// Storage in a folder, the one of an execution (see <see cref="ExecutionStorages"/>) : every table
@@ -73,12 +77,47 @@ public sealed class LocalStorage : IStorage
 
         using var reader = await command.ExecuteReaderAsync(cancellation);
         while (await reader.ReadAsync(cancellation))
+            yield return RowOf(reader);
+    }
+
+    /// <summary>
+    /// [limit] rows of [table] from [offset], in order, and how many it holds : what a page shows of a
+    /// table too large to be read whole.
+    /// </summary>
+    public async Task<TablePage> ReadPageAsync(TableRef table, long offset, int limit, CancellationToken cancellation = default)
+    {
+        string path = PathOf(Identifier(table));
+        if (!File.Exists(path))
+            throw new FileNotFoundException($"The table [{table.Id}] isn't in this storage.", path);
+
+        using DuckDBConnection connection = await OpenAsync("", cancellation);
+        List<TableColumn> columns = await ColumnsAsync(connection, path, cancellation);
+
+        long total;
+        using (DuckDBCommand command = connection.CreateCommand())
         {
-            var row = new Dictionary<string, object?>(reader.FieldCount);
-            for (int i = 0; i < reader.FieldCount; i++)
-                row[reader.GetName(i)] = reader.IsDBNull(i) ? null : reader.GetValue(i);
-            yield return row;
+            command.CommandText = $"SELECT count(*) FROM read_parquet({Literal(path)})";
+            total = Convert.ToInt64(await command.ExecuteScalarAsync(cancellation));
         }
+
+        List<IReadOnlyDictionary<string, object?>> rows = [];
+        using (DuckDBCommand command = connection.CreateCommand())
+        {
+            command.CommandText = $"SELECT * FROM read_parquet({Literal(path)}) LIMIT {limit} OFFSET {offset}";
+            using var reader = await command.ExecuteReaderAsync(cancellation);
+            while (await reader.ReadAsync(cancellation))
+                rows.Add(RowOf(reader));
+        }
+
+        return new TablePage(columns, total, rows);
+    }
+
+    private static Dictionary<string, object?> RowOf(DbDataReader reader)
+    {
+        var row = new Dictionary<string, object?>(reader.FieldCount);
+        for (int i = 0; i < reader.FieldCount; i++)
+            row[reader.GetName(i)] = reader.IsDBNull(i) ? null : reader.GetValue(i);
+        return row;
     }
 
     /// <summary>

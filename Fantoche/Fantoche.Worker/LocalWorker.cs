@@ -72,6 +72,12 @@ public sealed class LocalWorker : ITaskExecutor, IDisposable
         return _tasks.GetPageFolderAsync(target);
     }
 
+    /// <summary>
+    /// The storage of [run] on this machine, where its nodes keep their tables and files. Empty for
+    /// a run dispatched to the remote workers : its storage is theirs.
+    /// </summary>
+    public LocalStorage OpenStorage(TaskInstance run) => _storages.Open(run.TaskId, run);
+
     /// <summary>An execution the supervisor dispatched.</summary>
     public Task<TaskInstance> ExecuteDispatchedAsync(
         RemoteExecution execution,

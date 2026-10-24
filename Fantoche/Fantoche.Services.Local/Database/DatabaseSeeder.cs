@@ -102,6 +102,16 @@ internal static class Samples
         Id(0x16), "Pdf", "Fantoche.Plugins.Tables.PdfTask",
         PdfInputSchema, PdfOutputSchema);
 
+    /// <summary>The user checks a table on a page : a user interface task.</summary>
+    private static readonly AutomationTask TableReview = MakeTask(
+        Id(0x17), "TableReview", "Fantoche.Plugins.UserInterfaces.TableReviewTask",
+        TableReviewInputSchema, TableReviewOutputSchema);
+
+    /// <summary>The user previews files on a page and keeps some of them : a user interface task.</summary>
+    private static readonly AutomationTask FilesReview = MakeTask(
+        Id(0x18), "FilesReview", "Fantoche.Plugins.UserInterfaces.FilesReviewTask",
+        FilesReviewInputSchema, PdfOutputSchema);
+
     #endregion
 
     public static IEnumerable<ScopedElement> Build()
@@ -116,6 +126,8 @@ internal static class Samples
             CsvImport,
             Filter,
             Pdf,
+            TableReview,
+            FilesReview,
             BuildLinear(),
             BuildBranches(),
             BuildLoop(),
@@ -252,13 +264,14 @@ internal static class Samples
     }
 
     /// <summary>
-    /// A minimal real life case : a CSV loaded into a table, its rows filtered, then a PDF saved per
-    /// remaining row.
+    /// A minimal real life case : a CSV loaded into a table and checked by the user, its rows
+    /// filtered, then a PDF saved per remaining row, the user keeping the ones to hand back.
     /// <code>
-    /// Start -> Import -> Filter(amount > 10) -> Pdf -> End
+    /// Start -> Import -> Check import -> Filter(amount > 10) -> Pdf -> Check PDF -> End
     /// </code>
     /// Started with the path of a CSV having a "name" and an "amount" column, e.g.
-    /// "name,amount\nalice,10\nbob,20". Expected output : the files bob.pdf and so on.
+    /// "name,amount\nalice,10\nbob,20". The run waits for the user at both checks. Expected output :
+    /// the files bob.pdf and so on, less the ones left out.
     /// </summary>
     private static AutomationWorkflow BuildExample()
     {
@@ -267,14 +280,16 @@ internal static class Samples
         GraphControl start = StartNode(0, 0, Schema(("Path", "string")));
         GraphTask import = Node(new GraphTask(CsvImport), "Import", 220, 0,
             new { Path = "$previous.Path" });
-        GraphTask filter = Node(new GraphTask(Filter), "Filter", 440, 0,
+        GraphTask checkImport = Node(new GraphTask(TableReview), "Check import", 440, 0,
+            new { Title = "Check the imported rows", Table = "$previous" });
+        GraphTask filter = Node(new GraphTask(Filter), "Filter", 660, 0,
             new
             {
-                Source = "$previous",
+                Source = "$previous.Table",
                 Conditions = new[] { new { Left = "$row.columns.amount", Operator = "Greater", Right = 10 } },
                 MatchAll = true,
             });
-        GraphTask pdf = Node(new GraphTask(Pdf), "Pdf", 660, 0,
+        GraphTask pdf = Node(new GraphTask(Pdf), "Pdf", 880, 0,
             new
             {
                 Source = "$previous",
@@ -282,14 +297,18 @@ internal static class Samples
                 Title = "$row.columns.name",
                 Fields = new[] { new { Label = "Amount", Value = "$row.columns.amount" } },
             });
-        GraphControl end = EndNode(880, 0, new { Files = "$previous.Files" }, Schema(("Files", "array")));
+        GraphTask checkPdf = Node(new GraphTask(FilesReview), "Check PDF", 1100, 0,
+            new { Title = "Keep the documents to hand back", Files = "$previous.Files" });
+        GraphControl end = EndNode(1320, 0, new { Files = "$previous.Files" }, Schema(("Files", "array")));
 
-        Add(workflow, start, import, filter, pdf, end);
+        Add(workflow, start, import, checkImport, filter, pdf, checkPdf, end);
 
         workflow.Graph.Connect(start, import);
-        workflow.Graph.Connect(import, filter);
+        workflow.Graph.Connect(import, checkImport);
+        workflow.Graph.Connect(checkImport, filter);
         workflow.Graph.Connect(filter, pdf);
-        workflow.Graph.Connect(pdf, end);
+        workflow.Graph.Connect(pdf, checkPdf);
+        workflow.Graph.Connect(checkPdf, end);
 
         return workflow;
     }
@@ -310,7 +329,7 @@ internal static class Samples
     /// A property rather than a field : the task fields above are initialized first, and would read a
     /// field declared after them as null.
     /// </summary>
-    private static Version PluginsVersion => new("1.1.0");
+    private static Version PluginsVersion => new("1.2.0");
 
     /// <summary>
     /// The schemas of the table tasks, with the markers of the engine : a table handle
@@ -342,6 +361,24 @@ internal static class Samples
 
     private const string PdfOutputSchema = """
         {"type":"object","properties":{
+            "Files":{"type":"array","items":{"type":"object","x-fantoche-type":"file","properties":{"Id":{"type":"string"},"Name":{"type":"string"}}}}}}
+        """;
+
+    private const string TableReviewInputSchema = """
+        {"type":"object","properties":{
+            "Title":{"type":"string"},
+            "Table":{"type":"object","x-fantoche-type":"table"}}}
+        """;
+
+    private const string TableReviewOutputSchema = """
+        {"type":"object","properties":{
+            "Table":{"type":"object","x-fantoche-type":"table"}}}
+        """;
+
+    /// <summary>Its output, the files kept, is shaped as the one of the PDF task.</summary>
+    private const string FilesReviewInputSchema = """
+        {"type":"object","properties":{
+            "Title":{"type":"string"},
             "Files":{"type":"array","items":{"type":"object","x-fantoche-type":"file","properties":{"Id":{"type":"string"},"Name":{"type":"string"}}}}}}
         """;
 

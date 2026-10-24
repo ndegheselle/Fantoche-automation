@@ -147,7 +147,7 @@ sequenceDiagram
     App->>Run: resume the run, which carries on with the answer
 ```
 
-- **Writing one:** derive from `BaseUserInterfaceTask<TInput, TOutput>` and name the folder of its page (`PageFolder`, relative to the assembly). The page reads `window.fantoche.input` and answers with `await window.fantoche.answer(value)`, rejected with the reason when the answer doesn't fit `TOutput`. `window.fantoche.close()` closes it unanswered. See `ReorderTask` in `Fantoche.Plugins`.
+- **Writing one:** derive from `BaseUserInterfaceTask<TInput, TOutput>` and name the folder of its page (`PageFolder`, relative to the assembly). The page reads `window.fantoche.input` and answers with `await window.fantoche.answer(value)`, rejected with the reason when the answer doesn't fit `TOutput`. `window.fantoche.close()` closes it unanswered. See `ReorderTask` in `Fantoche.Plugins`, and `TableReviewTask` (after a CSV import) and `FilesReviewTask` (after a PDF export) for pages reading the storage.
 - **Packing it:** the folder is packed next to the assembly, the way `Fantoche.Plugins.csproj` does it:
 
   ```xml
@@ -160,7 +160,17 @@ sequenceDiagram
   - Only an application that can resume the run answers it: the one that started it, or any for a dispatched run.
   - A run still running other branches can't be answered yet, so the page only opens once the run holds.
   - The answer is stored atomically: a second answer is refused.
-- **What the page can reach:** only the files of its folder, served under `https://page.fantoche/` with a content security policy allowing nothing from the network. No navigation elsewhere, no new window, no object of the application. Only JSON travels: the input and the answer.
+- **Showing files and tables:** the page reads the ones its input points at, from the storage of its run (`PageFiles`).
+
+  ```js
+  image.src = fantoche.fileUrl(fantoche.input.Scan);
+  const { Columns, Total, Rows } = await fantoche.readTable(fantoche.input.Orders, { offset: 0, limit: 100 });
+  ```
+
+  - Only the ids found in the input are served: a page can't browse the rest of the storage.
+  - Tables are read a slice at a time (`limit` up to 1000), so a large one doesn't load whole.
+  - The application reads its own storage. A run dispatched to the remote workers keeps its storage there, so its files and tables can't be shown (404). In standalone mode the application is the worker, so they can.
+- **What the page can reach:** only the files of its folder and the storage above, served under `https://page.fantoche/` with a content security policy allowing nothing from the network. No navigation elsewhere, no new window, no object of the application. Only JSON travels: the input and the answer.
 
 ## Schedules
 
