@@ -45,7 +45,7 @@
                             <TextBlock
                                 VerticalAlignment="Center"
                                 FontWeight="SemiBold"
-                                Text="Automation" />
+                                Text="Fantoche" />
                         </StackPanel>
                     </nav:NavigationMenu.Header>
 

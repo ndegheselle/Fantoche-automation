@@ -16,7 +16,7 @@ namespace Fantoche.App
     /// </summary>
     public class Settings
     {
-        public const string ApplicationName = "Automation";
+        public const string ApplicationName = "Fantoche";
 
         private static readonly JsonSerializerOptions FileOptions = new() { WriteIndented = true };
 
