@@ -95,7 +95,7 @@ public class ExecutionService : IExecutionService
     {
         TaskInstance run = await _historyService.GetAsync(runId)
             ?? throw new Shared.Services.ExecutionException($"Unknown execution '{runId}'.");
-        BaseAutomationTask task = await _scopedService.LoadRunnableAsync(run.TaskId);
+        BaseAutomationTask task = await _scopedService.LoadRunnableAsync(run.TaskId, run.WorkflowVersion);
         RunResumption.EnsureResumable(run, task, _applicationId);
 
         // A task simply runs again, a workflow carries on from what its history holds.

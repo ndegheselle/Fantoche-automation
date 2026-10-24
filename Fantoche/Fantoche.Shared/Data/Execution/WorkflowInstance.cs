@@ -55,6 +55,7 @@ public class WorkflowInstance : TaskInstance
     {
         Workflow = workflow;
         TaskId = workflow.Id;
+        WorkflowVersion = workflow.Version;
     }
 
     /// <summary>
@@ -76,6 +77,7 @@ public class WorkflowInstance : TaskInstance
             ApplicationId = stored.ApplicationId,
             SessionId = stored.SessionId,
             DefinitionHash = stored.DefinitionHash,
+            WorkflowVersion = stored.WorkflowVersion,
             PreviousIds = stored.PreviousIds,
             CreatedAt = stored.CreatedAt,
             State = stored.State,

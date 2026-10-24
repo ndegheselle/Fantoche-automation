@@ -29,8 +29,9 @@ public static class RunResumption
         if (run.State is not (EnumTaskState.Interrupted or EnumTaskState.Paused or EnumTaskState.AwaitingUser))
             throw new ExecutionException($"Only an interrupted, paused or answered run is resumed, this one is {run.State}.");
 
-        // Walking a graph that changed would meet nodes that are gone, or skip the new ones.
+        // The run is walked again on the version it ran, but the nested workflows and the tasks are
+        // read as they are now : one that changed would meet nodes that are gone, or skip new ones.
         if (run.DefinitionHash != RunDefinition.HashOf(task))
-            throw new ExecutionException("The definition changed since the run started : it can't be resumed.");
+            throw new ExecutionException("A nested workflow or a task of the run changed since it started : it can't be resumed.");
     }
 }

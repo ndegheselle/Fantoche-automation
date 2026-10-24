@@ -274,6 +274,7 @@ public class LocalHistoryService : IHistoryService
                 await connection.ExecuteAsync("""
                     UPDATE TaskInstances SET
                         TaskId = @TaskId,
+                        WorkflowVersion = @WorkflowVersion,
                         NodeId = @NodeId,
                         ParentInstanceId = @ParentInstanceId,
                         PreviousIds = @PreviousIds,

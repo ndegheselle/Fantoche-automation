@@ -110,6 +110,7 @@ public class Dispatcher : IDispatchService
         {
             BaseAutomationTask task = await _scoped.LoadRunnableAsync(instance.TaskId);
             instance.DefinitionHash = RunDefinition.HashOf(task);
+            instance.WorkflowVersion = (task as AutomationWorkflow)?.Version;
             execution = RemoteExecution.From(task, instance);
         }
         catch (ExecutionException exception)
@@ -140,7 +141,7 @@ public class Dispatcher : IDispatchService
     {
         TaskInstance run = await _history.GetAsync(runId)
             ?? throw new ExecutionException($"Unknown execution '{runId}'.");
-        BaseAutomationTask task = await _scoped.LoadRunnableAsync(run.TaskId);
+        BaseAutomationTask task = await _scoped.LoadRunnableAsync(run.TaskId, run.WorkflowVersion);
         RunResumption.EnsureResumable(run, task, applicationId: null);
         IReadOnlyList<TaskInstance> stored = await _history.GetDescendantsAsync(run.Id);
 

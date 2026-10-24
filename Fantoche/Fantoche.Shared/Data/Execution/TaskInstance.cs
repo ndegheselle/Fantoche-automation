@@ -19,6 +19,13 @@ namespace Fantoche.Shared.Data.Execution
         public Guid TaskId { get; set; }
 
         /// <summary>
+        /// Only for the instance of a workflow : the version of its graph it ran (see
+        /// <see cref="Scoped.AutomationWorkflow.Version"/>), what it is shown and resumed on whatever
+        /// the workflow became since. The nodes of a run ran the version of the run holding them.
+        /// </summary>
+        public int? WorkflowVersion { get; set; }
+
+        /// <summary>
         /// Id of the graph node when the instance comes from a workflow, null when standalone.
         /// </summary>
         public Guid? NodeId { get; set; }

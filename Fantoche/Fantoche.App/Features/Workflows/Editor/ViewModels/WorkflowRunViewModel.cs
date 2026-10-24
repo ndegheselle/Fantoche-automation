@@ -325,6 +325,16 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
         }
 
         /// <summary>
+        /// Stop displaying the run, whether it is followed or not : the graph it is drawn on is
+        /// about to be replaced. A run followed runs on, it is only not displayed anymore.
+        /// </summary>
+        public void Close()
+        {
+            Unfollow();
+            Reset();
+        }
+
+        /// <summary>
         /// Clear what a run left on the graph : the states of the nodes, the path it took and how
         /// far it got.
         /// </summary>

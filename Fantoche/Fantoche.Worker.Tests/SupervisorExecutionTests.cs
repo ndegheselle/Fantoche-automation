@@ -157,6 +157,7 @@ internal sealed class SupervisorExecutionTests
         TaskInstance run = new()
         {
             TaskId = workflow.Id,
+            WorkflowVersion = workflow.Version,
             NodeName = workflow.Metadata.Name,
             Parameters = JToken.FromObject(new { Value = 1 }),
             ApplicationId = applicationId,
@@ -242,6 +243,15 @@ internal sealed class SupervisorExecutionTests
         using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(10));
         while (!(await _supervisor.History.GetChildrenAsync(runId)).Any(x => x.NodeName == node && x.State == state))
             await Task.Delay(10, timeout.Token);
+    }
+
+    /// <summary>A new version of the line workflow [workflowId], whose end hands the message over as its value.</summary>
+    private async Task EditEndAsync(Guid workflowId)
+    {
+        AutomationWorkflow workflow = (AutomationWorkflow)(await _supervisor.Scoped.GetAsync(workflowId))!;
+        BaseGraphTask end = workflow.Graph.Nodes.OfType<BaseGraphTask>().Single(x => x.Name == "End");
+        end.InputTemplateJson = """{ "Value": "$previous.Message", "Message": "$previous.Message" }""";
+        await _supervisor.Scoped.EditAsync(workflow);
     }
 
     /// <summary>The line workflow as the history holds it while [sessionId] runs it.</summary>
@@ -569,6 +579,32 @@ internal sealed class SupervisorExecutionTests
         TaskInstance interrupted = await StoreInterruptedLineAsync(applicationId: null, definitionHash: "before the change");
 
         await Assert.ThrowsAsync<Shared.Services.ExecutionException>(() => _supervisor.Dispatch.ResumeAsync(interrupted.Id));
+    }
+
+    [Test]
+    public async Task Run_PointsAtTheVersionItRan()
+    {
+        AutomationWorkflow workflow = await StoreLineAsync(await StoreTestAsync());
+        await EditEndAsync(workflow.Id);
+        ExecutionService execution = ApplicationExecution();
+
+        TaskInstance started = await execution.StartAsync(workflow.Id, JToken.FromObject(new { Value = 1 }));
+
+        Assert.That((await _supervisor.History.GetAsync(started.Id))?.WorkflowVersion, Is.EqualTo(2));
+    }
+
+    [Test]
+    public async Task RunOfAnEditedWorkflow_ResumesOnTheVersionItRan()
+    {
+        TaskInstance interrupted = await StoreInterruptedLineAsync(ApplicationId);
+        // Version 2 ends on the message : a run carrying on with it would end on "stored".
+        await EditEndAsync(interrupted.TaskId);
+        ExecutionService execution = ApplicationExecution();
+
+        await execution.ResumeAsync(interrupted.Id);
+        TaskInstance run = await execution.WaitAsync(interrupted.Id);
+
+        Assert.That(run.Output?["Value"]?.Value<int>(), Is.EqualTo(42));
     }
 
     [Test]

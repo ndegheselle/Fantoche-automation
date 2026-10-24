@@ -86,6 +86,25 @@
             </StackPanel>
         </Border>
 
+        <!--  A past version of the graph, the one a run opened from the history ran on : read only  -->
+        <Border
+            Padding="8,4"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            Style="{StaticResource Card}"
+            Visibility="{Binding IsShowingPastVersion, Converter={x:Static jonverters:VisibilityConverter.Default}}">
+            <StackPanel joolkit:Spacing.Gap="8" Orientation="Horizontal">
+                <jonts:FontIcon VerticalAlignment="Center" Text="{x:Static jonts:LucideFontIcons.History}" />
+                <TextBlock VerticalAlignment="Center">
+                    <Run Text="Version" />
+                    <Run Text="{Binding PastVersion, Mode=OneWay}" />
+                    <Run Text="of the graph, read only. The workflow is at version" />
+                    <Run Text="{Binding Workflow.Version, Mode=OneWay}" /><Run Text="." />
+                </TextBlock>
+                <Button Command="{Binding ShowCurrentCommand}" Style="{StaticResource SecondaryButton}">Current graph</Button>
+            </StackPanel>
+        </Border>
+
         <!--  Editor tools  -->
         <Border
             Padding="0"

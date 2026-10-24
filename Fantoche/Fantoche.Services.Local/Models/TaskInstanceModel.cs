@@ -14,16 +14,17 @@ internal sealed record TaskInstanceModel
     /// The columns making up a stored instance, in the order the insert writes them.
     /// </summary>
     public const string Columns =
-        "Id, TaskId, NodeId, ParentInstanceId, PreviousIds, NodeName, Shared, Parameters, Output, GlobalContext, ApplicationId, SessionId, DefinitionHash, State, CreatedAt, FinishedAt";
+        "Id, TaskId, WorkflowVersion, NodeId, ParentInstanceId, PreviousIds, NodeName, Shared, Parameters, Output, GlobalContext, ApplicationId, SessionId, DefinitionHash, State, CreatedAt, FinishedAt";
 
     /// <summary>The parameters of an insert, in the order of <see cref="Columns"/>.</summary>
     public const string Values =
-        "@Id, @TaskId, @NodeId, @ParentInstanceId, @PreviousIds, @NodeName, @Shared, @Parameters, @Output, @GlobalContext, @ApplicationId, @SessionId, @DefinitionHash, @State, @CreatedAt, @FinishedAt";
+        "@Id, @TaskId, @WorkflowVersion, @NodeId, @ParentInstanceId, @PreviousIds, @NodeName, @Shared, @Parameters, @Output, @GlobalContext, @ApplicationId, @SessionId, @DefinitionHash, @State, @CreatedAt, @FinishedAt";
 
     public static readonly string Schema = """
         CREATE TABLE IF NOT EXISTS TaskInstances (
             Id TEXT NOT NULL PRIMARY KEY,
             TaskId TEXT NOT NULL REFERENCES Scoped (Id) ON DELETE CASCADE,
+            WorkflowVersion INTEGER NULL,
             NodeId TEXT NULL,
             ParentInstanceId TEXT NULL REFERENCES TaskInstances (Id) ON DELETE CASCADE,
             PreviousIds TEXT NOT NULL,
@@ -47,6 +48,7 @@ internal sealed record TaskInstanceModel
 
     public Guid Id { get; init; }
     public Guid TaskId { get; init; }
+    public int? WorkflowVersion { get; init; }
     public Guid? NodeId { get; init; }
     public Guid? ParentInstanceId { get; init; }
     /// <summary>A JSON array of the ids.</summary>
@@ -69,6 +71,7 @@ internal sealed record TaskInstanceModel
         {
             Id = Id,
             TaskId = TaskId,
+            WorkflowVersion = WorkflowVersion,
             NodeId = NodeId,
             ParentInstanceId = ParentInstanceId,
             PreviousIds = JsonConvert.DeserializeObject<List<Guid>>(PreviousIds) ?? [],
@@ -96,6 +99,7 @@ internal sealed record TaskInstanceModel
         {
             Id = instance.Id,
             TaskId = instance.TaskId,
+            WorkflowVersion = instance.WorkflowVersion,
             NodeId = instance.NodeId,
             ParentInstanceId = instance.ParentInstanceId,
             PreviousIds = JsonConvert.SerializeObject(instance.PreviousIds),

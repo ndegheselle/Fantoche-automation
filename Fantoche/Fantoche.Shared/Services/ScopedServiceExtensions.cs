@@ -6,13 +6,15 @@ public static class ScopedServiceExtensions
 {
     /// <summary>
     /// The task or workflow [taskId], ready to be executed : the graph of a workflow is refreshed with
-    /// the tasks its nodes point at, nested workflows included.
+    /// the tasks its nodes point at, nested workflows included. A workflow is read at [version], its
+    /// latest one when none is given : a run resumes on the version it started on. Its nested
+    /// workflows and its tasks are read as they are now.
     /// </summary>
-    /// <exception cref="ExecutionException">Unknown element, not a task, or a graph pointing at unknown tasks.</exception>
-    public static async Task<BaseAutomationTask> LoadRunnableAsync(this IScopedService scoped, Guid taskId)
+    /// <exception cref="ExecutionException">Unknown element or version, not a task, or a graph pointing at unknown tasks.</exception>
+    public static async Task<BaseAutomationTask> LoadRunnableAsync(this IScopedService scoped, Guid taskId, int? version = null)
     {
-        ScopedElement element = await scoped.GetAsync(taskId)
-            ?? throw new ExecutionException($"Unknown element '{taskId}'.");
+        ScopedElement element = (version == null ? await scoped.GetAsync(taskId) : await scoped.GetVersionAsync(taskId, version.Value))
+            ?? throw new ExecutionException($"Unknown element '{taskId}'{(version == null ? "" : $" at version {version}")}.");
 
         if (element is not BaseAutomationTask task)
             throw new ExecutionException($"The element '{element.Metadata.Name}' is not a task or a workflow.");

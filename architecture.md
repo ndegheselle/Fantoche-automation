@@ -105,11 +105,28 @@ Resuming walks the run again from its history (`WorkflowExecutor`, with `Workflo
 
 What the history stores for this:
 - Each instance stores the ids of the instances it carries on from (`PreviousIds`) and the shared context it was given. Pass-through nodes and loops are walked again from these links.
-- The run stores its global context and a hash of what it depends on (`RunDefinition`): the nodes, their mappings, their connections and the tasks they run. A run whose workflow changed since it started is refused.
+- The run stores its global context, the version of the graph it ran (`TaskInstance.WorkflowVersion`) and a hash of what it depends on (`RunDefinition`): the nodes, their mappings, their connections and the tasks they run.
+- A run resumes on the version of the graph it ran, whatever the workflow became since (see [Workflow versions](#workflow-versions)). Its nested workflows and its tasks are read as they are now: when one of them changed, the hash differs and the resume is refused.
 
 A remote run carries on in the storage of its first worker, so the workers share their storage (`STORAGE_FOLDER`).
 
 The executions still live in memory only (`ExecutionService`, `Dispatcher` and `WorkerSession` keep a handle on each running one, to cancel it or send it back to its caller). Resuming doesn't need them: everything it reads is in the history.
+
+## Workflow versions
+
+Each save that changes the graph of a workflow adds a version (`AutomationWorkflow.Version`), and every instance of a workflow keeps the version it ran (`TaskInstance.WorkflowVersion`). A run opened from the history is drawn on its own version, read only, and resumed on it.
+
+The versions are stored as reverse diffs, so a past version costs only what changed:
+
+| Table | Holds |
+| --- | --- |
+| `GraphNodes`, `GraphConnectors`, `GraphConnections` | The latest version, read as it is |
+| `GraphVersions` | One row per version. The latest has no changes; every older one keeps what turns the version after it back into itself: the nodes that changed (stored whole, with their connectors, `null` for one that didn't exist) and the connections added or removed |
+
+- A past version is rebuilt from the latest one, applying the changes of each version back down to it (`IScopedService.GetVersionAsync`). The most recent ones, the most opened, are the cheapest.
+- A save leaving the graph as it is (only the name or the settings changed) adds no version.
+- Moving a node is a change: the version stores that node again.
+- The versions of a workflow go with it when it is removed. Nothing else removes them yet: pruning one would mean merging its changes into the version before.
 
 ## User interface tasks
 
