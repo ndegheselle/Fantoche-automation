@@ -2,6 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Windows;
 using Fantoche.App.Common;
+using Fantoche.App.Features.UserInterfaces;
 using Fantoche.App.Features.Workflows.Controls;
 using Fantoche.App.Features.Workflows.Editor.History;
 using Fantoche.App.Features.Workflows.Editor.ViewModels;
@@ -48,8 +49,24 @@ namespace Fantoche.App.Features.Workflows.Editor
         /// </summary>
         public WorkflowRunViewModel Run { get; }
 
-        /// <summary>Whether the graph can be modified, false while an execution is running.</summary>
-        public bool IsEditable => !Run.IsRunning;
+        /// <summary>
+        /// Whether the graph can be modified : not while an execution is running, nor while a past
+        /// version of the graph is shown.
+        /// </summary>
+        public bool IsEditable => !Run.IsRunning && PastVersion == null;
+
+        /// <summary>
+        /// The past version of the graph shown, the one a run opened from the history ran on : null
+        /// while the latest one, the one edited, is.
+        /// </summary>
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsShowingPastVersion))]
+        private int? _pastVersion;
+
+        public bool IsShowingPastVersion => PastVersion != null;
+
+        /// <summary>The graph the nodes and connections wrap : the edited one, or a past version of it.</summary>
+        private TasksGraph _shownGraph;
 
         /// <summary>Viewport of the editor, so a new node lands where the user is looking.</summary>
         [ObservableProperty] private Point _viewportLocation;
@@ -60,6 +77,9 @@ namespace Fantoche.App.Features.Workflows.Editor
 
         private readonly GraphPreviewer _previewer = new();
 
+        /// <summary>The graph being wrapped, what a run is drawn on.</summary>
+        private readonly Task _loading;
+
         /// <summary>What the graph would run into, as the last refresh found it.</summary>
         public GraphExecutionPreview? Preview => _previewer.Preview;
 
@@ -68,6 +88,7 @@ namespace Fantoche.App.Features.Workflows.Editor
             IAsyncRelayCommand saveCommand,
             IScopedService scoped,
             IExecutionService execution,
+            UserPrompts prompts,
             IHistoryService history,
             IToastService toasts)
         {
@@ -75,9 +96,10 @@ namespace Fantoche.App.Features.Workflows.Editor
             SaveCommand = saveCommand;
             _scoped = scoped;
             _toasts = toasts;
-            Run = new WorkflowRunViewModel(workflow, Nodes, Connections, SaveAsync, execution, history, toasts);
+            Run = new WorkflowRunViewModel(workflow, Nodes, Connections, SaveAsync, execution, prompts, history, toasts);
 
-            _ = LoadAsync();
+            _shownGraph = workflow.Graph;
+            _loading = WrapAsync(workflow.Graph);
             SelectedNodes.CollectionChanged += (_, _) =>
             {
                 RemoveCommand.NotifyCanExecuteChanged();
@@ -89,15 +111,8 @@ namespace Fantoche.App.Features.Workflows.Editor
             // the undo / redo is a modification like any other, so it follows too.
             Run.PropertyChanged += (_, e) =>
             {
-                if (e.PropertyName != nameof(WorkflowRunViewModel.IsRunning))
-                    return;
-
-                OnPropertyChanged(nameof(IsEditable));
-                History.IsEnabled = IsEditable;
-                AddCommand.NotifyCanExecuteChanged();
-                RemoveCommand.NotifyCanExecuteChanged();
-                OpenSettingsCommand.NotifyCanExecuteChanged();
-                RenameCommand.NotifyCanExecuteChanged();
+                if (e.PropertyName == nameof(WorkflowRunViewModel.IsRunning))
+                    RefreshEditable();
             };
 
             // Refreshed from the history rather than from each command : an undo and a redo change
@@ -105,12 +120,26 @@ namespace Fantoche.App.Features.Workflows.Editor
             History.ExecutionChanged += RefreshPreview;
         }
 
+        partial void OnPastVersionChanged(int? value) => RefreshEditable();
+
+        /// <summary>Whether the graph is editable changed : so did every command editing it, the undo / redo included.</summary>
+        private void RefreshEditable()
+        {
+            OnPropertyChanged(nameof(IsEditable));
+            History.IsEnabled = IsEditable;
+            AddCommand.NotifyCanExecuteChanged();
+            RemoveCommand.NotifyCanExecuteChanged();
+            OpenSettingsCommand.NotifyCanExecuteChanged();
+            RenameCommand.NotifyCanExecuteChanged();
+        }
+
         /// <summary>
-        /// Wrap the graph elements, the connections being resolved to the connectors they link. The
-        /// tasks the nodes point at are loaded along : a node handing over nothing of its own is
-        /// only known through them, and the preview walks the graph reading what they declare.
+        /// Wrap the elements of [graph], the connections being resolved to the connectors they link,
+        /// in place of what was wrapped before. The tasks the nodes point at are loaded along : a
+        /// node handing over nothing of its own is only known through them, and the preview walks
+        /// the graph reading what they declare.
         /// </summary>
-        private async Task LoadAsync()
+        private async Task WrapAsync(TasksGraph graph)
         {
             Dictionary<Guid, BaseAutomationTask> tasks = [];
             JToken? globalContext = null;
@@ -127,7 +156,9 @@ namespace Fantoche.App.Features.Workflows.Editor
 
             try
             {
-                List<Guid> taskIds = await _scoped.GetGraphTaskIdsAsync(Workflow.Id);
+                // Read from the graph rather than from the store : a past version may point at
+                // tasks the latest one doesn't. The controls are known by the graph on its own.
+                List<Guid> taskIds = [.. graph.Nodes.OfType<BaseGraphTask>().Where(x => x is not GraphControl).Select(x => x.TaskId).Distinct()];
                 foreach (ScopedElement element in await _scoped.GetAsync(taskIds))
                 {
                     if (element is BaseAutomationTask task)
@@ -142,10 +173,15 @@ namespace Fantoche.App.Features.Workflows.Editor
             }
 
             _previewer.Load(globalContext, tasks);
-            Graph.Refresh(tasks, force: true);
+            graph.Refresh(tasks, force: true);
+
+            SelectedNodes.Clear();
+            Nodes.Clear();
+            Connections.Clear();
+            _shownGraph = graph;
 
             var connectors = new Dictionary<Guid, ConnectorViewModel>();
-            foreach (BaseGraphTask task in Graph.Nodes.OfType<BaseGraphTask>())
+            foreach (BaseGraphTask task in graph.Nodes.OfType<BaseGraphTask>())
             {
                 var node = new NodeViewModel(task);
                 Nodes.Add(node);
@@ -153,7 +189,7 @@ namespace Fantoche.App.Features.Workflows.Editor
                     connectors[connector.Model.Id] = connector;
             }
 
-            foreach (GraphConnection connection in Graph.Connections)
+            foreach (GraphConnection connection in graph.Connections)
             {
                 if (connectors.TryGetValue(connection.SourceId, out ConnectorViewModel? source)
                     && connectors.TryGetValue(connection.TargetId, out ConnectorViewModel? target))
@@ -163,7 +199,71 @@ namespace Fantoche.App.Features.Workflows.Editor
             RefreshPreview();
         }
 
-        private void RefreshPreview() => _previewer.Refresh(Graph, Nodes, Connections);
+        private void RefreshPreview() => _previewer.Refresh(_shownGraph, Nodes, Connections);
+
+        /// <summary>
+        /// Draw [run], a run of the workflow opened from the history, on the version of the graph it
+        /// ran : a past one is shown read only.
+        /// </summary>
+        public async Task ShowRunAsync(TaskInstance run)
+        {
+            await _loading;
+
+            bool isPastVersion = run.WorkflowVersion is int version && version != Workflow.Version;
+            if (isPastVersion)
+                await TryShowVersionAsync(run.WorkflowVersion!.Value);
+            else if (PastVersion != null)
+                await ShowCurrentAsync();
+
+            await Run.ShowAsync(run);
+        }
+
+        /// <summary>
+        /// Show the past version [version] of the graph in place of the edited one. Refused while the
+        /// edited one holds unsaved changes : they would be lost, the undo going along.
+        /// </summary>
+        private async Task TryShowVersionAsync(int version)
+        {
+            if (History.HasUnsavedChanges)
+            {
+                _toasts.Warning(
+                    $"Save or undo the changes of the graph to see the version {version} the run ran on : it is drawn on the edited graph meanwhile.",
+                    "The graph has unsaved changes");
+                return;
+            }
+
+            AutomationWorkflow? past;
+            try
+            {
+                past = await _scoped.GetVersionAsync(Workflow.Id, version);
+            }
+            catch (Exception exception)
+            {
+                _toasts.Error(exception.Message, $"The version {version} of '{Workflow.Metadata.Name}' could not be read");
+                return;
+            }
+
+            if (past == null)
+            {
+                _toasts.Warning($"The workflow '{Workflow.Metadata.Name}' has no version {version} anymore.", "Version not found");
+                return;
+            }
+
+            Run.Close();
+            // The undo stack holds the nodes of the edited graph, which are wrapped again once back.
+            History.Clear();
+            await WrapAsync(past.Graph);
+            PastVersion = version;
+        }
+
+        /// <summary>Show the edited graph again, the latest version, in place of a past one.</summary>
+        [RelayCommand]
+        private async Task ShowCurrentAsync()
+        {
+            Run.Close();
+            await WrapAsync(Graph);
+            PastVersion = null;
+        }
 
         /// <summary>
         /// Pick an existing task or workflow and add it to the graph. The workflow being edited is
@@ -184,6 +284,9 @@ namespace Fantoche.App.Features.Workflows.Editor
         /// </summary>
         public void Add(BaseAutomationTask task, Point? location = null)
         {
+            if (!IsEditable)
+                return;
+
             BaseGraphTask graphTask = BaseGraphTask.For(task);
 
             // A workflow is entered once and left once : the second start or end never makes it in.
@@ -437,6 +540,10 @@ namespace Fantoche.App.Features.Workflows.Editor
         /// </summary>
         private async Task<bool> SaveAsync()
         {
+            // What is started is the edited graph, which is shown again first.
+            if (PastVersion != null)
+                await ShowCurrentAsync();
+
             try
             {
                 // Written whether or not the graph was edited : the save writes the whole workflow,

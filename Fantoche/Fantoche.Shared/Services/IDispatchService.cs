@@ -11,6 +11,13 @@ public interface IDispatchService
     public Task<DispatchStatus> GetStatusAsync();
 
     /// <summary>
+    /// Resume the interrupted run [runId] the supervisor dispatched, on whichever worker has room :
+    /// its interrupted nodes run again, the rest of it carrying on from what the history holds.
+    /// </summary>
+    /// <exception cref="ExecutionException">The run can't be resumed, see <see cref="Data.Execution.RunResumption"/>.</exception>
+    public Task ResumeAsync(Guid runId);
+
+    /// <summary>
     /// Raised with the new status whenever a worker comes or goes, or an execution is queued,
     /// handed to a worker or over.
     /// </summary>

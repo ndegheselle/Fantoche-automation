@@ -17,6 +17,13 @@ namespace Fantoche.Shared.Data.Scoped
     {
         public TasksGraph Graph { get; set; } = new();
 
+        /// <summary>
+        /// The version of the graph it holds : the latest one when read from the store, a past one
+        /// when asked for (see <c>IScopedService.GetVersionAsync</c>). Each save changing the graph
+        /// adds a version, a run keeping the one it ran (see <c>TaskInstance.WorkflowVersion</c>).
+        /// </summary>
+        public int Version { get; set; } = 1;
+
         public WorkflowSettings WorkflowSettings { get; set; } = new();
 
         private JsonSchema? _sharedSchema;

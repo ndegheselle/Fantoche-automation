@@ -24,6 +24,11 @@
     <EmbeddedResource Include="Tables\Fonts\DejaVuSans.ttf" LogicalName="DejaVuSans.ttf" />
   </ItemGroup>
 
+  <!-- The pages of the user interface tasks, next to the assembly they are read relative to (see IUserInterfaceTask.PageFolder). -->
+  <ItemGroup>
+    <Content Include="UserInterfaces\**\*" Exclude="UserInterfaces\**\*.cs" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="lib\$(TargetFramework)\UserInterfaces" />
+  </ItemGroup>
+
   <!-- A worker extracts a plugin package alone, without its dependencies : they are packed next to the plugin. -->
   <PropertyGroup>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);PackDependencies</TargetsForTfmSpecificBuildOutput>

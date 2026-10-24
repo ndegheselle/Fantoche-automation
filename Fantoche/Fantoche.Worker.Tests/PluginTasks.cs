@@ -56,6 +56,11 @@ internal static class PluginTasks
         "Fantoche.Plugins.Tables.FilterTask", "Filter",
         JsonSchema.FromType<FilterParameters>(), JsonSchema.FromType<TableRef>());
 
+    /// <summary>The user puts items in order on a page : a user interface task.</summary>
+    public static readonly AutomationTask Reorder = Make(
+        "Fantoche.Plugins.UserInterfaces.ReorderTask", "Reorder",
+        JsonSchema.FromType<Plugins.UserInterfaces.ReorderParameters>(), JsonSchema.FromType<Plugins.UserInterfaces.ReorderResult>());
+
     /// <summary>Saves a PDF per row of a table.</summary>
     public static readonly AutomationTask Pdf = Make(
         "Fantoche.Plugins.Tables.PdfTask", "Pdf",

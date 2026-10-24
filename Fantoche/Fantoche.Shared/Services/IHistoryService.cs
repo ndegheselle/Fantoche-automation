@@ -1,5 +1,6 @@
 ﻿using Fantoche.Shared.Base;
 using Fantoche.Shared.Data.Execution;
+using Newtonsoft.Json.Linq;
 
 namespace Fantoche.Shared.Services;
 
@@ -12,6 +13,37 @@ public interface IHistoryService
     /// graph, a nested workflow holding its own in turn. Empty for the instance of a simple task.
     /// </summary>
     public Task<IReadOnlyList<TaskInstance>> GetChildrenAsync(Guid instanceId);
+
+    /// <summary>
+    /// Every instance run under [instanceId], oldest first : the ones of its nested workflows too,
+    /// what a resumed run is walked again from.
+    /// </summary>
+    public Task<IReadOnlyList<TaskInstance>> GetDescendantsAsync(Guid instanceId);
+
+    /// <summary>
+    /// The runs of [applicationId] (null for the ones the supervisor dispatches) that aren't over :
+    /// running, or left behind by a process that is gone (see <see cref="TaskInstance.SessionId"/>).
+    /// </summary>
+    public Task<IReadOnlyList<TaskInstance>> GetUnfinishedRunsAsync(string? applicationId);
+
+    /// <summary>
+    /// Mark the run [runId] as interrupted, with the instances it was running : nothing runs it
+    /// anymore. A join waiting for its branches stays as it is, that is what a resume carries on
+    /// from. Nothing happens to a run that is over.
+    /// </summary>
+    public Task InterruptRunAsync(Guid runId);
+
+    /// <summary>
+    /// Store [answer] as the output of [instanceId], a task waiting for the user, which completes
+    /// it : false when it doesn't wait anymore, someone having answered first.
+    /// </summary>
+    public Task<bool> AnswerAsync(Guid instanceId, JToken answer);
+
+    /// <summary>
+    /// Take the interrupted, paused or answered run [runId] for the session [sessionId] about to resume it :
+    /// false when it isn't interrupted or paused anymore, another process having taken it first.
+    /// </summary>
+    public Task<bool> ClaimRunAsync(Guid runId, string sessionId);
 
     /// <summary>
     /// The instance [instanceId] as it was last saved, null when nothing ran under that id.

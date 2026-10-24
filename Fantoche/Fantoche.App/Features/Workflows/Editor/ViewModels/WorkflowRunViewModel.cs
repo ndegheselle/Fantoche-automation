@@ -1,5 +1,6 @@
 using Fantoche.App.Features.Workflows.Controls;
 using Fantoche.App.Common;
+using Fantoche.App.Features.UserInterfaces;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Data.Scoped;
 using Fantoche.Shared.Services;
@@ -11,29 +12,53 @@ using Newtonsoft.Json.Linq;
 namespace Fantoche.App.Features.Workflows.Editor.ViewModels
 {
     /// <summary>
-    /// A run of the workflow, followed on the graph of the editor it was started from : where each
-    /// node stands, the branches the run went through and how far it got.
+    /// A run of the workflow drawn on the graph of the editor : where each node stands, the branches
+    /// the run went through and how far it got. The run is the one started here, or one opened from
+    /// the history, which is followed as it goes on when it is still running.
     /// <para>
-    /// Held apart from the editor, which turns read only while a run is on : what is drawn here
-    /// belongs to that run rather than to the graph, and a new run clears it.
+    /// Held apart from the editor, which turns read only while a run is followed : what is drawn
+    /// here belongs to that run rather than to the graph, and the next one clears it.
     /// </para>
     /// </summary>
     public partial class WorkflowRunViewModel : ObservableObject
     {
-        /// <summary>
-        /// Execution being followed, null while nothing is running.
-        /// </summary>
+        /// <summary>The run drawn on the graph, null while none is.</summary>
         [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(IsRunning))]
-        [NotifyCanExecuteChangedFor(nameof(StartCommand), nameof(CancelCommand))]
-        private TaskInstance? _runningInstance;
+        [NotifyPropertyChangedFor(nameof(CanResume), nameof(CanStop), nameof(CanAnswer))]
+        [NotifyCanExecuteChangedFor(nameof(StopCommand), nameof(ResumeCommand), nameof(AnswerCommand))]
+        private TaskInstance? _displayedRun;
 
-        public bool IsRunning => RunningInstance != null;
+        /// <summary>Whether the displayed run is followed as it runs, the graph being read only meanwhile.</summary>
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(CanResume), nameof(CanStop), nameof(CanAnswer))]
+        [NotifyCanExecuteChangedFor(nameof(StartCommand), nameof(StopCommand), nameof(PauseCommand), nameof(ResumeCommand), nameof(AnswerCommand))]
+        private bool _isRunning;
+
+        /// <summary>A pause was asked for : the nodes running finish, no other starts.</summary>
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(PauseCommand))]
+        private bool _isPausing;
 
         /// <summary>
-        /// How far the run being displayed got, null while no run is displayed. Counted on the nodes
-        /// it went through rather than on the graph : a graph is never walked whole, its branches
-        /// leaving nodes out, so there is no total to progress towards.
+        /// Whether the displayed run waits to be resumed : paused, or interrupted by a crash. Only the
+        /// runs of an application are resumed from the editor, the supervisor resuming its own.
+        /// </summary>
+        public bool CanResume => !IsRunning
+            && DisplayedRun is { State: EnumTaskState.Paused or EnumTaskState.Interrupted, ApplicationId: not null };
+
+        /// <summary>A page is open, the run not being answered twice at once.</summary>
+        private bool _isAnswering;
+
+        /// <summary>Whether there is a run to stop : the one followed, or one waiting to be resumed.</summary>
+        public bool CanStop => IsRunning || CanResume;
+
+        /// <summary>Whether the displayed run waits for the user to answer one of its tasks.</summary>
+        public bool CanAnswer => !IsRunning && DisplayedRun?.State == EnumTaskState.AwaitingUser;
+
+        /// <summary>
+        /// How far the displayed run got, null while no run is displayed. Counted on the nodes it went
+        /// through rather than on the graph : a graph is never walked whole, its branches leaving
+        /// nodes out, so there is no total to progress towards.
         /// </summary>
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(HasProgress))]
@@ -53,21 +78,25 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
         private readonly Func<Task<bool>> _saveAsync;
 
         private readonly IExecutionService _execution;
+        private readonly UserPrompts _prompts;
         private readonly IHistoryService _history;
         private readonly IToastService _toasts;
 
         /// <summary>
-        /// Instances reported between the subscription and the start handing over the instance of
-        /// the run : the executor walks the graph on a thread of its own and the first nodes are
-        /// usually reported by then, with nothing yet to match them against.
+        /// Instances reported while the run is being set up : the first nodes of a starting run are
+        /// usually reported before the start hands over the instance they hang under, and a run
+        /// opened from the history keeps running while what it already did is read.
         /// </summary>
-        private readonly List<TaskInstance> _reportedBeforeStart = [];
+        private readonly List<TaskInstance> _heldReports = [];
+
+        /// <summary>Whether the reports are held, see <see cref="_heldReports"/>.</summary>
+        private bool _isHolding;
 
         /// <summary>
-        /// Whether a start is being awaited, which is the only time a report is worth holding onto :
-        /// what is reported once the run is over belongs to nothing the editor follows.
+        /// The node each instance of the displayed run stands for : an instance only knows the ones
+        /// it carries on from by their ids, which is what the branches are drawn from.
         /// </summary>
-        private bool _isStarting;
+        private readonly Dictionary<Guid, Guid> _nodeOfInstance = [];
 
         public WorkflowRunViewModel(
             AutomationWorkflow workflow,
@@ -75,6 +104,7 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
             IReadOnlyCollection<ConnectionViewModel> connections,
             Func<Task<bool>> saveAsync,
             IExecutionService execution,
+            UserPrompts prompts,
             IHistoryService history,
             IToastService toasts)
         {
@@ -83,6 +113,7 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
             _connections = connections;
             _saveAsync = saveAsync;
             _execution = execution;
+            _prompts = prompts;
             _history = history;
             _toasts = toasts;
         }
@@ -113,64 +144,194 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
             // What is displayed of a run belongs to it : the previous one is cleared rather than
             // left over the graph of the new one.
             Reset();
-
-            // Added and updated both : a node is reported as it starts, then again as it ends.
-            _isStarting = true;
-            _history.InstanceAdded += OnInstanceReported;
-            _history.InstanceUpdated += OnInstanceReported;
+            Follow();
+            _isHolding = true;
             try
             {
                 // Started by id : what runs is the workflow just saved, read back by the executor.
-                RunningInstance = await _execution.StartAsync(_workflow.Id, settings);
+                DisplayedRun = await _execution.StartAsync(_workflow.Id, settings);
             }
             catch (Exception exception)
             {
-                Stop();
+                Unfollow();
                 _toasts.Error(exception.Message, $"The workflow '{_workflow.Metadata.Name}' could not be started");
                 return;
             }
             finally
             {
-                _isStarting = false;
+                ReleaseHeldReports();
             }
-
-            // What the run reported while its start was being awaited, now that the instance it all
-            // hangs under is known.
-            List<TaskInstance> reported = [.. _reportedBeforeStart];
-            _reportedBeforeStart.Clear();
-            foreach (TaskInstance instance in reported)
-                Apply(instance);
 
             // The execution may already be over by the time it is awaited, its end then having been
             // reported before there was anything to match it against.
-            if (RunningInstance is TaskInstance running && (running.State & EnumTaskState.Finished) != 0)
-            {
-                Stop();
-                Report(running);
-            }
+            EndIfOver();
         }
 
         private bool CanStart() => !IsRunning;
 
         /// <summary>
-        /// Cancel the running execution. The graph only becomes editable again once the execution
-        /// actually reports itself as finished.
+        /// Pause the run : the nodes running finish, then it stops until it is resumed. The graph
+        /// only becomes editable again once the run reports itself as paused.
         /// </summary>
-        [RelayCommand(CanExecute = nameof(IsRunning))]
-        private async Task Cancel()
+        [RelayCommand(CanExecute = nameof(CanPause))]
+        private async Task Pause()
         {
-            TaskInstance? instance = RunningInstance;
-            if (instance == null)
+            if (DisplayedRun is not TaskInstance run)
+                return;
+
+            IsPausing = true;
+            try
+            {
+                await _execution.PauseAsync(run.Id);
+            }
+            catch (Exception exception)
+            {
+                IsPausing = false;
+                _toasts.Error(exception.Message, $"The workflow '{_workflow.Metadata.Name}' could not be paused");
+            }
+        }
+
+        private bool CanPause() => IsRunning && !IsPausing;
+
+        /// <summary>
+        /// Stop the run, every node it runs being canceled. A run waiting to be resumed is canceled
+        /// too, given up on. The graph only becomes editable again once a running execution actually
+        /// reports itself as finished.
+        /// </summary>
+        [RelayCommand(CanExecute = nameof(CanStop))]
+        private async Task Stop()
+        {
+            if (DisplayedRun is not TaskInstance run)
                 return;
 
             try
             {
-                await _execution.CancelAsync(instance.Id);
+                await _execution.CancelAsync(run.Id);
             }
             catch (Exception exception)
             {
-                _toasts.Error(exception.Message, $"The workflow '{_workflow.Metadata.Name}' could not be canceled");
+                _toasts.Error(exception.Message, $"The workflow '{_workflow.Metadata.Name}' could not be stopped");
+                return;
             }
+
+            // Not followed, the run that waited to be resumed is read back as it ended.
+            if (!IsRunning)
+                DisplayedRun = await _history.GetAsync(run.Id) ?? run;
+        }
+
+        /// <summary>
+        /// Resume the displayed run where it was paused or interrupted, following it as it goes on :
+        /// what it already did stays drawn.
+        /// </summary>
+        [RelayCommand(CanExecute = nameof(CanResume))]
+        private async Task Resume()
+        {
+            if (DisplayedRun is not TaskInstance run)
+                return;
+
+            Follow();
+            try
+            {
+                DisplayedRun = await _execution.ResumeAsync(run.Id);
+            }
+            catch (Exception exception)
+            {
+                Unfollow();
+                _toasts.Error(exception.Message, $"The workflow '{_workflow.Metadata.Name}' could not be resumed");
+            }
+        }
+
+        /// <summary>
+        /// Open the page of the task the displayed run waits on, then follow the run as the answer
+        /// resumes it. Several tasks waiting, they are answered one at a time, each answer resuming
+        /// the run until it waits on the next one.
+        /// </summary>
+        [RelayCommand(CanExecute = nameof(CanAnswer))]
+        private async Task Answer()
+        {
+            if (DisplayedRun is not TaskInstance run || _isAnswering)
+                return;
+
+            _isAnswering = true;
+            TaskInstance? resumed;
+            try
+            {
+                IReadOnlyList<TaskInstance> awaiting = await _prompts.GetAwaitingAsync(run);
+                if (awaiting.Count == 0)
+                    return;
+                resumed = await _prompts.AnswerAsync(awaiting[0]);
+            }
+            catch (Exception exception)
+            {
+                _toasts.Error(exception.Message, $"The workflow '{_workflow.Metadata.Name}' could not be answered");
+                return;
+            }
+            finally
+            {
+                _isAnswering = false;
+            }
+
+            // Drawn again from the history : the answer and the start of the resume were reported
+            // while the page was open.
+            if (resumed != null)
+                await ShowAsync(resumed);
+        }
+
+        /// <summary>
+        /// Draw [run], a run of the workflow opened from the history : what it did as the history
+        /// holds it, then what it does as it goes on when it is still running. A run followed until
+        /// then runs on, it is only not displayed anymore.
+        /// </summary>
+        public async Task ShowAsync(TaskInstance run)
+        {
+            Unfollow();
+            Reset();
+            DisplayedRun = run;
+
+            bool isRunning = (run.State & EnumTaskState.Finished) == 0;
+            if (isRunning)
+                Follow();
+
+            IReadOnlyList<TaskInstance> instances;
+            _isHolding = true;
+            try
+            {
+                instances = await _history.GetChildrenAsync(run.Id);
+            }
+            catch (Exception exception)
+            {
+                Unfollow();
+                _toasts.Error(exception.Message, $"The run of '{_workflow.Metadata.Name}' could not be read");
+                return;
+            }
+            finally
+            {
+                _isHolding = false;
+            }
+
+            // Oldest first, then what was reported while they were read : each node ends on its last state.
+            foreach (TaskInstance instance in instances)
+                Apply(instance);
+            ReleaseHeldReports();
+            EndIfOver();
+
+            int missing = instances.Count(x => x.NodeId is Guid nodeId && _nodes.All(node => node.Model.Id != nodeId));
+            if (missing > 0)
+            {
+                _toasts.Warning(
+                    "The workflow changed since it ran : what they did isn't drawn.",
+                    $"{missing} node(s) of the run aren't in the graph anymore");
+            }
+        }
+
+        /// <summary>
+        /// Stop displaying the run, whether it is followed or not : the graph it is drawn on is
+        /// about to be replaced. A run followed runs on, it is only not displayed anymore.
+        /// </summary>
+        public void Close()
+        {
+            Unfollow();
+            Reset();
         }
 
         /// <summary>
@@ -185,7 +346,9 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
             foreach (ConnectionViewModel connection in _connections)
                 connection.IsTraversed = false;
 
-            _reportedBeforeStart.Clear();
+            _heldReports.Clear();
+            _nodeOfInstance.Clear();
+            DisplayedRun = null;
             Progress = null;
         }
 
@@ -196,12 +359,9 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
         {
             Ui.Dispatch(() =>
             {
-                // Reported before the start handed over the instance of the run : held onto rather
-                // than dropped, it is the beginning of the very run being started.
-                if (RunningInstance == null)
+                if (_isHolding)
                 {
-                    if (_isStarting)
-                        _reportedBeforeStart.Add(instance);
+                    _heldReports.Add(instance);
                     return;
                 }
 
@@ -209,29 +369,36 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
             });
         }
 
+        /// <summary>Apply what was held while the run was being set up, in the order it was reported.</summary>
+        private void ReleaseHeldReports()
+        {
+            _isHolding = false;
+            List<TaskInstance> held = [.. _heldReports];
+            _heldReports.Clear();
+            foreach (TaskInstance instance in held)
+                Apply(instance);
+        }
+
         /// <summary>
-        /// Display what [instance] tells of the run being followed : the workflow itself, which ends
-        /// the run, or one of its nodes, whose progress is drawn on the graph.
+        /// Display what [instance] tells of the displayed run : the run itself, which may end it, or
+        /// one of its nodes, whose progress is drawn on the graph.
         /// </summary>
         private void Apply(TaskInstance instance)
         {
-            TaskInstance? running = RunningInstance;
-            if (running == null)
+            TaskInstance? run = DisplayedRun;
+            if (run == null)
                 return;
 
-            if (running.Id == instance.Id)
+            if (run.Id == instance.Id)
             {
-                if ((instance.State & EnumTaskState.Finished) != 0)
-                {
-                    Stop();
-                    Report(instance);
-                }
+                DisplayedRun = instance;
+                EndIfOver();
                 return;
             }
 
             // Only the nodes of this very run, a workflow can be running in more than one place
             // (its own editor, a node of another graph, a schedule).
-            if (running.Id != instance.ParentInstanceId || instance.NodeId is not Guid nodeId)
+            if (run.Id != instance.ParentInstanceId || instance.NodeId is not Guid nodeId)
                 return;
 
             NodeViewModel? node = _nodes.FirstOrDefault(x => x.Model.Id == nodeId);
@@ -246,7 +413,12 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
                 finished && instance.FinishedAt is DateTime end ? end - instance.CreatedAt : null,
                 instance.State == EnumTaskState.Failed ? FirstLine(instance.Output?.ToString()) : null);
 
-            Traverse(instance.Previous?.NodeId, nodeId);
+            _nodeOfInstance[instance.Id] = nodeId;
+            foreach (Guid previousId in instance.PreviousIds)
+            {
+                if (_nodeOfInstance.TryGetValue(previousId, out Guid previousNodeId))
+                    Traverse(previousNodeId, nodeId);
+            }
             RefreshProgress();
         }
 
@@ -255,17 +427,16 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
         /// every connection between the two is drawn : as far as the instance says, that is how the
         /// run came in.
         /// </summary>
-        private void Traverse(Guid? previousNodeId, Guid nodeId)
+        private void Traverse(Guid previousNodeId, Guid nodeId)
         {
-            if (previousNodeId is not Guid previous)
-                return;
-
             foreach (ConnectionViewModel connection in _connections)
             {
-                if (connection.Source.Node.Model.Id == previous && connection.Target.Node.Model.Id == nodeId)
+                if (connection.Source.Node.Model.Id == previousNodeId && connection.Target.Node.Model.Id == nodeId)
                     connection.IsTraversed = true;
             }
         }
+
+        partial void OnIsPausingChanged(bool value) => RefreshProgress();
 
         /// <summary>
         /// How far the run got, read from the nodes it went through : what it finished, and what it
@@ -275,24 +446,47 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
         {
             int finished = 0;
             int running = 0;
+            int awaiting = 0;
             foreach (NodeViewModel node in _nodes)
             {
                 if (node.State is not EnumTaskState state)
                     continue;
 
-                if ((state & EnumTaskState.Finished) != 0)
+                if (state == EnumTaskState.AwaitingUser)
+                    awaiting++;
+                else if ((state & EnumTaskState.Finished) != 0)
                     finished++;
                 else
                     running++;
             }
 
-            Progress = finished == 0 && running == 0
-                ? null
-                : running == 0 ? $"{finished} done" : $"{finished} done, {running} running";
+            List<string> parts = [];
+            if (finished > 0 || running > 0)
+                parts.Add($"{finished} done");
+            if (running > 0)
+                parts.Add($"{running} running");
+            if (awaiting > 0)
+                parts.Add($"{awaiting} waiting for you");
+            string? progress = parts.Count == 0 ? null : string.Join(", ", parts);
+            Progress = IsPausing ? $"{progress ?? "Nothing done"}, pausing" : progress;
+        }
+
+        /// <summary>The followed run is over : the graph turns editable again, and the user is told.</summary>
+        private void EndIfOver()
+        {
+            if (!IsRunning || DisplayedRun is not TaskInstance run || (run.State & EnumTaskState.Finished) == 0)
+                return;
+
+            Unfollow();
+            Report(run);
+
+            // The user following the run is the one it waits for : the page opens right away.
+            if (run.State == EnumTaskState.AwaitingUser)
+                _ = AnswerCommand.ExecuteAsync(null);
         }
 
         /// <summary>
-        /// Tell how the run ended, the editor being the place it was started from.
+        /// Tell how the run ended, the editor being the place it was followed from.
         /// </summary>
         private void Report(TaskInstance instance)
         {
@@ -304,6 +498,15 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
                     break;
                 case EnumTaskState.Canceled:
                     _toasts.Warning($"The workflow '{name}' has been canceled.", "Workflow canceled");
+                    break;
+                case EnumTaskState.Paused:
+                    _toasts.Info($"The workflow '{name}' is paused, resume it from here or from its history.", "Workflow paused");
+                    break;
+                case EnumTaskState.AwaitingUser:
+                    _toasts.Info($"The workflow '{name}' waits for you to answer one of its tasks.", "Workflow waiting for you");
+                    break;
+                case EnumTaskState.Interrupted:
+                    _toasts.Warning($"The run of '{name}' was cut short, resume it from here or from its history.", "Workflow interrupted");
                     break;
                 default:
                     // The failure of a task is stored as its stack trace, only its first line is
@@ -323,14 +526,29 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
         }
 
         /// <summary>
-        /// Stop following the execution, the graph becoming editable again. The states left on the
-        /// nodes are kept : they are what the run amounted to.
+        /// Follow the displayed run as it goes on, the graph turning read only. Added and updated
+        /// both : a node is reported as it starts, then again as it ends.
         /// </summary>
-        private void Stop()
+        private void Follow()
+        {
+            if (IsRunning)
+                return;
+
+            _history.InstanceAdded += OnInstanceReported;
+            _history.InstanceUpdated += OnInstanceReported;
+            IsRunning = true;
+        }
+
+        /// <summary>
+        /// Stop following the run, the graph becoming editable again. The states left on the nodes
+        /// are kept : they are what the run amounted to.
+        /// </summary>
+        private void Unfollow()
         {
             _history.InstanceAdded -= OnInstanceReported;
             _history.InstanceUpdated -= OnInstanceReported;
-            RunningInstance = null;
+            IsRunning = false;
+            IsPausing = false;
         }
     }
 }

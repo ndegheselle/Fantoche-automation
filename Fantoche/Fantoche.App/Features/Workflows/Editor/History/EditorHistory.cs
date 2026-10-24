@@ -74,6 +74,15 @@ namespace Fantoche.App.Features.Workflows.Editor.History
             Raise(action);
         }
 
+        /// <summary>Forget every action : the graph they were applied to isn't the one edited anymore.</summary>
+        public void Clear()
+        {
+            _applied.Clear();
+            _reverted.Clear();
+            _savePoint = null;
+            NotifyChanged();
+        }
+
         public void MarkSaved()
         {
             _savePoint = Current;

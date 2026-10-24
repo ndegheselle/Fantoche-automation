@@ -1,7 +1,9 @@
 ﻿using System.Runtime.CompilerServices;
 using Fantoche.App.Common;
+using Fantoche.App.Features.UserInterfaces;
 using Fantoche.App.Features.Workflows.Editor;
 using Fantoche.App.Features.Workflows.Editor.History;
+using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Data.Scoped;
 using Fantoche.Shared.Services;
 using Fantoche.App.Features.Workflows.Details.Controls;
@@ -27,35 +29,32 @@ namespace Fantoche.App.Features.Workflows.Details
             set => SetSetting(value, v => Workflow.WorkflowSettings.StopIfAnyTaskFail = v);
         }
 
-        /// <summary>See <see cref="TaskSettings.StorageRetention"/>.</summary>
-        public int StorageRetention
-        {
-            get => Workflow.Settings.StorageRetention;
-            set
-            {
-                Workflow.Settings.StorageRetention = Math.Max(value, 0);
-                OnPropertyChanged();
-                MarkChanged();
-            }
-        }
-
         public WorkflowDetailsViewModel(
             ScopedNode node,
             WorkflowsViewModel parent,
             IScopedService scoped,
             IHistoryService history,
             IExecutionService execution,
+            UserPrompts prompts,
             IOverlayer overlays,
             IToastService toasts)
             : base(node, parent, scoped, history, overlays, toasts)
         {
-            Editor = new WorkflowEditorViewModel(Workflow, SaveGraphCommand, scoped, execution, history, toasts);
+            Editor = new WorkflowEditorViewModel(Workflow, SaveGraphCommand, scoped, execution, prompts, history, toasts);
             Schedules = new SchedulesViewModel(Workflow, overlays, () => SaveElementAsync($"The schedules of the workflow '{Node.Name}' have been saved."));
+            History.OpenInEditor = OpenRunInEditorAsync;
             Editor.History.PropertyChanged += (_, e) =>
             {
                 if (e.PropertyName == nameof(EditorHistory.HasUnsavedChanges))
                     SaveGraphCommand.NotifyCanExecuteChanged();
             };
+        }
+
+        /// <summary>Show [run] on the graph of the editor, which the page switches to.</summary>
+        private Task OpenRunInEditorAsync(TaskInstance run)
+        {
+            CurrentTab = EnumDetailTab.Editor;
+            return Editor.ShowRunAsync(run);
         }
 
         /// <summary>

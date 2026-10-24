@@ -25,15 +25,34 @@ public interface IExecutionService
     public Task<TaskInstance> StartAsync(Guid taskId, JToken? parameters = null);
 
     /// <summary>
+    /// Resume the interrupted run [runId] this application started : its interrupted nodes run
+    /// again, the rest of it carrying on from what the history holds. Returns as soon as it runs,
+    /// like <see cref="StartAsync"/>.
+    /// </summary>
+    /// <exception cref="ExecutionException">The run can't be resumed, see <see cref="Data.Execution.RunResumption"/>.</exception>
+    public Task<TaskInstance> ResumeAsync(Guid runId);
+
+    /// <summary>
     /// Wait for the execution [instanceId] to be finished and return its final instance.
     /// Returns the persisted instance right away when the execution is already over.
     /// </summary>
     public Task<TaskInstance> WaitAsync(Guid instanceId);
 
     /// <summary>
-    /// Cancel the running execution [instanceId], a no-op if it isn't running anymore.
+    /// Cancel the running execution [instanceId], every node it runs included. A paused or
+    /// interrupted run of this application is canceled rather than left to be resumed. A no-op for
+    /// a run that is over.
     /// </summary>
+    /// <exception cref="ExecutionException">The run is run by another application.</exception>
     public Task CancelAsync(Guid instanceId);
+
+    /// <summary>
+    /// Pause the running workflow [instanceId] : the nodes it runs finish, no other task starts, and
+    /// it ends <see cref="EnumTaskState.Paused"/>, to be resumed (see <see cref="ResumeAsync"/>). A
+    /// task on its own simply runs to its end.
+    /// </summary>
+    /// <exception cref="ExecutionException">The run isn't run by this application.</exception>
+    public Task PauseAsync(Guid instanceId);
 
     /// <summary>
     /// The executions currently running, most recently started first.

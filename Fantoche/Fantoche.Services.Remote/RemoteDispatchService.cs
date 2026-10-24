@@ -53,4 +53,6 @@ public sealed class RemoteDispatchService : IDispatchService, IAsyncDisposable
     }
 
     public Task<DispatchStatus> GetStatusAsync() => _http.GetAsync<DispatchStatus>("dispatch/status");
+
+    public Task ResumeAsync(Guid runId) => _http.PostAsync($"dispatch/runs/{runId}/resume");
 }

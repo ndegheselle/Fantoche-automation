@@ -23,7 +23,10 @@
         </Style>
     </UserControl.Resources>
     <Grid Margin="{DynamicResource {x:Static joufflu:Dimensions.SpacingThickness}}">
-        <!--  Execution : only one of the two is displayed, depending on whether the workflow is running  -->
+        <!--
+            Execution : start or resume while nothing runs, pause or stop while a run is followed. A
+            paused run can also be stopped, given up on rather than resumed.
+        -->
         <Border
             Padding="0"
             HorizontalAlignment="Center"
@@ -40,10 +43,34 @@
                 </Button>
                 <Button
                     joolkit:Sizing.IsSquare="True"
-                    Command="{Binding Run.CancelCommand}"
+                    Command="{Binding Run.AnswerCommand}"
                     Style="{StaticResource GhostButton}"
-                    ToolTip="Cancel the running workflow"
+                    ToolTip="Answer : open the page the run waits on you for"
+                    Visibility="{Binding Run.CanAnswer, Converter={x:Static jonverters:VisibilityConverter.Default}}">
+                    <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.UserPen}" />
+                </Button>
+                <Button
+                    joolkit:Sizing.IsSquare="True"
+                    Command="{Binding Run.ResumeCommand}"
+                    Style="{StaticResource GhostButton}"
+                    ToolTip="Resume the run where it stopped"
+                    Visibility="{Binding Run.CanResume, Converter={x:Static jonverters:VisibilityConverter.Default}}">
+                    <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.StepForward}" />
+                </Button>
+                <Button
+                    joolkit:Sizing.IsSquare="True"
+                    Command="{Binding Run.PauseCommand}"
+                    Style="{StaticResource GhostButton}"
+                    ToolTip="Pause : the running nodes finish, no other starts"
                     Visibility="{Binding Run.IsRunning, Converter={x:Static jonverters:VisibilityConverter.Default}}">
+                    <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.CirclePause}" />
+                </Button>
+                <Button
+                    joolkit:Sizing.IsSquare="True"
+                    Command="{Binding Run.StopCommand}"
+                    Style="{StaticResource GhostButton}"
+                    ToolTip="Stop : every running node is canceled"
+                    Visibility="{Binding Run.CanStop, Converter={x:Static jonverters:VisibilityConverter.Default}}">
                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.CircleStop}" />
                 </Button>
                 <!--
@@ -56,6 +83,25 @@
                     VerticalAlignment="Center"
                     Text="{Binding Run.Progress}"
                     Visibility="{Binding Run.HasProgress, Converter={x:Static jonverters:VisibilityConverter.Default}}" />
+            </StackPanel>
+        </Border>
+
+        <!--  A past version of the graph, the one a run opened from the history ran on : read only  -->
+        <Border
+            Padding="8,4"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            Style="{StaticResource Card}"
+            Visibility="{Binding IsShowingPastVersion, Converter={x:Static jonverters:VisibilityConverter.Default}}">
+            <StackPanel joolkit:Spacing.Gap="8" Orientation="Horizontal">
+                <jonts:FontIcon VerticalAlignment="Center" Text="{x:Static jonts:LucideFontIcons.History}" />
+                <TextBlock VerticalAlignment="Center">
+                    <Run Text="Version" />
+                    <Run Text="{Binding PastVersion, Mode=OneWay}" />
+                    <Run Text="of the graph, read only. The workflow is at version" />
+                    <Run Text="{Binding Workflow.Version, Mode=OneWay}" /><Run Text="." />
+                </TextBlock>
+                <Button Command="{Binding ShowCurrentCommand}" Style="{StaticResource SecondaryButton}">Current graph</Button>
             </StackPanel>
         </Border>
 
