@@ -60,6 +60,9 @@ namespace Fantoche.App.Features.Workflows.Editor
 
         private readonly GraphPreviewer _previewer = new();
 
+        /// <summary>The graph being wrapped, what a run is drawn on.</summary>
+        private readonly Task _loading;
+
         /// <summary>What the graph would run into, as the last refresh found it.</summary>
         public GraphExecutionPreview? Preview => _previewer.Preview;
 
@@ -77,7 +80,7 @@ namespace Fantoche.App.Features.Workflows.Editor
             _toasts = toasts;
             Run = new WorkflowRunViewModel(workflow, Nodes, Connections, SaveAsync, execution, history, toasts);
 
-            _ = LoadAsync();
+            _loading = LoadAsync();
             SelectedNodes.CollectionChanged += (_, _) =>
             {
                 RemoveCommand.NotifyCanExecuteChanged();
@@ -164,6 +167,13 @@ namespace Fantoche.App.Features.Workflows.Editor
         }
 
         private void RefreshPreview() => _previewer.Refresh(Graph, Nodes, Connections);
+
+        /// <summary>Draw [run], a run of the workflow opened from the history, once the graph is there.</summary>
+        public async Task ShowRunAsync(TaskInstance run)
+        {
+            await _loading;
+            await Run.ShowAsync(run);
+        }
 
         /// <summary>
         /// Pick an existing task or workflow and add it to the graph. The workflow being edited is

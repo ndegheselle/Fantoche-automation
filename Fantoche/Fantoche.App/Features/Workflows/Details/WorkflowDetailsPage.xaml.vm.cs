@@ -2,6 +2,7 @@
 using Fantoche.App.Common;
 using Fantoche.App.Features.Workflows.Editor;
 using Fantoche.App.Features.Workflows.Editor.History;
+using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Data.Scoped;
 using Fantoche.Shared.Services;
 using Fantoche.App.Features.Workflows.Details.Controls;
@@ -39,11 +40,19 @@ namespace Fantoche.App.Features.Workflows.Details
         {
             Editor = new WorkflowEditorViewModel(Workflow, SaveGraphCommand, scoped, execution, history, toasts);
             Schedules = new SchedulesViewModel(Workflow, overlays, () => SaveElementAsync($"The schedules of the workflow '{Node.Name}' have been saved."));
+            History.OpenInEditor = OpenRunInEditorAsync;
             Editor.History.PropertyChanged += (_, e) =>
             {
                 if (e.PropertyName == nameof(EditorHistory.HasUnsavedChanges))
                     SaveGraphCommand.NotifyCanExecuteChanged();
             };
+        }
+
+        /// <summary>Show [run] on the graph of the editor, which the page switches to.</summary>
+        private Task OpenRunInEditorAsync(TaskInstance run)
+        {
+            CurrentTab = EnumDetailTab.Editor;
+            return Editor.ShowRunAsync(run);
         }
 
         /// <summary>

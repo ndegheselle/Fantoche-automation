@@ -22,6 +22,14 @@ namespace Fantoche.App.Features.Workflows.Details.Controls
 
         [ObservableProperty] private long _total;
 
+        /// <summary>
+        /// Draw a run on the graph of the editor, only for the history of a workflow : set by its
+        /// page, which holds the editor.
+        /// </summary>
+        public Func<TaskInstance, Task>? OpenInEditor { get; set; }
+
+        public bool CanOpenInEditor => OpenInEditor != null;
+
         private readonly ScopedNode _node;
         private readonly IHistoryService _history;
 
@@ -71,6 +79,11 @@ namespace Fantoche.App.Features.Workflows.Details.Controls
         [RelayCommand]
         private Task OpenDetail(TaskInstance? instance)
             => instance == null ? Task.CompletedTask : InstanceDetailViewModel.ShowAsync(instance);
+
+        /// <summary>See how [instance] went on the graph of the editor, as it goes on if it still runs.</summary>
+        [RelayCommand]
+        private Task OpenRunInEditor(TaskInstance? instance)
+            => instance == null || OpenInEditor == null ? Task.CompletedTask : OpenInEditor(instance);
 
         public async Task RefreshAsync()
         {
