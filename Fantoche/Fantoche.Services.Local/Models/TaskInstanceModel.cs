@@ -14,11 +14,11 @@ internal sealed record TaskInstanceModel
     /// The columns making up a stored instance, in the order the insert writes them.
     /// </summary>
     public const string Columns =
-        "Id, TaskId, WorkflowVersion, NodeId, ParentInstanceId, PreviousIds, NodeName, Shared, Parameters, Output, GlobalContext, ApplicationId, SessionId, DefinitionHash, State, CreatedAt, FinishedAt";
+        "Id, TaskId, WorkflowVersion, NodeId, ParentInstanceId, PreviousIds, NodeName, Shared, Parameters, Output, GlobalContext, ApplicationId, SessionId, NestedVersions, State, CreatedAt, FinishedAt";
 
     /// <summary>The parameters of an insert, in the order of <see cref="Columns"/>.</summary>
     public const string Values =
-        "@Id, @TaskId, @WorkflowVersion, @NodeId, @ParentInstanceId, @PreviousIds, @NodeName, @Shared, @Parameters, @Output, @GlobalContext, @ApplicationId, @SessionId, @DefinitionHash, @State, @CreatedAt, @FinishedAt";
+        "@Id, @TaskId, @WorkflowVersion, @NodeId, @ParentInstanceId, @PreviousIds, @NodeName, @Shared, @Parameters, @Output, @GlobalContext, @ApplicationId, @SessionId, @NestedVersions, @State, @CreatedAt, @FinishedAt";
 
     public static readonly string Schema = """
         CREATE TABLE IF NOT EXISTS TaskInstances (
@@ -35,7 +35,7 @@ internal sealed record TaskInstanceModel
             GlobalContext TEXT NULL,
             ApplicationId TEXT NULL,
             SessionId TEXT NULL,
-            DefinitionHash TEXT NULL,
+            NestedVersions TEXT NULL,
             State INTEGER NOT NULL,
             CreatedAt TEXT NOT NULL,
             FinishedAt TEXT NULL
@@ -60,7 +60,8 @@ internal sealed record TaskInstanceModel
     public string? GlobalContext { get; init; }
     public string? ApplicationId { get; init; }
     public string? SessionId { get; init; }
-    public string? DefinitionHash { get; init; }
+    /// <summary>A JSON object of the versions by workflow id.</summary>
+    public string? NestedVersions { get; init; }
     public EnumTaskState State { get; init; }
     public DateTime CreatedAt { get; init; }
     public DateTime? FinishedAt { get; init; }
@@ -82,7 +83,7 @@ internal sealed record TaskInstanceModel
             GlobalContext = Parse(GlobalContext),
             ApplicationId = ApplicationId,
             SessionId = SessionId,
-            DefinitionHash = DefinitionHash,
+            NestedVersions = NestedVersions == null ? null : JsonConvert.DeserializeObject<Dictionary<Guid, int>>(NestedVersions),
             CreatedAt = AsUtc(CreatedAt),
             State = State,
         };
@@ -110,7 +111,7 @@ internal sealed record TaskInstanceModel
             GlobalContext = Text(instance.GlobalContext),
             ApplicationId = instance.ApplicationId,
             SessionId = instance.SessionId,
-            DefinitionHash = instance.DefinitionHash,
+            NestedVersions = instance.NestedVersions == null ? null : JsonConvert.SerializeObject(instance.NestedVersions),
             State = instance.State,
             CreatedAt = instance.CreatedAt,
             FinishedAt = instance.FinishedAt

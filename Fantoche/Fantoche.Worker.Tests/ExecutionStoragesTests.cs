@@ -5,11 +5,14 @@ using Fantoche.Worker.Storage;
 
 namespace Fantoche.Worker.Tests;
 
+/// <summary>
+/// The storage of the runs of an application, out of reach of the supervisor : what the history
+/// doesn't hold anymore goes.
+/// </summary>
 [TestFixture]
 internal sealed class ExecutionStoragesTests
 {
     private static readonly Guid TaskId = Guid.NewGuid();
-    private static readonly DateTime Now = new(2026, 3, 15, 12, 0, 0, DateTimeKind.Utc);
 
     private string _folder = null!;
     private ExecutionStorages _storages = null!;
@@ -28,13 +31,13 @@ internal sealed class ExecutionStoragesTests
             Directory.Delete(_folder, true);
     }
 
-    /// <summary>An execution started [daysAgo], which wrote a file in its storage.</summary>
-    private async Task<(LocalStorage Storage, FileRef File)> RunAsync(int daysAgo)
+    /// <summary>A run which wrote a file in its storage.</summary>
+    private async Task<(TaskInstance Run, LocalStorage Storage, FileRef File)> RunAsync()
     {
-        TaskInstance instance = new() { TaskId = TaskId, CreatedAt = Now.AddDays(-daysAgo) };
-        LocalStorage storage = _storages.Open(TaskId, instance);
+        TaskInstance run = new() { TaskId = TaskId };
+        LocalStorage storage = _storages.Open(TaskId, run);
         FileRef file = await storage.SaveFileAsync("out.txt", new MemoryStream(Encoding.UTF8.GetBytes("content")));
-        return (storage, file);
+        return (run, storage, file);
     }
 
     private static bool Holds(LocalStorage storage, FileRef file)
@@ -51,28 +54,28 @@ internal sealed class ExecutionStoragesTests
     }
 
     [Test]
-    public async Task RemoveStartedBefore_RemovesTheOlderExecutionsOnly()
+    public async Task RemoveAllBut_RemovesTheRunsTheHistoryDoesntHold()
     {
-        var older = await RunAsync(daysAgo: 40);
-        var recent = await RunAsync(daysAgo: 2);
+        var removed = await RunAsync();
+        var kept = await RunAsync();
 
-        ExecutionStorages.RemoveStartedBefore(_folder, Now.AddMonths(-1));
+        _storages.RemoveAllBut(new HashSet<Guid> { kept.Run.Id });
 
         Assert.Multiple(() =>
         {
-            Assert.That(Holds(older.Storage, older.File), Is.False);
-            Assert.That(Holds(recent.Storage, recent.File), Is.True);
+            Assert.That(Holds(removed.Storage, removed.File), Is.False);
+            Assert.That(Holds(kept.Storage, kept.File), Is.True);
         });
     }
 
     [Test]
-    public void RemoveStartedBefore_LeavesTheFoldersItDidntName()
+    public void RemoveAllBut_LeavesTheFoldersItDidntName()
     {
         // A shared volume can hold anything next to the storage.
         string foreign = Path.Combine(_folder, "other", "kept-folder");
         Directory.CreateDirectory(foreign);
 
-        ExecutionStorages.RemoveStartedBefore(_folder, Now);
+        _storages.RemoveAllBut(new HashSet<Guid>());
 
         Assert.That(Directory.Exists(foreign), Is.True);
     }

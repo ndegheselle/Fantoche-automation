@@ -34,7 +34,7 @@ public class WorkflowInstance : TaskInstance
 
     /// <summary>
     /// Requested once the run is to pause : the nodes running finish, no other task starts, and
-    /// the run ends <see cref="EnumTaskState.Paused"/>. Handed to its nested runs.
+    /// the run ends <see cref="EnumTaskState.Suspended"/>. Handed to its nested runs.
     /// </summary>
     [JsonIgnore]
     public CancellationToken PauseRequested { get; set; }
@@ -76,7 +76,7 @@ public class WorkflowInstance : TaskInstance
             GlobalContext = stored.GlobalContext,
             ApplicationId = stored.ApplicationId,
             SessionId = stored.SessionId,
-            DefinitionHash = stored.DefinitionHash,
+            NestedVersions = stored.NestedVersions,
             WorkflowVersion = stored.WorkflowVersion,
             PreviousIds = stored.PreviousIds,
             CreatedAt = stored.CreatedAt,

@@ -10,9 +10,9 @@ using Fantoche.Worker.Storage;
 namespace Fantoche.Services.Local;
 
 /// <summary>
-/// The supervisor itself : the database, the packages and the dispatch of the executions to the
-/// workers. Run by the application in standalone mode and by the supervisor
-/// API otherwise, which only carries its calls over HTTP and its hubs.
+/// The supervisor itself : the database, the packages, the dispatch of the executions to the
+/// workers and the schedules starting them. Run by the application in standalone mode and by the
+/// supervisor API otherwise, which only carries its calls over HTTP and its hubs.
 /// <para>
 /// Its data folder holds its database ("fantoche.db"), the packages ("nuget"), the assemblies
 /// extracted from them to check what they hold ("cache").
@@ -51,7 +51,7 @@ public sealed class LocalSupervisor : ISupervisor
 
     /// <summary>
     /// A worker of this process, its messages copied the same way (see <see cref="CallerLink"/>).
-    /// Removing it is losing its connection : the supervisor interrupts what it was running, and what
+    /// Removing it is losing its connection : the supervisor suspends what it was running, and what
     /// it still sends about it is lost.
     /// </summary>
     private sealed class WorkerLink : IWorkerHub, IWorkerClient, IAsyncDisposable
@@ -91,12 +91,14 @@ public sealed class LocalSupervisor : ISupervisor
     }
 
     private readonly DatabaseFactory _database;
-    private readonly string? _storageFolder;
+    /// <summary>The storage the workers share, null when the supervisor doesn't reach it.</summary>
+    private readonly ExecutionStorages? _storages;
 
     public LocalScopedService Scoped { get; }
     public LocalHistoryService History { get; }
     public LocalPackagesService Packages { get; }
     public Dispatcher Dispatcher { get; }
+    public Scheduler Scheduler { get; }
     /// <summary>The supervisors sharing its database : copies of the application in standalone mode.</summary>
     public RunnerSessions Sessions { get; }
 
@@ -112,7 +114,7 @@ public sealed class LocalSupervisor : ISupervisor
     /// </param>
     public LocalSupervisor(string dataFolder, string? storageFolder = null)
     {
-        _storageFolder = storageFolder;
+        _storages = storageFolder == null ? null : new ExecutionStorages(storageFolder);
         // The factory puts the schema and the starting content in place as it is built.
         _database = new DatabaseFactory(Path.Combine(dataFolder, "fantoche.db"));
         Scoped = new LocalScopedService(_database);
@@ -120,11 +122,12 @@ public sealed class LocalSupervisor : ISupervisor
         Packages = new LocalPackagesService(Path.Combine(dataFolder, "nuget"), Path.Combine(dataFolder, "cache"));
         Sessions = new RunnerSessions(Path.Combine(dataFolder, "sessions"));
         Dispatcher = new Dispatcher(Scoped, History, Sessions.CurrentId);
+        Scheduler = new Scheduler(_database, Dispatcher);
 
         // Nothing a supervisor dispatched outlives it : what the history holds as running for a
         // supervisor that is gone was cut short. Run apart so a caller holding a synchronization
         // context doesn't wait on itself.
-        Task.Run(() => Sessions.InterruptLeftRunsAsync(History, applicationId: null)).GetAwaiter().GetResult();
+        Task.Run(() => Sessions.SuspendLeftRunsAsync(History, applicationId: null)).GetAwaiter().GetResult();
     }
 
     /// <summary>Take the cost of opening the database off the first read.</summary>
@@ -136,14 +139,16 @@ public sealed class LocalSupervisor : ISupervisor
     /// </summary>
     public async Task CleanUpAsync(DateTime now)
     {
-        DateTime cutoff = CleanupCutoff(now);
+        DateTime cutoff = now.AddMonths(-1);
+        // The folders first : once the runs are gone, nothing tells which folders were theirs.
+        if (_storages != null)
+        {
+            foreach (TaskInstance run in await History.GetRunsStartedBeforeAsync(cutoff))
+                _storages.Remove(run);
+        }
         await History.DeleteStartedBeforeAsync(cutoff);
-        if (_storageFolder != null)
-            ExecutionStorages.RemoveStartedBefore(_storageFolder, cutoff);
+        await Scheduler.ForgetBeforeAsync(cutoff);
     }
-
-    /// <summary>What [now] keeps : the executions started since.</summary>
-    public static DateTime CleanupCutoff(DateTime now) => now.AddMonths(-1);
 
     /// <summary>Clean up now, then once a day until [cancellation].</summary>
     public async Task RunCleanupAsync(CancellationToken cancellation)

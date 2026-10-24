@@ -7,7 +7,8 @@ namespace Fantoche.Shared.Data
     /// starts (see <see cref="Scoped.BaseAutomationTask.Schedules"/>).
     /// <para>
     /// The cron is a standard one, "minute hour day-of-month month day-of-week" (e.g. "0 6 * * 1-5"
-    /// for 6:00 on the working days), read in the local time zone.
+    /// for 6:00 on the working days), read in the local time zone : the one of the supervisor
+    /// starting it (see <c>Fantoche.Services.Local.Scheduler</c>), set with TZ in a container.
     /// </para>
     /// </summary>
     public class Schedule

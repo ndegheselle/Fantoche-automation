@@ -4,7 +4,7 @@ The standalone and remote modes run the same code: one supervisor (`LocalSupervi
 
 Two rules keep the interactions simple:
 - What the application starts runs in the application. The workers run what the supervisor dispatches to them: the scheduled items (to come).
-- Once a worker (the application's included) starts an execution, everything of it stays there. Every node of a workflow runs where the workflow runs, and its tables and files never leave the storage of its run. An interrupted run is resumed by whoever can reach that storage (see [Interrupted and paused runs](#interrupted-and-paused-runs)).
+- Once a worker (the application's included) starts an execution, everything of it stays there. Every node of a workflow runs where the workflow runs, and its tables and files never leave the storage of its run. A suspended run is resumed by whoever can reach that storage (see [Suspended runs](#suspended-runs)).
 
 ## Standalone and remote
 
@@ -68,7 +68,7 @@ sequenceDiagram
 ```
 
 - Only JSON travels: the parameters and the output. A table or file the output points at stays in the storage of its run.
-- A worker lost while running an execution leaves it interrupted. A worker that reconnects meanwhile can't report on it anymore: its states are dropped.
+- A worker lost while running an execution leaves it suspended. A worker that reconnects meanwhile can't report on it anymore: its states are dropped.
 - Nothing in the application dispatches yet: the scheduled items will.
 
 ### Why nothing started by hand is sent to a worker
@@ -82,13 +82,17 @@ It worked, but it took a transit store in the supervisor, an HTTP API to stream 
 
 A "Run on a worker" setting on the tasks and workflows, sending a whole execution started from the application to a worker, was removed too. A run started by hand is for building and checking a workflow, close to the editor and the local files. Where an execution runs belongs to what schedules it, not to the task or workflow itself.
 
-## Interrupted and paused runs
+## Suspended runs
 
-A run cut short by a crash or a lost worker is marked `Interrupted`. A run the user pauses from the editor is marked `Paused`: the nodes it runs finish, no other task starts (the controls still pass, so a run whose tasks are over reaches its end), and its nested runs pause with it. Both are resumed by hand, from the editor or from the detail of the execution ("Resume"), and both can be stopped instead, which cancels them for good.
+A run nothing runs anymore, waiting to be resumed, is `Suspended`. Its output tells why:
+- **Paused by the user** from the editor: the nodes it runs finish, no other task starts (the controls still pass, so a run whose tasks are over reaches its end), and its nested runs pause with it. Nothing runs twice.
+- **Cut short** by a crash or a lost worker: the nodes it was running run again once resumed.
 
-| A run started by | Is interrupted when | Is resumed by |
+It is resumed by hand, from the editor or from the detail of the execution ("Resume"), or stopped instead, which cancels it for good.
+
+| A run started by | Is cut short when | Is resumed by |
 | --- | --- | --- |
-| The application | The copy of the application running it is gone. Any copy checks when it starts, then every minute | Any copy of the application on the same machine (`TaskInstance.ApplicationId`, the machine name) |
+| The application | The copy of the application running it is gone. Any copy checks when it starts | Any copy of the application on the same machine (`TaskInstance.ApplicationId`, the machine name) |
 | The supervisor (dispatched) | Its worker is lost, or the supervisor running it is gone (checked when a supervisor starts) | The supervisor, on any worker with room |
 
 Several copies of the application can run side by side on a machine:
@@ -105,8 +109,8 @@ Resuming walks the run again from its history (`WorkflowExecutor`, with `Workflo
 
 What the history stores for this:
 - Each instance stores the ids of the instances it carries on from (`PreviousIds`) and the shared context it was given. Pass-through nodes and loops are walked again from these links.
-- The run stores its global context, the version of the graph it ran (`TaskInstance.WorkflowVersion`) and a hash of what it depends on (`RunDefinition`): the nodes, their mappings, their connections and the tasks they run.
-- A run resumes on the version of the graph it ran, whatever the workflow became since (see [Workflow versions](#workflow-versions)). Its nested workflows and its tasks are read as they are now: when one of them changed, the hash differs and the resume is refused.
+- The run stores its global context, the version of the graph it ran (`TaskInstance.WorkflowVersion`) and the version of every workflow nested in it (`TaskInstance.NestedVersions`).
+- A run resumes on these versions, whatever the workflows became since (see [Workflow versions](#workflow-versions)). The tasks are read as they are now: a resumed node runs the package its task points at today.
 
 A remote run carries on in the storage of its first worker, so the workers share their storage (`STORAGE_FOLDER`).
 
@@ -114,7 +118,7 @@ The executions still live in memory only (`ExecutionService`, `Dispatcher` and `
 
 ## Workflow versions
 
-Each save that changes the graph of a workflow adds a version (`AutomationWorkflow.Version`), and every instance of a workflow keeps the version it ran (`TaskInstance.WorkflowVersion`). A run opened from the history is drawn on its own version, read only, and resumed on it.
+Each save that changes the graph of a workflow adds a version (`AutomationWorkflow.Version`), and every instance of a workflow keeps the version it ran (`TaskInstance.WorkflowVersion`), a run also keeping the versions of its nested workflows. A run opened from the history is drawn on its own version, read only, and resumed on it. It isn't opened while the graph holds unsaved changes: they are saved or undone first.
 
 The versions are stored as reverse diffs, so a past version costs only what changed:
 
@@ -162,7 +166,11 @@ sequenceDiagram
 
 - A task or workflow holds its schedules (`BaseAutomationTask.Schedules`): a standard cron (`minute hour day-of-month month day-of-week`, read in local time) and the parameters each run starts with, checked against its input schema.
 - They're edited in its Schedules tab, each change saved right away. The Scheduler page lists them all and lays out their runs over the next 7 days, hour by hour, to see where they pile up.
-- Nothing runs them yet: the supervisor will dispatch them to the workers.
+- The supervisor starts them (`Scheduler`), checking every minute what came due and dispatching it to its workers like any dispatched run: it can be suspended, resumed on any worker, and nobody waits on it but the history. A scheduled workflow that can't be loaded is stored as a failed run.
+  - The cron is read in the time zone of the supervisor: set `TZ` on its container, or the schedules start in UTC while the Scheduler page shows them in the time of the user.
+  - What came due while no supervisor ran is skipped, not caught up.
+  - Every supervisor sharing the database (copies of the application in standalone mode) checks the schedules; each time a schedule comes due is claimed in the database first (`ScheduledStarts`), so a single one starts it. The claims are cleaned up with the history.
+  - In standalone mode the application is the supervisor, so its schedules only run while it is open, on its own worker.
 
 ## Storage and cleanup
 
@@ -177,9 +185,8 @@ storage/
 ```
 
 - The remote workers share one storage folder (`STORAGE_FOLDER`, a volume mounted in every worker and in the supervisor). The application keeps its own.
-- The executions are kept for a month. Once a day, the supervisor removes the older ones: their history (the instances of a run go with it) and their folders in the storage it is given (`STORAGE_FOLDER`, or the storage of the application in standalone mode).
-- In remote mode, the application cleans its own storage by the same rule when it starts, since the supervisor can't reach it.
-- The age is read from the name of the folder, not from the history. A folder whose name doesn't follow the pattern is left alone.
+- The executions are kept for a month. Once a day, the supervisor removes the older ones: the folder of each run in the storage it is given (`STORAGE_FOLDER`, or the storage of the application in standalone mode), then the runs themselves (their instances go with them).
+- In remote mode the supervisor can't reach the storage of the application: when it starts, the application removes its folders whose run the history doesn't hold anymore. A folder whose name doesn't follow the pattern is left alone.
 
 A table or file named in the history therefore only exists in the storage that execution wrote to, and only for a month.
 

@@ -40,11 +40,11 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
         private bool _isPausing;
 
         /// <summary>
-        /// Whether the displayed run waits to be resumed : paused, or interrupted by a crash. Only the
+        /// Whether the displayed run waits to be resumed : paused, or cut short by a crash. Only the
         /// runs of an application are resumed from the editor, the supervisor resuming its own.
         /// </summary>
         public bool CanResume => !IsRunning
-            && DisplayedRun is { State: EnumTaskState.Paused or EnumTaskState.Interrupted, ApplicationId: not null };
+            && DisplayedRun is { State: EnumTaskState.Suspended, ApplicationId: not null };
 
         /// <summary>A page is open, the run not being answered twice at once.</summary>
         private bool _isAnswering;
@@ -220,7 +220,7 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
         }
 
         /// <summary>
-        /// Resume the displayed run where it was paused or interrupted, following it as it goes on :
+        /// Resume the displayed run where it was suspended, following it as it goes on :
         /// what it already did stays drawn.
         /// </summary>
         [RelayCommand(CanExecute = nameof(CanResume))]
@@ -314,14 +314,6 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
                 Apply(instance);
             ReleaseHeldReports();
             EndIfOver();
-
-            int missing = instances.Count(x => x.NodeId is Guid nodeId && _nodes.All(node => node.Model.Id != nodeId));
-            if (missing > 0)
-            {
-                _toasts.Warning(
-                    "The workflow changed since it ran : what they did isn't drawn.",
-                    $"{missing} node(s) of the run aren't in the graph anymore");
-            }
         }
 
         /// <summary>
@@ -499,14 +491,12 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
                 case EnumTaskState.Canceled:
                     _toasts.Warning($"The workflow '{name}' has been canceled.", "Workflow canceled");
                     break;
-                case EnumTaskState.Paused:
-                    _toasts.Info($"The workflow '{name}' is paused, resume it from here or from its history.", "Workflow paused");
+                case EnumTaskState.Suspended:
+                    // The output of a suspended run tells why : a pause, or the process running it gone.
+                    _toasts.Warning($"{instance.Output?.ToString()} Resume it from here or from its history.", $"Workflow '{name}' suspended");
                     break;
                 case EnumTaskState.AwaitingUser:
                     _toasts.Info($"The workflow '{name}' waits for you to answer one of its tasks.", "Workflow waiting for you");
-                    break;
-                case EnumTaskState.Interrupted:
-                    _toasts.Warning($"The run of '{name}' was cut short, resume it from here or from its history.", "Workflow interrupted");
                     break;
                 default:
                     // The failure of a task is stored as its stack trace, only its first line is

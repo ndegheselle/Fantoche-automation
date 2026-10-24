@@ -93,10 +93,7 @@
                     <DataTrigger Binding="{Binding State}" Value="Canceled">
                         <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.WarningBrush}}" />
                     </DataTrigger>
-                    <DataTrigger Binding="{Binding State}" Value="Interrupted">
-                        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}" />
-                    </DataTrigger>
-                    <DataTrigger Binding="{Binding State}" Value="Paused">
+                    <DataTrigger Binding="{Binding State}" Value="Suspended">
                         <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.WarningBrush}}" />
                     </DataTrigger>
                     <DataTrigger Binding="{Binding State}" Value="AwaitingUser">
@@ -145,11 +142,7 @@
                         <Setter Property="Text" Value="{x:Static jonts:LucideFontIcons.CircleSlash2}" />
                         <Setter Property="Foreground" Value="{DynamicResource {x:Static joufflu:Brushes.WarningBrush}}" />
                     </DataTrigger>
-                    <DataTrigger Binding="{Binding State}" Value="Interrupted">
-                        <Setter Property="Text" Value="{x:Static jonts:LucideFontIcons.Unplug}" />
-                        <Setter Property="Foreground" Value="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}" />
-                    </DataTrigger>
-                    <DataTrigger Binding="{Binding State}" Value="Paused">
+                    <DataTrigger Binding="{Binding State}" Value="Suspended">
                         <Setter Property="Text" Value="{x:Static jonts:LucideFontIcons.CirclePause}" />
                         <Setter Property="Foreground" Value="{DynamicResource {x:Static joufflu:Brushes.WarningBrush}}" />
                     </DataTrigger>

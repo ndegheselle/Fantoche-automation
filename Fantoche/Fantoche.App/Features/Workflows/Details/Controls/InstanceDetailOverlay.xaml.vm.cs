@@ -18,7 +18,7 @@ namespace Fantoche.App.Features.Workflows.Details.Controls
     /// actually failed.
     /// </para>
     /// <para>
-    /// An interrupted run is resumed from here : by this application for the runs it started, by the
+    /// A suspended run is resumed from here : by this application for the runs it started, by the
     /// supervisor for the ones it dispatched.
     /// </para>
     /// </summary>
@@ -48,11 +48,11 @@ namespace Fantoche.App.Features.Workflows.Details.Controls
         public bool HasChildren => Children.Count > 0;
 
         /// <summary>
-        /// Whether this application can resume the run : an interrupted or paused one it started, or
+        /// Whether this application can resume the run : a suspended one it started, or
         /// one the supervisor dispatched. The rest of the rules are checked as it is resumed.
         /// </summary>
         public bool CanResume => Instance.ParentInstanceId == null
-            && Instance.State is EnumTaskState.Interrupted or EnumTaskState.Paused
+            && Instance.State == EnumTaskState.Suspended
             && (Instance.ApplicationId == null || Instance.ApplicationId == Environment.MachineName);
 
         /// <summary>
@@ -128,7 +128,7 @@ namespace Fantoche.App.Features.Workflows.Details.Controls
             => child == null ? Task.CompletedTask : ShowAsync(child);
 
         /// <summary>
-        /// Resume the run where it was interrupted, then close the detail : the history follows it
+        /// Resume the run where it was suspended, then close the detail : the history follows it
         /// from there.
         /// </summary>
         [RelayCommand]

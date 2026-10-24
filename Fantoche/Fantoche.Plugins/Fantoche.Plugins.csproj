@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- 6.5 and later are AGPL : stay on the MIT 6.2 line. -->
+    <!-- 6.5 and later are under the AGPL, which the PDF task chooses as it loads (see PdfTask). -->
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Common" Version="10.0.13" />
     <PackageReference Include="PDFsharp" Version="6.5.0" />
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />

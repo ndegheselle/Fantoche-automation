@@ -44,7 +44,6 @@ public static class ScopedApi
         });
 
         elements.MapGet("/{id:guid}/children", (LocalScopedService scoped, Guid id) => scoped.GetChildrensAsync(id));
-        elements.MapGet("/{id:guid}/graph-task-ids", (LocalScopedService scoped, Guid id) => scoped.GetGraphTaskIdsAsync(id));
         elements.MapGet("/{id:guid}/usages", (LocalScopedService scoped, Guid id) => scoped.GetUsagesAsync(id));
         elements.MapGet("/{id:guid}/context", (LocalScopedService scoped, Guid id) => scoped.GetContextAsync(id));
         elements.MapGet("/{id:guid}/name-unique", (LocalScopedService scoped, Guid id, string name, Guid? excludeId)

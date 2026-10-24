@@ -32,9 +32,6 @@ public class RemoteScopedService : IScopedService
     public Task<List<ScopedElement>> GetAsync(IReadOnlyCollection<Guid> elementIds)
         => _http.SendAsync<IReadOnlyCollection<Guid>, List<ScopedElement>>(HttpMethod.Post, "elements/query", elementIds);
 
-    public Task<List<Guid>> GetGraphTaskIdsAsync(Guid workflowId)
-        => _http.GetAsync<List<Guid>>($"elements/{workflowId}/graph-task-ids");
-
     public Task<Paginated<BaseAutomationTask>> SearchAsync(string search = "", PaginationOptions options = default)
         => _http.GetAsync<Paginated<BaseAutomationTask>>(
             $"elements/search?search={SupervisorHttp.Query(search)}&page={options.Page}&pageSize={options.PageSize}");

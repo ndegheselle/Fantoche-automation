@@ -25,7 +25,7 @@ public interface IExecutionService
     public Task<TaskInstance> StartAsync(Guid taskId, JToken? parameters = null);
 
     /// <summary>
-    /// Resume the interrupted run [runId] this application started : its interrupted nodes run
+    /// Resume the suspended or answered run [runId] this application started : the nodes it was running run
     /// again, the rest of it carrying on from what the history holds. Returns as soon as it runs,
     /// like <see cref="StartAsync"/>.
     /// </summary>
@@ -40,7 +40,7 @@ public interface IExecutionService
 
     /// <summary>
     /// Cancel the running execution [instanceId], every node it runs included. A paused or
-    /// interrupted run of this application is canceled rather than left to be resumed. A no-op for
+    /// suspended run of this application is canceled rather than left to be resumed. A no-op for
     /// a run that is over.
     /// </summary>
     /// <exception cref="ExecutionException">The run is run by another application.</exception>
@@ -48,7 +48,7 @@ public interface IExecutionService
 
     /// <summary>
     /// Pause the running workflow [instanceId] : the nodes it runs finish, no other task starts, and
-    /// it ends <see cref="EnumTaskState.Paused"/>, to be resumed (see <see cref="ResumeAsync"/>). A
+    /// it ends <see cref="EnumTaskState.Suspended"/>, to be resumed (see <see cref="ResumeAsync"/>). A
     /// task on its own simply runs to its end.
     /// </summary>
     /// <exception cref="ExecutionException">The run isn't run by this application.</exception>

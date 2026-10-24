@@ -1,6 +1,7 @@
 using System.Globalization;
 using Fantoche.Plugins.Shared;
 using NJsonSchema.Annotations;
+using PdfSharp;
 using PdfSharp.Drawing;
 using PdfSharp.Fonts;
 using PdfSharp.Pdf;
@@ -53,6 +54,10 @@ public class PdfTask : BaseTask<PdfParameters, PdfOutput>
         // the same on every worker. PDFsharp refuses a second resolver, and another load of the plugin
         // sharing the same PDFsharp may already have set one.
         GlobalFontSettings.FontResolver ??= new EmbeddedFontResolver();
+
+        // From 6.5 on, PDFsharp refuses to write a document until a license is chosen : the plugin
+        // is under its free one, the AGPL.
+        PdfSharpLicense.SetAgplLicense();
     }
 
     public override async Task<PdfOutput> DoAsync(PdfParameters parameters, ITaskRuntime runtime, CancellationToken? cancellation = null)

@@ -8,6 +8,8 @@ services:
     environment:
       - DATA_FOLDER=/app/data
       - STORAGE_FOLDER=/app/storage
+      # What the crons of the schedules are read in, UTC when unset.
+      - TZ=${TZ:-Etc/UTC}
     ports:
       - "8080:8080"
       - "8081:8081"

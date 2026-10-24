@@ -4,6 +4,7 @@ using Fantoche.Services.Local;
 using Fantoche.Services.Remote;
 using Fantoche.Shared.Data.Graph;
 using Fantoche.Shared.Data.Scoped;
+using Fantoche.Shared.Services;
 using Fantoche.Supervisor.Api;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Data.Sqlite;
@@ -65,18 +66,23 @@ internal sealed class GraphVersionsTests
             await _api.DisposeAsync();
     }
 
-    /// <summary>A stored workflow, version 1 : <c>Start ─> First(+10) ─> End</c>.</summary>
-    private async Task<AutomationWorkflow> StoreLineAsync()
+    /// <summary><c>Start ─> First(+10) ─> End</c></summary>
+    private TestWorkflow BuildLine(string name = "Line") => new TestWorkflow(name)
+        .Start()
+        .Task("First", _test, new { Message = "first", Value = "$previous.Value", Add = 10 })
+        .End(new { Value = "$previous.Value", Message = "$previous.Message" })
+        .Chain("Start", "First", "End");
+
+    /// <summary>[workflow] stored, version 1.</summary>
+    private async Task<AutomationWorkflow> StoreAsync(TestWorkflow workflow)
     {
-        TestWorkflow line = new TestWorkflow("Line")
-            .Start()
-            .Task("First", _test, new { Message = "first", Value = "$previous.Value", Add = 10 })
-            .End(new { Value = "$previous.Value", Message = "$previous.Message" })
-            .Chain("Start", "First", "End");
-        line.Workflow.ParentId = Scope.Root.Id;
-        await _supervisor.Scoped.CreateAsync(line.Workflow);
-        return await ReadAsync(line.Workflow.Id);
+        workflow.Workflow.ParentId = Scope.Root.Id;
+        await _supervisor.Scoped.CreateAsync(workflow.Workflow);
+        return await ReadAsync(workflow.Workflow.Id);
     }
+
+    /// <summary>The line stored, version 1.</summary>
+    private Task<AutomationWorkflow> StoreLineAsync() => StoreAsync(BuildLine());
 
     private async Task<AutomationWorkflow> ReadAsync(Guid workflowId)
         => (AutomationWorkflow)(await _supervisor.Scoped.GetAsync(workflowId))!;
@@ -200,5 +206,50 @@ internal sealed class GraphVersionsTests
         AutomationWorkflow workflow = await StoreLineAsync();
 
         Assert.That(await _supervisor.Scoped.GetVersionAsync(workflow.Id, 5), Is.Null);
+    }
+
+    [Test]
+    public async Task PastVersion_RunsWithTheTasksItPointsAt()
+    {
+        AutomationWorkflow workflow = await StoreLineAsync();
+        // Version 2 runs straight from the start to the end : no node points at the task anymore.
+        GraphConnector startOutput = Node(workflow, "Start").Outputs.Single();
+        GraphConnector endInput = Node(workflow, "End").Inputs.Single();
+        workflow.Graph.Nodes.Remove(Node(workflow, "First"));
+        workflow.Graph.Connections.Clear();
+        workflow.Graph.Connections.Add(new GraphConnection { SourceId = startOutput.Id, TargetId = endInput.Id });
+        await _supervisor.Scoped.EditAsync(workflow);
+
+        var past = (AutomationWorkflow)await ScopedServiceExtensions.LoadRunnableAsync(_supervisor.Scoped, workflow.Id, version: 1);
+
+        Assert.That(Node(past, "First").AutomationTask?.Id, Is.EqualTo(_test.Id));
+    }
+
+    [Test]
+    public async Task NestedWorkflow_IsReadAtTheVersionTheRunStartedOn()
+    {
+        TestWorkflow line = BuildLine("Inner line");
+        AutomationWorkflow inner = await StoreAsync(line);
+        AutomationWorkflow outer = await StoreAsync(new TestWorkflow("Outer")
+            .Start()
+            .Nested("Inner", line, new { Value = "$previous.Value" })
+            .End(new { Value = "$previous.Value" })
+            .Chain("Start", "Inner", "End"));
+        // The versions a run of it keeps as it starts.
+        var started = (AutomationWorkflow)await ScopedServiceExtensions.LoadRunnableAsync(_supervisor.Scoped, outer.Id);
+        Dictionary<Guid, int> versions = ScopedServiceExtensions.NestedVersionsOf(started);
+
+        await ChangeFirstAsync(inner);
+        var resumed = (AutomationWorkflow)await ScopedServiceExtensions.LoadRunnableAsync(_supervisor.Scoped, started.Id, started.Version, versions);
+        var latest = (AutomationWorkflow)await ScopedServiceExtensions.LoadRunnableAsync(_supervisor.Scoped, started.Id);
+
+        Assert.Multiple(() =>
+        {
+            var resumedInner = (AutomationWorkflow)Node(resumed, "Inner").AutomationTask!;
+            var latestInner = (AutomationWorkflow)Node(latest, "Inner").AutomationTask!;
+            Assert.That(resumedInner.Version, Is.EqualTo(1));
+            Assert.That(Node(resumedInner, "First").InputTemplateJson, Does.Contain("10"));
+            Assert.That(latestInner.Version, Is.EqualTo(2));
+        });
     }
 }

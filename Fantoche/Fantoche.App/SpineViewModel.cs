@@ -101,7 +101,7 @@ public class SpineViewModel : ObservableObject
         // again. The copies running side by side on the machine tell their runs apart by session.
         RunnerSessions sessions = new(Path.Combine(Settings.LocalFolderPath, "application-sessions"));
         ExecutionService execution = new(supervisor.Scoped, supervisor.History, worker, Environment.MachineName, sessions);
-        _ = InterruptLeftRunsAsync(execution);
+        _ = SuspendLeftRunsAsync(execution);
         services.AddSingleton<IExecutionService>(execution);
         services.AddSingleton(new UserPrompts(
             supervisor.Scoped,
@@ -161,25 +161,44 @@ public class SpineViewModel : ObservableObject
     }
 
     /// <summary>
-    /// What a copy of the application left running as it stopped is interrupted, so it can be
-    /// resumed : now, then every minute since another copy can stop while this one runs. The
-    /// supervisor is waited for in remote mode.
+    /// What a copy of the application left running as it stopped is suspended as this one starts,
+    /// so it can be resumed. The supervisor is waited for in remote mode.
     /// </summary>
-    private static async Task InterruptLeftRunsAsync(ExecutionService execution)
+    private static async Task SuspendLeftRunsAsync(ExecutionService execution)
     {
-        using PeriodicTimer timer = new(TimeSpan.FromMinutes(1));
-        do
+        while (true)
         {
             try
             {
-                await execution.InterruptLeftRunsAsync();
+                await execution.SuspendLeftRunsAsync();
+                return;
             }
             catch (HttpRequestException)
             {
-                // The supervisor isn't reachable yet : the next tick tries again.
+                await Task.Delay(TimeSpan.FromSeconds(5));
             }
         }
-        while (await timer.WaitForNextTickAsync());
+    }
+
+    /// <summary>
+    /// Remove the storage of the runs of the application the history doesn't hold anymore, the
+    /// supervisor being waited for.
+    /// </summary>
+    private static async Task CleanStorageAsync(ISupervisor supervisor, string storageFolder)
+    {
+        while (true)
+        {
+            try
+            {
+                IReadOnlyList<Guid> runIds = await supervisor.History.GetRunIdsAsync(Environment.MachineName);
+                new ExecutionStorages(storageFolder).RemoveAllBut(runIds.ToHashSet());
+                return;
+            }
+            catch (HttpRequestException)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(5));
+            }
+        }
     }
 
     /// <param name="storageFolder">The storage of the worker of the application, its only worker.</param>
@@ -189,12 +208,14 @@ public class SpineViewModel : ObservableObject
         // Take the cost of opening the database off the first navigation.
         _ = Task.Run(supervisor.WarmUpDatabase);
         _ = supervisor.RunCleanupAsync(CancellationToken.None);
+        // Started on the worker of the application, its only worker.
+        _ = supervisor.Scheduler.RunAsync(CancellationToken.None);
         return supervisor;
     }
 
     /// <param name="storageFolder">
-    /// The storage of the worker of the application, out of reach of the supervisor : cleaned here
-    /// by the same rule.
+    /// The storage of the worker of the application, out of reach of the supervisor : the folders
+    /// of the runs it removed are removed here.
     /// </param>
     private ISupervisor CreateSupervisorClient(string storageFolder)
     {
@@ -202,7 +223,7 @@ public class SpineViewModel : ObservableObject
         // Listens to the changes of the history and of the dispatch as soon as the supervisor is up.
         _ = supervisor.History.StartAsync();
         _ = supervisor.Dispatch.StartAsync();
-        _ = Task.Run(() => ExecutionStorages.RemoveStartedBefore(storageFolder, LocalSupervisor.CleanupCutoff(DateTime.UtcNow)));
+        _ = CleanStorageAsync(supervisor, storageFolder);
         return supervisor;
     }
 

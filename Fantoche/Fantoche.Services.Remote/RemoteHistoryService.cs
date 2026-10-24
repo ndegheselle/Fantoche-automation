@@ -64,6 +64,12 @@ public sealed class RemoteHistoryService : IHistoryService, IAsyncDisposable
     public async Task<IReadOnlyList<TaskInstance>> GetDescendantsAsync(Guid instanceId)
         => await _http.GetAsync<List<TaskInstance>>($"history/instances/{instanceId}/descendants");
 
+    public async Task<IReadOnlyList<Guid>> GetRunIdsAsync(string? applicationId)
+    {
+        string query = applicationId == null ? "" : $"?applicationId={SupervisorHttp.Query(applicationId)}";
+        return await _http.GetAsync<List<Guid>>($"history/runs/ids{query}");
+    }
+
     public async Task<IReadOnlyList<TaskInstance>> GetUnfinishedRunsAsync(string? applicationId)
     {
         string query = applicationId == null ? "" : $"?applicationId={SupervisorHttp.Query(applicationId)}";
@@ -73,7 +79,8 @@ public sealed class RemoteHistoryService : IHistoryService, IAsyncDisposable
     public Task<bool> AnswerAsync(Guid instanceId, JToken answer)
         => _http.SendAsync<JToken, bool>(HttpMethod.Post, $"history/instances/{instanceId}/answer", answer);
 
-    public Task InterruptRunAsync(Guid runId) => _http.PostAsync($"history/runs/{runId}/interrupt");
+    public Task SuspendRunAsync(Guid runId, string reason)
+        => _http.PostAsync($"history/runs/{runId}/suspend?reason={SupervisorHttp.Query(reason)}");
 
     public Task<bool> ClaimRunAsync(Guid runId, string sessionId)
         => _http.PostAsync<bool>($"history/runs/{runId}/claim?sessionId={SupervisorHttp.Query(sessionId)}");

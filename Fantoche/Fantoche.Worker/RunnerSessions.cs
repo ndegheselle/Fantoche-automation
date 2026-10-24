@@ -63,14 +63,17 @@ public sealed class RunnerSessions : IDisposable
 
     /// <summary>
     /// Mark the runs of [applicationId] (null for the ones the supervisor dispatches) whose process
-    /// is gone as interrupted, so they can be resumed. The ones a living session runs are left alone.
+    /// is gone as suspended, so they can be resumed. The ones a living session runs are left alone.
     /// </summary>
-    public async Task InterruptLeftRunsAsync(IHistoryService history, string? applicationId)
+    public async Task SuspendLeftRunsAsync(IHistoryService history, string? applicationId)
     {
+        string reason = applicationId == null
+            ? "The supervisor running it stopped."
+            : "The copy of the application running it stopped.";
         IReadOnlyList<TaskInstance> unfinished = await history.GetUnfinishedRunsAsync(applicationId);
         IEnumerable<TaskInstance> left = unfinished.Where(x => !IsAlive(x.SessionId));
         foreach (TaskInstance run in left)
-            await history.InterruptRunAsync(run.Id);
+            await history.SuspendRunAsync(run.Id, reason);
     }
 
     private string PathOf(string sessionId) => Path.Combine(_folder, $"{sessionId}.lock");

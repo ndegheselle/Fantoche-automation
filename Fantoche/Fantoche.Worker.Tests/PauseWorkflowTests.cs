@@ -72,7 +72,8 @@ internal sealed class PauseWorkflowTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(paused.Instance.State, Is.EqualTo(EnumTaskState.Paused));
+            Assert.That(paused.Instance.State, Is.EqualTo(EnumTaskState.Suspended));
+            Assert.That(paused.Instance.Output?.Value<string>(), Is.EqualTo("Paused by the user."), "it tells why");
             Assert.That(paused.History.Single(x => x.NodeName == "Wait").State, Is.EqualTo(EnumTaskState.Completed));
             Assert.That(paused.History.Where(x => x.NodeName == "Second"), Is.Empty, "no task starts once paused");
         });
@@ -124,8 +125,8 @@ internal sealed class PauseWorkflowTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(paused.Instance.State, Is.EqualTo(EnumTaskState.Paused));
-            Assert.That(paused.History.Single(x => x.NodeName == "Inner").State, Is.EqualTo(EnumTaskState.Paused));
+            Assert.That(paused.Instance.State, Is.EqualTo(EnumTaskState.Suspended));
+            Assert.That(paused.History.Single(x => x.NodeName == "Inner").State, Is.EqualTo(EnumTaskState.Suspended));
             Assert.That(run.CompletionsOf("Second"), Is.EqualTo(1));
             Assert.That(run.Instance.Output?["Value"]?.Value<int>(), Is.EqualTo(1111));
         });
