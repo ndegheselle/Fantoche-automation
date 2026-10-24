@@ -41,8 +41,13 @@
         /// </summary>
         Paused = 128,
         /// <summary>
+        /// A user interface task waiting for the answer of the user, or a run holding one. Nothing
+        /// runs it meanwhile : the answer resumes the run.
+        /// </summary>
+        AwaitingUser = 256,
+        /// <summary>
         /// Nothing runs the task anymore : it is over, or waits to be resumed
         /// </summary>
-        Finished = Completed | Failed | Canceled | Interrupted | Paused
+        Finished = Completed | Failed | Canceled | Interrupted | Paused | AwaitingUser
     }
 }

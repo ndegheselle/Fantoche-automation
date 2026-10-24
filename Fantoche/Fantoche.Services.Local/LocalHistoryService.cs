@@ -4,6 +4,7 @@ using Fantoche.Shared.Base;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Services;
 using Dapper;
+using Newtonsoft.Json.Linq;
 
 namespace Fantoche.Services.Local;
 
@@ -143,7 +144,7 @@ public class LocalHistoryService : IHistoryService
             // In one statement : another process resuming it at the same time reads it the same.
             claimed = await connection.ExecuteAsync("""
                 UPDATE TaskInstances SET State = @progressing, SessionId = @sessionId
-                WHERE Id = @runId AND State IN (@interrupted, @paused);
+                WHERE Id = @runId AND State IN (@interrupted, @paused, @awaitingUser);
                 """,
                 new
                 {
@@ -152,6 +153,7 @@ public class LocalHistoryService : IHistoryService
                     progressing = (int)EnumTaskState.Progressing,
                     interrupted = (int)EnumTaskState.Interrupted,
                     paused = (int)EnumTaskState.Paused,
+                    awaitingUser = (int)EnumTaskState.AwaitingUser,
                 });
         }
         finally
@@ -165,6 +167,41 @@ public class LocalHistoryService : IHistoryService
         TaskInstance? run = await GetAsync(runId);
         if (run != null)
             InstanceUpdated?.Invoke(run);
+        return true;
+    }
+
+    public async Task<bool> AnswerAsync(Guid instanceId, JToken answer)
+    {
+        int answered;
+        await _writeLock.WaitAsync();
+        try
+        {
+            using var connection = _databaseFactory.Create();
+            // In one statement : two users answering at once both read it waiting.
+            answered = await connection.ExecuteAsync("""
+                UPDATE TaskInstances SET State = @completed, Output = @answer, FinishedAt = @now
+                WHERE Id = @instanceId AND State = @awaitingUser;
+                """,
+                new
+                {
+                    instanceId,
+                    answer = answer.ToString(Newtonsoft.Json.Formatting.None),
+                    now = DateTime.UtcNow,
+                    completed = (int)EnumTaskState.Completed,
+                    awaitingUser = (int)EnumTaskState.AwaitingUser,
+                });
+        }
+        finally
+        {
+            _writeLock.Release();
+        }
+
+        if (answered == 0)
+            return false;
+
+        TaskInstance? instance = await GetAsync(instanceId);
+        if (instance != null)
+            InstanceUpdated?.Invoke(instance);
         return true;
     }
 

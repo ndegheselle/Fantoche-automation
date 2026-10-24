@@ -70,6 +70,15 @@ public class WorkflowExecutor
             return workflowInstance;
         }
 
+        // Held by a node waiting for the user : the answer resumes the run from there.
+        bool isAwaitingUser = resolution.NodeInstances.Values.SelectMany(x => x).Any(x => x.State == EnumTaskState.AwaitingUser);
+        if (endInstances.Count == 0 && isAwaitingUser)
+        {
+            workflowInstance.State = EnumTaskState.AwaitingUser;
+            progress?.StateChanges?.Report(workflowInstance);
+            return workflowInstance;
+        }
+
         return EndAsync(workflowInstance, endInstances, progress);
     }
 
@@ -143,8 +152,11 @@ public class WorkflowExecutor
 
             // Only a task can be left running : a control is reported once resolved, a join waiting
             // being the exception, and it waits on.
-            // A nested run paused along with this one resumes the same way.
-            bool wasRunning = instance.State is EnumTaskState.Pending or EnumTaskState.Progressing or EnumTaskState.Interrupted or EnumTaskState.Paused;
+            // A nested run paused along with this one, or held by its own user interface, resumes
+            // the same way. A user interface task itself waits on until it is answered.
+            bool isHeldNestedRun = instance is WorkflowInstance && instance.State == EnumTaskState.AwaitingUser;
+            bool wasRunning = isHeldNestedRun
+                || instance.State is EnumTaskState.Pending or EnumTaskState.Progressing or EnumTaskState.Interrupted or EnumTaskState.Paused;
             if (wasRunning && instance.Node is not GraphControl)
             {
                 instance.State = EnumTaskState.Progressing;

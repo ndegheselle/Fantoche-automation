@@ -1,5 +1,6 @@
 ﻿using Fantoche.Shared.Base;
 using Fantoche.Shared.Data.Execution;
+using Newtonsoft.Json.Linq;
 
 namespace Fantoche.Shared.Services;
 
@@ -33,7 +34,13 @@ public interface IHistoryService
     public Task InterruptRunAsync(Guid runId);
 
     /// <summary>
-    /// Take the interrupted or paused run [runId] for the session [sessionId] about to resume it :
+    /// Store [answer] as the output of [instanceId], a task waiting for the user, which completes
+    /// it : false when it doesn't wait anymore, someone having answered first.
+    /// </summary>
+    public Task<bool> AnswerAsync(Guid instanceId, JToken answer);
+
+    /// <summary>
+    /// Take the interrupted, paused or answered run [runId] for the session [sessionId] about to resume it :
     /// false when it isn't interrupted or paused anymore, another process having taken it first.
     /// </summary>
     public Task<bool> ClaimRunAsync(Guid runId, string sessionId);

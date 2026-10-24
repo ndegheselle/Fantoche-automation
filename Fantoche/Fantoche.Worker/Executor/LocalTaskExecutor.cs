@@ -98,6 +98,15 @@ public class LocalTaskExecutor : ITaskExecutor
 
         var task = await _tasks.CreateAsync(target);
 
+        // Answered by the user rather than run : the branch holds here, nothing running meanwhile,
+        // and the answer resumes the run (see UserAnswers).
+        if (task is IUserInterfaceTask)
+        {
+            instance.Output = null;
+            instance.State = EnumTaskState.AwaitingUser;
+            return instance;
+        }
+
         // Pass-through with no parameters: nothing to deserialize, nothing for the plugin
         // to do — short-circuit before forcing a TInput-typed conversion that would throw.
         if (task.IsPassThrough() && instance.Parameters == null)

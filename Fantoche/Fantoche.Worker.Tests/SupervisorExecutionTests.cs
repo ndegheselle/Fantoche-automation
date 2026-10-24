@@ -206,6 +206,36 @@ internal sealed class SupervisorExecutionTests
         return await StoreAsync(line.Workflow);
     }
 
+    /// <summary>
+    /// A stored workflow asking the user to reorder its items : <c>Start ─> Ask ─> End</c>, and
+    /// the stored task it asks with.
+    /// </summary>
+    private async Task<(AutomationWorkflow Workflow, AutomationTask Reorder)> StoreAskAsync()
+    {
+        AutomationTask reorder = await StoreAsync(PluginTasks.Make(
+            "Fantoche.Plugins.UserInterfaces.ReorderTask", "Reorder",
+            JsonSchema.FromType<Plugins.UserInterfaces.ReorderParameters>(), JsonSchema.FromType<Plugins.UserInterfaces.ReorderResult>()));
+        TestWorkflow ask = new TestWorkflow("Ask", requireOutput: false)
+            .Start()
+            .Task("Ask", reorder, new { Title = "Sort them", Items = "$previous.Items" })
+            .End(new { Items = "$previous.Items" })
+            .Chain("Start", "Ask", "End");
+        return (await StoreAsync(ask.Workflow), reorder);
+    }
+
+    /// <summary>A run of the ask workflow, held by its user interface task : the run and the task waiting.</summary>
+    private async Task<(TaskInstance Run, TaskInstance Ask)> StartAskAsync(ExecutionService execution)
+    {
+        var (workflow, _) = await StoreAskAsync();
+        TaskInstance started = await execution.StartAsync(workflow.Id, JToken.FromObject(new { Items = new[] { "a", "b" } }));
+        TaskInstance run = await execution.WaitAsync(started.Id);
+        TaskInstance ask = (await _supervisor.History.GetChildrenAsync(run.Id)).Single(x => x.NodeName == "Ask");
+        return (run, ask);
+    }
+
+    private Task<TaskInstance> AnswerAsync(Guid instanceId, object answer) => Shared.Services.UserAnswers.SubmitAsync(
+        _supervisor.Scoped, _supervisor.History, instanceId, JToken.FromObject(answer), ApplicationId);
+
     /// <summary>[node] of [runId] reached [state] in the history.</summary>
     private async Task WaitForNodeAsync(Guid runId, string node, EnumTaskState state)
     {
@@ -603,6 +633,60 @@ internal sealed class SupervisorExecutionTests
 
         Assert.That((await _supervisor.History.GetAsync(started.Id))?.State, Is.EqualTo(EnumTaskState.Canceled));
         await Assert.ThrowsAsync<Shared.Services.ExecutionException>(() => execution.ResumeAsync(started.Id), "a canceled run isn't resumed");
+    }
+
+    [Test]
+    public async Task AnsweredRun_CarriesOnWithTheAnswer()
+    {
+        ExecutionService execution = ApplicationExecution();
+        var (held, ask) = await StartAskAsync(execution);
+
+        TaskInstance run = await AnswerAsync(ask.Id, new { Items = new[] { "b", "a" } });
+        await execution.ResumeAsync(run.Id);
+        TaskInstance ended = await execution.WaitAsync(run.Id);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(held.State, Is.EqualTo(EnumTaskState.AwaitingUser));
+            Assert.That(ended.State, Is.EqualTo(EnumTaskState.Completed));
+            Assert.That(ended.Output?["Items"]?.ToObject<string[]>(), Is.EqualTo(new[] { "b", "a" }));
+        });
+    }
+
+    [Test]
+    public async Task AnswerNotFittingTheTask_IsRefused()
+    {
+        var (_, ask) = await StartAskAsync(ApplicationExecution());
+
+        await Assert.ThrowsAsync<Shared.Services.ExecutionException>(() => AnswerAsync(ask.Id, new { Items = 3 }));
+        Assert.That((await _supervisor.History.GetAsync(ask.Id))?.State, Is.EqualTo(EnumTaskState.AwaitingUser), "still waiting for an answer");
+    }
+
+    [Test]
+    public async Task TaskAnsweredTwice_IsRefusedTheSecondTime()
+    {
+        var (_, ask) = await StartAskAsync(ApplicationExecution());
+        await AnswerAsync(ask.Id, new { Items = new[] { "b", "a" } });
+
+        await Assert.ThrowsAsync<Shared.Services.ExecutionException>(() => AnswerAsync(ask.Id, new { Items = new[] { "a", "b" } }));
+    }
+
+    [Test]
+    public async Task UserInterfaceTaskOnItsOwn_IsCompletedByTheAnswer()
+    {
+        ExecutionService execution = ApplicationExecution();
+        var (_, reorder) = await StoreAskAsync();
+        TaskInstance started = await execution.StartAsync(reorder.Id, JToken.FromObject(new { Title = "Sort them", Items = new[] { "a", "b" } }));
+        TaskInstance held = await execution.WaitAsync(started.Id);
+
+        TaskInstance answered = await AnswerAsync(held.Id, new { Items = new[] { "b", "a" } });
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(held.State, Is.EqualTo(EnumTaskState.AwaitingUser));
+            Assert.That(answered.State, Is.EqualTo(EnumTaskState.Completed));
+            Assert.That(answered.Output?["Items"]?.ToObject<string[]>(), Is.EqualTo(new[] { "b", "a" }));
+        });
     }
 
     [Test]

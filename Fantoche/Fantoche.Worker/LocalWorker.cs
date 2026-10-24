@@ -61,6 +61,17 @@ public sealed class LocalWorker : ITaskExecutor, IDisposable
         return await executor.ExecuteAsync(task, instance, progress, cancellation);
     }
 
+    /// <summary>
+    /// The folder of the page of the user interface task [task], extracted from its package on this
+    /// machine : the page is shown where the user is.
+    /// </summary>
+    public Task<string> GetPageFolderAsync(AutomationTask task)
+    {
+        if (task.Target is not PackageClassTarget target)
+            throw new InvalidOperationException($"The task '{task.Metadata.Name}' isn't in a package.");
+        return _tasks.GetPageFolderAsync(target);
+    }
+
     /// <summary>An execution the supervisor dispatched.</summary>
     public Task<TaskInstance> ExecuteDispatchedAsync(
         RemoteExecution execution,

@@ -2,6 +2,7 @@ using Fantoche.Plugins.Shared;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Worker.Executor;
 using Fantoche.Worker.Packages;
+using Fantoche.Shared.Remote;
 using Fantoche.Worker.Storage;
 using Newtonsoft.Json.Linq;
 
@@ -34,6 +35,8 @@ internal sealed record NodeReport(Guid Id, string NodeName, EnumTaskState State,
 internal sealed class WorkflowRun
 {
     private readonly List<NodeReport> _reports = [];
+    /// <summary>The last state of each node reported, as the history stores it.</summary>
+    private readonly List<TaskInstance> _stored = [];
     private readonly List<TaskNotification> _notifications = [];
     private readonly object _lock = new();
 
@@ -52,6 +55,15 @@ internal sealed class WorkflowRun
     public IReadOnlyList<NodeReport> Reports
     {
         get { lock (_lock) return [.. _reports]; }
+    }
+
+    /// <summary>
+    /// What the history holds of the nodes of the run once it is over, the ones of its nested runs
+    /// included : what a resumed run is walked again from.
+    /// </summary>
+    public IReadOnlyList<TaskInstance> Stored
+    {
+        get { lock (_lock) return [.. _stored]; }
     }
 
     /// <summary>Every notification the tasks reported, in order.</summary>
@@ -97,7 +109,13 @@ internal sealed class WorkflowRun
             StateChanges = new Sink<TaskInstance>(x =>
             {
                 lock (_lock)
+                {
                     _reports.Add(NodeReport.Of(x));
+                    if (x.Id == instance.Id)
+                        return;
+                    _stored.RemoveAll(stored => stored.Id == x.Id);
+                    _stored.Add(FantocheJson.Copy<TaskInstance>(x));
+                }
             }),
             Notifications = new Sink<TaskNotification>(x =>
             {

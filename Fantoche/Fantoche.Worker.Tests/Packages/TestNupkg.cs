@@ -27,6 +27,14 @@ internal static class TestNupkg
             TargetPath = $"lib/net10.0/{Dll}.dll",
         });
 
+        // The pages of the user interface tasks, packed as the plugin project packs them.
+        string pages = Path.Combine(AppContext.BaseDirectory, "UserInterfaces");
+        foreach (string page in Directory.EnumerateFiles(pages, "*", SearchOption.AllDirectories))
+        {
+            string relative = Path.GetRelativePath(AppContext.BaseDirectory, page).Replace('\\', '/');
+            builder.Files.Add(new PhysicalPackageFile { SourcePath = page, TargetPath = $"lib/net10.0/{relative}" });
+        }
+
         Directory.CreateDirectory(folder);
         string path = Path.Combine(folder, $"{id}.{version}.nupkg");
         using FileStream stream = File.Create(path);

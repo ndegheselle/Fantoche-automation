@@ -4,6 +4,7 @@ using Fantoche.Shared.Remote;
 using Fantoche.Shared.Services;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json.Linq;
 
 namespace Fantoche.Services.Remote;
 
@@ -68,6 +69,9 @@ public sealed class RemoteHistoryService : IHistoryService, IAsyncDisposable
         string query = applicationId == null ? "" : $"?applicationId={SupervisorHttp.Query(applicationId)}";
         return await _http.GetAsync<List<TaskInstance>>($"history/runs/unfinished{query}");
     }
+
+    public Task<bool> AnswerAsync(Guid instanceId, JToken answer)
+        => _http.SendAsync<JToken, bool>(HttpMethod.Post, $"history/instances/{instanceId}/answer", answer);
 
     public Task InterruptRunAsync(Guid runId) => _http.PostAsync($"history/runs/{runId}/interrupt");
 
