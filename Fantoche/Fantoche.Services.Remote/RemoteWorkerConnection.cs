@@ -39,7 +39,7 @@ public sealed class RemoteWorkerConnection : IWorkerHub, IAsyncDisposable
 
         _connection.On<RemoteExecution>(nameof(IWorkerClient.Execute), _session.Execute);
         _connection.On<Guid>(nameof(IWorkerClient.Cancel), _session.Cancel);
-        // The supervisor fails the executions of a connection it lost.
+        // The supervisor interrupts the executions of a connection it lost, to be resumed elsewhere.
         _connection.Reconnecting += _ =>
         {
             _session.CancelAll();

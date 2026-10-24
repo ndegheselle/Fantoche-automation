@@ -113,9 +113,14 @@ public class PackageCache : IPackageManagement
         Directory.CreateDirectory(extractionFolder);
         try
         {
-            await CopyFilesAsync(packageReader, lib.Items, extractionFolder);
+            await CopyFilesAsync(packageReader, lib.Items, RootOf(lib), extractionFolder);
             await CopySymbolsAsync(id, version, extractionFolder);
             Directory.Move(extractionFolder, folder);
+        }
+        catch (IOException) when (Directory.Exists(folder))
+        {
+            // Another copy of the application extracted it at the same time : the lock above only
+            // holds within this process. Its extraction is as good as this one.
         }
         finally
         {
@@ -169,8 +174,9 @@ public class PackageCache : IPackageManagement
 
             // Only what is missing is written : the pdb of a loaded assembly is locked by the
             // debugger, and rewriting it identically would fail for nothing.
-            List<string> items = [.. lib.Items.Where(x => !File.Exists(Path.Combine(folder, Path.GetFileName(x))))];
-            await CopyFilesAsync(packageReader, items, folder);
+            string root = RootOf(lib);
+            List<string> items = [.. lib.Items.Where(x => !File.Exists(PathIn(folder, x, root)))];
+            await CopyFilesAsync(packageReader, items, root, folder);
         }
         catch (Exception)
         {
@@ -197,16 +203,36 @@ public class PackageCache : IPackageManagement
     #region Files
 
     /// <summary>
-    /// The files are written flat in [folder], where the loader resolves the dependencies of a task.
+    /// The files are written in [folder] where they stand under [root] in the package : the
+    /// assemblies next to each other, where the loader resolves the dependencies of a task, and the
+    /// page of a user interface task in its own folder (see <c>IUserInterfaceTask.PageFolder</c>).
+    /// A file out of [root] is written at the top.
     /// </summary>
-    private static async Task CopyFilesAsync(PackageArchiveReader packageReader, IEnumerable<string> items, string folder)
+    private static async Task CopyFilesAsync(PackageArchiveReader packageReader, IEnumerable<string> items, string root, string folder)
     {
         foreach (string item in items)
         {
+            string path = PathIn(folder, item, root);
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
             await using Stream source = packageReader.GetStream(item);
-            await using FileStream target = File.Create(Path.Combine(folder, Path.GetFileName(item)));
+            await using FileStream target = File.Create(path);
             await source.CopyToAsync(target);
         }
+    }
+
+    /// <summary>Where the files of the framework [lib] stand in the package.</summary>
+    private static string RootOf(FrameworkSpecificGroup lib) => $"lib/{lib.TargetFramework.GetShortFolderName()}/";
+
+    /// <summary>Where [item] of the package, standing under [root], is written in [folder].</summary>
+    /// <exception cref="PackageDownloadException">[item] points out of [folder].</exception>
+    private static string PathIn(string folder, string item, string root)
+    {
+        string relative = item.StartsWith(root, StringComparison.OrdinalIgnoreCase) ? item[root.Length..] : Path.GetFileName(item);
+        string path = Path.GetFullPath(Path.Combine(folder, relative));
+        // A path of the package is only trusted to stay within the folder of the package.
+        if (!path.StartsWith(Path.GetFullPath(folder) + Path.DirectorySeparatorChar, StringComparison.Ordinal))
+            throw new PackageDownloadException($"The file [{item}] of the package points out of it.");
+        return path;
     }
 
     private static IEnumerable<string> GetDllPaths(string folder) => Directory.EnumerateFiles(folder, "*.dll");

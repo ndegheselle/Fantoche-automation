@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Net.Http;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -6,6 +7,7 @@ using Fantoche.App.Features.Packages;
 using Fantoche.App.Features.Packages.Controls;
 using Fantoche.App.Features.Scheduler;
 using Fantoche.App.Features.Settings;
+using Fantoche.App.Features.UserInterfaces;
 using Fantoche.App.Features.Workers;
 using Fantoche.App.Features.Workflows;
 using Fantoche.App.Features.Workflows.Controls;
@@ -16,6 +18,7 @@ using Fantoche.Services.Remote;
 using Fantoche.Shared.Services;
 using Fantoche.Worker;
 using Fantoche.Worker.Executor;
+using Fantoche.Worker.Storage;
 using Joufflu.Feedback;
 using Joufflu.Navigation;
 using Microsoft.Extensions.DependencyInjection;
@@ -45,6 +48,9 @@ public class SpineViewModel : ObservableObject
     public IPackagesService Packages => _provider.GetRequiredService<IPackagesService>();
     public IHistoryService History => _provider.GetRequiredService<IHistoryService>();
     public IScopedService Scoped => _provider.GetRequiredService<IScopedService>();
+    public IExecutionService Execution => _provider.GetRequiredService<IExecutionService>();
+    public IDispatchService Dispatch => _provider.GetRequiredService<IDispatchService>();
+    public UserPrompts Prompts => _provider.GetRequiredService<UserPrompts>();
     #endregion
 
     public IRelayCommand OpenSettingsCommand { get; }
@@ -76,8 +82,10 @@ public class SpineViewModel : ObservableObject
     /// </summary>
     private void AddServices(ServiceCollection services)
     {
-        ISupervisor supervisor = Settings.IsStandalone ? CreateLocalSupervisor() : CreateSupervisorClient();
-        LocalWorker worker = LocalWorker.InFolder(supervisor, Path.Combine(Settings.LocalFolderPath, "worker"));
+        string workerFolder = Path.Combine(Settings.LocalFolderPath, "worker");
+        string storageFolder = Path.Combine(workerFolder, "storage");
+        ISupervisor supervisor = Settings.IsStandalone ? CreateLocalSupervisor(storageFolder) : CreateSupervisorClient(storageFolder);
+        LocalWorker worker = LocalWorker.InFolder(supervisor, workerFolder, storageFolder);
 
         // Alone, the application is the only worker there is to run the tasks set to run on one.
         string? dispatchId = Settings.IsStandalone ? Settings.ApplicationName : null;
@@ -89,7 +97,20 @@ public class SpineViewModel : ObservableObject
         services.AddSingleton(supervisor.History);
         services.AddSingleton(supervisor.Packages);
         services.AddSingleton(supervisor.Dispatch);
-        services.AddSingleton<IExecutionService>(new ExecutionService(supervisor.Scoped, supervisor.History, worker));
+        // The machine name stays the same from one start to the next : the application finds its runs
+        // again. The copies running side by side on the machine tell their runs apart by session.
+        RunnerSessions sessions = new(Path.Combine(Settings.LocalFolderPath, "application-sessions"));
+        ExecutionService execution = new(supervisor.Scoped, supervisor.History, worker, Environment.MachineName, sessions);
+        _ = InterruptLeftRunsAsync(execution);
+        services.AddSingleton<IExecutionService>(execution);
+        services.AddSingleton(new UserPrompts(
+            supervisor.Scoped,
+            supervisor.History,
+            execution,
+            supervisor.Dispatch,
+            worker,
+            Environment.MachineName,
+            Path.Combine(Settings.LocalFolderPath, "browser")));
         services.AddSingleton(new ApplicationWorker(dispatchId));
 
         services.AddSingleton(Settings);
@@ -139,20 +160,49 @@ public class SpineViewModel : ObservableObject
         RegisterView<WorkersViewModel, WorkersPage>();
     }
 
-    private ISupervisor CreateLocalSupervisor()
+    /// <summary>
+    /// What a copy of the application left running as it stopped is interrupted, so it can be
+    /// resumed : now, then every minute since another copy can stop while this one runs. The
+    /// supervisor is waited for in remote mode.
+    /// </summary>
+    private static async Task InterruptLeftRunsAsync(ExecutionService execution)
     {
-        var supervisor = new LocalSupervisor(Settings.LocalFolderPath);
+        using PeriodicTimer timer = new(TimeSpan.FromMinutes(1));
+        do
+        {
+            try
+            {
+                await execution.InterruptLeftRunsAsync();
+            }
+            catch (HttpRequestException)
+            {
+                // The supervisor isn't reachable yet : the next tick tries again.
+            }
+        }
+        while (await timer.WaitForNextTickAsync());
+    }
+
+    /// <param name="storageFolder">The storage of the worker of the application, its only worker.</param>
+    private ISupervisor CreateLocalSupervisor(string storageFolder)
+    {
+        var supervisor = new LocalSupervisor(Settings.LocalFolderPath, storageFolder);
         // Take the cost of opening the database off the first navigation.
         _ = Task.Run(supervisor.WarmUpDatabase);
+        _ = supervisor.RunCleanupAsync(CancellationToken.None);
         return supervisor;
     }
 
-    private ISupervisor CreateSupervisorClient()
+    /// <param name="storageFolder">
+    /// The storage of the worker of the application, out of reach of the supervisor : cleaned here
+    /// by the same rule.
+    /// </param>
+    private ISupervisor CreateSupervisorClient(string storageFolder)
     {
         var supervisor = new SupervisorClient(Settings.SupervisorAddress);
         // Listens to the changes of the history and of the dispatch as soon as the supervisor is up.
         _ = supervisor.History.StartAsync();
         _ = supervisor.Dispatch.StartAsync();
+        _ = Task.Run(() => ExecutionStorages.RemoveStartedBefore(storageFolder, LocalSupervisor.CleanupCutoff(DateTime.UtcNow)));
         return supervisor;
     }
 

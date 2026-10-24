@@ -4,7 +4,7 @@ The standalone and remote modes run the same code: one supervisor (`LocalSupervi
 
 Two rules keep the interactions simple:
 - What the application starts runs in the application. The workers run what the supervisor dispatches to them: the scheduled items (to come).
-- Once a worker (the application's included) starts an execution, everything of it stays there. Every node of a workflow runs where the workflow runs, and its tables and files never leave the storage of its run.
+- Once a worker (the application's included) starts an execution, everything of it stays there. Every node of a workflow runs where the workflow runs, and its tables and files never leave the storage of its run. An interrupted run is resumed by whoever can reach that storage (see [Interrupted and paused runs](#interrupted-and-paused-runs)).
 
 ## Standalone and remote
 
@@ -67,7 +67,8 @@ sequenceDiagram
     Supervisor->>Caller: Completed(instance)
 ```
 
-- Only JSON travels: the parameters and the output. A table or file the output points at stays in the storage of the worker that wrote it.
+- Only JSON travels: the parameters and the output. A table or file the output points at stays in the storage of its run.
+- A worker lost while running an execution leaves it interrupted. A worker that reconnects meanwhile can't report on it anymore: its states are dropped.
 - Nothing in the application dispatches yet: the scheduled items will.
 
 ### Why nothing started by hand is sent to a worker
@@ -81,15 +82,91 @@ It worked, but it took a transit store in the supervisor, an HTTP API to stream 
 
 A "Run on a worker" setting on the tasks and workflows, sending a whole execution started from the application to a worker, was removed too. A run started by hand is for building and checking a workflow, close to the editor and the local files. Where an execution runs belongs to what schedules it, not to the task or workflow itself.
 
+## Interrupted and paused runs
+
+A run cut short by a crash or a lost worker is marked `Interrupted`. A run the user pauses from the editor is marked `Paused`: the nodes it runs finish, no other task starts (the controls still pass, so a run whose tasks are over reaches its end), and its nested runs pause with it. Both are resumed by hand, from the editor or from the detail of the execution ("Resume"), and both can be stopped instead, which cancels them for good.
+
+| A run started by | Is interrupted when | Is resumed by |
+| --- | --- | --- |
+| The application | The copy of the application running it is gone. Any copy checks when it starts, then every minute | Any copy of the application on the same machine (`TaskInstance.ApplicationId`, the machine name) |
+| The supervisor (dispatched) | Its worker is lost, or the supervisor running it is gone (checked when a supervisor starts) | The supervisor, on any worker with room |
+
+Several copies of the application can run side by side on a machine:
+- Each process running executions (a copy of the application, a supervisor) holds a lock file for as long as it lives (`RunnerSessions`), and marks its runs with its session (`TaskInstance.SessionId`). A run whose session holds no lock anymore was left behind.
+- A run is taken atomically as it is resumed (`IHistoryService.ClaimRunAsync`): two copies resuming it at once can't both run it.
+- In standalone mode, the copies share the database, but the history is only pushed live within a copy: another copy's runs show once the page is read again.
+
+Resuming walks the run again from its history (`WorkflowExecutor`, with `WorkflowInstance.StoredInstances`):
+- A node that was running runs again from its start, with the parameters it was given. Every task can run more than once after a crash, so a task with side effects has to bear it. A pause lets the nodes finish, so nothing runs twice.
+- A completed node is kept. Its next nodes that were never reached run.
+- A join still waiting keeps the branches that already arrived (`TaskInstance.PreviousIds` holds them), and waits for the others.
+- A nested workflow resumes from its own history.
+- A run that reached its end is only closed.
+
+What the history stores for this:
+- Each instance stores the ids of the instances it carries on from (`PreviousIds`) and the shared context it was given. Pass-through nodes and loops are walked again from these links.
+- The run stores its global context, the version of the graph it ran (`TaskInstance.WorkflowVersion`) and a hash of what it depends on (`RunDefinition`): the nodes, their mappings, their connections and the tasks they run.
+- A run resumes on the version of the graph it ran, whatever the workflow became since (see [Workflow versions](#workflow-versions)). Its nested workflows and its tasks are read as they are now: when one of them changed, the hash differs and the resume is refused.
+
+A remote run carries on in the storage of its first worker, so the workers share their storage (`STORAGE_FOLDER`).
+
+The executions still live in memory only (`ExecutionService`, `Dispatcher` and `WorkerSession` keep a handle on each running one, to cancel it or send it back to its caller). Resuming doesn't need them: everything it reads is in the history.
+
+## Workflow versions
+
+Each save that changes the graph of a workflow adds a version (`AutomationWorkflow.Version`), and every instance of a workflow keeps the version it ran (`TaskInstance.WorkflowVersion`). A run opened from the history is drawn on its own version, read only, and resumed on it.
+
+The versions are stored as reverse diffs, so a past version costs only what changed:
+
+| Table | Holds |
+| --- | --- |
+| `GraphNodes`, `GraphConnectors`, `GraphConnections` | The latest version, read as it is |
+| `GraphVersions` | One row per version. The latest has no changes; every older one keeps what turns the version after it back into itself: the nodes that changed (stored whole, with their connectors, `null` for one that didn't exist) and the connections added or removed |
+
+- A past version is rebuilt from the latest one, applying the changes of each version back down to it (`IScopedService.GetVersionAsync`). The most recent ones, the most opened, are the cheapest.
+- A save leaving the graph as it is (only the name or the settings changed) adds no version.
+- Moving a node is a change: the version stores that node again.
+- The versions of a workflow go with it when it is removed. Nothing else removes them yet: pruning one would mean merging its changes into the version before.
+
+## User interface tasks
+
+A user interface task is done by the user rather than the machine: an HTML page whose answer is the output of the task. Use one for what a form can't describe, like arranging the pages of a PDF by drag and drop, and let the next task do the work with the answer.
+
+```mermaid
+sequenceDiagram
+    participant Run as Run (application or worker)
+    participant History
+    participant App as Application
+    Run->>History: the task waits (AwaitingUser), the run holds once nothing else runs
+    App->>History: the user opens its page (Answer)
+    App->>History: the answer, checked against the output of the task
+    App->>Run: resume the run, which carries on with the answer
+```
+
+- **Writing one:** derive from `BaseUserInterfaceTask<TInput, TOutput>` and name the folder of its page (`PageFolder`, relative to the assembly). The page reads `window.fantoche.input` and answers with `await window.fantoche.answer(value)`, rejected with the reason when the answer doesn't fit `TOutput`. `window.fantoche.close()` closes it unanswered. See `ReorderTask` in `Fantoche.Plugins`.
+- **Packing it:** the folder is packed next to the assembly, the way `Fantoche.Plugins.csproj` does it:
+
+  ```xml
+  <Content Include="UserInterfaces\**\*" Exclude="UserInterfaces\**\*.cs" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="lib\$(TargetFramework)\UserInterfaces" />
+  ```
+
+  A package keeps the folders it has under `lib/<framework>` once extracted.
+- **Running it:** a run reaching the task holds that branch; nothing runs it meanwhile, no worker slot included. Once nothing else runs, the run is `AwaitingUser`. A task started on its own is completed by the answer.
+- **Answering it:** from the execution detail or the editor ("Answer"), the editor opening the page by itself for the run it follows. The page opens in a window of its own (WebView2), with the files of the package extracted on the machine of the user.
+  - Only an application that can resume the run answers it: the one that started it, or any for a dispatched run.
+  - A run still running other branches can't be answered yet, so the page only opens once the run holds.
+  - The answer is stored atomically: a second answer is refused.
+- **What the page can reach:** only the files of its folder, served under `https://page.fantoche/` with a content security policy allowing nothing from the network. No navigation elsewhere, no new window, no object of the application. Only JSON travels: the input and the answer.
+
 ## Schedules
 
 - A task or workflow holds its schedules (`BaseAutomationTask.Schedules`): a standard cron (`minute hour day-of-month month day-of-week`, read in local time) and the parameters each run starts with, checked against its input schema.
 - They're edited in its Schedules tab, each change saved right away. The Scheduler page lists them all and lays out their runs over the next 7 days, hour by hour, to see where they pile up.
 - Nothing runs them yet: the supervisor will dispatch them to the workers.
 
-## Storage and retention
+## Storage and cleanup
 
-Each worker, the application's included, keeps one storage folder per execution it runs. The nodes of a workflow write into the folder of its run.
+Each execution has its own storage folder. The nodes of a workflow write into the folder of its run.
 
 ```text
 storage/
@@ -99,11 +176,12 @@ storage/
       files/f_{id}/{name}
 ```
 
-Only the last executions of each task or workflow keep their folder: 10 by default, set on the task or the workflow ("Executions keeping their storage", `TaskSettings.StorageRetention`). Each worker applies this to its own folders:
-- The older folders are deleted when an execution ends, but never the folder of an execution still running.
-- The count is taken from the task or workflow the execution started from, wherever it runs.
+- The remote workers share one storage folder (`STORAGE_FOLDER`, a volume mounted in every worker and in the supervisor). The application keeps its own.
+- The executions are kept for a month. Once a day, the supervisor removes the older ones: their history (the instances of a run go with it) and their folders in the storage it is given (`STORAGE_FOLDER`, or the storage of the application in standalone mode).
+- In remote mode, the application cleans its own storage by the same rule when it starts, since the supervisor can't reach it.
+- The age is read from the name of the folder, not from the history. A folder whose name doesn't follow the pattern is left alone.
 
-A table or file named in the history therefore only exists on the worker that wrote it, and only while it is within the retention count.
+A table or file named in the history therefore only exists in the storage that execution wrote to, and only for a month.
 
 ## Workers and pending executions
 

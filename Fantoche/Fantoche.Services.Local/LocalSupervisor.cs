@@ -5,7 +5,7 @@ using Fantoche.Shared.Remote;
 using Fantoche.Shared.Services;
 using Fantoche.Worker;
 using Fantoche.Worker.Packages;
-using Newtonsoft.Json.Linq;
+using Fantoche.Worker.Storage;
 
 namespace Fantoche.Services.Local;
 
@@ -16,6 +16,9 @@ namespace Fantoche.Services.Local;
 /// <para>
 /// Its data folder holds its database ("fantoche.db"), the packages ("nuget"), the assemblies
 /// extracted from them to check what they hold ("cache").
+/// </para>
+/// <para>
+/// The executions are kept a month, their history and their storage (see <see cref="CleanUpAsync"/>).
 /// </para>
 /// </summary>
 public sealed class LocalSupervisor : ISupervisor
@@ -36,8 +39,8 @@ public sealed class LocalSupervisor : ISupervisor
             _caller = caller;
         }
 
-        public Task Execute(TaskInstance instance, JToken? globalContext)
-            => _dispatcher.SubmitAsync(_connectionId, this, FantocheJson.Copy(instance), globalContext?.DeepClone());
+        public Task Execute(TaskInstance instance)
+            => _dispatcher.SubmitAsync(_connectionId, this, FantocheJson.Copy(instance));
 
         public Task Cancel(Guid executionId) => _dispatcher.CancelAsync(_connectionId, executionId);
 
@@ -48,7 +51,7 @@ public sealed class LocalSupervisor : ISupervisor
 
     /// <summary>
     /// A worker of this process, its messages copied the same way (see <see cref="CallerLink"/>).
-    /// Removing it is losing its connection : the supervisor fails what it was running, and what
+    /// Removing it is losing its connection : the supervisor interrupts what it was running, and what
     /// it still sends about it is lost.
     /// </summary>
     private sealed class WorkerLink : IWorkerHub, IWorkerClient, IAsyncDisposable
@@ -74,7 +77,7 @@ public sealed class LocalSupervisor : ISupervisor
         public Task Register(string workerId, int capacity) => _dispatcher.AddWorkerAsync(_connectionId, this, workerId, capacity);
 
         public Task ReportState(Guid executionId, TaskInstance instance)
-            => _isRemoved ? Task.CompletedTask : _dispatcher.ReportStateAsync(FantocheJson.Copy(instance));
+            => _isRemoved ? Task.CompletedTask : _dispatcher.ReportStateAsync(_connectionId, executionId, FantocheJson.Copy(instance));
 
         public Task ReportNotification(Guid executionId, TaskNotification notification)
             => _isRemoved ? Task.CompletedTask : _dispatcher.ReportNotificationAsync(executionId, notification);
@@ -88,11 +91,14 @@ public sealed class LocalSupervisor : ISupervisor
     }
 
     private readonly DatabaseFactory _database;
+    private readonly string? _storageFolder;
 
     public LocalScopedService Scoped { get; }
     public LocalHistoryService History { get; }
     public LocalPackagesService Packages { get; }
     public Dispatcher Dispatcher { get; }
+    /// <summary>The supervisors sharing its database : copies of the application in standalone mode.</summary>
+    public RunnerSessions Sessions { get; }
 
     IScopedService ISupervisor.Scoped => Scoped;
     IHistoryService ISupervisor.History => History;
@@ -100,18 +106,69 @@ public sealed class LocalSupervisor : ISupervisor
     IPackageSource ISupervisor.PackageFiles => Packages;
     IDispatchService ISupervisor.Dispatch => Dispatcher;
 
-    public LocalSupervisor(string dataFolder)
+    /// <param name="storageFolder">
+    /// The storage the workers share, cleaned along with the history. Null when the supervisor
+    /// doesn't reach it.
+    /// </param>
+    public LocalSupervisor(string dataFolder, string? storageFolder = null)
     {
+        _storageFolder = storageFolder;
         // The factory puts the schema and the starting content in place as it is built.
         _database = new DatabaseFactory(Path.Combine(dataFolder, "fantoche.db"));
         Scoped = new LocalScopedService(_database);
         History = new LocalHistoryService(_database);
         Packages = new LocalPackagesService(Path.Combine(dataFolder, "nuget"), Path.Combine(dataFolder, "cache"));
-        Dispatcher = new Dispatcher(Scoped, History);
+        Sessions = new RunnerSessions(Path.Combine(dataFolder, "sessions"));
+        Dispatcher = new Dispatcher(Scoped, History, Sessions.CurrentId);
+
+        // Nothing a supervisor dispatched outlives it : what the history holds as running for a
+        // supervisor that is gone was cut short. Run apart so a caller holding a synchronization
+        // context doesn't wait on itself.
+        Task.Run(() => Sessions.InterruptLeftRunsAsync(History, applicationId: null)).GetAwaiter().GetResult();
     }
 
     /// <summary>Take the cost of opening the database off the first read.</summary>
     public void WarmUpDatabase() => DatabaseFactory.WarmUpDatabase(_database);
+
+    /// <summary>
+    /// Remove the executions started more than a month before [now] : their history and, when the
+    /// supervisor reaches it, their storage.
+    /// </summary>
+    public async Task CleanUpAsync(DateTime now)
+    {
+        DateTime cutoff = CleanupCutoff(now);
+        await History.DeleteStartedBeforeAsync(cutoff);
+        if (_storageFolder != null)
+            ExecutionStorages.RemoveStartedBefore(_storageFolder, cutoff);
+    }
+
+    /// <summary>What [now] keeps : the executions started since.</summary>
+    public static DateTime CleanupCutoff(DateTime now) => now.AddMonths(-1);
+
+    /// <summary>Clean up now, then once a day until [cancellation].</summary>
+    public async Task RunCleanupAsync(CancellationToken cancellation)
+    {
+        using PeriodicTimer timer = new(TimeSpan.FromDays(1));
+        try
+        {
+            do
+            {
+                try
+                {
+                    await CleanUpAsync(DateTime.UtcNow);
+                }
+                catch (Exception exception) when (exception is not OperationCanceledException)
+                {
+                    // Nothing is lost by keeping an execution one more day : the next tick retries.
+                }
+            }
+            while (await timer.WaitForNextTickAsync(cancellation));
+        }
+        catch (OperationCanceledException)
+        {
+            // Stopping.
+        }
+    }
 
     public ICallerHub ConnectCaller(ICallerClient caller) => new CallerLink(Dispatcher, caller);
 

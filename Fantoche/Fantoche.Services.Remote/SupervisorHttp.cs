@@ -58,6 +58,19 @@ internal sealed class SupervisorHttp
         await EnsureSuccessAsync(response);
     }
 
+    /// <summary>An action on [url] that takes nothing more than its address.</summary>
+    public async Task<T> PostAsync<T>(string url)
+    {
+        using HttpResponseMessage response = await _client.PostAsync(url, null);
+        return await ReadAsync<T>(response);
+    }
+
+    public async Task PostAsync(string url)
+    {
+        using HttpResponseMessage response = await _client.PostAsync(url, null);
+        await EnsureSuccessAsync(response);
+    }
+
     public async Task<T> DeleteAsync<T>(string url)
     {
         using HttpResponseMessage response = await _client.DeleteAsync(url);

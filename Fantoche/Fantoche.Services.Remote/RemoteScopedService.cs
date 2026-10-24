@@ -26,6 +26,9 @@ public class RemoteScopedService : IScopedService
     public Task<ScopedElement?> GetAsync(Guid elementId)
         => _http.FindAsync<ScopedElement>($"elements/{elementId}");
 
+    public async Task<AutomationWorkflow?> GetVersionAsync(Guid workflowId, int version)
+        => await _http.FindAsync<ScopedElement>($"elements/{workflowId}/versions/{version}") as AutomationWorkflow;
+
     public Task<List<ScopedElement>> GetAsync(IReadOnlyCollection<Guid> elementIds)
         => _http.SendAsync<IReadOnlyCollection<Guid>, List<ScopedElement>>(HttpMethod.Post, "elements/query", elementIds);
 
@@ -49,9 +52,12 @@ public class RemoteScopedService : IScopedService
         return element;
     }
 
+    /// <summary>[element] is given the version the supervisor stored its graph as, the way the local service does.</summary>
     public async Task<ScopedElement> EditAsync(ScopedElement element)
     {
-        await _http.SendAsync<ScopedElement, ScopedElement>(HttpMethod.Put, $"elements/{element.Id}", element);
+        ScopedElement edited = await _http.SendAsync<ScopedElement, ScopedElement>(HttpMethod.Put, $"elements/{element.Id}", element);
+        if (element is AutomationWorkflow workflow && edited is AutomationWorkflow stored)
+            workflow.Version = stored.Version;
         return element;
     }
 

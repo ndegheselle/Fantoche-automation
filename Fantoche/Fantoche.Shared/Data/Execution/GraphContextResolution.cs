@@ -67,6 +67,10 @@ public class GraphContextResolution
     }
 
     public JToken? GlobalContext { get; set; }
+
+    /// <summary>See <see cref="WorkflowInstance.PauseRequested"/>, handed to the nested runs as the global context is.</summary>
+    public CancellationToken PauseRequested { get; init; }
+
     public ConcurrentDictionary<Guid, List<TaskInstance>> NodeInstances { get; } = [];
 
     /// <summary>
@@ -83,7 +87,7 @@ public class GraphContextResolution
         // A workflow reached as a node of another one is a run of its own : it walks its graph with
         // a resolution of its own, which the global context has to be handed over to.
         if (node.AutomationTask is AutomationWorkflow workflow)
-            instance = new WorkflowInstance(workflow) { GlobalContext = GlobalContext };
+            instance = new WorkflowInstance(workflow) { GlobalContext = GlobalContext, PauseRequested = PauseRequested };
         else
             instance = new TaskInstance();
 
@@ -105,15 +109,60 @@ public class GraphContextResolution
         return instance;
     }
 
-    public TaskInstance GetOrCreateWaitingInstance(BaseGraphTask node, TaskInstance? previousInstance)
+    public TaskInstance GetOrCreateWaitingInstance(BaseGraphTask node)
     {
         return GetLastInstance(node.Id, EnumTaskState.Waiting) ??
-            CreateInstance(node, null, EnumTaskState.Waiting, previousInstance);
+            CreateInstance(node, null, EnumTaskState.Waiting);
+    }
+
+    /// <summary>
+    /// Rebuild the walk of a run from [stored], what its history holds of its own instances : each
+    /// of them placed on its node of [graph] and linked to the one it carries on from, and the
+    /// branches already arrived on a join that still waits counted. A nested workflow is given an
+    /// instance able to drive it again. Returns the instances, as they are now held.
+    /// </summary>
+    /// <exception cref="GraphContextResolutionException">A node the run went through isn't in [graph].</exception>
+    public IReadOnlyList<TaskInstance> Restore(TasksGraph graph, IEnumerable<TaskInstance> stored)
+    {
+        Dictionary<Guid, BaseGraphTask> nodes = graph.Nodes.OfType<BaseGraphTask>().ToDictionary(x => x.Id);
+        Dictionary<Guid, TaskInstance> restored = [];
+        foreach (TaskInstance instance in stored.OrderBy(x => x.CreatedAt))
+        {
+            if (instance.NodeId is not Guid nodeId || !nodes.TryGetValue(nodeId, out BaseGraphTask? node))
+                throw new GraphContextResolutionException($"The node [{instance.NodeName}] the run went through isn't in its graph anymore.");
+
+            TaskInstance held = node.AutomationTask is AutomationWorkflow workflow
+                ? WorkflowInstance.From(workflow, instance)
+                : instance;
+            if (held is WorkflowInstance nested)
+                nested.PauseRequested = PauseRequested;
+            held.Node = node;
+            restored[held.Id] = held;
+
+            if (!NodeInstances.TryGetValue(node.Id, out var list))
+                NodeInstances[node.Id] = list = [];
+            list.Add(held);
+        }
+
+        foreach (TaskInstance instance in restored.Values)
+        {
+            // The last one for a join : the branch that resumed it.
+            if (instance.PreviousIds.Count > 0)
+                instance.Previous = restored.GetValueOrDefault(instance.PreviousIds[^1]);
+
+            bool isWaitingJoin = instance.State == EnumTaskState.Waiting && instance.Node is GraphControl control && control.IsJoin();
+            if (isWaitingJoin)
+                _joinBranches[instance.Node!.Id] = instance.PreviousIds.Count;
+        }
+
+        return [.. restored.Values];
     }
 
     /// <summary>
     /// Register the branch reaching [node] and return whether it is the one resuming it : true once
-    /// every branch arrived, [branchesInstances] then holding what each of them produced.
+    /// every branch arrived, [branchesInstances] then holding what each of them produced. The
+    /// instance of the join keeps the branches that arrived (<see cref="TaskInstance.PreviousIds"/>),
+    /// what a resumed run counts them from.
     /// <para>
     /// A join is resumed by the arrival of its last branch rather than by the state of the ones
     /// before it : several branches finishing at once would all find every other one completed, and
@@ -122,17 +171,24 @@ public class GraphContextResolution
     /// instance of its own.
     /// </para>
     /// </summary>
+    /// <param name="reportWaiting">
+    /// Told about the join left waiting, under the lock : a branch reporting it after the last one
+    /// resumed it would put it back to waiting.
+    /// </param>
     public bool TryJoinBranches(
         BaseGraphTask node,
         TaskInstance? previousInstance,
         IReadOnlyList<BaseGraphTask> previousNodes,
         out TaskInstance instance,
-        out List<TaskInstance> branchesInstances)
+        out List<TaskInstance> branchesInstances,
+        Action<TaskInstance>? reportWaiting = null)
     {
         lock (_joinsLock)
         {
-            instance = GetOrCreateWaitingInstance(node, previousInstance);
+            instance = GetOrCreateWaitingInstance(node);
             branchesInstances = [];
+            if (previousInstance != null)
+                instance.PreviousIds = [.. instance.PreviousIds, previousInstance.Id];
 
             int arrived = _joinBranches.GetValueOrDefault(node.Id) + 1;
 
@@ -140,6 +196,7 @@ public class GraphContextResolution
             if (arrived < previousNodes.Count || !TryGetAllInstances(previousNodes, out branchesInstances))
             {
                 _joinBranches[node.Id] = arrived;
+                reportWaiting?.Invoke(instance);
                 return false;
             }
 

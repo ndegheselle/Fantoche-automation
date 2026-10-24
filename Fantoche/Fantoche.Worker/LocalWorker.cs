@@ -17,7 +17,8 @@ namespace Fantoche.Worker;
 /// </para>
 /// <para>
 /// Once an execution started somewhere, everything of it stays there : a workflow runs all its
-/// nodes where it runs, and its tables and files never leave the storage of its run.
+/// nodes where it runs, and its tables and files never leave the storage of its run. A run resumed
+/// after a crash carries on wherever that storage is reached from (see <see cref="ExecutionStorages"/>).
 /// </para>
 /// </summary>
 public sealed class LocalWorker : ITaskExecutor, IDisposable
@@ -25,21 +26,25 @@ public sealed class LocalWorker : ITaskExecutor, IDisposable
     private readonly TaskLoaders _tasks;
     private readonly ExecutionStorages _storages;
 
+    /// <summary>Where the storage of its executions is kept.</summary>
+    public string StorageFolder { get; }
+
     /// <param name="storageFolder">Where the storage of its executions is kept.</param>
     public LocalWorker(IPackageManagement packages, string storageFolder)
     {
         _tasks = new TaskLoaders(packages);
         _storages = new ExecutionStorages(storageFolder);
+        StorageFolder = storageFolder;
     }
 
     /// <summary>
     /// A worker keeping its data in [dataFolder] : the packages extracted in "cache" and the
-    /// storage in "storage".
+    /// storage in "storage", unless [storageFolder] is shared with other workers.
     /// </summary>
-    public static LocalWorker InFolder(ISupervisor supervisor, string dataFolder)
+    public static LocalWorker InFolder(ISupervisor supervisor, string dataFolder, string? storageFolder = null)
     {
         PackageCache packages = new(supervisor.PackageFiles, Path.Combine(dataFolder, "cache"));
-        return new LocalWorker(packages, Path.Combine(dataFolder, "storage"));
+        return new LocalWorker(packages, storageFolder ?? Path.Combine(dataFolder, "storage"));
     }
 
     public void Dispose() => _tasks.Dispose();
@@ -52,15 +57,19 @@ public sealed class LocalWorker : ITaskExecutor, IDisposable
         CancellationToken? cancellation = null)
     {
         LocalStorage storage = _storages.Open(task.Id, instance);
-        try
-        {
-            LocalTaskExecutor executor = new(_tasks, storage);
-            return await executor.ExecuteAsync(task, instance, progress, cancellation);
-        }
-        finally
-        {
-            _storages.Release(task.Id, instance, task.Settings.StorageRetention);
-        }
+        LocalTaskExecutor executor = new(_tasks, storage);
+        return await executor.ExecuteAsync(task, instance, progress, cancellation);
+    }
+
+    /// <summary>
+    /// The folder of the page of the user interface task [task], extracted from its package on this
+    /// machine : the page is shown where the user is.
+    /// </summary>
+    public Task<string> GetPageFolderAsync(AutomationTask task)
+    {
+        if (task.Target is not PackageClassTarget target)
+            throw new InvalidOperationException($"The task '{task.Metadata.Name}' isn't in a package.");
+        return _tasks.GetPageFolderAsync(target);
     }
 
     /// <summary>An execution the supervisor dispatched.</summary>

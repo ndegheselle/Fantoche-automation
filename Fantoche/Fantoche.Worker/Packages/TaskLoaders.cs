@@ -47,4 +47,21 @@ public sealed class TaskLoaders : IDisposable
 
         return loader.CreateInstance(target.ClassFullName);
     }
+
+    /// <summary>
+    /// The folder holding the page of the user interface task [target] points at, its package
+    /// downloaded if needed.
+    /// </summary>
+    /// <exception cref="PackageDownloadException">The package or its assembly can't be resolved.</exception>
+    /// <exception cref="InvalidOperationException">[target] isn't a user interface task.</exception>
+    public async Task<string> GetPageFolderAsync(PackageClassTarget target)
+    {
+        ITask task = await CreateAsync(target);
+        if (task is not IUserInterfaceTask userInterface)
+            throw new InvalidOperationException($"[{target.ClassFullName}] has no page : it isn't a user interface task.");
+
+        string dllPath = await _packages.DownloadPackageAsync(target.Package.Id, target.Package.Version, target.Dll);
+        string assemblyFolder = Path.GetDirectoryName(dllPath) ?? throw new InvalidOperationException($"[{dllPath}] has no folder.");
+        return Path.GetFullPath(Path.Combine(assemblyFolder, userInterface.PageFolder));
+    }
 }

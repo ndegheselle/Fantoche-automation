@@ -4,6 +4,7 @@ using Fantoche.Shared.Remote;
 using Fantoche.Shared.Services;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json.Linq;
 
 namespace Fantoche.Services.Remote;
 
@@ -59,6 +60,23 @@ public sealed class RemoteHistoryService : IHistoryService, IAsyncDisposable
 
     public async Task<IReadOnlyList<TaskInstance>> GetChildrenAsync(Guid instanceId)
         => await _http.GetAsync<List<TaskInstance>>($"history/instances/{instanceId}/children");
+
+    public async Task<IReadOnlyList<TaskInstance>> GetDescendantsAsync(Guid instanceId)
+        => await _http.GetAsync<List<TaskInstance>>($"history/instances/{instanceId}/descendants");
+
+    public async Task<IReadOnlyList<TaskInstance>> GetUnfinishedRunsAsync(string? applicationId)
+    {
+        string query = applicationId == null ? "" : $"?applicationId={SupervisorHttp.Query(applicationId)}";
+        return await _http.GetAsync<List<TaskInstance>>($"history/runs/unfinished{query}");
+    }
+
+    public Task<bool> AnswerAsync(Guid instanceId, JToken answer)
+        => _http.SendAsync<JToken, bool>(HttpMethod.Post, $"history/instances/{instanceId}/answer", answer);
+
+    public Task InterruptRunAsync(Guid runId) => _http.PostAsync($"history/runs/{runId}/interrupt");
+
+    public Task<bool> ClaimRunAsync(Guid runId, string sessionId)
+        => _http.PostAsync<bool>($"history/runs/{runId}/claim?sessionId={SupervisorHttp.Query(sessionId)}");
 
     public Task<TaskInstance?> GetAsync(Guid instanceId)
         => _http.FindAsync<TaskInstance>($"history/instances/{instanceId}");

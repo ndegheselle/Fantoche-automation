@@ -80,12 +80,11 @@ public class LocalTaskExecutor : ITaskExecutor
         TaskInstancesProgress? progress = null,
         CancellationToken? cancellation = null)
     {
-        instance = await _workflowExecutor.ExecuteAsync(
+        // Completed by its end, or paused.
+        return await _workflowExecutor.ExecuteAsync(
             instance,
             progress,
             cancellation);
-        instance.State = EnumTaskState.Completed;
-        return instance;
     }
 
     private async Task<TaskInstance> ExecuteTaskAsync(
@@ -98,6 +97,15 @@ public class LocalTaskExecutor : ITaskExecutor
             throw new ExecutionException("Task target is not a package.");
 
         var task = await _tasks.CreateAsync(target);
+
+        // Answered by the user rather than run : the branch holds here, nothing running meanwhile,
+        // and the answer resumes the run (see UserAnswers).
+        if (task is IUserInterfaceTask)
+        {
+            instance.Output = null;
+            instance.State = EnumTaskState.AwaitingUser;
+            return instance;
+        }
 
         // Pass-through with no parameters: nothing to deserialize, nothing for the plugin
         // to do — short-circuit before forcing a TInput-typed conversion that would throw.

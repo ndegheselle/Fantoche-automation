@@ -2,7 +2,6 @@ using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Data.Graph;
 using Fantoche.Shared.Data.Scoped;
 using Fantoche.Shared.Services;
-using Newtonsoft.Json.Linq;
 
 namespace Fantoche.Shared.Remote;
 
@@ -22,14 +21,17 @@ public class RemoteExecution
 
     public required TaskInstance Instance { get; init; }
 
-    /// <summary>See <see cref="ICallerHub.Execute"/>.</summary>
-    public JToken? GlobalContext { get; init; }
+    /// <summary>
+    /// For a workflow being resumed : what the history holds of its run (see
+    /// <see cref="WorkflowInstance.StoredInstances"/>). Empty for a run starting.
+    /// </summary>
+    public List<TaskInstance> StoredInstances { get; init; } = [];
 
     /// <summary>
     /// [task] run with [instance], the graph of a workflow having to be loaded (see
     /// <see cref="ScopedServiceExtensions.LoadRunnableAsync"/>).
     /// </summary>
-    public static RemoteExecution From(BaseAutomationTask task, TaskInstance instance, JToken? globalContext)
+    public static RemoteExecution From(BaseAutomationTask task, TaskInstance instance, IReadOnlyList<TaskInstance>? storedInstances = null)
     {
         Dictionary<Guid, BaseAutomationTask> graphTasks = [];
         if (task is AutomationWorkflow workflow)
@@ -40,7 +42,7 @@ public class RemoteExecution
             Task = task,
             GraphTasks = [.. graphTasks.Values],
             Instance = instance,
-            GlobalContext = globalContext,
+            StoredInstances = [.. storedInstances ?? []],
         };
     }
 
@@ -58,17 +60,8 @@ public class RemoteExecution
         foreach (AutomationWorkflow nested in tasks.Values.OfType<AutomationWorkflow>())
             nested.Graph.Refresh(tasks, force: true);
 
-        WorkflowInstance instance = new(workflow)
-        {
-            Id = Instance.Id,
-            NodeId = Instance.NodeId,
-            ParentInstanceId = Instance.ParentInstanceId,
-            NodeName = Instance.NodeName,
-            Parameters = Instance.Parameters,
-            CreatedAt = Instance.CreatedAt,
-            State = Instance.State,
-            GlobalContext = GlobalContext,
-        };
+        WorkflowInstance instance = WorkflowInstance.From(workflow, Instance);
+        instance.StoredInstances = StoredInstances;
         return (workflow, instance);
     }
 

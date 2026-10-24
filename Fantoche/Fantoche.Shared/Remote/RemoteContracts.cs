@@ -1,6 +1,5 @@
 using Fantoche.Plugins.Shared;
 using Fantoche.Shared.Data.Execution;
-using Newtonsoft.Json.Linq;
 
 namespace Fantoche.Shared.Remote;
 
@@ -25,12 +24,7 @@ public interface ICallerHub
     /// Queue [instance] for a worker, the supervisor reading its task from the database. Its outcome
     /// is sent back with <see cref="ICallerClient.Completed"/>.
     /// </summary>
-    /// <param name="globalContext">
-    /// Only for a workflow : the context the run started from, a nested workflow reading the one of
-    /// the run holding it (see <see cref="WorkflowInstance.GlobalContext"/>). Sent apart since a
-    /// workflow instance can only be rebuilt along with its workflow.
-    /// </param>
-    Task Execute(TaskInstance instance, JToken? globalContext);
+    Task Execute(TaskInstance instance);
 
     Task Cancel(Guid executionId);
 }

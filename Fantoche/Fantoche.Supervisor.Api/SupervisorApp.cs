@@ -10,7 +10,8 @@ namespace Fantoche.Supervisor.Api;
 /// calls to a <see cref="LocalSupervisor"/>, which holds the database, hands the tasks to the
 /// workers and relays what they report. It never runs a task itself.
 /// <para>
-/// Configured by : DATA_FOLDER (the folder of the supervisor, see <see cref="LocalSupervisor"/>).
+/// Configured by : DATA_FOLDER (the folder of the supervisor, see <see cref="LocalSupervisor"/>) and
+/// STORAGE_FOLDER (the storage the workers share, cleaned with the history, left alone when unset).
 /// </para>
 /// </summary>
 public static class SupervisorApp
@@ -19,8 +20,9 @@ public static class SupervisorApp
     {
         var builder = WebApplication.CreateBuilder(args);
         string dataFolder = builder.Configuration["DATA_FOLDER"] ?? "data";
+        string? storageFolder = builder.Configuration["STORAGE_FOLDER"];
 
-        var supervisor = new LocalSupervisor(dataFolder);
+        var supervisor = new LocalSupervisor(dataFolder, storageFolder);
         builder.Services.AddSingleton(supervisor);
         builder.Services.AddSingleton(supervisor.Scoped);
         builder.Services.AddSingleton(supervisor.History);
@@ -48,6 +50,8 @@ public static class SupervisorApp
 
         app.MapHub<CallerHub>($"/{SupervisorRoutes.Callers}");
         app.MapHub<WorkerHub>($"/{SupervisorRoutes.Workers}");
+
+        app.Lifetime.ApplicationStarted.Register(() => _ = supervisor.RunCleanupAsync(app.Lifetime.ApplicationStopping));
 
         return app;
     }

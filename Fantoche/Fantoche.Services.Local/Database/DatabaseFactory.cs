@@ -81,6 +81,8 @@ namespace Fantoche.Services.Local.Database
         public static void EnsureCreated(DatabaseFactory factory)
         {
             using var connection = factory.Create();
+            DropOutdatedTables(connection);
+
             // The tree comes first : the instances point at the element they ran, and the nodes of a
             // graph at the workflow holding them.
             connection.Execute(ScopedModel.Schema);
@@ -88,8 +90,28 @@ namespace Fantoche.Services.Local.Database
             connection.Execute(GraphNodeModel.Schema);
             connection.Execute(GraphConnectorModel.Schema);
             connection.Execute(GraphConnectionModel.Schema);
+            connection.Execute(GraphVersionModel.Schema);
 
             RenameLegacyColumns(connection);
+        }
+
+        /// <summary>
+        /// Drop the tables an older version wrote without a column the current one needs, so they
+        /// are created again : the application is still in alpha, losing their rows is accepted.
+        /// </summary>
+        private static void DropOutdatedTables(IDbConnection connection)
+        {
+            // What a resumed run reads of its history.
+            DropWithout(connection, "TaskInstances", "WorkflowVersion");
+        }
+
+        private static void DropWithout(IDbConnection connection, string table, string column)
+        {
+            List<string> columns = [.. connection.Query<string>($"SELECT name FROM pragma_table_info('{table}');")];
+            if (columns.Count == 0 || columns.Contains(column))
+                return;
+
+            connection.Execute($"DROP TABLE {table};");
         }
 
         /// <summary>

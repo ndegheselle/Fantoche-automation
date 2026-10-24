@@ -50,9 +50,46 @@ public class WorkflowExecutor
         GraphContextResolution resolution = new GraphContextResolution(workflowInstance.Id)
         {
             GlobalContext = workflowInstance.GlobalContext,
+            PauseRequested = workflowInstance.PauseRequested,
         };
-        // Create start tasks instances (there should be only one)
-        var startTasks = new List<Task<IReadOnlyList<TaskInstance>>>();
+
+        // A resumed run carries on from what its history holds, a new one from the start of its graph.
+        List<TaskInstance> stored = [.. workflowInstance.StoredInstances.Where(x => x.ParentInstanceId == workflowInstance.Id)];
+        List<Task<IReadOnlyList<TaskInstance>>> branches = stored.Count == 0
+            ? Start(workflowInstance, resolution, progress, token)
+            : Resume(workflowInstance, resolution, stored, progress, token);
+
+        var results = await Task.WhenAll(branches);
+        var endInstances = results.SelectMany(r => r).ToList();
+
+        // Paused before reaching its end : what it didn't start is what a resume carries on with.
+        if (endInstances.Count == 0 && workflowInstance.PauseRequested.IsCancellationRequested)
+        {
+            workflowInstance.State = EnumTaskState.Paused;
+            progress?.StateChanges?.Report(workflowInstance);
+            return workflowInstance;
+        }
+
+        // Held by a node waiting for the user : the answer resumes the run from there.
+        bool isAwaitingUser = resolution.NodeInstances.Values.SelectMany(x => x).Any(x => x.State == EnumTaskState.AwaitingUser);
+        if (endInstances.Count == 0 && isAwaitingUser)
+        {
+            workflowInstance.State = EnumTaskState.AwaitingUser;
+            progress?.StateChanges?.Report(workflowInstance);
+            return workflowInstance;
+        }
+
+        return EndAsync(workflowInstance, endInstances, progress);
+    }
+
+    /// <summary>The branches leaving the start of the graph (there should be only one).</summary>
+    private List<Task<IReadOnlyList<TaskInstance>>> Start(
+        WorkflowInstance workflowInstance,
+        GraphContextResolution resolution,
+        TaskInstancesProgress? progress,
+        CancellationToken? cancellation)
+    {
+        List<Task<IReadOnlyList<TaskInstance>>> branches = [];
         foreach (var start in workflowInstance.Workflow.Graph.GetStartNodes())
         {
             // Apply node default on the given parameters
@@ -69,13 +106,74 @@ public class WorkflowExecutor
                 Instance = startInstance,
                 WorkflowInstance = workflowInstance,
             };
-            startTasks.Add(NextAsync(context, progress, token));
+            branches.Add(NextAsync(context, progress, cancellation));
         }
+        return branches;
+    }
 
-        var results = await Task.WhenAll(startTasks);
-        var endInstances = results.SelectMany(r => r).ToList();
+    /// <summary>
+    /// The branches carrying a resumed run on from [stored], what its history holds of its own
+    /// instances : the nodes it was running run again from the start, and each completed node
+    /// leads to the nodes after it that it hadn't reached yet. A join still waiting for its
+    /// branches waits on, the ones that already arrived being counted.
+    /// </summary>
+    private List<Task<IReadOnlyList<TaskInstance>>> Resume(
+        WorkflowInstance workflowInstance,
+        GraphContextResolution resolution,
+        List<TaskInstance> stored,
+        TaskInstancesProgress? progress,
+        CancellationToken? cancellation)
+    {
+        IReadOnlyList<TaskInstance> restored = resolution.Restore(workflowInstance.Workflow.Graph, stored);
 
-        return EndAsync(workflowInstance, endInstances, progress);
+        // The run reached its end : only its own instance was left to close.
+        TaskInstance? end = restored.FirstOrDefault(x => x.State == EnumTaskState.Completed && x.Node is GraphControl control && control.IsEnd());
+        if (end != null)
+            return [Task.FromResult<IReadOnlyList<TaskInstance>>([end])];
+
+        // The nodes each instance led to, a join holding every branch that reached it.
+        HashSet<(Guid PreviousId, Guid NodeId)> reached = [.. restored.SelectMany(x => x.PreviousIds.Select(id => (id, x.Node!.Id)))];
+
+        List<Task<IReadOnlyList<TaskInstance>>> branches = [];
+        foreach (TaskInstance instance in restored)
+        {
+            // A nested run being run again carries on from its own history.
+            if (instance is WorkflowInstance nested)
+                nested.StoredInstances = workflowInstance.StoredInstances;
+
+            WorkflowExecutionContext context = new()
+            {
+                Resolution = resolution,
+                Graph = workflowInstance.Workflow.Graph,
+                Node = instance.Node!,
+                Instance = instance,
+                WorkflowInstance = workflowInstance,
+            };
+
+            // Only a task can be left running : a control is reported once resolved, a join waiting
+            // being the exception, and it waits on.
+            // A nested run paused along with this one, or held by its own user interface, resumes
+            // the same way. A user interface task itself waits on until it is answered.
+            bool isHeldNestedRun = instance is WorkflowInstance && instance.State == EnumTaskState.AwaitingUser;
+            bool wasRunning = isHeldNestedRun
+                || instance.State is EnumTaskState.Pending or EnumTaskState.Progressing or EnumTaskState.Interrupted or EnumTaskState.Paused;
+            if (wasRunning && instance.Node is not GraphControl)
+            {
+                instance.State = EnumTaskState.Progressing;
+                branches.Add(RunTaskAsync(context, instance, progress, cancellation));
+                continue;
+            }
+
+            if (instance.State != EnumTaskState.Completed || instance.Output == null)
+                continue;
+
+            IEnumerable<BaseGraphTask> notReached = context.Graph.GetNext(instance.Node!)
+                .Select(x => x.Task)
+                .Where(x => !reached.Contains((instance.Id, x.Id)));
+            foreach (BaseGraphTask next in notReached)
+                branches.Add(RunBranchAsync(context with { Node = next }, progress, cancellation));
+        }
+        return branches;
     }
 
     private async Task<IReadOnlyList<TaskInstance>> NextAsync(
@@ -123,6 +221,12 @@ public class WorkflowExecutor
         if (context.Node is GraphControl control)
             return await RunControlBranchAsync(context, progress, cancellation);
 
+        // Pausing : the task isn't started, a resume finds the node before it with nothing after.
+        // The controls still pass, running no code of the user : a run whose last task is over
+        // reaches its end rather than pausing on it.
+        if (context.WorkflowInstance.PauseRequested.IsCancellationRequested)
+            return [];
+
         var parameters = context.Resolution.GetInputFor(context.Node, context.Instance, context.Instance.Shared);
 
         if (parameters.HasError)
@@ -131,6 +235,19 @@ public class WorkflowExecutor
         var instance = context.Resolution.CreateInstance(context.Node, parameters.Token, EnumTaskState.Progressing, context.Instance);
         // The shared context walks down the branch, whatever a share upstream fed it with.
         instance.Shared = context.Instance.Shared;
+        return await RunTaskAsync(context, instance, progress, cancellation);
+    }
+
+    /// <summary>
+    /// Run [instance] of the task [context] reached, then the nodes after it when it completed with
+    /// something to hand over.
+    /// </summary>
+    private async Task<IReadOnlyList<TaskInstance>> RunTaskAsync(
+        WorkflowExecutionContext context,
+        TaskInstance instance,
+        TaskInstancesProgress? progress,
+        CancellationToken? cancellation)
+    {
         progress?.StateChanges?.Report(instance);
         instance = await _executor.ExecuteAsync(
             context.Node.AutomationTask ?? throw new ExecutionException("Workflow tasks are not loaded (is the graph refreshed?)."),
@@ -212,7 +329,15 @@ public class WorkflowExecutor
     {
         var previousNodes = context.Graph.GetPrevious(control).ToList();
 
-        if (!context.Resolution.TryJoinBranches(control, context.Instance, previousNodes, out var instance, out var branchesInstances))
+        // Reported while it waits so a resumed run knows which branches already arrived.
+        bool isResumed = context.Resolution.TryJoinBranches(
+            control,
+            context.Instance,
+            previousNodes,
+            out var instance,
+            out var branchesInstances,
+            waiting => progress?.StateChanges?.Report(waiting));
+        if (!isResumed)
             return null;
 
         // Merge every branche shared data

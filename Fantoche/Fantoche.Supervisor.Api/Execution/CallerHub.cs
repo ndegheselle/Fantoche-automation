@@ -2,7 +2,6 @@ using Fantoche.Services.Local;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Remote;
 using Microsoft.AspNetCore.SignalR;
-using Newtonsoft.Json.Linq;
 
 namespace Fantoche.Supervisor.Api.Execution;
 
@@ -24,8 +23,8 @@ public class CallerHub : Hub<ICallerClient>, ICallerHub
     /// The caller is reached through the context of the hub rather than through this one, which
     /// only lives for the call.
     /// </summary>
-    public Task Execute(TaskInstance instance, JToken? globalContext)
-        => _dispatcher.SubmitAsync(Context.ConnectionId, _callers.Clients.Client(Context.ConnectionId), instance, globalContext);
+    public Task Execute(TaskInstance instance)
+        => _dispatcher.SubmitAsync(Context.ConnectionId, _callers.Clients.Client(Context.ConnectionId), instance);
 
     public Task Cancel(Guid executionId) => _dispatcher.CancelAsync(Context.ConnectionId, executionId);
 

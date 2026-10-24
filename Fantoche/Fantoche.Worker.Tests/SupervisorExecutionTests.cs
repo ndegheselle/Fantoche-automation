@@ -4,6 +4,7 @@ using Fantoche.Plugins.Tables;
 using Fantoche.Services.Local;
 using Fantoche.Services.Remote;
 using Fantoche.Shared.Data.Execution;
+using Fantoche.Shared.Data.Graph;
 using Fantoche.Shared.Data.Scoped;
 using Fantoche.Shared.Remote;
 using Fantoche.Supervisor.Api;
@@ -40,6 +41,8 @@ internal sealed class SupervisorExecutionTests
     private LocalWorker _worker = null!;
     /// <summary>The worker of the application, which runs what the application starts.</summary>
     private LocalWorker _application = null!;
+    /// <summary>The copies of the application on the machine of the test, see <see cref="ApplicationExecution"/>.</summary>
+    private RunnerSessions _applicationSessions = null!;
     private IAsyncDisposable? _registration;
     private RemoteTaskExecutor _caller = null!;
 
@@ -78,6 +81,7 @@ internal sealed class SupervisorExecutionTests
 
         _worker = new LocalWorker(new TestPackageManagement(), Path.Combine(_folder, "worker"));
         _application = new LocalWorker(new TestPackageManagement(), Path.Combine(_folder, "application"));
+        _applicationSessions = new RunnerSessions(Path.Combine(_folder, "application-sessions"));
         _caller = new RemoteTaskExecutor(_supervisor);
     }
 
@@ -92,6 +96,7 @@ internal sealed class SupervisorExecutionTests
             await _api.DisposeAsync();
         _worker.Dispose();
         _application.Dispose();
+        _applicationSessions.Dispose();
     }
 
     private async Task ConnectWorkerAsync(LocalWorker? worker = null)
@@ -133,6 +138,145 @@ internal sealed class SupervisorExecutionTests
         return await StoreAsync(line.Workflow);
     }
 
+    private const string ApplicationId = "test-application";
+
+    /// <summary>The service the application starts and resumes its runs with.</summary>
+    private ExecutionService ApplicationExecution() => new(_supervisor.Scoped, _supervisor.History, _application, ApplicationId, _applicationSessions);
+
+    /// <summary>
+    /// A run of the line workflow (see <see cref="StoreLineAsync"/>) as the history holds it once
+    /// interrupted right after First completed. First is stored as having produced 42, which it
+    /// can't compute from the parameters : a run ending on it carried on from the history.
+    /// </summary>
+    private async Task<TaskInstance> StoreInterruptedLineAsync(string? applicationId, string? definitionHash = null)
+    {
+        AutomationWorkflow stored = await StoreLineAsync(await StoreTestAsync());
+        AutomationWorkflow workflow = (AutomationWorkflow)await Shared.Services.ScopedServiceExtensions.LoadRunnableAsync(_supervisor.Scoped, stored.Id);
+        BaseGraphTask Node(string name) => workflow.Graph.Nodes.OfType<BaseGraphTask>().Single(x => x.Name == name);
+
+        TaskInstance run = new()
+        {
+            TaskId = workflow.Id,
+            WorkflowVersion = workflow.Version,
+            NodeName = workflow.Metadata.Name,
+            Parameters = JToken.FromObject(new { Value = 1 }),
+            ApplicationId = applicationId,
+            DefinitionHash = definitionHash ?? RunDefinition.HashOf(workflow),
+            State = EnumTaskState.Interrupted,
+        };
+        TaskInstance start = new()
+        {
+            TaskId = Node("Start").TaskId,
+            NodeId = Node("Start").Id,
+            NodeName = "Start",
+            ParentInstanceId = run.Id,
+            Output = JToken.FromObject(new { Value = 1 }),
+            State = EnumTaskState.Completed,
+        };
+        TaskInstance first = new()
+        {
+            TaskId = Node("First").TaskId,
+            NodeId = Node("First").Id,
+            NodeName = "First",
+            ParentInstanceId = run.Id,
+            PreviousIds = [start.Id],
+            Output = JToken.FromObject(new { Value = 42, Message = "stored" }),
+            State = EnumTaskState.Completed,
+        };
+
+        await _supervisor.History.SaveAsync(run);
+        await _supervisor.History.SaveAsync(start);
+        await _supervisor.History.SaveAsync(first);
+        return run;
+    }
+
+    /// <summary>
+    /// A stored workflow waiting before it runs [test] : <c>Start ─> Wait ─> First(+10) ─> End</c>.
+    /// Paused while it waits, it is resumed with First.
+    /// </summary>
+    private async Task<AutomationWorkflow> StoreWaitingLineAsync()
+    {
+        AutomationTask test = await StoreTestAsync();
+        AutomationTask delay = await StoreDelayAsync();
+        TestWorkflow line = new TestWorkflow("Waiting line")
+            .Start()
+            .Task("Wait", delay, new { DelayMs = 300 })
+            .Task("First", test, new { Message = "first", Value = "$previous.Value", Add = 10 })
+            .End(new { Value = "$previous.Value", Message = "$previous.Message" })
+            .Chain("Start", "Wait", "First", "End");
+        return await StoreAsync(line.Workflow);
+    }
+
+    /// <summary>
+    /// A stored workflow asking the user to reorder its items : <c>Start ─> Ask ─> End</c>, and
+    /// the stored task it asks with.
+    /// </summary>
+    private async Task<(AutomationWorkflow Workflow, AutomationTask Reorder)> StoreAskAsync()
+    {
+        AutomationTask reorder = await StoreAsync(PluginTasks.Make(
+            "Fantoche.Plugins.UserInterfaces.ReorderTask", "Reorder",
+            JsonSchema.FromType<Plugins.UserInterfaces.ReorderParameters>(), JsonSchema.FromType<Plugins.UserInterfaces.ReorderResult>()));
+        TestWorkflow ask = new TestWorkflow("Ask", requireOutput: false)
+            .Start()
+            .Task("Ask", reorder, new { Title = "Sort them", Items = "$previous.Items" })
+            .End(new { Items = "$previous.Items" })
+            .Chain("Start", "Ask", "End");
+        return (await StoreAsync(ask.Workflow), reorder);
+    }
+
+    /// <summary>A run of the ask workflow, held by its user interface task : the run and the task waiting.</summary>
+    private async Task<(TaskInstance Run, TaskInstance Ask)> StartAskAsync(ExecutionService execution)
+    {
+        var (workflow, _) = await StoreAskAsync();
+        TaskInstance started = await execution.StartAsync(workflow.Id, JToken.FromObject(new { Items = new[] { "a", "b" } }));
+        TaskInstance run = await execution.WaitAsync(started.Id);
+        TaskInstance ask = (await _supervisor.History.GetChildrenAsync(run.Id)).Single(x => x.NodeName == "Ask");
+        return (run, ask);
+    }
+
+    private Task<TaskInstance> AnswerAsync(Guid instanceId, object answer) => Shared.Services.UserAnswers.SubmitAsync(
+        _supervisor.Scoped, _supervisor.History, instanceId, JToken.FromObject(answer), ApplicationId);
+
+    /// <summary>[node] of [runId] reached [state] in the history.</summary>
+    private async Task WaitForNodeAsync(Guid runId, string node, EnumTaskState state)
+    {
+        using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(10));
+        while (!(await _supervisor.History.GetChildrenAsync(runId)).Any(x => x.NodeName == node && x.State == state))
+            await Task.Delay(10, timeout.Token);
+    }
+
+    /// <summary>A new version of the line workflow [workflowId], whose end hands the message over as its value.</summary>
+    private async Task EditEndAsync(Guid workflowId)
+    {
+        AutomationWorkflow workflow = (AutomationWorkflow)(await _supervisor.Scoped.GetAsync(workflowId))!;
+        BaseGraphTask end = workflow.Graph.Nodes.OfType<BaseGraphTask>().Single(x => x.Name == "End");
+        end.InputTemplateJson = """{ "Value": "$previous.Message", "Message": "$previous.Message" }""";
+        await _supervisor.Scoped.EditAsync(workflow);
+    }
+
+    /// <summary>The line workflow as the history holds it while [sessionId] runs it.</summary>
+    private async Task<TaskInstance> StoreRunningLineAsync(string applicationId, string sessionId)
+    {
+        TaskInstance run = await StoreInterruptedLineAsync(applicationId);
+        run.State = EnumTaskState.Progressing;
+        run.SessionId = sessionId;
+        await _supervisor.History.SaveAsync(run);
+        return run;
+    }
+
+    /// <summary>[runId] once over, read from the history : nobody waits on a resumed run.</summary>
+    private async Task<TaskInstance> WaitForTheEndOfAsync(Guid runId)
+    {
+        using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(10));
+        while (true)
+        {
+            TaskInstance? run = await _supervisor.History.GetAsync(runId);
+            if (run != null && run.State != EnumTaskState.Progressing)
+                return run;
+            await Task.Delay(20, timeout.Token);
+        }
+    }
+
     private static TaskInstance InstanceOf(BaseAutomationTask task, object parameters) => new()
     {
         TaskId = task.Id,
@@ -172,7 +316,7 @@ internal sealed class SupervisorExecutionTests
     private async Task<TableRef> RunTablesInTheApplicationAsync()
     {
         var (workflow, parameters) = await StoreTablesWorkflowAsync();
-        ExecutionService service = new(_supervisor.Scoped, _supervisor.History, _application);
+        ExecutionService service = ApplicationExecution();
         TaskInstance started = await service.StartAsync(workflow.Id, JToken.FromObject(parameters));
         TaskInstance result = await service.WaitAsync(started.Id);
         return result.Output!["Table"]!.ToObject<TableRef>()!;
@@ -366,22 +510,247 @@ internal sealed class SupervisorExecutionTests
     }
 
     [Test]
-    public async Task LosingTheWorker_FailsItsRunningTask()
+    public async Task LosingTheWorker_InterruptsItsRunningTask()
     {
         await ConnectWorkerAsync();
         AutomationTask delay = await StoreDelayAsync();
+        TaskInstance instance = InstanceOf(delay, new { DelayMs = 60_000 });
 
-        Task<TaskInstance> execution = _caller.ExecuteAsync(delay, InstanceOf(delay, new { DelayMs = 60_000 }));
+        Task<TaskInstance> execution = _caller.ExecuteAsync(delay, instance);
         await WaitUntilRunningAsync();
         await _registration!.DisposeAsync();
         _registration = null;
         TaskInstance result = await execution;
 
+        Assert.Multiple(async () =>
+        {
+            Assert.That(result.State, Is.EqualTo(EnumTaskState.Interrupted));
+            Assert.That((await _supervisor.History.GetAsync(instance.Id))?.State, Is.EqualTo(EnumTaskState.Interrupted));
+        });
+    }
+
+    [Test]
+    public async Task DispatchedRun_IsResumedFromItsHistory()
+    {
+        await ConnectWorkerAsync();
+        TaskInstance interrupted = await StoreInterruptedLineAsync(applicationId: null);
+
+        await _supervisor.Dispatch.ResumeAsync(interrupted.Id);
+        TaskInstance run = await WaitForTheEndOfAsync(interrupted.Id);
+        var nodes = await _supervisor.History.GetChildrenAsync(interrupted.Id);
+
         Assert.Multiple(() =>
         {
-            Assert.That(result.State, Is.EqualTo(EnumTaskState.Failed));
-            Assert.That(result.Output?.Value<string>(), Does.Contain("was lost"));
+            Assert.That(run.State, Is.EqualTo(EnumTaskState.Completed));
+            Assert.That(run.Output?["Value"]?.Value<int>(), Is.EqualTo(42));
+            Assert.That(nodes.Count(x => x.NodeName == "First"), Is.EqualTo(1), "First doesn't run again");
         });
+    }
+
+    [Test]
+    public async Task ApplicationRun_IsResumedByTheApplication()
+    {
+        TaskInstance interrupted = await StoreInterruptedLineAsync(ApplicationId);
+        ExecutionService execution = ApplicationExecution();
+
+        await execution.ResumeAsync(interrupted.Id);
+        TaskInstance run = await execution.WaitAsync(interrupted.Id);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(run.State, Is.EqualTo(EnumTaskState.Completed));
+            Assert.That(run.Output?["Value"]?.Value<int>(), Is.EqualTo(42));
+        });
+    }
+
+    [Test]
+    public async Task ApplicationRun_IsNotResumedByTheSupervisor()
+    {
+        await ConnectWorkerAsync();
+        TaskInstance interrupted = await StoreInterruptedLineAsync(ApplicationId);
+
+        await Assert.ThrowsAsync<Shared.Services.ExecutionException>(() => _supervisor.Dispatch.ResumeAsync(interrupted.Id));
+    }
+
+    [Test]
+    public async Task RunOfAChangedWorkflow_IsNotResumed()
+    {
+        await ConnectWorkerAsync();
+        TaskInstance interrupted = await StoreInterruptedLineAsync(applicationId: null, definitionHash: "before the change");
+
+        await Assert.ThrowsAsync<Shared.Services.ExecutionException>(() => _supervisor.Dispatch.ResumeAsync(interrupted.Id));
+    }
+
+    [Test]
+    public async Task Run_PointsAtTheVersionItRan()
+    {
+        AutomationWorkflow workflow = await StoreLineAsync(await StoreTestAsync());
+        await EditEndAsync(workflow.Id);
+        ExecutionService execution = ApplicationExecution();
+
+        TaskInstance started = await execution.StartAsync(workflow.Id, JToken.FromObject(new { Value = 1 }));
+
+        Assert.That((await _supervisor.History.GetAsync(started.Id))?.WorkflowVersion, Is.EqualTo(2));
+    }
+
+    [Test]
+    public async Task RunOfAnEditedWorkflow_ResumesOnTheVersionItRan()
+    {
+        TaskInstance interrupted = await StoreInterruptedLineAsync(ApplicationId);
+        // Version 2 ends on the message : a run carrying on with it would end on "stored".
+        await EditEndAsync(interrupted.TaskId);
+        ExecutionService execution = ApplicationExecution();
+
+        await execution.ResumeAsync(interrupted.Id);
+        TaskInstance run = await execution.WaitAsync(interrupted.Id);
+
+        Assert.That(run.Output?["Value"]?.Value<int>(), Is.EqualTo(42));
+    }
+
+    [Test]
+    public async Task RunLeftByTheApplication_IsInterruptedWhenItStartsAgain()
+    {
+        TaskInstance left = await StoreRunningLineAsync(ApplicationId, sessionId: "gone");
+        TaskInstance other = await StoreRunningLineAsync("other-application", sessionId: "gone");
+
+        await ApplicationExecution().InterruptLeftRunsAsync();
+
+        Assert.Multiple(async () =>
+        {
+            Assert.That((await _supervisor.History.GetAsync(left.Id))?.State, Is.EqualTo(EnumTaskState.Interrupted));
+            Assert.That((await _supervisor.History.GetAsync(other.Id))?.State, Is.EqualTo(EnumTaskState.Progressing), "only its own runs");
+        });
+    }
+
+    [Test]
+    public async Task RunOfAnotherRunningCopy_IsLeftAloneWhenTheApplicationStarts()
+    {
+        // Another copy of the application on the same machine, still running.
+        using RunnerSessions otherCopy = new(Path.Combine(_folder, "application-sessions"));
+        TaskInstance running = await StoreRunningLineAsync(ApplicationId, otherCopy.CurrentId);
+
+        await ApplicationExecution().InterruptLeftRunsAsync();
+
+        Assert.That((await _supervisor.History.GetAsync(running.Id))?.State, Is.EqualTo(EnumTaskState.Progressing));
+    }
+
+    [Test]
+    public async Task PausedRun_IsResumedByTheApplication()
+    {
+        AutomationWorkflow workflow = await StoreWaitingLineAsync();
+        ExecutionService execution = ApplicationExecution();
+
+        TaskInstance started = await execution.StartAsync(workflow.Id, JToken.FromObject(new { Value = 1 }));
+        await WaitForNodeAsync(started.Id, "Wait", EnumTaskState.Progressing);
+        await execution.PauseAsync(started.Id);
+        TaskInstance paused = await execution.WaitAsync(started.Id);
+        await execution.ResumeAsync(started.Id);
+        TaskInstance resumed = await execution.WaitAsync(started.Id);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(paused.State, Is.EqualTo(EnumTaskState.Paused));
+            Assert.That(resumed.State, Is.EqualTo(EnumTaskState.Completed));
+            Assert.That(resumed.Output?["Value"]?.Value<int>(), Is.EqualTo(11));
+        });
+    }
+
+    [Test]
+    public async Task StoppingAPausedRun_CancelsIt()
+    {
+        AutomationWorkflow workflow = await StoreWaitingLineAsync();
+        ExecutionService execution = ApplicationExecution();
+        TaskInstance started = await execution.StartAsync(workflow.Id, JToken.FromObject(new { Value = 1 }));
+        await WaitForNodeAsync(started.Id, "Wait", EnumTaskState.Progressing);
+        await execution.PauseAsync(started.Id);
+        await execution.WaitAsync(started.Id);
+
+        await execution.CancelAsync(started.Id);
+
+        Assert.That((await _supervisor.History.GetAsync(started.Id))?.State, Is.EqualTo(EnumTaskState.Canceled));
+        await Assert.ThrowsAsync<Shared.Services.ExecutionException>(() => execution.ResumeAsync(started.Id), "a canceled run isn't resumed");
+    }
+
+    [Test]
+    public async Task AnsweredRun_CarriesOnWithTheAnswer()
+    {
+        ExecutionService execution = ApplicationExecution();
+        var (held, ask) = await StartAskAsync(execution);
+
+        TaskInstance run = await AnswerAsync(ask.Id, new { Items = new[] { "b", "a" } });
+        await execution.ResumeAsync(run.Id);
+        TaskInstance ended = await execution.WaitAsync(run.Id);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(held.State, Is.EqualTo(EnumTaskState.AwaitingUser));
+            Assert.That(ended.State, Is.EqualTo(EnumTaskState.Completed));
+            Assert.That(ended.Output?["Items"]?.ToObject<string[]>(), Is.EqualTo(new[] { "b", "a" }));
+        });
+    }
+
+    [Test]
+    public async Task AnswerNotFittingTheTask_IsRefused()
+    {
+        var (_, ask) = await StartAskAsync(ApplicationExecution());
+
+        await Assert.ThrowsAsync<Shared.Services.ExecutionException>(() => AnswerAsync(ask.Id, new { Items = 3 }));
+        Assert.That((await _supervisor.History.GetAsync(ask.Id))?.State, Is.EqualTo(EnumTaskState.AwaitingUser), "still waiting for an answer");
+    }
+
+    [Test]
+    public async Task TaskAnsweredTwice_IsRefusedTheSecondTime()
+    {
+        var (_, ask) = await StartAskAsync(ApplicationExecution());
+        await AnswerAsync(ask.Id, new { Items = new[] { "b", "a" } });
+
+        await Assert.ThrowsAsync<Shared.Services.ExecutionException>(() => AnswerAsync(ask.Id, new { Items = new[] { "a", "b" } }));
+    }
+
+    [Test]
+    public async Task UserInterfaceTaskOnItsOwn_IsCompletedByTheAnswer()
+    {
+        ExecutionService execution = ApplicationExecution();
+        var (_, reorder) = await StoreAskAsync();
+        TaskInstance started = await execution.StartAsync(reorder.Id, JToken.FromObject(new { Title = "Sort them", Items = new[] { "a", "b" } }));
+        TaskInstance held = await execution.WaitAsync(started.Id);
+
+        TaskInstance answered = await AnswerAsync(held.Id, new { Items = new[] { "b", "a" } });
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(held.State, Is.EqualTo(EnumTaskState.AwaitingUser));
+            Assert.That(answered.State, Is.EqualTo(EnumTaskState.Completed));
+            Assert.That(answered.Output?["Items"]?.ToObject<string[]>(), Is.EqualTo(new[] { "b", "a" }));
+        });
+    }
+
+    [Test]
+    public async Task RunResumedByTwoCopiesAtOnce_IsResumedOnce()
+    {
+        TaskInstance interrupted = await StoreInterruptedLineAsync(ApplicationId);
+        using RunnerSessions otherCopy = new(Path.Combine(_folder, "application-sessions"));
+        ExecutionService first = ApplicationExecution();
+        ExecutionService second = new(_supervisor.Scoped, _supervisor.History, _application, ApplicationId, otherCopy);
+
+        await first.ResumeAsync(interrupted.Id);
+
+        await Assert.ThrowsAsync<Shared.Services.ExecutionException>(() => second.ResumeAsync(interrupted.Id));
+        await first.WaitAsync(interrupted.Id);
+    }
+
+    [Test]
+    public async Task StateFromAWorkerNotRunningTheRun_IsDropped()
+    {
+        // A worker that lost its connection reports on a run interrupted meanwhile, maybe resumed
+        // elsewhere.
+        TaskInstance interrupted = await StoreInterruptedLineAsync(applicationId: null);
+        TaskInstance late = FantocheJson.Copy(interrupted);
+        late.State = EnumTaskState.Canceled;
+
+        await _dispatcher.ReportStateAsync("lost-connection", interrupted.Id, late);
+
+        Assert.That((await _supervisor.History.GetAsync(interrupted.Id))?.State, Is.EqualTo(EnumTaskState.Interrupted));
     }
 
     [Test]

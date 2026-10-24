@@ -41,13 +41,13 @@ internal sealed class RemoteCallerConnection : ICallerHub, IAsyncDisposable
         _connecting.Dispose();
     }
 
-    public async Task Execute(TaskInstance instance, JToken? globalContext)
+    public async Task Execute(TaskInstance instance)
     {
         _carried[instance.Id] = instance;
         try
         {
             await ConnectAsync();
-            await _connection.InvokeAsync(nameof(ICallerHub.Execute), instance, globalContext);
+            await _connection.InvokeAsync(nameof(ICallerHub.Execute), instance);
         }
         catch
         {

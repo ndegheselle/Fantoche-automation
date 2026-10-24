@@ -33,8 +33,7 @@ public sealed class RemoteTaskExecutor : ITaskExecutor, ICallerClient
         _pending[instance.Id] = pending;
         try
         {
-            JToken? globalContext = (instance as WorkflowInstance)?.GlobalContext;
-            await _supervisor.Execute(instance, globalContext);
+            await _supervisor.Execute(instance);
 
             // The worker is the one stopping the task : the outcome still comes back as a completion.
             using var registration = cancellation?.Register(() => _ = _supervisor.Cancel(instance.Id));

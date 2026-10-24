@@ -19,6 +19,7 @@ public static class DispatchApi
     public static void Map(WebApplication app)
     {
         app.MapGet("/dispatch/status", (Dispatcher dispatcher) => dispatcher.GetStatus());
+        app.MapPost("/dispatch/runs/{id:guid}/resume", (Dispatcher dispatcher, Guid id) => dispatcher.ResumeAsync(id));
 
         app.MapHub<DispatchHub>($"/{SupervisorRoutes.Dispatch}");
 

@@ -24,7 +24,7 @@ public class WorkerHub : Hub<IWorkerClient>, IWorkerHub
     public Task Register(string workerId, int capacity)
         => _dispatcher.AddWorkerAsync(Context.ConnectionId, _workers.Clients.Client(Context.ConnectionId), workerId, capacity);
 
-    public Task ReportState(Guid executionId, TaskInstance instance) => _dispatcher.ReportStateAsync(instance);
+    public Task ReportState(Guid executionId, TaskInstance instance) => _dispatcher.ReportStateAsync(Context.ConnectionId, executionId, instance);
 
     public Task ReportNotification(Guid executionId, TaskNotification notification) => _dispatcher.ReportNotificationAsync(executionId, notification);
 

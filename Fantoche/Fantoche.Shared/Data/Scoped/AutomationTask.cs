@@ -9,15 +9,6 @@ namespace Fantoche.Shared.Data.Scoped;
 public class TaskSettings
 {
     public bool IsPassingThrough { get; set; } = false;
-
-    /// <summary>
-    /// How many of its last executions keep the tables and files they wrote, on each worker
-    /// running it : the older ones are removed as an execution ends. Only counted for the task or
-    /// workflow an execution starts from, the nodes of a workflow writing in the storage of its run.
-    /// </summary>
-    public int StorageRetention { get; set; } = DefaultStorageRetention;
-
-    public const int DefaultStorageRetention = 10;
 }
 
 [JsonDerivedType(typeof(AutomationTask), "task")]
