@@ -41,7 +41,12 @@ internal sealed class SupervisorExecutionTests
     private LocalWorker _worker = null!;
     /// <summary>The worker of the application, which runs what the application starts.</summary>
     private LocalWorker _application = null!;
-    /// <summary>The copies of the application on the machine of the test, see <see cref="ApplicationExecution"/>.</summary>
+    /// <summary>
+    /// Where the copies of the application on the machine of the test keep their lock file : the
+    /// folder of the supervisor in standalone mode, whose session the application shares.
+    /// </summary>
+    private string _sessionsFolder = null!;
+    /// <summary>The session of the application, see <see cref="ApplicationExecution"/>.</summary>
     private RunnerSessions _applicationSessions = null!;
     private IAsyncDisposable? _registration;
     private RemoteTaskExecutor _caller = null!;
@@ -63,6 +68,8 @@ internal sealed class SupervisorExecutionTests
             LocalSupervisor supervisor = new(supervisorFolder);
             _dispatcher = supervisor.Dispatcher;
             _supervisor = supervisor;
+            _sessionsFolder = Path.Combine(supervisorFolder, "sessions");
+            _applicationSessions = supervisor.Sessions;
         }
         else
         {
@@ -77,11 +84,12 @@ internal sealed class SupervisorExecutionTests
             await client.History.StartAsync();
             await client.Dispatch.StartAsync();
             _supervisor = client;
+            _sessionsFolder = Path.Combine(_folder, "sessions");
+            _applicationSessions = new RunnerSessions(_sessionsFolder);
         }
 
         _worker = new LocalWorker(new TestPackageManagement(), Path.Combine(_folder, "worker"));
         _application = new LocalWorker(new TestPackageManagement(), Path.Combine(_folder, "application"));
-        _applicationSessions = new RunnerSessions(Path.Combine(_folder, "application-sessions"));
         _caller = new RemoteTaskExecutor(_supervisor);
     }
 
@@ -618,7 +626,7 @@ internal sealed class SupervisorExecutionTests
     public async Task RunOfAnotherRunningCopy_IsLeftAloneWhenTheApplicationStarts()
     {
         // Another copy of the application on the same machine, still running.
-        using RunnerSessions otherCopy = new(Path.Combine(_folder, "application-sessions"));
+        using RunnerSessions otherCopy = new(_sessionsFolder);
         TaskInstance running = await StoreRunningLineAsync(ApplicationId, otherCopy.CurrentId);
 
         await ApplicationExecution().SuspendLeftRunsAsync();
@@ -721,7 +729,7 @@ internal sealed class SupervisorExecutionTests
     public async Task RunResumedByTwoCopiesAtOnce_IsResumedOnce()
     {
         TaskInstance suspended = await StoreSuspendedLineAsync(ApplicationId);
-        using RunnerSessions otherCopy = new(Path.Combine(_folder, "application-sessions"));
+        using RunnerSessions otherCopy = new(_sessionsFolder);
         ExecutionService first = ApplicationExecution();
         ExecutionService second = new(_supervisor.Scoped, _supervisor.History, _application, ApplicationId, otherCopy);
 

@@ -84,7 +84,22 @@ public class SpineViewModel : ObservableObject
     {
         string workerFolder = Path.Combine(Settings.LocalFolderPath, "worker");
         string storageFolder = Path.Combine(workerFolder, "storage");
-        ISupervisor supervisor = Settings.IsStandalone ? CreateLocalSupervisor(storageFolder) : CreateSupervisorClient(storageFolder);
+        // The machine name stays the same from one start to the next : the application finds its runs
+        // again. The copies running side by side on the machine tell their runs apart by session,
+        // the one of the supervisor in standalone mode : both live and die with the process.
+        ISupervisor supervisor;
+        RunnerSessions sessions;
+        if (Settings.IsStandalone)
+        {
+            LocalSupervisor local = CreateLocalSupervisor(storageFolder);
+            supervisor = local;
+            sessions = local.Sessions;
+        }
+        else
+        {
+            supervisor = CreateSupervisorClient(storageFolder);
+            sessions = new RunnerSessions(Path.Combine(Settings.LocalFolderPath, "sessions"));
+        }
         LocalWorker worker = LocalWorker.InFolder(supervisor, workerFolder, storageFolder);
 
         // Alone, the application is the only worker there is to run the tasks set to run on one.
@@ -97,9 +112,6 @@ public class SpineViewModel : ObservableObject
         services.AddSingleton(supervisor.History);
         services.AddSingleton(supervisor.Packages);
         services.AddSingleton(supervisor.Dispatch);
-        // The machine name stays the same from one start to the next : the application finds its runs
-        // again. The copies running side by side on the machine tell their runs apart by session.
-        RunnerSessions sessions = new(Path.Combine(Settings.LocalFolderPath, "application-sessions"));
         ExecutionService execution = new(supervisor.Scoped, supervisor.History, worker, Environment.MachineName, sessions);
         _ = SuspendLeftRunsAsync(execution);
         services.AddSingleton<IExecutionService>(execution);
@@ -202,7 +214,7 @@ public class SpineViewModel : ObservableObject
     }
 
     /// <param name="storageFolder">The storage of the worker of the application, its only worker.</param>
-    private ISupervisor CreateLocalSupervisor(string storageFolder)
+    private LocalSupervisor CreateLocalSupervisor(string storageFolder)
     {
         var supervisor = new LocalSupervisor(Settings.LocalFolderPath, storageFolder);
         // Take the cost of opening the database off the first navigation.

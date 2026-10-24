@@ -15,7 +15,7 @@ namespace Fantoche.Services.Local;
 /// supervisor API otherwise, which only carries its calls over HTTP and its hubs.
 /// <para>
 /// Its data folder holds its database ("fantoche.db"), the packages ("nuget"), the assemblies
-/// extracted from them to check what they hold ("cache").
+/// extracted from them to check what they hold ("cache"), the lock files of its sessions ("sessions").
 /// </para>
 /// <para>
 /// The executions are kept a month, their history and their storage (see <see cref="CleanUpAsync"/>).
@@ -99,7 +99,10 @@ public sealed class LocalSupervisor : ISupervisor
     public LocalPackagesService Packages { get; }
     public Dispatcher Dispatcher { get; }
     public Scheduler Scheduler { get; }
-    /// <summary>The supervisors sharing its database : copies of the application in standalone mode.</summary>
+    /// <summary>
+    /// The supervisors sharing its database : copies of the application in standalone mode, whose
+    /// own runs are marked with the same session.
+    /// </summary>
     public RunnerSessions Sessions { get; }
 
     IScopedService ISupervisor.Scoped => Scoped;
