@@ -67,6 +67,7 @@ public class WorkflowInstance : TaskInstance
             Output = stored.Output,
             GlobalContext = stored.GlobalContext,
             ApplicationId = stored.ApplicationId,
+            SessionId = stored.SessionId,
             DefinitionHash = stored.DefinitionHash,
             PreviousIds = stored.PreviousIds,
             CreatedAt = stored.CreatedAt,

@@ -26,8 +26,8 @@ public static class RunResumption
                 : $"The run was started by the application '{run.ApplicationId}' : only it resumes it.");
         }
 
-        if (run.State != EnumTaskState.Interrupted)
-            throw new ExecutionException($"Only an interrupted run is resumed, this one is {run.State}.");
+        if (run.State is not (EnumTaskState.Interrupted or EnumTaskState.Paused))
+            throw new ExecutionException($"Only an interrupted or paused run is resumed, this one is {run.State}.");
 
         // Walking a graph that changed would meet nodes that are gone, or skip the new ones.
         if (run.DefinitionHash != RunDefinition.HashOf(task))

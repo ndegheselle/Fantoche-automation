@@ -95,8 +95,10 @@ public class SpineViewModel : ObservableObject
         services.AddSingleton(supervisor.History);
         services.AddSingleton(supervisor.Packages);
         services.AddSingleton(supervisor.Dispatch);
-        // The machine name stays the same from one start to the next : the application finds its runs again.
-        ExecutionService execution = new(supervisor.Scoped, supervisor.History, worker, Environment.MachineName);
+        // The machine name stays the same from one start to the next : the application finds its runs
+        // again. The copies running side by side on the machine tell their runs apart by session.
+        RunnerSessions sessions = new(Path.Combine(Settings.LocalFolderPath, "application-sessions"));
+        ExecutionService execution = new(supervisor.Scoped, supervisor.History, worker, Environment.MachineName, sessions);
         _ = InterruptLeftRunsAsync(execution);
         services.AddSingleton<IExecutionService>(execution);
         services.AddSingleton(new ApplicationWorker(dispatchId));
@@ -149,23 +151,25 @@ public class SpineViewModel : ObservableObject
     }
 
     /// <summary>
-    /// What the application left running when it last stopped is interrupted, so it can be resumed.
-    /// The supervisor is waited for in remote mode.
+    /// What a copy of the application left running as it stopped is interrupted, so it can be
+    /// resumed : now, then every minute since another copy can stop while this one runs. The
+    /// supervisor is waited for in remote mode.
     /// </summary>
     private static async Task InterruptLeftRunsAsync(ExecutionService execution)
     {
-        while (true)
+        using PeriodicTimer timer = new(TimeSpan.FromMinutes(1));
+        do
         {
             try
             {
                 await execution.InterruptLeftRunsAsync();
-                return;
             }
             catch (HttpRequestException)
             {
-                await Task.Delay(TimeSpan.FromSeconds(5));
+                // The supervisor isn't reachable yet : the next tick tries again.
             }
         }
+        while (await timer.WaitForNextTickAsync());
     }
 
     /// <param name="storageFolder">The storage of the worker of the application, its only worker.</param>

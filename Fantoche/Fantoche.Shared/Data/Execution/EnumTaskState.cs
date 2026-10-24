@@ -36,8 +36,13 @@
         /// </summary>
         Interrupted = 64,
         /// <summary>
-        /// Task is finished
+        /// Paused by the user : the nodes that were running were let to finish, no other started.
+        /// A run in this state can be resumed.
         /// </summary>
-        Finished = Completed | Failed | Canceled | Interrupted
+        Paused = 128,
+        /// <summary>
+        /// Nothing runs the task anymore : it is over, or waits to be resumed
+        /// </summary>
+        Finished = Completed | Failed | Canceled | Interrupted | Paused
     }
 }

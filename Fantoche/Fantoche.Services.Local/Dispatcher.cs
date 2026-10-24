@@ -41,6 +41,8 @@ public class Dispatcher : IDispatchService
 
     private readonly LocalScopedService _scoped;
     private readonly LocalHistoryService _history;
+    /// <summary>What the runs it dispatches are marked with, see <see cref="TaskInstance.SessionId"/>.</summary>
+    private readonly string _sessionId;
 
     private readonly object _lock = new();
     private readonly Dictionary<string, Worker> _workersByConnection = [];
@@ -52,10 +54,11 @@ public class Dispatcher : IDispatchService
 
     public event Action<DispatchStatus>? StatusChanged;
 
-    public Dispatcher(LocalScopedService scoped, LocalHistoryService history)
+    public Dispatcher(LocalScopedService scoped, LocalHistoryService history, string sessionId)
     {
         _scoped = scoped;
         _history = history;
+        _sessionId = sessionId;
     }
 
     public Task<DispatchStatus> GetStatusAsync() => Task.FromResult(GetStatus());
@@ -101,6 +104,7 @@ public class Dispatcher : IDispatchService
         // Whatever the caller sent, the instance runs from now on, on the workers of the supervisor.
         instance.State = EnumTaskState.Progressing;
         instance.ApplicationId = null;
+        instance.SessionId = _sessionId;
         RemoteExecution execution;
         try
         {
@@ -140,17 +144,19 @@ public class Dispatcher : IDispatchService
         RunResumption.EnsureResumable(run, task, applicationId: null);
         IReadOnlyList<TaskInstance> stored = await _history.GetDescendantsAsync(run.Id);
 
+        // Resumed twice at once, by this supervisor or another one : both read it interrupted.
+        if (!await _history.ClaimRunAsync(run.Id, _sessionId))
+            throw new ExecutionException("The run is already resumed.");
+
         run.State = EnumTaskState.Progressing;
+        run.SessionId = _sessionId;
         Execution execution = new() { Request = RemoteExecution.From(task, run, stored) };
         lock (_lock)
         {
-            // Resumed twice at once : both read it interrupted.
-            if (!_executions.TryAdd(run.Id, execution))
-                throw new ExecutionException("The run is already resumed.");
+            _executions[run.Id] = execution;
             _queue.Enqueue(run.Id);
         }
 
-        await _history.SaveAsync(run);
         await DispatchAsync();
     }
 

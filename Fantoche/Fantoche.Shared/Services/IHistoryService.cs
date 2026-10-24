@@ -20,12 +20,23 @@ public interface IHistoryService
     public Task<IReadOnlyList<TaskInstance>> GetDescendantsAsync(Guid instanceId);
 
     /// <summary>
-    /// Mark the runs of [applicationId] (null for the ones the supervisor dispatches) started before
-    /// [startedBefore] and left unfinished as interrupted, with the instances they were running.
-    /// Called as the application or the supervisor starts : nothing runs what they started before.
-    /// Returns the runs.
+    /// The runs of [applicationId] (null for the ones the supervisor dispatches) that aren't over :
+    /// running, or left behind by a process that is gone (see <see cref="TaskInstance.SessionId"/>).
     /// </summary>
-    public Task<IReadOnlyList<TaskInstance>> InterruptRunsAsync(string? applicationId, DateTime startedBefore);
+    public Task<IReadOnlyList<TaskInstance>> GetUnfinishedRunsAsync(string? applicationId);
+
+    /// <summary>
+    /// Mark the run [runId] as interrupted, with the instances it was running : nothing runs it
+    /// anymore. A join waiting for its branches stays as it is, that is what a resume carries on
+    /// from. Nothing happens to a run that is over.
+    /// </summary>
+    public Task InterruptRunAsync(Guid runId);
+
+    /// <summary>
+    /// Take the interrupted or paused run [runId] for the session [sessionId] about to resume it :
+    /// false when it isn't interrupted or paused anymore, another process having taken it first.
+    /// </summary>
+    public Task<bool> ClaimRunAsync(Guid runId, string sessionId);
 
     /// <summary>
     /// The instance [instanceId] as it was last saved, null when nothing ran under that id.

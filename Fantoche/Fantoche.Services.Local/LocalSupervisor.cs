@@ -97,6 +97,8 @@ public sealed class LocalSupervisor : ISupervisor
     public LocalHistoryService History { get; }
     public LocalPackagesService Packages { get; }
     public Dispatcher Dispatcher { get; }
+    /// <summary>The supervisors sharing its database : copies of the application in standalone mode.</summary>
+    public RunnerSessions Sessions { get; }
 
     IScopedService ISupervisor.Scoped => Scoped;
     IHistoryService ISupervisor.History => History;
@@ -116,12 +118,13 @@ public sealed class LocalSupervisor : ISupervisor
         Scoped = new LocalScopedService(_database);
         History = new LocalHistoryService(_database);
         Packages = new LocalPackagesService(Path.Combine(dataFolder, "nuget"), Path.Combine(dataFolder, "cache"));
-        Dispatcher = new Dispatcher(Scoped, History);
+        Sessions = new RunnerSessions(Path.Combine(dataFolder, "sessions"));
+        Dispatcher = new Dispatcher(Scoped, History, Sessions.CurrentId);
 
-        // Nothing the supervisor dispatched outlives it : what the history holds as running was cut
-        // short. Run apart so a caller holding a synchronization context doesn't wait on itself.
-        DateTime startedAt = DateTime.UtcNow;
-        Task.Run(() => History.InterruptRunsAsync(applicationId: null, startedAt)).GetAwaiter().GetResult();
+        // Nothing a supervisor dispatched outlives it : what the history holds as running for a
+        // supervisor that is gone was cut short. Run apart so a caller holding a synchronization
+        // context doesn't wait on itself.
+        Task.Run(() => Sessions.InterruptLeftRunsAsync(History, applicationId: null)).GetAwaiter().GetResult();
     }
 
     /// <summary>Take the cost of opening the database off the first read.</summary>

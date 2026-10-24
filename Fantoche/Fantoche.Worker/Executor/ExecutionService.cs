@@ -25,8 +25,7 @@ public class ExecutionService : IExecutionService
 
     private readonly ITaskExecutor _executor;
     private readonly string _applicationId;
-    /// <summary>What this application started before is left from its previous start.</summary>
-    private readonly DateTime _createdAt = DateTime.UtcNow;
+    private readonly RunnerSessions _sessions;
 
     private readonly ConcurrentDictionary<Guid, RunningExecution> _running = [];
 
@@ -34,25 +33,29 @@ public class ExecutionService : IExecutionService
 
     /// <param name="applicationId">
     /// What the runs of this application are known by (see <see cref="TaskInstance.ApplicationId"/>) :
-    /// its machine name, which stays the same from one start to the next.
+    /// its machine name, which stays the same from one start to the next. The copies of the
+    /// application running on the machine share it, any of them resumes the runs of the others.
     /// </param>
+    /// <param name="sessions">The copies of the application on this machine, this one included.</param>
     public ExecutionService(
         IScopedService scopedService,
         IHistoryService historyService,
         ITaskExecutor executor,
-        string applicationId)
+        string applicationId,
+        RunnerSessions sessions)
     {
         _scopedService = scopedService;
         _historyService = historyService;
         _executor = executor;
         _applicationId = applicationId;
+        _sessions = sessions;
     }
 
     /// <summary>
-    /// Mark the runs this application left unfinished when it last stopped as interrupted, so they
-    /// can be resumed. The ones it started since this service exists are left alone.
+    /// Mark the runs a copy of this application left behind as it stopped as interrupted, so they
+    /// can be resumed. The ones a running copy runs are left alone.
     /// </summary>
-    public Task InterruptLeftRunsAsync() => _historyService.InterruptRunsAsync(_applicationId, _createdAt);
+    public Task InterruptLeftRunsAsync() => _sessions.InterruptLeftRunsAsync(_historyService, _applicationId);
 
     public async Task<TaskInstance> StartAsync(Guid taskId, JToken? parameters = null)
     {
@@ -77,6 +80,7 @@ public class ExecutionService : IExecutionService
 
         instance.NodeName = task.Metadata.Name;
         instance.ApplicationId = _applicationId;
+        instance.SessionId = _sessions.CurrentId;
         instance.DefinitionHash = RunDefinition.HashOf(task);
         instance.State = EnumTaskState.Progressing;
         await _historyService.SaveAsync(instance);
@@ -101,8 +105,11 @@ public class ExecutionService : IExecutionService
             instance = resumed;
         }
 
+        // Resumed twice at once, by this copy of the application or another one.
+        if (!await _historyService.ClaimRunAsync(instance.Id, _sessions.CurrentId))
+            throw new Shared.Services.ExecutionException("The run is already resumed.");
         instance.State = EnumTaskState.Progressing;
-        await _historyService.SaveAsync(instance);
+        instance.SessionId = _sessions.CurrentId;
 
         Launch(task, instance);
         return instance;

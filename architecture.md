@@ -88,8 +88,13 @@ A run cut short by a crash or a lost worker is marked `Interrupted`, then resume
 
 | A run started by | Is interrupted when | Is resumed by |
 | --- | --- | --- |
-| The application | The application starts again: it interrupts what it left running | The same application only (`TaskInstance.ApplicationId`, its machine name) |
-| The supervisor (dispatched) | Its worker is lost, or the supervisor starts again | The supervisor, on any worker with room |
+| The application | The copy of the application running it is gone. Any copy checks when it starts, then every minute | Any copy of the application on the same machine (`TaskInstance.ApplicationId`, the machine name) |
+| The supervisor (dispatched) | Its worker is lost, or the supervisor running it is gone (checked when a supervisor starts) | The supervisor, on any worker with room |
+
+Several copies of the application can run side by side on a machine:
+- Each process running executions (a copy of the application, a supervisor) holds a lock file for as long as it lives (`RunnerSessions`), and marks its runs with its session (`TaskInstance.SessionId`). A run whose session holds no lock anymore was left behind.
+- A run is taken atomically as it is resumed (`IHistoryService.ClaimRunAsync`): two copies resuming it at once can't both run it.
+- In standalone mode, the copies share the database, but the history is only pushed live within a copy: another copy's runs show once the page is read again.
 
 Resuming walks the run again from its history (`WorkflowExecutor`, with `WorkflowInstance.StoredInstances`):
 - A node that was running runs again from its start, with the parameters it was given. Every task can run more than once, so a task with side effects has to bear it.

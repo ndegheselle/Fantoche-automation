@@ -117,6 +117,11 @@ public class PackageCache : IPackageManagement
             await CopySymbolsAsync(id, version, extractionFolder);
             Directory.Move(extractionFolder, folder);
         }
+        catch (IOException) when (Directory.Exists(folder))
+        {
+            // Another copy of the application extracted it at the same time : the lock above only
+            // holds within this process. Its extraction is as good as this one.
+        }
         finally
         {
             if (Directory.Exists(extractionFolder))

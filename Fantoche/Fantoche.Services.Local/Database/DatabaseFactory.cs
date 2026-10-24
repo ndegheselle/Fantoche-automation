@@ -101,7 +101,7 @@ namespace Fantoche.Services.Local.Database
         private static void DropOutdatedTables(IDbConnection connection)
         {
             // What a resumed run reads of its history.
-            DropWithout(connection, "TaskInstances", "PreviousIds");
+            DropWithout(connection, "TaskInstances", "SessionId");
         }
 
         private static void DropWithout(IDbConnection connection, string table, string column)

@@ -55,6 +55,13 @@ namespace Fantoche.Shared.Data.Execution
         public string? ApplicationId { get; set; }
 
         /// <summary>
+        /// Only for the instance of a run : the process running it (an application, a supervisor),
+        /// several of them sharing the same runs. A run whose process is gone was cut short. Changed
+        /// as the run is resumed.
+        /// </summary>
+        public string? SessionId { get; set; }
+
+        /// <summary>
         /// Only for the instance of a run : what the definitions it started from hash to (see
         /// <see cref="RunDefinition"/>). A run is only resumed on the same definitions.
         /// </summary>

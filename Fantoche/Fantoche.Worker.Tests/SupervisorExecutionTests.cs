@@ -41,6 +41,8 @@ internal sealed class SupervisorExecutionTests
     private LocalWorker _worker = null!;
     /// <summary>The worker of the application, which runs what the application starts.</summary>
     private LocalWorker _application = null!;
+    /// <summary>The copies of the application on the machine of the test, see <see cref="ApplicationExecution"/>.</summary>
+    private RunnerSessions _applicationSessions = null!;
     private IAsyncDisposable? _registration;
     private RemoteTaskExecutor _caller = null!;
 
@@ -79,6 +81,7 @@ internal sealed class SupervisorExecutionTests
 
         _worker = new LocalWorker(new TestPackageManagement(), Path.Combine(_folder, "worker"));
         _application = new LocalWorker(new TestPackageManagement(), Path.Combine(_folder, "application"));
+        _applicationSessions = new RunnerSessions(Path.Combine(_folder, "application-sessions"));
         _caller = new RemoteTaskExecutor(_supervisor);
     }
 
@@ -93,6 +96,7 @@ internal sealed class SupervisorExecutionTests
             await _api.DisposeAsync();
         _worker.Dispose();
         _application.Dispose();
+        _applicationSessions.Dispose();
     }
 
     private async Task ConnectWorkerAsync(LocalWorker? worker = null)
@@ -137,7 +141,7 @@ internal sealed class SupervisorExecutionTests
     private const string ApplicationId = "test-application";
 
     /// <summary>The service the application starts and resumes its runs with.</summary>
-    private ExecutionService ApplicationExecution() => new(_supervisor.Scoped, _supervisor.History, _application, ApplicationId);
+    private ExecutionService ApplicationExecution() => new(_supervisor.Scoped, _supervisor.History, _application, ApplicationId, _applicationSessions);
 
     /// <summary>
     /// A run of the line workflow (see <see cref="StoreLineAsync"/>) as the history holds it once
@@ -182,6 +186,16 @@ internal sealed class SupervisorExecutionTests
         await _supervisor.History.SaveAsync(run);
         await _supervisor.History.SaveAsync(start);
         await _supervisor.History.SaveAsync(first);
+        return run;
+    }
+
+    /// <summary>The line workflow as the history holds it while [sessionId] runs it.</summary>
+    private async Task<TaskInstance> StoreRunningLineAsync(string applicationId, string sessionId)
+    {
+        TaskInstance run = await StoreInterruptedLineAsync(applicationId);
+        run.State = EnumTaskState.Progressing;
+        run.SessionId = sessionId;
+        await _supervisor.History.SaveAsync(run);
         return run;
     }
 
@@ -505,12 +519,8 @@ internal sealed class SupervisorExecutionTests
     [Test]
     public async Task RunLeftByTheApplication_IsInterruptedWhenItStartsAgain()
     {
-        TaskInstance left = await StoreInterruptedLineAsync(ApplicationId);
-        left.State = EnumTaskState.Progressing;
-        await _supervisor.History.SaveAsync(left);
-        TaskInstance other = await StoreInterruptedLineAsync("other-application");
-        other.State = EnumTaskState.Progressing;
-        await _supervisor.History.SaveAsync(other);
+        TaskInstance left = await StoreRunningLineAsync(ApplicationId, sessionId: "gone");
+        TaskInstance other = await StoreRunningLineAsync("other-application", sessionId: "gone");
 
         await ApplicationExecution().InterruptLeftRunsAsync();
 
@@ -519,6 +529,32 @@ internal sealed class SupervisorExecutionTests
             Assert.That((await _supervisor.History.GetAsync(left.Id))?.State, Is.EqualTo(EnumTaskState.Interrupted));
             Assert.That((await _supervisor.History.GetAsync(other.Id))?.State, Is.EqualTo(EnumTaskState.Progressing), "only its own runs");
         });
+    }
+
+    [Test]
+    public async Task RunOfAnotherRunningCopy_IsLeftAloneWhenTheApplicationStarts()
+    {
+        // Another copy of the application on the same machine, still running.
+        using RunnerSessions otherCopy = new(Path.Combine(_folder, "application-sessions"));
+        TaskInstance running = await StoreRunningLineAsync(ApplicationId, otherCopy.CurrentId);
+
+        await ApplicationExecution().InterruptLeftRunsAsync();
+
+        Assert.That((await _supervisor.History.GetAsync(running.Id))?.State, Is.EqualTo(EnumTaskState.Progressing));
+    }
+
+    [Test]
+    public async Task RunResumedByTwoCopiesAtOnce_IsResumedOnce()
+    {
+        TaskInstance interrupted = await StoreInterruptedLineAsync(ApplicationId);
+        using RunnerSessions otherCopy = new(Path.Combine(_folder, "application-sessions"));
+        ExecutionService first = ApplicationExecution();
+        ExecutionService second = new(_supervisor.Scoped, _supervisor.History, _application, ApplicationId, otherCopy);
+
+        await first.ResumeAsync(interrupted.Id);
+
+        await Assert.ThrowsAsync<Shared.Services.ExecutionException>(() => second.ResumeAsync(interrupted.Id));
+        await first.WaitAsync(interrupted.Id);
     }
 
     [Test]

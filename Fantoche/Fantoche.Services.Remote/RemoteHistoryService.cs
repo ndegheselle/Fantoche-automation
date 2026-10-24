@@ -63,12 +63,16 @@ public sealed class RemoteHistoryService : IHistoryService, IAsyncDisposable
     public async Task<IReadOnlyList<TaskInstance>> GetDescendantsAsync(Guid instanceId)
         => await _http.GetAsync<List<TaskInstance>>($"history/instances/{instanceId}/descendants");
 
-    public async Task<IReadOnlyList<TaskInstance>> InterruptRunsAsync(string? applicationId, DateTime startedBefore)
+    public async Task<IReadOnlyList<TaskInstance>> GetUnfinishedRunsAsync(string? applicationId)
     {
-        string before = SupervisorHttp.Query(startedBefore.ToUniversalTime().ToString("O"));
-        string application = applicationId == null ? "" : $"&applicationId={SupervisorHttp.Query(applicationId)}";
-        return await _http.PostAsync<List<TaskInstance>>($"history/runs/interrupt?startedBefore={before}{application}");
+        string query = applicationId == null ? "" : $"?applicationId={SupervisorHttp.Query(applicationId)}";
+        return await _http.GetAsync<List<TaskInstance>>($"history/runs/unfinished{query}");
     }
+
+    public Task InterruptRunAsync(Guid runId) => _http.PostAsync($"history/runs/{runId}/interrupt");
+
+    public Task<bool> ClaimRunAsync(Guid runId, string sessionId)
+        => _http.PostAsync<bool>($"history/runs/{runId}/claim?sessionId={SupervisorHttp.Query(sessionId)}");
 
     public Task<TaskInstance?> GetAsync(Guid instanceId)
         => _http.FindAsync<TaskInstance>($"history/instances/{instanceId}");

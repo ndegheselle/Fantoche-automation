@@ -14,11 +14,11 @@ internal sealed record TaskInstanceModel
     /// The columns making up a stored instance, in the order the insert writes them.
     /// </summary>
     public const string Columns =
-        "Id, TaskId, NodeId, ParentInstanceId, PreviousIds, NodeName, Shared, Parameters, Output, GlobalContext, ApplicationId, DefinitionHash, State, CreatedAt, FinishedAt";
+        "Id, TaskId, NodeId, ParentInstanceId, PreviousIds, NodeName, Shared, Parameters, Output, GlobalContext, ApplicationId, SessionId, DefinitionHash, State, CreatedAt, FinishedAt";
 
     /// <summary>The parameters of an insert, in the order of <see cref="Columns"/>.</summary>
     public const string Values =
-        "@Id, @TaskId, @NodeId, @ParentInstanceId, @PreviousIds, @NodeName, @Shared, @Parameters, @Output, @GlobalContext, @ApplicationId, @DefinitionHash, @State, @CreatedAt, @FinishedAt";
+        "@Id, @TaskId, @NodeId, @ParentInstanceId, @PreviousIds, @NodeName, @Shared, @Parameters, @Output, @GlobalContext, @ApplicationId, @SessionId, @DefinitionHash, @State, @CreatedAt, @FinishedAt";
 
     public static readonly string Schema = """
         CREATE TABLE IF NOT EXISTS TaskInstances (
@@ -33,6 +33,7 @@ internal sealed record TaskInstanceModel
             Output TEXT NULL,
             GlobalContext TEXT NULL,
             ApplicationId TEXT NULL,
+            SessionId TEXT NULL,
             DefinitionHash TEXT NULL,
             State INTEGER NOT NULL,
             CreatedAt TEXT NOT NULL,
@@ -56,6 +57,7 @@ internal sealed record TaskInstanceModel
     public string? Output { get; init; }
     public string? GlobalContext { get; init; }
     public string? ApplicationId { get; init; }
+    public string? SessionId { get; init; }
     public string? DefinitionHash { get; init; }
     public EnumTaskState State { get; init; }
     public DateTime CreatedAt { get; init; }
@@ -76,6 +78,7 @@ internal sealed record TaskInstanceModel
             Output = Parse(Output),
             GlobalContext = Parse(GlobalContext),
             ApplicationId = ApplicationId,
+            SessionId = SessionId,
             DefinitionHash = DefinitionHash,
             CreatedAt = AsUtc(CreatedAt),
             State = State,
@@ -102,6 +105,7 @@ internal sealed record TaskInstanceModel
             Output = Text(instance.Output),
             GlobalContext = Text(instance.GlobalContext),
             ApplicationId = instance.ApplicationId,
+            SessionId = instance.SessionId,
             DefinitionHash = instance.DefinitionHash,
             State = instance.State,
             CreatedAt = instance.CreatedAt,

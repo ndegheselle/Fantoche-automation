@@ -120,28 +120,54 @@ public class LocalHistoryService : IHistoryService
         return [.. rows.Select(x => x.ToInstance())];
     }
 
-    public async Task<IReadOnlyList<TaskInstance>> InterruptRunsAsync(string? applicationId, DateTime startedBefore)
+    public async Task<IReadOnlyList<TaskInstance>> GetUnfinishedRunsAsync(string? applicationId)
     {
         using var connection = _databaseFactory.Create();
 
         var rows = await connection.QueryAsync<TaskInstanceModel>($"""
             SELECT {TaskInstanceModel.Columns} FROM TaskInstances
-            WHERE ParentInstanceId IS NULL AND ApplicationId IS @applicationId AND CreatedAt < @startedBefore
-                AND (State & @finished) = 0;
+            WHERE ParentInstanceId IS NULL AND ApplicationId IS @applicationId AND (State & @finished) = 0;
             """,
-            new { applicationId, startedBefore = startedBefore.ToUniversalTime(), finished = (int)EnumTaskState.Finished });
+            new { applicationId, finished = (int)EnumTaskState.Finished });
 
-        List<TaskInstance> runs = [.. rows.Select(x => x.ToInstance())];
-        foreach (TaskInstance run in runs)
-            await InterruptAsync(run);
-        return runs;
+        return [.. rows.Select(x => x.ToInstance())];
     }
 
-    /// <summary>
-    /// Mark the run [runId] as interrupted, with the instances it was running : nothing runs it
-    /// anymore. A join waiting for its branches stays as it is, that is what a resume carries on
-    /// from. Nothing happens to a run that is over.
-    /// </summary>
+    public async Task<bool> ClaimRunAsync(Guid runId, string sessionId)
+    {
+        int claimed;
+        await _writeLock.WaitAsync();
+        try
+        {
+            using var connection = _databaseFactory.Create();
+            // In one statement : another process resuming it at the same time reads it the same.
+            claimed = await connection.ExecuteAsync("""
+                UPDATE TaskInstances SET State = @progressing, SessionId = @sessionId
+                WHERE Id = @runId AND State IN (@interrupted, @paused);
+                """,
+                new
+                {
+                    runId,
+                    sessionId,
+                    progressing = (int)EnumTaskState.Progressing,
+                    interrupted = (int)EnumTaskState.Interrupted,
+                    paused = (int)EnumTaskState.Paused,
+                });
+        }
+        finally
+        {
+            _writeLock.Release();
+        }
+
+        if (claimed == 0)
+            return false;
+
+        TaskInstance? run = await GetAsync(runId);
+        if (run != null)
+            InstanceUpdated?.Invoke(run);
+        return true;
+    }
+
     public async Task InterruptRunAsync(Guid runId)
     {
         TaskInstance? run = await GetAsync(runId);
@@ -220,6 +246,7 @@ public class LocalHistoryService : IHistoryService
                         Output = @Output,
                         GlobalContext = @GlobalContext,
                         ApplicationId = @ApplicationId,
+                        SessionId = @SessionId,
                         DefinitionHash = @DefinitionHash,
                         State = @State,
                         CreatedAt = @CreatedAt,

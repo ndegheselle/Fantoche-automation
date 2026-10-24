@@ -31,8 +31,9 @@ public static class HistoryApi
         });
         history.MapGet("/instances/{id:guid}/children", (LocalHistoryService service, Guid id) => service.GetChildrenAsync(id));
         history.MapGet("/instances/{id:guid}/descendants", (LocalHistoryService service, Guid id) => service.GetDescendantsAsync(id));
-        history.MapPost("/runs/interrupt", (LocalHistoryService service, string? applicationId, DateTime startedBefore)
-            => service.InterruptRunsAsync(applicationId, startedBefore));
+        history.MapGet("/runs/unfinished", (LocalHistoryService service, string? applicationId) => service.GetUnfinishedRunsAsync(applicationId));
+        history.MapPost("/runs/{id:guid}/interrupt", (LocalHistoryService service, Guid id) => service.InterruptRunAsync(id));
+        history.MapPost("/runs/{id:guid}/claim", (LocalHistoryService service, Guid id, string sessionId) => service.ClaimRunAsync(id, sessionId));
         history.MapPut("/instances", (LocalHistoryService service, TaskInstance instance) => service.SaveAsync(instance));
 
         app.MapHub<HistoryHub>($"/{SupervisorRoutes.History}");
