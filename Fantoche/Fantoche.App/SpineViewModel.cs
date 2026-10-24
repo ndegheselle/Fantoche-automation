@@ -101,7 +101,7 @@ public class SpineViewModel : ObservableObject
         // again. The copies running side by side on the machine tell their runs apart by session.
         RunnerSessions sessions = new(Path.Combine(Settings.LocalFolderPath, "application-sessions"));
         ExecutionService execution = new(supervisor.Scoped, supervisor.History, worker, Environment.MachineName, sessions);
-        _ = InterruptLeftRunsAsync(execution);
+        _ = SuspendLeftRunsAsync(execution);
         services.AddSingleton<IExecutionService>(execution);
         services.AddSingleton(new UserPrompts(
             supervisor.Scoped,
@@ -161,16 +161,16 @@ public class SpineViewModel : ObservableObject
     }
 
     /// <summary>
-    /// What a copy of the application left running as it stopped is interrupted as this one starts,
+    /// What a copy of the application left running as it stopped is suspended as this one starts,
     /// so it can be resumed. The supervisor is waited for in remote mode.
     /// </summary>
-    private static async Task InterruptLeftRunsAsync(ExecutionService execution)
+    private static async Task SuspendLeftRunsAsync(ExecutionService execution)
     {
         while (true)
         {
             try
             {
-                await execution.InterruptLeftRunsAsync();
+                await execution.SuspendLeftRunsAsync();
                 return;
             }
             catch (HttpRequestException)

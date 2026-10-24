@@ -27,7 +27,7 @@ public static class RunResumption
                 : $"The run was started by the application '{run.ApplicationId}' : only it resumes it.");
         }
 
-        if (run.State is not (EnumTaskState.Interrupted or EnumTaskState.Paused or EnumTaskState.AwaitingUser))
-            throw new ExecutionException($"Only an interrupted, paused or answered run is resumed, this one is {run.State}.");
+        if (run.State is not (EnumTaskState.Suspended or EnumTaskState.AwaitingUser))
+            throw new ExecutionException($"Only a suspended or answered run is resumed, this one is {run.State}.");
     }
 }

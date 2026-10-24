@@ -144,15 +144,14 @@ public class LocalHistoryService : IHistoryService
             // In one statement : another process resuming it at the same time reads it the same.
             claimed = await connection.ExecuteAsync("""
                 UPDATE TaskInstances SET State = @progressing, SessionId = @sessionId
-                WHERE Id = @runId AND State IN (@interrupted, @paused, @awaitingUser);
+                WHERE Id = @runId AND State IN (@suspended, @awaitingUser);
                 """,
                 new
                 {
                     runId,
                     sessionId,
                     progressing = (int)EnumTaskState.Progressing,
-                    interrupted = (int)EnumTaskState.Interrupted,
-                    paused = (int)EnumTaskState.Paused,
+                    suspended = (int)EnumTaskState.Suspended,
                     awaitingUser = (int)EnumTaskState.AwaitingUser,
                 });
         }
@@ -205,26 +204,22 @@ public class LocalHistoryService : IHistoryService
         return true;
     }
 
-    public async Task InterruptRunAsync(Guid runId)
+    public async Task SuspendRunAsync(Guid runId, string reason)
     {
         TaskInstance? run = await GetAsync(runId);
         if (run == null || (run.State & EnumTaskState.Finished) != 0)
             return;
 
-        await InterruptAsync(run);
-    }
-
-    private async Task InterruptAsync(TaskInstance run)
-    {
         IReadOnlyList<TaskInstance> descendants = await GetDescendantsAsync(run.Id);
         IEnumerable<TaskInstance> running = descendants.Where(x => x.State is EnumTaskState.Pending or EnumTaskState.Progressing);
         foreach (TaskInstance instance in running)
         {
-            instance.State = EnumTaskState.Interrupted;
+            instance.State = EnumTaskState.Suspended;
             await SaveAsync(instance);
         }
 
-        run.State = EnumTaskState.Interrupted;
+        run.State = EnumTaskState.Suspended;
+        run.Output = JToken.FromObject(reason);
         await SaveAsync(run);
     }
 

@@ -26,7 +26,7 @@ internal sealed class ResumeWorkflowTests
 
     /// <summary>
     /// Run [workflow] with [parameters] and keep its history as it stood once [crashes] matched the
-    /// last state stored, the nodes it was running interrupted as an application finds them when it
+    /// last state stored, the nodes it was running suspended as an application finds them when it
     /// starts again.
     /// </summary>
     private static async Task<CrashedRun> CrashAsync(TestWorkflow workflow, object parameters, Func<TaskInstance, bool> crashes)
@@ -56,8 +56,8 @@ internal sealed class ResumeWorkflowTests
         Assert.That(isCrashed, Is.True, "The run never reached the state it was meant to crash on.");
 
         foreach (TaskInstance stored in history.Where(x => x.State is EnumTaskState.Pending or EnumTaskState.Progressing))
-            stored.State = EnumTaskState.Interrupted;
-        storedRun.State = EnumTaskState.Interrupted;
+            stored.State = EnumTaskState.Suspended;
+        storedRun.State = EnumTaskState.Suspended;
 
         WorkflowInstance resumed = WorkflowInstance.From(workflow.Refreshed(), storedRun);
         resumed.StoredInstances = history;

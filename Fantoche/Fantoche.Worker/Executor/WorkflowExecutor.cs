@@ -65,7 +65,8 @@ public class WorkflowExecutor
         // Paused before reaching its end : what it didn't start is what a resume carries on with.
         if (endInstances.Count == 0 && workflowInstance.PauseRequested.IsCancellationRequested)
         {
-            workflowInstance.State = EnumTaskState.Paused;
+            workflowInstance.State = EnumTaskState.Suspended;
+            workflowInstance.Output = JToken.FromObject("Paused by the user.");
             progress?.StateChanges?.Report(workflowInstance);
             return workflowInstance;
         }
@@ -156,7 +157,7 @@ public class WorkflowExecutor
             // the same way. A user interface task itself waits on until it is answered.
             bool isHeldNestedRun = instance is WorkflowInstance && instance.State == EnumTaskState.AwaitingUser;
             bool wasRunning = isHeldNestedRun
-                || instance.State is EnumTaskState.Pending or EnumTaskState.Progressing or EnumTaskState.Interrupted or EnumTaskState.Paused;
+                || instance.State is EnumTaskState.Pending or EnumTaskState.Progressing or EnumTaskState.Suspended;
             if (wasRunning && instance.Node is not GraphControl)
             {
                 instance.State = EnumTaskState.Progressing;

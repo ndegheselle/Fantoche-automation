@@ -4,7 +4,7 @@ The standalone and remote modes run the same code: one supervisor (`LocalSupervi
 
 Two rules keep the interactions simple:
 - What the application starts runs in the application. The workers run what the supervisor dispatches to them: the scheduled items (to come).
-- Once a worker (the application's included) starts an execution, everything of it stays there. Every node of a workflow runs where the workflow runs, and its tables and files never leave the storage of its run. An interrupted run is resumed by whoever can reach that storage (see [Interrupted and paused runs](#interrupted-and-paused-runs)).
+- Once a worker (the application's included) starts an execution, everything of it stays there. Every node of a workflow runs where the workflow runs, and its tables and files never leave the storage of its run. A suspended run is resumed by whoever can reach that storage (see [Suspended runs](#suspended-runs)).
 
 ## Standalone and remote
 
@@ -68,7 +68,7 @@ sequenceDiagram
 ```
 
 - Only JSON travels: the parameters and the output. A table or file the output points at stays in the storage of its run.
-- A worker lost while running an execution leaves it interrupted. A worker that reconnects meanwhile can't report on it anymore: its states are dropped.
+- A worker lost while running an execution leaves it suspended. A worker that reconnects meanwhile can't report on it anymore: its states are dropped.
 - Nothing in the application dispatches yet: the scheduled items will.
 
 ### Why nothing started by hand is sent to a worker
@@ -82,11 +82,15 @@ It worked, but it took a transit store in the supervisor, an HTTP API to stream 
 
 A "Run on a worker" setting on the tasks and workflows, sending a whole execution started from the application to a worker, was removed too. A run started by hand is for building and checking a workflow, close to the editor and the local files. Where an execution runs belongs to what schedules it, not to the task or workflow itself.
 
-## Interrupted and paused runs
+## Suspended runs
 
-A run cut short by a crash or a lost worker is marked `Interrupted`. A run the user pauses from the editor is marked `Paused`: the nodes it runs finish, no other task starts (the controls still pass, so a run whose tasks are over reaches its end), and its nested runs pause with it. Both are resumed by hand, from the editor or from the detail of the execution ("Resume"), and both can be stopped instead, which cancels them for good.
+A run nothing runs anymore, waiting to be resumed, is `Suspended`. Its output tells why:
+- **Paused by the user** from the editor: the nodes it runs finish, no other task starts (the controls still pass, so a run whose tasks are over reaches its end), and its nested runs pause with it. Nothing runs twice.
+- **Cut short** by a crash or a lost worker: the nodes it was running run again once resumed.
 
-| A run started by | Is interrupted when | Is resumed by |
+It is resumed by hand, from the editor or from the detail of the execution ("Resume"), or stopped instead, which cancels it for good.
+
+| A run started by | Is cut short when | Is resumed by |
 | --- | --- | --- |
 | The application | The copy of the application running it is gone. Any copy checks when it starts | Any copy of the application on the same machine (`TaskInstance.ApplicationId`, the machine name) |
 | The supervisor (dispatched) | Its worker is lost, or the supervisor running it is gone (checked when a supervisor starts) | The supervisor, on any worker with room |

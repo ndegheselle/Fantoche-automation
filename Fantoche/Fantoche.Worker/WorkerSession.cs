@@ -113,7 +113,7 @@ public sealed class WorkerSession : IWorkerClient
     }
 
     /// <summary>
-    /// The supervisor interrupts the executions of a worker it lost : running them is pointless, a
+    /// The supervisor suspends the executions of a worker it lost : running them is pointless, a
     /// resume runs them again wherever there is room.
     /// </summary>
     public void CancelAll()

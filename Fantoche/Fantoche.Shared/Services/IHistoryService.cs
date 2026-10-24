@@ -33,11 +33,11 @@ public interface IHistoryService
     public Task<IReadOnlyList<TaskInstance>> GetUnfinishedRunsAsync(string? applicationId);
 
     /// <summary>
-    /// Mark the run [runId] as interrupted, with the instances it was running : nothing runs it
-    /// anymore. A join waiting for its branches stays as it is, that is what a resume carries on
-    /// from. Nothing happens to a run that is over.
+    /// Mark the run [runId] as suspended because of [reason], with the instances it was running :
+    /// nothing runs it anymore. A join waiting for its branches stays as it is, that is what a
+    /// resume carries on from. Nothing happens to a run that is over or already waits.
     /// </summary>
-    public Task InterruptRunAsync(Guid runId);
+    public Task SuspendRunAsync(Guid runId, string reason);
 
     /// <summary>
     /// Store [answer] as the output of [instanceId], a task waiting for the user, which completes
@@ -46,8 +46,8 @@ public interface IHistoryService
     public Task<bool> AnswerAsync(Guid instanceId, JToken answer);
 
     /// <summary>
-    /// Take the interrupted, paused or answered run [runId] for the session [sessionId] about to resume it :
-    /// false when it isn't interrupted or paused anymore, another process having taken it first.
+    /// Take the suspended or answered run [runId] for the session [sessionId] about to resume it :
+    /// false when it doesn't wait anymore, another process having taken it first.
     /// </summary>
     public Task<bool> ClaimRunAsync(Guid runId, string sessionId);
 

@@ -79,7 +79,8 @@ public sealed class RemoteHistoryService : IHistoryService, IAsyncDisposable
     public Task<bool> AnswerAsync(Guid instanceId, JToken answer)
         => _http.SendAsync<JToken, bool>(HttpMethod.Post, $"history/instances/{instanceId}/answer", answer);
 
-    public Task InterruptRunAsync(Guid runId) => _http.PostAsync($"history/runs/{runId}/interrupt");
+    public Task SuspendRunAsync(Guid runId, string reason)
+        => _http.PostAsync($"history/runs/{runId}/suspend?reason={SupervisorHttp.Query(reason)}");
 
     public Task<bool> ClaimRunAsync(Guid runId, string sessionId)
         => _http.PostAsync<bool>($"history/runs/{runId}/claim?sessionId={SupervisorHttp.Query(sessionId)}");

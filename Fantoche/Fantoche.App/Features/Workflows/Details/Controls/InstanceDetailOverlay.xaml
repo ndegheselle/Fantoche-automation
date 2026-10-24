@@ -169,7 +169,7 @@
             <Button
                 Command="{Binding ResumeCommand}"
                 Style="{StaticResource SecondaryButton}"
-                ToolTip="Run the interrupted nodes again and carry on from there"
+                ToolTip="Carry on from where the run was suspended"
                 Visibility="{Binding CanResume, Converter={x:Static jonverters:VisibilityConverter.Default}}">
                 Resume
             </Button>

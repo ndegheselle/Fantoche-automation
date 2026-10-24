@@ -9,7 +9,7 @@ namespace Fantoche.Worker.Executor;
 /// <summary>
 /// Run the tasks and workflows with the given executor (in the application or on a worker), and
 /// store every instance they produce in the history, wherever the services keep it. The runs are
-/// marked as the ones of this application, which alone resumes them once interrupted.
+/// marked as the ones of this application, which alone resumes them once suspended.
 /// </summary>
 public class ExecutionService : IExecutionService
 {
@@ -54,10 +54,10 @@ public class ExecutionService : IExecutionService
     }
 
     /// <summary>
-    /// Mark the runs a copy of this application left behind as it stopped as interrupted, so they
+    /// Mark the runs a copy of this application left behind as it stopped as suspended, so they
     /// can be resumed. The ones a running copy runs are left alone.
     /// </summary>
-    public Task InterruptLeftRunsAsync() => _sessions.InterruptLeftRunsAsync(_historyService, _applicationId);
+    public Task SuspendLeftRunsAsync() => _sessions.SuspendLeftRunsAsync(_historyService, _applicationId);
 
     public async Task<TaskInstance> StartAsync(Guid taskId, JToken? parameters = null)
     {
@@ -161,8 +161,8 @@ public class ExecutionService : IExecutionService
         if (run == null)
             return;
 
-        // A paused or interrupted run only waits to be resumed : stopping it is giving up on it.
-        if (run.State is EnumTaskState.Paused or EnumTaskState.Interrupted && run.ApplicationId == _applicationId)
+        // A suspended run only waits to be resumed : stopping it is giving up on it.
+        if (run.State == EnumTaskState.Suspended && run.ApplicationId == _applicationId)
         {
             run.State = EnumTaskState.Canceled;
             await _historyService.SaveAsync(run);

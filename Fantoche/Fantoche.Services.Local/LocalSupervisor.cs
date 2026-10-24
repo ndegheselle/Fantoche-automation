@@ -51,7 +51,7 @@ public sealed class LocalSupervisor : ISupervisor
 
     /// <summary>
     /// A worker of this process, its messages copied the same way (see <see cref="CallerLink"/>).
-    /// Removing it is losing its connection : the supervisor interrupts what it was running, and what
+    /// Removing it is losing its connection : the supervisor suspends what it was running, and what
     /// it still sends about it is lost.
     /// </summary>
     private sealed class WorkerLink : IWorkerHub, IWorkerClient, IAsyncDisposable
@@ -125,7 +125,7 @@ public sealed class LocalSupervisor : ISupervisor
         // Nothing a supervisor dispatched outlives it : what the history holds as running for a
         // supervisor that is gone was cut short. Run apart so a caller holding a synchronization
         // context doesn't wait on itself.
-        Task.Run(() => Sessions.InterruptLeftRunsAsync(History, applicationId: null)).GetAwaiter().GetResult();
+        Task.Run(() => Sessions.SuspendLeftRunsAsync(History, applicationId: null)).GetAwaiter().GetResult();
     }
 
     /// <summary>Take the cost of opening the database off the first read.</summary>

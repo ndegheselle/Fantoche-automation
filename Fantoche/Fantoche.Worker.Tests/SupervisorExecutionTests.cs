@@ -145,10 +145,10 @@ internal sealed class SupervisorExecutionTests
 
     /// <summary>
     /// A run of the line workflow (see <see cref="StoreLineAsync"/>) as the history holds it once
-    /// interrupted right after First completed. First is stored as having produced 42, which it
+    /// suspended right after First completed. First is stored as having produced 42, which it
     /// can't compute from the parameters : a run ending on it carried on from the history.
     /// </summary>
-    private async Task<TaskInstance> StoreInterruptedLineAsync(string? applicationId)
+    private async Task<TaskInstance> StoreSuspendedLineAsync(string? applicationId)
     {
         AutomationWorkflow stored = await StoreLineAsync(await StoreTestAsync());
         AutomationWorkflow workflow = (AutomationWorkflow)await Shared.Services.ScopedServiceExtensions.LoadRunnableAsync(_supervisor.Scoped, stored.Id);
@@ -162,7 +162,7 @@ internal sealed class SupervisorExecutionTests
             Parameters = JToken.FromObject(new { Value = 1 }),
             ApplicationId = applicationId,
             NestedVersions = [],
-            State = EnumTaskState.Interrupted,
+            State = EnumTaskState.Suspended,
         };
         TaskInstance start = new()
         {
@@ -257,7 +257,7 @@ internal sealed class SupervisorExecutionTests
     /// <summary>The line workflow as the history holds it while [sessionId] runs it.</summary>
     private async Task<TaskInstance> StoreRunningLineAsync(string applicationId, string sessionId)
     {
-        TaskInstance run = await StoreInterruptedLineAsync(applicationId);
+        TaskInstance run = await StoreSuspendedLineAsync(applicationId);
         run.State = EnumTaskState.Progressing;
         run.SessionId = sessionId;
         await _supervisor.History.SaveAsync(run);
@@ -510,7 +510,7 @@ internal sealed class SupervisorExecutionTests
     }
 
     [Test]
-    public async Task LosingTheWorker_InterruptsItsRunningTask()
+    public async Task LosingTheWorker_SuspendsItsRunningTask()
     {
         await ConnectWorkerAsync();
         AutomationTask delay = await StoreDelayAsync();
@@ -524,8 +524,9 @@ internal sealed class SupervisorExecutionTests
 
         Assert.Multiple(async () =>
         {
-            Assert.That(result.State, Is.EqualTo(EnumTaskState.Interrupted));
-            Assert.That((await _supervisor.History.GetAsync(instance.Id))?.State, Is.EqualTo(EnumTaskState.Interrupted));
+            Assert.That(result.State, Is.EqualTo(EnumTaskState.Suspended));
+            Assert.That(result.Output?.Value<string>(), Does.Contain("was lost"), "it tells why");
+            Assert.That((await _supervisor.History.GetAsync(instance.Id))?.State, Is.EqualTo(EnumTaskState.Suspended));
         });
     }
 
@@ -533,11 +534,11 @@ internal sealed class SupervisorExecutionTests
     public async Task DispatchedRun_IsResumedFromItsHistory()
     {
         await ConnectWorkerAsync();
-        TaskInstance interrupted = await StoreInterruptedLineAsync(applicationId: null);
+        TaskInstance suspended = await StoreSuspendedLineAsync(applicationId: null);
 
-        await _supervisor.Dispatch.ResumeAsync(interrupted.Id);
-        TaskInstance run = await WaitForTheEndOfAsync(interrupted.Id);
-        var nodes = await _supervisor.History.GetChildrenAsync(interrupted.Id);
+        await _supervisor.Dispatch.ResumeAsync(suspended.Id);
+        TaskInstance run = await WaitForTheEndOfAsync(suspended.Id);
+        var nodes = await _supervisor.History.GetChildrenAsync(suspended.Id);
 
         Assert.Multiple(() =>
         {
@@ -550,11 +551,11 @@ internal sealed class SupervisorExecutionTests
     [Test]
     public async Task ApplicationRun_IsResumedByTheApplication()
     {
-        TaskInstance interrupted = await StoreInterruptedLineAsync(ApplicationId);
+        TaskInstance suspended = await StoreSuspendedLineAsync(ApplicationId);
         ExecutionService execution = ApplicationExecution();
 
-        await execution.ResumeAsync(interrupted.Id);
-        TaskInstance run = await execution.WaitAsync(interrupted.Id);
+        await execution.ResumeAsync(suspended.Id);
+        TaskInstance run = await execution.WaitAsync(suspended.Id);
 
         Assert.Multiple(() =>
         {
@@ -567,9 +568,9 @@ internal sealed class SupervisorExecutionTests
     public async Task ApplicationRun_IsNotResumedByTheSupervisor()
     {
         await ConnectWorkerAsync();
-        TaskInstance interrupted = await StoreInterruptedLineAsync(ApplicationId);
+        TaskInstance suspended = await StoreSuspendedLineAsync(ApplicationId);
 
-        await Assert.ThrowsAsync<Shared.Services.ExecutionException>(() => _supervisor.Dispatch.ResumeAsync(interrupted.Id));
+        await Assert.ThrowsAsync<Shared.Services.ExecutionException>(() => _supervisor.Dispatch.ResumeAsync(suspended.Id));
     }
 
     [Test]
@@ -587,28 +588,28 @@ internal sealed class SupervisorExecutionTests
     [Test]
     public async Task RunOfAnEditedWorkflow_ResumesOnTheVersionItRan()
     {
-        TaskInstance interrupted = await StoreInterruptedLineAsync(ApplicationId);
+        TaskInstance suspended = await StoreSuspendedLineAsync(ApplicationId);
         // Version 2 ends on the message : a run carrying on with it would end on "stored".
-        await EditEndAsync(interrupted.TaskId);
+        await EditEndAsync(suspended.TaskId);
         ExecutionService execution = ApplicationExecution();
 
-        await execution.ResumeAsync(interrupted.Id);
-        TaskInstance run = await execution.WaitAsync(interrupted.Id);
+        await execution.ResumeAsync(suspended.Id);
+        TaskInstance run = await execution.WaitAsync(suspended.Id);
 
         Assert.That(run.Output?["Value"]?.Value<int>(), Is.EqualTo(42));
     }
 
     [Test]
-    public async Task RunLeftByTheApplication_IsInterruptedWhenItStartsAgain()
+    public async Task RunLeftByTheApplication_IsSuspendedWhenItStartsAgain()
     {
         TaskInstance left = await StoreRunningLineAsync(ApplicationId, sessionId: "gone");
         TaskInstance other = await StoreRunningLineAsync("other-application", sessionId: "gone");
 
-        await ApplicationExecution().InterruptLeftRunsAsync();
+        await ApplicationExecution().SuspendLeftRunsAsync();
 
         Assert.Multiple(async () =>
         {
-            Assert.That((await _supervisor.History.GetAsync(left.Id))?.State, Is.EqualTo(EnumTaskState.Interrupted));
+            Assert.That((await _supervisor.History.GetAsync(left.Id))?.State, Is.EqualTo(EnumTaskState.Suspended));
             Assert.That((await _supervisor.History.GetAsync(other.Id))?.State, Is.EqualTo(EnumTaskState.Progressing), "only its own runs");
         });
     }
@@ -620,7 +621,7 @@ internal sealed class SupervisorExecutionTests
         using RunnerSessions otherCopy = new(Path.Combine(_folder, "application-sessions"));
         TaskInstance running = await StoreRunningLineAsync(ApplicationId, otherCopy.CurrentId);
 
-        await ApplicationExecution().InterruptLeftRunsAsync();
+        await ApplicationExecution().SuspendLeftRunsAsync();
 
         Assert.That((await _supervisor.History.GetAsync(running.Id))?.State, Is.EqualTo(EnumTaskState.Progressing));
     }
@@ -640,7 +641,7 @@ internal sealed class SupervisorExecutionTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(paused.State, Is.EqualTo(EnumTaskState.Paused));
+            Assert.That(paused.State, Is.EqualTo(EnumTaskState.Suspended));
             Assert.That(resumed.State, Is.EqualTo(EnumTaskState.Completed));
             Assert.That(resumed.Output?["Value"]?.Value<int>(), Is.EqualTo(11));
         });
@@ -719,29 +720,29 @@ internal sealed class SupervisorExecutionTests
     [Test]
     public async Task RunResumedByTwoCopiesAtOnce_IsResumedOnce()
     {
-        TaskInstance interrupted = await StoreInterruptedLineAsync(ApplicationId);
+        TaskInstance suspended = await StoreSuspendedLineAsync(ApplicationId);
         using RunnerSessions otherCopy = new(Path.Combine(_folder, "application-sessions"));
         ExecutionService first = ApplicationExecution();
         ExecutionService second = new(_supervisor.Scoped, _supervisor.History, _application, ApplicationId, otherCopy);
 
-        await first.ResumeAsync(interrupted.Id);
+        await first.ResumeAsync(suspended.Id);
 
-        await Assert.ThrowsAsync<Shared.Services.ExecutionException>(() => second.ResumeAsync(interrupted.Id));
-        await first.WaitAsync(interrupted.Id);
+        await Assert.ThrowsAsync<Shared.Services.ExecutionException>(() => second.ResumeAsync(suspended.Id));
+        await first.WaitAsync(suspended.Id);
     }
 
     [Test]
     public async Task StateFromAWorkerNotRunningTheRun_IsDropped()
     {
-        // A worker that lost its connection reports on a run interrupted meanwhile, maybe resumed
+        // A worker that lost its connection reports on a run suspended meanwhile, maybe resumed
         // elsewhere.
-        TaskInstance interrupted = await StoreInterruptedLineAsync(applicationId: null);
-        TaskInstance late = FantocheJson.Copy(interrupted);
+        TaskInstance suspended = await StoreSuspendedLineAsync(applicationId: null);
+        TaskInstance late = FantocheJson.Copy(suspended);
         late.State = EnumTaskState.Canceled;
 
-        await _dispatcher.ReportStateAsync("lost-connection", interrupted.Id, late);
+        await _dispatcher.ReportStateAsync("lost-connection", suspended.Id, late);
 
-        Assert.That((await _supervisor.History.GetAsync(interrupted.Id))?.State, Is.EqualTo(EnumTaskState.Interrupted));
+        Assert.That((await _supervisor.History.GetAsync(suspended.Id))?.State, Is.EqualTo(EnumTaskState.Suspended));
     }
 
     [Test]
