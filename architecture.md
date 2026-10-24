@@ -177,9 +177,8 @@ storage/
 ```
 
 - The remote workers share one storage folder (`STORAGE_FOLDER`, a volume mounted in every worker and in the supervisor). The application keeps its own.
-- The executions are kept for a month. Once a day, the supervisor removes the older ones: their history (the instances of a run go with it) and their folders in the storage it is given (`STORAGE_FOLDER`, or the storage of the application in standalone mode).
-- In remote mode, the application cleans its own storage by the same rule when it starts, since the supervisor can't reach it.
-- The age is read from the name of the folder, not from the history. A folder whose name doesn't follow the pattern is left alone.
+- The executions are kept for a month. Once a day, the supervisor removes the older ones: the folder of each run in the storage it is given (`STORAGE_FOLDER`, or the storage of the application in standalone mode), then the runs themselves (their instances go with them).
+- In remote mode the supervisor can't reach the storage of the application: when it starts, the application removes its folders whose run the history doesn't hold anymore. A folder whose name doesn't follow the pattern is left alone.
 
 A table or file named in the history therefore only exists in the storage that execution wrote to, and only for a month.
 

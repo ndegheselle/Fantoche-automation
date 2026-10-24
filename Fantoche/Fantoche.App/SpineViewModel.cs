@@ -180,6 +180,27 @@ public class SpineViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// Remove the storage of the runs of the application the history doesn't hold anymore, the
+    /// supervisor being waited for.
+    /// </summary>
+    private static async Task CleanStorageAsync(ISupervisor supervisor, string storageFolder)
+    {
+        while (true)
+        {
+            try
+            {
+                IReadOnlyList<Guid> runIds = await supervisor.History.GetRunIdsAsync(Environment.MachineName);
+                new ExecutionStorages(storageFolder).RemoveAllBut(runIds.ToHashSet());
+                return;
+            }
+            catch (HttpRequestException)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(5));
+            }
+        }
+    }
+
     /// <param name="storageFolder">The storage of the worker of the application, its only worker.</param>
     private ISupervisor CreateLocalSupervisor(string storageFolder)
     {
@@ -191,8 +212,8 @@ public class SpineViewModel : ObservableObject
     }
 
     /// <param name="storageFolder">
-    /// The storage of the worker of the application, out of reach of the supervisor : cleaned here
-    /// by the same rule.
+    /// The storage of the worker of the application, out of reach of the supervisor : the folders
+    /// of the runs it removed are removed here.
     /// </param>
     private ISupervisor CreateSupervisorClient(string storageFolder)
     {
@@ -200,7 +221,7 @@ public class SpineViewModel : ObservableObject
         // Listens to the changes of the history and of the dispatch as soon as the supervisor is up.
         _ = supervisor.History.StartAsync();
         _ = supervisor.Dispatch.StartAsync();
-        _ = Task.Run(() => ExecutionStorages.RemoveStartedBefore(storageFolder, LocalSupervisor.CleanupCutoff(DateTime.UtcNow)));
+        _ = CleanStorageAsync(supervisor, storageFolder);
         return supervisor;
     }
 

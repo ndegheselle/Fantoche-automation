@@ -21,6 +21,12 @@ public interface IHistoryService
     public Task<IReadOnlyList<TaskInstance>> GetDescendantsAsync(Guid instanceId);
 
     /// <summary>
+    /// The ids of every run of [applicationId] (null for the ones the supervisor dispatches) the
+    /// history holds : the storage of any other run can go.
+    /// </summary>
+    public Task<IReadOnlyList<Guid>> GetRunIdsAsync(string? applicationId);
+
+    /// <summary>
     /// The runs of [applicationId] (null for the ones the supervisor dispatches) that aren't over :
     /// running, or left behind by a process that is gone (see <see cref="TaskInstance.SessionId"/>).
     /// </summary>

@@ -64,6 +64,12 @@ public sealed class RemoteHistoryService : IHistoryService, IAsyncDisposable
     public async Task<IReadOnlyList<TaskInstance>> GetDescendantsAsync(Guid instanceId)
         => await _http.GetAsync<List<TaskInstance>>($"history/instances/{instanceId}/descendants");
 
+    public async Task<IReadOnlyList<Guid>> GetRunIdsAsync(string? applicationId)
+    {
+        string query = applicationId == null ? "" : $"?applicationId={SupervisorHttp.Query(applicationId)}";
+        return await _http.GetAsync<List<Guid>>($"history/runs/ids{query}");
+    }
+
     public async Task<IReadOnlyList<TaskInstance>> GetUnfinishedRunsAsync(string? applicationId)
     {
         string query = applicationId == null ? "" : $"?applicationId={SupervisorHttp.Query(applicationId)}";

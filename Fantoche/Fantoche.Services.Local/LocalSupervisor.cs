@@ -91,7 +91,8 @@ public sealed class LocalSupervisor : ISupervisor
     }
 
     private readonly DatabaseFactory _database;
-    private readonly string? _storageFolder;
+    /// <summary>The storage the workers share, null when the supervisor doesn't reach it.</summary>
+    private readonly ExecutionStorages? _storages;
 
     public LocalScopedService Scoped { get; }
     public LocalHistoryService History { get; }
@@ -112,7 +113,7 @@ public sealed class LocalSupervisor : ISupervisor
     /// </param>
     public LocalSupervisor(string dataFolder, string? storageFolder = null)
     {
-        _storageFolder = storageFolder;
+        _storages = storageFolder == null ? null : new ExecutionStorages(storageFolder);
         // The factory puts the schema and the starting content in place as it is built.
         _database = new DatabaseFactory(Path.Combine(dataFolder, "fantoche.db"));
         Scoped = new LocalScopedService(_database);
@@ -136,14 +137,15 @@ public sealed class LocalSupervisor : ISupervisor
     /// </summary>
     public async Task CleanUpAsync(DateTime now)
     {
-        DateTime cutoff = CleanupCutoff(now);
+        DateTime cutoff = now.AddMonths(-1);
+        // The folders first : once the runs are gone, nothing tells which folders were theirs.
+        if (_storages != null)
+        {
+            foreach (TaskInstance run in await History.GetRunsStartedBeforeAsync(cutoff))
+                _storages.Remove(run);
+        }
         await History.DeleteStartedBeforeAsync(cutoff);
-        if (_storageFolder != null)
-            ExecutionStorages.RemoveStartedBefore(_storageFolder, cutoff);
     }
-
-    /// <summary>What [now] keeps : the executions started since.</summary>
-    public static DateTime CleanupCutoff(DateTime now) => now.AddMonths(-1);
 
     /// <summary>Clean up now, then once a day until [cancellation].</summary>
     public async Task RunCleanupAsync(CancellationToken cancellation)
