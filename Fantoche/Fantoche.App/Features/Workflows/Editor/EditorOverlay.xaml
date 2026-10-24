@@ -43,6 +43,14 @@
                 </Button>
                 <Button
                     joolkit:Sizing.IsSquare="True"
+                    Command="{Binding Run.AnswerCommand}"
+                    Style="{StaticResource GhostButton}"
+                    ToolTip="Answer : open the page the run waits on you for"
+                    Visibility="{Binding Run.CanAnswer, Converter={x:Static jonverters:VisibilityConverter.Default}}">
+                    <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.UserPen}" />
+                </Button>
+                <Button
+                    joolkit:Sizing.IsSquare="True"
                     Command="{Binding Run.ResumeCommand}"
                     Style="{StaticResource GhostButton}"
                     ToolTip="Resume the run where it stopped"

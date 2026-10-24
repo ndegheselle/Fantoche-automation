@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Fantoche.App.Common;
+using Fantoche.App.Features.UserInterfaces;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Services;
 using Joufflu.Feedback;
@@ -54,7 +55,14 @@ namespace Fantoche.App.Features.Workflows.Details.Controls
             && Instance.State is EnumTaskState.Interrupted or EnumTaskState.Paused
             && (Instance.ApplicationId == null || Instance.ApplicationId == Environment.MachineName);
 
+        /// <summary>
+        /// Whether the execution waits for the user : a user interface task, or a run holding one.
+        /// Who can answer it is checked as its page opens.
+        /// </summary>
+        public bool CanAnswer => Instance.State == EnumTaskState.AwaitingUser;
+
         private readonly IHistoryService _history;
+        private readonly UserPrompts _prompts;
         private readonly IExecutionService _execution;
         private readonly IDispatchService _dispatch;
         private readonly IOverlayer _overlayer;
@@ -63,6 +71,7 @@ namespace Fantoche.App.Features.Workflows.Details.Controls
         public InstanceDetailViewModel(
             TaskInstance instance,
             IHistoryService history,
+            UserPrompts prompts,
             IExecutionService execution,
             IDispatchService dispatch,
             IOverlayer overlayer,
@@ -70,6 +79,7 @@ namespace Fantoche.App.Features.Workflows.Details.Controls
         {
             Instance = instance;
             _history = history;
+            _prompts = prompts;
             _execution = execution;
             _dispatch = dispatch;
             _overlayer = overlayer;
@@ -84,7 +94,7 @@ namespace Fantoche.App.Features.Workflows.Details.Controls
             SpineViewModel shell = SpineViewModel.Instance;
             IOverlayer overlayer = shell.Overlayer;
 
-            var viewModel = new InstanceDetailViewModel(instance, shell.History, shell.Execution, shell.Dispatch, overlayer, shell.Toasts);
+            var viewModel = new InstanceDetailViewModel(instance, shell.History, shell.Prompts, shell.Execution, shell.Dispatch, overlayer, shell.Toasts);
             // Read before it is shown : the detail opens on what the execution amounts to rather
             // than filling in under the reader.
             await viewModel.RefreshAsync();
@@ -134,6 +144,34 @@ namespace Fantoche.App.Features.Workflows.Details.Controls
             catch (Exception exception)
             {
                 _toasts.Error(exception.Message, $"The run of '{Instance.NodeName}' could not be resumed");
+                return;
+            }
+
+            _overlayer.Validate(this);
+        }
+
+        /// <summary>
+        /// Open the page of the task waiting for the user, the first one for a run holding several :
+        /// once answered, the run carries on and the detail closes, the history following it.
+        /// </summary>
+        [RelayCommand]
+        private async Task Answer()
+        {
+            try
+            {
+                IReadOnlyList<TaskInstance> awaiting = await _prompts.GetAwaitingAsync(Instance);
+                if (awaiting.Count == 0)
+                {
+                    _toasts.Warning("Nothing waits for an answer anymore.", $"'{Instance.NodeName}' was answered");
+                    return;
+                }
+
+                if (await _prompts.AnswerAsync(awaiting[0]) == null)
+                    return;
+            }
+            catch (Exception exception)
+            {
+                _toasts.Error(exception.Message, $"'{Instance.NodeName}' could not be answered");
                 return;
             }
 

@@ -37,6 +37,9 @@
             <DataTrigger Binding="{Binding State}" Value="Paused">
                 <Setter Property="Variant" Value="Warning" />
             </DataTrigger>
+            <DataTrigger Binding="{Binding State}" Value="AwaitingUser">
+                <Setter Property="Variant" Value="Warning" />
+            </DataTrigger>
         </Style.Triggers>
     </Style>
 </ResourceDictionary>

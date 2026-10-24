@@ -1,5 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using Fantoche.App.Common;
+using Fantoche.App.Features.UserInterfaces;
 using Fantoche.App.Features.Workflows.Editor;
 using Fantoche.App.Features.Workflows.Editor.History;
 using Fantoche.Shared.Data.Execution;
@@ -34,11 +35,12 @@ namespace Fantoche.App.Features.Workflows.Details
             IScopedService scoped,
             IHistoryService history,
             IExecutionService execution,
+            UserPrompts prompts,
             IOverlayer overlays,
             IToastService toasts)
             : base(node, parent, scoped, history, overlays, toasts)
         {
-            Editor = new WorkflowEditorViewModel(Workflow, SaveGraphCommand, scoped, execution, history, toasts);
+            Editor = new WorkflowEditorViewModel(Workflow, SaveGraphCommand, scoped, execution, prompts, history, toasts);
             Schedules = new SchedulesViewModel(Workflow, overlays, () => SaveElementAsync($"The schedules of the workflow '{Node.Name}' have been saved."));
             History.OpenInEditor = OpenRunInEditorAsync;
             Editor.History.PropertyChanged += (_, e) =>

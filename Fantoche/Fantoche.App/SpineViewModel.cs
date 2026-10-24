@@ -7,6 +7,7 @@ using Fantoche.App.Features.Packages;
 using Fantoche.App.Features.Packages.Controls;
 using Fantoche.App.Features.Scheduler;
 using Fantoche.App.Features.Settings;
+using Fantoche.App.Features.UserInterfaces;
 using Fantoche.App.Features.Workers;
 using Fantoche.App.Features.Workflows;
 using Fantoche.App.Features.Workflows.Controls;
@@ -49,6 +50,7 @@ public class SpineViewModel : ObservableObject
     public IScopedService Scoped => _provider.GetRequiredService<IScopedService>();
     public IExecutionService Execution => _provider.GetRequiredService<IExecutionService>();
     public IDispatchService Dispatch => _provider.GetRequiredService<IDispatchService>();
+    public UserPrompts Prompts => _provider.GetRequiredService<UserPrompts>();
     #endregion
 
     public IRelayCommand OpenSettingsCommand { get; }
@@ -101,6 +103,14 @@ public class SpineViewModel : ObservableObject
         ExecutionService execution = new(supervisor.Scoped, supervisor.History, worker, Environment.MachineName, sessions);
         _ = InterruptLeftRunsAsync(execution);
         services.AddSingleton<IExecutionService>(execution);
+        services.AddSingleton(new UserPrompts(
+            supervisor.Scoped,
+            supervisor.History,
+            execution,
+            supervisor.Dispatch,
+            worker,
+            Environment.MachineName,
+            Path.Combine(Settings.LocalFolderPath, "browser")));
         services.AddSingleton(new ApplicationWorker(dispatchId));
 
         services.AddSingleton(Settings);

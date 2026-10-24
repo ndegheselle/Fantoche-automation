@@ -160,6 +160,13 @@
             joolkit:Spacing.Gap="4"
             Orientation="Horizontal">
             <Button
+                Command="{Binding AnswerCommand}"
+                Style="{StaticResource PrimaryButton}"
+                ToolTip="Open the page the run waits on you for"
+                Visibility="{Binding CanAnswer, Converter={x:Static jonverters:VisibilityConverter.Default}}">
+                Answer
+            </Button>
+            <Button
                 Command="{Binding ResumeCommand}"
                 Style="{StaticResource SecondaryButton}"
                 ToolTip="Run the interrupted nodes again and carry on from there"

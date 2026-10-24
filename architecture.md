@@ -111,6 +111,36 @@ A remote run carries on in the storage of its first worker, so the workers share
 
 The executions still live in memory only (`ExecutionService`, `Dispatcher` and `WorkerSession` keep a handle on each running one, to cancel it or send it back to its caller). Resuming doesn't need them: everything it reads is in the history.
 
+## User interface tasks
+
+A user interface task is done by the user rather than the machine: an HTML page whose answer is the output of the task. Use one for what a form can't describe, like arranging the pages of a PDF by drag and drop, and let the next task do the work with the answer.
+
+```mermaid
+sequenceDiagram
+    participant Run as Run (application or worker)
+    participant History
+    participant App as Application
+    Run->>History: the task waits (AwaitingUser), the run holds once nothing else runs
+    App->>History: the user opens its page (Answer)
+    App->>History: the answer, checked against the output of the task
+    App->>Run: resume the run, which carries on with the answer
+```
+
+- **Writing one:** derive from `BaseUserInterfaceTask<TInput, TOutput>` and name the folder of its page (`PageFolder`, relative to the assembly). The page reads `window.fantoche.input` and answers with `await window.fantoche.answer(value)`, rejected with the reason when the answer doesn't fit `TOutput`. `window.fantoche.close()` closes it unanswered. See `ReorderTask` in `Fantoche.Plugins`.
+- **Packing it:** the folder is packed next to the assembly, the way `Fantoche.Plugins.csproj` does it:
+
+  ```xml
+  <Content Include="UserInterfaces\**\*" Exclude="UserInterfaces\**\*.cs" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="lib\$(TargetFramework)\UserInterfaces" />
+  ```
+
+  A package keeps the folders it has under `lib/<framework>` once extracted.
+- **Running it:** a run reaching the task holds that branch; nothing runs it meanwhile, no worker slot included. Once nothing else runs, the run is `AwaitingUser`. A task started on its own is completed by the answer.
+- **Answering it:** from the execution detail or the editor ("Answer"), the editor opening the page by itself for the run it follows. The page opens in a window of its own (WebView2), with the files of the package extracted on the machine of the user.
+  - Only an application that can resume the run answers it: the one that started it, or any for a dispatched run.
+  - A run still running other branches can't be answered yet, so the page only opens once the run holds.
+  - The answer is stored atomically: a second answer is refused.
+- **What the page can reach:** only the files of its folder, served under `https://page.fantoche/` with a content security policy allowing nothing from the network. No navigation elsewhere, no new window, no object of the application. Only JSON travels: the input and the answer.
+
 ## Schedules
 
 - A task or workflow holds its schedules (`BaseAutomationTask.Schedules`): a standard cron (`minute hour day-of-month month day-of-week`, read in local time) and the parameters each run starts with, checked against its input schema.

@@ -2,6 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Windows;
 using Fantoche.App.Common;
+using Fantoche.App.Features.UserInterfaces;
 using Fantoche.App.Features.Workflows.Controls;
 using Fantoche.App.Features.Workflows.Editor.History;
 using Fantoche.App.Features.Workflows.Editor.ViewModels;
@@ -71,6 +72,7 @@ namespace Fantoche.App.Features.Workflows.Editor
             IAsyncRelayCommand saveCommand,
             IScopedService scoped,
             IExecutionService execution,
+            UserPrompts prompts,
             IHistoryService history,
             IToastService toasts)
         {
@@ -78,7 +80,7 @@ namespace Fantoche.App.Features.Workflows.Editor
             SaveCommand = saveCommand;
             _scoped = scoped;
             _toasts = toasts;
-            Run = new WorkflowRunViewModel(workflow, Nodes, Connections, SaveAsync, execution, history, toasts);
+            Run = new WorkflowRunViewModel(workflow, Nodes, Connections, SaveAsync, execution, prompts, history, toasts);
 
             _loading = LoadAsync();
             SelectedNodes.CollectionChanged += (_, _) =>

@@ -1,5 +1,6 @@
 using Fantoche.App.Features.Workflows.Controls;
 using Fantoche.App.Common;
+using Fantoche.App.Features.UserInterfaces;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Data.Scoped;
 using Fantoche.Shared.Services;
@@ -23,14 +24,14 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
     {
         /// <summary>The run drawn on the graph, null while none is.</summary>
         [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(CanResume), nameof(CanStop))]
-        [NotifyCanExecuteChangedFor(nameof(StopCommand), nameof(ResumeCommand))]
+        [NotifyPropertyChangedFor(nameof(CanResume), nameof(CanStop), nameof(CanAnswer))]
+        [NotifyCanExecuteChangedFor(nameof(StopCommand), nameof(ResumeCommand), nameof(AnswerCommand))]
         private TaskInstance? _displayedRun;
 
         /// <summary>Whether the displayed run is followed as it runs, the graph being read only meanwhile.</summary>
         [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(CanResume), nameof(CanStop))]
-        [NotifyCanExecuteChangedFor(nameof(StartCommand), nameof(StopCommand), nameof(PauseCommand), nameof(ResumeCommand))]
+        [NotifyPropertyChangedFor(nameof(CanResume), nameof(CanStop), nameof(CanAnswer))]
+        [NotifyCanExecuteChangedFor(nameof(StartCommand), nameof(StopCommand), nameof(PauseCommand), nameof(ResumeCommand), nameof(AnswerCommand))]
         private bool _isRunning;
 
         /// <summary>A pause was asked for : the nodes running finish, no other starts.</summary>
@@ -45,8 +46,14 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
         public bool CanResume => !IsRunning
             && DisplayedRun is { State: EnumTaskState.Paused or EnumTaskState.Interrupted, ApplicationId: not null };
 
+        /// <summary>A page is open, the run not being answered twice at once.</summary>
+        private bool _isAnswering;
+
         /// <summary>Whether there is a run to stop : the one followed, or one waiting to be resumed.</summary>
         public bool CanStop => IsRunning || CanResume;
+
+        /// <summary>Whether the displayed run waits for the user to answer one of its tasks.</summary>
+        public bool CanAnswer => !IsRunning && DisplayedRun?.State == EnumTaskState.AwaitingUser;
 
         /// <summary>
         /// How far the displayed run got, null while no run is displayed. Counted on the nodes it went
@@ -71,6 +78,7 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
         private readonly Func<Task<bool>> _saveAsync;
 
         private readonly IExecutionService _execution;
+        private readonly UserPrompts _prompts;
         private readonly IHistoryService _history;
         private readonly IToastService _toasts;
 
@@ -96,6 +104,7 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
             IReadOnlyCollection<ConnectionViewModel> connections,
             Func<Task<bool>> saveAsync,
             IExecutionService execution,
+            UserPrompts prompts,
             IHistoryService history,
             IToastService toasts)
         {
@@ -104,6 +113,7 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
             _connections = connections;
             _saveAsync = saveAsync;
             _execution = execution;
+            _prompts = prompts;
             _history = history;
             _toasts = toasts;
         }
@@ -229,6 +239,42 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
                 Unfollow();
                 _toasts.Error(exception.Message, $"The workflow '{_workflow.Metadata.Name}' could not be resumed");
             }
+        }
+
+        /// <summary>
+        /// Open the page of the task the displayed run waits on, then follow the run as the answer
+        /// resumes it. Several tasks waiting, they are answered one at a time, each answer resuming
+        /// the run until it waits on the next one.
+        /// </summary>
+        [RelayCommand(CanExecute = nameof(CanAnswer))]
+        private async Task Answer()
+        {
+            if (DisplayedRun is not TaskInstance run || _isAnswering)
+                return;
+
+            _isAnswering = true;
+            TaskInstance? resumed;
+            try
+            {
+                IReadOnlyList<TaskInstance> awaiting = await _prompts.GetAwaitingAsync(run);
+                if (awaiting.Count == 0)
+                    return;
+                resumed = await _prompts.AnswerAsync(awaiting[0]);
+            }
+            catch (Exception exception)
+            {
+                _toasts.Error(exception.Message, $"The workflow '{_workflow.Metadata.Name}' could not be answered");
+                return;
+            }
+            finally
+            {
+                _isAnswering = false;
+            }
+
+            // Drawn again from the history : the answer and the start of the resume were reported
+            // while the page was open.
+            if (resumed != null)
+                await ShowAsync(resumed);
         }
 
         /// <summary>
@@ -390,20 +436,28 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
         {
             int finished = 0;
             int running = 0;
+            int awaiting = 0;
             foreach (NodeViewModel node in _nodes)
             {
                 if (node.State is not EnumTaskState state)
                     continue;
 
-                if ((state & EnumTaskState.Finished) != 0)
+                if (state == EnumTaskState.AwaitingUser)
+                    awaiting++;
+                else if ((state & EnumTaskState.Finished) != 0)
                     finished++;
                 else
                     running++;
             }
 
-            string? progress = finished == 0 && running == 0
-                ? null
-                : running == 0 ? $"{finished} done" : $"{finished} done, {running} running";
+            List<string> parts = [];
+            if (finished > 0 || running > 0)
+                parts.Add($"{finished} done");
+            if (running > 0)
+                parts.Add($"{running} running");
+            if (awaiting > 0)
+                parts.Add($"{awaiting} waiting for you");
+            string? progress = parts.Count == 0 ? null : string.Join(", ", parts);
             Progress = IsPausing ? $"{progress ?? "Nothing done"}, pausing" : progress;
         }
 
@@ -415,6 +469,10 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
 
             Unfollow();
             Report(run);
+
+            // The user following the run is the one it waits for : the page opens right away.
+            if (run.State == EnumTaskState.AwaitingUser)
+                _ = AnswerCommand.ExecuteAsync(null);
         }
 
         /// <summary>
@@ -433,6 +491,9 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
                     break;
                 case EnumTaskState.Paused:
                     _toasts.Info($"The workflow '{name}' is paused, resume it from here or from its history.", "Workflow paused");
+                    break;
+                case EnumTaskState.AwaitingUser:
+                    _toasts.Info($"The workflow '{name}' waits for you to answer one of its tasks.", "Workflow waiting for you");
                     break;
                 case EnumTaskState.Interrupted:
                     _toasts.Warning($"The run of '{name}' was cut short, resume it from here or from its history.", "Workflow interrupted");
