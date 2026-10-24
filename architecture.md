@@ -88,7 +88,7 @@ A run cut short by a crash or a lost worker is marked `Interrupted`. A run the u
 
 | A run started by | Is interrupted when | Is resumed by |
 | --- | --- | --- |
-| The application | The copy of the application running it is gone. Any copy checks when it starts, then every minute | Any copy of the application on the same machine (`TaskInstance.ApplicationId`, the machine name) |
+| The application | The copy of the application running it is gone. Any copy checks when it starts | Any copy of the application on the same machine (`TaskInstance.ApplicationId`, the machine name) |
 | The supervisor (dispatched) | Its worker is lost, or the supervisor running it is gone (checked when a supervisor starts) | The supervisor, on any worker with room |
 
 Several copies of the application can run side by side on a machine:

@@ -161,25 +161,23 @@ public class SpineViewModel : ObservableObject
     }
 
     /// <summary>
-    /// What a copy of the application left running as it stopped is interrupted, so it can be
-    /// resumed : now, then every minute since another copy can stop while this one runs. The
-    /// supervisor is waited for in remote mode.
+    /// What a copy of the application left running as it stopped is interrupted as this one starts,
+    /// so it can be resumed. The supervisor is waited for in remote mode.
     /// </summary>
     private static async Task InterruptLeftRunsAsync(ExecutionService execution)
     {
-        using PeriodicTimer timer = new(TimeSpan.FromMinutes(1));
-        do
+        while (true)
         {
             try
             {
                 await execution.InterruptLeftRunsAsync();
+                return;
             }
             catch (HttpRequestException)
             {
-                // The supervisor isn't reachable yet : the next tick tries again.
+                await Task.Delay(TimeSpan.FromSeconds(5));
             }
         }
-        while (await timer.WaitForNextTickAsync());
     }
 
     /// <param name="storageFolder">The storage of the worker of the application, its only worker.</param>
