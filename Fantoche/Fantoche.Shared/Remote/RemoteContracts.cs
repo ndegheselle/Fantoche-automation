@@ -59,13 +59,30 @@ public interface IDispatchClient
     Task StatusChanged(DispatchStatus status);
 }
 
+/// <summary>What a worker is dispatched.</summary>
+[Flags]
+public enum EnumWorkerRoles
+{
+    /// <summary>Runs : tasks and workflows, up to its capacity.</summary>
+    Runs = 1,
+
+    /// <summary>
+    /// The tasks asking the user, however many : an application, where the user is (see
+    /// <see cref="Data.Execution.UserInterfaceSwitch"/>). Never handed out on their own : one is
+    /// handed to the application whose user takes it (see <see cref="IWorkerHub.Take"/>).
+    /// </summary>
+    UserTasks = 2,
+}
+
 /// <summary>
 /// What a worker tells the supervisor.
 /// </summary>
 public interface IWorkerHub
 {
-    /// <summary>The worker is ready to run up to [capacity] executions at once.</summary>
-    Task Register(string workerId, int capacity);
+    /// <summary>
+    /// The worker is ready to be dispatched [roles], up to [capacity] runs at once.
+    /// </summary>
+    Task Register(string workerId, int capacity, EnumWorkerRoles roles);
 
     /// <summary>An instance of the execution changed : the task itself or a node of the workflow.</summary>
     Task ReportState(Guid executionId, TaskInstance instance);
@@ -73,6 +90,13 @@ public interface IWorkerHub
     Task ReportNotification(Guid executionId, TaskNotification notification);
 
     Task Complete(TaskInstance instance);
+
+    /// <summary>
+    /// The user of the application takes [executionId], a task asking the user waiting in the queue :
+    /// it is handed to this worker. False when it doesn't wait anymore, another application having
+    /// taken it first.
+    /// </summary>
+    Task<bool> Take(Guid executionId);
 }
 
 /// <summary>

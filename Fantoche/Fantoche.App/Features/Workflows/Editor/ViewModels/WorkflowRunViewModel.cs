@@ -4,6 +4,7 @@ using Fantoche.App.Features.UserInterfaces;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Data.Scoped;
 using Fantoche.Shared.Services;
+using Fantoche.Worker.UserInterfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Joufflu.Feedback;
@@ -46,14 +47,16 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
         public bool CanResume => !IsRunning
             && DisplayedRun is { State: EnumTaskState.Suspended, ApplicationId: not null };
 
-        /// <summary>A page is open, the run not being answered twice at once.</summary>
-        private bool _isAnswering;
 
         /// <summary>Whether there is a run to stop : the one followed, or one waiting to be resumed.</summary>
         public bool CanStop => IsRunning || CanResume;
 
-        /// <summary>Whether the displayed run waits for the user to answer one of its tasks.</summary>
-        public bool CanAnswer => !IsRunning && DisplayedRun?.State == EnumTaskState.AwaitingUser;
+        /// <summary>
+        /// Whether a node of the displayed run waits for the user : asking in this application, or
+        /// waiting at the supervisor for a user to take it.
+        /// </summary>
+        public bool CanAnswer => DisplayedRun is TaskInstance run
+            && (_prompts.AskingFor(run.Id).Count > 0 || _nodes.Any(x => x.State == EnumTaskState.AwaitingUser));
 
         /// <summary>
         /// How far the displayed run got, null while no run is displayed. Counted on the nodes it went
@@ -242,40 +245,53 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
         }
 
         /// <summary>
-        /// Open the page of the task the displayed run waits on, then follow the run as the answer
-        /// resumes it. Several tasks waiting, they are answered one at a time, each answer resuming
-        /// the run until it waits on the next one.
+        /// Open the page of a task of the displayed run waiting for the user, taking it first when it
+        /// waits at the supervisor : the run carries on as soon as it is answered, the graph
+        /// following it. Several waiting, the first one opens.
         /// </summary>
         [RelayCommand(CanExecute = nameof(CanAnswer))]
         private async Task Answer()
         {
-            if (DisplayedRun is not TaskInstance run || _isAnswering)
+            if (DisplayedRun is not TaskInstance run)
                 return;
 
-            _isAnswering = true;
-            TaskInstance? resumed;
             try
             {
-                IReadOnlyList<TaskInstance> awaiting = await _prompts.GetAwaitingAsync(run);
-                if (awaiting.Count == 0)
-                    return;
-                resumed = await _prompts.AnswerAsync(awaiting[0]);
+                await _prompts.AnswerAsync(run);
             }
             catch (Exception exception)
             {
                 _toasts.Error(exception.Message, $"The workflow '{_workflow.Metadata.Name}' could not be answered");
-                return;
             }
-            finally
-            {
-                _isAnswering = false;
-            }
-
-            // Drawn again from the history : the answer and the start of the resume were reported
-            // while the page was open.
-            if (resumed != null)
-                await ShowAsync(resumed);
         }
+
+        private async Task OpenAsync(PageRequest request)
+        {
+            try
+            {
+                await _prompts.OpenAsync(request);
+            }
+            catch (Exception exception)
+            {
+                _toasts.Error(exception.Message, $"'{request.Instance.NodeName}' could not be answered");
+            }
+        }
+
+        /// <summary>
+        /// The user following a run of this application is the one it asks : the page opens right away.
+        /// A task of the workers only asks here once the user took it, its page opening on its own.
+        /// </summary>
+        private void OnAsked(PageRequest request) => Ui.Post(() =>
+        {
+            if (IsRunning && DisplayedRun is TaskInstance run && request.RunId == run.Id)
+                _ = OpenAsync(request);
+        });
+
+        private void OnAskingChanged() => Ui.Post(() =>
+        {
+            OnPropertyChanged(nameof(CanAnswer));
+            AnswerCommand.NotifyCanExecuteChanged();
+        });
 
         /// <summary>
         /// Draw [run], a run of the workflow opened from the history : what it did as the history
@@ -406,6 +422,7 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
                 instance.State == EnumTaskState.Failed ? FirstLine(instance.Output?.ToString()) : null);
 
             _nodeOfInstance[instance.Id] = nodeId;
+            OnAskingChanged();
             foreach (Guid previousId in instance.PreviousIds)
             {
                 if (_nodeOfInstance.TryGetValue(previousId, out Guid previousNodeId))
@@ -471,10 +488,6 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
 
             Unfollow();
             Report(run);
-
-            // The user following the run is the one it waits for : the page opens right away.
-            if (run.State == EnumTaskState.AwaitingUser)
-                _ = AnswerCommand.ExecuteAsync(null);
         }
 
         /// <summary>
@@ -494,9 +507,6 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
                 case EnumTaskState.Suspended:
                     // The output of a suspended run tells why : a pause, or the process running it gone.
                     _toasts.Warning($"{instance.Output?.ToString()} Resume it from here or from its history.", $"Workflow '{name}' suspended");
-                    break;
-                case EnumTaskState.AwaitingUser:
-                    _toasts.Info($"The workflow '{name}' waits for you to answer one of its tasks.", "Workflow waiting for you");
                     break;
                 default:
                     // The failure of a task is stored as its stack trace, only its first line is
@@ -526,6 +536,8 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
 
             _history.InstanceAdded += OnInstanceReported;
             _history.InstanceUpdated += OnInstanceReported;
+            _prompts.Asked += OnAsked;
+            _prompts.AskingChanged += OnAskingChanged;
             IsRunning = true;
         }
 
@@ -537,6 +549,8 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
         {
             _history.InstanceAdded -= OnInstanceReported;
             _history.InstanceUpdated -= OnInstanceReported;
+            _prompts.Asked -= OnAsked;
+            _prompts.AskingChanged -= OnAskingChanged;
             IsRunning = false;
             IsPausing = false;
         }

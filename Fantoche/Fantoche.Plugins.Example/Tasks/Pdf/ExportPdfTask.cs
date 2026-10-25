@@ -14,6 +14,10 @@ public class ExportPdfParameters
 
     /// <summary>Name of the file of each document, ".pdf" being added : it can hold the same placeholders as the text of a block.</summary>
     public string FileName { get; set; } = "document-{index}";
+
+    /// <summary>Let the user compose the document on a page, previewed on the first table.</summary>
+    [JsonSchemaExtensionData(UserInterface.SchemaKey, true)]
+    public bool AskUser { get; set; }
 }
 
 public class ExportPdfResult
@@ -26,12 +30,21 @@ public class ExportPdfResult
 /// Save a PDF per table, laid out as the document says : its headings and paragraphs, then the
 /// rows of the table where it has a table. The documents are rendered side by side, one per
 /// processor, which is what makes a large table split in batches fast to export.
+/// <para>
+/// Asking the user, the page of <c>UI/ComposePdf</c> composes the document first, previewed on the
+/// first table : as the page shows it, and as a PDF the task renders (see <see cref="PreviewAsync"/>).
+/// </para>
 /// </summary>
-public class ExportPdfTask : BaseTask<ExportPdfParameters, ExportPdfResult>
+public class ExportPdfTask : BaseTask<ExportPdfParameters, ExportPdfResult>, IUserInterfaceTask
 {
+    public string PageFolder => "UI/ComposePdf";
+
     public override async Task<ExportPdfResult> DoAsync(ExportPdfParameters parameters, ITaskRuntime runtime, CancellationToken? cancellation = null)
     {
         CancellationToken token = cancellation ?? CancellationToken.None;
+        if (runtime.UserInterface is IUserInterface page)
+            parameters = await page.AskAsync<ExportPdfParameters>(parameters, token);
+
         int count = parameters.Sources.Count;
         FileRef[] files = new FileRef[count];
         int done = 0;
@@ -61,6 +74,22 @@ public class ExportPdfTask : BaseTask<ExportPdfParameters, ExportPdfResult>
             Message = $"Saved {count} PDF"
         });
         return new ExportPdfResult { Files = [.. files] };
+    }
+
+    /// <summary>
+    /// The document of the first table as [parameters] composes it, saved in the storage of the run
+    /// for the page to show : what the export will look like, rendered by the export itself.
+    /// </summary>
+    [PageMethod]
+    public async Task<FileRef> PreviewAsync(ExportPdfParameters parameters, ITaskRuntime runtime, CancellationToken cancellation)
+    {
+        TableRef source = parameters.Sources.FirstOrDefault()
+            ?? throw new ArgumentException("There is no table to preview the document on.");
+        long rows = await runtime.Storage.CountRowsAsync(source, cancellation);
+        Placeholders placeholders = new(1, parameters.Sources.Count, rows);
+
+        using MemoryStream content = await PdfRenderer.RenderAsync(parameters.Document, source, placeholders, runtime.Storage, cancellation);
+        return await runtime.Storage.SaveFileAsync("preview.pdf", content, cancellation);
     }
 
     private static string FileNameOf(string text)

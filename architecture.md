@@ -5,6 +5,7 @@ The standalone and remote modes run the same code: one supervisor (`LocalSupervi
 Two rules keep the interactions simple:
 - What the application starts runs in the application. The workers run what the supervisor dispatches to them: the scheduled items (to come).
 - Once a worker (the application's included) starts an execution, everything of it stays there. Every node of a workflow runs where the workflow runs, and its tables and files never leave the storage of its run. A suspended run is resumed by whoever can reach that storage (see [Suspended runs](#suspended-runs)).
+- The one exception is a task asking the user: it always runs in an application, where the user is. A worker hands it to one through the supervisor (see [User interface tasks](#user-interface-tasks)).
 
 ## Standalone and remote
 
@@ -69,6 +70,7 @@ sequenceDiagram
 
 - Only JSON travels: the parameters and the output. A table or file the output points at stays in the storage of its run.
 - A worker lost while running an execution leaves it suspended. A worker that reconnects meanwhile can't report on it anymore: its states are dropped.
+- A worker registers with its roles (`EnumWorkerRoles`): the worker services take runs, up to their capacity. The applications take the tasks asking the user, as many as come, since those wait on the user rather than on a slot. In standalone mode the application takes both.
 - Nothing in the application dispatches yet: the scheduled items will.
 
 ### Why nothing started by hand is sent to a worker
@@ -93,7 +95,7 @@ It is resumed by hand, from the editor or from the detail of the execution ("Res
 | A run started by | Is cut short when | Is resumed by |
 | --- | --- | --- |
 | The application | The copy of the application running it is gone. Any copy checks when it starts | Any copy of the application on the same machine (`TaskInstance.ApplicationId`, the machine name) |
-| The supervisor (dispatched) | Its worker is lost, or the supervisor running it is gone (checked when a supervisor starts) | The supervisor, on any worker with room |
+| The supervisor (dispatched) | Its worker is lost, or the supervisor running it is gone (checked when a supervisor starts), or the application running one of its tasks asking the user is lost | The supervisor, on any worker with room |
 
 Several copies of the application can run side by side on a machine:
 - Each process running executions (a copy of the application, a supervisor) holds a lock file for as long as it lives (`RunnerSessions`), and marks its runs with its session (`TaskInstance.SessionId`). A run whose session holds no lock anymore was left behind.
@@ -134,44 +136,66 @@ The versions are stored as reverse diffs, so a past version costs only what chan
 
 ## User interface tasks
 
-A user interface task is done by the user rather than the machine: an HTML page whose answer is the output of the task. Use one for what a form can't describe, like arranging the pages of a PDF by drag and drop, and let the next task do the work with the answer.
+A task can ask the user through a page of its own while it runs, when its input says so. Use it for what a form can't describe, like picking the columns of a file or composing a document. The same task runs unattended otherwise, so a schedule still works.
 
 ```mermaid
 sequenceDiagram
-    participant Run as Run (application or worker)
-    participant History
+    participant Worker as Worker running the run
+    participant Supervisor
     participant App as Application
-    Run->>History: the task waits (AwaitingUser), the run holds once nothing else runs
-    App->>History: the user opens its page (Answer)
-    App->>History: the answer, checked against the output of the task
-    App->>Run: resume the run, which carries on with the answer
+    Worker->>Supervisor: Execute(node), as a caller
+    Supervisor->>Supervisor: queue it, waiting for a user (AwaitingUser)
+    App->>Supervisor: Take(node), its user answering it from its run
+    Supervisor->>App: Execute(node), the application being a worker for the tasks asking the user
+    App->>App: DoAsync, until it asks (AwaitingUser)
+    App->>App: the page, calling the methods of the task
+    App->>Supervisor: the storage of the run, read and written through its API
+    App->>Supervisor: Complete(node)
+    Supervisor->>Worker: Completed(node), the branch carries on
 ```
 
-- **Writing one:** derive from `BaseUserInterfaceTask<TInput, TOutput>` and name the folder of its page (`PageFolder`, relative to the assembly). The page reads `window.fantoche.input` and answers with `await window.fantoche.answer(value)`, rejected with the reason when the answer doesn't fit `TOutput`. `window.fantoche.close()` closes it unanswered. See `PickColumnsTask` and `ComposePdfTask` in `Fantoche.Plugins.Example`, pages reading the storage.
-- **Pairing it:** the page only sets the parameters of the task after it, which does the work (`PickColumnsTask` then `MapColumnsTask`). A run nobody answers, a schedule for instance, writes these parameters in the mapping instead.
+A run started in the application skips the supervisor: the application runs the node itself.
+
+- **Writing one:** implement `IUserInterfaceTask` (the folder of its page, `PageFolder`, relative to the assembly) and mark a boolean of its input with `[JsonSchemaExtensionData(UserInterface.SchemaKey, true)]`. It is resolved like any other value (`"$shared.AskUser"`). When it holds true, `runtime.UserInterface` shows the page:
+
+  ```csharp
+  if (runtime.UserInterface is IUserInterface page)
+      parameters = await page.AskAsync<MapColumnsParameters>(parameters, cancellation);
+  ```
+
+  A task can ask as many times as it needs while it runs. See `MapColumnsTask` and `ExportPdfTask` in `Fantoche.Plugins.Example`: their page edits their own parameters.
+- **The page:** it reads `window.fantoche.input` and answers with `await window.fantoche.answer(value)`, rejected when the answer doesn't fit what the task expects. `window.fantoche.close()` closes it unanswered, and it can be opened again.
+- **Calling the task:** `await window.fantoche.call('Suggest', args)` calls a method of the running task marked `[PageMethod]`. It takes at most one value, plus the `ITaskRuntime` and a `CancellationToken` if it asks for them. So the page reuses the rules of the task rather than writing them again in JavaScript: `MapColumnsTask.Check`, `ExportPdfTask.PreviewAsync` rendering the real PDF.
 - **Packing it:** the folder is packed next to the assembly, the way `Fantoche.Plugins.Example.csproj` does it:
 
   ```xml
-  <Content Include="UserInterfaces\**\*" Exclude="UserInterfaces\**\*.cs" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="lib\$(TargetFramework)\UserInterfaces" />
+  <Content Include="UI\**\*" Exclude="UI\**\*.cs" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="lib\$(TargetFramework)\UI" />
   ```
 
   A package keeps the folders it has under `lib/<framework>` once extracted.
-- **Running it:** a run reaching the task holds that branch; nothing runs it meanwhile, no worker slot included. Once nothing else runs, the run is `AwaitingUser`. A task started on its own is completed by the answer.
-- **Answering it:** from the execution detail or the editor ("Answer"), the editor opening the page by itself for the run it follows. The page opens in a window of its own (WebView2), with the files of the package extracted on the machine of the user.
-  - Only an application that can resume the run answers it: the one that started it, or any for a dispatched run.
-  - A run still running other branches can't be answered yet, so the page only opens once the run holds.
-  - The answer is stored atomically: a second answer is refused.
-- **Showing files and tables:** the page reads the ones its input points at, from the storage of its run (`PageFiles`).
+- **Where it runs:** always in an application (`UserTasks`).
+  - A run of the application runs it there.
+  - A worker hands it to the supervisor as any caller does (`RemoteTaskExecutor`). The supervisor never hands it out on its own: it waits in the queue, `AwaitingUser` in the history, and the branch of the run with it.
+  - A user answering it from its run takes it (`IWorkerRegistration.TakeAsync`): the supervisor hands it to that application (`EnumWorkerRoles.UserTasks`, which every application registers in both modes), and its page opens once the task asks. A second application taking it is refused. No page shows up unasked.
+  - A worker reaching no page at all (no supervisor) fails the task.
+- **While it asks:** the task is `AwaitingUser` and its branch waits, the rest of the run going on.
+  - The worker keeps the run in memory meanwhile, and counts it against its capacity.
+  - For a run of the application, the editor following the run opens the page by itself. Otherwise the application tells the user, who answers from the detail of the run ("Answer").
+  - Only the application running the task can answer it. A second answer is refused.
+- **When it goes wrong:**
+  - An application lost while running the task leaves the node `Suspended`, and its run with it. Resuming the run asks again.
+  - A run canceled stops the task and closes its page.
+- **Showing files and tables:** the page reads the ones its input points at, and the ones a page method hands back (`PageFiles`).
 
   ```js
   image.src = fantoche.fileUrl(fantoche.input.Scan);
   const { Columns, Total, Rows } = await fantoche.readTable(fantoche.input.Orders, { offset: 0, limit: 100 });
   ```
 
-  - Only the ids found in the input are served: a page can't browse the rest of the storage.
+  - A page can't browse the rest of the storage.
   - Tables are read a slice at a time (`limit` up to 1000), so a large one doesn't load whole.
-  - The application reads its own storage. A run dispatched to the remote workers keeps its storage there, so its files and tables can't be shown (404). In standalone mode the application is the worker, so they can.
-- **What the page can reach:** only the files of its folder and the storage above, served under `https://page.fantoche/` with a content security policy allowing nothing from the network. No navigation elsewhere, no new window, no object of the application. Only JSON travels: the input and the answer.
+  - For a run of the workers, the application reaches the storage of the run through the supervisor (`RemoteStorage`), which reads the volume the workers share. The queries run there, only their results travel; the dates come back as dates.
+- **What the page can reach:** only the files of its folder and the storage above, served under `https://page.fantoche/` with a content security policy allowing nothing from the network. No navigation elsewhere, no new window, no object of the application. Only JSON travels: the input, the calls and the answer.
 
 ## What the editor previews of a task
 
@@ -219,6 +243,7 @@ storage/
 - The remote workers share one storage folder (`STORAGE_FOLDER`, a volume mounted in every worker and in the supervisor). The application keeps its own.
 - The executions are kept for a month. Once a day, the supervisor removes the older ones: the folder of each run in the storage it is given (`STORAGE_FOLDER`, or the storage of the application in standalone mode), then the runs themselves (their instances go with them).
 - In remote mode the supervisor can't reach the storage of the application: when it starts, the application removes its folders whose run the history doesn't hold anymore. A folder whose name doesn't follow the pattern is left alone.
+- The supervisor serves the storage it reaches under `storage/runs/{runId}` (`StorageApi`): what an application running a task asking the user reads and writes of a run of the workers.
 
 A table or file named in the history therefore only exists in the storage that execution wrote to, and only for a month.
 
@@ -228,7 +253,7 @@ The supervisor keeps its executions in memory only, so it pushes what it dispatc
 - The `Dispatcher` raises `StatusChanged` with the whole status whenever a worker comes or goes, or an execution is queued, handed out or over.
 - In remote mode, the supervisor API pushes it on the `hubs/dispatch` hub, and `GET /dispatch/status` reads it. After a reconnection, the client reads it again: what was pushed meanwhile is lost.
 - The Workers page reads the status once when shown, then follows the changes until hidden. It shows each worker with what it runs, and the executions waiting for room, in the order they will be handed out.
-- The application is always listed first. Its executions started in the application run on its own worker without going through the supervisor, so the page reads them from the execution service (`IExecutionService.RunningChanged`). In standalone mode, the application is also the supervisor's worker: both are shown as one row.
+- The application is always listed first. Its executions started in the application run on its own worker without going through the supervisor, so the page reads them from the execution service (`IExecutionService.RunningChanged`). The application is also a worker of the supervisor, for the tasks asking the user (and for the runs in standalone mode): both are shown as one row.
 
 ## Packages and caches
 

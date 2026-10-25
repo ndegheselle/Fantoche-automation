@@ -10,6 +10,7 @@ using Fantoche.Shared.Remote;
 using Fantoche.Supervisor.Api;
 using Fantoche.Worker.Executor;
 using Fantoche.Worker.Storage;
+using Fantoche.Worker.UserInterfaces;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
@@ -49,7 +50,14 @@ internal sealed class SupervisorExecutionTests
     /// <summary>The session of the application, see <see cref="ApplicationExecution"/>.</summary>
     private RunnerSessions _applicationSessions = null!;
     private IAsyncDisposable? _registration;
+    /// <summary>The application added to the workers of the supervisor, for the tasks asking the user.</summary>
+    private IWorkerRegistration? _applicationRegistration;
     private RemoteTaskExecutor _caller = null!;
+
+    /// <summary>The user of the application, answering the pages as <see cref="_answer"/> says.</summary>
+    private ScriptedUser _user = null!;
+    private Func<PageRequest, CancellationToken, Task<JToken?>> _answer = null!;
+    private static readonly JToken Reordered = JToken.FromObject(new { Items = new[] { "b", "a" } });
 
     public SupervisorExecutionTests(Mode mode)
     {
@@ -65,7 +73,7 @@ internal sealed class SupervisorExecutionTests
 
         if (_mode == Mode.Local)
         {
-            LocalSupervisor supervisor = new(supervisorFolder);
+            LocalSupervisor supervisor = new(supervisorFolder, Path.Combine(_folder, "worker"));
             _dispatcher = supervisor.Dispatcher;
             _supervisor = supervisor;
             _sessionsFolder = Path.Combine(supervisorFolder, "sessions");
@@ -76,6 +84,7 @@ internal sealed class SupervisorExecutionTests
             _api = SupervisorApp.Build([
                 "--urls", "http://127.0.0.1:0",
                 $"--DATA_FOLDER={supervisorFolder}",
+                $"--STORAGE_FOLDER={Path.Combine(_folder, "worker")}",
                 "--Logging:LogLevel:Default=Warning"]);
             await _api.StartAsync();
             _dispatcher = _api.Services.GetRequiredService<Dispatcher>();
@@ -88,8 +97,10 @@ internal sealed class SupervisorExecutionTests
             _applicationSessions = new RunnerSessions(_sessionsFolder);
         }
 
-        _worker = new LocalWorker(new TestPackageManagement(), Path.Combine(_folder, "worker"));
-        _application = new LocalWorker(new TestPackageManagement(), Path.Combine(_folder, "application"));
+        _answer = (_, _) => Task.FromResult<JToken?>(Reordered);
+        _user = new ScriptedUser((request, cancellation) => _answer(request, cancellation));
+        _worker = new LocalWorker(new TestPackageManagement(), Path.Combine(_folder, "worker"), UserTasks.HandedTo(new RemoteTaskExecutor(_supervisor)));
+        _application = new LocalWorker(new TestPackageManagement(), Path.Combine(_folder, "application"), UserTasks.ShownBy(_user), _supervisor.OpenStorageAsync);
         _caller = new RemoteTaskExecutor(_supervisor);
     }
 
@@ -98,6 +109,8 @@ internal sealed class SupervisorExecutionTests
     {
         if (_registration != null)
             await _registration.DisposeAsync();
+        if (_applicationRegistration != null)
+            await _applicationRegistration.DisposeAsync();
         if (_supervisor is IAsyncDisposable client)
             await client.DisposeAsync();
         if (_api != null)
@@ -109,7 +122,13 @@ internal sealed class SupervisorExecutionTests
 
     private async Task ConnectWorkerAsync(LocalWorker? worker = null)
     {
-        _registration = await _supervisor.AddWorkerAsync(worker ?? _worker, "test-worker", capacity: 2);
+        _registration = await _supervisor.AddWorkerAsync(worker ?? _worker, "test-worker", capacity: 2, EnumWorkerRoles.Runs);
+    }
+
+    /// <summary>Add the application to the workers, as it adds itself to run the tasks asking the user.</summary>
+    private async Task ConnectApplicationAsync()
+    {
+        _applicationRegistration = await _supervisor.AddWorkerAsync(_application, ApplicationId, capacity: 0, EnumWorkerRoles.UserTasks);
     }
 
     /// <summary>
@@ -226,24 +245,38 @@ internal sealed class SupervisorExecutionTests
             JsonSchema.FromType<Plugins.UserInterfaces.ReorderParameters>(), JsonSchema.FromType<Plugins.UserInterfaces.ReorderResult>()));
         TestWorkflow ask = new TestWorkflow("Ask", requireOutput: false)
             .Start()
-            .Task("Ask", reorder, new { Title = "Sort them", Items = "$previous.Items" })
+            .Task("Ask", reorder, new { Title = "Sort them", Items = "$previous.Items", AskUser = true })
             .End(new { Items = "$previous.Items" })
             .Chain("Start", "Ask", "End");
         return (await StoreAsync(ask.Workflow), reorder);
     }
 
-    /// <summary>A run of the ask workflow, held by its user interface task : the run and the task waiting.</summary>
-    private async Task<(TaskInstance Run, TaskInstance Ask)> StartAskAsync(ExecutionService execution)
+    /// <summary>The ask workflow dispatched to the workers, as a schedule starts it : its outcome.</summary>
+    private async Task<TaskInstance> DispatchAskAsync()
     {
         var (workflow, _) = await StoreAskAsync();
-        TaskInstance started = await execution.StartAsync(workflow.Id, JToken.FromObject(new { Items = new[] { "a", "b" } }));
-        TaskInstance run = await execution.WaitAsync(started.Id);
-        TaskInstance ask = (await _supervisor.History.GetChildrenAsync(run.Id)).Single(x => x.NodeName == "Ask");
-        return (run, ask);
+        return await _caller.ExecuteAsync(workflow, InstanceOf(workflow, new { Items = new[] { "a", "b" } }));
     }
 
-    private Task<TaskInstance> AnswerAsync(Guid instanceId, object answer) => Shared.Services.UserAnswers.SubmitAsync(
-        _supervisor.Scoped, _supervisor.History, instanceId, JToken.FromObject(answer), ApplicationId);
+    /// <summary>The task asking the user the supervisor holds, once it waits for a user to take it.</summary>
+    private async Task<Guid> WaitForTaskToTakeAsync()
+    {
+        using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(10));
+        while (true)
+        {
+            ExecutionStatus? waiting = _dispatcher.GetStatus().Pending.FirstOrDefault();
+            if (waiting != null)
+                return waiting.ExecutionId;
+            await Task.Delay(20, timeout.Token);
+        }
+    }
+
+    /// <summary>The user of the application takes the task asking the user, as answering it from its run does.</summary>
+    private async Task TakeAsync()
+    {
+        Guid executionId = await WaitForTaskToTakeAsync();
+        Assert.That(await _applicationRegistration!.TakeAsync(executionId), Is.True);
+    }
 
     /// <summary>[node] of [runId] reached [state] in the history.</summary>
     private async Task WaitForNodeAsync(Guid runId, string node, EnumTaskState state)
@@ -672,56 +705,146 @@ internal sealed class SupervisorExecutionTests
     }
 
     [Test]
-    public async Task AnsweredRun_CarriesOnWithTheAnswer()
+    public async Task RunOfTheApplication_AsksItsOwnUser()
     {
         ExecutionService execution = ApplicationExecution();
-        var (held, ask) = await StartAskAsync(execution);
+        var (workflow, _) = await StoreAskAsync();
 
-        TaskInstance run = await AnswerAsync(ask.Id, new { Items = new[] { "b", "a" } });
-        await execution.ResumeAsync(run.Id);
-        TaskInstance ended = await execution.WaitAsync(run.Id);
+        TaskInstance started = await execution.StartAsync(workflow.Id, JToken.FromObject(new { Items = new[] { "a", "b" } }));
+        TaskInstance ended = await execution.WaitAsync(started.Id);
 
         Assert.Multiple(() =>
         {
-            Assert.That(held.State, Is.EqualTo(EnumTaskState.AwaitingUser));
             Assert.That(ended.State, Is.EqualTo(EnumTaskState.Completed));
             Assert.That(ended.Output?["Items"]?.ToObject<string[]>(), Is.EqualTo(new[] { "b", "a" }));
+            Assert.That(_user.Asked.Single().RunId, Is.EqualTo(started.Id));
         });
     }
 
     [Test]
-    public async Task AnswerNotFittingTheTask_IsRefused()
+    public async Task TaskAskingTheUser_WaitsForAUserToTakeIt()
     {
-        var (_, ask) = await StartAskAsync(ApplicationExecution());
+        await ConnectWorkerAsync();
+        await ConnectApplicationAsync();
+        Task<TaskInstance> dispatched = DispatchAskAsync();
 
-        await Assert.ThrowsAsync<Shared.Services.ExecutionException>(() => AnswerAsync(ask.Id, new { Items = 3 }));
-        Assert.That((await _supervisor.History.GetAsync(ask.Id))?.State, Is.EqualTo(EnumTaskState.AwaitingUser), "still waiting for an answer");
-    }
-
-    [Test]
-    public async Task TaskAnsweredTwice_IsRefusedTheSecondTime()
-    {
-        var (_, ask) = await StartAskAsync(ApplicationExecution());
-        await AnswerAsync(ask.Id, new { Items = new[] { "b", "a" } });
-
-        await Assert.ThrowsAsync<Shared.Services.ExecutionException>(() => AnswerAsync(ask.Id, new { Items = new[] { "a", "b" } }));
-    }
-
-    [Test]
-    public async Task UserInterfaceTaskOnItsOwn_IsCompletedByTheAnswer()
-    {
-        ExecutionService execution = ApplicationExecution();
-        var (_, reorder) = await StoreAskAsync();
-        TaskInstance started = await execution.StartAsync(reorder.Id, JToken.FromObject(new { Title = "Sort them", Items = new[] { "a", "b" } }));
-        TaskInstance held = await execution.WaitAsync(started.Id);
-
-        TaskInstance answered = await AnswerAsync(held.Id, new { Items = new[] { "b", "a" } });
+        Guid waiting = await WaitForTaskToTakeAsync();
+        // Long enough for a page to be handed out, were it handed unasked.
+        await Task.Delay(200);
+        TaskInstance? stored = await _supervisor.History.GetAsync(waiting);
 
         Assert.Multiple(() =>
         {
-            Assert.That(held.State, Is.EqualTo(EnumTaskState.AwaitingUser));
-            Assert.That(answered.State, Is.EqualTo(EnumTaskState.Completed));
-            Assert.That(answered.Output?["Items"]?.ToObject<string[]>(), Is.EqualTo(new[] { "b", "a" }));
+            Assert.That(_user.Asked, Is.Empty, "no page shows up unasked");
+            Assert.That(stored?.State, Is.EqualTo(EnumTaskState.AwaitingUser));
+            Assert.That(dispatched.IsCompleted, Is.False);
+        });
+    }
+
+    [Test]
+    public async Task TaskTaken_RunsInTheApplicationOfItsUser()
+    {
+        await ConnectWorkerAsync();
+        await ConnectApplicationAsync();
+        Task<TaskInstance> dispatched = DispatchAskAsync();
+
+        await TakeAsync();
+        TaskInstance ended = await dispatched;
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(ended.State, Is.EqualTo(EnumTaskState.Completed));
+            Assert.That(ended.Output?["Items"]?.ToObject<string[]>(), Is.EqualTo(new[] { "b", "a" }));
+            Assert.That(_user.Asked.Single().RunId, Is.EqualTo(ended.Id), "asked with the run of the worker");
+        });
+    }
+
+    [Test]
+    public async Task TaskTakenAlready_IsRefusedTheSecondTime()
+    {
+        _answer = (_, _) => Task.FromResult<JToken?>(null);
+        await ConnectWorkerAsync();
+        await ConnectApplicationAsync();
+        _ = DispatchAskAsync();
+        Guid executionId = await WaitForTaskToTakeAsync();
+
+        bool first = await _applicationRegistration!.TakeAsync(executionId);
+        bool second = await _applicationRegistration.TakeAsync(executionId);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(first, Is.True);
+            Assert.That(second, Is.False);
+        });
+    }
+
+    [Test]
+    public async Task ApplicationLostWhileAsking_SuspendsTheRunUntilItIsResumed()
+    {
+        _answer = (_, _) => Task.FromResult<JToken?>(null);
+        await ConnectWorkerAsync();
+        await ConnectApplicationAsync();
+        Task<TaskInstance> dispatched = DispatchAskAsync();
+        await TakeAsync();
+        await _user.FirstAskedAsync();
+
+        await _applicationRegistration!.DisposeAsync();
+        TaskInstance suspended = await dispatched;
+        _answer = (_, _) => Task.FromResult<JToken?>(Reordered);
+        await ConnectApplicationAsync();
+        await _supervisor.Dispatch.ResumeAsync(suspended.Id);
+        await TakeAsync();
+        TaskInstance resumed = await WaitForTheEndOfAsync(suspended.Id);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(suspended.State, Is.EqualTo(EnumTaskState.Suspended));
+            Assert.That(resumed.State, Is.EqualTo(EnumTaskState.Completed));
+            Assert.That(resumed.Output?["Items"]?.ToObject<string[]>(), Is.EqualTo(new[] { "b", "a" }));
+            Assert.That(_user.Asked, Has.Count.EqualTo(2), "asked again once resumed");
+        });
+    }
+
+    [Test]
+    public async Task TaskAskingTheUser_ReachesTheStorageOfItsRunFromTheApplication()
+    {
+        AutomationTask import = await StoreAsync(PluginTasks.Make(typeof(ImportCsvTask).FullName!, "ImportCsv",
+            JsonSchema.FromType<ImportCsvParameters>(), JsonSchema.FromType<TableRef>(), package: PluginTasks.TablesPackage));
+        AutomationTask map = await StoreAsync(PluginTasks.Make(typeof(MapColumnsTask).FullName!, "MapColumns",
+            JsonSchema.FromType<MapColumnsParameters>(), JsonSchema.FromType<TableRef>(), package: PluginTasks.TablesPackage));
+        TestWorkflow tables = new TestWorkflow("Pick", requireOutput: false)
+            .Start()
+            .Task("Import", import, new { Path = "$previous.Path" })
+            .Task("Map", map, new { Source = "$previous", Columns = new[] { new { Name = "When", Column = "" } }, AskUser = true })
+            .End(new { Table = "$previous" })
+            .Chain("Start", "Import", "Map", "End");
+        AutomationWorkflow workflow = await StoreAsync(tables.Workflow);
+        string csv = Path.Combine(_folder, "orders.csv");
+        await File.WriteAllTextAsync(csv, "order,ordered on\nA,2026-03-01\nB,2026-03-02\n");
+
+        // The page reads the table and writes a file, the way the pages of the tasks do.
+        TablePage? read = null;
+        FileRef? written = null;
+        _answer = async (request, cancellation) =>
+        {
+            TableRef source = request.Input!["Source"]!.ToObject<TableRef>()!;
+            read = await request.Storage.ReadPageAsync(source, 0, 10, cancellation);
+            written = await request.Storage.SaveFileAsync("notes.txt", new MemoryStream([1, 2, 3]), cancellation);
+            return JToken.FromObject(new { Source = source, Columns = new[] { new { Name = "When", Column = "ordered on" } } });
+        };
+        await ConnectWorkerAsync();
+        await ConnectApplicationAsync();
+
+        Task<TaskInstance> dispatched = _caller.ExecuteAsync(workflow, InstanceOf(workflow, new { Path = csv }));
+        await TakeAsync();
+        TaskInstance ended = await dispatched;
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(ended.Output?["Table"]?["Mapping"]?["When"]?.Value<string>(), Is.EqualTo("ordered on"));
+            Assert.That(read?.Total, Is.EqualTo(2));
+            Assert.That(read?.Rows[0]["ordered on"], Is.EqualTo(new DateOnly(2026, 3, 1)), "read as a date, as the storage itself reads it");
+            Assert.That(Directory.GetFiles(Path.Combine(_folder, "worker"), "notes.txt", SearchOption.AllDirectories), Has.Length.EqualTo(1), $"written in the storage of the run ({written?.Id})");
         });
     }
 

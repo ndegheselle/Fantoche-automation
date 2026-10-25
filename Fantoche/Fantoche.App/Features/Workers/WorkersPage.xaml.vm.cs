@@ -9,7 +9,8 @@ namespace Fantoche.App.Features.Workers
 {
     /// <summary>
     /// The worker of the application, as the supervisor knows it : [DispatchId] is the id it was
-    /// added to the workers of the supervisor under, null when it isn't one of them (remote mode).
+    /// added to the workers of the supervisor under (for the tasks asking the user, and the runs too
+    /// in standalone mode), null when it isn't one of them.
     /// </summary>
     public record ApplicationWorker(string? DispatchId);
 

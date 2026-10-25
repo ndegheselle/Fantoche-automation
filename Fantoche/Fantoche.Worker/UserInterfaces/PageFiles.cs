@@ -1,9 +1,7 @@
-using System.Data.Common;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
 using Fantoche.Plugins.Shared;
-using Fantoche.Worker.Storage;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -81,20 +79,37 @@ namespace Fantoche.Worker.UserInterfaces
         };
 
         private readonly string _folder;
-        private readonly LocalStorage _storage;
-        private readonly HashSet<string> _reachableIds;
+        private readonly IStorage _storage;
+        /// <summary>Guarded by itself : a page method hands ids over while the page reads.</summary>
+        private readonly HashSet<string> _reachableIds = [];
 
         /// <param name="folder">The folder of the page, see <c>IUserInterfaceTask.PageFolder</c>.</param>
-        /// <param name="storage">The storage of the run of the task.</param>
-        /// <param name="input">What the task was given : the only files and tables of [storage] served.</param>
-        public PageFiles(string folder, LocalStorage storage, JToken? input)
+        /// <param name="storage">The storage of the run of the task, wherever it is held.</param>
+        /// <param name="input">What the page is asked with : the files and tables of [storage] it can read.</param>
+        public PageFiles(string folder, IStorage storage, JToken? input)
         {
             _folder = Path.GetFullPath(folder);
             _storage = storage;
-            // Any string of the input, rather than the handles alone : whatever shape the input has,
-            // an id is only reachable when it was handed over.
-            IEnumerable<JToken> tokens = input is JContainer container ? container.DescendantsAndSelf() : [];
-            _reachableIds = [.. tokens.Where(x => x.Type == JTokenType.String).Select(x => x.Value<string>()!)];
+            Allow(input);
+        }
+
+        /// <summary>
+        /// Let the page read the files and tables [value] holds, what a page method handed back.
+        /// Any string of it, rather than the handles alone : whatever shape it has, an id is only
+        /// reachable once handed over.
+        /// </summary>
+        public void Allow(JToken? value)
+        {
+            IEnumerable<JToken> tokens = value is JContainer container ? container.DescendantsAndSelf() : value == null ? [] : [value];
+            IEnumerable<string> strings = tokens.Where(x => x.Type == JTokenType.String).Select(x => x.Value<string>()!);
+            lock (_reachableIds)
+                _reachableIds.UnionWith(strings);
+        }
+
+        private bool IsReachable(string id)
+        {
+            lock (_reachableIds)
+                return _reachableIds.Contains(id);
         }
 
         /// <summary>What the page gets for [uri] : a file of its folder or of the storage, or a refusal.</summary>
@@ -161,8 +176,8 @@ namespace Fantoche.Worker.UserInterfaces
                 return Refused(404, "Not Found");
 
             FileRef file = new() { Id = Uri.UnescapeDataString(parts[0]), Name = Uri.UnescapeDataString(parts[1]) };
-            if (!_reachableIds.Contains(file.Id))
-                return Refused(403, "Forbidden", $"The file [{file.Id}] isn't part of the input of the page.");
+            if (!IsReachable(file.Id))
+                return Refused(403, "Forbidden", $"The file [{file.Id}] was never handed to the page.");
 
             try
             {
@@ -172,9 +187,9 @@ namespace Fantoche.Worker.UserInterfaces
                 content.Position = 0;
                 return new PageResponse(200, "OK", content, Headers(ContentTypeOf(file.Name)));
             }
-            catch (Exception exception) when (exception is ArgumentException or FileNotFoundException or DirectoryNotFoundException)
+            catch (Exception exception) when (exception is not OperationCanceledException)
             {
-                return NotInStorage($"The file [{file.Id}]");
+                return NotInStorage($"The file [{file.Id}]", exception);
             }
         }
 
@@ -182,8 +197,8 @@ namespace Fantoche.Worker.UserInterfaces
         private async Task<PageResponse> ReadTableAsync(string id, string query, CancellationToken cancellation)
         {
             TableRef table = new() { Id = Uri.UnescapeDataString(id) };
-            if (!_reachableIds.Contains(table.Id))
-                return Refused(403, "Forbidden", $"The table [{table.Id}] isn't part of the input of the page.");
+            if (!IsReachable(table.Id))
+                return Refused(403, "Forbidden", $"The table [{table.Id}] was never handed to the page.");
 
             var arguments = HttpUtility.ParseQueryString(query);
             long offset = long.TryParse(arguments["offset"], out long requestedOffset) ? Math.Max(0, requestedOffset) : 0;
@@ -196,22 +211,18 @@ namespace Fantoche.Worker.UserInterfaces
                 MemoryStream content = new(Encoding.UTF8.GetBytes(json));
                 return new PageResponse(200, "OK", content, Headers(ContentTypes[".json"]));
             }
-            catch (Exception exception) when (exception is ArgumentException or FileNotFoundException)
+            catch (Exception exception) when (exception is not OperationCanceledException)
             {
-                return NotInStorage($"The table [{table.Id}]");
-            }
-            catch (DbException exception)
-            {
-                return Refused(500, "Internal Server Error", $"The table [{table.Id}] can't be read : {exception.Message}");
+                return NotInStorage($"The table [{table.Id}]", exception);
             }
         }
 
         /// <summary>
-        /// Mostly a run dispatched to the remote workers : its storage is theirs, out of reach of the
-        /// application.
+        /// Unknown to the storage, or the storage out of reach : the supervisor holding a remote one
+        /// gone, for instance.
         /// </summary>
-        private static PageResponse NotInStorage(string item)
-            => Refused(404, "Not Found", $"{item} isn't in the storage of the run on this machine.");
+        private static PageResponse NotInStorage(string item, Exception exception)
+            => Refused(404, "Not Found", $"{item} can't be read from the storage of the run : {exception.Message}");
 
         private static string ContentTypeOf(string path)
             => ContentTypes.GetValueOrDefault(Path.GetExtension(path), "application/octet-stream");

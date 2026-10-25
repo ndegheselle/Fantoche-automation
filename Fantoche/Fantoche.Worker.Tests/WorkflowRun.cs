@@ -4,6 +4,7 @@ using Fantoche.Worker.Executor;
 using Fantoche.Worker.Packages;
 using Fantoche.Shared.Remote;
 using Fantoche.Worker.Storage;
+using Fantoche.Worker.UserInterfaces;
 using Newtonsoft.Json.Linq;
 
 namespace Fantoche.Worker.Tests;
@@ -72,11 +73,14 @@ internal sealed class WorkflowRun
         get { lock (_lock) return [.. _notifications]; }
     }
 
-    /// <summary>Run [instance] and record everything it reports.</summary>
-    public static async Task<WorkflowRun> ExecuteAsync(WorkflowInstance instance, CancellationToken? cancellation = null)
+    /// <summary>
+    /// Run [instance] and record everything it reports, [user] answering the tasks asking the user :
+    /// a task asking fails without one, as on a worker reaching no application.
+    /// </summary>
+    public static async Task<WorkflowRun> ExecuteAsync(WorkflowInstance instance, CancellationToken? cancellation = null, IPageHost? user = null)
     {
         WorkflowRun run = new();
-        run.Instance = await run.RunAsync(instance, cancellation);
+        run.Instance = await run.RunAsync(instance, cancellation, user);
         return run;
     }
 
@@ -91,7 +95,7 @@ internal sealed class WorkflowRun
         WorkflowRun run = new();
         try
         {
-            run.Instance = await run.RunAsync(instance, cancellation);
+            run.Instance = await run.RunAsync(instance, cancellation, user: null);
             return (run, null);
         }
         catch (Exception exception)
@@ -101,9 +105,10 @@ internal sealed class WorkflowRun
         }
     }
 
-    private Task<WorkflowInstance> RunAsync(WorkflowInstance instance, CancellationToken? cancellation)
+    private Task<WorkflowInstance> RunAsync(WorkflowInstance instance, CancellationToken? cancellation, IPageHost? user)
     {
-        WorkflowExecutor executor = new(new TaskLoaders(Packages), Storage);
+        UserTasks users = user == null ? UserTasks.None : UserTasks.ShownBy(user);
+        WorkflowExecutor executor = new(new TaskLoaders(Packages), Storage, users);
         TaskInstancesProgress progress = new()
         {
             StateChanges = new Sink<TaskInstance>(x =>

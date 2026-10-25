@@ -25,7 +25,7 @@ public interface IExecutionService
     public Task<TaskInstance> StartAsync(Guid taskId, JToken? parameters = null);
 
     /// <summary>
-    /// Resume the suspended or answered run [runId] this application started : the nodes it was running run
+    /// Resume the suspended run [runId] this application started : the nodes it was running run
     /// again, the rest of it carrying on from what the history holds. Returns as soon as it runs,
     /// like <see cref="StartAsync"/>.
     /// </summary>

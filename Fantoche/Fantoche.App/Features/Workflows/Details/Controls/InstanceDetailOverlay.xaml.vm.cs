@@ -56,10 +56,12 @@ namespace Fantoche.App.Features.Workflows.Details.Controls
             && (Instance.ApplicationId == null || Instance.ApplicationId == Environment.MachineName);
 
         /// <summary>
-        /// Whether the execution waits for the user : a user interface task, or a run holding one.
-        /// Who can answer it is checked as its page opens.
+        /// Whether the execution waits for the user : the task itself, or a run holding one. Who takes
+        /// it is checked as it is answered, another application may have.
         /// </summary>
-        public bool CanAnswer => Instance.State == EnumTaskState.AwaitingUser;
+        public bool CanAnswer => Instance.State == EnumTaskState.AwaitingUser
+            || Children.Any(x => x.State == EnumTaskState.AwaitingUser)
+            || _prompts.AskingFor(Instance.Id).Count > 0;
 
         private readonly IHistoryService _history;
         private readonly UserPrompts _prompts;
@@ -86,7 +88,11 @@ namespace Fantoche.App.Features.Workflows.Details.Controls
             _toasts = toasts;
             Options = new OverlayOptions() { Title = $"Execution - {instance.NodeName}" };
 
-            Children.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasChildren));
+            Children.CollectionChanged += (_, _) =>
+            {
+                OnPropertyChanged(nameof(HasChildren));
+                OnPropertyChanged(nameof(CanAnswer));
+            };
         }
 
         public static async Task ShowAsync(TaskInstance instance)
@@ -151,31 +157,22 @@ namespace Fantoche.App.Features.Workflows.Details.Controls
         }
 
         /// <summary>
-        /// Open the page of the task waiting for the user, the first one for a run holding several :
-        /// once answered, the run carries on and the detail closes, the history following it.
+        /// Open the page of the task waiting for the user, the first one for a run holding several,
+        /// taking it first when it waits at the supervisor : the detail closes, the run carrying on
+        /// once the page is answered.
         /// </summary>
         [RelayCommand]
         private async Task Answer()
         {
+            _overlayer.Validate(this);
             try
             {
-                IReadOnlyList<TaskInstance> awaiting = await _prompts.GetAwaitingAsync(Instance);
-                if (awaiting.Count == 0)
-                {
-                    _toasts.Warning("Nothing waits for an answer anymore.", $"'{Instance.NodeName}' was answered");
-                    return;
-                }
-
-                if (await _prompts.AnswerAsync(awaiting[0]) == null)
-                    return;
+                await _prompts.AnswerAsync(Instance);
             }
             catch (Exception exception)
             {
                 _toasts.Error(exception.Message, $"'{Instance.NodeName}' could not be answered");
-                return;
             }
-
-            _overlayer.Validate(this);
         }
 
         [RelayCommand]

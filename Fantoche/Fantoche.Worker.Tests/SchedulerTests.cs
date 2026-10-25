@@ -3,6 +3,7 @@ using Fantoche.Services.Local;
 using Fantoche.Shared.Data;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Data.Scoped;
+using Fantoche.Shared.Remote;
 using Newtonsoft.Json.Linq;
 using NJsonSchema;
 
@@ -77,7 +78,7 @@ internal sealed class SchedulerTests
     public async Task DueSchedule_RunsOnTheWorkersWithItsParameters()
     {
         AutomationTask task = await StoreScheduledAsync();
-        _registration = await _supervisor.AddWorkerAsync(_worker, "test-worker", capacity: 1);
+        _registration = await _supervisor.AddWorkerAsync(_worker, "test-worker", capacity: 1, EnumWorkerRoles.Runs);
 
         await StartNextDueAsync(_supervisor);
 

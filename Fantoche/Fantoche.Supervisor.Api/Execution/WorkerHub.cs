@@ -21,14 +21,16 @@ public class WorkerHub : Hub<IWorkerClient>, IWorkerHub
     }
 
     /// <summary>See <see cref="CallerHub.Execute"/> for how the worker is reached.</summary>
-    public Task Register(string workerId, int capacity)
-        => _dispatcher.AddWorkerAsync(Context.ConnectionId, _workers.Clients.Client(Context.ConnectionId), workerId, capacity);
+    public Task Register(string workerId, int capacity, EnumWorkerRoles roles)
+        => _dispatcher.AddWorkerAsync(Context.ConnectionId, _workers.Clients.Client(Context.ConnectionId), workerId, capacity, roles);
 
     public Task ReportState(Guid executionId, TaskInstance instance) => _dispatcher.ReportStateAsync(Context.ConnectionId, executionId, instance);
 
     public Task ReportNotification(Guid executionId, TaskNotification notification) => _dispatcher.ReportNotificationAsync(executionId, notification);
 
     public Task Complete(TaskInstance instance) => _dispatcher.CompleteAsync(Context.ConnectionId, instance);
+
+    public Task<bool> Take(Guid executionId) => _dispatcher.TakeAsync(Context.ConnectionId, executionId);
 
     public override Task OnDisconnectedAsync(Exception? exception) => _dispatcher.RemoveWorkerAsync(Context.ConnectionId);
 }

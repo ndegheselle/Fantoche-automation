@@ -1,108 +1,167 @@
+using Fantoche.App.Common;
 using Fantoche.Shared.Data.Execution;
-using Fantoche.Shared.Data.Scoped;
 using Fantoche.Shared.Services;
-using Fantoche.Worker;
-using Fantoche.Worker.Storage;
+using Fantoche.Worker.UserInterfaces;
 
 namespace Fantoche.App.Features.UserInterfaces
 {
     /// <summary>
-    /// The user interface tasks waiting for the user : their page shown in a window of its own, the
-    /// answer stored, and the run they hold resumed. Any copy of the application able to resume a
-    /// run answers it (see <see cref="UserAnswers"/>).
+    /// The tasks asking the user in this application, while they run : the ones its own runs reach,
+    /// and the ones its user takes from the runs of the workers (see <see cref="AnswerAsync"/>). Each
+    /// one is held until the task gets its answer, its page shown in a window of its own whenever
+    /// the user opens it : nothing shows up unasked.
     /// </summary>
-    public sealed class UserPrompts
+    public sealed class UserPrompts : IPageHost
     {
-        private readonly IScopedService _scoped;
-        private readonly IHistoryService _history;
-        private readonly IExecutionService _execution;
-        private readonly IDispatchService _dispatch;
-        private readonly LocalWorker _worker;
-        private readonly string _applicationId;
+        private sealed class Prompt
+        {
+            public required PageRequest Request { get; init; }
+            /// <summary>The window showing the page, null while it is closed. Read and written on the UI thread.</summary>
+            public PageWindow? Window { get; set; }
+            /// <summary>Closed once the task stops asking, whether the page is open or not.</summary>
+            public bool IsOver { get; set; }
+        }
+
         private readonly string _browserFolder;
+        private readonly IHistoryService _history;
+        private readonly Func<Guid, Task<bool>> _takeAsync;
+        private readonly object _lock = new();
+        private readonly List<Prompt> _asking = [];
+        /// <summary>The tasks the user took, whose page opens as soon as they ask.</summary>
+        private readonly HashSet<Guid> _taken = [];
 
-        /// <param name="worker">What the pages are extracted with, from the package of their task.</param>
+        /// <summary>
+        /// A task of a run of this application started asking, raised by the thread running it. A
+        /// task the user took opens its page instead.
+        /// </summary>
+        public event Action<PageRequest>? Asked;
+
+        /// <summary>A task started or stopped asking, raised by the thread running it.</summary>
+        public event Action? AskingChanged;
+
         /// <param name="browserFolder">Where the browser showing the pages keeps its data.</param>
-        public UserPrompts(
-            IScopedService scoped,
-            IHistoryService history,
-            IExecutionService execution,
-            IDispatchService dispatch,
-            LocalWorker worker,
-            string applicationId,
-            string browserFolder)
+        /// <param name="takeAsync">
+        /// Take a task asking the user waiting at the supervisor, false when another application took
+        /// it first (see <see cref="Worker.IWorkerRegistration.TakeAsync"/>).
+        /// </param>
+        public UserPrompts(string browserFolder, IHistoryService history, Func<Guid, Task<bool>> takeAsync)
         {
-            _scoped = scoped;
-            _history = history;
-            _execution = execution;
-            _dispatch = dispatch;
-            _worker = worker;
-            _applicationId = applicationId;
             _browserFolder = browserFolder;
+            _history = history;
+            _takeAsync = takeAsync;
         }
 
-        /// <summary>
-        /// The tasks [run] waits on the user for : the run itself for a task run alone, the nested
-        /// runs holding them left out.
-        /// </summary>
-        public async Task<IReadOnlyList<TaskInstance>> GetAwaitingAsync(TaskInstance run)
+        public IDisposable Show(PageRequest request)
         {
-            if (run.State != EnumTaskState.AwaitingUser)
-                return [];
-
-            IReadOnlyList<TaskInstance> descendants = await _history.GetDescendantsAsync(run.Id);
-            if (descendants.Count == 0)
-                return [run];
-
-            List<TaskInstance> awaiting = [.. descendants.Where(x => x.State == EnumTaskState.AwaitingUser)];
-            return [.. awaiting.Where(x => !awaiting.Any(nested => nested.ParentInstanceId == x.Id))];
-        }
-
-        /// <summary>
-        /// Show the page of [instance], a task waiting for the user, and once it is answered resume
-        /// the run it holds. Returns that run, or the task itself when it ran alone : null when the
-        /// page was closed without an answer.
-        /// </summary>
-        /// <exception cref="ExecutionException">[instance] can't be answered, or its run resumed.</exception>
-        public async Task<TaskInstance?> AnswerAsync(TaskInstance instance)
-        {
-            // Checked before the page is shown : what the user fills in would be refused afterwards.
-            TaskInstance answerable = await UserAnswers.GetAnswerableRunAsync(_history, instance, _applicationId);
-            if (await _scoped.LoadRunnableAsync(instance.TaskId) is not AutomationTask task)
-                throw new ExecutionException($"'{instance.NodeName}' isn't a task.");
-            string folder = await _worker.GetPageFolderAsync(task);
-            LocalStorage storage = _worker.OpenStorage(answerable);
-
-            TaskInstance? run = null;
-            bool isAnswered = await PageWindow.ShowAsync(instance.NodeName, folder, storage, instance.Parameters, _browserFolder, async answer =>
+            Prompt prompt = new() { Request = request };
+            bool isTaken;
+            lock (_lock)
             {
-                try
-                {
-                    run = await UserAnswers.SubmitAsync(_scoped, _history, instance.Id, answer, _applicationId);
-                    return null;
-                }
-                catch (ExecutionException exception)
-                {
-                    return exception.Message;
-                }
-            });
+                _asking.Add(prompt);
+                isTaken = _taken.Remove(request.Instance.Id);
+            }
+            AskingChanged?.Invoke();
 
-            if (!isAnswered || run == null)
-                return null;
-            // A task run alone is over once answered.
-            if (run.Id == instance.Id)
-                return run;
-            return await ResumeAsync(run);
+            if (isTaken)
+                Ui.Post(() => _ = OpenAsync(request));
+            else
+                Asked?.Invoke(request);
+            return new Registration(() => Stop(prompt));
         }
 
-        /// <summary>Resume [run] where it is run : by this application, or on the workers of the supervisor.</summary>
-        private async Task<TaskInstance> ResumeAsync(TaskInstance run)
+        /// <summary>
+        /// Answer [instance] : the task itself, or a run holding tasks asking the user. A task asking in
+        /// this application opens its page ; one waiting at the supervisor is taken first, its page
+        /// opening once the task asks, this application running it.
+        /// </summary>
+        /// <exception cref="ExecutionException">Nothing asks anymore, or another application took every task asking.</exception>
+        public async Task AnswerAsync(TaskInstance instance)
         {
-            if (run.ApplicationId != null)
-                return await _execution.ResumeAsync(run.Id);
+            IReadOnlyList<PageRequest> asking = AskingFor(instance.Id);
+            if (asking.Count > 0)
+            {
+                await OpenAsync(asking[0]);
+                return;
+            }
 
-            await _dispatch.ResumeAsync(run.Id);
-            return await _history.GetAsync(run.Id) ?? run;
+            // Marked taken before it is : the task may ask before the supervisor answers.
+            IReadOnlyList<TaskInstance> descendants = await _history.GetDescendantsAsync(instance.Id);
+            IEnumerable<TaskInstance> waiting = descendants.Prepend(instance)
+                .Where(x => x.State == EnumTaskState.AwaitingUser && x.ParentInstanceId != null);
+            foreach (TaskInstance node in waiting)
+            {
+                lock (_lock)
+                    _taken.Add(node.Id);
+                if (await _takeAsync(node.Id))
+                    return;
+                lock (_lock)
+                    _taken.Remove(node.Id);
+            }
+
+            throw new ExecutionException($"Nothing of '{instance.NodeName}' waits for you anymore : it is answered from another application.");
+        }
+
+        /// <summary>
+        /// The tasks asking for [instanceId] : the task itself, a run or a nested run holding it.
+        /// </summary>
+        public IReadOnlyList<PageRequest> AskingFor(Guid instanceId)
+        {
+            lock (_lock)
+            {
+                return [.. _asking
+                    .Select(x => x.Request)
+                    .Where(x => x.Instance.Id == instanceId || x.RunId == instanceId || x.Instance.ParentInstanceId == instanceId)];
+            }
+        }
+
+        /// <summary>
+        /// Show the page of [request], brought to the front when already open. Returns once the window
+        /// closes, answered or not : closed unanswered, the task asks on.
+        /// </summary>
+        public async Task OpenAsync(PageRequest request)
+        {
+            Prompt? prompt;
+            lock (_lock)
+                prompt = _asking.FirstOrDefault(x => x.Request == request);
+            if (prompt == null || prompt.IsOver)
+                return;
+
+            if (prompt.Window != null)
+            {
+                prompt.Window.Activate();
+                await prompt.Window.Dismissed;
+                return;
+            }
+
+            prompt.Window = PageWindow.Open(request, _browserFolder);
+            try
+            {
+                await prompt.Window.Dismissed;
+            }
+            finally
+            {
+                prompt.Window = null;
+            }
+        }
+
+        /// <summary>The task stopped asking : answered, canceled or failed. Its page closes if open.</summary>
+        private void Stop(Prompt prompt)
+        {
+            lock (_lock)
+                _asking.Remove(prompt);
+            Ui.Post(() =>
+            {
+                prompt.IsOver = true;
+                prompt.Window?.Close();
+            });
+            AskingChanged?.Invoke();
+        }
+
+        private sealed class Registration(Action dispose) : IDisposable
+        {
+            private Action? _dispose = dispose;
+
+            public void Dispose() => Interlocked.Exchange(ref _dispose, null)?.Invoke();
         }
     }
 }

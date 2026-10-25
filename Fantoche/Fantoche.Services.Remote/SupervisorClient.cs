@@ -1,3 +1,4 @@
+using Fantoche.Plugins.Shared;
 using Fantoche.Shared.Remote;
 using Fantoche.Shared.Services;
 using Fantoche.Worker;
@@ -14,6 +15,7 @@ public sealed class SupervisorClient : ISupervisor, IAsyncDisposable
 {
     private readonly Uri _address;
     private readonly HttpClient _http;
+    private readonly SupervisorHttp _api;
     private readonly List<RemoteCallerConnection> _callers = [];
 
     public RemoteScopedService Scoped { get; }
@@ -35,6 +37,7 @@ public sealed class SupervisorClient : ISupervisor, IAsyncDisposable
     {
         _address = address;
         _http = new HttpClient { BaseAddress = address };
+        _api = new SupervisorHttp(_http);
         Scoped = new RemoteScopedService(_http);
         History = new RemoteHistoryService(_http);
         Packages = new RemotePackagesService(_http);
@@ -63,9 +66,11 @@ public sealed class SupervisorClient : ISupervisor, IAsyncDisposable
         return connection;
     }
 
-    public async Task<IAsyncDisposable> AddWorkerAsync(LocalWorker worker, string workerId, int capacity, CancellationToken cancellation = default)
+    public Task<IStorage> OpenStorageAsync(Guid runId) => Task.FromResult<IStorage>(new RemoteStorage(_api, runId));
+
+    public async Task<IWorkerRegistration> AddWorkerAsync(LocalWorker worker, string workerId, int capacity, EnumWorkerRoles roles, CancellationToken cancellation = default)
     {
-        RemoteWorkerConnection connection = new(_address, worker, workerId, capacity);
+        RemoteWorkerConnection connection = new(_address, worker, workerId, capacity, roles);
         try
         {
             await connection.StartAsync(cancellation);

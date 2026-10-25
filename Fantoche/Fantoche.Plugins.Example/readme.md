@@ -3,30 +3,28 @@
 `Fantoche.Plugins.Example` holds the tasks of a practical workflow : two CSV files imported, given clear column names, merged, updated, split in batches and exported to PDF. The samples of a fresh install hold it as **Customers and orders**.
 
 ```text
-Start ─┬─> Import CSV ─> Pick columns (user) ─> Map columns ─┬─> Join ─> Merge ─> Update ─> Split ─> Compose PDF (user) ─> Export PDF ─> End
-       └─> Import CSV ─> Pick columns (user) ─> Map columns ─┘
+Start ─> Ask ─┬─> Import CSV ─> Map columns (page) ─┬─> Join ─> Merge ─> Update ─> Split ─> Export PDF (page) ─> End
+              └─> Import CSV ─> Map columns (page) ─┘
 ```
 
-To run it : add the package (`dotnet pack Fantoche.Plugins.Example`, version 2.0.0) from the Packages page, open the workflow and start it with the paths of `Resources/Samples/customers.csv` and `Resources/Samples/orders.csv`. The run waits for you at both picks and at the composition.
+To run it : add the package (`dotnet pack Fantoche.Plugins.Example`, version 2.0.0) from the Packages page, generate the files with `Resources/Samples/generate-test-data.ps1`, open the workflow and start it with their paths. With `AskUser` (the default), both mappings and the export ask you on their page. Without it, the run is unattended, the columns being the ones of the generated files.
 
 ## The tasks
 
 | Task | Does |
 | --- | --- |
 | Import CSV | A file into a table, the delimiter, columns and types detected from the content. The table is named after the file unless given a name. |
-| Pick columns *(page)* | You pick the column of the file each name of the workflow stands for, and name the other ones if needed. |
-| Map columns | Adds the names to the table (`TableRef.Mapping`), without copying it. |
+| Map columns *(page)* | Adds the names to the table (`TableRef.Mapping`), without copying it. Asking you, you pick the column of the file each name of the workflow stands for, and name the other ones if needed. |
 | Merge | Joins two tables on pairs of columns (inner or left), in the order of the left table. A right column clashing with a left one is prefixed with the name of its table (`customers_Name`). |
 | Update | Gives a value to a column of the rows matching conditions, or adds a column. |
 | Split | Cuts a table into batches of `BatchSize` rows (10 000 by default). |
-| Compose PDF *(page)* | You compose the document (headings, texts, tables), previewed on the first batch. |
-| Export PDF | Saves a PDF per table, one per processor at once. |
+| Export PDF *(page)* | Saves a PDF per table, one per processor at once. Asking you, you compose the document first (headings, texts, tables), previewed on the first batch, as a sketch or as the PDF the task renders. |
 
-A task done by the user comes before the task applying its answer, which takes the same parameters : a run without anyone to answer (a schedule, a test on large files) skips the page and writes them in the mapping instead. `CustomersOrdersWorkflow` in the tests is the sample written that way.
+A task with a page asks you only when its `AskUser` holds true : its page edits its own parameters, so a run without anyone to answer (a schedule, a test on large files) writes them in the mapping instead. `CustomersOrdersWorkflow` in the tests is the sample written that way. The page reuses the rules of the task through its page methods : `Suggest` and `Check` for the columns, `PreviewAsync` for the PDF (see [User interface tasks](../../architecture.md#user-interface-tasks)).
 
 ## Clear names for the columns
 
-The names are the workflow's, written in the editor (`Pick columns` asks for them) : the nodes after are written against them, whatever the file calls its columns.
+The names are the workflow's, written in the editor (`Map columns` asks for the column of each) : the nodes after are written against them, whatever the file calls its columns.
 
 - `$previous.Mapping.CustomerId` is the stored column `CustomerId` stands for, offered by the editor wherever a column is expected (the keys of `Merge`, for instance).
 - `$row.columns.CustomerId` reads it in the fields evaluated per row (the conditions and values of `Update`). Such a field names the table its rows come from (`[JsonSchemaExtensionData(RowScope.SchemaKey, nameof(Source))]`) : the editor offers the names of its mapping, and a column a mapped table doesn't name is refused before the task runs. A table without a mapping is left to the task, its columns being only known once it runs.

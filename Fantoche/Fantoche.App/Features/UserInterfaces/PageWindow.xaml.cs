@@ -1,7 +1,6 @@
 using System.IO;
 using System.Windows;
 using Fantoche.Worker.Packages;
-using Fantoche.Worker.Storage;
 using Fantoche.Worker.UserInterfaces;
 using Joufflu.Themes;
 using Microsoft.Web.WebView2.Core;
@@ -11,35 +10,47 @@ using Newtonsoft.Json.Linq;
 namespace Fantoche.App.Features.UserInterfaces
 {
     /// <summary>
-    /// The page of a user interface task, until the user answers it or closes it. It only reaches
-    /// the files of its folder and the storage its input points at (see <see cref="PageFiles"/>), and talks to the application through
-    /// <c>window.fantoche</c> alone : no other window, navigation nor object of the application.
+    /// The page of a task asking the user, until the user answers it or closes it. It only reaches
+    /// the files of its folder and the storage its input points at (see <see cref="PageFiles"/>),
+    /// and talks to the task through <c>window.fantoche</c> alone : no other window, navigation nor
+    /// object of the application.
     /// </summary>
     public partial class PageWindow : Window
     {
         /// <summary>
-        /// What the page is handed : its input, and the answer as a promise rejected with the reason
-        /// the answer was refused. Set before the page runs anything of its own.
+        /// What the page is handed : its input, its answer and the page methods of the task as
+        /// promises, rejected with the reason they were refused. Every request carries an id, which its
+        /// reply comes back with : calls can be waited on at once. Set before the page runs anything
+        /// of its own.
         /// </summary>
         private const string ContractScript = """
             (() => {
-                const waiting = [];
+                const waiting = new Map();
+                let lastId = 0;
                 window.chrome.webview.addEventListener('message', event => {
-                    const reply = waiting.shift();
+                    const reply = waiting.get(event.data.id);
                     if (!reply)
                         return;
+                    waiting.delete(event.data.id);
                     if (event.data.type === 'refused')
                         reply.reject(new Error(event.data.error));
                     else
-                        reply.resolve();
+                        reply.resolve(event.data.value);
                 });
+                function send(type, payload) {
+                    return new Promise((resolve, reject) => {
+                        const id = ++lastId;
+                        waiting.set(id, { resolve, reject });
+                        window.chrome.webview.postMessage({ id, type, ...payload });
+                    });
+                }
                 window.fantoche = Object.freeze({
                     input: __INPUT__,
-                    answer(value) {
-                        return new Promise((resolve, reject) => {
-                            waiting.push({ resolve, reject });
-                            window.chrome.webview.postMessage({ type: 'answer', value });
-                        });
+                    async answer(value) {
+                        await send('answer', { value });
+                    },
+                    call(method, args) {
+                        return send('call', { method, args: args === undefined ? null : args });
                     },
                     close() {
                         window.chrome.webview.postMessage({ type: 'close' });
@@ -57,41 +68,45 @@ namespace Fantoche.App.Features.UserInterfaces
             })();
             """;
 
+        private readonly PageRequest _request;
         private readonly PageFiles _files;
-        private readonly JToken? _input;
         private readonly string _userDataFolder;
-        private readonly Func<JToken, Task<string?>> _submit;
-        private readonly TaskCompletionSource<bool> _closed = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly TaskCompletionSource _closed = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        /// <summary>Stops the page methods still running once the window is closed.</summary>
+        private readonly CancellationTokenSource _closing = new();
         private bool _isAnswered;
-        private bool _isSubmitting;
 
-        private PageWindow(string title, string folder, LocalStorage storage, JToken? input, string userDataFolder, Func<JToken, Task<string?>> submit)
+        /// <summary>Completed once the window is closed, answered or not.</summary>
+        public Task Dismissed => _closed.Task;
+
+        private PageWindow(PageRequest request, string userDataFolder)
         {
             InitializeComponent();
-            Title = title;
-            _files = new PageFiles(folder, storage, input);
-            _input = input;
+            Title = request.Instance.NodeName;
+            _request = request;
+            _files = new PageFiles(request.Folder, request.Storage, request.Input);
             _userDataFolder = userDataFolder;
-            _submit = submit;
 
             Loaded += async (_, _) => await InitializeAsync();
-            Closed += (_, _) => _closed.TrySetResult(_isAnswered);
+            Closed += (_, _) =>
+            {
+                _closing.Cancel();
+                _closed.TrySetResult();
+            };
         }
 
         /// <summary>
-        /// Show the page of [folder] with [input] until it is answered (true) or closed (false).
-        /// [submit] takes the answer, telling why it was refused, null once it is stored.
+        /// Show the page of [request] until it is answered or closed, see <see cref="Dismissed"/>.
         /// </summary>
-        /// <param name="storage">The storage of the run, whose files and tables [input] points at.</param>
         /// <param name="userDataFolder">Where the browser keeps its data, shared by the pages.</param>
-        public static Task<bool> ShowAsync(string title, string folder, LocalStorage storage, JToken? input, string userDataFolder, Func<JToken, Task<string?>> submit)
+        public static PageWindow Open(PageRequest request, string userDataFolder)
         {
-            PageWindow window = new(title, folder, storage, input, userDataFolder, submit)
+            PageWindow window = new(request, userDataFolder)
             {
                 Owner = Application.Current.MainWindow,
             };
             window.Show();
-            return window._closed.Task;
+            return window;
         }
 
         private async Task InitializeAsync()
@@ -145,7 +160,7 @@ namespace Fantoche.App.Features.UserInterfaces
             };
             browser.WebMessageReceived += async (_, e) => await OnMessageAsync(e.WebMessageAsJson);
 
-            string input = _input?.ToString(Formatting.None) ?? "null";
+            string input = _request.Input?.ToString(Formatting.None) ?? "null";
             string contract = ContractScript
                 .Replace("__INPUT__", input)
                 .Replace("__STORAGE__", PageFiles.StoragePath)
@@ -158,38 +173,60 @@ namespace Fantoche.App.Features.UserInterfaces
         private async Task OnMessageAsync(string json)
         {
             JToken message = JToken.Parse(json);
-            string? type = message["type"]?.Value<string>();
-            if (type == "close")
+            JToken? id = message["id"];
+            switch (message["type"]?.Value<string>())
             {
-                Close();
-                return;
+                case "close":
+                    Close();
+                    break;
+                case "call":
+                    await CallAsync(id, message["method"]?.Value<string>() ?? "", message["args"]);
+                    break;
+                case "answer":
+                    Answer(id, message["value"] ?? JValue.CreateNull());
+                    break;
             }
+        }
 
-            if (type != "answer")
-                return;
-
-            // An answer at a time : a second click while the first is stored is refused.
-            if (_isSubmitting || _isAnswered)
+        /// <summary>
+        /// Call the page method [method] of the task : what it returns is handed to the page, which
+        /// can read the files and tables it holds from then on.
+        /// </summary>
+        private async Task CallAsync(JToken? id, string method, JToken? args)
+        {
+            try
             {
-                Reply(new JObject { ["type"] = "refused", ["error"] = "An answer is already being given." });
-                return;
+                JToken? result = await _request.CallAsync(method, args, _closing.Token);
+                _files.Allow(result);
+                Reply(new JObject { ["id"] = id, ["type"] = "returned", ["value"] = result });
             }
+            catch (Exception exception) when (!_closing.IsCancellationRequested)
+            {
+                Reply(new JObject { ["id"] = id, ["type"] = "refused", ["error"] = exception.Message });
+            }
+        }
 
-            _isSubmitting = true;
-            string? refusal = await _submit(message["value"] ?? JValue.CreateNull());
-            _isSubmitting = false;
-
+        private void Answer(JToken? id, JToken value)
+        {
+            // An answer at a time : the task takes the first one, refusing the next.
+            string? refusal = _isAnswered ? "The page was answered already." : _request.Answer(value);
             if (refusal != null)
             {
-                Reply(new JObject { ["type"] = "refused", ["error"] = refusal });
+                Reply(new JObject { ["id"] = id, ["type"] = "refused", ["error"] = refusal });
                 return;
             }
 
-            Reply(new JObject { ["type"] = "answered" });
             _isAnswered = true;
+            Reply(new JObject { ["id"] = id, ["type"] = "answered" });
             Close();
         }
 
-        private void Reply(JObject message) => View.CoreWebView2.PostWebMessageAsJson(message.ToString(Formatting.None));
+        private void Reply(JObject message)
+        {
+            // Closed meanwhile, there is nobody left to reply to.
+            if (_closing.IsCancellationRequested)
+                return;
+            View.CoreWebView2.PostWebMessageAsJson(message.ToString(Formatting.None));
+        }
     }
 }

@@ -144,7 +144,7 @@ public class LocalHistoryService : IHistoryService
             // In one statement : another process resuming it at the same time reads it the same.
             claimed = await connection.ExecuteAsync("""
                 UPDATE TaskInstances SET State = @progressing, SessionId = @sessionId
-                WHERE Id = @runId AND State IN (@suspended, @awaitingUser);
+                WHERE Id = @runId AND State = @suspended;
                 """,
                 new
                 {
@@ -152,7 +152,6 @@ public class LocalHistoryService : IHistoryService
                     sessionId,
                     progressing = (int)EnumTaskState.Progressing,
                     suspended = (int)EnumTaskState.Suspended,
-                    awaitingUser = (int)EnumTaskState.AwaitingUser,
                 });
         }
         finally
@@ -169,41 +168,6 @@ public class LocalHistoryService : IHistoryService
         return true;
     }
 
-    public async Task<bool> AnswerAsync(Guid instanceId, JToken answer)
-    {
-        int answered;
-        await _writeLock.WaitAsync();
-        try
-        {
-            using var connection = _databaseFactory.Create();
-            // In one statement : two users answering at once both read it waiting.
-            answered = await connection.ExecuteAsync("""
-                UPDATE TaskInstances SET State = @completed, Output = @answer, FinishedAt = @now
-                WHERE Id = @instanceId AND State = @awaitingUser;
-                """,
-                new
-                {
-                    instanceId,
-                    answer = answer.ToString(Newtonsoft.Json.Formatting.None),
-                    now = DateTime.UtcNow,
-                    completed = (int)EnumTaskState.Completed,
-                    awaitingUser = (int)EnumTaskState.AwaitingUser,
-                });
-        }
-        finally
-        {
-            _writeLock.Release();
-        }
-
-        if (answered == 0)
-            return false;
-
-        TaskInstance? instance = await GetAsync(instanceId);
-        if (instance != null)
-            InstanceUpdated?.Invoke(instance);
-        return true;
-    }
-
     public async Task SuspendRunAsync(Guid runId, string reason)
     {
         TaskInstance? run = await GetAsync(runId);
@@ -211,7 +175,7 @@ public class LocalHistoryService : IHistoryService
             return;
 
         IReadOnlyList<TaskInstance> descendants = await GetDescendantsAsync(run.Id);
-        IEnumerable<TaskInstance> running = descendants.Where(x => x.State is EnumTaskState.Pending or EnumTaskState.Progressing);
+        IEnumerable<TaskInstance> running = descendants.Where(x => x.State is EnumTaskState.Pending or EnumTaskState.Progressing or EnumTaskState.AwaitingUser);
         foreach (TaskInstance instance in running)
         {
             instance.State = EnumTaskState.Suspended;

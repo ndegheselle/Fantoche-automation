@@ -1,7 +1,6 @@
 using Fantoche.Plugins;
 using Fantoche.Plugins.Example.Tasks.Pdf;
 using Fantoche.Plugins.Example.Tasks.Tables;
-using Fantoche.Plugins.Example.UI;
 using Fantoche.Plugins.Shared;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Data.Scoped;
@@ -67,12 +66,10 @@ internal static class PluginTasks
     #region Tables
 
     public static readonly AutomationTask ImportCsv = Table<ImportCsvTask, ImportCsvParameters, TableRef>("ImportCsv");
-    public static readonly AutomationTask PickColumns = Table<PickColumnsTask, PickColumnsParameters, PickColumnsResult>("PickColumns");
     public static readonly AutomationTask MapColumns = Table<MapColumnsTask, MapColumnsParameters, TableRef>("MapColumns");
     public static readonly AutomationTask Merge = Table<MergeTask, MergeParameters, TableRef>("Merge");
     public static readonly AutomationTask Update = Table<UpdateTask, UpdateParameters, TableRef>("Update");
     public static readonly AutomationTask Split = Table<SplitTask, SplitParameters, SplitResult>("Split");
-    public static readonly AutomationTask ComposePdf = Table<ComposePdfTask, ComposePdfParameters, ComposePdfResult>("ComposePdf");
     public static readonly AutomationTask ExportPdf = Table<ExportPdfTask, ExportPdfParameters, ExportPdfResult>("ExportPdf");
 
     /// <summary>A task of Fantoche.Plugins.Example, with the schemas its types declare as adding it from its package does.</summary>

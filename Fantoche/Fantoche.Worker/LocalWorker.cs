@@ -1,9 +1,11 @@
+using Fantoche.Plugins.Shared;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Data.Scoped;
 using Fantoche.Shared.Remote;
 using Fantoche.Worker.Executor;
 using Fantoche.Worker.Packages;
 using Fantoche.Worker.Storage;
+using Fantoche.Worker.UserInterfaces;
 
 namespace Fantoche.Worker;
 
@@ -19,32 +21,48 @@ namespace Fantoche.Worker;
 /// Once an execution started somewhere, everything of it stays there : a workflow runs all its
 /// nodes where it runs, and its tables and files never leave the storage of its run. A run resumed
 /// after a crash carries on wherever that storage is reached from (see <see cref="ExecutionStorages"/>).
+/// The tasks asking the user are the exception : they run in an application (see <see cref="UserTasks"/>),
+/// reaching the storage of their run through the supervisor when it is held elsewhere.
 /// </para>
 /// </summary>
 public sealed class LocalWorker : ITaskExecutor, IDisposable
 {
     private readonly TaskLoaders _tasks;
     private readonly ExecutionStorages _storages;
+    private readonly UserTasks _users;
+    private readonly Func<Guid, Task<IStorage>>? _runStorages;
 
     /// <summary>Where the storage of its executions is kept.</summary>
     public string StorageFolder { get; }
 
     /// <param name="storageFolder">Where the storage of its executions is kept.</param>
-    public LocalWorker(IPackageManagement packages, string storageFolder)
+    /// <param name="users">Where the tasks asking the user run, none by default.</param>
+    /// <param name="runStorages">
+    /// The storage of a run held elsewhere, for the tasks asking the user handed over by the worker
+    /// running it (see <see cref="ISupervisor.OpenStorageAsync"/>).
+    /// </param>
+    public LocalWorker(IPackageManagement packages, string storageFolder, UserTasks? users = null, Func<Guid, Task<IStorage>>? runStorages = null)
     {
         _tasks = new TaskLoaders(packages);
         _storages = new ExecutionStorages(storageFolder);
+        _users = users ?? UserTasks.None;
+        _runStorages = runStorages;
         StorageFolder = storageFolder;
     }
 
     /// <summary>
     /// A worker keeping its data in [dataFolder] : the packages extracted in "cache" and the
-    /// storage in "storage", unless [storageFolder] is shared with other workers.
+    /// storage in "storage", unless [storageFolder] is shared with other workers. With [pages], it is
+    /// the one of an application and runs the tasks asking the user itself ; otherwise it hands them
+    /// to an application through [supervisor].
     /// </summary>
-    public static LocalWorker InFolder(ISupervisor supervisor, string dataFolder, string? storageFolder = null)
+    public static LocalWorker InFolder(ISupervisor supervisor, string dataFolder, string? storageFolder = null, IPageHost? pages = null)
     {
         PackageCache packages = new(supervisor.PackageFiles, Path.Combine(dataFolder, "cache"));
-        return new LocalWorker(packages, storageFolder ?? Path.Combine(dataFolder, "storage"));
+        UserTasks users = pages == null
+            ? UserTasks.HandedTo(new RemoteTaskExecutor(supervisor))
+            : UserTasks.ShownBy(pages);
+        return new LocalWorker(packages, storageFolder ?? Path.Combine(dataFolder, "storage"), users, supervisor.OpenStorageAsync);
     }
 
     public void Dispose() => _tasks.Dispose();
@@ -57,34 +75,27 @@ public sealed class LocalWorker : ITaskExecutor, IDisposable
         CancellationToken? cancellation = null)
     {
         LocalStorage storage = _storages.Open(task.Id, instance);
-        LocalTaskExecutor executor = new(_tasks, storage);
+        LocalTaskExecutor executor = new(_tasks, storage, _users, instance.Id);
         return await executor.ExecuteAsync(task, instance, progress, cancellation);
     }
 
     /// <summary>
-    /// The folder of the page of the user interface task [task], extracted from its package on this
-    /// machine : the page is shown where the user is.
+    /// An execution the supervisor dispatched : a whole run, or a task asking the user handed over by
+    /// the worker running its run, whose storage it uses.
     /// </summary>
-    public Task<string> GetPageFolderAsync(AutomationTask task)
-    {
-        if (task.Target is not PackageClassTarget target)
-            throw new InvalidOperationException($"The task '{task.Metadata.Name}' isn't in a package.");
-        return _tasks.GetPageFolderAsync(target);
-    }
-
-    /// <summary>
-    /// The storage of [run] on this machine, where its nodes keep their tables and files. Empty for
-    /// a run dispatched to the remote workers : its storage is theirs.
-    /// </summary>
-    public LocalStorage OpenStorage(TaskInstance run) => _storages.Open(run.TaskId, run);
-
-    /// <summary>An execution the supervisor dispatched.</summary>
-    public Task<TaskInstance> ExecuteDispatchedAsync(
+    public async Task<TaskInstance> ExecuteDispatchedAsync(
         RemoteExecution execution,
         TaskInstancesProgress progress,
         CancellationToken cancellation)
     {
         var (task, instance) = execution.Unpack();
-        return ExecuteAsync(task, instance, progress, cancellation);
+        if (execution.RunId is not Guid runId)
+            return await ExecuteAsync(task, instance, progress, cancellation);
+
+        Func<Guid, Task<IStorage>> runStorages = _runStorages
+            ?? throw new ExecutionException($"'{instance.NodeName}' belongs to a run held elsewhere, whose storage this worker can't reach.");
+        IStorage storage = await runStorages(runId);
+        LocalTaskExecutor executor = new(_tasks, storage, _users, runId);
+        return await executor.ExecuteAsync(task, instance, progress, cancellation);
     }
 }

@@ -2,6 +2,7 @@ using Fantoche.Plugins;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Data.Graph;
 using Fantoche.Shared.Data.Scoped;
+using Fantoche.Worker.UserInterfaces;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NJsonSchema;
@@ -115,9 +116,9 @@ internal sealed class TestWorkflow
             Parameters = parameters == null ? null : JToken.FromObject(parameters)
         };
 
-    /// <summary>Run the workflow with [parameters], see <see cref="WorkflowRun"/>.</summary>
-    public Task<WorkflowRun> RunAsync(object? parameters = null, CancellationToken? cancellation = null)
-        => WorkflowRun.ExecuteAsync(Instance(parameters), cancellation);
+    /// <summary>Run the workflow with [parameters], [user] answering its pages, see <see cref="WorkflowRun"/>.</summary>
+    public Task<WorkflowRun> RunAsync(object? parameters = null, CancellationToken? cancellation = null, IPageHost? user = null)
+        => WorkflowRun.ExecuteAsync(Instance(parameters), cancellation, user);
 
     /// <summary>Run the workflow with [parameters], handing back what it failed with if it did.</summary>
     public Task<(WorkflowRun Run, Exception? Error)> TryRunAsync(object? parameters = null, CancellationToken? cancellation = null)

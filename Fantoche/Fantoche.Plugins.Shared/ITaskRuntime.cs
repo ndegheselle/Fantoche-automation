@@ -19,6 +19,12 @@ public interface ITaskRuntime
     IStorage Storage { get; }
 
     /// <summary>
+    /// The page of the task, null when it runs unattended : it isn't a user interface task, or its
+    /// input doesn't ask the user (see <see cref="IUserInterfaceTask"/>).
+    /// </summary>
+    IUserInterface? UserInterface { get; }
+
+    /// <summary>
     /// Deactivate the output (even if the task completed it)
     /// </summary>
     public void DeactivateOutput(bool deactivate = true);

@@ -124,6 +124,9 @@ public static class RowScope
     }
 }
 
+/// <summary>A slice of the rows of a table, see <see cref="IStorage.ReadPageAsync"/>.</summary>
+public sealed record TablePage(List<TableColumn> Columns, long Total, List<IReadOnlyDictionary<string, object?>> Rows);
+
 /// <summary>
 /// Handle on a file of the <see cref="IStorage"/>.
 /// </summary>
@@ -169,6 +172,12 @@ public interface IStorage
     /// </summary>
     IAsyncEnumerable<IReadOnlyDictionary<string, object?>> ReadRowsAsync(TableRef table,
         CancellationToken cancellation = default);
+
+    /// <summary>
+    /// [limit] rows of [table] from [offset], in order, and how many it holds : what a page shows of a
+    /// table too large to be read whole.
+    /// </summary>
+    Task<TablePage> ReadPageAsync(TableRef table, long offset, int limit, CancellationToken cancellation = default);
 
     Task<FileRef> SaveFileAsync(string name, Stream content, CancellationToken cancellation = default);
 

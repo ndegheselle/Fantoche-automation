@@ -40,13 +40,7 @@ public interface IHistoryService
     public Task SuspendRunAsync(Guid runId, string reason);
 
     /// <summary>
-    /// Store [answer] as the output of [instanceId], a task waiting for the user, which completes
-    /// it : false when it doesn't wait anymore, someone having answered first.
-    /// </summary>
-    public Task<bool> AnswerAsync(Guid instanceId, JToken answer);
-
-    /// <summary>
-    /// Take the suspended or answered run [runId] for the session [sessionId] about to resume it :
+    /// Take the suspended run [runId] for the session [sessionId] about to resume it :
     /// false when it doesn't wait anymore, another process having taken it first.
     /// </summary>
     public Task<bool> ClaimRunAsync(Guid runId, string sessionId);
