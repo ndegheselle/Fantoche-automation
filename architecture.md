@@ -147,9 +147,9 @@ sequenceDiagram
     App->>Run: resume the run, which carries on with the answer
 ```
 
-- **Writing one:** derive from `BaseUserInterfaceTask<TInput, TOutput>` and name the folder of its page (`PageFolder`, relative to the assembly). The page reads `window.fantoche.input` and answers with `await window.fantoche.answer(value)`, rejected with the reason when the answer doesn't fit `TOutput`. `window.fantoche.close()` closes it unanswered. See `PickColumnsTask` and `ComposePdfTask` in `Fantoche.Plugins`, pages reading the storage.
+- **Writing one:** derive from `BaseUserInterfaceTask<TInput, TOutput>` and name the folder of its page (`PageFolder`, relative to the assembly). The page reads `window.fantoche.input` and answers with `await window.fantoche.answer(value)`, rejected with the reason when the answer doesn't fit `TOutput`. `window.fantoche.close()` closes it unanswered. See `PickColumnsTask` and `ComposePdfTask` in `Fantoche.Plugins.Example`, pages reading the storage.
 - **Pairing it:** the page only sets the parameters of the task after it, which does the work (`PickColumnsTask` then `MapColumnsTask`). A run nobody answers, a schedule for instance, writes these parameters in the mapping instead.
-- **Packing it:** the folder is packed next to the assembly, the way `Fantoche.Plugins.csproj` does it:
+- **Packing it:** the folder is packed next to the assembly, the way `Fantoche.Plugins.Example.csproj` does it:
 
   ```xml
   <Content Include="UserInterfaces\**\*" Exclude="UserInterfaces\**\*.cs" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="lib\$(TargetFramework)\UserInterfaces" />
@@ -192,7 +192,7 @@ public class MapColumnsParameters
 - The task has to hand over what it declares : the preview trusts it, the run doesn't check it.
 - The value is the place in the output : a property name, or `""` for the output itself. Values handed over to the same place merge, the mappings of the two tables of a merge for instance.
 
-See [the table tasks](Fantoche/Fantoche.Plugins/readme.md) for the mapping of the columns these previews serve.
+See [the table tasks](Fantoche/Fantoche.Plugins.Example/readme.md) for the mapping of the columns these previews serve.
 
 ## Schedules
 

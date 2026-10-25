@@ -7,7 +7,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Base", "Base", "{5A3373EB-A
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Worker", "Worker", "{2F8AA1CC-245F-4240-B392-B4B8E128E319}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fantoche.Plugins", "Fantoche.Plugins\Fantoche.Plugins.csproj", "{FDD42281-CB13-4EFB-81A2-E651DE67EBD4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fantoche.Plugins.Example", "Fantoche.Plugins.Example\Fantoche.Plugins.Example.csproj", "{FDD42281-CB13-4EFB-81A2-E651DE67EBD4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fantoche.Shared", "Fantoche.Shared\Fantoche.Shared.csproj", "{A07395ED-D082-46CC-B614-656178B3EF8E}"
 EndProject
@@ -35,7 +35,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fantoche.Worker.Tests", "Fa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fantoche.Services.Remote", "Fantoche.Services.Remote\Fantoche.Services.Remote.csproj", "{EF116AB9-EA15-4785-9498-4EF7A9B1BC80}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fantoche.TestPlugins", "Fantoche.TestPlugins\Fantoche.TestPlugins.csproj", "{1400E937-A6EE-41B1-95A8-705F7D67807E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fantoche.Plugins", "Fantoche.Plugins\Fantoche.Plugins.csproj", "{1400E937-A6EE-41B1-95A8-705F7D67807E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

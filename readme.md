@@ -24,7 +24,7 @@ See [architecture.md](architecture.md) : the standalone and remote modes, where 
 
 1. Start the `docker-compose` startup project (or `Fantoche.Supervisor.Api` and `Fantoche.Worker.Service`).
 2. Start `Fantoche.App`, and set the supervisor address in its settings (gear of the title bar).
-3. To see the table tasks at work, run the "Customers and orders" sample : see [the table tasks](Fantoche/Fantoche.Plugins/readme.md).
+3. To see the table tasks at work, run the "Customers and orders" sample : see [the table tasks](Fantoche/Fantoche.Plugins.Example/readme.md).
 
 ### Modes
 
@@ -69,4 +69,4 @@ The supervisor has no authentication yet.
 - Allow multiple supervisor and more complex worker assignation
 - Re-dispatch the executions of a lost worker rather than failing them
 - Resume a workflow after a crash (would need the previous instance and the shared context to be stored)
-- display potential errors in workflow creation
+- display potential errors in workflow creation

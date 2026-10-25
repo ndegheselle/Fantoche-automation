@@ -1,13 +1,13 @@
 # Table tasks
 
-`Fantoche.Plugins` holds the tasks of a practical workflow : two CSV files imported, given clear column names, merged, updated, split in batches and exported to PDF. The samples of a fresh install hold it as **Customers and orders**.
+`Fantoche.Plugins.Example` holds the tasks of a practical workflow : two CSV files imported, given clear column names, merged, updated, split in batches and exported to PDF. The samples of a fresh install hold it as **Customers and orders**.
 
 ```text
 Start ─┬─> Import CSV ─> Pick columns (user) ─> Map columns ─┬─> Join ─> Merge ─> Update ─> Split ─> Compose PDF (user) ─> Export PDF ─> End
        └─> Import CSV ─> Pick columns (user) ─> Map columns ─┘
 ```
 
-To run it : add the package (`dotnet pack Fantoche.Plugins`, version 2.0.0) from the Packages page, open the workflow and start it with the paths of `Samples/customers.csv` and `Samples/orders.csv`. The run waits for you at both picks and at the composition.
+To run it : add the package (`dotnet pack Fantoche.Plugins.Example`, version 2.0.0) from the Packages page, open the workflow and start it with the paths of `Resources/Samples/customers.csv` and `Resources/Samples/orders.csv`. The run waits for you at both picks and at the composition.
 
 ## The tasks
 

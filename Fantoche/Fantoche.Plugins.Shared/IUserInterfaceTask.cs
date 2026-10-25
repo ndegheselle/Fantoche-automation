@@ -22,7 +22,7 @@ public interface IUserInterfaceTask : ITask
     /// <summary>
     /// The folder of the page, relative to the assembly of the task : its <c>index.html</c> is
     /// opened, the rest of the folder served along. Packed next to the assembly, see the
-    /// <c>Fantoche.Plugins</c> project.
+    /// <c>Fantoche.Plugins.Example</c> project.
     /// </summary>
     string PageFolder { get; }
 }

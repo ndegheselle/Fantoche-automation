@@ -1,6 +1,6 @@
 using Fantoche.Plugins.Shared;
 
-namespace Fantoche.TestPlugins.UserInterfaces;
+namespace Fantoche.Plugins.UserInterfaces;
 
 public class ReorderParameters
 {

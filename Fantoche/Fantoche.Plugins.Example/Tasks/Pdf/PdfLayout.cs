@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Fantoche.Plugins.Pdf;
+namespace Fantoche.Plugins.Example.Tasks.Pdf;
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum EnumPdfBlock

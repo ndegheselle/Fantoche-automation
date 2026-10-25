@@ -28,7 +28,7 @@ internal sealed class CleanupTests
         _storageFolder = Path.Combine(_folder, "storage");
         _supervisor = new LocalSupervisor(Path.Combine(_folder, "supervisor"), _storageFolder);
 
-        AutomationTask task = PluginTasks.Make("Fantoche.TestPlugins.TestTask", "Test", new JsonSchema(), new JsonSchema());
+        AutomationTask task = PluginTasks.Make("Fantoche.Plugins.TestTask", "Test", new JsonSchema(), new JsonSchema());
         task.ParentId = Scope.Root.Id;
         await _supervisor.Scoped.CreateAsync(task);
         _taskId = task.Id;

@@ -1,66 +1,67 @@
-using Fantoche.Plugins.Pdf;
+using Fantoche.Plugins;
+using Fantoche.Plugins.Example.Tasks.Pdf;
+using Fantoche.Plugins.Example.Tasks.Tables;
+using Fantoche.Plugins.Example.UI;
 using Fantoche.Plugins.Shared;
-using Fantoche.Plugins.Tables;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Data.Scoped;
-using Fantoche.TestPlugins;
 using NJsonSchema;
 
 namespace Fantoche.Worker.Tests;
 
 /// <summary>
 /// The task definitions (the reusable "blueprints" the graph nodes point to) the tests build their
-/// workflows with : the engine is tested with the tasks of Fantoche.TestPlugins, the tables with the
-/// ones of Fantoche.Plugins, the package they target being resolved by
+/// workflows with : the engine is tested with the tasks of Fantoche.Plugins, the tables with the
+/// ones of Fantoche.Plugins.Example, the package they target being resolved by
 /// <see cref="TestPackageManagement"/> rather than by nuget.
 /// </summary>
 internal static class PluginTasks
 {
     /// <summary>The tasks exercising the engine, shipped with no package.</summary>
-    public const string Package = "Fantoche.TestPlugins";
+    public const string Package = "Fantoche.Plugins";
 
-    /// <summary>The tasks of the application.</summary>
-    public const string TablesPackage = "Fantoche.Plugins";
+    /// <summary>The tasks of the practical workflow.</summary>
+    public const string TablesPackage = "Fantoche.Plugins.Example";
 
     /// <summary>
     /// Adds <c>Add</c> to <c>Value</c> and hands over a <see cref="TestResult"/>.
     /// </summary>
     public static readonly AutomationTask Test = Make(
-        "Fantoche.TestPlugins.TestTask", "Test",
-        JsonSchema.FromType<TestPlugins.TestParameters>(), JsonSchema.FromType<TestResult>());
+        "Fantoche.Plugins.TestTask", "Test",
+        JsonSchema.FromType<Plugins.TestParameters>(), JsonSchema.FromType<TestResult>());
 
     /// <summary>Waits, pass-through : what it is given never reaches the next node.</summary>
     public static readonly AutomationTask Delay = Make(
-        "Fantoche.TestPlugins.TestDelay", "Delay",
+        "Fantoche.Plugins.TestDelay", "Delay",
         JsonSchema.FromType<TestDelayParameters>(), new JsonSchema(), passThrough: true);
 
     public static readonly AutomationTask PassThrough = Make(
-        "Fantoche.TestPlugins.PassThroughTask", "PassThrough",
+        "Fantoche.Plugins.PassThroughTask", "PassThrough",
         JsonSchema.FromType<PassThroughParameters>(), new JsonSchema(), passThrough: true);
 
     /// <summary>Deactivates its output on demand, which closes the branch it stands on.</summary>
     public static readonly AutomationTask Conditional = Make(
-        "Fantoche.TestPlugins.ConditionalTask", "Conditional",
+        "Fantoche.Plugins.ConditionalTask", "Conditional",
         JsonSchema.FromType<ConditionalParameters>(), new JsonSchema(), passThrough: true);
 
     /// <summary>Closes its branch depending on a value : the two sides of a loop.</summary>
     public static readonly AutomationTask LoopGate = Make(
-        "Fantoche.TestPlugins.LoopGateTask", "LoopGate",
+        "Fantoche.Plugins.LoopGateTask", "LoopGate",
         JsonSchema.FromType<LoopGateParameters>(), new JsonSchema(), passThrough: true);
 
     /// <summary>The user puts items in order on a page : a user interface task.</summary>
     public static readonly AutomationTask Reorder = Make(
-        "Fantoche.TestPlugins.UserInterfaces.ReorderTask", "Reorder",
-        JsonSchema.FromType<TestPlugins.UserInterfaces.ReorderParameters>(), JsonSchema.FromType<TestPlugins.UserInterfaces.ReorderResult>());
+        "Fantoche.Plugins.UserInterfaces.ReorderTask", "Reorder",
+        JsonSchema.FromType<Plugins.UserInterfaces.ReorderParameters>(), JsonSchema.FromType<Plugins.UserInterfaces.ReorderResult>());
 
     /// <summary>A task pointing at a class the assembly doesn't hold.</summary>
     public static readonly AutomationTask UnknownClass = Make(
-        "Fantoche.TestPlugins.NotATask", "UnknownClass",
+        "Fantoche.Plugins.NotATask", "UnknownClass",
         new JsonSchema(), new JsonSchema());
 
     /// <summary>A task pointing at an assembly that can't be resolved.</summary>
     public static readonly AutomationTask UnknownPackage = Make(
-        "Fantoche.TestPlugins.TestTask", "UnknownPackage",
+        "Fantoche.Plugins.TestTask", "UnknownPackage",
         new JsonSchema(), new JsonSchema(), package: "Fantoche.NotAPackage");
 
     #region Tables
@@ -74,7 +75,7 @@ internal static class PluginTasks
     public static readonly AutomationTask ComposePdf = Table<ComposePdfTask, ComposePdfParameters, ComposePdfResult>("ComposePdf");
     public static readonly AutomationTask ExportPdf = Table<ExportPdfTask, ExportPdfParameters, ExportPdfResult>("ExportPdf");
 
-    /// <summary>A task of Fantoche.Plugins, with the schemas its types declare as adding it from its package does.</summary>
+    /// <summary>A task of Fantoche.Plugins.Example, with the schemas its types declare as adding it from its package does.</summary>
     private static AutomationTask Table<TTask, TInput, TOutput>(string name)
         => Make(typeof(TTask).FullName!, name, JsonSchema.FromType<TInput>(), JsonSchema.FromType<TOutput>(), package: TablesPackage);
 

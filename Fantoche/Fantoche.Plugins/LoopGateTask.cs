@@ -1,6 +1,6 @@
 using Fantoche.Plugins.Shared;
 
-namespace Fantoche.TestPlugins;
+namespace Fantoche.Plugins;
 
 public class LoopGateParameters
 {

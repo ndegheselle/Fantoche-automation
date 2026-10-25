@@ -34,7 +34,7 @@
       (see TestPackageManagement), so the plugins are referenced to be built and copied here.
     -->
     <ProjectReference Include="..\Fantoche.Plugins\Fantoche.Plugins.csproj" />
-    <ProjectReference Include="..\Fantoche.TestPlugins\Fantoche.TestPlugins.csproj" />
+    <ProjectReference Include="..\Fantoche.Plugins.Example\Fantoche.Plugins.Example.csproj" />
     <ProjectReference Include="..\Fantoche.Worker\Fantoche.Worker.csproj" />
     <!-- The remote execution is tested end to end : a supervisor, a worker and a caller. -->
     <ProjectReference Include="..\Fantoche.Supervisor.Api\Fantoche.Supervisor.Api.csproj" />

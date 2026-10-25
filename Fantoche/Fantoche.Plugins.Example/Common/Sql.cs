@@ -1,6 +1,6 @@
 using Fantoche.Plugins.Shared;
 
-namespace Fantoche.Plugins.Tables;
+namespace Fantoche.Plugins.Example.Common;
 
 /// <summary>
 /// What the table tasks build their queries with. Nothing of the settings reaches a query as SQL :

@@ -1,8 +1,9 @@
 using System.Text.Json.Serialization;
+using Fantoche.Plugins.Example.Common;
 using Fantoche.Plugins.Shared;
 using NJsonSchema.Annotations;
 
-namespace Fantoche.Plugins.Tables;
+namespace Fantoche.Plugins.Example.Tasks.Tables;
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum EnumMergeKind

@@ -1,45 +1,24 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
+  <!--
+    The tasks the tests of the engine build their workflows with : they only exercise the engine
+    (values, delays, gates, a page), so they ship with no package. See Fantoche.Plugins.Example for
+    the tasks of a practical workflow.
+  -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Title>Table automation plugins</Title>
-    <PackageIcon></PackageIcon>
-    <Version>2.0.0</Version>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Fantoche.Plugins.Shared\Fantoche.Plugins.Shared.csproj" />
   </ItemGroup>
 
+  <!-- The page of the reorder task, next to the assembly it is read relative to (see IUserInterfaceTask.PageFolder). -->
   <ItemGroup>
-    <!-- 6.5 and later are under the AGPL, which the PDF export chooses as it loads (see PdfRenderer). -->
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Common" Version="10.0.13" />
-    <PackageReference Include="PDFsharp" Version="6.5.0" />
-    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
+    <Content Include="UserInterfaces\**\*" Exclude="UserInterfaces\**\*.cs" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Include="Pdf\Fonts\DejaVuSans.ttf" LogicalName="DejaVuSans.ttf" />
-  </ItemGroup>
-
-  <!-- The pages of the user interface tasks, next to the assembly they are read relative to (see IUserInterfaceTask.PageFolder). -->
-  <ItemGroup>
-    <Content Include="UserInterfaces\**\*" Exclude="UserInterfaces\**\*.cs" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="lib\$(TargetFramework)\UserInterfaces" />
-  </ItemGroup>
-
-  <!-- A worker extracts a plugin package alone, without its dependencies : they are packed next to the plugin. -->
-  <PropertyGroup>
-    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);PackDependencies</TargetsForTfmSpecificBuildOutput>
-  </PropertyGroup>
-  <Target Name="PackDependencies" DependsOnTargets="ResolvePackageAssets">
-    <ItemGroup>
-      <BuildOutputInPackage Include="@(RuntimeCopyLocalItems)" Condition="'%(RuntimeCopyLocalItems.NuGetPackageId)' == 'PDFsharp' Or '%(RuntimeCopyLocalItems.NuGetPackageId)' == 'Microsoft.Extensions.Logging.Abstractions'" />
-    </ItemGroup>
-  </Target>
-  <PropertyGroup>
-  	<IncludeSymbols>true</IncludeSymbols>
-  	<SymbolPackageFormat>snupkg</SymbolPackageFormat>
-  </PropertyGroup>
 </Project>

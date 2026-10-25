@@ -402,5 +402,5 @@ FodyWeavers.xsd
 *.sln.iml
 
 .env
-# Test data written by Fantoche.Plugins/Samples/generate-test-data.ps1
-Fantoche.Plugins/Samples/generated/
+# Test data written by Fantoche.Plugins.Example/Resources/Samples/generate-test-data.ps1
+Fantoche.Plugins.Example/Resources/Samples/generated/

@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
 using Fantoche.Plugins.Shared;
 
-namespace Fantoche.Plugins.Tables;
+namespace Fantoche.Plugins.Example.Common;
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum EnumConditionOperator

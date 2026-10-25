@@ -1,8 +1,8 @@
+using Fantoche.Plugins;
 using Fantoche.Services.Local;
 using Fantoche.Shared.Data;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Data.Scoped;
-using Fantoche.TestPlugins;
 using Newtonsoft.Json.Linq;
 using NJsonSchema;
 
@@ -47,7 +47,7 @@ internal sealed class SchedulerTests
     private async Task<AutomationTask> StoreScheduledAsync()
     {
         AutomationTask task = PluginTasks.Make(
-            "Fantoche.TestPlugins.TestTask", "Test", JsonSchema.FromType<TestPlugins.TestParameters>(), JsonSchema.FromType<TestResult>());
+            "Fantoche.Plugins.TestTask", "Test", JsonSchema.FromType<Plugins.TestParameters>(), JsonSchema.FromType<TestResult>());
         task.ParentId = Scope.Root.Id;
         task.Schedules = [Daily];
         await _supervisor.Scoped.CreateAsync(task);

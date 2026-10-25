@@ -1,12 +1,12 @@
 using System.Globalization;
+using Fantoche.Plugins.Example.Common;
 using Fantoche.Plugins.Shared;
-using Fantoche.Plugins.Tables;
 using PdfSharp;
 using PdfSharp.Drawing;
 using PdfSharp.Fonts;
 using PdfSharp.Pdf;
 
-namespace Fantoche.Plugins.Pdf;
+namespace Fantoche.Plugins.Example.Tasks.Pdf;
 
 /// <summary>
 /// Draw a <see cref="PdfLayout"/> for one table with PDFsharp : the blocks one under the other, a

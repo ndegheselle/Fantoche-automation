@@ -1,5 +1,6 @@
+using Fantoche.Plugins;
+using Fantoche.Plugins.Example.Tasks.Tables;
 using Fantoche.Plugins.Shared;
-using Fantoche.Plugins.Tables;
 using Fantoche.Services.Local;
 using Fantoche.Services.Remote;
 using Fantoche.Shared.Data.Execution;
@@ -7,7 +8,6 @@ using Fantoche.Shared.Data.Graph;
 using Fantoche.Shared.Data.Scoped;
 using Fantoche.Shared.Remote;
 using Fantoche.Supervisor.Api;
-using Fantoche.TestPlugins;
 using Fantoche.Worker.Executor;
 using Fantoche.Worker.Storage;
 using Microsoft.AspNetCore.Builder;
@@ -130,10 +130,10 @@ internal sealed class SupervisorExecutionTests
     }
 
     private Task<AutomationTask> StoreTestAsync() => StoreAsync(PluginTasks.Make(
-        "Fantoche.TestPlugins.TestTask", "Test", JsonSchema.FromType<TestPlugins.TestParameters>(), JsonSchema.FromType<TestResult>()));
+        "Fantoche.Plugins.TestTask", "Test", JsonSchema.FromType<Plugins.TestParameters>(), JsonSchema.FromType<TestResult>()));
 
     private Task<AutomationTask> StoreDelayAsync() => StoreAsync(PluginTasks.Make(
-        "Fantoche.TestPlugins.TestDelay", "Delay", JsonSchema.FromType<TestDelayParameters>(), new JsonSchema(), passThrough: true));
+        "Fantoche.Plugins.TestDelay", "Delay", JsonSchema.FromType<TestDelayParameters>(), new JsonSchema(), passThrough: true));
 
     /// <summary>A stored workflow running [test] once : <c>Start ─> First ─> End</c>.</summary>
     private async Task<AutomationWorkflow> StoreLineAsync(AutomationTask test)
@@ -222,8 +222,8 @@ internal sealed class SupervisorExecutionTests
     private async Task<(AutomationWorkflow Workflow, AutomationTask Reorder)> StoreAskAsync()
     {
         AutomationTask reorder = await StoreAsync(PluginTasks.Make(
-            "Fantoche.TestPlugins.UserInterfaces.ReorderTask", "Reorder",
-            JsonSchema.FromType<TestPlugins.UserInterfaces.ReorderParameters>(), JsonSchema.FromType<TestPlugins.UserInterfaces.ReorderResult>()));
+            "Fantoche.Plugins.UserInterfaces.ReorderTask", "Reorder",
+            JsonSchema.FromType<Plugins.UserInterfaces.ReorderParameters>(), JsonSchema.FromType<Plugins.UserInterfaces.ReorderResult>()));
         TestWorkflow ask = new TestWorkflow("Ask", requireOutput: false)
             .Start()
             .Task("Ask", reorder, new { Title = "Sort them", Items = "$previous.Items" })
@@ -448,7 +448,7 @@ internal sealed class SupervisorExecutionTests
     public async Task UnknownTask_Fails()
     {
         await ConnectWorkerAsync();
-        AutomationTask unknown = PluginTasks.Make("Fantoche.TestPlugins.TestTask", "Unknown", new JsonSchema(), new JsonSchema());
+        AutomationTask unknown = PluginTasks.Make("Fantoche.Plugins.TestTask", "Unknown", new JsonSchema(), new JsonSchema());
 
         TaskInstance result = await _caller.ExecuteAsync(unknown, InstanceOf(unknown, new { }));
 

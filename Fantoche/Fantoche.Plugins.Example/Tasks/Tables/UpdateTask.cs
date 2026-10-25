@@ -1,7 +1,8 @@
+using Fantoche.Plugins.Example.Common;
 using Fantoche.Plugins.Shared;
 using NJsonSchema.Annotations;
 
-namespace Fantoche.Plugins.Tables;
+namespace Fantoche.Plugins.Example.Tasks.Tables;
 
 /// <summary>The value a column is given : a value or a reference to the row (see <see cref="RowScope"/>).</summary>
 public class ColumnValue

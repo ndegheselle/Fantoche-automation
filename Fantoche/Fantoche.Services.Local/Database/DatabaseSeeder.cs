@@ -53,7 +53,7 @@ public static class DatabaseSeeder
 
 /// <summary>
 /// Sample tasks and a workflow showing them at work, so the interface has something to display and
-/// to execute right after a fresh install. They target the classes of the Fantoche.Plugins package,
+/// to execute right after a fresh install. They target the classes of the Fantoche.Plugins.Example package,
 /// which has to be added to the packages for the samples to run.
 /// </summary>
 internal static class Samples
@@ -72,37 +72,37 @@ internal static class Samples
     #region Tasks
 
     private static readonly AutomationTask ImportCsv = MakeTask(
-        Id(0x30), "Import CSV", "Fantoche.Plugins.Tables.ImportCsvTask",
+        Id(0x30), "Import CSV", "Fantoche.Plugins.Example.Tasks.Tables.ImportCsvTask",
         Schema(("Path", "string"), ("Name", "string")), TableSchema);
 
     /// <summary>The user picks the column each name stands for : a user interface task.</summary>
     private static readonly AutomationTask PickColumns = MakeTask(
-        Id(0x31), "Pick columns", "Fantoche.Plugins.Tables.PickColumnsTask",
+        Id(0x31), "Pick columns", "Fantoche.Plugins.Example.UI.PickColumnsTask",
         PickColumnsInputSchema, PickColumnsOutputSchema, isUserInterface: true);
 
     private static readonly AutomationTask MapColumns = MakeTask(
-        Id(0x32), "Map columns", "Fantoche.Plugins.Tables.MapColumnsTask",
+        Id(0x32), "Map columns", "Fantoche.Plugins.Example.Tasks.Tables.MapColumnsTask",
         MapColumnsInputSchema, TableSchema);
 
     private static readonly AutomationTask Merge = MakeTask(
-        Id(0x33), "Merge", "Fantoche.Plugins.Tables.MergeTask",
+        Id(0x33), "Merge", "Fantoche.Plugins.Example.Tasks.Tables.MergeTask",
         MergeInputSchema, TableSchema);
 
     private static readonly AutomationTask Update = MakeTask(
-        Id(0x34), "Update", "Fantoche.Plugins.Tables.UpdateTask",
+        Id(0x34), "Update", "Fantoche.Plugins.Example.Tasks.Tables.UpdateTask",
         UpdateInputSchema, TableSchema);
 
     private static readonly AutomationTask Split = MakeTask(
-        Id(0x35), "Split", "Fantoche.Plugins.Tables.SplitTask",
+        Id(0x35), "Split", "Fantoche.Plugins.Example.Tasks.Tables.SplitTask",
         SplitInputSchema, SplitOutputSchema);
 
     /// <summary>The user composes the document of the PDF : a user interface task.</summary>
     private static readonly AutomationTask ComposePdf = MakeTask(
-        Id(0x36), "Compose PDF", "Fantoche.Plugins.Pdf.ComposePdfTask",
+        Id(0x36), "Compose PDF", "Fantoche.Plugins.Example.UI.ComposePdfTask",
         ComposePdfInputSchema, ComposePdfOutputSchema, isUserInterface: true);
 
     private static readonly AutomationTask ExportPdf = MakeTask(
-        Id(0x37), "Export PDF", "Fantoche.Plugins.Pdf.ExportPdfTask",
+        Id(0x37), "Export PDF", "Fantoche.Plugins.Example.Tasks.Pdf.ExportPdfTask",
         ExportPdfInputSchema, ExportPdfOutputSchema);
 
     #endregion
@@ -137,7 +137,7 @@ internal static class Samples
     /// Start ─┬─> Import customers ─> Pick customer columns ─> Customers ─┬─> Tables ─> Merge ─> Update ─> Split ─> Compose ─> Export ─> End
     ///        └─> Import orders ────> Pick order columns ────> Orders ────┘
     /// </code>
-    /// Started with the paths of the two files of Fantoche.Plugins/Samples. The run waits
+    /// Started with the paths of the two files of Fantoche.Plugins.Example/Resources/Samples. The run waits
     /// for the user at both picks and at the composition. The nodes after the mapping read the
     /// columns by their names ("$previous.Customers.Mapping.CustomerId", "$row.columns.Amount"),
     /// whatever the files call them.
@@ -378,10 +378,10 @@ internal static class Samples
             Metadata = new ScopedMetadata(name, EnumScopedType.Task) { Tags = ["Sample"] },
             Target = new PackageClassTarget()
             {
-                Dll = "Fantoche.Plugins",
+                Dll = "Fantoche.Plugins.Example",
                 ClassFullName = className,
                 IsUserInterface = isUserInterface,
-                Package = new PackageIdentifier() { Id = "Fantoche.Plugins", Version = PluginsVersion }
+                Package = new PackageIdentifier() { Id = "Fantoche.Plugins.Example", Version = PluginsVersion }
             },
             InputSchemaJson = inputSchema,
             OutputSchemaJson = outputSchema,

@@ -1,6 +1,7 @@
+using Fantoche.Plugins.Example.Common;
 using Fantoche.Plugins.Shared;
 
-namespace Fantoche.Plugins.Tables;
+namespace Fantoche.Plugins.Example.Tasks.Tables;
 
 public class SplitParameters
 {

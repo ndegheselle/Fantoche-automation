@@ -77,7 +77,7 @@ internal sealed class WorkflowExecutorErrorTests
     public async Task TaskTargetingSomethingElseThanAPackage_FailsTheNode()
     {
         AutomationTask task = PluginTasks.Make(
-            "Fantoche.TestPlugins.TestTask", "NoTarget", new JsonSchema(), new JsonSchema());
+            "Fantoche.Plugins.TestTask", "NoTarget", new JsonSchema(), new JsonSchema());
         task.Target = null;
 
         WorkflowRun run = await BuildLine("NoTarget", task, null).RunAsync(new { Value = 1 });
