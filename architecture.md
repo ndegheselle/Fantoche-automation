@@ -144,6 +144,8 @@ sequenceDiagram
     participant Supervisor
     participant App as Application
     Worker->>Supervisor: Execute(node), as a caller
+    Supervisor->>Supervisor: queue it, waiting for a user (AwaitingUser)
+    App->>Supervisor: Take(node), its user answering it from its run
     Supervisor->>App: Execute(node), the application being a worker for the tasks asking the user
     App->>App: DoAsync, until it asks (AwaitingUser)
     App->>App: the page, calling the methods of the task
@@ -173,11 +175,12 @@ A run started in the application skips the supervisor: the application runs the 
   A package keeps the folders it has under `lib/<framework>` once extracted.
 - **Where it runs:** always in an application (`UserTasks`).
   - A run of the application runs it there.
-  - A worker hands it to the supervisor as any caller does (`RemoteTaskExecutor`), and the supervisor dispatches it to a connected application (`EnumWorkerRoles.UserTasks`). Every application registers itself so in both modes.
-  - With no application connected, it waits in the queue, and the branch of the run with it. A worker reaching no page at all (no supervisor) fails the task.
+  - A worker hands it to the supervisor as any caller does (`RemoteTaskExecutor`). The supervisor never hands it out on its own: it waits in the queue, `AwaitingUser` in the history, and the branch of the run with it.
+  - A user answering it from its run takes it (`IWorkerRegistration.TakeAsync`): the supervisor hands it to that application (`EnumWorkerRoles.UserTasks`, which every application registers in both modes), and its page opens once the task asks. A second application taking it is refused. No page shows up unasked.
+  - A worker reaching no page at all (no supervisor) fails the task.
 - **While it asks:** the task is `AwaitingUser` and its branch waits, the rest of the run going on.
   - The worker keeps the run in memory meanwhile, and counts it against its capacity.
-  - The editor following the run opens the page by itself. Otherwise the application tells the user, who answers from the detail of the run ("Answer").
+  - For a run of the application, the editor following the run opens the page by itself. Otherwise the application tells the user, who answers from the detail of the run ("Answer").
   - Only the application running the task can answer it. A second answer is refused.
 - **When it goes wrong:**
   - An application lost while running the task leaves the node `Suspended`, and its run with it. Resuming the run asks again.

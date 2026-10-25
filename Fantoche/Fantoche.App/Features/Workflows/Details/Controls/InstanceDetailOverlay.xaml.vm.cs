@@ -5,7 +5,6 @@ using Fantoche.App.Common;
 using Fantoche.App.Features.UserInterfaces;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Services;
-using Fantoche.Worker.UserInterfaces;
 using Joufflu.Feedback;
 using Joufflu.Navigation;
 
@@ -57,10 +56,12 @@ namespace Fantoche.App.Features.Workflows.Details.Controls
             && (Instance.ApplicationId == null || Instance.ApplicationId == Environment.MachineName);
 
         /// <summary>
-        /// Whether a task of the execution asks the user in this application : the task itself, or a
-        /// run holding it. A task asking in another application is answered from there.
+        /// Whether the execution waits for the user : the task itself, or a run holding one. Who takes
+        /// it is checked as it is answered, another application may have.
         /// </summary>
-        public bool CanAnswer => _prompts.AskingFor(Instance.Id).Count > 0;
+        public bool CanAnswer => Instance.State == EnumTaskState.AwaitingUser
+            || Children.Any(x => x.State == EnumTaskState.AwaitingUser)
+            || _prompts.AskingFor(Instance.Id).Count > 0;
 
         private readonly IHistoryService _history;
         private readonly UserPrompts _prompts;
@@ -87,7 +88,11 @@ namespace Fantoche.App.Features.Workflows.Details.Controls
             _toasts = toasts;
             Options = new OverlayOptions() { Title = $"Execution - {instance.NodeName}" };
 
-            Children.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasChildren));
+            Children.CollectionChanged += (_, _) =>
+            {
+                OnPropertyChanged(nameof(HasChildren));
+                OnPropertyChanged(nameof(CanAnswer));
+            };
         }
 
         public static async Task ShowAsync(TaskInstance instance)
@@ -152,23 +157,17 @@ namespace Fantoche.App.Features.Workflows.Details.Controls
         }
 
         /// <summary>
-        /// Open the page of the task asking the user, the first one for a run holding several : the
-        /// detail closes, the run carrying on once the page is answered.
+        /// Open the page of the task waiting for the user, the first one for a run holding several,
+        /// taking it first when it waits at the supervisor : the detail closes, the run carrying on
+        /// once the page is answered.
         /// </summary>
         [RelayCommand]
         private async Task Answer()
         {
-            IReadOnlyList<PageRequest> asking = _prompts.AskingFor(Instance.Id);
-            if (asking.Count == 0)
-            {
-                _toasts.Warning("Nothing asks for an answer anymore.", $"'{Instance.NodeName}' was answered");
-                return;
-            }
-
             _overlayer.Validate(this);
             try
             {
-                await _prompts.OpenAsync(asking[0]);
+                await _prompts.AnswerAsync(Instance);
             }
             catch (Exception exception)
             {

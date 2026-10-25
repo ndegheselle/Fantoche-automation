@@ -21,6 +21,8 @@ namespace Fantoche.Services.Local;
 /// A task asking the user (see <see cref="UserInterfaceSwitch"/>) is handed to an application
 /// rather than to a worker : the worker running its run sends it as any caller does, and the
 /// application runs it as any worker does, the run's storage being reached through the supervisor.
+/// It waits in the queue, waiting for the user in the history, until the user of an application
+/// takes it (see <see cref="TakeAsync"/>) : no page shows up unasked.
 /// </para>
 /// </summary>
 public class Dispatcher : IDispatchService
@@ -87,9 +89,10 @@ public class Dispatcher : IDispatchService
                 x.Roles,
                 [.. x.Running.Where(_executions.ContainsKey).Select(id => StatusOf(_executions[id]))]))];
 
-            // The canceled ones stay in the queue until dequeued, but are gone from the executions.
+            // The canceled ones stay in the queue until dequeued, but are gone from the executions,
+            // and the ones taken by a user are already handed out.
             List<ExecutionStatus> pending = [.. _queue
-                .Where(_executions.ContainsKey)
+                .Where(id => _executions.TryGetValue(id, out Execution? execution) && execution.Worker == null)
                 .Select(id => StatusOf(_executions[id]))];
 
             return new DispatchStatus(workers, pending);
@@ -168,7 +171,9 @@ public class Dispatcher : IDispatchService
     private async Task QueueAsync(BaseAutomationTask task, TaskInstance instance, string? callerConnectionId, ICallerClient? caller)
     {
         // Whatever the caller sent, the instance runs from now on, on the workers of the supervisor.
-        instance.State = EnumTaskState.Progressing;
+        // One asking the user waits for one to take it.
+        bool asksUser = UserInterfaceSwitch.IsOn(task, instance.Parameters);
+        instance.State = asksUser ? EnumTaskState.AwaitingUser : EnumTaskState.Progressing;
         instance.ApplicationId = null;
         instance.SessionId = _sessionId;
         AutomationWorkflow? workflow = task as AutomationWorkflow;
@@ -178,7 +183,6 @@ public class Dispatcher : IDispatchService
         // A node handed over by the worker running its run : the application uses the storage of that run.
         Guid? runId = instance.ParentInstanceId == null ? null : (await RunOfAsync(instance)).Id;
         RemoteExecution execution = RemoteExecution.From(task, instance, runId: runId);
-        bool asksUser = UserInterfaceSwitch.IsOn(task, instance.Parameters);
 
         // Stored before the worker reports anything : the instances of the nodes point at it.
         await _history.SaveAsync(instance);
@@ -297,6 +301,33 @@ public class Dispatcher : IDispatchService
     }
 
     /// <summary>
+    /// Hand [executionId], a task asking the user waiting in the queue, to the application of
+    /// [connectionId], its user taking it. False when it doesn't wait anymore : taken by another
+    /// application, canceled or over.
+    /// </summary>
+    public async Task<bool> TakeAsync(string connectionId, Guid executionId)
+    {
+        Worker? worker;
+        RemoteExecution request;
+        lock (_lock)
+        {
+            if (!_workersByConnection.TryGetValue(connectionId, out worker) || !worker.Roles.HasFlag(EnumWorkerRoles.UserTasks))
+                throw new ExecutionException("Only an application takes a task asking the user.");
+            if (!_executions.TryGetValue(executionId, out Execution? execution) || !execution.AsksUser || execution.Worker != null)
+                return false;
+
+            // Left in the queue : it is dropped from there once dequeued.
+            execution.Worker = worker;
+            worker.Running.Add(executionId);
+            request = execution.Request;
+        }
+
+        NotifyStatusChanged();
+        await worker.Client.Execute(request);
+        return true;
+    }
+
+    /// <summary>
     /// The executions [connectionId] was running are suspended : nothing will report on them
     /// anymore, they wait for someone to resume them.
     /// </summary>
@@ -367,18 +398,11 @@ public class Dispatcher : IDispatchService
     }
 
     /// <summary>
-    /// The least busy worker [execution] can be handed to, so the load is spread rather than piled on
-    /// the first one. Called under the lock.
+    /// The least busy worker a run can be handed to, so the load is spread rather than piled on the
+    /// first one. Called under the lock.
     /// </summary>
-    private Worker? WorkerFor(Execution execution)
+    private Worker? WorkerForRun()
     {
-        if (execution.AsksUser)
-        {
-            return _workersByConnection.Values
-                .Where(x => x.Roles.HasFlag(EnumWorkerRoles.UserTasks))
-                .MinBy(x => x.Running.Count);
-        }
-
         return _workersByConnection.Values
             .Where(x => x.Roles.HasFlag(EnumWorkerRoles.Runs) && x.RunsCount(_executions) < x.Capacity)
             .MinBy(x => x.RunsCount(_executions));
@@ -421,9 +445,9 @@ public class Dispatcher : IDispatchService
     }
 
     /// <summary>
-    /// Hand the waiting executions to the workers having room for them : the runs to the workers,
-    /// the tasks asking the user to the applications. One kind waiting for its workers doesn't hold
-    /// the other : they are handed out in order, each kind on its own.
+    /// Hand the waiting runs to the workers having room for them, in order. The tasks asking the
+    /// user wait on, for a user to take them (see <see cref="TakeAsync"/>) : they don't hold the runs
+    /// queued after them.
     /// </summary>
     private async Task DispatchAsync()
     {
@@ -433,10 +457,11 @@ public class Dispatcher : IDispatchService
             List<Guid> waiting = [];
             while (_queue.TryDequeue(out Guid executionId))
             {
-                if (!_executions.TryGetValue(executionId, out var execution))
+                // Canceled, or taken by the user of an application.
+                if (!_executions.TryGetValue(executionId, out var execution) || execution.Worker != null)
                     continue;
 
-                Worker? worker = WorkerFor(execution);
+                Worker? worker = execution.AsksUser ? null : WorkerForRun();
                 if (worker == null)
                 {
                     waiting.Add(executionId);

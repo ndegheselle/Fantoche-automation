@@ -30,5 +30,7 @@ public class WorkerHub : Hub<IWorkerClient>, IWorkerHub
 
     public Task Complete(TaskInstance instance) => _dispatcher.CompleteAsync(Context.ConnectionId, instance);
 
+    public Task<bool> Take(Guid executionId) => _dispatcher.TakeAsync(Context.ConnectionId, executionId);
+
     public override Task OnDisconnectedAsync(Exception? exception) => _dispatcher.RemoveWorkerAsync(Context.ConnectionId);
 }

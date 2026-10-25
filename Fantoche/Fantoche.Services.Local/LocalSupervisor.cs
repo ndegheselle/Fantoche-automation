@@ -54,7 +54,7 @@ public sealed class LocalSupervisor : ISupervisor
     /// Removing it is losing its connection : the supervisor suspends what it was running, and what
     /// it still sends about it is lost.
     /// </summary>
-    private sealed class WorkerLink : IWorkerHub, IWorkerClient, IAsyncDisposable
+    private sealed class WorkerLink : IWorkerHub, IWorkerClient, IWorkerRegistration
     {
         private readonly string _connectionId = Guid.NewGuid().ToString("N");
         private readonly Dispatcher _dispatcher;
@@ -84,6 +84,10 @@ public sealed class LocalSupervisor : ISupervisor
 
         public Task Complete(TaskInstance instance)
             => _isRemoved ? Task.CompletedTask : _dispatcher.CompleteAsync(_connectionId, FantocheJson.Copy(instance));
+
+        public Task<bool> Take(Guid executionId) => _isRemoved ? Task.FromResult(false) : _dispatcher.TakeAsync(_connectionId, executionId);
+
+        public Task<bool> TakeAsync(Guid executionId) => Take(executionId);
 
         public Task Execute(RemoteExecution execution) => _session.Execute(FantocheJson.Copy(execution));
 
@@ -180,7 +184,7 @@ public sealed class LocalSupervisor : ISupervisor
 
     public ICallerHub ConnectCaller(ICallerClient caller) => new CallerLink(Dispatcher, caller);
 
-    public async Task<IAsyncDisposable> AddWorkerAsync(LocalWorker worker, string workerId, int capacity, EnumWorkerRoles roles, CancellationToken cancellation = default)
+    public async Task<IWorkerRegistration> AddWorkerAsync(LocalWorker worker, string workerId, int capacity, EnumWorkerRoles roles, CancellationToken cancellation = default)
     {
         WorkerLink link = new(Dispatcher, worker);
         await link.Register(workerId, capacity, roles);

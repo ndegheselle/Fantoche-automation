@@ -68,7 +68,7 @@ public sealed class SupervisorClient : ISupervisor, IAsyncDisposable
 
     public Task<IStorage> OpenStorageAsync(Guid runId) => Task.FromResult<IStorage>(new RemoteStorage(_api, runId));
 
-    public async Task<IAsyncDisposable> AddWorkerAsync(LocalWorker worker, string workerId, int capacity, EnumWorkerRoles roles, CancellationToken cancellation = default)
+    public async Task<IWorkerRegistration> AddWorkerAsync(LocalWorker worker, string workerId, int capacity, EnumWorkerRoles roles, CancellationToken cancellation = default)
     {
         RemoteWorkerConnection connection = new(_address, worker, workerId, capacity, roles);
         try

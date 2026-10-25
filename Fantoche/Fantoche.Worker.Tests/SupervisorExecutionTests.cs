@@ -51,7 +51,7 @@ internal sealed class SupervisorExecutionTests
     private RunnerSessions _applicationSessions = null!;
     private IAsyncDisposable? _registration;
     /// <summary>The application added to the workers of the supervisor, for the tasks asking the user.</summary>
-    private IAsyncDisposable? _applicationRegistration;
+    private IWorkerRegistration? _applicationRegistration;
     private RemoteTaskExecutor _caller = null!;
 
     /// <summary>The user of the application, answering the pages as <see cref="_answer"/> says.</summary>
@@ -256,6 +256,26 @@ internal sealed class SupervisorExecutionTests
     {
         var (workflow, _) = await StoreAskAsync();
         return await _caller.ExecuteAsync(workflow, InstanceOf(workflow, new { Items = new[] { "a", "b" } }));
+    }
+
+    /// <summary>The task asking the user the supervisor holds, once it waits for a user to take it.</summary>
+    private async Task<Guid> WaitForTaskToTakeAsync()
+    {
+        using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(10));
+        while (true)
+        {
+            ExecutionStatus? waiting = _dispatcher.GetStatus().Pending.FirstOrDefault();
+            if (waiting != null)
+                return waiting.ExecutionId;
+            await Task.Delay(20, timeout.Token);
+        }
+    }
+
+    /// <summary>The user of the application takes the task asking the user, as answering it from its run does.</summary>
+    private async Task TakeAsync()
+    {
+        Guid executionId = await WaitForTaskToTakeAsync();
+        Assert.That(await _applicationRegistration!.TakeAsync(executionId), Is.True);
     }
 
     /// <summary>[node] of [runId] reached [state] in the history.</summary>
@@ -702,12 +722,34 @@ internal sealed class SupervisorExecutionTests
     }
 
     [Test]
-    public async Task DispatchedRun_HandsTheTaskAskingTheUserToAnApplication()
+    public async Task TaskAskingTheUser_WaitsForAUserToTakeIt()
     {
         await ConnectWorkerAsync();
         await ConnectApplicationAsync();
+        Task<TaskInstance> dispatched = DispatchAskAsync();
 
-        TaskInstance ended = await DispatchAskAsync();
+        Guid waiting = await WaitForTaskToTakeAsync();
+        // Long enough for a page to be handed out, were it handed unasked.
+        await Task.Delay(200);
+        TaskInstance? stored = await _supervisor.History.GetAsync(waiting);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(_user.Asked, Is.Empty, "no page shows up unasked");
+            Assert.That(stored?.State, Is.EqualTo(EnumTaskState.AwaitingUser));
+            Assert.That(dispatched.IsCompleted, Is.False);
+        });
+    }
+
+    [Test]
+    public async Task TaskTaken_RunsInTheApplicationOfItsUser()
+    {
+        await ConnectWorkerAsync();
+        await ConnectApplicationAsync();
+        Task<TaskInstance> dispatched = DispatchAskAsync();
+
+        await TakeAsync();
+        TaskInstance ended = await dispatched;
 
         Assert.Multiple(() =>
         {
@@ -718,20 +760,22 @@ internal sealed class SupervisorExecutionTests
     }
 
     [Test]
-    public async Task TaskAskingTheUser_WaitsForAnApplication()
+    public async Task TaskTakenAlready_IsRefusedTheSecondTime()
     {
+        _answer = (_, _) => Task.FromResult<JToken?>(null);
         await ConnectWorkerAsync();
-        Task<TaskInstance> dispatched = DispatchAskAsync();
-        using (CancellationTokenSource timeout = new(TimeSpan.FromSeconds(10)))
-        {
-            while (_dispatcher.GetStatus().Pending.Count == 0)
-                await Task.Delay(20, timeout.Token);
-        }
-
         await ConnectApplicationAsync();
-        TaskInstance ended = await dispatched;
+        _ = DispatchAskAsync();
+        Guid executionId = await WaitForTaskToTakeAsync();
 
-        Assert.That(ended.State, Is.EqualTo(EnumTaskState.Completed));
+        bool first = await _applicationRegistration!.TakeAsync(executionId);
+        bool second = await _applicationRegistration.TakeAsync(executionId);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(first, Is.True);
+            Assert.That(second, Is.False);
+        });
     }
 
     [Test]
@@ -741,6 +785,7 @@ internal sealed class SupervisorExecutionTests
         await ConnectWorkerAsync();
         await ConnectApplicationAsync();
         Task<TaskInstance> dispatched = DispatchAskAsync();
+        await TakeAsync();
         await _user.FirstAskedAsync();
 
         await _applicationRegistration!.DisposeAsync();
@@ -748,6 +793,7 @@ internal sealed class SupervisorExecutionTests
         _answer = (_, _) => Task.FromResult<JToken?>(Reordered);
         await ConnectApplicationAsync();
         await _supervisor.Dispatch.ResumeAsync(suspended.Id);
+        await TakeAsync();
         TaskInstance resumed = await WaitForTheEndOfAsync(suspended.Id);
 
         Assert.Multiple(() =>
@@ -789,7 +835,9 @@ internal sealed class SupervisorExecutionTests
         await ConnectWorkerAsync();
         await ConnectApplicationAsync();
 
-        TaskInstance ended = await _caller.ExecuteAsync(workflow, InstanceOf(workflow, new { Path = csv }));
+        Task<TaskInstance> dispatched = _caller.ExecuteAsync(workflow, InstanceOf(workflow, new { Path = csv }));
+        await TakeAsync();
+        TaskInstance ended = await dispatched;
 
         Assert.Multiple(() =>
         {

@@ -102,16 +102,22 @@ public class SpineViewModel : ObservableObject
             supervisor = CreateSupervisorClient(storageFolder);
             sessions = new RunnerSessions(Path.Combine(Settings.LocalFolderPath, "sessions"));
         }
-        // The tasks asking the user run here, their page shown by the application.
-        UserPrompts prompts = new(Path.Combine(Settings.LocalFolderPath, "browser"));
+        // The tasks asking the user run here, their page shown by the application : the ones of its
+        // own runs, and the ones of the workers its user takes from the supervisor, which only
+        // hands them over then.
+        // The prompts and the worker need each other : the registration is set right after both exist.
+        Task<IWorkerRegistration>? registration = null;
+        UserPrompts prompts = new(
+            Path.Combine(Settings.LocalFolderPath, "browser"),
+            supervisor.History,
+            async executionId => await (await registration!).TakeAsync(executionId));
         prompts.Asked += request => Ui.Post(() => Toasts.Info($"'{request.Instance.NodeName}' waits for you : answer it from its run.", "A task asks for you"));
         LocalWorker worker = LocalWorker.InFolder(supervisor, workerFolder, storageFolder, prompts);
 
-        // The application runs the tasks asking the user the workers hand over. Alone, it is also
-        // the only worker there is to run what the supervisor dispatches.
+        // Alone, the application is also the only worker there is to run what the supervisor dispatches.
         string dispatchId = Settings.IsStandalone ? Settings.ApplicationName : Environment.MachineName;
         EnumWorkerRoles roles = Settings.IsStandalone ? EnumWorkerRoles.Runs | EnumWorkerRoles.UserTasks : EnumWorkerRoles.UserTasks;
-        _ = supervisor.AddWorkerAsync(worker, dispatchId, Environment.ProcessorCount, roles);
+        registration = supervisor.AddWorkerAsync(worker, dispatchId, Environment.ProcessorCount, roles);
 
         services.AddSingleton(supervisor);
         services.AddSingleton(supervisor.Scoped);

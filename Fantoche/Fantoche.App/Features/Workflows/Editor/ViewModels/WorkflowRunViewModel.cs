@@ -51,8 +51,12 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
         /// <summary>Whether there is a run to stop : the one followed, or one waiting to be resumed.</summary>
         public bool CanStop => IsRunning || CanResume;
 
-        /// <summary>Whether a task of the displayed run asks the user in this application.</summary>
-        public bool CanAnswer => DisplayedRun is TaskInstance run && _prompts.AskingFor(run.Id).Count > 0;
+        /// <summary>
+        /// Whether a node of the displayed run waits for the user : asking in this application, or
+        /// waiting at the supervisor for a user to take it.
+        /// </summary>
+        public bool CanAnswer => DisplayedRun is TaskInstance run
+            && (_prompts.AskingFor(run.Id).Count > 0 || _nodes.Any(x => x.State == EnumTaskState.AwaitingUser));
 
         /// <summary>
         /// How far the displayed run got, null while no run is displayed. Counted on the nodes it went
@@ -241,8 +245,9 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
         }
 
         /// <summary>
-        /// Open the page of a task of the displayed run asking the user : the run carries on as soon
-        /// as it is answered, the graph following it. Several asking, the first one opens.
+        /// Open the page of a task of the displayed run waiting for the user, taking it first when it
+        /// waits at the supervisor : the run carries on as soon as it is answered, the graph
+        /// following it. Several waiting, the first one opens.
         /// </summary>
         [RelayCommand(CanExecute = nameof(CanAnswer))]
         private async Task Answer()
@@ -250,10 +255,14 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
             if (DisplayedRun is not TaskInstance run)
                 return;
 
-            IReadOnlyList<PageRequest> asking = _prompts.AskingFor(run.Id);
-            if (asking.Count == 0)
-                return;
-            await OpenAsync(asking[0]);
+            try
+            {
+                await _prompts.AnswerAsync(run);
+            }
+            catch (Exception exception)
+            {
+                _toasts.Error(exception.Message, $"The workflow '{_workflow.Metadata.Name}' could not be answered");
+            }
         }
 
         private async Task OpenAsync(PageRequest request)
@@ -268,7 +277,10 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
             }
         }
 
-        /// <summary>The user following the run is the one it asks : the page opens right away.</summary>
+        /// <summary>
+        /// The user following a run of this application is the one it asks : the page opens right away.
+        /// A task of the workers only asks here once the user took it, its page opening on its own.
+        /// </summary>
         private void OnAsked(PageRequest request) => Ui.Post(() =>
         {
             if (IsRunning && DisplayedRun is TaskInstance run && request.RunId == run.Id)
@@ -410,6 +422,7 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
                 instance.State == EnumTaskState.Failed ? FirstLine(instance.Output?.ToString()) : null);
 
             _nodeOfInstance[instance.Id] = nodeId;
+            OnAskingChanged();
             foreach (Guid previousId in instance.PreviousIds)
             {
                 if (_nodeOfInstance.TryGetValue(previousId, out Guid previousNodeId))

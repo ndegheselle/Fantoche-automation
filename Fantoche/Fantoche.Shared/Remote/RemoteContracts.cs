@@ -68,7 +68,8 @@ public enum EnumWorkerRoles
 
     /// <summary>
     /// The tasks asking the user, however many : an application, where the user is (see
-    /// <see cref="Data.Execution.UserInterfaceSwitch"/>).
+    /// <see cref="Data.Execution.UserInterfaceSwitch"/>). Never handed out on their own : one is
+    /// handed to the application whose user takes it (see <see cref="IWorkerHub.Take"/>).
     /// </summary>
     UserTasks = 2,
 }
@@ -89,6 +90,13 @@ public interface IWorkerHub
     Task ReportNotification(Guid executionId, TaskNotification notification);
 
     Task Complete(TaskInstance instance);
+
+    /// <summary>
+    /// The user of the application takes [executionId], a task asking the user waiting in the queue :
+    /// it is handed to this worker. False when it doesn't wait anymore, another application having
+    /// taken it first.
+    /// </summary>
+    Task<bool> Take(Guid executionId);
 }
 
 /// <summary>

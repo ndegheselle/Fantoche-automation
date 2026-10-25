@@ -10,7 +10,7 @@ namespace Fantoche.Services.Remote;
 /// <summary>
 /// A <see cref="LocalWorker"/> added to the workers of a remote supervisor, over its hub.
 /// </summary>
-public sealed class RemoteWorkerConnection : IWorkerHub, IAsyncDisposable
+public sealed class RemoteWorkerConnection : IWorkerHub, IWorkerRegistration
 {
     /// <summary>
     /// A worker waits for the supervisor however long it takes to come back.
@@ -88,4 +88,9 @@ public sealed class RemoteWorkerConnection : IWorkerHub, IAsyncDisposable
 
     public Task Complete(TaskInstance instance)
         => _connection.InvokeAsync(nameof(IWorkerHub.Complete), instance);
+
+    public Task<bool> Take(Guid executionId)
+        => _connection.InvokeAsync<bool>(nameof(IWorkerHub.Take), executionId);
+
+    public Task<bool> TakeAsync(Guid executionId) => Take(executionId);
 }
