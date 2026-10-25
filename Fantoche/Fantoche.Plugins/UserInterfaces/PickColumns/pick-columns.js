@@ -123,6 +123,9 @@ function renderExpected(page) {
         const select = document.createElement('select');
         select.append(new Option('(pick a column)', ''), ...state.columns.map(column => new Option(column, column)));
         select.value = expected.Column;
+        // Pico outlines a field marked invalid.
+        if (!expected.Column)
+            select.setAttribute('aria-invalid', 'true');
         select.addEventListener('change', () => {
             expected.Column = select.value;
             render(page);
@@ -131,7 +134,7 @@ function renderExpected(page) {
         const row = document.createElement('tr');
         row.append(
             cell(expected.Name),
-            cell(select, expected.Column ? '' : 'missing'),
+            cell(select),
             cell(textOf(page.Rows[0]?.[expected.Column]), 'sample'));
         return row;
     }));

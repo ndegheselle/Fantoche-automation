@@ -1,69 +1,43 @@
-:root {
-    color-scheme: light dark;
-    --surface: #ffffff;
-    --border: #d4d4d8;
-    --accent: #2563eb;
-    --danger: #dc2626;
-    font-family: system-ui, sans-serif;
-}
+/* Pico styles the page (linked by the application, see PageFiles) : only its layout is here. */
 
-@media (prefers-color-scheme: dark) {
-    :root {
-        --surface: #27272a;
-        --border: #3f3f46;
-    }
-}
-
-body {
-    margin: 0;
-    padding: 16px;
-}
-
-h1 {
-    font-size: 1.25rem;
-    margin: 0 0 4px;
-}
-
-.hint {
-    margin: 0 0 12px;
-    opacity: 0.7;
+main {
+    padding-block: var(--pico-spacing);
 }
 
 .composer {
     display: grid;
-    gap: 16px;
+    gap: var(--pico-spacing);
     grid-template-columns: minmax(320px, 2fr) 3fr;
-    height: 68vh;
+    height: 62vh;
+    margin-bottom: var(--pico-spacing);
 }
 
 .editor {
+    /* Fields of a block as high as a line of text, rather than as the fields of a form. */
+    --pico-form-element-spacing-vertical: 0.375rem;
     overflow: auto;
-}
-
-.option {
-    display: block;
-    margin-bottom: 8px;
+    padding-right: 4px;
 }
 
 #blocks {
-    list-style: none;
-    margin: 0;
+    margin: 0 0 var(--pico-spacing);
     padding: 0;
 }
 
 .block {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    margin-bottom: 8px;
-    padding: 8px;
+    background: var(--pico-card-background-color);
+    border: 1px solid var(--pico-muted-border-color);
+    border-radius: var(--pico-border-radius);
+    list-style: none;
+    margin-bottom: calc(var(--pico-spacing) / 2);
+    padding: calc(var(--pico-spacing) / 2);
 }
 
 .block header {
     align-items: center;
     display: flex;
     gap: 4px;
-    margin-bottom: 6px;
+    margin-bottom: calc(var(--pico-spacing) / 2);
 }
 
 .block header strong {
@@ -71,17 +45,12 @@ h1 {
 }
 
 .block header button {
-    padding: 2px 8px;
+    --pico-form-element-spacing-vertical: 0.125rem;
+    --pico-form-element-spacing-horizontal: 0.5rem;
 }
 
-.block input[type=text],
-.block textarea {
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    box-sizing: border-box;
-    font: inherit;
-    padding: 4px 6px;
-    width: 100%;
+.block :is(input, textarea) {
+    margin: 0;
 }
 
 .block textarea {
@@ -90,31 +59,35 @@ h1 {
 }
 
 .columns {
+    align-items: center;
     display: grid;
     gap: 4px 8px;
     grid-template-columns: auto 1fr;
 }
 
+.columns label {
+    margin: 0;
+    white-space: nowrap;
+}
+
 .add {
     display: flex;
-    gap: 6px;
+    gap: calc(var(--pico-spacing) / 2);
 }
 
 .preview {
-    background: #a1a1aa;
-    border-radius: 6px;
+    background: var(--pico-muted-border-color);
+    border-radius: var(--pico-border-radius);
     overflow: auto;
-    padding: 16px;
+    padding: var(--pico-spacing);
 }
 
-/* A sheet of paper whatever the theme : what the PDF looks like. */
 .page {
     aspect-ratio: 210 / 297;
     background: white;
     box-shadow: 0 2px 8px rgb(0 0 0 / 30%);
     box-sizing: border-box;
     color: black;
-    color-scheme: light;
     margin: 0 auto;
     max-width: 640px;
     overflow: hidden;
@@ -127,7 +100,7 @@ h1 {
 }
 
 .page h2 {
-    font-size: 1.3rem;
+    --pico-font-size: 1.3rem;
     margin: 0 0 8px;
 }
 
@@ -138,20 +111,16 @@ h1 {
 }
 
 .page table {
-    border-collapse: collapse;
     font-size: 0.65rem;
     margin-bottom: 8px;
     table-layout: fixed;
-    width: 100%;
 }
 
 .page th {
     background: gainsboro;
-    text-align: left;
 }
 
-.page th,
-.page td {
+.page :is(th, td) {
     overflow: hidden;
     padding: 2px 3px;
     text-overflow: ellipsis;
@@ -164,30 +133,17 @@ h1 {
 }
 
 #error {
-    color: var(--danger);
+    color: var(--pico-del-color);
 }
 
 .actions {
     align-items: center;
     display: flex;
-    gap: 8px;
+    gap: calc(var(--pico-spacing) / 2);
     justify-content: flex-end;
-    margin-top: 16px;
 }
 
 #summary {
+    color: var(--pico-muted-color);
     margin-right: auto;
-    opacity: 0.7;
-}
-
-button {
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 6px 14px;
-}
-
-button.primary {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: white;
 }

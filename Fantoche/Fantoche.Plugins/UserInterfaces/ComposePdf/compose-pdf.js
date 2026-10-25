@@ -87,11 +87,11 @@ function textOf(value) {
 }
 
 function blockHeader(block, index) {
-    const up = element('button', { type: 'button', textContent: '↑', title: 'Move up' });
+    const up = element('button', { type: 'button', textContent: '↑', title: 'Move up', className: 'outline secondary' });
     up.addEventListener('click', () => { move(composed.Blocks, index, -1); render(); });
-    const down = element('button', { type: 'button', textContent: '↓', title: 'Move down' });
+    const down = element('button', { type: 'button', textContent: '↓', title: 'Move down', className: 'outline secondary' });
     down.addEventListener('click', () => { move(composed.Blocks, index, 1); render(); });
-    const remove = element('button', { type: 'button', textContent: '✕', title: 'Remove' });
+    const remove = element('button', { type: 'button', textContent: '✕', title: 'Remove', className: 'outline secondary' });
     remove.addEventListener('click', () => { composed.Blocks.splice(index, 1); render(); });
     return element('header', {}, element('strong', { textContent: block.Kind }), up, down, remove);
 }

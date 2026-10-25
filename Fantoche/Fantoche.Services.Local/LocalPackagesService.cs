@@ -1,4 +1,5 @@
-﻿using Fantoche.Shared.Base;
+﻿using Fantoche.Plugins.Shared;
+using Fantoche.Shared.Base;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Services;
 using Fantoche.Worker.Packages;
@@ -87,8 +88,14 @@ public class LocalPackagesService : IPackagesService, IPackageSource
         {
             string dll = Path.GetFileName(path);
             using TaskLoader loader = new TaskLoader(path);
-            foreach (var className in loader.GetClasses())
-                targets.Add(new PackageClassTarget(identifier, className) { Dll = dll });
+            foreach (Type type in loader.GetTypes())
+            {
+                targets.Add(new PackageClassTarget(identifier, type.FullName ?? "")
+                {
+                    Dll = dll,
+                    IsUserInterface = typeof(IUserInterfaceTask).IsAssignableFrom(type),
+                });
+            }
         }
 
         return targets;

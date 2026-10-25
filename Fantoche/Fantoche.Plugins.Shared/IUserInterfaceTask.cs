@@ -31,7 +31,7 @@ public interface IUserInterfaceTask : ITask
 /// A user interface task reading a <typeparamref name="TInput"/> and answered with a
 /// <typeparamref name="TOutput"/>, see <see cref="IUserInterfaceTask"/>.
 /// </summary>
-public abstract class BaseUserInterfaceTask<TInput, TOutput> : IUserInterfaceTask
+public abstract class BaseUITask<TInput, TOutput> : IUserInterfaceTask
 {
     public TaskConnector? Input { get; } = new() { Type = typeof(TInput) };
     public TaskConnector? Output { get; } = new() { Type = typeof(TOutput) };

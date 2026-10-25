@@ -1,122 +1,74 @@
-:root {
-    color-scheme: light dark;
-    --surface: #ffffff;
-    --border: #d4d4d8;
-    --accent: #2563eb;
-    --danger: #dc2626;
-    font-family: system-ui, sans-serif;
-}
+/* Pico styles the page (linked by the application, see PageFiles) : only its layout is here. */
 
-@media (prefers-color-scheme: dark) {
-    :root {
-        --surface: #27272a;
-        --border: #3f3f46;
-    }
-}
-
-body {
-    margin: 0;
-    padding: 16px;
-}
-
-h1 {
-    font-size: 1.25rem;
-    margin: 0 0 4px;
+main {
+    padding-block: var(--pico-spacing);
 }
 
 h2 {
-    font-size: 1rem;
-    margin: 16px 0 6px;
-}
-
-.hint {
-    margin: 0 0 12px;
-    opacity: 0.7;
+    --pico-font-size: 1.125rem;
+    margin-bottom: calc(var(--pico-spacing) / 2);
 }
 
 .mapping {
     display: grid;
-    gap: 16px;
+    gap: var(--pico-spacing);
     grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
 }
 
-.scroll {
-    border: 1px solid var(--border);
-    border-radius: 6px;
+.preview {
+    border: 1px solid var(--pico-muted-border-color);
+    border-radius: var(--pico-border-radius);
+    margin-bottom: var(--pico-spacing);
     max-height: 40vh;
     overflow: auto;
 }
 
-table {
-    border-collapse: collapse;
-    width: 100%;
+.preview table {
+    margin: 0;
 }
 
-th,
-td {
-    border-bottom: 1px solid var(--border);
-    padding: 4px 8px;
-    text-align: left;
-    white-space: nowrap;
-}
-
-th {
-    background: var(--surface);
+.preview th {
+    background: var(--pico-background-color);
     position: sticky;
     top: 0;
 }
 
 th small {
+    color: var(--pico-muted-color);
     display: block;
     font-weight: normal;
-    opacity: 0.6;
+}
+
+td {
+    /* A field in a row as high as a line of text, rather than as a field of a form. */
+    --pico-form-element-spacing-vertical: 0.25rem;
+    white-space: nowrap;
+}
+
+td :is(select, input) {
+    margin: 0;
 }
 
 td.sample {
+    color: var(--pico-muted-color);
     max-width: 200px;
-    opacity: 0.7;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-td.missing select {
-    border-color: var(--danger);
-}
-
-select,
-input {
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 3px 6px;
-    width: 100%;
-}
-
 #error {
-    color: var(--danger);
+    color: var(--pico-del-color);
     white-space: pre-line;
 }
 
 .actions {
     align-items: center;
     display: flex;
-    gap: 8px;
+    gap: calc(var(--pico-spacing) / 2);
     justify-content: flex-end;
-    margin-top: 16px;
 }
 
 #summary {
+    color: var(--pico-muted-color);
     margin-right: auto;
-    opacity: 0.7;
-}
-
-button {
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 6px 14px;
-}
-
-button.primary {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: white;
 }

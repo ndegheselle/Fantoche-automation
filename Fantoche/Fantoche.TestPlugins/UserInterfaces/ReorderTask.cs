@@ -18,7 +18,7 @@ public class ReorderResult
 /// The user puts the items in the order of their choice by dragging them : the page of
 /// <c>UserInterfaces/Reorder</c>.
 /// </summary>
-public class ReorderTask : BaseUserInterfaceTask<ReorderParameters, ReorderResult>
+public class ReorderTask : BaseUITask<ReorderParameters, ReorderResult>
 {
     public override string PageFolder => "UserInterfaces/Reorder";
 }

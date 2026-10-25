@@ -56,6 +56,7 @@ namespace Fantoche.App.Features.Packages.Controls
                 {
                     ClassFullName = SelectedClass.ClassFullName,
                     Dll = SelectedClass.Dll,
+                    IsUserInterface = SelectedClass.IsUserInterface,
                     Package = new PackageIdentifier()
                     {
                         Id = SelectedPackage.Identifier.Id,

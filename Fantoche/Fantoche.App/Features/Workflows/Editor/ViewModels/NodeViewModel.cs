@@ -20,6 +20,9 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
 
         public string Name => Model.Metadata.Name;
 
+        /// <summary>Whether the node waits for the user to answer a page rather than running.</summary>
+        public bool IsUserInterface => (Model.AutomationTask as AutomationTask)?.Target?.IsUserInterface == true;
+
         public ObservableCollection<ConnectorViewModel> Inputs { get; } = [];
 
         public ObservableCollection<ConnectorViewModel> Outputs { get; } = [];

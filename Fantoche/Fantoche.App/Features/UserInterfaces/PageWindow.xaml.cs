@@ -3,6 +3,7 @@ using System.Windows;
 using Fantoche.Worker.Packages;
 using Fantoche.Worker.Storage;
 using Fantoche.Worker.UserInterfaces;
+using Joufflu.Themes;
 using Microsoft.Web.WebView2.Core;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -110,6 +111,11 @@ namespace Fantoche.App.Features.UserInterfaces
             }
 
             CoreWebView2 browser = View.CoreWebView2;
+            // The browser follows the theme of Windows, which the application may not : the page
+            // would be light in a dark application.
+            browser.Profile.PreferredColorScheme = ThemeManager.Instance.IsDark
+                ? CoreWebView2PreferredColorScheme.Dark
+                : CoreWebView2PreferredColorScheme.Light;
             browser.Settings.AreDevToolsEnabled = PackageCache.IsHostDebuggable();
             browser.Settings.AreHostObjectsAllowed = false;
             browser.Settings.AreDefaultContextMenusEnabled = false;

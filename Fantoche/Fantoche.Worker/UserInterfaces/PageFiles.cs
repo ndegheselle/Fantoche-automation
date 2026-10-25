@@ -1,5 +1,6 @@
 using System.Data.Common;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Web;
 using Fantoche.Plugins.Shared;
 using Fantoche.Worker.Storage;
@@ -18,7 +19,9 @@ namespace Fantoche.Worker.UserInterfaces
     /// <item>the files of its folder (see <see cref="LocalWorker.GetPageFolderAsync"/>) ;</item>
     /// <item>under <see cref="StoragePath"/>, the files and tables of the storage of its run that its
     /// input points at : <c>files/{id}/{name}</c> as they are, <c>tables/{id}?offset=0&amp;limit=100</c>
-    /// as a <see cref="TablePage"/> in JSON.</item>
+    /// as a <see cref="TablePage"/> in JSON ;</item>
+    /// <item>Pico (<see cref="PicoPath"/>), linked by every HTML file before its own styles : the pages
+    /// look alike and follow the theme of the application without shipping a style of their own.</item>
     /// </list>
     /// Anything else is refused : a page shown on every machine a run is answered from reaches nothing
     /// but what its task ships and what it is handed.
@@ -34,6 +37,16 @@ namespace Fantoche.Worker.UserInterfaces
         public const string StoragePath = "/.fantoche/";
         private const string FilesPath = $"{StoragePath}files/";
         private const string TablesPath = $"{StoragePath}tables/";
+        public const string PicoPath = $"{StoragePath}pico.css";
+
+        /// <summary>
+        /// Inserted at the top of the head of every HTML file. Pico grows its font with the width of
+        /// the window, made for a site rather than a dialog : the size is pinned, a page setting its
+        /// own after.
+        /// </summary>
+        private const string PicoLink = $$"""<link rel="stylesheet" href="{{PicoPath}}"><style>:root { --pico-font-size: 87.5%; }</style>""";
+
+        private static readonly Regex HeadTag = new(@"<head(\s[^>]*)?>", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         public const int DefaultRowsLimit = 100;
         /// <summary>Keeps a single response small : a page wanting more reads the next rows.</summary>
@@ -93,6 +106,8 @@ namespace Fantoche.Worker.UserInterfaces
                 return Refused(403, "Forbidden");
 
             string path = requested.AbsolutePath;
+            if (string.Equals(path, PicoPath, StringComparison.OrdinalIgnoreCase))
+                return ReadPico();
             if (path.StartsWith(FilesPath, StringComparison.OrdinalIgnoreCase))
                 return await ReadStoredFileAsync(path[FilesPath.Length..], cancellation);
             if (path.StartsWith(TablesPath, StringComparison.OrdinalIgnoreCase))
@@ -110,9 +125,32 @@ namespace Fantoche.Worker.UserInterfaces
             if (!File.Exists(path))
                 return Refused(404, "Not Found");
 
+            if (Path.GetExtension(path).Equals(".html", StringComparison.OrdinalIgnoreCase))
+                return ReadHtml(path);
+
             // Read whole : the window reads the stream after the handler returned.
             MemoryStream content = new(File.ReadAllBytes(path));
             return new PageResponse(200, "OK", content, Headers(ContentTypeOf(path)));
+        }
+
+        /// <summary>[path] with Pico linked before anything of its own, so its styles win over Pico's.</summary>
+        private static PageResponse ReadHtml(string path)
+        {
+            string html = File.ReadAllText(path);
+            Match head = HeadTag.Match(html);
+            string linked = head.Success
+                ? html.Insert(head.Index + head.Length, PicoLink)
+                : PicoLink + html;
+
+            MemoryStream content = new(Encoding.UTF8.GetBytes(linked));
+            return new PageResponse(200, "OK", content, Headers(ContentTypes[".html"]));
+        }
+
+        private static PageResponse ReadPico()
+        {
+            Stream content = typeof(PageFiles).Assembly.GetManifestResourceStream("Fantoche.Worker.UserInterfaces.pico.min.css")
+                ?? throw new InvalidOperationException("Pico isn't embedded in the worker.");
+            return new PageResponse(200, "OK", content, Headers(ContentTypes[".css"]));
         }
 
         /// <summary>[segments] being "{id}/{name}", as <see cref="FileRef"/> holds them.</summary>

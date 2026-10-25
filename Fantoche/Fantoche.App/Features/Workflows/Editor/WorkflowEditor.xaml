@@ -3,6 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:jeedback="clr-namespace:Joufflu.Feedback.Controls;assembly=Joufflu.Feedback"
     xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
     xmlns:jonverters="clr-namespace:Joufflu.Converters;assembly=Joufflu"
     xmlns:joolkit="clr-namespace:Joufflu.Toolkit;assembly=Joufflu"
@@ -358,10 +359,23 @@
                                 </StackPanel>
                             </nodify:Node.Header>
 
-                            <jonts:FontIcon
-                                DataContext="{Binding Metadata}"
-                                FontSize="{DynamicResource {x:Static joufflu:Dimensions.FontSizeXl}}"
-                                Style="{StaticResource ScopedMetadataIcon}" />
+
+                            <Grid>
+                                <jonts:FontIcon
+                                    DataContext="{Binding Metadata}"
+                                    FontSize="{DynamicResource {x:Static joufflu:Dimensions.FontSizeXl}}"
+                                    Style="{StaticResource ScopedMetadataIcon}" />
+                                <jeedback:Badge
+                                    Grid.Column="2"
+                                    Margin="-16"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Top"
+                                    joolkit:Sizing.Size="xs"
+                                    Content="UI"
+                                    ToolTip="Waits for the user to answer a page"
+                                    Variant="Info"
+                                    Visibility="{Binding IsUserInterface, Converter={x:Static jonverters:VisibilityConverter.Default}}" />
+                            </Grid>
                         </nodify:Node>
                         <DataTemplate.Triggers>
                             <!--

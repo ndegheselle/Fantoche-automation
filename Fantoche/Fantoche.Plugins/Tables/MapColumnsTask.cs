@@ -35,7 +35,7 @@ public class PickColumnsResult
 /// against them whatever the file calls its columns.
 /// </para>
 /// </summary>
-public class PickColumnsTask : BaseUserInterfaceTask<PickColumnsParameters, PickColumnsResult>
+public class PickColumnsTask : BaseUITask<PickColumnsParameters, PickColumnsResult>
 {
     public override string PageFolder => "UserInterfaces/PickColumns";
 }

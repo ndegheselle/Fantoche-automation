@@ -23,7 +23,7 @@ internal sealed class PageFilesTests
         _folder = Path.Combine(Path.GetTempPath(), "fantoche-tests", Guid.NewGuid().ToString("N"));
         _page = Path.Combine(_folder, "page");
         Directory.CreateDirectory(Path.Combine(_page, "scripts"));
-        File.WriteAllText(Path.Combine(_page, "index.html"), "<html></html>");
+        File.WriteAllText(Path.Combine(_page, "index.html"), """<html><head lang="en"><link rel="stylesheet" href="page.css"></head></html>""");
         File.WriteAllText(Path.Combine(_page, "scripts", "page.js"), "");
         File.WriteAllText(Path.Combine(_folder, "secret.txt"), "out of the page");
         _storage = new LocalStorage(Path.Combine(_folder, "storage"));
@@ -50,6 +50,27 @@ internal sealed class PageFilesTests
         {
             Assert.That(response.Status, Is.EqualTo(200));
             Assert.That(response.Headers, Does.Contain("Content-Type: text/javascript"));
+        });
+    }
+
+    [Test]
+    public async Task HtmlOfThePage_LinksPicoBeforeItsOwnStyles()
+    {
+        PageResponse response = await FilesWith().ReadAsync(PageFiles.Index.ToString());
+        string html = await TextOf(response);
+
+        Assert.That(html.IndexOf(PageFiles.PicoPath), Is.GreaterThan(0).And.LessThan(html.IndexOf("page.css")));
+    }
+
+    [Test]
+    public async Task Pico_IsServed()
+    {
+        PageResponse response = await FilesWith().ReadAsync($"https://{PageFiles.Host}{PageFiles.PicoPath}");
+
+        Assert.Multiple(async () =>
+        {
+            Assert.That(response.Status, Is.EqualTo(200));
+            Assert.That(await TextOf(response), Does.Contain("Pico CSS"));
         });
     }
 

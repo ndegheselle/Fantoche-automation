@@ -28,7 +28,7 @@ public class ComposePdfResult
 /// The user composes the document of each table, previewed on the first one : the page of
 /// <c>UserInterfaces/ComposePdf</c>. <see cref="ExportPdfTask"/> saves the documents.
 /// </summary>
-public class ComposePdfTask : BaseUserInterfaceTask<ComposePdfParameters, ComposePdfResult>
+public class ComposePdfTask : BaseUITask<ComposePdfParameters, ComposePdfResult>
 {
     public override string PageFolder => "UserInterfaces/ComposePdf";
 }

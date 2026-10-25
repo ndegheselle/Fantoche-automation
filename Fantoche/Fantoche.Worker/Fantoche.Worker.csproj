@@ -13,6 +13,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Pico, served to every page of a user interface task (see PageFiles). -->
+    <EmbeddedResource Include="UserInterfaces\pico.min.css" LogicalName="Fantoche.Worker.UserInterfaces.pico.min.css" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Fantoche.Plugins.Shared\Fantoche.Plugins.Shared.csproj" />
     <ProjectReference Include="..\Fantoche.Shared\Fantoche.Shared.csproj" />
   </ItemGroup>

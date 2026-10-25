@@ -6,14 +6,18 @@
     <link rel="stylesheet" href="reorder.css">
 </head>
 <body>
-    <h1 id="title"></h1>
-    <p class="hint">Drag the items into the order you want, then confirm.</p>
-    <ol id="items"></ol>
-    <p id="error" role="alert" hidden></p>
-    <div class="actions">
-        <button id="cancel" type="button">Later</button>
-        <button id="confirm" type="button" class="primary">Confirm</button>
-    </div>
+    <main class="container-fluid">
+        <hgroup>
+            <h1 id="title"></h1>
+            <p>Drag the items into the order you want, then confirm.</p>
+        </hgroup>
+        <ol id="items"></ol>
+        <p id="error" role="alert" hidden></p>
+        <footer class="actions">
+            <button id="cancel" type="button" class="secondary">Later</button>
+            <button id="confirm" type="button">Confirm</button>
+        </footer>
+    </main>
     <script src="reorder.js"></script>
 </body>
 </html>

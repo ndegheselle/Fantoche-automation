@@ -6,33 +6,38 @@
     <link rel="stylesheet" href="compose-pdf.css">
 </head>
 <body>
-    <h1 id="title"></h1>
-    <p class="hint">
-        Compose the document saved for each table, previewed on the first one. Texts can hold
-        <code>{index}</code>, <code>{count}</code> and <code>{rows}</code>.
-    </p>
+    <main class="container-fluid">
+        <hgroup>
+            <h1 id="title"></h1>
+            <p>
+                Compose the document saved for each table, previewed on the first one. Texts can hold
+                <code>{index}</code>, <code>{count}</code> and <code>{rows}</code>.
+            </p>
+        </hgroup>
 
-    <div class="composer">
-        <section class="editor">
-            <label class="option"><input id="landscape" type="checkbox"> Landscape</label>
-            <ol id="blocks"></ol>
-            <div class="add">
-                <button type="button" data-kind="Heading">+ Heading</button>
-                <button type="button" data-kind="Text">+ Text</button>
-                <button type="button" data-kind="Table">+ Table</button>
-            </div>
-        </section>
-        <section class="preview">
-            <div id="page" class="page"></div>
-        </section>
-    </div>
+        <div class="composer">
+            <section class="editor">
+                <label><input id="landscape" type="checkbox" role="switch"> Landscape</label>
+                <ol id="blocks"></ol>
+                <div class="add">
+                    <button type="button" class="outline" data-kind="Heading">+ Heading</button>
+                    <button type="button" class="outline" data-kind="Text">+ Text</button>
+                    <button type="button" class="outline" data-kind="Table">+ Table</button>
+                </div>
+            </section>
+            <section class="preview">
+                <!-- A sheet of paper whatever the theme : what the PDF looks like. -->
+                <div id="page" class="page" data-theme="light"></div>
+            </section>
+        </div>
 
-    <p id="error" role="alert" hidden></p>
-    <div class="actions">
-        <span id="summary"></span>
-        <button id="cancel" type="button">Later</button>
-        <button id="confirm" type="button" class="primary">Confirm</button>
-    </div>
+        <p id="error" role="alert" hidden></p>
+        <footer class="actions">
+            <small id="summary"></small>
+            <button id="cancel" type="button" class="secondary">Later</button>
+            <button id="confirm" type="button">Confirm</button>
+        </footer>
+    </main>
     <script src="compose-pdf.js"></script>
 </body>
 </html>

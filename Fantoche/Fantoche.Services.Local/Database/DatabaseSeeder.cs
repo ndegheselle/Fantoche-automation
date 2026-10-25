@@ -78,7 +78,7 @@ internal static class Samples
     /// <summary>The user picks the column each name stands for : a user interface task.</summary>
     private static readonly AutomationTask PickColumns = MakeTask(
         Id(0x31), "Pick columns", "Fantoche.Plugins.Tables.PickColumnsTask",
-        PickColumnsInputSchema, PickColumnsOutputSchema);
+        PickColumnsInputSchema, PickColumnsOutputSchema, isUserInterface: true);
 
     private static readonly AutomationTask MapColumns = MakeTask(
         Id(0x32), "Map columns", "Fantoche.Plugins.Tables.MapColumnsTask",
@@ -99,7 +99,7 @@ internal static class Samples
     /// <summary>The user composes the document of the PDF : a user interface task.</summary>
     private static readonly AutomationTask ComposePdf = MakeTask(
         Id(0x36), "Compose PDF", "Fantoche.Plugins.Pdf.ComposePdfTask",
-        ComposePdfInputSchema, ComposePdfOutputSchema);
+        ComposePdfInputSchema, ComposePdfOutputSchema, isUserInterface: true);
 
     private static readonly AutomationTask ExportPdf = MakeTask(
         Id(0x37), "Export PDF", "Fantoche.Plugins.Pdf.ExportPdfTask",
@@ -369,7 +369,8 @@ internal static class Samples
         string name,
         string className,
         string inputSchema,
-        string outputSchema)
+        string outputSchema,
+        bool isUserInterface = false)
         => new AutomationTask()
         {
             Id = id,
@@ -379,6 +380,7 @@ internal static class Samples
             {
                 Dll = "Fantoche.Plugins",
                 ClassFullName = className,
+                IsUserInterface = isUserInterface,
                 Package = new PackageIdentifier() { Id = "Fantoche.Plugins", Version = PluginsVersion }
             },
             InputSchemaJson = inputSchema,
