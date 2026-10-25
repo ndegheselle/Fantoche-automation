@@ -17,6 +17,11 @@ namespace Fantoche.Services.Local;
 /// A caller and a worker are known by the id of their connection, whatever carries their messages
 /// (a hub of the supervisor API, or a call in the same process).
 /// </para>
+/// <para>
+/// A task asking the user (see <see cref="UserInterfaceSwitch"/>) is handed to an application
+/// rather than to a worker : the worker running its run sends it as any caller does, and the
+/// application runs it as any worker does, the run's storage being reached through the supervisor.
+/// </para>
 /// </summary>
 public class Dispatcher : IDispatchService
 {
@@ -26,7 +31,12 @@ public class Dispatcher : IDispatchService
         public required IWorkerClient Client { get; init; }
         public required string Id { get; init; }
         public required int Capacity { get; init; }
+        public required EnumWorkerRoles Roles { get; init; }
         public HashSet<Guid> Running { get; } = [];
+
+        /// <summary>How many runs it runs : the tasks asking the user wait on the user, not on its room.</summary>
+        public int RunsCount(Dictionary<Guid, Execution> executions)
+            => Running.Count(id => executions.TryGetValue(id, out Execution? execution) && !execution.AsksUser);
     }
 
     private sealed class Execution
@@ -37,6 +47,9 @@ public class Dispatcher : IDispatchService
         public required RemoteExecution Request { get; init; }
         /// <summary>Null while it waits for a worker.</summary>
         public Worker? Worker { get; set; }
+
+        /// <summary>Whether it asks the user, handed to an application rather than to a worker.</summary>
+        public bool AsksUser { get; init; }
     }
 
     private readonly LocalScopedService _scoped;
@@ -71,6 +84,7 @@ public class Dispatcher : IDispatchService
             List<WorkerStatus> workers = [.. _workersByConnection.Values.Select(x => new WorkerStatus(
                 x.Id,
                 x.Capacity,
+                x.Roles,
                 [.. x.Running.Where(_executions.ContainsKey).Select(id => StatusOf(_executions[id]))]))];
 
             // The canceled ones stay in the queue until dequeued, but are gone from the executions.
@@ -160,20 +174,36 @@ public class Dispatcher : IDispatchService
         AutomationWorkflow? workflow = task as AutomationWorkflow;
         instance.WorkflowVersion = workflow?.Version;
         instance.NestedVersions = workflow == null ? null : ScopedServiceExtensions.NestedVersionsOf(workflow);
-        RemoteExecution execution = RemoteExecution.From(task, instance);
+
+        // A node handed over by the worker running its run : the application uses the storage of that run.
+        Guid? runId = instance.ParentInstanceId == null ? null : (await RunOfAsync(instance)).Id;
+        RemoteExecution execution = RemoteExecution.From(task, instance, runId: runId);
+        bool asksUser = UserInterfaceSwitch.IsOn(task, instance.Parameters);
 
         // Stored before the worker reports anything : the instances of the nodes point at it.
         await _history.SaveAsync(instance);
         lock (_lock)
         {
-            _executions[instance.Id] = new Execution { CallerConnectionId = callerConnectionId, Caller = caller, Request = execution };
+            _executions[instance.Id] = new Execution { CallerConnectionId = callerConnectionId, Caller = caller, Request = execution, AsksUser = asksUser };
             _queue.Enqueue(instance.Id);
         }
         await DispatchAsync();
     }
 
+    /// <summary>The run [instance] belongs to : the instance at the top of its parents.</summary>
+    private async Task<TaskInstance> RunOfAsync(TaskInstance instance)
+    {
+        TaskInstance run = instance;
+        while (run.ParentInstanceId is Guid parentId)
+        {
+            run = await _history.GetAsync(parentId)
+                ?? throw new ExecutionException($"The run of '{instance.NodeName}' isn't in the history.");
+        }
+        return run;
+    }
+
     /// <summary>
-    /// Queue the suspended or answered run [runId] again : the worker it is handed to walks it again
+    /// Queue the suspended run [runId] again : the worker it is handed to walks it again
     /// from what the history holds of it, running the nodes it was running again.
     /// </summary>
     /// <exception cref="ExecutionException">The run can't be resumed, see <see cref="RunResumption"/>.</exception>
@@ -259,10 +289,10 @@ public class Dispatcher : IDispatchService
 
     #region Workers
 
-    public Task AddWorkerAsync(string connectionId, IWorkerClient client, string workerId, int capacity)
+    public Task AddWorkerAsync(string connectionId, IWorkerClient client, string workerId, int capacity, EnumWorkerRoles roles)
     {
         lock (_lock)
-            _workersByConnection[connectionId] = new Worker { ConnectionId = connectionId, Client = client, Id = workerId, Capacity = capacity };
+            _workersByConnection[connectionId] = new Worker { ConnectionId = connectionId, Client = client, Id = workerId, Capacity = capacity, Roles = roles };
         return DispatchAsync();
     }
 
@@ -336,6 +366,24 @@ public class Dispatcher : IDispatchService
         await DispatchAsync();
     }
 
+    /// <summary>
+    /// The least busy worker [execution] can be handed to, so the load is spread rather than piled on
+    /// the first one. Called under the lock.
+    /// </summary>
+    private Worker? WorkerFor(Execution execution)
+    {
+        if (execution.AsksUser)
+        {
+            return _workersByConnection.Values
+                .Where(x => x.Roles.HasFlag(EnumWorkerRoles.UserTasks))
+                .MinBy(x => x.Running.Count);
+        }
+
+        return _workersByConnection.Values
+            .Where(x => x.Roles.HasFlag(EnumWorkerRoles.Runs) && x.RunsCount(_executions) < x.Capacity)
+            .MinBy(x => x.RunsCount(_executions));
+    }
+
     private bool IsRunBy(string workerConnectionId, Guid executionId)
     {
         lock (_lock)
@@ -373,30 +421,35 @@ public class Dispatcher : IDispatchService
     }
 
     /// <summary>
-    /// Hand the waiting executions to the workers having room for them.
+    /// Hand the waiting executions to the workers having room for them : the runs to the workers,
+    /// the tasks asking the user to the applications. One kind waiting for its workers doesn't hold
+    /// the other : they are handed out in order, each kind on its own.
     /// </summary>
     private async Task DispatchAsync()
     {
         List<(Worker Worker, RemoteExecution Request)> assigned = [];
         lock (_lock)
         {
-            while (_queue.Count > 0)
+            List<Guid> waiting = [];
+            while (_queue.TryDequeue(out Guid executionId))
             {
-                // The least busy one, so the load is spread rather than piled on the first worker.
-                Worker? worker = _workersByConnection.Values
-                    .Where(x => x.Running.Count < x.Capacity)
-                    .MinBy(x => x.Running.Count);
-                if (worker == null)
-                    break;
-
-                Guid executionId = _queue.Dequeue();
                 if (!_executions.TryGetValue(executionId, out var execution))
                     continue;
+
+                Worker? worker = WorkerFor(execution);
+                if (worker == null)
+                {
+                    waiting.Add(executionId);
+                    continue;
+                }
 
                 execution.Worker = worker;
                 worker.Running.Add(executionId);
                 assigned.Add((worker, execution.Request));
             }
+
+            foreach (Guid executionId in waiting)
+                _queue.Enqueue(executionId);
         }
 
         // Also what was just queued, a worker that came or an execution that ended : every change

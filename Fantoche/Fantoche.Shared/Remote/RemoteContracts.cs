@@ -59,13 +59,29 @@ public interface IDispatchClient
     Task StatusChanged(DispatchStatus status);
 }
 
+/// <summary>What a worker is dispatched.</summary>
+[Flags]
+public enum EnumWorkerRoles
+{
+    /// <summary>Runs : tasks and workflows, up to its capacity.</summary>
+    Runs = 1,
+
+    /// <summary>
+    /// The tasks asking the user, however many : an application, where the user is (see
+    /// <see cref="Data.Execution.UserInterfaceSwitch"/>).
+    /// </summary>
+    UserTasks = 2,
+}
+
 /// <summary>
 /// What a worker tells the supervisor.
 /// </summary>
 public interface IWorkerHub
 {
-    /// <summary>The worker is ready to run up to [capacity] executions at once.</summary>
-    Task Register(string workerId, int capacity);
+    /// <summary>
+    /// The worker is ready to be dispatched [roles], up to [capacity] runs at once.
+    /// </summary>
+    Task Register(string workerId, int capacity, EnumWorkerRoles roles);
 
     /// <summary>An instance of the execution changed : the task itself or a node of the workflow.</summary>
     Task ReportState(Guid executionId, TaskInstance instance);

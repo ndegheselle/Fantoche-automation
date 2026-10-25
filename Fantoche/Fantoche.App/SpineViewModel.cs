@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Fantoche.App.Common;
 using Fantoche.App.Features.Packages;
 using Fantoche.App.Features.Packages.Controls;
 using Fantoche.App.Features.Scheduler;
@@ -15,6 +16,7 @@ using Fantoche.App.Features.Workflows.Details.Controls;
 using Fantoche.App.Features.Workflows.Editor;
 using Fantoche.Services.Local;
 using Fantoche.Services.Remote;
+using Fantoche.Shared.Remote;
 using Fantoche.Shared.Services;
 using Fantoche.Worker;
 using Fantoche.Worker.Executor;
@@ -100,12 +102,16 @@ public class SpineViewModel : ObservableObject
             supervisor = CreateSupervisorClient(storageFolder);
             sessions = new RunnerSessions(Path.Combine(Settings.LocalFolderPath, "sessions"));
         }
-        LocalWorker worker = LocalWorker.InFolder(supervisor, workerFolder, storageFolder);
+        // The tasks asking the user run here, their page shown by the application.
+        UserPrompts prompts = new(Path.Combine(Settings.LocalFolderPath, "browser"));
+        prompts.Asked += request => Ui.Post(() => Toasts.Info($"'{request.Instance.NodeName}' waits for you : answer it from its run.", "A task asks for you"));
+        LocalWorker worker = LocalWorker.InFolder(supervisor, workerFolder, storageFolder, prompts);
 
-        // Alone, the application is the only worker there is to run the tasks set to run on one.
-        string? dispatchId = Settings.IsStandalone ? Settings.ApplicationName : null;
-        if (dispatchId != null)
-            _ = supervisor.AddWorkerAsync(worker, dispatchId, Environment.ProcessorCount);
+        // The application runs the tasks asking the user the workers hand over. Alone, it is also
+        // the only worker there is to run what the supervisor dispatches.
+        string dispatchId = Settings.IsStandalone ? Settings.ApplicationName : Environment.MachineName;
+        EnumWorkerRoles roles = Settings.IsStandalone ? EnumWorkerRoles.Runs | EnumWorkerRoles.UserTasks : EnumWorkerRoles.UserTasks;
+        _ = supervisor.AddWorkerAsync(worker, dispatchId, Environment.ProcessorCount, roles);
 
         services.AddSingleton(supervisor);
         services.AddSingleton(supervisor.Scoped);
@@ -115,14 +121,7 @@ public class SpineViewModel : ObservableObject
         ExecutionService execution = new(supervisor.Scoped, supervisor.History, worker, Environment.MachineName, sessions);
         _ = SuspendLeftRunsAsync(execution);
         services.AddSingleton<IExecutionService>(execution);
-        services.AddSingleton(new UserPrompts(
-            supervisor.Scoped,
-            supervisor.History,
-            execution,
-            supervisor.Dispatch,
-            worker,
-            Environment.MachineName,
-            Path.Combine(Settings.LocalFolderPath, "browser")));
+        services.AddSingleton(prompts);
         services.AddSingleton(new ApplicationWorker(dispatchId));
 
         services.AddSingleton(Settings);

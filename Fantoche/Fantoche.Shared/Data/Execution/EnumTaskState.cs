@@ -37,13 +37,12 @@
         /// </summary>
         Suspended = 64,
         /// <summary>
-        /// A user interface task waiting for the answer of the user, or a run holding one. Nothing
-        /// runs it meanwhile : the answer resumes the run.
+        /// A user interface task running in an application, waiting for the user to answer its page.
         /// </summary>
         AwaitingUser = 128,
         /// <summary>
         /// Nothing runs the task anymore : it is over, or waits to be resumed
         /// </summary>
-        Finished = Completed | Failed | Canceled | Suspended | AwaitingUser
+        Finished = Completed | Failed | Canceled | Suspended
     }
 }

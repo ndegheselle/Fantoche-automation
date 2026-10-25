@@ -82,6 +82,18 @@ main {
     padding: var(--pico-spacing);
 }
 
+#render {
+    margin-bottom: var(--pico-spacing);
+}
+
+#pdf {
+    background: white;
+    border: none;
+    height: 100%;
+    min-height: 60vh;
+    width: 100%;
+}
+
 .page {
     aspect-ratio: 210 / 297;
     background: white;

@@ -4,7 +4,7 @@ namespace Fantoche.Shared.Remote;
 public record ExecutionStatus(Guid ExecutionId, Guid TaskId, DateTime CreatedAt);
 
 /// <summary>A worker connected to the supervisor and what it is running.</summary>
-public record WorkerStatus(string Id, int Capacity, List<ExecutionStatus> Running);
+public record WorkerStatus(string Id, int Capacity, EnumWorkerRoles Roles, List<ExecutionStatus> Running);
 
 /// <summary>
 /// What the supervisor is dispatching right now : its workers and the executions waiting for one,

@@ -11,7 +11,7 @@ public interface IDispatchService
     public Task<DispatchStatus> GetStatusAsync();
 
     /// <summary>
-    /// Resume the suspended or answered run [runId] the supervisor dispatched, on whichever worker has
+    /// Resume the suspended run [runId] the supervisor dispatched, on whichever worker has
     /// room : the nodes it was running run again, the rest of it carrying on from what the history holds.
     /// </summary>
     /// <exception cref="ExecutionException">The run can't be resumed, see <see cref="Data.Execution.RunResumption"/>.</exception>

@@ -7,9 +7,6 @@ using Newtonsoft.Json.Linq;
 
 namespace Fantoche.Worker.Storage;
 
-/// <summary>A slice of the rows of a table, see <see cref="LocalStorage.ReadPageAsync"/>.</summary>
-public sealed record TablePage(List<TableColumn> Columns, long Total, List<IReadOnlyDictionary<string, object?>> Rows);
-
 /// <summary>
 /// Storage in a folder, the one of an execution (see <see cref="ExecutionStorages"/>) : every table
 /// is a Parquet file of its own, files are kept as they are. Tables are immutable, so a file never
@@ -118,10 +115,6 @@ public sealed class LocalStorage : IStorage
             yield return RowOf(reader);
     }
 
-    /// <summary>
-    /// [limit] rows of [table] from [offset], in order, and how many it holds : what a page shows of a
-    /// table too large to be read whole.
-    /// </summary>
     public async Task<TablePage> ReadPageAsync(TableRef table, long offset, int limit, CancellationToken cancellation = default)
     {
         string path = PathOf(Identifier(table));

@@ -19,10 +19,10 @@ public class WorkflowExecutor
 {
     private readonly ITaskExecutor _executor;
 
-    /// <summary>A walk running every node in this process.</summary>
-    public WorkflowExecutor(TaskLoaders tasks, IStorage storage)
+    /// <summary>A walk running every node in this process, [users] running the ones asking the user.</summary>
+    public WorkflowExecutor(TaskLoaders tasks, IStorage storage, UserTasks? users = null)
     {
-        _executor = new LocalTaskExecutor(tasks, storage, this);
+        _executor = new LocalTaskExecutor(tasks, storage, users ?? UserTasks.None, workflowExecutor: this);
     }
 
     /// <summary>A walk running every node with [executor].</summary>
@@ -71,11 +71,13 @@ public class WorkflowExecutor
             return workflowInstance;
         }
 
-        // Held by a node waiting for the user : the answer resumes the run from there.
-        bool isAwaitingUser = resolution.NodeInstances.Values.SelectMany(x => x).Any(x => x.State == EnumTaskState.AwaitingUser);
-        if (endInstances.Count == 0 && isAwaitingUser)
+        // A node cut short (the application running it was lost) : the run waits to be resumed,
+        // which runs the node again.
+        TaskInstance? cutShort = resolution.NodeInstances.Values.SelectMany(x => x).FirstOrDefault(x => x.State == EnumTaskState.Suspended);
+        if (endInstances.Count == 0 && cutShort != null)
         {
-            workflowInstance.State = EnumTaskState.AwaitingUser;
+            workflowInstance.State = EnumTaskState.Suspended;
+            workflowInstance.Output = JToken.FromObject($"'{cutShort.NodeName}' was cut short : {cutShort.Output}");
             progress?.StateChanges?.Report(workflowInstance);
             return workflowInstance;
         }
@@ -152,12 +154,10 @@ public class WorkflowExecutor
             };
 
             // Only a task can be left running : a control is reported once resolved, a join waiting
-            // being the exception, and it waits on.
-            // A nested run paused along with this one, or held by its own user interface, resumes
-            // the same way. A user interface task itself waits on until it is answered.
-            bool isHeldNestedRun = instance is WorkflowInstance && instance.State == EnumTaskState.AwaitingUser;
-            bool wasRunning = isHeldNestedRun
-                || instance.State is EnumTaskState.Pending or EnumTaskState.Progressing or EnumTaskState.Suspended;
+            // being the exception, and it waits on. A nested run paused along with this one resumes
+            // the same way, and a task left asking the user asks again.
+            bool wasRunning = instance.State is EnumTaskState.Pending or EnumTaskState.Progressing
+                or EnumTaskState.Suspended or EnumTaskState.AwaitingUser;
             if (wasRunning && instance.Node is not GraphControl)
             {
                 instance.State = EnumTaskState.Progressing;

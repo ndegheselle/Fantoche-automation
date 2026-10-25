@@ -1,86 +1,200 @@
 using Fantoche.Shared.Data.Execution;
+using Fantoche.Worker.UserInterfaces;
 using Newtonsoft.Json.Linq;
 
 namespace Fantoche.Worker.Tests;
 
 /// <summary>
-/// A run reaching a user interface task : its branch holds there, nothing running meanwhile, until
-/// the user answers (see SupervisorExecutionTests for the answer).
+/// A task asking the user while it runs : its page answered by the user (a <see cref="ScriptedUser"/>
+/// here), the task waiting meanwhile, then carrying on with the answer.
+/// <code>
+/// Start ─> Ask (the user reorders) ─> End
+/// </code>
 /// </summary>
 [TestFixture]
 internal sealed class UserInterfaceWorkflowTests
 {
-    /// <summary><c>Start ─> Ask (the user reorders) ─> End</c></summary>
-    /// <param name="requireOutput">Whether it declares an output : nested, it needs one to be connected further.</param>
-    private static TestWorkflow BuildAsk(string name = "Ask", bool requireOutput = false) => new TestWorkflow(name, requireOutput)
+    private static TestWorkflow BuildAsk(object askUser) => new TestWorkflow("Ask", requireOutput: false)
         .Start()
-        .Task("Ask", PluginTasks.Reorder, new { Title = "Sort them", Items = "$previous.Items" })
+        .Task("Ask", PluginTasks.Reorder, new { Title = "Sort them", Items = "$previous.Items", AskUser = askUser })
         .End(new { Items = "$previous.Items" })
         .Chain("Start", "Ask", "End");
 
+    private static readonly object Items = new { Items = new[] { "b", "a" }, AskUser = true };
+
+    private static string[]? ItemsOf(WorkflowRun run) => run.Instance.Output?["Items"]?.ToObject<string[]>();
+
     [Test]
-    public async Task Run_WaitsForTheUserAtAUserInterfaceTask()
+    public async Task TaskNotAskingTheUser_RunsUnattended()
     {
-        WorkflowRun run = await BuildAsk().RunAsync(new { Items = new[] { "a", "b" } });
+        ScriptedUser user = ScriptedUser.Answering(new { Items = new[] { "x" } });
+
+        WorkflowRun run = await BuildAsk(askUser: false).RunAsync(Items, user: user);
 
         Assert.Multiple(() =>
         {
-            Assert.That(run.Instance.State, Is.EqualTo(EnumTaskState.AwaitingUser));
-            Assert.That(run.States("Ask").Last(), Is.EqualTo(EnumTaskState.AwaitingUser));
-            Assert.That(run.Of("End"), Is.Empty);
+            Assert.That(ItemsOf(run), Is.EqualTo(new[] { "b", "a" }));
+            Assert.That(user.Asked, Is.Empty);
         });
     }
 
     [Test]
-    public async Task UserInterfaceTask_IsGivenItsResolvedParameters()
+    public async Task AskingTask_CarriesOnWithTheAnswerOfItsPage()
     {
-        WorkflowRun run = await BuildAsk().RunAsync(new { Items = new[] { "a", "b" } });
+        WorkflowRun run = await BuildAsk(askUser: true).RunAsync(Items, user: ScriptedUser.Answering(new { Items = new[] { "c" } }));
 
-        // What the page reads as its input.
-        Assert.That(run.ParametersOf("Ask")?["Items"]?.ToObject<string[]>(), Is.EqualTo(new[] { "a", "b" }));
+        Assert.Multiple(() =>
+        {
+            Assert.That(ItemsOf(run), Is.EqualTo(new[] { "c" }));
+            Assert.That(run.States("Ask"), Is.EqualTo(new[] { EnumTaskState.Progressing, EnumTaskState.AwaitingUser, EnumTaskState.Progressing, EnumTaskState.Completed }));
+        });
     }
 
     [Test]
-    public async Task NestedUserInterfaceTask_HoldsTheRunAboveIt()
+    public async Task Page_IsAskedWithWhatTheTaskGivesIt()
     {
+        ScriptedUser user = ScriptedUser.Answering(new { Items = new[] { "c" } });
+
+        await BuildAsk(askUser: true).RunAsync(Items, user: user);
+
+        PageRequest asked = user.Asked.Single();
+        Assert.Multiple(() =>
+        {
+            Assert.That(asked.Input?["Items"]?.ToObject<string[]>(), Is.EqualTo(new[] { "b", "a" }));
+            Assert.That(asked.Folder, Does.EndWith(Path.Combine("UserInterfaces", "Reorder")));
+        });
+    }
+
+    [Test]
+    public async Task Page_CallsTheMethodsOfTheTask()
+    {
+        // The page answers with what the task suggests.
+        ScriptedUser user = new(async (request, cancellation) =>
+        {
+            JToken? sorted = await request.CallAsync("Sorted", request.Input, cancellation);
+            return new JObject { ["Items"] = sorted };
+        });
+
+        WorkflowRun run = await BuildAsk(askUser: true).RunAsync(Items, user: user);
+
+        Assert.That(ItemsOf(run), Is.EqualTo(new[] { "a", "b" }));
+    }
+
+    [Test]
+    public async Task UnknownPageMethod_IsRefused()
+    {
+        string? refusal = null;
+        ScriptedUser user = new(async (request, cancellation) =>
+        {
+            try
+            {
+                await request.CallAsync("Nothing", null, cancellation);
+            }
+            catch (ArgumentException exception)
+            {
+                refusal = exception.Message;
+            }
+            return JToken.FromObject(new { Items = new[] { "c" } });
+        });
+
+        await BuildAsk(askUser: true).RunAsync(Items, user: user);
+
+        Assert.That(refusal, Is.EqualTo("[Nothing] isn't a page method of the task."));
+    }
+
+    [Test]
+    public async Task AnswerNotFittingTheTask_IsRefusedAndThePageAsksOn()
+    {
+        int answers = 0;
+        ScriptedUser user = new((_, _) => Task.FromResult<JToken?>(Interlocked.Increment(ref answers) == 1
+            ? JToken.FromObject(new { Items = 3 })
+            : null));
+        using CancellationTokenSource stop = new();
+        Task<WorkflowRun> running = BuildAsk(askUser: true).RunAsync(Items, stop.Token, user);
+        await user.FirstAskedAsync();
+        await WaitForAsync(() => user.Refusals.Count > 0);
+
+        bool isStillAsking = user.Open == 1;
+        stop.Cancel();
+        await running;
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(user.Refusals.Single(), Does.StartWith("The answer doesn't fit what the task expects"));
+            Assert.That(isStillAsking, Is.True);
+        });
+    }
+
+    [Test]
+    public async Task CanceledRun_StopsAsking()
+    {
+        ScriptedUser user = ScriptedUser.Away();
+        using CancellationTokenSource stop = new();
+        Task<WorkflowRun> running = BuildAsk(askUser: true).RunAsync(Items, stop.Token, user);
+        await user.FirstAskedAsync();
+
+        stop.Cancel();
+        WorkflowRun run = await running;
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(run.States("Ask").Last(), Is.EqualTo(EnumTaskState.Canceled));
+            Assert.That(user.Open, Is.Zero, "the page is let go");
+        });
+    }
+
+    [Test]
+    public async Task AskingTheUserWhereNoPageCanBeShown_FailsTheTask()
+    {
+        WorkflowRun run = await BuildAsk(askUser: true).RunAsync(Items);
+
+        NodeReport ask = run.Of("Ask").Last();
+        Assert.Multiple(() =>
+        {
+            Assert.That(ask.State, Is.EqualTo(EnumTaskState.Failed));
+            Assert.That(ask.Output?.ToString(), Does.Contain("'Ask' asks the user, and nothing here shows its page."));
+        });
+    }
+
+    [Test]
+    public async Task WhetherToAsk_IsReadFromTheContext()
+    {
+        ScriptedUser user = ScriptedUser.Answering(new { Items = new[] { "c" } });
+
+        WorkflowRun run = await BuildAsk(askUser: "$previous.AskUser").RunAsync(Items, user: user);
+
+        Assert.That(user.Asked, Has.Count.EqualTo(1));
+    }
+
+    [Test]
+    public async Task NestedTaskAskingTheUser_IsAskedWithTheRunAtTheTop()
+    {
+        TestWorkflow inner = new TestWorkflow("Inner", requireOutput: false)
+            .Start()
+            .Task("Ask", PluginTasks.Reorder, new { Title = "Sort them", Items = "$previous.Items", AskUser = true })
+            .End(new { Items = "$previous.Items" })
+            .Chain("Start", "Ask", "End");
+        inner.Workflow.OutputSchema = NJsonSchema.JsonSchema.FromType<Plugins.UserInterfaces.ReorderResult>();
         TestWorkflow outer = new TestWorkflow("Outer", requireOutput: false)
             .Start()
-            .Nested("Inner", BuildAsk("Inner ask", requireOutput: true), new { Items = "$previous.Items" })
+            .Nested("Inner", inner, new { Items = "$previous.Items" })
             .End(new { Items = "$previous.Items" })
             .Chain("Start", "Inner", "End");
+        ScriptedUser user = ScriptedUser.Answering(new { Items = new[] { "c" } });
 
-        WorkflowRun run = await outer.RunAsync(new { Items = new[] { "a", "b" } });
+        WorkflowRun run = await outer.RunAsync(Items, user: user);
 
         Assert.Multiple(() =>
         {
-            Assert.That(run.Instance.State, Is.EqualTo(EnumTaskState.AwaitingUser));
-            Assert.That(run.States("Inner").Last(), Is.EqualTo(EnumTaskState.AwaitingUser));
+            Assert.That(ItemsOf(run), Is.EqualTo(new[] { "c" }));
+            Assert.That(user.Asked.Single().RunId, Is.Not.EqualTo(user.Asked.Single().Instance.ParentInstanceId), "the run at the top, not the nested one");
         });
     }
 
-    [Test]
-    public async Task AnsweredNestedTask_ResumesTheRunsAboveIt()
+    private static async Task WaitForAsync(Func<bool> condition)
     {
-        TestWorkflow outer = new TestWorkflow("Outer", requireOutput: false)
-            .Start()
-            .Nested("Inner", BuildAsk("Inner ask", requireOutput: true), new { Items = "$previous.Items" })
-            .End(new { Items = "$previous.Items" })
-            .Chain("Start", "Inner", "End");
-        WorkflowRun held = await outer.RunAsync(new { Items = new[] { "a", "b" } });
-
-        // As the history holds it once answered (see UserAnswers).
-        TaskInstance ask = held.Stored.Single(x => x.NodeName == "Ask");
-        ask.Output = JToken.FromObject(new { Items = new[] { "b", "a" } });
-        ask.State = EnumTaskState.Completed;
-        WorkflowInstance resumed = WorkflowInstance.From(outer.Refreshed(), held.Instance);
-        resumed.StoredInstances = held.Stored;
-        WorkflowRun run = await WorkflowRun.ExecuteAsync(resumed);
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(run.Of("Ask"), Is.Empty, "answered, it doesn't wait again");
-            Assert.That(run.Instance.State, Is.EqualTo(EnumTaskState.Completed));
-            Assert.That(run.Instance.Output?["Items"]?.ToObject<string[]>(), Is.EqualTo(new[] { "b", "a" }));
-        });
+        using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(10));
+        while (!condition())
+            await Task.Delay(10, timeout.Token);
     }
 }

@@ -24,11 +24,13 @@ public sealed class RemoteWorkerConnection : IWorkerHub, IAsyncDisposable
     private readonly WorkerSession _session;
     private readonly string _workerId;
     private readonly int _capacity;
+    private readonly EnumWorkerRoles _roles;
 
-    public RemoteWorkerConnection(Uri supervisor, LocalWorker worker, string workerId, int capacity)
+    public RemoteWorkerConnection(Uri supervisor, LocalWorker worker, string workerId, int capacity, EnumWorkerRoles roles)
     {
         _workerId = workerId;
         _capacity = capacity;
+        _roles = roles;
         _session = new WorkerSession(worker, this);
 
         _connection = new HubConnectionBuilder()
@@ -45,7 +47,7 @@ public sealed class RemoteWorkerConnection : IWorkerHub, IAsyncDisposable
             _session.CancelAll();
             return Task.CompletedTask;
         };
-        _connection.Reconnected += _ => Register(_workerId, _capacity);
+        _connection.Reconnected += _ => Register(_workerId, _capacity, _roles);
     }
 
     public async ValueTask DisposeAsync()
@@ -72,11 +74,11 @@ public sealed class RemoteWorkerConnection : IWorkerHub, IAsyncDisposable
             }
         }
 
-        await Register(_workerId, _capacity);
+        await Register(_workerId, _capacity, _roles);
     }
 
-    public Task Register(string workerId, int capacity)
-        => _connection.InvokeAsync(nameof(IWorkerHub.Register), workerId, capacity);
+    public Task Register(string workerId, int capacity, EnumWorkerRoles roles)
+        => _connection.InvokeAsync(nameof(IWorkerHub.Register), workerId, capacity, roles);
 
     public Task ReportState(Guid executionId, TaskInstance instance)
         => _connection.InvokeAsync(nameof(IWorkerHub.ReportState), executionId, instance);

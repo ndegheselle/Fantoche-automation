@@ -11,7 +11,7 @@ namespace Fantoche.Shared.Data.Execution
         public string Dll { get; set; } = "";
 
         /// <summary>
-        /// Whether the class is answered by the user rather than run (an <c>IUserInterfaceTask</c>),
+        /// Whether the class can ask the user through a page while it runs (an <c>IUserInterfaceTask</c>),
         /// read from the package when the class is picked so the editor tells it without loading it.
         /// </summary>
         public bool IsUserInterface { get; set; }

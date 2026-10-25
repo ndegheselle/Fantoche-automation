@@ -17,6 +17,7 @@
 
         <div class="composer">
             <section class="editor">
+                <label>File name <input id="file-name" type="text"></label>
                 <label><input id="landscape" type="checkbox" role="switch"> Landscape</label>
                 <ol id="blocks"></ol>
                 <div class="add">
@@ -26,8 +27,11 @@
                 </div>
             </section>
             <section class="preview">
+                <button id="render" type="button" class="outline">Render the PDF</button>
                 <!-- A sheet of paper whatever the theme : what the PDF looks like. -->
                 <div id="page" class="page" data-theme="light"></div>
+                <!-- The PDF the task renders, until the document is edited again. -->
+                <iframe id="pdf" title="PDF" hidden></iframe>
             </section>
         </div>
 

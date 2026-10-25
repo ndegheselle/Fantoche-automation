@@ -74,7 +74,7 @@ public sealed class LocalSupervisor : ISupervisor
             _session.CancelAll();
         }
 
-        public Task Register(string workerId, int capacity) => _dispatcher.AddWorkerAsync(_connectionId, this, workerId, capacity);
+        public Task Register(string workerId, int capacity, EnumWorkerRoles roles) => _dispatcher.AddWorkerAsync(_connectionId, this, workerId, capacity, roles);
 
         public Task ReportState(Guid executionId, TaskInstance instance)
             => _isRemoved ? Task.CompletedTask : _dispatcher.ReportStateAsync(_connectionId, executionId, FantocheJson.Copy(instance));
@@ -180,10 +180,25 @@ public sealed class LocalSupervisor : ISupervisor
 
     public ICallerHub ConnectCaller(ICallerClient caller) => new CallerLink(Dispatcher, caller);
 
-    public async Task<IAsyncDisposable> AddWorkerAsync(LocalWorker worker, string workerId, int capacity, CancellationToken cancellation = default)
+    public async Task<IAsyncDisposable> AddWorkerAsync(LocalWorker worker, string workerId, int capacity, EnumWorkerRoles roles, CancellationToken cancellation = default)
     {
         WorkerLink link = new(Dispatcher, worker);
-        await link.Register(workerId, capacity);
+        await link.Register(workerId, capacity, roles);
         return link;
+    }
+
+    async Task<IStorage> ISupervisor.OpenStorageAsync(Guid runId) => await OpenStorageAsync(runId);
+
+    /// <summary>The storage of the run [runId], in the storage the workers share.</summary>
+    /// <exception cref="ExecutionException">The run is unknown, or the supervisor doesn't reach the storage.</exception>
+    public async Task<LocalStorage> OpenStorageAsync(Guid runId)
+    {
+        ExecutionStorages storages = _storages
+            ?? throw new ExecutionException("The supervisor doesn't reach the storage of the workers (STORAGE_FOLDER).");
+        TaskInstance run = await History.GetAsync(runId)
+            ?? throw new ExecutionException($"Unknown execution '{runId}'.");
+        if (run.ParentInstanceId != null)
+            throw new ExecutionException($"'{run.NodeName}' isn't a run : only a whole run has a storage.");
+        return storages.Open(run.TaskId, run);
     }
 }

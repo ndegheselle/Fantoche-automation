@@ -11,7 +11,8 @@ namespace Fantoche.Supervisor.Api;
 /// workers, starts the scheduled ones and relays what they report. It never runs a task itself.
 /// <para>
 /// Configured by : DATA_FOLDER (the folder of the supervisor, see <see cref="LocalSupervisor"/>) and
-/// STORAGE_FOLDER (the storage the workers share, cleaned with the history, left alone when unset).
+/// STORAGE_FOLDER (the storage the workers share, cleaned with the history and served to the
+/// applications running the tasks asking the user, left alone when unset).
 /// </para>
 /// </summary>
 public static class SupervisorApp
@@ -47,6 +48,7 @@ public static class SupervisorApp
         HistoryApi.Map(app);
         PackagesApi.Map(app);
         DispatchApi.Map(app);
+        StorageApi.Map(app);
 
         app.MapHub<CallerHub>($"/{SupervisorRoutes.Callers}");
         app.MapHub<WorkerHub>($"/{SupervisorRoutes.Workers}");

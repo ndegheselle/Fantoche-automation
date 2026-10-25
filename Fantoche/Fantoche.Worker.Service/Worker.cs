@@ -1,4 +1,5 @@
 using Fantoche.Services.Remote;
+using Fantoche.Shared.Remote;
 using Fantoche.Worker;
 
 namespace Fantoche.Worker.Service;
@@ -36,7 +37,7 @@ public class Worker : BackgroundService
         using var worker = LocalWorker.InFolder(supervisor, dataFolder, storageFolder);
 
         _logger.LogInformation("Worker [{WorkerId}] connecting to [{Supervisor}] to run up to {Capacity} executions at once.", workerId, supervisorAddress, capacity);
-        await using IAsyncDisposable registration = await supervisor.AddWorkerAsync(worker, workerId, capacity, stoppingToken);
+        await using IAsyncDisposable registration = await supervisor.AddWorkerAsync(worker, workerId, capacity, EnumWorkerRoles.Runs, stoppingToken);
 
         try
         {

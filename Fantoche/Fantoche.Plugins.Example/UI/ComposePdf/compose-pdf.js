@@ -1,8 +1,9 @@
-// The page of the compose PDF task : window.fantoche is handed over by the application, see
-// IUserInterfaceTask. The logic works on the document as it is answered, the DOM only shows it and
-// edits it. What the preview shows follows what PdfRenderer draws.
+// The page of the export PDF task : window.fantoche is handed over by the application, see
+// IUserInterfaceTask. The page edits the parameters of the task, the task rendering the PDF of the
+// first table on demand. The logic works on the document as it is answered, the DOM only shows it
+// and edits it. What the sheet shows follows what PdfRenderer draws.
 const PreviewSize = 20;
-const tables = fantoche.input.Tables ?? [];
+const tables = fantoche.input.Sources ?? [];
 const sample = tables[0];
 
 const error = document.getElementById('error');
@@ -10,7 +11,7 @@ let columns = [];
 let page = { Columns: [], Total: 0, Rows: [] };
 let composed = null;
 
-document.getElementById('title').textContent = fantoche.input.Title;
+document.getElementById('title').textContent = 'Document of each table';
 
 // ---- Logic
 
@@ -36,7 +37,7 @@ function initialDocument(given) {
     return {
         Landscape: given?.Landscape ?? false,
         Blocks: [
-            { Kind: 'Heading', Text: `${fantoche.input.Title || 'Document'}, part {index} of {count}`, Columns: [] },
+            { Kind: 'Heading', Text: 'Document {index} of {count}', Columns: [] },
             { Kind: 'Text', Text: '{rows} rows', Columns: [] },
             { Kind: 'Table', Text: '', Columns: allColumns() },
         ],
@@ -152,7 +153,19 @@ function previewTable(block) {
     return nodes;
 }
 
+/** What the task is answered with : its parameters, the document as composed. */
+function answerOf() {
+    return { ...fantoche.input, Document: composed, FileName: document.getElementById('file-name').value };
+}
+
+/** The page drawn as the document reads, rather than the PDF last rendered. */
+function showSheet() {
+    document.getElementById('page').hidden = false;
+    document.getElementById('pdf').hidden = true;
+}
+
 function renderPreview() {
+    showSheet();
     const sheet = document.getElementById('page');
     sheet.classList.toggle('landscape', composed.Landscape);
     sheet.replaceChildren(...composed.Blocks.flatMap(block => {
@@ -186,8 +199,29 @@ async function load() {
         showError(refused.message);
     }
     composed = initialDocument(fantoche.input.Document);
+    document.getElementById('file-name').value = fantoche.input.FileName ?? '';
     render();
 }
+
+/** The PDF of the first table as the task renders it (its page method PreviewAsync). */
+async function renderPdf() {
+    error.hidden = true;
+    const button = document.getElementById('render');
+    button.setAttribute('aria-busy', 'true');
+    try {
+        const file = await fantoche.call('PreviewAsync', answerOf());
+        const pdf = document.getElementById('pdf');
+        pdf.src = fantoche.fileUrl(file);
+        pdf.hidden = false;
+        document.getElementById('page').hidden = true;
+    } catch (refused) {
+        showError(refused.message);
+    } finally {
+        button.removeAttribute('aria-busy');
+    }
+}
+
+document.getElementById('render').addEventListener('click', renderPdf);
 
 document.getElementById('landscape').addEventListener('change', event => {
     composed.Landscape = event.target.checked;
@@ -210,7 +244,7 @@ document.getElementById('confirm').addEventListener('click', async () => {
     }
 
     try {
-        await fantoche.answer({ Tables: tables, Document: composed });
+        await fantoche.answer(answerOf());
     } catch (refused) {
         showError(refused.message);
     }

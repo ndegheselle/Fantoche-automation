@@ -28,10 +28,16 @@ public class RemoteExecution
     public List<TaskInstance> StoredInstances { get; init; } = [];
 
     /// <summary>
+    /// For a task asking the user, handed over by the worker running its run : that run, whose
+    /// storage it uses (see <see cref="Data.Execution.UserInterfaceSwitch"/>). Null for a whole run.
+    /// </summary>
+    public Guid? RunId { get; init; }
+
+    /// <summary>
     /// [task] run with [instance], the graph of a workflow having to be loaded (see
     /// <see cref="ScopedServiceExtensions.LoadRunnableAsync"/>).
     /// </summary>
-    public static RemoteExecution From(BaseAutomationTask task, TaskInstance instance, IReadOnlyList<TaskInstance>? storedInstances = null)
+    public static RemoteExecution From(BaseAutomationTask task, TaskInstance instance, IReadOnlyList<TaskInstance>? storedInstances = null, Guid? runId = null)
     {
         Dictionary<Guid, BaseAutomationTask> graphTasks = [];
         if (task is AutomationWorkflow workflow)
@@ -43,6 +49,7 @@ public class RemoteExecution
             GraphTasks = [.. graphTasks.Values],
             Instance = instance,
             StoredInstances = [.. storedInstances ?? []],
+            RunId = runId,
         };
     }
 

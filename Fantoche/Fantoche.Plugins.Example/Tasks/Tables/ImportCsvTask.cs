@@ -1,4 +1,3 @@
-using Fantoche.Plugins.Example.UI;
 using Fantoche.Plugins.Shared;
 
 namespace Fantoche.Plugins.Example.Tasks.Tables;
@@ -20,7 +19,7 @@ public class ImportCsvParameters
 /// <summary>
 /// Load a CSV file into a table of the storage, its delimiter, columns and their types being
 /// detected from the content. The columns keep the names of the file : give them clear ones with
-/// <see cref="PickColumnsTask"/> and <see cref="MapColumnsTask"/>.
+/// <see cref="MapColumnsTask"/>.
 /// </summary>
 public class ImportCsvTask : BaseTask<ImportCsvParameters, TableRef>
 {

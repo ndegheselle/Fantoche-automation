@@ -21,8 +21,8 @@ public class WorkerHub : Hub<IWorkerClient>, IWorkerHub
     }
 
     /// <summary>See <see cref="CallerHub.Execute"/> for how the worker is reached.</summary>
-    public Task Register(string workerId, int capacity)
-        => _dispatcher.AddWorkerAsync(Context.ConnectionId, _workers.Clients.Client(Context.ConnectionId), workerId, capacity);
+    public Task Register(string workerId, int capacity, EnumWorkerRoles roles)
+        => _dispatcher.AddWorkerAsync(Context.ConnectionId, _workers.Clients.Client(Context.ConnectionId), workerId, capacity, roles);
 
     public Task ReportState(Guid executionId, TaskInstance instance) => _dispatcher.ReportStateAsync(Context.ConnectionId, executionId, instance);
 

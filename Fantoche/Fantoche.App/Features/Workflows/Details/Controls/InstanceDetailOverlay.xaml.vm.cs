@@ -5,6 +5,7 @@ using Fantoche.App.Common;
 using Fantoche.App.Features.UserInterfaces;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Services;
+using Fantoche.Worker.UserInterfaces;
 using Joufflu.Feedback;
 using Joufflu.Navigation;
 
@@ -56,10 +57,10 @@ namespace Fantoche.App.Features.Workflows.Details.Controls
             && (Instance.ApplicationId == null || Instance.ApplicationId == Environment.MachineName);
 
         /// <summary>
-        /// Whether the execution waits for the user : a user interface task, or a run holding one.
-        /// Who can answer it is checked as its page opens.
+        /// Whether a task of the execution asks the user in this application : the task itself, or a
+        /// run holding it. A task asking in another application is answered from there.
         /// </summary>
-        public bool CanAnswer => Instance.State == EnumTaskState.AwaitingUser;
+        public bool CanAnswer => _prompts.AskingFor(Instance.Id).Count > 0;
 
         private readonly IHistoryService _history;
         private readonly UserPrompts _prompts;
@@ -151,31 +152,28 @@ namespace Fantoche.App.Features.Workflows.Details.Controls
         }
 
         /// <summary>
-        /// Open the page of the task waiting for the user, the first one for a run holding several :
-        /// once answered, the run carries on and the detail closes, the history following it.
+        /// Open the page of the task asking the user, the first one for a run holding several : the
+        /// detail closes, the run carrying on once the page is answered.
         /// </summary>
         [RelayCommand]
         private async Task Answer()
         {
-            try
+            IReadOnlyList<PageRequest> asking = _prompts.AskingFor(Instance.Id);
+            if (asking.Count == 0)
             {
-                IReadOnlyList<TaskInstance> awaiting = await _prompts.GetAwaitingAsync(Instance);
-                if (awaiting.Count == 0)
-                {
-                    _toasts.Warning("Nothing waits for an answer anymore.", $"'{Instance.NodeName}' was answered");
-                    return;
-                }
-
-                if (await _prompts.AnswerAsync(awaiting[0]) == null)
-                    return;
-            }
-            catch (Exception exception)
-            {
-                _toasts.Error(exception.Message, $"'{Instance.NodeName}' could not be answered");
+                _toasts.Warning("Nothing asks for an answer anymore.", $"'{Instance.NodeName}' was answered");
                 return;
             }
 
             _overlayer.Validate(this);
+            try
+            {
+                await _prompts.OpenAsync(asking[0]);
+            }
+            catch (Exception exception)
+            {
+                _toasts.Error(exception.Message, $"'{Instance.NodeName}' could not be answered");
+            }
         }
 
         [RelayCommand]

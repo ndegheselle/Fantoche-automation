@@ -34,7 +34,6 @@ public static class HistoryApi
         history.MapGet("/instances/{id:guid}/descendants", (LocalHistoryService service, Guid id) => service.GetDescendantsAsync(id));
         history.MapGet("/runs/ids", (LocalHistoryService service, string? applicationId) => service.GetRunIdsAsync(applicationId));
         history.MapGet("/runs/unfinished", (LocalHistoryService service, string? applicationId) => service.GetUnfinishedRunsAsync(applicationId));
-        history.MapPost("/instances/{id:guid}/answer", (LocalHistoryService service, Guid id, JToken answer) => service.AnswerAsync(id, answer));
         history.MapPost("/runs/{id:guid}/suspend", (LocalHistoryService service, Guid id, string reason) => service.SuspendRunAsync(id, reason));
         history.MapPost("/runs/{id:guid}/claim", (LocalHistoryService service, Guid id, string sessionId) => service.ClaimRunAsync(id, sessionId));
         history.MapPut("/instances", (LocalHistoryService service, TaskInstance instance) => service.SaveAsync(instance));

@@ -91,6 +91,14 @@ internal sealed class SupervisorHttp
         return await ReadAsync<T>(response);
     }
 
+    /// <summary>[content] posted as it is, [url] answering a <typeparamref name="T"/>.</summary>
+    public async Task<T> PostStreamAsync<T>(string url, Stream content)
+    {
+        using StreamContent body = new(content);
+        using HttpResponseMessage response = await _client.PostAsync(url, body);
+        return await ReadAsync<T>(response);
+    }
+
     public async Task PutStreamAsync(string url, Stream content)
     {
         using StreamContent body = new(content);
