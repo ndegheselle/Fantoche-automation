@@ -42,13 +42,30 @@ public sealed class LocalStorage : IStorage
     public async Task<TableRef> CreateTableAsync(string query, IReadOnlyDictionary<string, object?>? parameters = null,
         CancellationToken cancellation = default)
     {
+        List<TableRef> tables = await CreateTablesAsync([query], parameters, cancellation);
+        return tables[0];
+    }
+
+    public async Task<List<TableRef>> CreateTablesAsync(IReadOnlyList<string> queries, IReadOnlyDictionary<string, object?>? parameters = null,
+        CancellationToken cancellation = default)
+    {
+        Directory.CreateDirectory(_tablesFolder);
+        using DuckDBConnection connection = await OpenAsync(string.Join('\n', queries), cancellation);
+
+        List<TableRef> tables = [];
+        foreach (string query in queries)
+            tables.Add(await CreateTableAsync(connection, query, parameters, cancellation));
+        return tables;
+    }
+
+    private async Task<TableRef> CreateTableAsync(DuckDBConnection connection, string query,
+        IReadOnlyDictionary<string, object?>? parameters, CancellationToken cancellation)
+    {
         string id = $"{TablePrefix}{Guid.NewGuid():N}";
         string path = PathOf(id);
         // Written under another name first, so a reader never finds a table half written.
         string partialPath = $"{path}.partial";
-        Directory.CreateDirectory(_tablesFolder);
 
-        using DuckDBConnection connection = await OpenAsync(query, cancellation);
         using (DuckDBCommand command = connection.CreateCommand())
         {
             command.CommandText = $"CREATE TEMP TABLE {id} AS {query}";
@@ -62,9 +79,30 @@ public sealed class LocalStorage : IStorage
             command.CommandText = $"COPY {id} TO {Literal(partialPath)} (FORMAT parquet)";
             await command.ExecuteNonQueryAsync(cancellation);
         }
+
+        // Dropped once written : the next queries of the connection don't need it, the memory does.
+        using (DuckDBCommand command = connection.CreateCommand())
+        {
+            command.CommandText = $"DROP TABLE {id}";
+            await command.ExecuteNonQueryAsync(cancellation);
+        }
         File.Move(partialPath, path);
 
         return new TableRef { Id = id, Columns = await ColumnsAsync(connection, path, cancellation) };
+    }
+
+    public async Task<long> CountRowsAsync(TableRef table, CancellationToken cancellation = default)
+    {
+        string path = PathOf(Identifier(table));
+        using DuckDBConnection connection = await OpenAsync("", cancellation);
+        return await CountAsync(connection, path, cancellation);
+    }
+
+    private static async Task<long> CountAsync(DuckDBConnection connection, string path, CancellationToken cancellation)
+    {
+        using DuckDBCommand command = connection.CreateCommand();
+        command.CommandText = $"SELECT count(*) FROM read_parquet({Literal(path)})";
+        return Convert.ToInt64(await command.ExecuteScalarAsync(cancellation));
     }
 
     public async IAsyncEnumerable<IReadOnlyDictionary<string, object?>> ReadRowsAsync(TableRef table,
@@ -93,12 +131,7 @@ public sealed class LocalStorage : IStorage
         using DuckDBConnection connection = await OpenAsync("", cancellation);
         List<TableColumn> columns = await ColumnsAsync(connection, path, cancellation);
 
-        long total;
-        using (DuckDBCommand command = connection.CreateCommand())
-        {
-            command.CommandText = $"SELECT count(*) FROM read_parquet({Literal(path)})";
-            total = Convert.ToInt64(await command.ExecuteScalarAsync(cancellation));
-        }
+        long total = await CountAsync(connection, path, cancellation);
 
         List<IReadOnlyDictionary<string, object?>> rows = [];
         using (DuckDBCommand command = connection.CreateCommand())

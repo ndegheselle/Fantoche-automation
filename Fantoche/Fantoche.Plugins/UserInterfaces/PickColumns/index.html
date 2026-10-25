@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Pick columns</title>
+    <link rel="stylesheet" href="pick-columns.css">
+</head>
+<body>
+    <h1 id="title"></h1>
+    <p class="hint">Pick the column of the file each name stands for, name the other columns you need, then confirm.</p>
+
+    <div class="mapping">
+        <section>
+            <h2>Names of the workflow</h2>
+            <table>
+                <thead><tr><th>Name</th><th>Column of the file</th><th>First value</th></tr></thead>
+                <tbody id="expected"></tbody>
+            </table>
+        </section>
+        <section>
+            <h2>Other columns</h2>
+            <table>
+                <thead><tr><th>Column of the file</th><th>Name, if it needs one</th><th>First value</th></tr></thead>
+                <tbody id="others"></tbody>
+            </table>
+        </section>
+    </div>
+
+    <h2>Preview</h2>
+    <div class="scroll">
+        <table>
+            <thead><tr id="columns"></tr></thead>
+            <tbody id="rows"></tbody>
+        </table>
+    </div>
+
+    <p id="error" role="alert" hidden></p>
+    <div class="actions">
+        <span id="summary"></span>
+        <button id="cancel" type="button">Later</button>
+        <button id="confirm" type="button" class="primary">Confirm</button>
+    </div>
+    <script src="pick-columns.js"></script>
+</body>
+</html>

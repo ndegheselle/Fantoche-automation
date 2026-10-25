@@ -1,0 +1,193 @@
+:root {
+    color-scheme: light dark;
+    --surface: #ffffff;
+    --border: #d4d4d8;
+    --accent: #2563eb;
+    --danger: #dc2626;
+    font-family: system-ui, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --surface: #27272a;
+        --border: #3f3f46;
+    }
+}
+
+body {
+    margin: 0;
+    padding: 16px;
+}
+
+h1 {
+    font-size: 1.25rem;
+    margin: 0 0 4px;
+}
+
+.hint {
+    margin: 0 0 12px;
+    opacity: 0.7;
+}
+
+.composer {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: minmax(320px, 2fr) 3fr;
+    height: 68vh;
+}
+
+.editor {
+    overflow: auto;
+}
+
+.option {
+    display: block;
+    margin-bottom: 8px;
+}
+
+#blocks {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 8px;
+    padding: 8px;
+}
+
+.block header {
+    align-items: center;
+    display: flex;
+    gap: 4px;
+    margin-bottom: 6px;
+}
+
+.block header strong {
+    margin-right: auto;
+}
+
+.block header button {
+    padding: 2px 8px;
+}
+
+.block input[type=text],
+.block textarea {
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    box-sizing: border-box;
+    font: inherit;
+    padding: 4px 6px;
+    width: 100%;
+}
+
+.block textarea {
+    min-height: 60px;
+    resize: vertical;
+}
+
+.columns {
+    display: grid;
+    gap: 4px 8px;
+    grid-template-columns: auto 1fr;
+}
+
+.add {
+    display: flex;
+    gap: 6px;
+}
+
+.preview {
+    background: #a1a1aa;
+    border-radius: 6px;
+    overflow: auto;
+    padding: 16px;
+}
+
+/* A sheet of paper whatever the theme : what the PDF looks like. */
+.page {
+    aspect-ratio: 210 / 297;
+    background: white;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 30%);
+    box-sizing: border-box;
+    color: black;
+    color-scheme: light;
+    margin: 0 auto;
+    max-width: 640px;
+    overflow: hidden;
+    padding: 6%;
+}
+
+.page.landscape {
+    aspect-ratio: 297 / 210;
+    max-width: 900px;
+}
+
+.page h2 {
+    font-size: 1.3rem;
+    margin: 0 0 8px;
+}
+
+.page p {
+    font-size: 0.8rem;
+    margin: 0 0 8px;
+    white-space: pre-line;
+}
+
+.page table {
+    border-collapse: collapse;
+    font-size: 0.65rem;
+    margin-bottom: 8px;
+    table-layout: fixed;
+    width: 100%;
+}
+
+.page th {
+    background: gainsboro;
+    text-align: left;
+}
+
+.page th,
+.page td {
+    overflow: hidden;
+    padding: 2px 3px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.page .more {
+    font-size: 0.65rem;
+    opacity: 0.6;
+}
+
+#error {
+    color: var(--danger);
+}
+
+.actions {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 16px;
+}
+
+#summary {
+    margin-right: auto;
+    opacity: 0.7;
+}
+
+button {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 14px;
+}
+
+button.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+}

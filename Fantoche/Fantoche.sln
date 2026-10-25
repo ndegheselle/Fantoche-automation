@@ -35,6 +35,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fantoche.Worker.Tests", "Fa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fantoche.Services.Remote", "Fantoche.Services.Remote\Fantoche.Services.Remote.csproj", "{EF116AB9-EA15-4785-9498-4EF7A9B1BC80}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fantoche.TestPlugins", "Fantoche.TestPlugins\Fantoche.TestPlugins.csproj", "{1400E937-A6EE-41B1-95A8-705F7D67807E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -185,6 +187,18 @@ Global
 		{EF116AB9-EA15-4785-9498-4EF7A9B1BC80}.Release|x64.Build.0 = Release|Any CPU
 		{EF116AB9-EA15-4785-9498-4EF7A9B1BC80}.Release|x86.ActiveCfg = Release|Any CPU
 		{EF116AB9-EA15-4785-9498-4EF7A9B1BC80}.Release|x86.Build.0 = Release|Any CPU
+		{1400E937-A6EE-41B1-95A8-705F7D67807E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1400E937-A6EE-41B1-95A8-705F7D67807E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1400E937-A6EE-41B1-95A8-705F7D67807E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1400E937-A6EE-41B1-95A8-705F7D67807E}.Debug|x64.Build.0 = Debug|Any CPU
+		{1400E937-A6EE-41B1-95A8-705F7D67807E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1400E937-A6EE-41B1-95A8-705F7D67807E}.Debug|x86.Build.0 = Debug|Any CPU
+		{1400E937-A6EE-41B1-95A8-705F7D67807E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1400E937-A6EE-41B1-95A8-705F7D67807E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1400E937-A6EE-41B1-95A8-705F7D67807E}.Release|x64.ActiveCfg = Release|Any CPU
+		{1400E937-A6EE-41B1-95A8-705F7D67807E}.Release|x64.Build.0 = Release|Any CPU
+		{1400E937-A6EE-41B1-95A8-705F7D67807E}.Release|x86.ActiveCfg = Release|Any CPU
+		{1400E937-A6EE-41B1-95A8-705F7D67807E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

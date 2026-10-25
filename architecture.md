@@ -147,7 +147,8 @@ sequenceDiagram
     App->>Run: resume the run, which carries on with the answer
 ```
 
-- **Writing one:** derive from `BaseUserInterfaceTask<TInput, TOutput>` and name the folder of its page (`PageFolder`, relative to the assembly). The page reads `window.fantoche.input` and answers with `await window.fantoche.answer(value)`, rejected with the reason when the answer doesn't fit `TOutput`. `window.fantoche.close()` closes it unanswered. See `ReorderTask` in `Fantoche.Plugins`, and `TableReviewTask` (after a CSV import) and `FilesReviewTask` (after a PDF export) for pages reading the storage.
+- **Writing one:** derive from `BaseUserInterfaceTask<TInput, TOutput>` and name the folder of its page (`PageFolder`, relative to the assembly). The page reads `window.fantoche.input` and answers with `await window.fantoche.answer(value)`, rejected with the reason when the answer doesn't fit `TOutput`. `window.fantoche.close()` closes it unanswered. See `PickColumnsTask` and `ComposePdfTask` in `Fantoche.Plugins`, pages reading the storage.
+- **Pairing it:** the page only sets the parameters of the task after it, which does the work (`PickColumnsTask` then `MapColumnsTask`). A run nobody answers, a schedule for instance, writes these parameters in the mapping instead.
 - **Packing it:** the folder is packed next to the assembly, the way `Fantoche.Plugins.csproj` does it:
 
   ```xml
@@ -171,6 +172,27 @@ sequenceDiagram
   - Tables are read a slice at a time (`limit` up to 1000), so a large one doesn't load whole.
   - The application reads its own storage. A run dispatched to the remote workers keeps its storage there, so its files and tables can't be shown (404). In standalone mode the application is the worker, so they can.
 - **What the page can reach:** only the files of its folder and the storage above, served under `https://page.fantoche/` with a content security policy allowing nothing from the network. No navigation elsewhere, no new window, no object of the application. Only JSON travels: the input and the answer.
+
+## What the editor previews of a task
+
+The editor walks the graph without running it (`GraphExecutionPreview`) : a task hands over the sample of its output schema, which knows nothing of the data. A task handing over part of its input says so on the property of its input (`OutputPreview`), so the nodes after it read what that property resolved to :
+
+```csharp
+public class MapColumnsParameters
+{
+    [JsonSchemaExtensionData(OutputPreview.SchemaKey, OutputPreview.Whole)]        // the output is this table...
+    public TableRef Source { get; set; } = new();
+
+    [JsonSchemaExtensionData(OutputPreview.MappingSchemaKey, OutputPreview.Whole)] // ...with these names in its mapping
+    public List<ColumnMapping> Columns { get; set; } = [];
+}
+```
+
+- Without it, `$previous.Mapping.CustomerId` after the mapping is an error in the editor, and isn't offered.
+- The task has to hand over what it declares : the preview trusts it, the run doesn't check it.
+- The value is the place in the output : a property name, or `""` for the output itself. Values handed over to the same place merge, the mappings of the two tables of a merge for instance.
+
+See [the table tasks](Fantoche/Fantoche.Plugins/readme.md) for the mapping of the columns these previews serve.
 
 ## Schedules
 

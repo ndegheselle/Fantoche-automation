@@ -52,7 +52,7 @@ internal sealed class GraphVersionsTests
             _supervisor = new SupervisorClient(new Uri($"{_api.Urls.First()}/"));
         }
 
-        _test = PluginTasks.Make("Fantoche.Plugins.TestTask", "Test", JsonSchema.FromType<Plugins.TestParameters>(), JsonSchema.FromType<Plugins.TestResult>());
+        _test = PluginTasks.Make("Fantoche.TestPlugins.TestTask", "Test", JsonSchema.FromType<TestPlugins.TestParameters>(), JsonSchema.FromType<TestPlugins.TestResult>());
         _test.ParentId = Scope.Root.Id;
         await _supervisor.Scoped.CreateAsync(_test);
     }

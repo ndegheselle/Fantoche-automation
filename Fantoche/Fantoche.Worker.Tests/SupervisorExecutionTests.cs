@@ -1,4 +1,3 @@
-using Fantoche.Plugins;
 using Fantoche.Plugins.Shared;
 using Fantoche.Plugins.Tables;
 using Fantoche.Services.Local;
@@ -8,6 +7,7 @@ using Fantoche.Shared.Data.Graph;
 using Fantoche.Shared.Data.Scoped;
 using Fantoche.Shared.Remote;
 using Fantoche.Supervisor.Api;
+using Fantoche.TestPlugins;
 using Fantoche.Worker.Executor;
 using Fantoche.Worker.Storage;
 using Microsoft.AspNetCore.Builder;
@@ -130,10 +130,10 @@ internal sealed class SupervisorExecutionTests
     }
 
     private Task<AutomationTask> StoreTestAsync() => StoreAsync(PluginTasks.Make(
-        "Fantoche.Plugins.TestTask", "Test", JsonSchema.FromType<Plugins.TestParameters>(), JsonSchema.FromType<TestResult>()));
+        "Fantoche.TestPlugins.TestTask", "Test", JsonSchema.FromType<TestPlugins.TestParameters>(), JsonSchema.FromType<TestResult>()));
 
     private Task<AutomationTask> StoreDelayAsync() => StoreAsync(PluginTasks.Make(
-        "Fantoche.Plugins.TestDelay", "Delay", JsonSchema.FromType<TestDelayParameters>(), new JsonSchema(), passThrough: true));
+        "Fantoche.TestPlugins.TestDelay", "Delay", JsonSchema.FromType<TestDelayParameters>(), new JsonSchema(), passThrough: true));
 
     /// <summary>A stored workflow running [test] once : <c>Start ─> First ─> End</c>.</summary>
     private async Task<AutomationWorkflow> StoreLineAsync(AutomationTask test)
@@ -222,8 +222,8 @@ internal sealed class SupervisorExecutionTests
     private async Task<(AutomationWorkflow Workflow, AutomationTask Reorder)> StoreAskAsync()
     {
         AutomationTask reorder = await StoreAsync(PluginTasks.Make(
-            "Fantoche.Plugins.UserInterfaces.ReorderTask", "Reorder",
-            JsonSchema.FromType<Plugins.UserInterfaces.ReorderParameters>(), JsonSchema.FromType<Plugins.UserInterfaces.ReorderResult>()));
+            "Fantoche.TestPlugins.UserInterfaces.ReorderTask", "Reorder",
+            JsonSchema.FromType<TestPlugins.UserInterfaces.ReorderParameters>(), JsonSchema.FromType<TestPlugins.UserInterfaces.ReorderResult>()));
         TestWorkflow ask = new TestWorkflow("Ask", requireOutput: false)
             .Start()
             .Task("Ask", reorder, new { Title = "Sort them", Items = "$previous.Items" })
@@ -293,26 +293,23 @@ internal sealed class SupervisorExecutionTests
     };
 
     /// <summary>
-    /// A stored workflow importing a table and filtering it, and the parameters pointing at the file
-    /// it imports : <c>Start ─> Import ─> Filter ─> Copy ─> End</c>.
+    /// A stored workflow importing a table and updating it, and the parameters pointing at the file
+    /// it imports : <c>Start ─> Import ─> Update ─> End</c>.
     /// </summary>
     private async Task<(AutomationWorkflow Workflow, object Parameters)> StoreTablesWorkflowAsync()
     {
-        AutomationTask import = await StoreAsync(PluginTasks.Make("Fantoche.Plugins.Tables.CsvImportTask", "CsvImport",
-            JsonSchema.FromType<CsvImportParameters>(), JsonSchema.FromType<TableRef>()));
-        AutomationTask filter = await StoreAsync(PluginTasks.Make("Fantoche.Plugins.Tables.FilterTask", "Filter",
-            JsonSchema.FromType<FilterParameters>(), JsonSchema.FromType<TableRef>()));
-        AutomationTask copy = await StoreAsync(PluginTasks.Make("Fantoche.Plugins.Tables.FilterTask", "Copy",
-            JsonSchema.FromType<FilterParameters>(), JsonSchema.FromType<TableRef>()));
+        AutomationTask import = await StoreAsync(PluginTasks.Make(typeof(ImportCsvTask).FullName!, "ImportCsv",
+            JsonSchema.FromType<ImportCsvParameters>(), JsonSchema.FromType<TableRef>(), package: PluginTasks.TablesPackage));
+        AutomationTask update = await StoreAsync(PluginTasks.Make(typeof(UpdateTask).FullName!, "Update",
+            JsonSchema.FromType<UpdateParameters>(), JsonSchema.FromType<TableRef>(), package: PluginTasks.TablesPackage));
 
         object over10 = new { Left = "$row.columns.amount", Operator = "Greater", Right = 10 };
         TestWorkflow tables = new TestWorkflow("Tables", requireOutput: false)
             .Start()
             .Task("Import", import, new { Path = "$previous.Path" })
-            .Task("Filter", filter, new { Source = "$previous", Conditions = new[] { over10 }, MatchAll = true })
-            .Task("Copy", copy, new { Source = "$previous", Conditions = Array.Empty<object>(), MatchAll = true })
+            .Task("Update", update, new { Source = "$previous", Conditions = new[] { over10 }, Set = new[] { new { Column = "large", Value = true } } })
             .End(new { Table = "$previous" })
-            .Chain("Start", "Import", "Filter", "Copy", "End");
+            .Chain("Start", "Import", "Update", "End");
         AutomationWorkflow workflow = await StoreAsync(tables.Workflow);
 
         string csv = Path.Combine(_folder, "people.csv");
@@ -349,7 +346,7 @@ internal sealed class SupervisorExecutionTests
         return Directory.GetFiles(folder, $"{table.Id}.parquet", SearchOption.AllDirectories);
     }
 
-    /// <summary>The names in [table], read from the storage of the worker kept in [workerFolder].</summary>
+    /// <summary>The names of the large amounts in [table], read from the storage of the worker kept in [workerFolder].</summary>
     private async Task<List<object?>> NamesInAsync(string workerFolder, TableRef table)
     {
         string file = FilesOf(workerFolder, table).Single();
@@ -357,7 +354,10 @@ internal sealed class SupervisorExecutionTests
 
         List<object?> names = [];
         await foreach (var row in storage.ReadRowsAsync(table))
-            names.Add(row["name"]);
+        {
+            if (row["large"] is true)
+                names.Add(row["name"]);
+        }
         return names;
     }
 
@@ -448,7 +448,7 @@ internal sealed class SupervisorExecutionTests
     public async Task UnknownTask_Fails()
     {
         await ConnectWorkerAsync();
-        AutomationTask unknown = PluginTasks.Make("Fantoche.Plugins.TestTask", "Unknown", new JsonSchema(), new JsonSchema());
+        AutomationTask unknown = PluginTasks.Make("Fantoche.TestPlugins.TestTask", "Unknown", new JsonSchema(), new JsonSchema());
 
         TaskInstance result = await _caller.ExecuteAsync(unknown, InstanceOf(unknown, new { }));
 

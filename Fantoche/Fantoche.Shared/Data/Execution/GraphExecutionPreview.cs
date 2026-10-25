@@ -309,7 +309,7 @@ public class GraphExecutionPreview
 
         var instance = context.Resolution.CreateInstance(context.Node, result.Token, EnumTaskState.Completed, context.Instance);
         instance.Shared = step.Shared;
-        instance.Output = context.Node.OutputSchema?.ToSampleJson();
+        instance.Output = OutputSamples.Of(context.Node, result.Token);
 
         return instance;
     }

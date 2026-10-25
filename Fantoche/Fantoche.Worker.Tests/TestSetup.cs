@@ -13,10 +13,13 @@ internal sealed class TestSetup
     {
         // The tasks are loaded from the assembly built next to the tests rather than from a nuget
         // package, see TestPackageManagement.
-        Assert.That(
-            File.Exists(Path.Combine(AppContext.BaseDirectory, $"{PluginTasks.Package}.dll")),
-            Is.True,
-            $"[{PluginTasks.Package}.dll] is expected next to the tests.");
+        foreach (string package in new[] { PluginTasks.Package, PluginTasks.TablesPackage })
+        {
+            Assert.That(
+                File.Exists(Path.Combine(AppContext.BaseDirectory, $"{package}.dll")),
+                Is.True,
+                $"[{package}.dll] is expected next to the tests.");
+        }
 
         // A plugin is loaded in a context of its own, handing the shared contract over to the
         // default one : ITask has to be the very same type on both sides, so it is loaded here
