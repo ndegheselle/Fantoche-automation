@@ -150,11 +150,12 @@ namespace Fantoche.App.Features.Workflows.Editor
             Mapping = shapedBySchema ?? TreeOf(template);
 
             List<DataManualValue> readReferences = ReadReferences();
+            List<DataManualValue> rowReferences = RowReferences(template);
             if (template != null)
-                LoadTemplate(template, readReferences);
-            TypeLoadedReferences();
-            IEnumerable<DataManualValue> heldReferences = HeldReferences().Except(readReferences);
-            References = [.. readReferences, .. heldReferences];
+                LoadTemplate(template, [.. readReferences, .. rowReferences]);
+            TypeLoadedReferences(rowReferences);
+            IEnumerable<DataManualValue> heldReferences = HeldReferences().Except(readReferences).Except(rowReferences);
+            References = [.. readReferences, .. rowReferences, .. heldReferences];
 
             Errors.CollectionChanged += (_, _) =>
             {
@@ -272,6 +273,20 @@ namespace Fantoche.App.Features.Workflows.Editor
                 .Distinct()];
 
         /// <summary>
+        /// The columns of the tables the node reads per row, by the names of their mapping (see
+        /// <see cref="RowTables"/>). Untyped : the type of a column is only known once the task runs,
+        /// and the operands it fits are of any type.
+        /// </summary>
+        private List<DataManualValue> RowReferences(JToken? template)
+        {
+            if (template == null || IsStart)
+                return [];
+
+            IReadOnlyList<string> references = RowTables.Offered(template, _contexts.Select(x => x.Context), _node.InputSchema);
+            return [.. references.Select(reference => new DataManualValue(null, reference))];
+        }
+
+        /// <summary>
         /// [reference], then the reference of every value under it : an array is referenced whole.
         /// </summary>
         private static IEnumerable<DataManualValue> ReferencesTo(JToken value, string reference)
@@ -300,13 +315,16 @@ namespace Fantoche.App.Features.Workflows.Editor
 
         /// <summary>
         /// Give each reference the template loaded untyped the type of the field holding it : left
-        /// untyped, it would be offered to every field.
+        /// untyped, it would be offered to every field. The columns of [rowReferences] are untyped
+        /// already, on offer as they are.
         /// </summary>
-        private void TypeLoadedReferences()
+        private void TypeLoadedReferences(List<DataManualValue> rowReferences)
         {
             foreach (DataNode node in NodesOf(Mapping))
             {
                 if (node is not { IsManual: true, ManualEntry: { Type: null, Value: string reference } } || !reference.StartsWith('$'))
+                    continue;
+                if (rowReferences.Contains(node.ManualEntry))
                     continue;
 
                 node.ManualEntry = new DataManualValue(node.Type, reference);

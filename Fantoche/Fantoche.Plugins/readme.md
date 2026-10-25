@@ -29,7 +29,7 @@ A task done by the user comes before the task applying its answer, which takes t
 The names are the workflow's, written in the editor (`Pick columns` asks for them) : the nodes after are written against them, whatever the file calls its columns.
 
 - `$previous.Mapping.CustomerId` is the stored column `CustomerId` stands for, offered by the editor wherever a column is expected (the keys of `Merge`, for instance).
-- `$row.columns.CustomerId` reads it in the fields evaluated per row (the conditions and values of `Update`).
+- `$row.columns.CustomerId` reads it in the fields evaluated per row (the conditions and values of `Update`). Such a field names the table its rows come from (`[JsonSchemaExtensionData(RowScope.SchemaKey, nameof(Source))]`) : the editor offers the names of its mapping, and a column a mapped table doesn't name is refused before the task runs. A table without a mapping is left to the task, its columns being only known once it runs.
 - A task creating a table from a mapped one stores the columns under their names and hands the mapping over, each name standing for itself : the references keep reading the same columns down the workflow.
 
 The editor knows the names before anything runs because the tasks declare what they hand over of their input (see [What the editor previews of a task](../../architecture.md#what-the-editor-previews-of-a-task)).

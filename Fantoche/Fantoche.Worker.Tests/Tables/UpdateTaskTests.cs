@@ -88,15 +88,45 @@ internal sealed class UpdateTaskTests
     }
 
     [Test]
-    public async Task UnknownColumnInACondition_FailsTheUpdate()
+    public async Task ColumnTheMappingDoesNotName_IsRefusedBeforeTheUpdateRuns()
     {
-        WorkflowRun run = await RunAsync([Condition("$row.columns.Price", "Greater", 1)], [Set("State", "x")]);
+        string path = _files.Write("orders.csv", Orders);
+        TestWorkflow workflow = new TestWorkflow("Update", requireOutput: false)
+            .Start()
+            .Task("Import", PluginTasks.ImportCsv, new { Path = "$previous.Path" })
+            .Task("Map", PluginTasks.MapColumns, new { Source = "$previous", Columns = new[] { new { Name = "Amount", Column = "total" } } })
+            .Task("Update", PluginTasks.Update, new { Source = "$previous", Conditions = new[] { Condition("$row.columns.state", "Equal", "new") }, Set = new[] { Set("Amount", 0) } })
+            .End(new { Table = "$previous" })
+            .Chain("Start", "Import", "Map", "Update", "End");
+
+        // A mapped table is read by its names, the stored ones included.
+        (WorkflowRun run, Exception? error) = await workflow.TryRunAsync(new { Path = path });
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(error?.Message, Does.Contain("[$row.columns.state] : [Source] names no column [state], only Amount."));
+            Assert.That(run.Of("Update"), Is.Empty);
+        });
+    }
+
+    [Test]
+    public async Task UnknownColumnOfAnUnmappedTable_FailsTheUpdate()
+    {
+        string path = _files.Write("orders.csv", Orders);
+        TestWorkflow workflow = new TestWorkflow("Update", requireOutput: false)
+            .Start()
+            .Task("Import", PluginTasks.ImportCsv, new { Path = "$previous.Path" })
+            .Task("Update", PluginTasks.Update, new { Source = "$previous", Conditions = new[] { Condition("$row.columns.price", "Greater", 1) }, Set = new[] { Set("state", "x") } })
+            .End(new { Table = "$previous" })
+            .Chain("Start", "Import", "Update", "End");
+
+        WorkflowRun run = await workflow.RunAsync(new { Path = path });
 
         NodeReport update = run.Of("Update").Last();
         Assert.Multiple(() =>
         {
             Assert.That(update.State, Is.EqualTo(EnumTaskState.Failed));
-            Assert.That(update.Output?.ToString(), Does.Contain("Column [Price] not found in the table, which holds : OrderId, Amount, State."));
+            Assert.That(update.Output?.ToString(), Does.Contain("Column [price] not found in the table, which holds : order, total, state."));
         });
     }
 }

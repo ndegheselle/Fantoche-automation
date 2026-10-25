@@ -17,7 +17,7 @@ public class UpdateParameters
     public TableRef Source { get; set; } = new();
 
     /// <summary>The rows updated, every row without conditions.</summary>
-    [JsonSchemaExtensionData(RowScope.SchemaKey, RowScope.Name)]
+    [JsonSchemaExtensionData(RowScope.SchemaKey, nameof(Source))]
     public List<RowCondition> Conditions { get; set; } = [];
 
     /// <summary>
@@ -25,7 +25,7 @@ public class UpdateParameters
     /// </summary>
     public bool MatchAll { get; set; } = true;
 
-    [JsonSchemaExtensionData(RowScope.SchemaKey, RowScope.Name)]
+    [JsonSchemaExtensionData(RowScope.SchemaKey, nameof(Source))]
     public List<ColumnValue> Set { get; set; } = [];
 }
 

@@ -233,7 +233,8 @@ internal static class Samples
 
     /// <summary>
     /// The schemas of the tasks, with the markers of the engine : a table or file handle
-    /// ("x-fantoche-type"), the fields evaluated per row ("x-fantoche-scope") and what a task hands
+    /// ("x-fantoche-type"), the fields evaluated per row with the property holding their table
+    /// ("x-fantoche-scope") and what a task hands
     /// over of its input ("x-fantoche-output", "x-fantoche-output-mapping", see OutputPreview). The
     /// schemas they share are written once, put in place of their "&lt;name&gt;".
     /// </summary>
@@ -284,12 +285,12 @@ internal static class Samples
     private const string UpdateInputSchema = """
         {"type":"object","properties":{
             "Source":{"type":"object","x-fantoche-type":"table","x-fantoche-output":""},
-            "Conditions":{"type":"array","x-fantoche-scope":"row","items":{"type":"object","properties":{
+            "Conditions":{"type":"array","x-fantoche-scope":"Source","items":{"type":"object","properties":{
                 "Left":{},
                 "Operator":{"type":"string","enum":["Equal","NotEqual","Greater","GreaterOrEqual","Less","LessOrEqual","Contains"]},
                 "Right":{}}}},
             "MatchAll":{"type":"boolean"},
-            "Set":{"type":"array","x-fantoche-scope":"row","items":{"type":"object","properties":{"Column":{"type":"string"},"Value":{}}}}}}
+            "Set":{"type":"array","x-fantoche-scope":"Source","items":{"type":"object","properties":{"Column":{"type":"string"},"Value":{}}}}}}
         """;
 
     private const string SplitInputSchema = """

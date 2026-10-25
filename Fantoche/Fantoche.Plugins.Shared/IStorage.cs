@@ -78,8 +78,15 @@ public class ColumnMapping
 /// <summary>
 /// References to the row of a table a task iterates on : "$row.index" (from 0) and
 /// "$row.columns.name" (or "$row.columns['unit price']"). Only the task knows the row, so the engine
-/// leaves these references untouched for it to resolve, in the properties marked as evaluated per row :
-/// <c>[JsonSchemaExtensionData(RowScope.SchemaKey, RowScope.Name)]</c>.
+/// leaves these references untouched for it to resolve, in the properties marked as evaluated per row
+/// with the property of the input holding the table :
+/// <c>[JsonSchemaExtensionData(RowScope.SchemaKey, nameof(Source))]</c>.
+/// <para>
+/// Knowing the table, the engine checks the columns against its mapping (see
+/// <see cref="TableRef.Mapping"/>) : a mapped table is read by its names, a column it doesn't name
+/// is refused before the task runs, and an editor offers the ones it does. A table without a
+/// mapping is left to the task, its columns being only known once it runs.
+/// </para>
 /// </summary>
 public static class RowScope
 {
@@ -88,7 +95,15 @@ public static class RowScope
     private const string Columns = $"{Root}.columns";
 
     public const string SchemaKey = "x-fantoche-scope";
-    public const string Name = "row";
+
+    /// <summary>
+    /// The reference to the column [name], with brackets when it can't be written after a dot.
+    /// </summary>
+    public static string ColumnReference(string name)
+    {
+        bool isPlain = name.Length > 0 && name.All(x => char.IsLetterOrDigit(x) || x == '_');
+        return isPlain ? $"{Columns}.{name}" : $"{Columns}['{name}']";
+    }
 
     public static bool IsReference(string value)
         => value == Root || value.StartsWith($"{Root}.") || value.StartsWith($"{Root}[");

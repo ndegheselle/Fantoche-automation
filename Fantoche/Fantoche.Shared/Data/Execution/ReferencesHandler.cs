@@ -27,12 +27,14 @@ public static class ReferencesHandler
 
     /// <param name="schema">
     /// Schema of what the template produces : the properties it marks as evaluated per row (see
-    /// <see cref="RowScope"/>) are the only ones where a row reference is allowed.
+    /// <see cref="RowScope"/>) are the only ones where a row reference is allowed, checked against
+    /// the mapping of their table once it is resolved.
     /// </param>
     public static ReferenceReplaceResult ReplaceReferences(JToken template, JToken context, JsonSchema? schema = null)
     {
-        IReadOnlyList<string> rowScoped = RowScopedProperties(schema);
-        var resultToken = ReplaceReferences(template, context, rowScoped, out var errors);
+        IReadOnlyDictionary<string, string> rowTables = RowTables.Of(schema);
+        var resultToken = ReplaceReferences(template, context, [.. rowTables.Keys], out var errors);
+        errors.AddRange(RowTables.UnknownColumns(resultToken, rowTables));
         var result = new ReferenceReplaceResult(resultToken, errors);
         return result;
     }
@@ -82,17 +84,6 @@ public static class ReferencesHandler
 
         }
         return template;
-    }
-
-    private static IReadOnlyList<string> RowScopedProperties(JsonSchema? schema)
-    {
-        if (schema == null)
-            return [];
-
-        return [.. schema.ActualSchema.ActualProperties
-            .Where(property => property.Value.ExtensionData?.TryGetValue(RowScope.SchemaKey, out object? scope) == true
-                && Equals(scope, RowScope.Name))
-            .Select(property => property.Key)];
     }
 
     private static bool IsUnder(string path, string property)
