@@ -13,10 +13,10 @@ To run it : add the package (`dotnet pack Fantoche.Plugins`, version 2.0.0) from
 
 | Task | Does |
 | --- | --- |
-| Import CSV | A file into a table, the delimiter, columns and types detected from the content. |
+| Import CSV | A file into a table, the delimiter, columns and types detected from the content. The table is named after the file unless given a name. |
 | Pick columns *(page)* | You pick the column of the file each name of the workflow stands for, and name the other ones if needed. |
 | Map columns | Adds the names to the table (`TableRef.Mapping`), without copying it. |
-| Merge | Joins two tables on pairs of columns (inner or left), in the order of the left table. |
+| Merge | Joins two tables on pairs of columns (inner or left), in the order of the left table. A right column clashing with a left one is prefixed with the name of its table (`customers_Name`). |
 | Update | Gives a value to a column of the rows matching conditions, or adds a column. |
 | Split | Cuts a table into batches of `BatchSize` rows (10 000 by default). |
 | Compose PDF *(page)* | You compose the document (headings, texts, tables), previewed on the first batch. |

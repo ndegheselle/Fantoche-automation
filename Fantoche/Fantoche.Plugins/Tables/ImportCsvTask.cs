@@ -8,6 +8,12 @@ public class ImportCsvParameters
     /// Path of the CSV file on the worker.
     /// </summary>
     public string Path { get; set; } = "";
+
+    /// <summary>
+    /// The name of the table (see <see cref="TableRef.Name"/>), the name of the file without its
+    /// extension when empty.
+    /// </summary>
+    public string Name { get; set; } = "";
 }
 
 /// <summary>
@@ -22,6 +28,9 @@ public class ImportCsvTask : BaseTask<ImportCsvParameters, TableRef>
         CancellationToken token = cancellation ?? CancellationToken.None;
         Dictionary<string, object?> values = new() { ["path"] = parameters.Path };
         TableRef table = await runtime.Storage.CreateTableAsync("SELECT * FROM read_csv_auto($path)", values, token);
+        table.Name = string.IsNullOrWhiteSpace(parameters.Name)
+            ? Path.GetFileNameWithoutExtension(parameters.Path)
+            : parameters.Name;
         long rows = await runtime.Storage.CountRowsAsync(table, token);
 
         runtime.Progress?.Report(new TaskNotification

@@ -88,7 +88,7 @@ internal sealed class MergeTaskTests
     }
 
     [Test]
-    public async Task RightColumnNamedAsALeftOne_IsPrefixed()
+    public async Task RightColumnNamedAsALeftOne_IsPrefixedWithTheNameOfItsTable()
     {
         // Both tables then hold an "Amount".
         object customers = new[] { new { Name = "CustomerId", Column = "client id" }, new { Name = "Amount", Column = "full name" } };
@@ -96,6 +96,14 @@ internal sealed class MergeTaskTests
         WorkflowRun run = await RunAsync(customersColumns: customers);
 
         TableRef merged = run.OutputOf("Merge")!.ToObject<TableRef>()!;
-        Assert.That(merged.Columns.Select(x => x.Name), Is.EqualTo(new[] { "CustomerId", "Amount", "OrderId", "RightAmount" }));
+        Assert.That(merged.Columns.Select(x => x.Name), Is.EqualTo(new[] { "CustomerId", "Amount", "OrderId", "orders_Amount" }));
+    }
+
+    [Test]
+    public async Task Merge_KeepsTheNameOfTheLeftTable()
+    {
+        WorkflowRun run = await RunAsync();
+
+        Assert.That(run.OutputOf("Merge")!.ToObject<TableRef>()!.Name, Is.EqualTo("customers"));
     }
 }

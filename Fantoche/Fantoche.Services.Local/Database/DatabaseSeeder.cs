@@ -73,7 +73,7 @@ internal static class Samples
 
     private static readonly AutomationTask ImportCsv = MakeTask(
         Id(0x30), "Import CSV", "Fantoche.Plugins.Tables.ImportCsvTask",
-        Schema(("Path", "string")), TableSchema);
+        Schema(("Path", "string"), ("Name", "string")), TableSchema);
 
     /// <summary>The user picks the column each name stands for : a user interface task.</summary>
     private static readonly AutomationTask PickColumns = MakeTask(
@@ -181,7 +181,6 @@ internal static class Samples
                 Right = "$previous.Customers",
                 On = new[] { new { Left = "$previous.Orders.Mapping.CustomerId", Right = "$previous.Customers.Mapping.CustomerId" } },
                 Kind = "Inner",
-                RightPrefix = "Customer",
             });
         GraphTask update = Node(new GraphTask(Update), "Update", 1320, 150,
             new
@@ -241,6 +240,7 @@ internal static class Samples
     private const string TableSchema = """
         {"type":"object","x-fantoche-type":"table","properties":{
             "Id":{"type":"string"},
+            "Name":{"type":"string"},
             "Columns":{"type":"array","items":{"type":"object","properties":{"Name":{"type":"string"},"Type":{"type":"string"}}}},
             "Mapping":{"type":"object","additionalProperties":{"type":"string"}}}}
         """;
@@ -278,8 +278,7 @@ internal static class Samples
             "Left":{"type":"object","x-fantoche-type":"table","x-fantoche-output":""},
             "Right":{"type":"object","x-fantoche-type":"table","x-fantoche-output":""},
             "On":{"type":"array","items":{"type":"object","properties":{"Left":{"type":"string"},"Right":{"type":"string"}}}},
-            "Kind":{"type":"string","enum":["Inner","Left"]},
-            "RightPrefix":{"type":"string"}}}
+            "Kind":{"type":"string","enum":["Inner","Left"]}}}
         """;
 
     private const string UpdateInputSchema = """

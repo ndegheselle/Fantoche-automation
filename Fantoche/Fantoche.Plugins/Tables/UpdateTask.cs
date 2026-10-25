@@ -73,6 +73,7 @@ public class UpdateTask : BaseTask<UpdateParameters, TableRef>
         string query = $"SELECT {string.Join(", ", columns)} FROM {Sql.Quote(source.Id)} ORDER BY rowid";
         TableRef table = await runtime.Storage.CreateTableAsync(query, sql.Values, token);
 
+        table.Name = source.Name;
         // The added columns are named by the workflow as the mapped ones are.
         table.Mapping = Sql.StoredMapping(source);
         foreach (var (name, _) in added)

@@ -23,12 +23,12 @@ internal sealed class ImportAndMapTests
     [TearDown]
     public void TearDown() => _files.Dispose();
 
-    private Task<WorkflowRun> RunAsync(object columns)
+    private Task<WorkflowRun> RunAsync(object columns, string name = "")
     {
         string path = _files.Write("customers.csv", Customers);
         TestWorkflow workflow = new TestWorkflow("Import and map", requireOutput: false)
             .Start()
-            .Task("Import", PluginTasks.ImportCsv, new { Path = "$previous.Path" })
+            .Task("Import", PluginTasks.ImportCsv, new { Path = "$previous.Path", Name = name })
             .Task("Map", PluginTasks.MapColumns, new { Source = "$previous", Columns = columns })
             .End(new { Table = "$previous" })
             .Chain("Start", "Import", "Map", "End");
@@ -46,6 +46,22 @@ internal sealed class ImportAndMapTests
 
         TableRef table = run.OutputOf("Import")!.ToObject<TableRef>()!;
         Assert.That(table.Columns.Select(x => (x.Name, x.Type)), Is.EqualTo(new[] { ("client id", "BIGINT"), ("full name", "VARCHAR"), ("town", "VARCHAR") }));
+    }
+
+    [Test]
+    public async Task Import_NamesTheTableAfterTheFile()
+    {
+        WorkflowRun run = await RunAsync(Array.Empty<object>());
+
+        Assert.That(run.OutputOf("Map")!.ToObject<TableRef>()!.Name, Is.EqualTo("customers"));
+    }
+
+    [Test]
+    public async Task Import_NamesTheTableAsAsked()
+    {
+        WorkflowRun run = await RunAsync(Array.Empty<object>(), name: "clients");
+
+        Assert.That(run.OutputOf("Map")!.ToObject<TableRef>()!.Name, Is.EqualTo("clients"));
     }
 
     [Test]

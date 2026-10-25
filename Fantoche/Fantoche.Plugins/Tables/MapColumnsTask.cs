@@ -90,7 +90,7 @@ public class MapColumnsTask : BaseTask<MapColumnsParameters, TableRef>
             State = EnumTaskNotificationState.Success,
             Message = $"Mapped {parameters.Columns.Count} columns"
         });
-        TableRef mapped = new() { Id = source.Id, Columns = source.Columns, Mapping = mapping };
+        TableRef mapped = new() { Id = source.Id, Name = source.Name, Columns = source.Columns, Mapping = mapping };
         return Task.FromResult(mapped);
     }
 

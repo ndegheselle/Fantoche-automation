@@ -25,6 +25,13 @@ public class TableRef
     public string Id { get; set; } = "";
 
     /// <summary>
+    /// What the workflow calls the table, the file it was imported from for instance : what tells
+    /// its columns apart from the ones of another table, once merged with it. Handed over by the
+    /// tasks creating a table from it.
+    /// </summary>
+    public string Name { get; set; } = "";
+
+    /// <summary>
     /// The columns as they are stored.
     /// </summary>
     public List<TableColumn> Columns { get; set; } = [];

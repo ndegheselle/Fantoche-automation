@@ -40,7 +40,10 @@ public class SplitTask : BaseTask<SplitParameters, SplitResult>
         // Created at once : the source is loaded once for all of the batches.
         List<TableRef> batches = queries.Count == 0 ? [] : await runtime.Storage.CreateTablesAsync(queries, cancellation: token);
         foreach (TableRef batch in batches)
+        {
+            batch.Name = source.Name;
             batch.Mapping = Sql.StoredMapping(source);
+        }
 
         runtime.Progress?.Report(new TaskNotification
         {
