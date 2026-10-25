@@ -4,9 +4,9 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Title>Base automation plugins</Title>
+    <Title>Table automation plugins</Title>
     <PackageIcon></PackageIcon>
-    <Version>1.3.0</Version>
+    <Version>2.0.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,14 +14,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- 6.5 and later are under the AGPL, which the PDF task chooses as it loads (see PdfTask). -->
+    <!-- 6.5 and later are under the AGPL, which the PDF export chooses as it loads (see PdfRenderer). -->
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Common" Version="10.0.13" />
     <PackageReference Include="PDFsharp" Version="6.5.0" />
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Tables\Fonts\DejaVuSans.ttf" LogicalName="DejaVuSans.ttf" />
+    <EmbeddedResource Include="Pdf\Fonts\DejaVuSans.ttf" LogicalName="DejaVuSans.ttf" />
   </ItemGroup>
 
   <!-- The pages of the user interface tasks, next to the assembly they are read relative to (see IUserInterfaceTask.PageFolder). -->

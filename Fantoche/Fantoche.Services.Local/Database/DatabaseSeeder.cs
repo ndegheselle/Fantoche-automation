@@ -52,10 +52,9 @@ public static class DatabaseSeeder
 }
 
 /// <summary>
-/// Sample tasks and workflows, the same graphs the console runs as its scenarios (see
-/// Fantoche.Worker.Console/Scenarios) so the interface has something to display and to execute
-/// right after a fresh install. They target the classes of the Fantoche.Plugins package, which
-/// ships with the application.
+/// Sample tasks and a workflow showing them at work, so the interface has something to display and
+/// to execute right after a fresh install. They target the classes of the Fantoche.Plugins package,
+/// which has to be added to the packages for the samples to run.
 /// </summary>
 internal static class Samples
 {
@@ -72,45 +71,39 @@ internal static class Samples
 
     #region Tasks
 
-    /// <summary>Adds <c>Add</c> to <c>Value</c> and tags the message : the only task producing an output.</summary>
-    private static readonly AutomationTask Test = MakeTask(
-        Id(0x10), "Test", "Fantoche.Plugins.TestTask",
-        Schema(("Message", "string"), ("Value", "integer"), ("Add", "integer")),
-        Schema(("Value", "integer"), ("Message", "string")));
+    private static readonly AutomationTask ImportCsv = MakeTask(
+        Id(0x30), "Import CSV", "Fantoche.Plugins.Tables.ImportCsvTask",
+        Schema(("Path", "string"), ("Name", "string")), TableSchema);
 
-    private static readonly AutomationTask Delay = MakeTask(
-        Id(0x11), "Delay", "Fantoche.Plugins.TestDelay",
-        Schema(("DelayMs", "integer")), EmptySchema, passThrough: true);
+    /// <summary>The user picks the column each name stands for : a user interface task.</summary>
+    private static readonly AutomationTask PickColumns = MakeTask(
+        Id(0x31), "Pick columns", "Fantoche.Plugins.Tables.PickColumnsTask",
+        PickColumnsInputSchema, PickColumnsOutputSchema);
 
-    private static readonly AutomationTask PassThrough = MakeTask(
-        Id(0x12), "PassThrough", "Fantoche.Plugins.PassThroughTask",
-        Schema(("Label", "string")), EmptySchema, passThrough: true);
+    private static readonly AutomationTask MapColumns = MakeTask(
+        Id(0x32), "Map columns", "Fantoche.Plugins.Tables.MapColumnsTask",
+        MapColumnsInputSchema, TableSchema);
 
-    private static readonly AutomationTask LoopGate = MakeTask(
-        Id(0x13), "LoopGate", "Fantoche.Plugins.LoopGateTask",
-        Schema(("Value", "integer"), ("Max", "integer"), ("WhileUnder", "boolean")), EmptySchema, passThrough: true);
+    private static readonly AutomationTask Merge = MakeTask(
+        Id(0x33), "Merge", "Fantoche.Plugins.Tables.MergeTask",
+        MergeInputSchema, TableSchema);
 
-    private static readonly AutomationTask CsvImport = MakeTask(
-        Id(0x14), "CsvImport", "Fantoche.Plugins.Tables.CsvImportTask",
-        Schema(("Path", "string")), TableSchema);
+    private static readonly AutomationTask Update = MakeTask(
+        Id(0x34), "Update", "Fantoche.Plugins.Tables.UpdateTask",
+        UpdateInputSchema, TableSchema);
 
-    private static readonly AutomationTask Filter = MakeTask(
-        Id(0x15), "Filter", "Fantoche.Plugins.Tables.FilterTask",
-        FilterInputSchema, TableSchema);
+    private static readonly AutomationTask Split = MakeTask(
+        Id(0x35), "Split", "Fantoche.Plugins.Tables.SplitTask",
+        SplitInputSchema, SplitOutputSchema);
 
-    private static readonly AutomationTask Pdf = MakeTask(
-        Id(0x16), "Pdf", "Fantoche.Plugins.Tables.PdfTask",
-        PdfInputSchema, PdfOutputSchema);
+    /// <summary>The user composes the document of the PDF : a user interface task.</summary>
+    private static readonly AutomationTask ComposePdf = MakeTask(
+        Id(0x36), "Compose PDF", "Fantoche.Plugins.Pdf.ComposePdfTask",
+        ComposePdfInputSchema, ComposePdfOutputSchema);
 
-    /// <summary>The user checks a table on a page : a user interface task.</summary>
-    private static readonly AutomationTask TableReview = MakeTask(
-        Id(0x17), "TableReview", "Fantoche.Plugins.UserInterfaces.TableReviewTask",
-        TableReviewInputSchema, TableReviewOutputSchema);
-
-    /// <summary>The user previews files on a page and keeps some of them : a user interface task.</summary>
-    private static readonly AutomationTask FilesReview = MakeTask(
-        Id(0x18), "FilesReview", "Fantoche.Plugins.UserInterfaces.FilesReviewTask",
-        FilesReviewInputSchema, PdfOutputSchema);
+    private static readonly AutomationTask ExportPdf = MakeTask(
+        Id(0x37), "Export PDF", "Fantoche.Plugins.Pdf.ExportPdfTask",
+        ExportPdfInputSchema, ExportPdfOutputSchema);
 
     #endregion
 
@@ -119,19 +112,15 @@ internal static class Samples
         List<ScopedElement> elements =
         [
             SamplesScope,
-            Test,
-            Delay,
-            PassThrough,
-            LoopGate,
-            CsvImport,
-            Filter,
-            Pdf,
-            TableReview,
-            FilesReview,
-            BuildLinear(),
-            BuildBranches(),
-            BuildLoop(),
-            BuildExample(),
+            ImportCsv,
+            PickColumns,
+            MapColumns,
+            Merge,
+            Update,
+            Split,
+            ComposePdf,
+            ExportPdf,
+            BuildCustomersOrders(),
         ];
 
         // The schemas of a workflow are declared by its start and its end, the element only holding
@@ -143,242 +132,214 @@ internal static class Samples
     }
 
     /// <summary>
-    /// The straight line : one branch, every node running once.
+    /// Two files mapped and merged, the large orders flagged, then a PDF per batch of the orders.
     /// <code>
-    /// Start -> First(+10) -> Share -> PassThrough -> Second(+$shared.Bonus) -> End
+    /// Start ─┬─> Import customers ─> Pick customer columns ─> Customers ─┬─> Tables ─> Merge ─> Update ─> Split ─> Compose ─> Export ─> End
+    ///        └─> Import orders ────> Pick order columns ────> Orders ────┘
     /// </code>
-    /// The share puts its parameters in the shared context, and both the share and the pass-through
-    /// are transparent to "$previous.*". Expected output : Value = 1 + 10 + 100 = 111.
+    /// Started with the paths of the two files of Fantoche.Plugins/Samples. The run waits
+    /// for the user at both picks and at the composition. The nodes after the mapping read the
+    /// columns by their names ("$previous.Customers.Mapping.CustomerId", "$row.columns.Amount"),
+    /// whatever the files call them.
     /// </summary>
-    private static AutomationWorkflow BuildLinear()
+    private static AutomationWorkflow BuildCustomersOrders()
     {
-        AutomationWorkflow workflow = MakeWorkflow(Id(0x20), "Linear");
+        AutomationWorkflow workflow = MakeWorkflow(Id(0x24), "Customers and orders");
 
-        GraphControl start = StartNode(0, 0);
-        GraphTask first = Node(new GraphTask(Test), "First", 220, 0,
-            new { Message = "first", Value = "$previous.Value", Add = 10 });
-        GraphControl share = Node(new GraphControl(AutomationControl.ShareTask), "Share", 440, 0,
-            new { Bonus = 100, Origin = "$previous.Message" });
-        GraphTask passThrough = Node(new GraphTask(PassThrough), "PassThrough", 660, 0,
-            new { Label = "after the share" });
-        // Both the share and the pass-through are transparent : "$previous" is still "First" here.
-        GraphTask second = Node(new GraphTask(Test), "Second", 880, 0,
-            new { Message = "second", Value = "$previous.Value", Add = "$shared.Bonus" });
-        // An end is not a join : it resolves against the single branch reaching it, so "$previous"
-        // is what that branch handed over rather than something indexed by node name.
-        GraphControl end = EndNode(1100, 0, new { Value = "$previous.Value", Message = "$previous.Message" });
+        GraphControl start = StartNode(0, 150, Schema(("Customers", "string"), ("Orders", "string")));
 
-        Add(workflow, start, first, share, passThrough, second, end);
-
-        workflow.Graph.Connect(start, first);
-        workflow.Graph.Connect(first, share);
-        workflow.Graph.Connect(share, passThrough);
-        workflow.Graph.Connect(passThrough, second);
-        workflow.Graph.Connect(second, end);
-
-        return workflow;
-    }
-
-    /// <summary>
-    /// Parallel branches merged by a join.
-    /// <code>
-    /// Start -+-> Quick(+1) ------------------+
-    ///        +-> Slow(delay) -> Late(+100) --+-> Join -> End
-    ///        +-> Sprint(+2) -----------------+
-    /// </code>
-    /// Every branch runs and the join waits for all three of them. The end hangs off the join alone
-    /// rather than racing it : an end closes the workflow as soon as a single branch reaches it and
-    /// cancels whatever is still running, so a branch wired straight to it would decide the output
-    /// and leave the join waiting forever.
-    /// <para>
-    /// Expected output : Value = 101 (what Late produced), Message from Quick.
-    /// </para>
-    /// </summary>
-    private static AutomationWorkflow BuildBranches()
-    {
-        AutomationWorkflow workflow = MakeWorkflow(Id(0x21), "Branches");
-
-        GraphControl start = StartNode(0, 150);
-        GraphTask quick = Node(new GraphTask(Test), "Quick", 220, 0,
-            new { Message = "quick", Value = "$previous.Value", Add = 1 });
-        GraphTask slow = Node(new GraphTask(Delay), "Slow", 220, 150, new { DelayMs = 400 });
-        // The delay is pass-through : "$previous" here is still the start.
-        GraphTask late = Node(new GraphTask(Test), "Late", 440, 150,
-            new { Message = "late", Value = "$previous.Value", Add = 100 });
-        GraphTask sprint = Node(new GraphTask(Test), "Sprint", 220, 300,
-            new { Message = "sprint", Value = "$previous.Value", Add = 2 });
-        // The join runs once every branch reaching it is completed, and it is the only node whose
-        // context is indexed by node name : it reads them all at once.
-        GraphControl join = Node(new GraphControl(AutomationControl.JoinTask), "Join", 660, 150,
-            new { Value = "$previous.Late.Value", Message = "$previous.Quick.Message" });
-        // The end resolves against the join alone, so it reads what the join handed over.
-        GraphControl end = EndNode(880, 150, new { Value = "$previous.Value", Message = "$previous.Message" });
-
-        Add(workflow, start, quick, slow, late, sprint, join, end);
-
-        workflow.Graph.Connect(start, quick);
-        workflow.Graph.Connect(start, slow);
-        workflow.Graph.Connect(start, sprint);
-        workflow.Graph.Connect(slow, late);
-        workflow.Graph.Connect(quick, join);
-        workflow.Graph.Connect(late, join);
-        workflow.Graph.Connect(sprint, join);
-        workflow.Graph.Connect(join, end);
-
-        return workflow;
-    }
-
-    /// <summary>
-    /// A cycle in the graph, closed on the data it produces.
-    /// <code>
-    /// Start -> Counter(+1) -+-> LoopGate (open while Value under Max) -> back to Counter
-    ///                       +-> ExitGate (open once Value reached Max) -> End
-    /// </code>
-    /// Both gates are pass-through, so the counter reads "$previous.Value" the same way whether it
-    /// is entered from the start or looped back. Expected output : Value = 5 after 4 turns.
-    /// </summary>
-    private static AutomationWorkflow BuildLoop()
-    {
-        const int max = 5;
-        AutomationWorkflow workflow = MakeWorkflow(Id(0x22), "Loop");
-
-        GraphControl start = StartNode(0, 75);
-        GraphTask counter = Node(new GraphTask(Test), "Counter", 220, 75,
-            new { Message = "turn", Value = "$previous.Value", Add = 1 });
-        GraphTask loopGate = Node(new GraphTask(LoopGate), "LoopGate", 440, 0,
-            new { Value = "$previous.Value", Max = max, WhileUnder = true });
-        GraphTask exitGate = Node(new GraphTask(LoopGate), "ExitGate", 440, 150,
-            new { Value = "$previous.Value", Max = max, WhileUnder = false });
-        // The exit gate being pass-through, "$previous" here is the counter of the last turn.
-        GraphControl end = EndNode(660, 150, new { Value = "$previous.Value", Message = "$previous.Message" });
-
-        Add(workflow, start, counter, loopGate, exitGate, end);
-
-        workflow.Graph.Connect(start, counter);
-        workflow.Graph.Connect(counter, loopGate);
-        workflow.Graph.Connect(counter, exitGate);
-        workflow.Graph.Connect(loopGate, counter);
-        workflow.Graph.Connect(exitGate, end);
-
-        return workflow;
-    }
-
-    /// <summary>
-    /// A minimal real life case : a CSV loaded into a table and checked by the user, its rows
-    /// filtered, then a PDF saved per remaining row, the user keeping the ones to hand back.
-    /// <code>
-    /// Start -> Import -> Check import -> Filter(amount > 10) -> Pdf -> Check PDF -> End
-    /// </code>
-    /// Started with the path of a CSV having a "name" and an "amount" column, e.g.
-    /// "name,amount\nalice,10\nbob,20". The run waits for the user at both checks. Expected output :
-    /// the files bob.pdf and so on, less the ones left out.
-    /// </summary>
-    private static AutomationWorkflow BuildExample()
-    {
-        AutomationWorkflow workflow = MakeWorkflow(Id(0x23), "Example");
-
-        GraphControl start = StartNode(0, 0, Schema(("Path", "string")));
-        GraphTask import = Node(new GraphTask(CsvImport), "Import", 220, 0,
-            new { Path = "$previous.Path" });
-        GraphTask checkImport = Node(new GraphTask(TableReview), "Check import", 440, 0,
-            new { Title = "Check the imported rows", Table = "$previous" });
-        GraphTask filter = Node(new GraphTask(Filter), "Filter", 660, 0,
+        GraphTask importCustomers = Node(new GraphTask(ImportCsv), "Import customers", 220, 0,
+            new { Path = "$previous.Customers" });
+        GraphTask pickCustomers = Node(new GraphTask(PickColumns), "Pick customer columns", 440, 0,
             new
             {
-                Source = "$previous.Table",
-                Conditions = new[] { new { Left = "$row.columns.amount", Operator = "Greater", Right = 10 } },
-                MatchAll = true,
+                Title = "Columns of the customers",
+                Source = "$previous",
+                Columns = new[] { Column("CustomerId"), Column("Name"), Column("City") },
             });
-        GraphTask pdf = Node(new GraphTask(Pdf), "Pdf", 880, 0,
+        GraphTask customers = Node(new GraphTask(MapColumns), "Customers", 660, 0,
+            new { Source = "$previous.Source", Columns = "$previous.Columns" });
+
+        GraphTask importOrders = Node(new GraphTask(ImportCsv), "Import orders", 220, 300,
+            new { Path = "$previous.Orders" });
+        GraphTask pickOrders = Node(new GraphTask(PickColumns), "Pick order columns", 440, 300,
+            new
+            {
+                Title = "Columns of the orders",
+                Source = "$previous",
+                Columns = new[] { Column("OrderId"), Column("CustomerId"), Column("Amount"), Column("Date") },
+            });
+        GraphTask orders = Node(new GraphTask(MapColumns), "Orders", 660, 300,
+            new { Source = "$previous.Source", Columns = "$previous.Columns" });
+
+        GraphControl tables = Node(new GraphControl(AutomationControl.JoinTask), "Tables", 880, 150,
+            new { Customers = "$previous.Customers", Orders = "$previous.Orders" });
+        GraphTask merge = Node(new GraphTask(Merge), "Merge", 1100, 150,
+            new
+            {
+                Left = "$previous.Orders",
+                Right = "$previous.Customers",
+                On = new[] { new { Left = "$previous.Orders.Mapping.CustomerId", Right = "$previous.Customers.Mapping.CustomerId" } },
+                Kind = "Inner",
+            });
+        GraphTask update = Node(new GraphTask(Update), "Update", 1320, 150,
             new
             {
                 Source = "$previous",
-                FileName = "$row.columns.name",
-                Title = "$row.columns.name",
-                Fields = new[] { new { Label = "Amount", Value = "$row.columns.amount" } },
+                Conditions = new[] { new { Left = "$row.columns.Amount", Operator = "GreaterOrEqual", Right = 500 } },
+                MatchAll = true,
+                Set = new[] { new { Column = "Priority", Value = "high" } },
             });
-        GraphTask checkPdf = Node(new GraphTask(FilesReview), "Check PDF", 1100, 0,
-            new { Title = "Keep the documents to hand back", Files = "$previous.Files" });
-        GraphControl end = EndNode(1320, 0, new { Files = "$previous.Files" }, Schema(("Files", "array")));
+        GraphTask split = Node(new GraphTask(Split), "Split", 1540, 150,
+            new { Source = "$previous", BatchSize = 10000 });
+        GraphTask compose = Node(new GraphTask(ComposePdf), "Compose", 1760, 150,
+            new { Title = "Orders", Tables = "$previous.Batches", Document = new { Landscape = true, Blocks = Array.Empty<object>() } });
+        GraphTask export = Node(new GraphTask(ExportPdf), "Export", 1980, 150,
+            new { Sources = "$previous.Tables", Document = "$previous.Document", FileName = "orders-{index}" });
+        GraphControl end = EndNode(2200, 150, new { Files = "$previous.Files" }, Schema(("Files", "array")));
 
-        Add(workflow, start, import, checkImport, filter, pdf, checkPdf, end);
+        Add(workflow, start, importCustomers, pickCustomers, customers, importOrders, pickOrders, orders,
+            tables, merge, update, split, compose, export, end);
 
-        workflow.Graph.Connect(start, import);
-        workflow.Graph.Connect(import, checkImport);
-        workflow.Graph.Connect(checkImport, filter);
-        workflow.Graph.Connect(filter, pdf);
-        workflow.Graph.Connect(pdf, checkPdf);
-        workflow.Graph.Connect(checkPdf, end);
+        workflow.Graph.Connect(start, importCustomers);
+        workflow.Graph.Connect(importCustomers, pickCustomers);
+        workflow.Graph.Connect(pickCustomers, customers);
+        workflow.Graph.Connect(customers, tables);
+        workflow.Graph.Connect(start, importOrders);
+        workflow.Graph.Connect(importOrders, pickOrders);
+        workflow.Graph.Connect(pickOrders, orders);
+        workflow.Graph.Connect(orders, tables);
+        workflow.Graph.Connect(tables, merge);
+        workflow.Graph.Connect(merge, update);
+        workflow.Graph.Connect(update, split);
+        workflow.Graph.Connect(split, compose);
+        workflow.Graph.Connect(compose, export);
+        workflow.Graph.Connect(export, end);
 
         return workflow;
     }
 
+    /// <summary>A name the page asks the column of, the column being picked by the user.</summary>
+    private static object Column(string name) => new { Name = name, Column = "" };
+
     #region Building blocks
-
-    private const string EmptySchema = "{\"type\":\"object\"}";
-
-    /// <summary>
-    /// The workflows all take a single "Value" and give back what the Test task produces, so a run
-    /// can be started with nothing but a number.
-    /// </summary>
-    private static readonly string WorkflowInputSchema = Schema(("Value", "integer"));
-    private static readonly string WorkflowOutputSchema = Schema(("Value", "integer"), ("Message", "string"));
 
     /// <summary>
     /// The package the sample tasks run : it has to be added to the packages for the samples to run.
     /// A property rather than a field : the task fields above are initialized first, and would read a
     /// field declared after them as null.
     /// </summary>
-    private static Version PluginsVersion => new("1.2.0");
+    private static Version PluginsVersion => new("2.0.0");
 
     /// <summary>
-    /// The schemas of the table tasks, with the markers of the engine : a table handle
-    /// ("x-fantoche-type") and the fields evaluated per row ("x-fantoche-scope").
+    /// The schemas of the tasks, with the markers of the engine : a table or file handle
+    /// ("x-fantoche-type"), the fields evaluated per row with the property holding their table
+    /// ("x-fantoche-scope") and what a task hands
+    /// over of its input ("x-fantoche-output", "x-fantoche-output-mapping", see OutputPreview). The
+    /// schemas they share are written once, put in place of their "&lt;name&gt;".
     /// </summary>
     private const string TableSchema = """
         {"type":"object","x-fantoche-type":"table","properties":{
             "Id":{"type":"string"},
-            "Columns":{"type":"array","items":{"type":"object","properties":{"Name":{"type":"string"},"Type":{"type":"string"}}}}}}
+            "Name":{"type":"string"},
+            "Columns":{"type":"array","items":{"type":"object","properties":{"Name":{"type":"string"},"Type":{"type":"string"}}}},
+            "Mapping":{"type":"object","additionalProperties":{"type":"string"}}}}
         """;
 
-    private const string FilterInputSchema = """
+    /// <summary>An item of a list of <c>ColumnMapping</c>.</summary>
+    private const string ColumnMappingSchema = """
+        {"type":"object","properties":{"Name":{"type":"string"},"Column":{"type":"string"}}}
+        """;
+
+    private static string PickColumnsInputSchema => """
         {"type":"object","properties":{
-            "Source":{"type":"object","x-fantoche-type":"table"},
-            "Conditions":{"type":"array","x-fantoche-scope":"row","items":{"type":"object","properties":{
+            "Title":{"type":"string"},
+            "Source":{"type":"object","x-fantoche-type":"table","x-fantoche-output":"Source"},
+            "Columns":{"type":"array","items":<column mapping>,"x-fantoche-output":"Columns"}}}
+        """
+        .Replace("<column mapping>", ColumnMappingSchema);
+
+    private static string PickColumnsOutputSchema => """
+        {"type":"object","properties":{
+            "Source":<table>,
+            "Columns":{"type":"array","items":<column mapping>}}}
+        """
+        .Replace("<column mapping>", ColumnMappingSchema)
+        .Replace("<table>", TableSchema);
+
+    private static string MapColumnsInputSchema => """
+        {"type":"object","properties":{
+            "Source":{"type":"object","x-fantoche-type":"table","x-fantoche-output":""},
+            "Columns":{"type":"array","items":<column mapping>,"x-fantoche-output-mapping":""}}}
+        """
+        .Replace("<column mapping>", ColumnMappingSchema);
+
+    private const string MergeInputSchema = """
+        {"type":"object","properties":{
+            "Left":{"type":"object","x-fantoche-type":"table","x-fantoche-output":""},
+            "Right":{"type":"object","x-fantoche-type":"table","x-fantoche-output":""},
+            "On":{"type":"array","items":{"type":"object","properties":{"Left":{"type":"string"},"Right":{"type":"string"}}}},
+            "Kind":{"type":"string","enum":["Inner","Left"]}}}
+        """;
+
+    private const string UpdateInputSchema = """
+        {"type":"object","properties":{
+            "Source":{"type":"object","x-fantoche-type":"table","x-fantoche-output":""},
+            "Conditions":{"type":"array","x-fantoche-scope":"Source","items":{"type":"object","properties":{
                 "Left":{},
                 "Operator":{"type":"string","enum":["Equal","NotEqual","Greater","GreaterOrEqual","Less","LessOrEqual","Contains"]},
                 "Right":{}}}},
-            "MatchAll":{"type":"boolean"}}}
+            "MatchAll":{"type":"boolean"},
+            "Set":{"type":"array","x-fantoche-scope":"Source","items":{"type":"object","properties":{"Column":{"type":"string"},"Value":{}}}}}}
         """;
 
-    private const string PdfInputSchema = """
+    private const string SplitInputSchema = """
         {"type":"object","properties":{
             "Source":{"type":"object","x-fantoche-type":"table"},
-            "FileName":{"x-fantoche-scope":"row"},
-            "Title":{"x-fantoche-scope":"row"},
-            "Fields":{"type":"array","x-fantoche-scope":"row","items":{"type":"object","properties":{"Label":{},"Value":{}}}}}}
+            "BatchSize":{"type":"integer"}}}
         """;
 
-    private const string PdfOutputSchema = """
-        {"type":"object","properties":{
-            "Files":{"type":"array","items":{"type":"object","x-fantoche-type":"file","properties":{"Id":{"type":"string"},"Name":{"type":"string"}}}}}}
+    private static string SplitOutputSchema => """
+        {"type":"object","properties":{"Batches":{"type":"array","items":<table>}}}
+        """
+        .Replace("<table>", TableSchema);
+
+    /// <summary>The properties of a <c>PdfLayout</c>, put in an object of its own or in a property declaring more.</summary>
+    private const string PdfLayoutProperties = """
+        "type":"object","properties":{
+            "Landscape":{"type":"boolean"},
+            "Blocks":{"type":"array","items":{"type":"object","properties":{
+                "Kind":{"type":"string","enum":["Heading","Text","Table"]},
+                "Text":{"type":"string"},
+                "Columns":{"type":"array","items":{"type":"object","properties":{"Column":{"type":"string"},"Header":{"type":"string"}}}}}}}}
         """;
 
-    private const string TableReviewInputSchema = """
-        {"type":"object","properties":{
-            "Title":{"type":"string"},
-            "Table":{"type":"object","x-fantoche-type":"table"}}}
-        """;
-
-    private const string TableReviewOutputSchema = """
-        {"type":"object","properties":{
-            "Table":{"type":"object","x-fantoche-type":"table"}}}
-        """;
-
-    /// <summary>Its output, the files kept, is shaped as the one of the PDF task.</summary>
-    private const string FilesReviewInputSchema = """
+    private static string ComposePdfInputSchema => """
         {"type":"object","properties":{
             "Title":{"type":"string"},
+            "Tables":{"type":"array","items":{"type":"object","x-fantoche-type":"table"},"x-fantoche-output":"Tables"},
+            "Document":{<layout>,"x-fantoche-output":"Document"}}}
+        """
+        .Replace("<layout>", PdfLayoutProperties);
+
+    private static string ComposePdfOutputSchema => """
+        {"type":"object","properties":{
+            "Tables":{"type":"array","items":<table>},
+            "Document":{<layout>}}}
+        """
+        .Replace("<table>", TableSchema)
+        .Replace("<layout>", PdfLayoutProperties);
+
+    private static string ExportPdfInputSchema => """
+        {"type":"object","properties":{
+            "Sources":{"type":"array","items":{"type":"object","x-fantoche-type":"table"}},
+            "Document":{<layout>},
+            "FileName":{"type":"string"}}}
+        """
+        .Replace("<layout>", PdfLayoutProperties);
+
+    private const string ExportPdfOutputSchema = """
+        {"type":"object","properties":{
             "Files":{"type":"array","items":{"type":"object","x-fantoche-type":"file","properties":{"Id":{"type":"string"},"Name":{"type":"string"}}}}}}
         """;
 
@@ -389,18 +350,18 @@ internal static class Samples
     /// what it produces : the control itself knows no shape, and anything reading the graph — a run,
     /// or the preview an editor shows of it — reads "$previous" of the first node from there.
     /// </summary>
-    private static GraphControl StartNode(double x, double y, string? schema = null)
+    private static GraphControl StartNode(double x, double y, string schema)
         => Node(
-            new GraphControl(AutomationControl.StartTask) { OutputSchemaJson = schema ?? WorkflowInputSchema },
+            new GraphControl(AutomationControl.StartTask) { OutputSchemaJson = schema },
             "Start", x, y);
 
     /// <summary>
     /// The end of a workflow, declaring what it hands back : what an end reads is the output of the
     /// workflow, so the shape is declared on the node producing it.
     /// </summary>
-    private static GraphControl EndNode(double x, double y, object mapping, string? schema = null)
+    private static GraphControl EndNode(double x, double y, object mapping, string schema)
         => Node(
-            new GraphControl(AutomationControl.EndTask) { InputSchemaJson = schema ?? WorkflowOutputSchema },
+            new GraphControl(AutomationControl.EndTask) { InputSchemaJson = schema },
             "End", x, y, mapping);
 
     private static AutomationTask MakeTask(
@@ -408,8 +369,7 @@ internal static class Samples
         string name,
         string className,
         string inputSchema,
-        string outputSchema,
-        bool passThrough = false)
+        string outputSchema)
         => new AutomationTask()
         {
             Id = id,
@@ -423,7 +383,6 @@ internal static class Samples
             },
             InputSchemaJson = inputSchema,
             OutputSchemaJson = outputSchema,
-            Settings = new TaskSettings() { IsPassingThrough = passThrough }
         };
 
     /// <summary>

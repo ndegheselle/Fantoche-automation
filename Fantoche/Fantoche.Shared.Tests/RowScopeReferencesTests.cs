@@ -15,7 +15,9 @@ public class RowScopeReferencesTests
 {
     private class Parameters
     {
-        [JsonSchemaExtensionData(RowScope.SchemaKey, RowScope.Name)]
+        public TableRef Source { get; set; } = new();
+
+        [JsonSchemaExtensionData(RowScope.SchemaKey, nameof(Source))]
         public List<Condition> Conditions { get; set; } = [];
 
         public object? Other { get; set; }
@@ -26,7 +28,14 @@ public class RowScopeReferencesTests
         public object? Left { get; set; }
     }
 
-    private static readonly JObject Context = new() { ["previous"] = new JObject { ["Value"] = 1 } };
+    private static readonly JObject Context = new()
+    {
+        ["previous"] = new JObject
+        {
+            ["Value"] = 1,
+            ["Orders"] = JObject.FromObject(new { Id = "t", Mapping = new Dictionary<string, string> { ["Amount"] = "total", ["Unit price"] = "price" } }),
+        }
+    };
 
     private static ReferenceReplaceResult Replace(object template, JsonSchema? schema)
         => ReferencesHandler.ReplaceReferences(JToken.FromObject(template), Context, schema);
@@ -80,5 +89,42 @@ public class RowScopeReferencesTests
         ReferenceReplaceResult result = Replace(template, JsonSchema.FromType<Parameters>());
 
         Assert.That(result.Replaced.SelectToken("Conditions[0].Left")?.Value<int>(), Is.EqualTo(1));
+    }
+
+    [Test]
+    public void A_column_its_mapped_table_names_is_left_for_the_task()
+    {
+        var template = new { Source = "$previous.Orders", Conditions = new[] { new { Left = "$row.columns.Amount" } } };
+
+        Assert.That(Replace(template, JsonSchema.FromType<Parameters>()).Errors, Is.Empty);
+    }
+
+    [Test]
+    public void A_column_its_mapped_table_does_not_name_is_an_error()
+    {
+        var template = new { Source = "$previous.Orders", Conditions = new[] { new { Left = "$row.columns.total" } } };
+
+        ReferenceReplaceResult result = Replace(template, JsonSchema.FromType<Parameters>());
+
+        Assert.That(result.Errors, Is.EqualTo(new[] { "[$row.columns.total] : [Source] names no column [total], only Amount, Unit price." }));
+    }
+
+    [Test]
+    public void Without_a_mapping_any_column_is_left_for_the_task()
+    {
+        // Its columns are only known once the task runs.
+        var template = new { Source = new { Id = "t" }, Conditions = new[] { new { Left = "$row.columns.total" } } };
+
+        Assert.That(Replace(template, JsonSchema.FromType<Parameters>()).Errors, Is.Empty);
+    }
+
+    [Test]
+    public void The_names_of_the_mapping_are_offered_as_row_references()
+    {
+        JToken template = JToken.FromObject(new { Source = "$previous.Orders" });
+
+        IReadOnlyList<string> offered = RowTables.Offered(template, [Context], JsonSchema.FromType<Parameters>());
+
+        Assert.That(offered, Is.EquivalentTo(new[] { "$row.columns.Amount", "$row.columns['Unit price']" }));
     }
 }

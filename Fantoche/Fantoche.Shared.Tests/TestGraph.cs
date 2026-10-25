@@ -52,12 +52,12 @@ internal sealed class TestGraph
     /// <summary>
     /// A task node named [name], mapping [mapping] and handing over a sample of [outputSchema].
     /// </summary>
-    public TestGraph Task(string name, string mapping, string outputSchema = "{}")
+    public TestGraph Task(string name, string mapping, string outputSchema = "{}", string inputSchema = "{}")
     {
         AutomationTask task = new(name, Guid.Empty)
         {
             Id = Guid.NewGuid(),
-            InputSchemaJson = "{}",
+            InputSchemaJson = inputSchema,
             OutputSchemaJson = outputSchema,
         };
         _tasks[task.Id] = task;

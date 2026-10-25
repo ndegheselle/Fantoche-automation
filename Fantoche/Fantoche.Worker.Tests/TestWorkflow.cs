@@ -1,7 +1,7 @@
-using Fantoche.Plugins;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Data.Graph;
 using Fantoche.Shared.Data.Scoped;
+using Fantoche.TestPlugins;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NJsonSchema;
