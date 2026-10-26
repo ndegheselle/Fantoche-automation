@@ -169,10 +169,9 @@
 
                                 <!--  Header  -->
                                 <Border
+                                    MinHeight="24"
                                     Background="Transparent"
-                                    Style="{TemplateBinding HeaderContainerStyle}"
-                                    Visibility="{TemplateBinding HasHeader,
-                                                                 Converter={x:Static jonverters:VisibilityConverter.Default}}">
+                                    Style="{TemplateBinding HeaderContainerStyle}">
                                     <ContentPresenter ContentSource="Header" />
                                 </Border>
 
@@ -262,7 +261,6 @@
                     <DataTemplate DataType="{x:Type viewModels:NodeViewModel}">
                         <nodify:Node
                             Footer="{Binding}"
-                            Foreground="{DynamicResource {x:Static joufflu:Brushes.Foreground100Brush}}"
                             Input="{Binding Inputs}"
                             Output="{Binding Outputs}">
                             <!--
@@ -348,14 +346,6 @@
                                             <RotateTransform x:Name="StateIconRotation" />
                                         </jonts:FontIcon.RenderTransform>
                                     </jonts:FontIcon>
-
-                                    <jonts:FontIcon
-                                        Foreground="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}"
-                                        Text="{x:Static jonts:LucideFontIcons.AlertCircle}"
-                                        ToolTip="{Binding ErrorsText}"
-                                        ToolTipService.InitialShowDelay="0"
-                                        ToolTipService.ShowOnDisabled="True"
-                                        Visibility="{Binding HasErrors, Converter={x:Static jonverters:VisibilityConverter.Default}}" />
                                 </StackPanel>
                             </nodify:Node.Header>
 

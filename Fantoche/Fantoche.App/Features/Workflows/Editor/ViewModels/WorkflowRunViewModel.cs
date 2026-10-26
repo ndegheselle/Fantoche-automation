@@ -58,17 +58,6 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
         public bool CanAnswer => DisplayedRun is TaskInstance run
             && (_prompts.AskingFor(run.Id).Count > 0 || _nodes.Any(x => x.State == EnumTaskState.AwaitingUser));
 
-        /// <summary>
-        /// How far the displayed run got, null while no run is displayed. Counted on the nodes it went
-        /// through rather than on the graph : a graph is never walked whole, its branches leaving
-        /// nodes out, so there is no total to progress towards.
-        /// </summary>
-        [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(HasProgress))]
-        private string? _progress;
-
-        public bool HasProgress => !string.IsNullOrEmpty(Progress);
-
         private readonly AutomationWorkflow _workflow;
         private readonly IReadOnlyCollection<NodeViewModel> _nodes;
         private readonly IReadOnlyCollection<ConnectionViewModel> _connections;
@@ -357,7 +346,6 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
             _heldReports.Clear();
             _nodeOfInstance.Clear();
             DisplayedRun = null;
-            Progress = null;
         }
 
         /// <summary>
@@ -428,7 +416,6 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
                 if (_nodeOfInstance.TryGetValue(previousId, out Guid previousNodeId))
                     Traverse(previousNodeId, nodeId);
             }
-            RefreshProgress();
         }
 
         /// <summary>
@@ -443,41 +430,6 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
                 if (connection.Source.Node.Model.Id == previousNodeId && connection.Target.Node.Model.Id == nodeId)
                     connection.IsTraversed = true;
             }
-        }
-
-        partial void OnIsPausingChanged(bool value) => RefreshProgress();
-
-        /// <summary>
-        /// How far the run got, read from the nodes it went through : what it finished, and what it
-        /// still has running.
-        /// </summary>
-        private void RefreshProgress()
-        {
-            int finished = 0;
-            int running = 0;
-            int awaiting = 0;
-            foreach (NodeViewModel node in _nodes)
-            {
-                if (node.State is not EnumTaskState state)
-                    continue;
-
-                if (state == EnumTaskState.AwaitingUser)
-                    awaiting++;
-                else if ((state & EnumTaskState.Finished) != 0)
-                    finished++;
-                else
-                    running++;
-            }
-
-            List<string> parts = [];
-            if (finished > 0 || running > 0)
-                parts.Add($"{finished} done");
-            if (running > 0)
-                parts.Add($"{running} running");
-            if (awaiting > 0)
-                parts.Add($"{awaiting} waiting for you");
-            string? progress = parts.Count == 0 ? null : string.Join(", ", parts);
-            Progress = IsPausing ? $"{progress ?? "Nothing done"}, pausing" : progress;
         }
 
         /// <summary>The followed run is over : the graph turns editable again, and the user is told.</summary>
