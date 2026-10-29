@@ -169,7 +169,7 @@
                 <Rectangle
                     Width="1"
                     VerticalAlignment="Stretch"
-                    Fill="{DynamicResource {x:Static joufflu:Brushes.BorderBrush}}" />
+                    Fill="{DynamicResource {x:Static joufflu:Brushes.DisplayBorderBrush}}" />
                 <Button
                     joolkit:Sizing.IsSquare="True"
                     Command="{Binding SaveCommand}"
