@@ -23,8 +23,7 @@
             <!--  Editor grid, drawn as two levels of lines following the viewport  -->
             <SolidColorBrush
                 x:Key="EditorGridBrush"
-                Opacity="0.8"
-                Color="{DynamicResource {x:Static joufflu:Colors.Border100Color}}" />
+                Color="{DynamicResource {x:Static joufflu:Colors.StrokeColor}}" />
 
             <GeometryDrawing
                 x:Key="SmallGridGeometry"
@@ -223,13 +222,13 @@
     <!--  Drop target of the whole editor, the toolbars over it included, so a node can be dropped anywhere in it  -->
     <Border
         joolkit:DropTarget.Command="{Binding DropCommand, RelativeSource={RelativeSource AncestorType={x:Type local:WorkflowEditor}}}"
-        Background="{DynamicResource {x:Static joufflu:Brushes.BackgroundBrush}}"
+        Background="{DynamicResource {x:Static joufflu:Brushes.BaseBrush}}"
         BorderThickness="{DynamicResource {x:Static joufflu:Dimensions.BorderThickness}}"
         ClipToBounds="True"
         CornerRadius="{DynamicResource {x:Static joufflu:Dimensions.CornerRadius}}">
         <Border.Style>
             <Style TargetType="Border">
-                <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.BorderBrush}}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.DisplayBorderBrush}}" />
                 <Style.Triggers>
                     <!--  True only for a task or a workflow, what the editor refuses never lights the border up  -->
                     <Trigger Property="joolkit:DropTarget.IsDragOver" Value="True">

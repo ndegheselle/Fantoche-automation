@@ -89,7 +89,7 @@
                                             Height="26"
                                             Margin="1"
                                             Background="Transparent"
-                                            BorderBrush="{DynamicResource {x:Static joufflu:Brushes.BorderBrush}}"
+                                            BorderBrush="{DynamicResource {x:Static joufflu:Brushes.DisplayBorderBrush}}"
                                             BorderThickness="1"
                                             CornerRadius="3"
                                             ToolTip="{Binding ToolTip}">
