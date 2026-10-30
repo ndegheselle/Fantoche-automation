@@ -143,47 +143,40 @@
                 <RowDefinition />
             </Grid.RowDefinitions>
             <!--  Path of the selected element.  -->
-            <ScrollViewer
-                Grid.Row="0"
-                MaxWidth="300"
-                HorizontalAlignment="Left"
-                HorizontalScrollBarVisibility="Auto"
-                VerticalScrollBarVisibility="Disabled">
-                <ItemsControl ItemsSource="{Binding Breadcrumb}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate DataType="{x:Type local:ScopedNode}">
-                            <StackPanel Orientation="Horizontal">
-                                <jonts:FontIcon Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}" Text="{x:Static jonts:LucideFontIcons.ChevronRight}">
-                                    <jonts:FontIcon.Style>
-                                        <Style BasedOn="{StaticResource {x:Type jonts:FontIcon}}" TargetType="{x:Type jonts:FontIcon}">
-                                            <Style.Triggers>
-                                                <!--  No separator before the first element of the path.  -->
-                                                <DataTrigger Binding="{Binding Parent}" Value="{x:Null}">
-                                                    <Setter Property="Visibility" Value="Collapsed" />
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </jonts:FontIcon.Style>
-                                </jonts:FontIcon>
-                                <Button
+            <ItemsControl ItemsSource="{Binding Breadcrumb}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type local:ScopedNode}">
+                        <StackPanel Orientation="Horizontal">
+                            <jonts:FontIcon Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}" Text="{x:Static jonts:LucideFontIcons.ChevronRight}">
+                                <jonts:FontIcon.Style>
+                                    <Style BasedOn="{StaticResource {x:Type jonts:FontIcon}}" TargetType="{x:Type jonts:FontIcon}">
+                                        <Style.Triggers>
+                                            <!--  No separator before the first element of the path.  -->
+                                            <DataTrigger Binding="{Binding Parent}" Value="{x:Null}">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </jonts:FontIcon.Style>
+                            </jonts:FontIcon>
+                            <Button
                                     Command="{Binding ViewModel.OpenCommand, RelativeSource={RelativeSource AncestorType={x:Type local:WorkflowsPage}}}"
                                     CommandParameter="{Binding}"
                                     Style="{StaticResource GhostButton}">
-                                    <StackPanel Orientation="Horizontal">
-                                        <jonts:FontIcon DataContext="{Binding Metadata}" Style="{StaticResource ScopedMetadataIcon}" />
-                                        <TextBlock Margin="4,0,0,0" Text="{Binding Name}" />
-                                    </StackPanel>
-                                </Button>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <StackPanel Orientation="Horizontal" />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                </ItemsControl>
-            </ScrollViewer>
+                                <StackPanel Orientation="Horizontal">
+                                    <jonts:FontIcon DataContext="{Binding Metadata}" Style="{StaticResource ScopedMetadataIcon}" />
+                                    <TextBlock Margin="4,0,0,0" Text="{Binding Name}" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+            </ItemsControl>
 
             <ContentControl Grid.Row="1" Content="{Binding Details}" />
         </Grid>

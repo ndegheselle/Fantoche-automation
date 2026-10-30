@@ -16,7 +16,7 @@
     d:DataContext="{d:DesignInstance Type=local:TaskSettingsViewModel}"
     mc:Ignorable="d">
 
-    <Grid Margin="0,4,0,0" joolkit:Spacing.Gap="2">
+    <Grid joolkit:Spacing.Gap="2">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
             <RowDefinition />

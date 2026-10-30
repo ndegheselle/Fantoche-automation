@@ -118,21 +118,19 @@
     </Style>
 
     <Style BasedOn="{StaticResource {x:Type nodify:NodeInput}}" TargetType="{x:Type nodify:NodeInput}">
-        <Setter Property="Background" Value="{DynamicResource {x:Static joufflu:Brushes.DisplaySurface1Brush}}" />
-        <Setter Property="BorderBrush" Value="{StaticResource Nodify.MutedBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.StrokeBrush}}" />
         <Setter Property="Foreground" Value="{DynamicResource {x:Static joufflu:Brushes.ForegroundBrush}}" />
     </Style>
 
     <Style BasedOn="{StaticResource {x:Type nodify:NodeOutput}}" TargetType="{x:Type nodify:NodeOutput}">
-        <Setter Property="Background" Value="{DynamicResource {x:Static joufflu:Brushes.DisplaySurface1Brush}}" />
-        <Setter Property="BorderBrush" Value="{StaticResource Nodify.MutedBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.StrokeBrush}}" />
         <Setter Property="Foreground" Value="{DynamicResource {x:Static joufflu:Brushes.ForegroundBrush}}" />
     </Style>
 
     <!--  Connections  -->
     <Style BasedOn="{StaticResource {x:Type nodify:Connection}}" TargetType="{x:Type nodify:Connection}">
-        <Setter Property="Stroke" Value="{StaticResource Nodify.MutedBrush}" />
-        <Setter Property="Fill" Value="{StaticResource Nodify.MutedBrush}" />
+        <Setter Property="Stroke" Value="{DynamicResource {x:Static joufflu:Brushes.StrokeBrush}}" />
+        <Setter Property="Fill" Value="{DynamicResource {x:Static joufflu:Brushes.StrokeBrush}}" />
     </Style>
 
     <Style BasedOn="{StaticResource {x:Type nodify:LineConnection}}" TargetType="{x:Type nodify:LineConnection}">
