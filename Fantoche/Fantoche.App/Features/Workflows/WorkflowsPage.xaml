@@ -33,7 +33,7 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <Grid Margin="{StaticResource {x:Static joufflu:Dimensions.SpacingThickness}}" joolkit:Spacing.Gap="2">
+    <Grid Margin="{StaticResource {x:Static joufflu:Dimensions.Spacing}}" joolkit:Spacing.Gap="2">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="200" />
             <ColumnDefinition Width="*" />

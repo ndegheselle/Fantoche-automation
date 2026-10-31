@@ -22,7 +22,7 @@
             <Setter Property="CommandTarget" Value="{Binding Editor, RelativeSource={RelativeSource AncestorType={x:Type local:EditorOverlay}}}" />
         </Style>
     </UserControl.Resources>
-    <Grid Margin="{DynamicResource {x:Static joufflu:Dimensions.SpacingThickness}}">
+    <Grid Margin="{DynamicResource {x:Static joufflu:Dimensions.Spacing}}">
         <!--
             Execution : start or resume while nothing runs, pause or stop while a run is followed. A
             paused run can also be stopped, given up on rather than resumed.

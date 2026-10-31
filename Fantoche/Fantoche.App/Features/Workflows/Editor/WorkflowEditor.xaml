@@ -20,10 +20,11 @@
                 <ResourceDictionary Source="pack://application:,,,/Fantoche.App;component/Features/Workflows/Controls/ScopedIcon.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
-            <!--  Editor grid, drawn as two levels of lines following the viewport  -->
+            <!--  Editor grid, drawn as two levels of lines following the viewport, as strong as a Joufflu border  -->
             <SolidColorBrush
                 x:Key="EditorGridBrush"
-                Color="{DynamicResource {x:Static joufflu:Colors.StrokeColor}}" />
+                Opacity="0.1"
+                Color="{DynamicResource {x:Static joufflu:Colors.ForegroundColor}}" />
 
             <GeometryDrawing
                 x:Key="SmallGridGeometry"
@@ -223,10 +224,10 @@
     <!--  Drop target of the whole editor, the toolbars over it included, so a node can be dropped anywhere in it  -->
     <Border
         joolkit:DropTarget.Command="{Binding DropCommand, RelativeSource={RelativeSource AncestorType={x:Type local:WorkflowEditor}}}"
-        Background="{DynamicResource {x:Static joufflu:Brushes.BaseBrush}}"
-        BorderThickness="{DynamicResource {x:Static joufflu:Dimensions.BorderThickness}}"
+        Background="{DynamicResource {x:Static joufflu:Brushes.Base0Brush}}"
+        BorderThickness="{DynamicResource {x:Static joufflu:Dimensions.Thickness}}"
         ClipToBounds="True"
-        CornerRadius="{DynamicResource {x:Static joufflu:Dimensions.CornerRadius}}">
+        CornerRadius="{DynamicResource {x:Static joufflu:Dimensions.Radius}}">
         <Border.Style>
             <Style TargetType="Border">
                 <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.DisplayBorderBrush}}" />

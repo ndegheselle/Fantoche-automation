@@ -31,7 +31,7 @@
                         <Grid VerticalAlignment="Top" Visibility="{Binding HasTarget, Converter={x:Static jonverters:VisibilityConverter.Default}}">
                             <controls:PackageTargetSummary DataContext="{Binding Target}" />
                             <Button
-                                Margin="{StaticResource {x:Static joufflu:Dimensions.SpacingThickness}}"
+                                Margin="{StaticResource {x:Static joufflu:Dimensions.Spacing}}"
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Top"
                                 joolkit:Sizing.IsSquare="True"

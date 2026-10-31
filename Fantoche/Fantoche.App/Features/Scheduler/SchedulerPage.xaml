@@ -19,7 +19,7 @@
         <GridLength x:Key="DayLabelWidth">90</GridLength>
     </UserControl.Resources>
 
-    <Grid Margin="{StaticResource {x:Static joufflu:Dimensions.SpacingThickness}}" joolkit:Spacing.Gap="8">
+    <Grid Margin="{StaticResource {x:Static joufflu:Dimensions.Spacing}}" joolkit:Spacing.Gap="8">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
