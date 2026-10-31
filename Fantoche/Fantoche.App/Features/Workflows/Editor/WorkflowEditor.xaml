@@ -451,7 +451,8 @@
                                         </MenuItem.Icon>
                                     </MenuItem>
                                     <MenuItem
-                                        Command="{Binding Tag.Run.AnswerCommand}"
+                                        Command="{Binding Tag.Run.AnswerNodeCommand}"
+                                        CommandParameter="{Binding DataContext}"
                                         Header="Answer"
                                         Visibility="{Binding DataContext.IsAwaitingUser, Converter={x:Static jonverters:VisibilityConverter.Default}}">
                                         <MenuItem.Icon>

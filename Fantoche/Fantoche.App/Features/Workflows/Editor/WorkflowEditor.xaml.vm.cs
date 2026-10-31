@@ -351,7 +351,7 @@ namespace Fantoche.App.Features.Workflows.Editor
 
             if (node.IsAwaitingUser)
             {
-                await Run.AnswerCommand.ExecuteAsync(null);
+                await Run.AnswerNodeCommand.ExecuteAsync(node);
                 return;
             }
 

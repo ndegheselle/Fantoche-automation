@@ -25,14 +25,14 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
     {
         /// <summary>The run drawn on the graph, null while none is.</summary>
         [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(CanResume), nameof(CanStop), nameof(CanAnswer))]
-        [NotifyCanExecuteChangedFor(nameof(StopCommand), nameof(ResumeCommand), nameof(AnswerCommand))]
+        [NotifyPropertyChangedFor(nameof(CanResume), nameof(CanStop))]
+        [NotifyCanExecuteChangedFor(nameof(StopCommand), nameof(ResumeCommand))]
         private TaskInstance? _displayedRun;
 
         /// <summary>Whether the displayed run is followed as it runs, the graph being read only meanwhile.</summary>
         [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(CanResume), nameof(CanStop), nameof(CanAnswer))]
-        [NotifyCanExecuteChangedFor(nameof(StartCommand), nameof(StopCommand), nameof(PauseCommand), nameof(ResumeCommand), nameof(AnswerCommand))]
+        [NotifyPropertyChangedFor(nameof(CanResume), nameof(CanStop))]
+        [NotifyCanExecuteChangedFor(nameof(StartCommand), nameof(StopCommand), nameof(PauseCommand), nameof(ResumeCommand))]
         private bool _isRunning;
 
         /// <summary>A pause was asked for : the nodes running finish, no other starts.</summary>
@@ -50,13 +50,6 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
 
         /// <summary>Whether there is a run to stop : the one followed, or one waiting to be resumed.</summary>
         public bool CanStop => IsRunning || CanResume;
-
-        /// <summary>
-        /// Whether a node of the displayed run waits for the user : asking in this application, or
-        /// waiting at the supervisor for a user to take it.
-        /// </summary>
-        public bool CanAnswer => DisplayedRun is TaskInstance run
-            && (_prompts.AskingFor(run.Id).Count > 0 || _nodes.Any(x => x.State == EnumTaskState.AwaitingUser));
 
         private readonly AutomationWorkflow _workflow;
         private readonly IReadOnlyCollection<NodeViewModel> _nodes;
@@ -89,6 +82,9 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
         /// it carries on from by their ids, which is what the branches are drawn from.
         /// </summary>
         private readonly Dictionary<Guid, Guid> _nodeOfInstance = [];
+
+        /// <summary>The last instance of each node of the run, by node id : what answering a node opens.</summary>
+        private readonly Dictionary<Guid, TaskInstance> _instanceOfNode = [];
 
         public WorkflowRunViewModel(
             AutomationWorkflow workflow,
@@ -234,23 +230,22 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
         }
 
         /// <summary>
-        /// Open the page of a task of the displayed run waiting for the user, taking it first when it
-        /// waits at the supervisor : the run carries on as soon as it is answered, the graph
-        /// following it. Several waiting, the first one opens.
+        /// Open the page of one node of the displayed run waiting for the user, taking it first when
+        /// it waits at the supervisor.
         /// </summary>
-        [RelayCommand(CanExecute = nameof(CanAnswer))]
-        private async Task Answer()
+        [RelayCommand]
+        private async Task AnswerNode(NodeViewModel? node)
         {
-            if (DisplayedRun is not TaskInstance run)
+            if (node == null || !_instanceOfNode.TryGetValue(node.Model.Id, out TaskInstance? instance))
                 return;
 
             try
             {
-                await _prompts.AnswerAsync(run);
+                await _prompts.AnswerAsync(instance);
             }
             catch (Exception exception)
             {
-                _toasts.Error(exception.Message, $"The workflow '{_workflow.Metadata.Name}' could not be answered");
+                _toasts.Error(exception.Message, $"'{node.Name}' could not be answered");
             }
         }
 
@@ -274,12 +269,6 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
         {
             if (IsRunning && DisplayedRun is TaskInstance run && request.RunId == run.Id)
                 _ = OpenAsync(request);
-        });
-
-        private void OnAskingChanged() => Ui.Post(() =>
-        {
-            OnPropertyChanged(nameof(CanAnswer));
-            AnswerCommand.NotifyCanExecuteChanged();
         });
 
         /// <summary>
@@ -345,6 +334,7 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
 
             _heldReports.Clear();
             _nodeOfInstance.Clear();
+            _instanceOfNode.Clear();
             DisplayedRun = null;
         }
 
@@ -410,7 +400,7 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
                 instance.State == EnumTaskState.Failed ? instance.Output?.ToString() ?? "The execution failed." : null);
 
             _nodeOfInstance[instance.Id] = nodeId;
-            OnAskingChanged();
+            _instanceOfNode[nodeId] = instance;
             foreach (Guid previousId in instance.PreviousIds)
             {
                 if (_nodeOfInstance.TryGetValue(previousId, out Guid previousNodeId))
@@ -489,7 +479,6 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
             _history.InstanceAdded += OnInstanceReported;
             _history.InstanceUpdated += OnInstanceReported;
             _prompts.Asked += OnAsked;
-            _prompts.AskingChanged += OnAskingChanged;
             IsRunning = true;
         }
 
@@ -502,7 +491,6 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
             _history.InstanceAdded -= OnInstanceReported;
             _history.InstanceUpdated -= OnInstanceReported;
             _prompts.Asked -= OnAsked;
-            _prompts.AskingChanged -= OnAskingChanged;
             IsRunning = false;
             IsPausing = false;
         }
