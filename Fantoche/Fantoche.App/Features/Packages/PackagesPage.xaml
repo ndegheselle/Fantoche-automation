@@ -14,7 +14,7 @@
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
-    <Grid Margin="{StaticResource {x:Static joufflu:Dimensions.SpacingThickness}}" joolkit:Spacing.Gap="4">
+    <Grid Margin="{StaticResource {x:Static joufflu:Dimensions.Spacing}}" joolkit:Spacing.Gap="4">
         <Grid.RowDefinitions>
             <RowDefinition Height="3*" />
             <RowDefinition />
@@ -71,8 +71,8 @@
             joolkit:DropTarget.Command="{Binding DropFilesCommand}"
             AllowDrop="True"
             Background="Transparent"
-            BorderThickness="{DynamicResource {x:Static joufflu:Dimensions.BorderThickness}}"
-            CornerRadius="{DynamicResource {x:Static joufflu:Dimensions.CornerRadius}}">
+            BorderThickness="{DynamicResource {x:Static joufflu:Dimensions.Thickness}}"
+            CornerRadius="{DynamicResource {x:Static joufflu:Dimensions.Radius}}">
 
             <Border.Style>
                 <Style TargetType="Border">
