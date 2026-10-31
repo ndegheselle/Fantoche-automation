@@ -407,7 +407,7 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
             node.Follow(
                 instance.State,
                 finished && instance.FinishedAt is DateTime end ? end - instance.CreatedAt : null,
-                instance.State == EnumTaskState.Failed ? FirstLine(instance.Output?.ToString()) : null);
+                instance.State == EnumTaskState.Failed ? instance.Output?.ToString() ?? "The execution failed." : null);
 
             _nodeOfInstance[instance.Id] = nodeId;
             OnAskingChanged();

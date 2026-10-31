@@ -317,7 +317,7 @@ namespace Fantoche.App.Features.Workflows.Editor
         /// it falls back on the selected one, the command being shared by the double click on a node
         /// and the editor toolbar.
         /// </summary>
-        [RelayCommand(CanExecute = nameof(CanActOn))]
+        [RelayCommand(CanExecute = nameof(CanOpenSettings))]
         private async Task OpenSettings(NodeViewModel? node)
         {
             node = Target(node);
@@ -325,9 +325,42 @@ namespace Fantoche.App.Features.Workflows.Editor
                 return;
 
             IReversibleAction? edition = await TaskSettingsViewModel.ShowAsync(node.Model, Preview);
-            if (edition != null)
+
+            // Readable while a run is followed, but what runs has to stay what is displayed.
+            if (edition != null && IsEditable)
                 History.Apply(edition);
         }
+
+        private bool CanOpenSettings(NodeViewModel? node) => node != null || SelectedNodes.Count == 1;
+
+        /// <summary>
+        /// What a double click on a node does : read the error of a node that failed, answer the page
+        /// of one waiting for the user, open the settings otherwise.
+        /// </summary>
+        [RelayCommand]
+        private async Task OpenNode(NodeViewModel? node)
+        {
+            if (node == null)
+                return;
+
+            if (node.HasFailure)
+            {
+                await NodeErrorViewModel.ShowAsync(node.Name, node.Failure!);
+                return;
+            }
+
+            if (node.IsAwaitingUser)
+            {
+                await Run.AnswerCommand.ExecuteAsync(null);
+                return;
+            }
+
+            await OpenSettings(node);
+        }
+
+        [RelayCommand]
+        private Task ShowError(NodeViewModel? node)
+            => node?.Failure == null ? Task.CompletedTask : NodeErrorViewModel.ShowAsync(node.Name, node.Failure);
 
         /// <summary>
         /// Whether [node], or the selection it falls back on, can be acted upon : one node has to be

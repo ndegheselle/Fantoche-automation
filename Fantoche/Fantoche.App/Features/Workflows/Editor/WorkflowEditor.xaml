@@ -148,6 +148,7 @@
                         <Setter Property="Foreground" Value="{DynamicResource {x:Static joufflu:Brushes.WarningBrush}}" />
                     </DataTrigger>
                     <DataTrigger Binding="{Binding State}" Value="AwaitingUser">
+                        <Setter Property="FontSize" Value="{DynamicResource {x:Static joufflu:Dimensions.FontSizeXl}}" />
                         <Setter Property="Text" Value="{x:Static jonts:LucideFontIcons.UserPen}" />
                         <Setter Property="Foreground" Value="{DynamicResource {x:Static joufflu:Brushes.WarningBrush}}" />
                     </DataTrigger>
@@ -310,7 +311,7 @@
                             <nodify:Node.InputBindings>
                                 <!--  The editor holds the command, the node only knowing its own view model  -->
                                 <MouseBinding
-                                    Command="{Binding DataContext.OpenSettingsCommand, RelativeSource={RelativeSource AncestorType={x:Type nodify:NodifyEditor}}}"
+                                    Command="{Binding DataContext.OpenNodeCommand, RelativeSource={RelativeSource AncestorType={x:Type nodify:NodifyEditor}}}"
                                     CommandParameter="{Binding}"
                                     Gesture="LeftDoubleClick" />
                             </nodify:Node.InputBindings>
@@ -341,7 +342,7 @@
                                     joolkit:Spacing.Gap="4"
                                     Orientation="Horizontal">
                                     <!--  Where the node stands in the run being followed, nothing while none is  -->
-                                    <jonts:FontIcon Style="{StaticResource NodeStateIcon}">
+                                    <jonts:FontIcon x:Name="StateIcon" Style="{StaticResource NodeStateIcon}">
                                         <jonts:FontIcon.RenderTransform>
                                             <!--  Turned while the node is progressing. Named so the animation reaches it, and declared here rather than by the style so each node turns on its own  -->
                                             <RotateTransform x:Name="StateIconRotation" />
@@ -392,6 +393,29 @@
                                     <StopStoryboard BeginStoryboardName="SpinStateIcon" />
                                 </DataTrigger.ExitActions>
                             </DataTrigger>
+                            <!--
+                                A node waiting for the user is the one holding the run up : its icon
+                                pulses so it is seen from afar, whatever the outline color it shares.
+                            -->
+                            <DataTrigger Binding="{Binding State}" Value="AwaitingUser">
+                                <DataTrigger.EnterActions>
+                                    <BeginStoryboard x:Name="PulseStateIcon">
+                                        <Storyboard>
+                                            <DoubleAnimation
+                                                AutoReverse="True"
+                                                RepeatBehavior="Forever"
+                                                Storyboard.TargetName="StateIcon"
+                                                Storyboard.TargetProperty="Opacity"
+                                                From="1"
+                                                To="0.3"
+                                                Duration="0:0:0.7" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </DataTrigger.EnterActions>
+                                <DataTrigger.ExitActions>
+                                    <StopStoryboard BeginStoryboardName="PulseStateIcon" />
+                                </DataTrigger.ExitActions>
+                            </DataTrigger>
                         </DataTemplate.Triggers>
                     </DataTemplate>
                 </nodify:NodifyEditor.Resources>
@@ -417,6 +441,23 @@
                         <Setter Property="ContextMenu">
                             <Setter.Value>
                                 <ContextMenu DataContext="{Binding PlacementTarget, RelativeSource={RelativeSource Self}}">
+                                    <MenuItem
+                                        Command="{Binding Tag.ShowErrorCommand}"
+                                        CommandParameter="{Binding DataContext}"
+                                        Header="Show error"
+                                        Visibility="{Binding DataContext.HasFailure, Converter={x:Static jonverters:VisibilityConverter.Default}}">
+                                        <MenuItem.Icon>
+                                            <jonts:FontIcon Foreground="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}" Text="{x:Static jonts:LucideFontIcons.AlertCircle}" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem
+                                        Command="{Binding Tag.Run.AnswerCommand}"
+                                        Header="Answer"
+                                        Visibility="{Binding DataContext.IsAwaitingUser, Converter={x:Static jonverters:VisibilityConverter.Default}}">
+                                        <MenuItem.Icon>
+                                            <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.UserPen}" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
                                     <MenuItem
                                         Command="{Binding Tag.OpenSettingsCommand}"
                                         CommandParameter="{Binding DataContext}"
