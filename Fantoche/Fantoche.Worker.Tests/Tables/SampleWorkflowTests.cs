@@ -54,7 +54,8 @@ internal sealed class SampleWorkflowTests
     public void Sample_FitsTheSchemasOfItsTasks()
     {
         List<string> errors = [];
-        foreach (GraphTask node in _workflow.Graph.Nodes.OfType<GraphTask>())
+        // A page has no mapping of its own : it is handed the parameters of its task.
+        foreach (GraphTask node in _workflow.Graph.Nodes.OfType<GraphTask>().Where(x => x is not GraphUserInterface))
         {
             List<NodePreviewContext> contexts = _preview.NodesContexts.GetValueOrDefault(node.Id) ?? [];
             JToken mapping = JToken.Parse(node.InputTemplateJson!);

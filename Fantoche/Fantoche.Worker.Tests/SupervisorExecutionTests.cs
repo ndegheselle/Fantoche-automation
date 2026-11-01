@@ -57,7 +57,7 @@ internal sealed class SupervisorExecutionTests
     /// <summary>The user of the application, answering the pages as <see cref="_answer"/> says.</summary>
     private ScriptedUser _user = null!;
     private Func<PageRequest, CancellationToken, Task<JToken?>> _answer = null!;
-    private static readonly JToken Reordered = JToken.FromObject(new { Items = new[] { "b", "a" } });
+    private static readonly JToken Reordered = JToken.FromObject(new { Title = "Sort them", Items = new[] { "b", "a" } });
 
     public SupervisorExecutionTests(Mode mode)
     {
@@ -235,20 +235,25 @@ internal sealed class SupervisorExecutionTests
     }
 
     /// <summary>
-    /// A stored workflow asking the user to reorder its items : <c>Start ─> Ask ─> End</c>, and
-    /// the stored task it asks with.
+    /// A stored workflow asking the user to reorder its items : <c>Start ─> Ask ─> End</c>, its
+    /// page attached under Ask, and the stored page.
     /// </summary>
-    private async Task<(AutomationWorkflow Workflow, AutomationTask Reorder)> StoreAskAsync()
+    private async Task<(AutomationWorkflow Workflow, AutomationTask Page)> StoreAskAsync()
     {
         AutomationTask reorder = await StoreAsync(PluginTasks.Make(
             "Fantoche.Plugins.UserInterfaces.ReorderTask", "Reorder",
             JsonSchema.FromType<Plugins.UserInterfaces.ReorderParameters>(), JsonSchema.FromType<Plugins.UserInterfaces.ReorderResult>()));
+        AutomationTask page = await StoreAsync(PluginTasks.Make(
+            "Fantoche.Plugins.UserInterfaces.ReorderUi", "Reorder page",
+            JsonSchema.FromType<Plugins.UserInterfaces.ReorderParameters>(), JsonSchema.FromType<Plugins.UserInterfaces.ReorderParameters>(),
+            isPage: true));
         TestWorkflow ask = new TestWorkflow("Ask", requireOutput: false)
             .Start()
-            .Task("Ask", reorder, new { Title = "Sort them", Items = "$previous.Items", AskUser = true })
+            .Task("Ask", reorder, new { Title = "Sort them", Items = "$previous.Items" })
             .End(new { Items = "$previous.Items" })
-            .Chain("Start", "Ask", "End");
-        return (await StoreAsync(ask.Workflow), reorder);
+            .Chain("Start", "Ask", "End")
+            .Ui("Page", page, of: "Ask");
+        return (await StoreAsync(ask.Workflow), page);
     }
 
     /// <summary>The ask workflow dispatched to the workers, as a schedule starts it : its outcome.</summary>
@@ -812,12 +817,15 @@ internal sealed class SupervisorExecutionTests
             JsonSchema.FromType<ImportCsvParameters>(), JsonSchema.FromType<TableRef>(), package: PluginTasks.TablesPackage));
         AutomationTask map = await StoreAsync(PluginTasks.Make(typeof(MapColumnsTask).FullName!, "MapColumns",
             JsonSchema.FromType<MapColumnsParameters>(), JsonSchema.FromType<TableRef>(), package: PluginTasks.TablesPackage));
+        AutomationTask mapPage = await StoreAsync(PluginTasks.Make(typeof(MapColumnsUi).FullName!, "MapColumnsUi",
+            JsonSchema.FromType<MapColumnsParameters>(), JsonSchema.FromType<MapColumnsParameters>(), package: PluginTasks.TablesPackage, isPage: true));
         TestWorkflow tables = new TestWorkflow("Pick", requireOutput: false)
             .Start()
             .Task("Import", import, new { Path = "$previous.Path" })
-            .Task("Map", map, new { Source = "$previous", Columns = new[] { new { Name = "When", Column = "" } }, AskUser = true })
+            .Task("Map", map, new { Source = "$previous", Columns = new[] { new { Name = "When", Column = "" } } })
             .End(new { Table = "$previous" })
-            .Chain("Start", "Import", "Map", "End");
+            .Chain("Start", "Import", "Map", "End")
+            .Ui("Map page", mapPage, of: "Map");
         AutomationWorkflow workflow = await StoreAsync(tables.Workflow);
         string csv = Path.Combine(_folder, "orders.csv");
         await File.WriteAllTextAsync(csv, "order,ordered on\nA,2026-03-01\nB,2026-03-02\n");

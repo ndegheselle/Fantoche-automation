@@ -87,6 +87,16 @@
                                 <TextBlock Margin="8,0,0,0">Add a task</TextBlock>
                             </StackPanel>
                         </Button>
+                        <!--  Only under a task : a page asks the user for the parameters of the task it hangs under.  -->
+                        <Button
+                            HorizontalContentAlignment="Left"
+                            Command="{Binding CreateUiCommand}"
+                            Style="{StaticResource GhostButton}">
+                            <StackPanel Orientation="Horizontal">
+                                <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.AppWindow}" />
+                                <TextBlock Margin="8,0,0,0">Add a page to the task</TextBlock>
+                            </StackPanel>
+                        </Button>
                     </StackPanel>
                 </jnputs:Dropdown.Popup>
             </ToggleButton>

@@ -20,12 +20,21 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
 
         public string Name => Model.Metadata.Name;
 
-        /// <summary>Whether the node waits for the user to answer a page rather than running.</summary>
-        public bool IsUserInterface => (Model.AutomationTask as AutomationTask)?.Target?.IsUserInterface == true;
+        /// <summary>
+        /// Whether the node is a page asking the user for the parameters of the task it plugs into :
+        /// drawn round, apart from the branches.
+        /// </summary>
+        public bool IsUserInterface => Model is GraphUserInterface;
 
         public ObservableCollection<ConnectorViewModel> Inputs { get; } = [];
 
         public ObservableCollection<ConnectorViewModel> Outputs { get; } = [];
+
+        /// <summary>Under a task, where its page plugs. Null for a page and the nodes taking none.</summary>
+        public ConnectorViewModel? UserInterfaceSlot { get; }
+
+        /// <summary>On top of a page, what plugs into the slot of its task. Null for any other node.</summary>
+        public ConnectorViewModel? UserInterfacePlug { get; }
 
         [ObservableProperty] private Point _location;
         [ObservableProperty] private bool _isSelected;
@@ -132,9 +141,22 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
                 Inputs.Add(new ConnectorViewModel(this, input, isOutput: false));
             foreach (GraphConnector output in model.Outputs)
                 Outputs.Add(new ConnectorViewModel(this, output, isOutput: true));
+
+            // The slot is where the attachment starts from, as an output is for a branch.
+            if (model.UserInterface is GraphConnector userInterface && IsUserInterface)
+                UserInterfacePlug = new ConnectorViewModel(this, userInterface, isOutput: false, isUserInterface: true);
+            else if (model.UserInterface is GraphConnector slot)
+                UserInterfaceSlot = new ConnectorViewModel(this, slot, isOutput: true, isUserInterface: true);
         }
 
-        public IEnumerable<ConnectorViewModel> Connectors => Inputs.Concat(Outputs);
+        public IEnumerable<ConnectorViewModel> Connectors
+        {
+            get
+            {
+                IEnumerable<ConnectorViewModel> userInterface = new[] { UserInterfaceSlot, UserInterfacePlug }.OfType<ConnectorViewModel>();
+                return Inputs.Concat(Outputs).Concat(userInterface);
+            }
+        }
 
         partial void OnLocationChanged(Point value)
         {

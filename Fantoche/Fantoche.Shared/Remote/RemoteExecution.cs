@@ -29,7 +29,7 @@ public class RemoteExecution
 
     /// <summary>
     /// For a task asking the user, handed over by the worker running its run : that run, whose
-    /// storage it uses (see <see cref="Data.Execution.UserInterfaceSwitch"/>). Null for a whole run.
+    /// storage it uses (see <see cref="Data.Scoped.AutomationTask.IsUserInterface"/>). Null for a whole run.
     /// </summary>
     public Guid? RunId { get; init; }
 

@@ -104,8 +104,8 @@ public class LocalTaskExecutor : ITaskExecutor
         if (automationTask.Target is not PackageClassTarget target)
             throw new ExecutionException("Task target is not a package.");
 
-        // Asking the user, it runs where the user is : a worker hands it to an application.
-        bool asksUser = UserInterfaceSwitch.IsOn(automationTask, instance.Parameters);
+        // A page runs where the user is : a worker hands it to an application.
+        bool asksUser = automationTask.IsUserInterface;
         if (asksUser && _users.Pages == null)
         {
             ITaskExecutor applications = _users.Applications
@@ -145,7 +145,7 @@ public class LocalTaskExecutor : ITaskExecutor
     private async Task<PageSession> PageOfAsync(ITask task, PackageClassTarget target, TaskInstance instance, TaskInstancesProgress? progress)
     {
         if (task is not IUserInterfaceTask)
-            throw new ExecutionException($"'{instance.NodeName}' asks the user, but its task has no page.");
+            throw new ExecutionException($"'{instance.NodeName}' is a page, but its task has none.");
 
         string folder = await _tasks.GetPageFolderAsync(target);
         return new PageSession(_users.Pages!, folder, task, instance, _runId, _storage, progress?.StateChanges);

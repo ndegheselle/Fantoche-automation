@@ -37,7 +37,7 @@ list.addEventListener('dragover', event => {
 document.getElementById('confirm').addEventListener('click', async () => {
     const items = [...list.children].map(row => row.textContent);
     try {
-        await fantoche.answer({ Items: items });
+        await fantoche.answer({ ...fantoche.input, Items: items });
     } catch (refused) {
         error.textContent = refused.message;
         error.hidden = false;

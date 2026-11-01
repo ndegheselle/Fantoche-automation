@@ -47,6 +47,12 @@ namespace Fantoche.Shared.Data.Graph
                     connectors.Add(connector.Id, connector);
                     connector.Parent = taskNode;
                 }
+
+                if (taskNode.UserInterface is GraphConnector userInterface)
+                {
+                    connectors.Add(userInterface.Id, userInterface);
+                    userInterface.Parent = taskNode;
+                }
             }
 
             // Set connections with corresponding connectors
@@ -137,6 +143,18 @@ namespace Fantoche.Shared.Data.Graph
         }
 
         /// <summary>
+        /// Attach [page] under [task] : the user is asked the parameters of the task before it runs.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">The page can't be attached, see <see cref="CanConnect"/>.</exception>
+        public void Attach(BaseGraphTask task, GraphUserInterface page)
+        {
+            if (task.UserInterface == null || page.UserInterface == null || !CanConnect(task.UserInterface, page.UserInterface))
+                throw new InvalidOperationException($"'{page.Name}' can't be attached to '{task.Name}'.");
+
+            Connections.Add(new GraphConnection(task.UserInterface, page.UserInterface));
+        }
+
+        /// <summary>
         /// Whether [source] can be connected to [target] : an output and an input held by two
         /// different nodes of this graph, not already connected together.
         /// <para>
@@ -146,6 +164,9 @@ namespace Fantoche.Shared.Data.Graph
         /// </summary>
         public bool CanConnect(GraphConnector source, GraphConnector target)
         {
+            if (FindNode(x => OptionalList(x.UserInterface), source) != null)
+                return CanAttach(source, target);
+
             // Resolved by id rather than through GraphConnector.Parent, which is only set once
             // Refresh() has run.
             BaseGraphTask? sourceNode = FindNode(x => x.Outputs, source);
@@ -156,6 +177,56 @@ namespace Fantoche.Shared.Data.Graph
                 return false;
 
             return !Connections.Any(x => x.SourceId == source.Id && x.TargetId == target.Id);
+        }
+
+        /// <summary>
+        /// Whether the page plugged by [plug] can be attached to the task holding the slot [slot] :
+        /// the page edits the parameters of the task, so both read the same ones. A task asks a
+        /// single page, and a page is asked by a single task.
+        /// </summary>
+        private bool CanAttach(GraphConnector slot, GraphConnector plug)
+        {
+            BaseGraphTask? task = FindNode(x => OptionalList(x.UserInterface), slot);
+            BaseGraphTask? page = FindNode(x => OptionalList(x.UserInterface), plug);
+
+            // Dragged the wrong way around : a slot only takes a page.
+            if (task is null or GraphUserInterface || page is not GraphUserInterface)
+                return false;
+
+            bool isTaken = Connections.Any(x => x.SourceId == slot.Id || x.TargetId == plug.Id);
+            return !isTaken && task.InputSchemaJson == page.InputSchemaJson;
+        }
+
+        private static IEnumerable<GraphConnector> OptionalList(GraphConnector? connector)
+            => connector == null ? [] : [connector];
+
+        /// <summary>
+        /// The page asking the user for the parameters of [task] before it runs, null when it runs
+        /// unattended.
+        /// </summary>
+        public GraphUserInterface? GetUserInterfaceOf(BaseGraphTask task)
+        {
+            if (task.UserInterface == null || task is GraphUserInterface)
+                return null;
+
+            GraphConnection? attachment = Connections.FirstOrDefault(x => x.SourceId == task.UserInterface.Id);
+            if (attachment == null)
+                return null;
+
+            return Nodes.OfType<GraphUserInterface>().FirstOrDefault(x => x.UserInterface?.Id == attachment.TargetId);
+        }
+
+        /// <summary>The task [page] asks the parameters of, null while it is attached to none.</summary>
+        public BaseGraphTask? GetTaskAskedBy(GraphUserInterface page)
+        {
+            if (page.UserInterface == null)
+                return null;
+
+            GraphConnection? attachment = Connections.FirstOrDefault(x => x.TargetId == page.UserInterface.Id);
+            if (attachment == null)
+                return null;
+
+            return Nodes.OfType<BaseGraphTask>().FirstOrDefault(x => x.UserInterface?.Id == attachment.SourceId);
         }
 
         /// <summary>

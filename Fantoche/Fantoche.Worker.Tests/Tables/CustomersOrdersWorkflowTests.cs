@@ -57,7 +57,7 @@ internal sealed class CustomersOrdersWorkflowTests
         });
     }
 
-    /// <summary><c>Start ─> Import ─> Map (asking the user) ─> End</c></summary>
+    /// <summary><c>Start ─> Import ─> Map ─> End</c>, the page of Map attached under it.</summary>
     private static TestWorkflow BuildMapAskingTheUser() => new TestWorkflow("Map", requireOutput: false)
         .Start()
         .Task("Import", PluginTasks.ImportCsv, new { Path = "$previous.Path" })
@@ -65,10 +65,10 @@ internal sealed class CustomersOrdersWorkflowTests
         {
             Source = "$previous",
             Columns = new[] { new { Name = "CustomerId", Column = "" }, new { Name = "Name", Column = "" } },
-            AskUser = true,
         })
         .End(new { Table = "$previous" })
-        .Chain("Start", "Import", "Map", "End");
+        .Chain("Start", "Import", "Map", "End")
+        .Ui("Map page", PluginTasks.MapColumnsUi, of: "Map");
 
     private Task<WorkflowRun> RunMapAsync(ScriptedUser user)
     {

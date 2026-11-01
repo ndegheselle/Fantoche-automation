@@ -18,7 +18,7 @@ namespace Fantoche.Services.Local;
 /// (a hub of the supervisor API, or a call in the same process).
 /// </para>
 /// <para>
-/// A task asking the user (see <see cref="UserInterfaceSwitch"/>) is handed to an application
+/// A page task (see <see cref="AutomationTask.IsUserInterface"/>) is handed to an application
 /// rather than to a worker : the worker running its run sends it as any caller does, and the
 /// application runs it as any worker does, the run's storage being reached through the supervisor.
 /// It waits in the queue, waiting for the user in the history, until the user of an application
@@ -172,7 +172,7 @@ public class Dispatcher : IDispatchService
     {
         // Whatever the caller sent, the instance runs from now on, on the workers of the supervisor.
         // One asking the user waits for one to take it.
-        bool asksUser = UserInterfaceSwitch.IsOn(task, instance.Parameters);
+        bool asksUser = task is AutomationTask { IsUserInterface: true };
         instance.State = asksUser ? EnumTaskState.AwaitingUser : EnumTaskState.Progressing;
         instance.ApplicationId = null;
         instance.SessionId = _sessionId;

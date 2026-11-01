@@ -11,6 +11,9 @@ internal sealed record GraphConnectorModel
     public const string InputDirection = "input";
     public const string OutputDirection = "output";
 
+    /// <summary>Where a page plugs into a task, see <see cref="BaseGraphTask.UserInterface"/>.</summary>
+    public const string UserInterfaceDirection = "userInterface";
+
     /// <summary>
     /// The columns making up a stored connector, in the order the insert writes them.
     /// </summary>
@@ -41,11 +44,10 @@ internal sealed record GraphConnectorModel
     public Guid NodeId { get; init; }
     public string Direction { get; init; } = InputDirection;
 
-    /// <summary>Place of the connector among the inputs or the outputs of its node.</summary>
+    /// <summary>Place of the connector among the inputs or the outputs of its node, 0 for the others.</summary>
     public int Position { get; init; }
     public string Name { get; init; } = string.Empty;
 
-    public bool IsInput => Direction == InputDirection;
 
     public GraphConnector ToConnector()
     {
@@ -53,13 +55,13 @@ internal sealed record GraphConnectorModel
         return new GraphConnector() { Id = Id, Name = Name };
     }
 
-    public static GraphConnectorModel From(GraphConnector connector, Guid nodeId, bool isInput, int position)
+    public static GraphConnectorModel From(GraphConnector connector, Guid nodeId, string direction, int position)
     {
         return new GraphConnectorModel()
         {
             Id = connector.Id,
             NodeId = nodeId,
-            Direction = isInput ? InputDirection : OutputDirection,
+            Direction = direction,
             Position = position,
             Name = connector.Name,
         };

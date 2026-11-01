@@ -19,8 +19,7 @@ public interface ITaskRuntime
     IStorage Storage { get; }
 
     /// <summary>
-    /// The page of the task, null when it runs unattended : it isn't a user interface task, or its
-    /// input doesn't ask the user (see <see cref="IUserInterfaceTask"/>).
+    /// The page of the task, null for any task but a page task (see <see cref="IUserInterfaceTask"/>).
     /// </summary>
     IUserInterface? UserInterface { get; }
 

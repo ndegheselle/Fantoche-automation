@@ -10,16 +10,12 @@ public class MapColumnsParameters
     public TableRef Source { get; set; } = new();
 
     /// <summary>
-    /// The name to give each column, a column being named once. Asking the user, the names are the
-    /// ones of the workflow and the columns what the page starts from : left empty, it picks the
-    /// column whose name looks the most alike.
+    /// The name to give each column, a column being named once. With a page (see
+    /// <see cref="MapColumnsUi"/>), the names are the ones of the workflow and the columns what the
+    /// page starts from : left empty, it picks the column whose name looks the most alike.
     /// </summary>
     [JsonSchemaExtensionData(OutputPreview.MappingSchemaKey, OutputPreview.Whole)]
     public List<ColumnMapping> Columns { get; set; } = [];
-
-    /// <summary>Let the user pick the column of each name, and name the other columns, on a page.</summary>
-    [JsonSchemaExtensionData(UserInterface.SchemaKey, true)]
-    public bool AskUser { get; set; }
 }
 
 /// <summary>
@@ -27,20 +23,13 @@ public class MapColumnsParameters
 /// (<see cref="TableRef.Mapping"/>) rather than the table being copied, which costs nothing however
 /// large it is. The tasks reading the table read the columns by these names.
 /// <para>
-/// Asking the user, the page of <c>UI/MapColumns</c> edits <see cref="MapColumnsParameters.Columns"/>
-/// first : the names are the ones of the workflow, written in the editor, so the nodes after are
-/// written against them whatever the file calls its columns.
+/// Its page, <see cref="MapColumnsUi"/>, lets the user pick the columns first.
 /// </para>
 /// </summary>
-public class MapColumnsTask : BaseTask<MapColumnsParameters, TableRef>, IUserInterfaceTask
+public class MapColumnsTask : BaseTask<MapColumnsParameters, TableRef>
 {
-    public string PageFolder => "UI/MapColumns";
-
-    public override async Task<TableRef> DoAsync(MapColumnsParameters parameters, ITaskRuntime runtime, CancellationToken? cancellation = null)
+    public override Task<TableRef> DoAsync(MapColumnsParameters parameters, ITaskRuntime runtime, CancellationToken? cancellation = null)
     {
-        if (runtime.UserInterface is IUserInterface page)
-            parameters = await page.AskAsync<MapColumnsParameters>(parameters, cancellation ?? CancellationToken.None);
-
         Dictionary<string, string> mapping = MappingOf(parameters);
 
         runtime.Progress?.Report(new TaskNotification
@@ -49,15 +38,15 @@ public class MapColumnsTask : BaseTask<MapColumnsParameters, TableRef>, IUserInt
             Message = $"Mapped {parameters.Columns.Count} columns"
         });
         TableRef source = parameters.Source;
-        return new TableRef { Id = source.Id, Name = source.Name, Columns = source.Columns, Mapping = mapping };
+        TableRef mapped = new() { Id = source.Id, Name = source.Name, Columns = source.Columns, Mapping = mapping };
+        return Task.FromResult(mapped);
     }
 
     /// <summary>
     /// The columns the page starts from : the one given to each name, or the stored column whose
     /// name looks the most alike ("Client ID", "client_id" and "clientid" read the same), or holds it.
     /// </summary>
-    [PageMethod]
-    public List<ColumnMapping> Suggest(MapColumnsParameters parameters)
+    public static List<ColumnMapping> Suggest(MapColumnsParameters parameters)
     {
         TableRef source = parameters.Source;
         List<string> free = [.. source.Columns.Select(x => x.Name)];
@@ -77,9 +66,8 @@ public class MapColumnsTask : BaseTask<MapColumnsParameters, TableRef>, IUserInt
         return suggested;
     }
 
-    /// <summary>Why the page can't answer with [parameters], null when it can.</summary>
-    [PageMethod]
-    public string? Check(MapColumnsParameters parameters)
+    /// <summary>Why the task can't run with [parameters], null when it can.</summary>
+    public static string? Check(MapColumnsParameters parameters)
     {
         try
         {

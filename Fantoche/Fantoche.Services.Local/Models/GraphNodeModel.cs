@@ -14,6 +14,7 @@ internal sealed record GraphNodeModel
 {
     public const string GroupKind = "group";
     public const string TaskKind = "task";
+    public const string UserInterfaceKind = "userInterface";
     public const string ControlKind = "control";
     public const string WorkflowKind = "workflow";
 
@@ -95,6 +96,7 @@ internal sealed record GraphNodeModel
         {
             GroupKind => new GraphGroup() { Size = new Size(SizeWidth ?? 0, SizeHeight ?? 0) },
             TaskKind => new GraphTask(),
+            UserInterfaceKind => new GraphUserInterface(),
             ControlKind => new GraphControl(),
             WorkflowKind => new GraphWorkflow(),
             _ => throw new InvalidOperationException($"Unknown kind of graph node '{NodeKind}'."),
@@ -154,6 +156,7 @@ internal sealed record GraphNodeModel
         GraphGroup => GroupKind,
         GraphControl => ControlKind,
         GraphWorkflow => WorkflowKind,
+        GraphUserInterface => UserInterfaceKind,
         GraphTask => TaskKind,
         _ => throw new InvalidOperationException($"'{node.GetType().Name}' can't be stored as a graph node."),
     };

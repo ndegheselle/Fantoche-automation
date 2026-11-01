@@ -3,24 +3,26 @@
 `Fantoche.Plugins.Example` holds the tasks of a practical workflow : two CSV files imported, given clear column names, merged, updated, split in batches and exported to PDF. The samples of a fresh install hold it as **Customers and orders**.
 
 ```text
-Start ─> Ask ─┬─> Import CSV ─> Map columns (page) ─┬─> Join ─> Merge ─> Update ─> Split ─> Export PDF (page) ─> End
-              └─> Import CSV ─> Map columns (page) ─┘
+Start ─┬─> Import CSV ─> Map columns ─┬─> Join ─> Merge ─> Update ─> Split ─> Export PDF ─> End
+       │                     (page)      │                                         (page)
+       └─> Import CSV ─> Map columns ────┘
+                             (page)
 ```
 
-To run it : add the package (`dotnet pack Fantoche.Plugins.Example`, version 2.0.0) from the Packages page, generate the files with `Resources/Samples/generate-test-data.ps1`, open the workflow and start it with their paths. With `AskUser` (the default), both mappings and the export ask you on their page. Without it, the run is unattended, the columns being the ones of the generated files.
+To run it : add the package (`dotnet pack Fantoche.Plugins.Example`, version 2.0.0) from the Packages page, generate the files with `Resources/Samples/generate-test-data.ps1`, open the workflow and start it with their paths. Both mappings and the export ask you on the page attached under them. With the pages removed, the run is unattended, the columns being the ones of the generated files.
 
 ## The tasks
 
 | Task | Does |
 | --- | --- |
 | Import CSV | A file into a table, the delimiter, columns and types detected from the content. The table is named after the file unless given a name. |
-| Map columns *(page)* | Adds the names to the table (`TableRef.Mapping`), without copying it. Asking you, you pick the column of the file each name of the workflow stands for, and name the other ones if needed. |
+| Map columns | Adds the names to the table (`TableRef.Mapping`), without copying it. Its page, `MapColumnsUi`, lets you pick the column of the file each name of the workflow stands for, and name the other ones if needed. |
 | Merge | Joins two tables on pairs of columns (inner or left), in the order of the left table. A right column clashing with a left one is prefixed with the name of its table (`customers_Name`). |
 | Update | Gives a value to a column of the rows matching conditions, or adds a column. |
 | Split | Cuts a table into batches of `BatchSize` rows (10 000 by default). |
-| Export PDF *(page)* | Saves a PDF per table, one per processor at once. Asking you, you compose the document first (headings, texts, tables), previewed on the first batch, as a sketch or as the PDF the task renders. |
+| Export PDF | Saves a PDF per table, one per processor at once. Its page, `ExportPdfUi`, lets you compose the document first (headings, texts, tables), previewed on the first batch, as a sketch or as the PDF the task renders. |
 
-A task with a page asks you only when its `AskUser` holds true : its page edits its own parameters, so a run without anyone to answer (a schedule, a test on large files) writes them in the mapping instead. `CustomersOrdersWorkflow` in the tests is the sample written that way. The page reuses the rules of the task through its page methods : `Suggest` and `Check` for the columns, `PreviewAsync` for the PDF (see [User interface tasks](../../architecture.md#user-interface-tasks)).
+A page is a task of its own, attached under the task it edits the parameters of : a workflow without it (a schedule, a test on large files) writes them in the mapping instead. `CustomersOrdersWorkflow` in the tests is the sample written that way. The page reuses the rules of the task through its page methods, which call static methods of the task : `Suggest` and `Check` for the columns, `PreviewAsync` for the PDF (see [User interface tasks](../../architecture.md#user-interface-tasks)).
 
 ## Clear names for the columns
 

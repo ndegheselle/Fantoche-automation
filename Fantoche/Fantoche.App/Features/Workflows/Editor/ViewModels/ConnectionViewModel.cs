@@ -15,6 +15,9 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
 
         public ConnectorViewModel Target { get; }
 
+        /// <summary>Whether it attaches a page under its task, drawn downward rather than along a branch.</summary>
+        public bool IsUserInterface => Source.IsUserInterface;
+
         /// <summary>
         /// What the node this connection leads to cannot handle when it is reached through it : the
         /// branch is what is wrong rather than the node, which holds up when another one reaches it

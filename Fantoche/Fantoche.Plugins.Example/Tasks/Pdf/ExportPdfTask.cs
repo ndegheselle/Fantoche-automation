@@ -1,6 +1,5 @@
 using System.Globalization;
 using Fantoche.Plugins.Shared;
-using NJsonSchema.Annotations;
 
 namespace Fantoche.Plugins.Example.Tasks.Pdf;
 
@@ -14,10 +13,6 @@ public class ExportPdfParameters
 
     /// <summary>Name of the file of each document, ".pdf" being added : it can hold the same placeholders as the text of a block.</summary>
     public string FileName { get; set; } = "document-{index}";
-
-    /// <summary>Let the user compose the document on a page, previewed on the first table.</summary>
-    [JsonSchemaExtensionData(UserInterface.SchemaKey, true)]
-    public bool AskUser { get; set; }
 }
 
 public class ExportPdfResult
@@ -31,20 +26,14 @@ public class ExportPdfResult
 /// rows of the table where it has a table. The documents are rendered side by side, one per
 /// processor, which is what makes a large table split in batches fast to export.
 /// <para>
-/// Asking the user, the page of <c>UI/ComposePdf</c> composes the document first, previewed on the
-/// first table : as the page shows it, and as a PDF the task renders (see <see cref="PreviewAsync"/>).
+/// Its page, <see cref="ExportPdfUi"/>, lets the user compose the document first.
 /// </para>
 /// </summary>
-public class ExportPdfTask : BaseTask<ExportPdfParameters, ExportPdfResult>, IUserInterfaceTask
+public class ExportPdfTask : BaseTask<ExportPdfParameters, ExportPdfResult>
 {
-    public string PageFolder => "UI/ComposePdf";
-
     public override async Task<ExportPdfResult> DoAsync(ExportPdfParameters parameters, ITaskRuntime runtime, CancellationToken? cancellation = null)
     {
         CancellationToken token = cancellation ?? CancellationToken.None;
-        if (runtime.UserInterface is IUserInterface page)
-            parameters = await page.AskAsync<ExportPdfParameters>(parameters, token);
-
         int count = parameters.Sources.Count;
         FileRef[] files = new FileRef[count];
         int done = 0;
@@ -78,10 +67,9 @@ public class ExportPdfTask : BaseTask<ExportPdfParameters, ExportPdfResult>, IUs
 
     /// <summary>
     /// The document of the first table as [parameters] composes it, saved in the storage of the run
-    /// for the page to show : what the export will look like, rendered by the export itself.
+    /// for a page to show : what the export will look like, rendered by the export itself.
     /// </summary>
-    [PageMethod]
-    public async Task<FileRef> PreviewAsync(ExportPdfParameters parameters, ITaskRuntime runtime, CancellationToken cancellation)
+    public static async Task<FileRef> PreviewAsync(ExportPdfParameters parameters, ITaskRuntime runtime, CancellationToken cancellation)
     {
         TableRef source = parameters.Sources.FirstOrDefault()
             ?? throw new ArgumentException("There is no table to preview the document on.");

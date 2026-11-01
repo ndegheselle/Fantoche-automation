@@ -22,14 +22,21 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
         /// </summary>
         public bool IsOutput { get; }
 
+        /// <summary>
+        /// Whether the connector attaches a page to its task rather than carrying a branch : it only
+        /// connects to another one of its kind (see <see cref="TasksGraph.CanConnect"/>).
+        /// </summary>
+        public bool IsUserInterface { get; }
+
         [ObservableProperty] private Point _anchor;
         [ObservableProperty] private bool _isConnected;
 
-        public ConnectorViewModel(NodeViewModel node, GraphConnector model, bool isOutput)
+        public ConnectorViewModel(NodeViewModel node, GraphConnector model, bool isOutput, bool isUserInterface = false)
         {
             Node = node;
             Model = model;
             IsOutput = isOutput;
+            IsUserInterface = isUserInterface;
             _isConnected = model.IsConnected;
         }
 

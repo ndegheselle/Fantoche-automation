@@ -137,6 +137,15 @@ public class WorkflowExecutor
         // The nodes each instance led to, a join holding every branch that reached it.
         HashSet<(Guid PreviousId, Guid NodeId)> reached = [.. restored.SelectMany(x => x.PreviousIds.Select(id => (id, x.Node!.Id)))];
 
+        // A task whose page was asked is reached as well : the page carries it on.
+        HashSet<(Guid PreviousId, Guid NodeId)> asked = [];
+        foreach (TaskInstance instance in restored.Where(x => x.Node is GraphUserInterface))
+        {
+            BaseGraphTask? task = workflowInstance.Workflow.Graph.GetTaskAskedBy((GraphUserInterface)instance.Node!);
+            if (task != null && instance.PreviousIds.Count > 0)
+                asked.Add((instance.PreviousIds[^1], task.Id));
+        }
+
         List<Task<IReadOnlyList<TaskInstance>>> branches = [];
         foreach (TaskInstance instance in restored)
         {
@@ -152,6 +161,13 @@ public class WorkflowExecutor
                 Instance = instance,
                 WorkflowInstance = workflowInstance,
             };
+
+            if (instance.Node is GraphUserInterface page)
+            {
+                if (ResumeUi(context, page, reached, progress, cancellation) is Task<IReadOnlyList<TaskInstance>> resumed)
+                    branches.Add(resumed);
+                continue;
+            }
 
             // Only a task can be left running : a control is reported once resolved, a join waiting
             // being the exception, and it waits on. A nested run paused along with this one resumes
@@ -170,11 +186,46 @@ public class WorkflowExecutor
 
             IEnumerable<BaseGraphTask> notReached = context.Graph.GetNext(instance.Node!)
                 .Select(x => x.Task)
-                .Where(x => !reached.Contains((instance.Id, x.Id)));
+                .Where(x => !reached.Contains((instance.Id, x.Id)) && !asked.Contains((instance.Id, x.Id)));
             foreach (BaseGraphTask next in notReached)
                 branches.Add(RunBranchAsync(context with { Node = next }, progress, cancellation));
         }
         return branches;
+    }
+
+    /// <summary>
+    /// The branch carrying a resumed run on from [context]'s instance of [page] : a page left asking
+    /// asks again, an answered one runs its task with the answer when the task never started.
+    /// Null when there is nothing left to do.
+    /// </summary>
+    private Task<IReadOnlyList<TaskInstance>>? ResumeUi(
+        WorkflowExecutionContext context,
+        GraphUserInterface page,
+        HashSet<(Guid PreviousId, Guid NodeId)> reached,
+        TaskInstancesProgress? progress,
+        CancellationToken? cancellation)
+    {
+        TaskInstance pageInstance = context.Instance;
+        BaseGraphTask? task = context.Graph.GetTaskAskedBy(page);
+        if (task == null || pageInstance.Previous is not TaskInstance previous)
+            return null;
+
+        // The task carries on from the node before the page, as when it was first reached.
+        WorkflowExecutionContext taskContext = context with { Node = task, Instance = previous };
+
+        bool wasAsking = pageInstance.State is EnumTaskState.Pending or EnumTaskState.Progressing
+            or EnumTaskState.Suspended or EnumTaskState.AwaitingUser;
+        if (wasAsking)
+        {
+            pageInstance.State = EnumTaskState.Progressing;
+            return RunUiAsync(taskContext, pageInstance, progress, cancellation);
+        }
+
+        bool isAnswered = pageInstance.State == EnumTaskState.Completed;
+        if (isAnswered && !reached.Contains((previous.Id, task.Id)))
+            return RunAfterUiAsync(taskContext, pageInstance, progress, cancellation);
+
+        return null;
     }
 
     private async Task<IReadOnlyList<TaskInstance>> NextAsync(
@@ -233,10 +284,70 @@ public class WorkflowExecutor
         if (parameters.HasError)
             throw new ExecutionException($"Parameters error in node [{context.Node.Id}] : {string.Join('\n', parameters.Errors)}");
 
-        var instance = context.Resolution.CreateInstance(context.Node, parameters.Token, EnumTaskState.Progressing, context.Instance);
+        // A task with a page runs with what the user answered on it, asked with its parameters.
+        if (context.Graph.GetUserInterfaceOf(context.Node) is GraphUserInterface page)
+        {
+            var pageInstance = context.Resolution.CreateInstance(page, parameters.Token, EnumTaskState.Progressing, context.Instance);
+            pageInstance.Shared = context.Instance.Shared;
+            return await RunUiAsync(context, pageInstance, progress, cancellation);
+        }
+
+        return await RunTaskWithAsync(context, parameters.Token, progress, cancellation);
+    }
+
+    /// <summary>
+    /// Run the task [context] reached with [parameters], carrying on from the node before it.
+    /// </summary>
+    private async Task<IReadOnlyList<TaskInstance>> RunTaskWithAsync(
+        WorkflowExecutionContext context,
+        JToken? parameters,
+        TaskInstancesProgress? progress,
+        CancellationToken? cancellation)
+    {
+        var instance = context.Resolution.CreateInstance(context.Node, parameters, EnumTaskState.Progressing, context.Instance);
         // The shared context walks down the branch, whatever a share upstream fed it with.
         instance.Shared = context.Instance.Shared;
         return await RunTaskAsync(context, instance, progress, cancellation);
+    }
+
+    /// <summary>
+    /// Ask [pageInstance], the page of the task [context] reached, then run that task with what the
+    /// user answered. The page is apart from the branch : the task still carries on from the node
+    /// before it, and the page's answer is only its parameters.
+    /// </summary>
+    private async Task<IReadOnlyList<TaskInstance>> RunUiAsync(
+        WorkflowExecutionContext context,
+        TaskInstance pageInstance,
+        TaskInstancesProgress? progress,
+        CancellationToken? cancellation)
+    {
+        BaseGraphTask page = pageInstance.Node!;
+        progress?.StateChanges?.Report(pageInstance);
+        pageInstance = await _executor.ExecuteAsync(
+            page.AutomationTask ?? throw new ExecutionException("Workflow tasks are not loaded (is the graph refreshed?)."),
+            pageInstance,
+            progress,
+            cancellation);
+        progress?.StateChanges?.Report(pageInstance);
+
+        if (pageInstance.State != EnumTaskState.Completed)
+            return [];
+
+        return await RunAfterUiAsync(context, pageInstance, progress, cancellation);
+    }
+
+    /// <summary>Run the task [context] reached with what the user answered on [pageInstance].</summary>
+    private async Task<IReadOnlyList<TaskInstance>> RunAfterUiAsync(
+        WorkflowExecutionContext context,
+        TaskInstance pageInstance,
+        TaskInstancesProgress? progress,
+        CancellationToken? cancellation)
+    {
+        // Paused while the user answered : a resume runs the task with the answer kept.
+        if (context.WorkflowInstance.PauseRequested.IsCancellationRequested)
+            return [];
+
+        return await RunTaskWithAsync(context, pageInstance.Output, progress, cancellation);
     }
 
     /// <summary>
