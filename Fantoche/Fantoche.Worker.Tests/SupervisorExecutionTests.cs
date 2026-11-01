@@ -244,7 +244,7 @@ internal sealed class SupervisorExecutionTests
             "Fantoche.Plugins.UserInterfaces.ReorderTask", "Reorder",
             JsonSchema.FromType<Plugins.UserInterfaces.ReorderParameters>(), JsonSchema.FromType<Plugins.UserInterfaces.ReorderResult>()));
         AutomationTask page = await StoreAsync(PluginTasks.Make(
-            "Fantoche.Plugins.UserInterfaces.ReorderPage", "Reorder page",
+            "Fantoche.Plugins.UserInterfaces.ReorderUi", "Reorder page",
             JsonSchema.FromType<Plugins.UserInterfaces.ReorderParameters>(), JsonSchema.FromType<Plugins.UserInterfaces.ReorderParameters>(),
             isPage: true));
         TestWorkflow ask = new TestWorkflow("Ask", requireOutput: false)
@@ -252,7 +252,7 @@ internal sealed class SupervisorExecutionTests
             .Task("Ask", reorder, new { Title = "Sort them", Items = "$previous.Items" })
             .End(new { Items = "$previous.Items" })
             .Chain("Start", "Ask", "End")
-            .Page("Page", page, of: "Ask");
+            .Ui("Page", page, of: "Ask");
         return (await StoreAsync(ask.Workflow), page);
     }
 
@@ -817,7 +817,7 @@ internal sealed class SupervisorExecutionTests
             JsonSchema.FromType<ImportCsvParameters>(), JsonSchema.FromType<TableRef>(), package: PluginTasks.TablesPackage));
         AutomationTask map = await StoreAsync(PluginTasks.Make(typeof(MapColumnsTask).FullName!, "MapColumns",
             JsonSchema.FromType<MapColumnsParameters>(), JsonSchema.FromType<TableRef>(), package: PluginTasks.TablesPackage));
-        AutomationTask mapPage = await StoreAsync(PluginTasks.Make(typeof(MapColumnsPage).FullName!, "MapColumnsPage",
+        AutomationTask mapPage = await StoreAsync(PluginTasks.Make(typeof(MapColumnsUi).FullName!, "MapColumnsUi",
             JsonSchema.FromType<MapColumnsParameters>(), JsonSchema.FromType<MapColumnsParameters>(), package: PluginTasks.TablesPackage, isPage: true));
         TestWorkflow tables = new TestWorkflow("Pick", requireOutput: false)
             .Start()
@@ -825,7 +825,7 @@ internal sealed class SupervisorExecutionTests
             .Task("Map", map, new { Source = "$previous", Columns = new[] { new { Name = "When", Column = "" } } })
             .End(new { Table = "$previous" })
             .Chain("Start", "Import", "Map", "End")
-            .Page("Map page", mapPage, of: "Map");
+            .Ui("Map page", mapPage, of: "Map");
         AutomationWorkflow workflow = await StoreAsync(tables.Workflow);
         string csv = Path.Combine(_folder, "orders.csv");
         await File.WriteAllTextAsync(csv, "order,ordered on\nA,2026-03-01\nB,2026-03-02\n");

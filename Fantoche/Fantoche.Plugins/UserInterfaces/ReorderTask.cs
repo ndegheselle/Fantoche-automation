@@ -15,7 +15,7 @@ public class ReorderResult
 }
 
 /// <summary>
-/// The items in the order they are given : its page, <see cref="ReorderPage"/>, lets the user put
+/// The items in the order they are given : its page, <see cref="ReorderUi"/>, lets the user put
 /// them in order first.
 /// </summary>
 public class ReorderTask : BaseTask<ReorderParameters, ReorderResult>
@@ -31,7 +31,7 @@ public class ReorderTask : BaseTask<ReorderParameters, ReorderResult>
 /// The page of <see cref="ReorderTask"/>, <c>UserInterfaces/Reorder</c> : the user puts the items in
 /// order by dragging them.
 /// </summary>
-public class ReorderPage : UserInterfaceTask<ReorderParameters>
+public class ReorderUi : UserInterfaceTask<ReorderParameters>
 {
     public override string PageFolder => "UserInterfaces/Reorder";
 

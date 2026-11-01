@@ -70,7 +70,7 @@ internal sealed class TestWorkflow
     }
 
     /// <summary>A node named [name] for the page [page], attached under the node [of].</summary>
-    public TestWorkflow Page(string name, AutomationTask page, string of)
+    public TestWorkflow Ui(string name, AutomationTask page, string of)
     {
         _tasks[page.Id] = page;
         GraphUserInterface node = new(page);

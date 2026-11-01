@@ -80,8 +80,8 @@ internal static class Samples
         MapColumnsInputSchema, TableSchema);
 
     /// <summary>Lets the user pick the column each name stands for : hangs under the task it asks for.</summary>
-    private static readonly AutomationTask MapColumnsPage = MakePage(
-        Id(0x38), "Pick the columns", "Fantoche.Plugins.Example.Tasks.Tables.MapColumnsPage",
+    private static readonly AutomationTask MapColumnsUi = MakeUi(
+        Id(0x38), "Pick the columns", "Fantoche.Plugins.Example.Tasks.Tables.MapColumnsUi",
         MapColumnsInputSchema, MapColumns);
 
     private static readonly AutomationTask Merge = MakeTask(
@@ -101,8 +101,8 @@ internal static class Samples
         ExportPdfInputSchema, ExportPdfOutputSchema);
 
     /// <summary>Lets the user compose the document : hangs under the task it asks for.</summary>
-    private static readonly AutomationTask ExportPdfPage = MakePage(
-        Id(0x39), "Compose the document", "Fantoche.Plugins.Example.Tasks.Pdf.ExportPdfPage",
+    private static readonly AutomationTask ExportPdfUi = MakeUi(
+        Id(0x39), "Compose the document", "Fantoche.Plugins.Example.Tasks.Pdf.ExportPdfUi",
         ExportPdfInputSchema, ExportPdf);
 
     #endregion
@@ -114,12 +114,12 @@ internal static class Samples
             SamplesScope,
             ImportCsv,
             MapColumns,
-            MapColumnsPage,
+            MapColumnsUi,
             Merge,
             Update,
             Split,
             ExportPdf,
-            ExportPdfPage,
+            ExportPdfUi,
             BuildCustomersOrders(),
         ];
 
@@ -161,7 +161,7 @@ internal static class Samples
                 Source = "$previous",
                 Columns = new[] { Column("CustomerId", "client id"), Column("Name", "full name"), Column("City", "town") },
             });
-        GraphUserInterface customersPage = Node(new GraphUserInterface(MapColumnsPage), "Pick the customers columns", 660, 120);
+        GraphUserInterface customersPage = Node(new GraphUserInterface(MapColumnsUi), "Pick the customers columns", 660, 120);
 
         GraphTask importOrders = Node(new GraphTask(ImportCsv), "Import orders", 440, 300,
             new { Path = "$previous.Orders" });
@@ -171,7 +171,7 @@ internal static class Samples
                 Source = "$previous",
                 Columns = new[] { Column("OrderId", "order no"), Column("CustomerId", "client"), Column("Amount", "total"), Column("Date", "ordered on") },
             });
-        GraphUserInterface ordersPage = Node(new GraphUserInterface(MapColumnsPage), "Pick the orders columns", 660, 420);
+        GraphUserInterface ordersPage = Node(new GraphUserInterface(MapColumnsUi), "Pick the orders columns", 660, 420);
 
         GraphControl tables = Node(new GraphControl(AutomationControl.JoinTask), "Tables", 880, 150,
             new { Customers = "$previous.Customers", Orders = "$previous.Orders" });
@@ -200,7 +200,7 @@ internal static class Samples
                 Document = new { Landscape = true, Blocks = Array.Empty<object>() },
                 FileName = "orders-{index}",
             });
-        GraphUserInterface exportPage = Node(new GraphUserInterface(ExportPdfPage), "Compose the document", 1760, 270);
+        GraphUserInterface exportPage = Node(new GraphUserInterface(ExportPdfUi), "Compose the document", 1760, 270);
         GraphControl end = EndNode(1980, 150, new { Files = "$previous.Files" }, Schema(("Files", "array")));
 
         Add(workflow, start, importCustomers, customers, customersPage, importOrders, orders, ordersPage,
@@ -366,7 +366,7 @@ internal static class Samples
     /// The page editing the parameters of [task] : it reads and hands over what the task reads, and
     /// hangs under it in the tree.
     /// </summary>
-    private static AutomationTask MakePage(Guid id, string name, string className, string parametersSchema, AutomationTask task)
+    private static AutomationTask MakeUi(Guid id, string name, string className, string parametersSchema, AutomationTask task)
         => MakeTask(id, name, className, parametersSchema, parametersSchema, isUserInterface: true, parentId: task.Id);
 
     /// <summary>

@@ -20,7 +20,7 @@ namespace Fantoche.App.Features.Workflows
         public IEnumerable<ScopedNode> Breadcrumb => Selected?.Path ?? [];
 
         [ObservableProperty]
-        [NotifyCanExecuteChangedFor(nameof(CreatePageCommand))]
+        [NotifyCanExecuteChangedFor(nameof(CreateUiCommand))]
         private ScopedNode? _selected;
 
         [ObservableProperty] private object? _details;
@@ -113,10 +113,10 @@ namespace Fantoche.App.Features.Workflows
         /// Create a new page under the selected task : it asks the user for the parameters of the
         /// task, once its package targets a page and it is attached under the task in a workflow.
         /// </summary>
-        [RelayCommand(CanExecute = nameof(CanCreatePage))]
-        public async Task CreatePage()
+        [RelayCommand(CanExecute = nameof(CanCreateUi))]
+        public async Task CreateUi()
         {
-            if (Selected is not ScopedNode task || !task.CanHoldPage)
+            if (Selected is not ScopedNode task || !task.CanHoldUi)
                 return;
 
             Guid taskId = task.Element.Id;
@@ -124,7 +124,7 @@ namespace Fantoche.App.Features.Workflows
             await AddAsync(new AutomationTask(name, taskId), task);
         }
 
-        private bool CanCreatePage() => Selected?.CanHoldPage == true;
+        private bool CanCreateUi() => Selected?.CanHoldUi == true;
 
         private async Task AddAsync(ScopedElement element, ScopedNode parent)
         {

@@ -26,7 +26,7 @@ public class ExportPdfResult
 /// rows of the table where it has a table. The documents are rendered side by side, one per
 /// processor, which is what makes a large table split in batches fast to export.
 /// <para>
-/// Its page, <see cref="ExportPdfPage"/>, lets the user compose the document first.
+/// Its page, <see cref="ExportPdfUi"/>, lets the user compose the document first.
 /// </para>
 /// </summary>
 public class ExportPdfTask : BaseTask<ExportPdfParameters, ExportPdfResult>

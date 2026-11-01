@@ -11,7 +11,7 @@ public class MapColumnsParameters
 
     /// <summary>
     /// The name to give each column, a column being named once. With a page (see
-    /// <see cref="MapColumnsPage"/>), the names are the ones of the workflow and the columns what the
+    /// <see cref="MapColumnsUi"/>), the names are the ones of the workflow and the columns what the
     /// page starts from : left empty, it picks the column whose name looks the most alike.
     /// </summary>
     [JsonSchemaExtensionData(OutputPreview.MappingSchemaKey, OutputPreview.Whole)]
@@ -23,7 +23,7 @@ public class MapColumnsParameters
 /// (<see cref="TableRef.Mapping"/>) rather than the table being copied, which costs nothing however
 /// large it is. The tasks reading the table read the columns by these names.
 /// <para>
-/// Its page, <see cref="MapColumnsPage"/>, lets the user pick the columns first.
+/// Its page, <see cref="MapColumnsUi"/>, lets the user pick the columns first.
 /// </para>
 /// </summary>
 public class MapColumnsTask : BaseTask<MapColumnsParameters, TableRef>

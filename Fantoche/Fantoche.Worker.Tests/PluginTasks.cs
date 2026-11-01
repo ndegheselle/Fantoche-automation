@@ -54,8 +54,8 @@ internal static class PluginTasks
         JsonSchema.FromType<Plugins.UserInterfaces.ReorderParameters>(), JsonSchema.FromType<Plugins.UserInterfaces.ReorderResult>());
 
     /// <summary>The page of <see cref="Reorder"/> : the user puts the items in order.</summary>
-    public static readonly AutomationTask ReorderPage = Make(
-        "Fantoche.Plugins.UserInterfaces.ReorderPage", "Reorder page",
+    public static readonly AutomationTask ReorderUi = Make(
+        "Fantoche.Plugins.UserInterfaces.ReorderUi", "Reorder page",
         JsonSchema.FromType<Plugins.UserInterfaces.ReorderParameters>(), JsonSchema.FromType<Plugins.UserInterfaces.ReorderParameters>(),
         isPage: true);
 
@@ -77,8 +77,8 @@ internal static class PluginTasks
     public static readonly AutomationTask Update = Table<UpdateTask, UpdateParameters, TableRef>("Update");
     public static readonly AutomationTask Split = Table<SplitTask, SplitParameters, SplitResult>("Split");
     public static readonly AutomationTask ExportPdf = Table<ExportPdfTask, ExportPdfParameters, ExportPdfResult>("ExportPdf");
-    public static readonly AutomationTask MapColumnsPage = Table<MapColumnsPage, MapColumnsParameters, MapColumnsParameters>("MapColumnsPage", isPage: true);
-    public static readonly AutomationTask ExportPdfPage = Table<ExportPdfPage, ExportPdfParameters, ExportPdfParameters>("ExportPdfPage", isPage: true);
+    public static readonly AutomationTask MapColumnsUi = Table<MapColumnsUi, MapColumnsParameters, MapColumnsParameters>("MapColumnsUi", isPage: true);
+    public static readonly AutomationTask ExportPdfUi = Table<ExportPdfUi, ExportPdfParameters, ExportPdfParameters>("ExportPdfUi", isPage: true);
 
     /// <summary>A task of Fantoche.Plugins.Example, with the schemas its types declare as adding it from its package does.</summary>
     private static AutomationTask Table<TTask, TInput, TOutput>(string name, bool isPage = false)

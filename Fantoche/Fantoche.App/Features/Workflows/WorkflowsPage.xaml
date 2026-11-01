@@ -90,7 +90,7 @@
                         <!--  Only under a task : a page asks the user for the parameters of the task it hangs under.  -->
                         <Button
                             HorizontalContentAlignment="Left"
-                            Command="{Binding CreatePageCommand}"
+                            Command="{Binding CreateUiCommand}"
                             Style="{StaticResource GhostButton}">
                             <StackPanel Orientation="Horizontal">
                                 <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.AppWindow}" />

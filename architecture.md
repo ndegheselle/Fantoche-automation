@@ -140,7 +140,7 @@ A page asks the user for the parameters of a task, before the task runs. Use it 
 
 - **In the tree:** a page hangs under the task it asks for ("Add a page to the task").
 - **In a workflow:** it is a round node attached under its task, through the diamond under the task (`GraphUserInterface`, `BaseGraphTask.UserInterface`). It sits apart from the branches: nothing flows into it nor out of it. A task takes one page, a page reads and hands over the parameters of its task (`TasksGraph.CanConnect`).
-- **When the task is reached:** its parameters are resolved, the page is asked with them, and the task runs with what the user answered, carrying on from the node before it (`WorkflowExecutor.RunPageAsync`). A resume asks again a page that was asking, and runs the task with the answer kept when the page was answered but the task never started.
+- **When the task is reached:** its parameters are resolved, the page is asked with them, and the task runs with what the user answered, carrying on from the node before it (`WorkflowExecutor.RunUiAsync`). A resume asks again a page that was asking, and runs the task with the answer kept when the page was answered but the task never started.
 
 ```mermaid
 sequenceDiagram
@@ -166,7 +166,7 @@ Why a task of its own rather than a switch on the task (an `AskUser` input, as b
 - **Writing one:** derive from `UserInterfaceTask<TParameters>`, `TParameters` being the parameters of the task, and give the folder of its page (`PageFolder`, relative to the assembly). Its page methods call static methods of the task, so the page applies the rules of the task rather than a copy of them:
 
   ```csharp
-  public class MapColumnsPage : UserInterfaceTask<MapColumnsParameters>
+  public class MapColumnsUi : UserInterfaceTask<MapColumnsParameters>
   {
       public override string PageFolder => "UI/MapColumns";
 
@@ -175,7 +175,7 @@ Why a task of its own rather than a switch on the task (an `AskUser` input, as b
   }
   ```
 
-  See `MapColumnsPage` and `ExportPdfPage` in `Fantoche.Plugins.Example`.
+  See `MapColumnsUi` and `ExportPdfUi` in `Fantoche.Plugins.Example`.
 - **The page:** it reads the parameters of the task as `window.fantoche.input` and answers them with `await window.fantoche.answer(value)`, rejected when the answer doesn't fit what the task expects. `window.fantoche.close()` closes it unanswered, and it can be opened again.
 - **Calling the page task:** `await window.fantoche.call('Suggest', args)` calls a method of the running page task marked `[PageMethod]`. It takes at most one value, plus the `ITaskRuntime` and a `CancellationToken` if it asks for them. So the page reuses the rules of the task rather than writing them again in JavaScript: `MapColumnsTask.Check`, `ExportPdfTask.PreviewAsync` rendering the real PDF.
 - **Packing it:** the folder is packed next to the assembly, the way `Fantoche.Plugins.Example.csproj` does it:

@@ -7,7 +7,7 @@ namespace Fantoche.Plugins.Example.Tasks.Tables;
 /// each name, and names the other columns. The names are the ones of the workflow, written in the
 /// editor, so the nodes after are written against them whatever the file calls its columns.
 /// </summary>
-public class MapColumnsPage : UserInterfaceTask<MapColumnsParameters>
+public class MapColumnsUi : UserInterfaceTask<MapColumnsParameters>
 {
     public override string PageFolder => "UI/MapColumns";
 

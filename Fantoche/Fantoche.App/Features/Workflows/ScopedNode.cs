@@ -24,7 +24,7 @@ namespace Fantoche.App.Features.Workflows
         /// Whether a page can be added under the element : a task asks for its parameters through
         /// the pages hanging under it. A control is built in, and a page asks for no page.
         /// </summary>
-        public bool CanHoldPage => Element is AutomationTask { IsUserInterface: false } and not AutomationControl;
+        public bool CanHoldUi => Element is AutomationTask { IsUserInterface: false } and not AutomationControl;
 
         /// <summary>
         /// The element as something runnable, <see langword="null"/> for a scope : it is what a node

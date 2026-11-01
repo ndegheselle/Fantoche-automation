@@ -6,7 +6,7 @@ namespace Fantoche.Plugins.Example.Tasks.Pdf;
 /// The page of <see cref="ExportPdfTask"/>, <c>UI/ComposePdf</c> : the user composes the document,
 /// previewed on the first table as the page shows it and as the PDF the export renders.
 /// </summary>
-public class ExportPdfPage : UserInterfaceTask<ExportPdfParameters>
+public class ExportPdfUi : UserInterfaceTask<ExportPdfParameters>
 {
     public override string PageFolder => "UI/ComposePdf";
 
