@@ -15,7 +15,7 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
 
         public ConnectorViewModel Target { get; }
 
-        /// <summary>Whether it attaches a page under its task, drawn downward rather than along a branch.</summary>
+        /// <summary>Whether it attaches a page above its task, drawn upward rather than along a branch.</summary>
         public bool IsUserInterface => Source.IsUserInterface;
 
         /// <summary>

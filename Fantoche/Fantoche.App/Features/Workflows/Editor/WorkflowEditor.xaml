@@ -62,6 +62,8 @@
                 x:Key="NodeCard"
                 BasedOn="{StaticResource Card}"
                 TargetType="Border">
+                <Setter Property="Width" Value="56" />
+                <Setter Property="Height" Value="56" />
                 <Style.Triggers>
                     <!--
                         Comes first so that a state wins over it : an error belongs to the graph and
@@ -99,18 +101,29 @@
                     <DataTrigger Binding="{Binding State}" Value="AwaitingUser">
                         <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.WarningBrush}}" />
                     </DataTrigger>
-                    <!--  A page is round : it stands apart from the branches, plugged under its task  -->
+                    <!--  A page is round : it stands apart from the branches, plugged above its task  -->
                     <DataTrigger Binding="{Binding IsUserInterface}" Value="True">
-                        <Setter Property="Width" Value="56" />
-                        <Setter Property="Height" Value="56" />
                         <Setter Property="Padding" Value="0" />
                         <Setter Property="CornerRadius" Value="28" />
+                    </DataTrigger>
+                    <!--
+                        Selection outlines the card rather than the whole container, so the name
+                        under it can be wider than the card. Comes last : what the reader just picked
+                        wins over the state, which the icon still tells.
+                    -->
+                    <DataTrigger Binding="{Binding IsPreviewingSelection, RelativeSource={RelativeSource AncestorType={x:Type nodify:ItemContainer}}}" Value="True">
+                        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.PrimaryBrush}}" />
+                        <Setter Property="BorderThickness" Value="2" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.PrimaryBrush}}" />
+                        <Setter Property="BorderThickness" Value="2" />
                     </DataTrigger>
                 </Style.Triggers>
             </Style>
 
             <!--
-                Where a page plugs into its task : a diamond under the task, on top of the page.
+                Where a page plugs into its task : a diamond on top of the task, under the page.
                 It only connects to another one of its kind, the graph refusing anything else.
             -->
             <Style x:Key="UserInterfaceConnector" TargetType="{x:Type nodify:Connector}">
@@ -126,22 +139,23 @@
                     <Setter.Value>
                         <ControlTemplate TargetType="{x:Type nodify:Connector}">
                             <Grid Background="{TemplateBinding Background}">
-                                <Rectangle
+                                <!--
+                                    Drawn as a diamond rather than a rotated square : Nodify reads the drag
+                                    of a pending connection relative to this element, a rotation would turn
+                                    the preview away from the mouse.
+                                -->
+                                <Path
                                     x:Name="PART_Connector"
-                                    Width="8"
-                                    Height="8"
+                                    Width="11"
+                                    Height="11"
+                                    Data="M5.5,0 L11,5.5 5.5,11 0,5.5 Z"
                                     Fill="{DynamicResource {x:Static joufflu:Brushes.Base0Brush}}"
-                                    RenderTransformOrigin="0.5,0.5"
-                                    Stroke="{StaticResource Nodify.MutedBrush}"
-                                    StrokeThickness="1.5">
-                                    <Rectangle.RenderTransform>
-                                        <RotateTransform Angle="45" />
-                                    </Rectangle.RenderTransform>
-                                </Rectangle>
+                                    Stroke="{DynamicResource {x:Static joufflu:Brushes.DisplayBorderBrush}}"
+                                    StrokeThickness="1.5" />
                             </Grid>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsConnected" Value="True">
-                                    <Setter TargetName="PART_Connector" Property="Fill" Value="{StaticResource Nodify.MutedBrush}" />
+                                    <Setter TargetName="PART_Connector" Property="Fill" Value="{DynamicResource {x:Static joufflu:Brushes.DisplayBorderBrush}}" />
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -211,28 +225,19 @@
                             <Grid>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="auto" />
-                                    <RowDefinition Height="auto" />
                                     <RowDefinition Height="*" />
-                                    <RowDefinition Height="auto" />
                                     <RowDefinition Height="auto" />
                                 </Grid.RowDefinitions>
 
-                                <!--  Plug of a page, on top of it : the attachment comes down from its task  -->
-                                <nodify:Connector
-                                    DataContext="{Binding UserInterfacePlug}"
-                                    Style="{StaticResource UserInterfaceConnector}"
-                                    Visibility="{Binding Converter={x:Static jonverters:VisibilityConverter.Default}}" />
-
                                 <!--  Header  -->
                                 <Border
-                                    Grid.Row="1"
-                                    MinHeight="24"
+                                    Grid.Row="0"
                                     Background="Transparent"
                                     Style="{TemplateBinding HeaderContainerStyle}">
                                     <ContentPresenter ContentSource="Header" />
                                 </Border>
 
-                                <Grid Grid.Row="2">
+                                <Grid Grid.Row="1">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="22" />
                                         <ColumnDefinition Width="*" />
@@ -259,24 +264,44 @@
                                         ItemsSource="{TemplateBinding Output}" />
                                 </Grid>
 
-                                <!--  Slot of a task, under it : where its page plugs, like n8n does for the tools of an agent  -->
-                                <nodify:Connector
-                                    Grid.Row="3"
-                                    DataContext="{Binding UserInterfaceSlot}"
-                                    Style="{StaticResource UserInterfaceConnector}"
-                                    Visibility="{Binding Converter={x:Static jonverters:VisibilityConverter.Default}}" />
-
                                 <!--  Footer  -->
                                 <Border
-                                    Grid.Row="4"
+                                    x:Name="Footer"
+                                    Grid.Row="2"
                                     HorizontalAlignment="Center"
                                     Background="Transparent"
-                                    Style="{TemplateBinding FooterContainerStyle}"
+                                    IsHitTestVisible="False"
                                     Visibility="{TemplateBinding HasFooter,
                                                                  Converter={x:Static jonverters:VisibilityConverter.Default}}">
                                     <ContentPresenter ContentSource="Footer" />
                                 </Border>
+                                <!--
+                                    Slot of a task, on top of it : where its page plugs, like n8n does for
+                                    the tools of an agent. Above so the attachment stays clear of its name.
+                                -->
+                                <nodify:Connector
+                                    Margin="0,0,0,-8"
+                                    VerticalAlignment="Bottom"
+                                    DataContext="{Binding UserInterfaceSlot}"
+                                    Style="{StaticResource UserInterfaceConnector}"
+                                    Visibility="{Binding Converter={x:Static jonverters:VisibilityConverter.Default}}" />
+
+
+                                <!--  Plug of a page, under its name : the attachment comes up from its task  -->
+                                <nodify:Connector
+                                    Grid.Row="2"
+                                    Margin="0,-8,0,0"
+                                    VerticalAlignment="Top"
+                                    DataContext="{Binding UserInterfacePlug}"
+                                    Style="{StaticResource UserInterfaceConnector}"
+                                    Visibility="{Binding Converter={x:Static jonverters:VisibilityConverter.Default}}" />
                             </Grid>
+                            <ControlTemplate.Triggers>
+                                <!--  The plug of a page being under it, its name goes on top to stay clear of the attachment  -->
+                                <DataTrigger Binding="{Binding IsUserInterface}" Value="True">
+                                    <Setter TargetName="Footer" Property="Grid.Row" Value="0" />
+                                </DataTrigger>
+                            </ControlTemplate.Triggers>
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>
@@ -335,7 +360,7 @@
                                 <DataTemplate DataType="{x:Type viewModels:NodeViewModel}">
                                     <Grid>
                                         <TextBlock
-                                            MaxWidth="80"
+                                            MaxWidth="120"
                                             Text="{Binding Name}"
                                             TextAlignment="Center"
                                             TextWrapping="Wrap"
@@ -349,7 +374,7 @@
                                         </TextBlock>
 
                                         <TextBox
-                                            Width="80"
+                                            Width="120"
                                             joolkit:Sizing.Size="xs"
                                             IsVisibleChanged="OnRenameBoxVisibleChanged"
                                             LostKeyboardFocus="OnRenameBoxLostFocus"
@@ -398,26 +423,24 @@
                                 </DataTemplate>
                             </nodify:Node.OutputConnectorTemplate>
 
-                            <nodify:Node.Header>
-                                <StackPanel
-                                    HorizontalAlignment="Center"
-                                    joolkit:Spacing.Gap="4"
-                                    Orientation="Horizontal">
-                                    <!--  Where the node stands in the run being followed, nothing while none is  -->
-                                    <jonts:FontIcon x:Name="StateIcon" Style="{StaticResource NodeStateIcon}">
-                                        <jonts:FontIcon.RenderTransform>
-                                            <!--  Turned while the node is progressing. Named so the animation reaches it, and declared here rather than by the style so each node turns on its own  -->
-                                            <RotateTransform x:Name="StateIconRotation" />
-                                        </jonts:FontIcon.RenderTransform>
-                                    </jonts:FontIcon>
-                                </StackPanel>
-                            </nodify:Node.Header>
-
-
-                            <jonts:FontIcon
-                                DataContext="{Binding Metadata}"
-                                FontSize="{DynamicResource {x:Static joufflu:Dimensions.FontSizeXl}}"
-                                Style="{StaticResource ScopedMetadataIcon}" />
+                            <Grid>
+                                <jonts:FontIcon
+                                    DataContext="{Binding Metadata}"
+                                    FontSize="{DynamicResource {x:Static joufflu:Dimensions.FontSizeXl}}"
+                                    Style="{StaticResource ScopedMetadataIcon}" />
+                                <!--  Where the node stands in the run being followed, nothing while none is  -->
+                                <jonts:FontIcon
+                                    x:Name="StateIcon"
+                                    Margin="-16"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Top"
+                                    Style="{StaticResource NodeStateIcon}">
+                                    <jonts:FontIcon.RenderTransform>
+                                        <!--  Turned while the node is progressing. Named so the animation reaches it, and declared here rather than by the style so each node turns on its own  -->
+                                        <RotateTransform x:Name="StateIconRotation" />
+                                    </jonts:FontIcon.RenderTransform>
+                                </jonts:FontIcon>
+                            </Grid>
                         </nodify:Node>
                         <DataTemplate.Triggers>
                             <!--
@@ -475,6 +498,9 @@
                         <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
                         <Setter Property="Location" Value="{Binding Location, Mode=TwoWay}" />
                         <Setter Property="BorderBrush" Value="Transparent" />
+                        <!--  Selection is drawn by the card of the node, see NodeCard  -->
+                        <Setter Property="SelectedBrush" Value="Transparent" />
+                        <Setter Property="HighlightBrush" Value="Transparent" />
                         <!--  A running workflow can't be edited : the nodes stay where they are  -->
                         <Setter Property="IsDraggable" Value="{Binding DataContext.IsEditable, RelativeSource={RelativeSource AncestorType={x:Type nodify:NodifyEditor}}}" />
 
@@ -533,15 +559,22 @@
 
                 <nodify:NodifyEditor.ConnectionTemplate>
                     <DataTemplate DataType="{x:Type viewModels:ConnectionViewModel}">
-                        <nodify:Connection
+                        <!--  The themed style is given explicitly, an implicit style not applying to a derived type  -->
+                        <local:EditorConnection
                             x:Name="Line"
                             Source="{Binding Source.Anchor}"
+                            Style="{StaticResource {x:Type nodify:Connection}}"
                             Target="{Binding Target.Anchor}" />
                         <DataTemplate.Triggers>
-                            <!--  A page hangs under its task : the attachment goes down, dashed, carrying no branch  -->
+                            <!--
+                                A page sits above its task : the attachment goes up, dashed, carrying no
+                                branch. Backward because Nodify points a vertical arrowhead by the
+                                direction alone, downward otherwise.
+                            -->
                             <DataTrigger Binding="{Binding IsUserInterface}" Value="True">
                                 <Setter TargetName="Line" Property="SourceOrientation" Value="Vertical" />
                                 <Setter TargetName="Line" Property="TargetOrientation" Value="Vertical" />
+                                <Setter TargetName="Line" Property="Direction" Value="Backward" />
                                 <Setter TargetName="Line" Property="StrokeDashArray" Value="4 2" />
                             </DataTrigger>
                             <!--

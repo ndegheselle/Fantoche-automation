@@ -30,10 +30,10 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
 
         public ObservableCollection<ConnectorViewModel> Outputs { get; } = [];
 
-        /// <summary>Under a task, where its page plugs. Null for a page and the nodes taking none.</summary>
+        /// <summary>On top of a task, where its page plugs. Null for a page and the nodes taking none.</summary>
         public ConnectorViewModel? UserInterfaceSlot { get; }
 
-        /// <summary>On top of a page, what plugs into the slot of its task. Null for any other node.</summary>
+        /// <summary>Under a page, what plugs into the slot of its task. Null for any other node.</summary>
         public ConnectorViewModel? UserInterfacePlug { get; }
 
         [ObservableProperty] private Point _location;
