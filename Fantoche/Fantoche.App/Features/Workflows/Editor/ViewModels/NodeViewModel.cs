@@ -47,7 +47,7 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
         /// hasn't run : the state belongs to a run, not to the graph, and a new run clears it.
         /// </summary>
         [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(HasState), nameof(StateText))]
+        [NotifyPropertyChangedFor(nameof(HasState), nameof(StateText), nameof(IsAwaitingUser))]
         private EnumTaskState? _state;
 
         /// <summary>
@@ -58,18 +58,23 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
         private TimeSpan? _duration;
 
         /// <summary>
-        /// What the last instance ended on, for a state that has something to say (a failure and
-        /// its message). Null for the rest, the state naming itself.
+        /// The whole message the last instance failed with, read in a modal rather than in a tooltip
+        /// that would cut it. Null while it hasn't failed.
         /// </summary>
         [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(StateText))]
-        private string? _stateDetail;
+        [NotifyPropertyChangedFor(nameof(HasFailure), nameof(StateText))]
+        private string? _failure;
 
         public bool HasState => State != null;
 
+        public bool HasFailure => Failure != null;
+
+        /// <summary>Whether the last instance waits for the user to answer its page.</summary>
+        public bool IsAwaitingUser => State == EnumTaskState.AwaitingUser;
+
         /// <summary>
-        /// <see cref="State"/> as the graph shows it : where the node stands, how long it took and
-        /// what it ended on. Empty while no run is displayed.
+        /// <see cref="State"/> as the graph shows it : where the node stands and how long it took,
+        /// with what to do next when the node waits for the user or failed. Empty while no run is displayed.
         /// </summary>
         public string StateText
         {
@@ -78,8 +83,11 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
                 if (State is not EnumTaskState state)
                     return string.Empty;
 
+                if (state == EnumTaskState.AwaitingUser)
+                    return "Waiting for your answer : double click to open the page";
+
                 string text = Duration is TimeSpan duration ? $"{state} in {Durations.Format(duration)}" : state.ToString();
-                return string.IsNullOrEmpty(StateDetail) ? text : $"{text}{Environment.NewLine}{StateDetail}";
+                return HasFailure ? $"{text} : double click to read the error" : text;
             }
         }
 
@@ -87,11 +95,11 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
         /// Display where [state] left the node in the run being followed. Called without anything it
         /// clears the run : what the node shows belongs to one run.
         /// </summary>
-        public void Follow(EnumTaskState? state = null, TimeSpan? duration = null, string? detail = null)
+        public void Follow(EnumTaskState? state = null, TimeSpan? duration = null, string? failure = null)
         {
             State = state;
             Duration = duration;
-            StateDetail = detail;
+            Failure = failure;
         }
 
         /// <summary>

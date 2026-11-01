@@ -166,6 +166,7 @@ public class SpineViewModel : ObservableObject
         RegisterView<TaskSettingsViewModel, TaskSettingsOverlay>();
         RegisterView<StartSettingsViewModel, StartSettingsOverlay>();
         RegisterView<InstanceDetailViewModel, InstanceDetailOverlay>();
+        RegisterView<NodeErrorViewModel, NodeErrorOverlay>();
         RegisterView<ScheduleViewModel, ScheduleOverlay>();
 
         RegisterView<PackagesViewModel, PackagesPage>();
