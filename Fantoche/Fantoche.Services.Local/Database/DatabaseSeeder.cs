@@ -75,10 +75,14 @@ internal static class Samples
         Id(0x30), "Import CSV", "Fantoche.Plugins.Example.Tasks.Tables.ImportCsvTask",
         Schema(("Path", "string"), ("Name", "string")), TableSchema);
 
-    /// <summary>Can let the user pick the column each name stands for, on its page.</summary>
     private static readonly AutomationTask MapColumns = MakeTask(
         Id(0x32), "Map columns", "Fantoche.Plugins.Example.Tasks.Tables.MapColumnsTask",
-        MapColumnsInputSchema, TableSchema, isUserInterface: true);
+        MapColumnsInputSchema, TableSchema);
+
+    /// <summary>Lets the user pick the column each name stands for : hangs under the task it asks for.</summary>
+    private static readonly AutomationTask MapColumnsPage = MakePage(
+        Id(0x38), "Pick the columns", "Fantoche.Plugins.Example.Tasks.Tables.MapColumnsPage",
+        MapColumnsInputSchema, MapColumns);
 
     private static readonly AutomationTask Merge = MakeTask(
         Id(0x33), "Merge", "Fantoche.Plugins.Example.Tasks.Tables.MergeTask",
@@ -92,10 +96,14 @@ internal static class Samples
         Id(0x35), "Split", "Fantoche.Plugins.Example.Tasks.Tables.SplitTask",
         SplitInputSchema, SplitOutputSchema);
 
-    /// <summary>Can let the user compose the document, on its page.</summary>
     private static readonly AutomationTask ExportPdf = MakeTask(
         Id(0x37), "Export PDF", "Fantoche.Plugins.Example.Tasks.Pdf.ExportPdfTask",
-        ExportPdfInputSchema, ExportPdfOutputSchema, isUserInterface: true);
+        ExportPdfInputSchema, ExportPdfOutputSchema);
+
+    /// <summary>Lets the user compose the document : hangs under the task it asks for.</summary>
+    private static readonly AutomationTask ExportPdfPage = MakePage(
+        Id(0x39), "Compose the document", "Fantoche.Plugins.Example.Tasks.Pdf.ExportPdfPage",
+        ExportPdfInputSchema, ExportPdf);
 
     #endregion
 
@@ -106,10 +114,12 @@ internal static class Samples
             SamplesScope,
             ImportCsv,
             MapColumns,
+            MapColumnsPage,
             Merge,
             Update,
             Split,
             ExportPdf,
+            ExportPdfPage,
             BuildCustomersOrders(),
         ];
 
@@ -124,24 +134,24 @@ internal static class Samples
     /// <summary>
     /// Two files mapped and merged, the large orders flagged, then a PDF per batch of the orders.
     /// <code>
-    /// Start ─> Ask ─┬─> Import customers ─> Customers ─┬─> Tables ─> Merge ─> Update ─> Split ─> Export ─> End
-    ///               └─> Import orders ────> Orders ────┘
+    /// Start ─┬─> Import customers ─> Customers ─┬─> Tables ─> Merge ─> Update ─> Split ─> Export ─> End
+    ///        │                          │      │                                            │
+    ///        │                     Pick the columns                               Compose the document
+    ///        └─> Import orders ────> Orders ────┘
+    ///                                   │
+    ///                              Pick the columns
     /// </code>
     /// Started with the paths of the two files the script of Fantoche.Plugins.Example/Resources/Samples
-    /// generates. With AskUser (the default), the mappings and the export ask the user on their page,
-    /// the share handing the choice over to them ("$shared.AskUser") ; without it the run is
-    /// unattended, the columns being the ones of those files. The nodes after the mapping read the
-    /// columns by their names ("$previous.Customers.Mapping.CustomerId", "$row.columns.Amount"),
-    /// whatever the files call them.
+    /// generates. The mappings and the export ask the user on the pages attached under them ; with
+    /// the pages removed the run is unattended, the columns being the ones of those files. The nodes
+    /// after the mapping read the columns by their names ("$previous.Customers.Mapping.CustomerId",
+    /// "$row.columns.Amount"), whatever the files call them.
     /// </summary>
     private static AutomationWorkflow BuildCustomersOrders()
     {
         AutomationWorkflow workflow = MakeWorkflow(Id(0x24), "Customers and orders");
 
-        GraphControl start = StartNode(0, 150, Schema(("Customers", "string"), ("Orders", "string"), ("AskUser", "boolean")),
-            new { AskUser = true });
-        GraphControl ask = Node(new GraphControl(AutomationControl.ShareTask), "Ask", 220, 150,
-            new { AskUser = "$previous.AskUser" });
+        GraphControl start = StartNode(0, 150, Schema(("Customers", "string"), ("Orders", "string")));
 
         GraphTask importCustomers = Node(new GraphTask(ImportCsv), "Import customers", 440, 0,
             new { Path = "$previous.Customers" });
@@ -150,8 +160,8 @@ internal static class Samples
             {
                 Source = "$previous",
                 Columns = new[] { Column("CustomerId", "client id"), Column("Name", "full name"), Column("City", "town") },
-                AskUser = "$shared.AskUser",
             });
+        GraphUserInterface customersPage = Node(new GraphUserInterface(MapColumnsPage), "Pick the customers columns", 660, 120);
 
         GraphTask importOrders = Node(new GraphTask(ImportCsv), "Import orders", 440, 300,
             new { Path = "$previous.Orders" });
@@ -160,8 +170,8 @@ internal static class Samples
             {
                 Source = "$previous",
                 Columns = new[] { Column("OrderId", "order no"), Column("CustomerId", "client"), Column("Amount", "total"), Column("Date", "ordered on") },
-                AskUser = "$shared.AskUser",
             });
+        GraphUserInterface ordersPage = Node(new GraphUserInterface(MapColumnsPage), "Pick the orders columns", 660, 420);
 
         GraphControl tables = Node(new GraphControl(AutomationControl.JoinTask), "Tables", 880, 150,
             new { Customers = "$previous.Customers", Orders = "$previous.Orders" });
@@ -189,18 +199,17 @@ internal static class Samples
                 Sources = "$previous.Batches",
                 Document = new { Landscape = true, Blocks = Array.Empty<object>() },
                 FileName = "orders-{index}",
-                AskUser = "$shared.AskUser",
             });
+        GraphUserInterface exportPage = Node(new GraphUserInterface(ExportPdfPage), "Compose the document", 1760, 270);
         GraphControl end = EndNode(1980, 150, new { Files = "$previous.Files" }, Schema(("Files", "array")));
 
-        Add(workflow, start, ask, importCustomers, customers, importOrders, orders,
-            tables, merge, update, split, export, end);
+        Add(workflow, start, importCustomers, customers, customersPage, importOrders, orders, ordersPage,
+            tables, merge, update, split, export, exportPage, end);
 
-        workflow.Graph.Connect(start, ask);
-        workflow.Graph.Connect(ask, importCustomers);
+        workflow.Graph.Connect(start, importCustomers);
         workflow.Graph.Connect(importCustomers, customers);
         workflow.Graph.Connect(customers, tables);
-        workflow.Graph.Connect(ask, importOrders);
+        workflow.Graph.Connect(start, importOrders);
         workflow.Graph.Connect(importOrders, orders);
         workflow.Graph.Connect(orders, tables);
         workflow.Graph.Connect(tables, merge);
@@ -208,6 +217,10 @@ internal static class Samples
         workflow.Graph.Connect(update, split);
         workflow.Graph.Connect(split, export);
         workflow.Graph.Connect(export, end);
+
+        workflow.Graph.Attach(customers, customersPage);
+        workflow.Graph.Attach(orders, ordersPage);
+        workflow.Graph.Attach(export, exportPage);
 
         return workflow;
     }
@@ -228,8 +241,7 @@ internal static class Samples
     /// The schemas of the tasks, with the markers of the engine : a table or file handle
     /// ("x-fantoche-type"), the fields evaluated per row with the property holding their table
     /// ("x-fantoche-scope"), what a task hands over of its input ("x-fantoche-output",
-    /// "x-fantoche-output-mapping", see OutputPreview) and the switch asking the user ("x-fantoche-ask-user"). The
-    /// schemas they share are written once, put in place of their "&lt;name&gt;".
+    /// "x-fantoche-output-mapping", see OutputPreview). The schemas they share are written once, put in place of their "&lt;name&gt;".
     /// </summary>
     private const string TableSchema = """
         {"type":"object","x-fantoche-type":"table","properties":{
@@ -247,8 +259,7 @@ internal static class Samples
     private static string MapColumnsInputSchema => """
         {"type":"object","properties":{
             "Source":{"type":"object","x-fantoche-type":"table","x-fantoche-output":""},
-            "Columns":{"type":"array","items":<column mapping>,"x-fantoche-output-mapping":""},
-            "AskUser":{"type":"boolean","x-fantoche-ask-user":true}}}
+            "Columns":{"type":"array","items":<column mapping>,"x-fantoche-output-mapping":""}}}
         """
         .Replace("<column mapping>", ColumnMappingSchema);
 
@@ -296,8 +307,7 @@ internal static class Samples
         {"type":"object","properties":{
             "Sources":{"type":"array","items":{"type":"object","x-fantoche-type":"table"}},
             "Document":{<layout>},
-            "FileName":{"type":"string"},
-            "AskUser":{"type":"boolean","x-fantoche-ask-user":true}}}
+            "FileName":{"type":"string"}}}
         """
         .Replace("<layout>", PdfLayoutProperties);
 
@@ -334,11 +344,12 @@ internal static class Samples
         string className,
         string inputSchema,
         string outputSchema,
-        bool isUserInterface = false)
+        bool isUserInterface = false,
+        Guid? parentId = null)
         => new AutomationTask()
         {
             Id = id,
-            ParentId = SamplesScope.Id,
+            ParentId = parentId ?? SamplesScope.Id,
             Metadata = new ScopedMetadata(name, EnumScopedType.Task) { Tags = ["Sample"] },
             Target = new PackageClassTarget()
             {
@@ -350,6 +361,13 @@ internal static class Samples
             InputSchemaJson = inputSchema,
             OutputSchemaJson = outputSchema,
         };
+
+    /// <summary>
+    /// The page editing the parameters of [task] : it reads and hands over what the task reads, and
+    /// hangs under it in the tree.
+    /// </summary>
+    private static AutomationTask MakePage(Guid id, string name, string className, string parametersSchema, AutomationTask task)
+        => MakeTask(id, name, className, parametersSchema, parametersSchema, isUserInterface: true, parentId: task.Id);
 
     /// <summary>
     /// A workflow with an empty graph. Its schemas are not set here : they are declared by the start

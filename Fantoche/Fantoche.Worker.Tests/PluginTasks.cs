@@ -48,10 +48,16 @@ internal static class PluginTasks
         "Fantoche.Plugins.LoopGateTask", "LoopGate",
         JsonSchema.FromType<LoopGateParameters>(), new JsonSchema(), passThrough: true);
 
-    /// <summary>The user puts items in order on a page : a user interface task.</summary>
+    /// <summary>Hands the items over in the order they are given, which its page lets the user change.</summary>
     public static readonly AutomationTask Reorder = Make(
         "Fantoche.Plugins.UserInterfaces.ReorderTask", "Reorder",
         JsonSchema.FromType<Plugins.UserInterfaces.ReorderParameters>(), JsonSchema.FromType<Plugins.UserInterfaces.ReorderResult>());
+
+    /// <summary>The page of <see cref="Reorder"/> : the user puts the items in order.</summary>
+    public static readonly AutomationTask ReorderPage = Make(
+        "Fantoche.Plugins.UserInterfaces.ReorderPage", "Reorder page",
+        JsonSchema.FromType<Plugins.UserInterfaces.ReorderParameters>(), JsonSchema.FromType<Plugins.UserInterfaces.ReorderParameters>(),
+        isPage: true);
 
     /// <summary>A task pointing at a class the assembly doesn't hold.</summary>
     public static readonly AutomationTask UnknownClass = Make(
@@ -71,10 +77,12 @@ internal static class PluginTasks
     public static readonly AutomationTask Update = Table<UpdateTask, UpdateParameters, TableRef>("Update");
     public static readonly AutomationTask Split = Table<SplitTask, SplitParameters, SplitResult>("Split");
     public static readonly AutomationTask ExportPdf = Table<ExportPdfTask, ExportPdfParameters, ExportPdfResult>("ExportPdf");
+    public static readonly AutomationTask MapColumnsPage = Table<MapColumnsPage, MapColumnsParameters, MapColumnsParameters>("MapColumnsPage", isPage: true);
+    public static readonly AutomationTask ExportPdfPage = Table<ExportPdfPage, ExportPdfParameters, ExportPdfParameters>("ExportPdfPage", isPage: true);
 
     /// <summary>A task of Fantoche.Plugins.Example, with the schemas its types declare as adding it from its package does.</summary>
-    private static AutomationTask Table<TTask, TInput, TOutput>(string name)
-        => Make(typeof(TTask).FullName!, name, JsonSchema.FromType<TInput>(), JsonSchema.FromType<TOutput>(), package: TablesPackage);
+    private static AutomationTask Table<TTask, TInput, TOutput>(string name, bool isPage = false)
+        => Make(typeof(TTask).FullName!, name, JsonSchema.FromType<TInput>(), JsonSchema.FromType<TOutput>(), package: TablesPackage, isPage: isPage);
 
     #endregion
 
@@ -88,7 +96,8 @@ internal static class PluginTasks
         JsonSchema? input,
         JsonSchema? output,
         bool passThrough = false,
-        string package = Package)
+        string package = Package,
+        bool isPage = false)
         => new()
         {
             Id = Guid.NewGuid(),
@@ -96,6 +105,7 @@ internal static class PluginTasks
             {
                 Dll = package,
                 ClassFullName = className,
+                IsUserInterface = isPage,
                 Package = new PackageIdentifier()
                 {
                     Id = package,

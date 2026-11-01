@@ -174,6 +174,10 @@ namespace Fantoche.App.Features.Workflows.Editor
 
             _previewer.Load(globalContext, tasks);
             graph.Refresh(tasks, force: true);
+            // Saved with the graph the next time it is : only a graph from before the pages were
+            // nodes of their own lacks them.
+            foreach (GraphTask task in graph.Nodes.OfType<GraphTask>())
+                task.AddUserInterfaceSlot();
 
             SelectedNodes.Clear();
             Nodes.Clear();
@@ -321,7 +325,8 @@ namespace Fantoche.App.Features.Workflows.Editor
         private async Task OpenSettings(NodeViewModel? node)
         {
             node = Target(node);
-            if (node == null)
+            // A page has nothing to set : it is handed the parameters of its task.
+            if (node == null || node.IsUserInterface)
                 return;
 
             IReversibleAction? edition = await TaskSettingsViewModel.ShowAsync(node.Model, Preview);

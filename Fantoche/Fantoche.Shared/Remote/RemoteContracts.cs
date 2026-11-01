@@ -68,7 +68,7 @@ public enum EnumWorkerRoles
 
     /// <summary>
     /// The tasks asking the user, however many : an application, where the user is (see
-    /// <see cref="Data.Execution.UserInterfaceSwitch"/>). Never handed out on their own : one is
+    /// <see cref="Data.Scoped.AutomationTask.IsUserInterface"/>). Never handed out on their own : one is
     /// handed to the application whose user takes it (see <see cref="IWorkerHub.Take"/>).
     /// </summary>
     UserTasks = 2,

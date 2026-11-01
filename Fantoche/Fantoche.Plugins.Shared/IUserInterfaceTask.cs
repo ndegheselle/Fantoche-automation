@@ -1,16 +1,15 @@
 namespace Fantoche.Plugins.Shared;
 
 /// <summary>
-/// A task that can ask the user through a page of its own while it runs, when its input says so
-/// (see <see cref="UserInterface.SchemaKey"/>) : otherwise it runs unattended, as any other task.
-/// Such a task always runs in an application, where the user is : a worker reaching it hands it to
-/// one through the supervisor.
+/// A page asking the user for the parameters of another task, before that task runs : in a
+/// workflow it is attached under the task, which runs unattended without it. Such a page always
+/// runs in an application, where the user is : a worker reaching it hands it to one through the
+/// supervisor. Derive from <see cref="UserInterfaceTask{TParameters}"/> rather than implementing it.
 /// <para>
-/// While it runs, <see cref="ITaskRuntime.UserInterface"/> shows the page and waits for its answer
-/// (see <see cref="IUserInterface.AskAsync"/>). The page reads what it is asked with as
-/// <c>window.fantoche.input</c> and answers with <c>await window.fantoche.answer(value)</c>, rejected
-/// when the answer doesn't fit what the task expects. Meanwhile it can call the methods of the task
-/// marked with <see cref="PageMethodAttribute"/> : <c>await window.fantoche.call('Name', args)</c>.
+/// The page reads the parameters it edits as <c>window.fantoche.input</c> and answers them with
+/// <c>await window.fantoche.answer(value)</c>, rejected when the answer doesn't fit what the task
+/// expects. Meanwhile it can call the methods of the page task marked with
+/// <see cref="PageMethodAttribute"/> : <c>await window.fantoche.call('Name', args)</c>.
 /// <c>window.fantoche.close()</c> closes it unanswered, to be opened again later.
 /// </para>
 /// <para>
@@ -35,13 +34,20 @@ public interface IUserInterfaceTask : ITask
 }
 
 /// <summary>
-/// Whether a user interface task asks the user : a boolean property of its input marked with
-/// <c>[JsonSchemaExtensionData(UserInterface.SchemaKey, true)]</c>. Resolved as any other value, so
-/// a workflow decides it from its context ("$previous.AskUser"), and a schedule runs it unattended.
+/// The page editing the <typeparamref name="TParameters"/> of a task : it hands over what the user
+/// answered, which the task then runs with. The page methods it declares usually call static
+/// methods of the task, so the page applies the rules of the task rather than a copy of them.
 /// </summary>
-public static class UserInterface
+public abstract class UserInterfaceTask<TParameters> : BaseTask<TParameters, TParameters>, IUserInterfaceTask
 {
-    public const string SchemaKey = "x-fantoche-ask-user";
+    public abstract string PageFolder { get; }
+
+    public sealed override async Task<TParameters> DoAsync(TParameters parameters, ITaskRuntime runtime, CancellationToken? cancellation = null)
+    {
+        IUserInterface page = runtime.UserInterface
+            ?? throw new InvalidOperationException("A page task runs where its page can be shown.");
+        return await page.AskAsync<TParameters>(parameters, cancellation ?? CancellationToken.None);
+    }
 }
 
 /// <summary>
@@ -58,11 +64,11 @@ public interface IUserInterface
 }
 
 /// <summary>
-/// A method of a user interface task its page calls while the task asks, on the very instance
-/// running : <c>await window.fantoche.call('Name', args)</c>. It takes at most one value, read from
-/// [args], and can take the <see cref="ITaskRuntime"/> and a <see cref="CancellationToken"/> along ;
-/// what it returns is handed back to the page, the files and tables it holds being reachable from
-/// the page from then on.
+/// A method of a page task its page calls while it asks, on the very instance running :
+/// <c>await window.fantoche.call('Name', args)</c>. It takes at most one value, read from [args],
+/// and can take the <see cref="ITaskRuntime"/> and a <see cref="CancellationToken"/> along ; what it
+/// returns is handed back to the page, the files and tables it holds being reachable from the page
+/// from then on.
 /// </summary>
 [AttributeUsage(AttributeTargets.Method)]
 public sealed class PageMethodAttribute : Attribute

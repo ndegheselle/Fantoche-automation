@@ -5,7 +5,7 @@ The standalone and remote modes run the same code: one supervisor (`LocalSupervi
 Two rules keep the interactions simple:
 - What the application starts runs in the application. The workers run what the supervisor dispatches to them: the scheduled items (to come).
 - Once a worker (the application's included) starts an execution, everything of it stays there. Every node of a workflow runs where the workflow runs, and its tables and files never leave the storage of its run. A suspended run is resumed by whoever can reach that storage (see [Suspended runs](#suspended-runs)).
-- The one exception is a task asking the user: it always runs in an application, where the user is. A worker hands it to one through the supervisor (see [User interface tasks](#user-interface-tasks)).
+- The one exception is a page asking the user: it always runs in an application, where the user is. A worker hands it to one through the supervisor (see [User interface tasks](#user-interface-tasks)).
 
 ## Standalone and remote
 
@@ -136,36 +136,48 @@ The versions are stored as reverse diffs, so a past version costs only what chan
 
 ## User interface tasks
 
-A task can ask the user through a page of its own while it runs, when its input says so. Use it for what a form can't describe, like picking the columns of a file or composing a document. The same task runs unattended otherwise, so a schedule still works.
+A page asks the user for the parameters of a task, before the task runs. Use it for what a form can't describe, like picking the columns of a file or composing a document. The page is a task of its own, so a workflow without it (a schedule, an automated run) runs the task unattended.
+
+- **In the tree:** a page hangs under the task it asks for ("Add a page to the task").
+- **In a workflow:** it is a round node attached under its task, through the diamond under the task (`GraphUserInterface`, `BaseGraphTask.UserInterface`). It sits apart from the branches: nothing flows into it nor out of it. A task takes one page, a page reads and hands over the parameters of its task (`TasksGraph.CanConnect`).
+- **When the task is reached:** its parameters are resolved, the page is asked with them, and the task runs with what the user answered, carrying on from the node before it (`WorkflowExecutor.RunPageAsync`). A resume asks again a page that was asking, and runs the task with the answer kept when the page was answered but the task never started.
 
 ```mermaid
 sequenceDiagram
     participant Worker as Worker running the run
     participant Supervisor
     participant App as Application
-    Worker->>Supervisor: Execute(node), as a caller
+    Worker->>Supervisor: Execute(page), as a caller
     Supervisor->>Supervisor: queue it, waiting for a user (AwaitingUser)
-    App->>Supervisor: Take(node), its user answering it from its run
-    Supervisor->>App: Execute(node), the application being a worker for the tasks asking the user
+    App->>Supervisor: Take(page), its user answering it from its run
+    Supervisor->>App: Execute(page), the application being a worker for the pages
     App->>App: DoAsync, until it asks (AwaitingUser)
-    App->>App: the page, calling the methods of the task
+    App->>App: the page, calling the methods of the page task
     App->>Supervisor: the storage of the run, read and written through its API
-    App->>Supervisor: Complete(node)
-    Supervisor->>Worker: Completed(node), the branch carries on
+    App->>Supervisor: Complete(page), the answer as its output
+    Supervisor->>Worker: Completed(page)
+    Worker->>Worker: the task, with the answer as its parameters
 ```
 
-A run started in the application skips the supervisor: the application runs the node itself.
+A run started in the application skips the supervisor: the application runs the page itself.
 
-- **Writing one:** implement `IUserInterfaceTask` (the folder of its page, `PageFolder`, relative to the assembly) and mark a boolean of its input with `[JsonSchemaExtensionData(UserInterface.SchemaKey, true)]`. It is resolved like any other value (`"$shared.AskUser"`). When it holds true, `runtime.UserInterface` shows the page:
+Why a task of its own rather than a switch on the task (an `AskUser` input, as before): a workflow run unattended holds only the task, the page is seen as a step of the workflow, and the task runs on a worker while only the page needs an application.
+
+- **Writing one:** derive from `UserInterfaceTask<TParameters>`, `TParameters` being the parameters of the task, and give the folder of its page (`PageFolder`, relative to the assembly). Its page methods call static methods of the task, so the page applies the rules of the task rather than a copy of them:
 
   ```csharp
-  if (runtime.UserInterface is IUserInterface page)
-      parameters = await page.AskAsync<MapColumnsParameters>(parameters, cancellation);
+  public class MapColumnsPage : UserInterfaceTask<MapColumnsParameters>
+  {
+      public override string PageFolder => "UI/MapColumns";
+
+      [PageMethod]
+      public string? Check(MapColumnsParameters parameters) => MapColumnsTask.Check(parameters);
+  }
   ```
 
-  A task can ask as many times as it needs while it runs. See `MapColumnsTask` and `ExportPdfTask` in `Fantoche.Plugins.Example`: their page edits their own parameters.
-- **The page:** it reads `window.fantoche.input` and answers with `await window.fantoche.answer(value)`, rejected when the answer doesn't fit what the task expects. `window.fantoche.close()` closes it unanswered, and it can be opened again.
-- **Calling the task:** `await window.fantoche.call('Suggest', args)` calls a method of the running task marked `[PageMethod]`. It takes at most one value, plus the `ITaskRuntime` and a `CancellationToken` if it asks for them. So the page reuses the rules of the task rather than writing them again in JavaScript: `MapColumnsTask.Check`, `ExportPdfTask.PreviewAsync` rendering the real PDF.
+  See `MapColumnsPage` and `ExportPdfPage` in `Fantoche.Plugins.Example`.
+- **The page:** it reads the parameters of the task as `window.fantoche.input` and answers them with `await window.fantoche.answer(value)`, rejected when the answer doesn't fit what the task expects. `window.fantoche.close()` closes it unanswered, and it can be opened again.
+- **Calling the page task:** `await window.fantoche.call('Suggest', args)` calls a method of the running page task marked `[PageMethod]`. It takes at most one value, plus the `ITaskRuntime` and a `CancellationToken` if it asks for them. So the page reuses the rules of the task rather than writing them again in JavaScript: `MapColumnsTask.Check`, `ExportPdfTask.PreviewAsync` rendering the real PDF.
 - **Packing it:** the folder is packed next to the assembly, the way `Fantoche.Plugins.Example.csproj` does it:
 
   ```xml
@@ -177,14 +189,14 @@ A run started in the application skips the supervisor: the application runs the 
   - A run of the application runs it there.
   - A worker hands it to the supervisor as any caller does (`RemoteTaskExecutor`). The supervisor never hands it out on its own: it waits in the queue, `AwaitingUser` in the history, and the branch of the run with it.
   - A user answering it from its run takes it (`IWorkerRegistration.TakeAsync`): the supervisor hands it to that application (`EnumWorkerRoles.UserTasks`, which every application registers in both modes), and its page opens once the task asks. A second application taking it is refused. No page shows up unasked.
-  - A worker reaching no page at all (no supervisor) fails the task.
-- **While it asks:** the task is `AwaitingUser` and its branch waits, the rest of the run going on.
+  - A worker reaching no page at all (no supervisor) fails the page, and its task never runs.
+- **While it asks:** the page is `AwaitingUser` and the branch of its task waits, the rest of the run going on.
   - The worker keeps the run in memory meanwhile, and counts it against its capacity.
   - For a run of the application, the editor following the run opens the page by itself. Otherwise the application tells the user, who answers from the detail of the run ("Answer").
-  - Only the application running the task can answer it. A second answer is refused.
+  - Only the application running the page can answer it. A second answer is refused.
 - **When it goes wrong:**
-  - An application lost while running the task leaves the node `Suspended`, and its run with it. Resuming the run asks again.
-  - A run canceled stops the task and closes its page.
+  - An application lost while running the page leaves the node `Suspended`, and its run with it. Resuming the run asks again.
+  - A run canceled stops the page and closes it.
 - **Showing files and tables:** the page reads the ones its input points at, and the ones a page method hands back (`PageFiles`).
 
   ```js

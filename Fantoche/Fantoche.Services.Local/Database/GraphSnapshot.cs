@@ -29,8 +29,10 @@ internal sealed class GraphSnapshot
             List<GraphConnectorModel> connectors = [];
             if (node is BaseGraphTask task)
             {
-                connectors.AddRange(task.Inputs.Select((x, position) => GraphConnectorModel.From(x, task.Id, true, position)));
-                connectors.AddRange(task.Outputs.Select((x, position) => GraphConnectorModel.From(x, task.Id, false, position)));
+                connectors.AddRange(task.Inputs.Select((x, position) => GraphConnectorModel.From(x, task.Id, GraphConnectorModel.InputDirection, position)));
+                connectors.AddRange(task.Outputs.Select((x, position) => GraphConnectorModel.From(x, task.Id, GraphConnectorModel.OutputDirection, position)));
+                if (task.UserInterface != null)
+                    connectors.Add(GraphConnectorModel.From(task.UserInterface, task.Id, GraphConnectorModel.UserInterfaceDirection, 0));
             }
 
             connectorIds.UnionWith(connectors.Select(x => x.Id));
@@ -59,7 +61,21 @@ internal sealed class GraphSnapshot
 
             // In the order they are drawn in : an output branch is known by its place in the list.
             foreach (GraphConnectorModel connector in stored.Connectors.OrderBy(x => x.Position))
-                (connector.IsInput ? task.Inputs : task.Outputs).Add(connector.ToConnector());
+            {
+                GraphConnector loaded = connector.ToConnector();
+                switch (connector.Direction)
+                {
+                    case GraphConnectorModel.InputDirection:
+                        task.Inputs.Add(loaded);
+                        break;
+                    case GraphConnectorModel.OutputDirection:
+                        task.Outputs.Add(loaded);
+                        break;
+                    case GraphConnectorModel.UserInterfaceDirection:
+                        task.UserInterface = loaded;
+                        break;
+                }
+            }
         }
 
         foreach (GraphConnectionModel connection in Connections)

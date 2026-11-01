@@ -69,6 +69,17 @@ internal sealed class TestWorkflow
         return Add(name, node);
     }
 
+    /// <summary>A node named [name] for the page [page], attached under the node [of].</summary>
+    public TestWorkflow Page(string name, AutomationTask page, string of)
+    {
+        _tasks[page.Id] = page;
+        GraphUserInterface node = new(page);
+        node.Metadata.Name = name;
+        Add(name, node);
+        Workflow.Graph.Attach(_nodes[of], node);
+        return this;
+    }
+
     /// <summary>A node running the whole workflow [nested], as a task of this one.</summary>
     public TestWorkflow Nested(string name, TestWorkflow nested, object? mapping = null)
     {

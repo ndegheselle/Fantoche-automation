@@ -10,7 +10,7 @@ namespace Fantoche.Supervisor.Api.Data;
 /// <summary>
 /// The storage of the runs the workers hold, which the supervisor reaches (STORAGE_FOLDER, the
 /// volume they share) : what a task asking the user reads and writes from the application it runs
-/// in (see <see cref="Shared.Data.Execution.UserInterfaceSwitch"/>). A run is known by its id, the
+/// in (see <see cref="Shared.Data.Scoped.AutomationTask.IsUserInterface"/>). A run is known by its id, the
 /// supervisor finding its folder from its history.
 /// </summary>
 public static class StorageApi

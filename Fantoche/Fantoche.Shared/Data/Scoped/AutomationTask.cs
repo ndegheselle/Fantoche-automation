@@ -87,6 +87,15 @@ public class AutomationTask : BaseAutomationTask
 {
     public PackageClassTarget? Target { get; set; }
 
+    /// <summary>
+    /// Whether the task is a page asking the user for the parameters of another task (see
+    /// <see cref="IUserInterfaceTask"/>) : it hangs under that task in the tree, and is attached
+    /// under its node in a workflow.
+    /// </summary>
+    [JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public bool IsUserInterface => Target?.IsUserInterface == true;
+
     public AutomationTask() : base(EnumScopedType.Task)
     {
     }

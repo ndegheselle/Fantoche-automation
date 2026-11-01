@@ -19,7 +19,9 @@ namespace Fantoche.App.Features.Workflows
         /// </summary>
         public IEnumerable<ScopedNode> Breadcrumb => Selected?.Path ?? [];
 
-        [ObservableProperty] private ScopedNode? _selected;
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(CreatePageCommand))]
+        private ScopedNode? _selected;
 
         [ObservableProperty] private object? _details;
         [ObservableProperty] private string _search = "";
@@ -92,30 +94,54 @@ namespace Fantoche.App.Features.Workflows
 
         /// <summary>
         /// Create a new element of [type] in the selected scope. When the selection is not a scope
-        /// its parent scope is used, defaulting to the root scope.
+        /// the closest scope holding it is used, defaulting to the root scope.
         /// </summary>
         [RelayCommand]
         public async Task Create(EnumScopedType type)
         {
             ScopedNode selected = Selected ?? Root;
-            ScopedNode parent = selected.IsScope ? selected : selected.Parent ?? Root;
+            // A page hangs under a task, which hangs under a scope : the closest scope is a few levels up.
+            ScopedNode parent = selected.Path.LastOrDefault(x => x.IsScope) ?? Root;
             Guid parentId = parent.Element.Id;
-            string name = await GetAvailableNameAsync(parentId, type);
+            string name = await GetAvailableNameAsync(parentId, $"New {type.ToString().ToLower()}");
 
             ScopedElement element = ScopedElement.Create(type, name, parentId);
+            await AddAsync(element, parent);
+        }
+
+        /// <summary>
+        /// Create a new page under the selected task : it asks the user for the parameters of the
+        /// task, once its package targets a page and it is attached under the task in a workflow.
+        /// </summary>
+        [RelayCommand(CanExecute = nameof(CanCreatePage))]
+        public async Task CreatePage()
+        {
+            if (Selected is not ScopedNode task || !task.CanHoldPage)
+                return;
+
+            Guid taskId = task.Element.Id;
+            string name = await GetAvailableNameAsync(taskId, "New page");
+            await AddAsync(new AutomationTask(name, taskId), task);
+        }
+
+        private bool CanCreatePage() => Selected?.CanHoldPage == true;
+
+        private async Task AddAsync(ScopedElement element, ScopedNode parent)
+        {
             var node = new ScopedNode(await _scoped.CreateAsync(element), parent);
             parent.Children.Add(node);
             Open(node);
         }
 
         /// <summary>
-        /// First name not already taken by a sibling, the name having to be unique within a scope.
+        /// First name starting with [prefix] not already taken by a sibling, the name having to be
+        /// unique under a parent.
         /// </summary>
-        private async Task<string> GetAvailableNameAsync(Guid parentId, EnumScopedType type)
+        private async Task<string> GetAvailableNameAsync(Guid parentId, string prefix)
         {
-            string name = $"New {type.ToString().ToLower()}";
+            string name = prefix;
             for (int index = 2; !await _scoped.IsNameUniqueAsync(parentId, name); index++)
-                name = $"New {type.ToString().ToLower()} {index}";
+                name = $"{prefix} {index}";
             return name;
         }
 
