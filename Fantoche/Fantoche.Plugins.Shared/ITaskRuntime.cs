@@ -21,7 +21,7 @@ public interface ITaskRuntime
     /// <summary>
     /// The page of the task, null for any task but a page task (see <see cref="IUserInterfaceTask"/>).
     /// </summary>
-    IUserInterface? UserInterface { get; }
+    IUserPrompt? UserPrompt { get; }
 
     /// <summary>
     /// Deactivate the output (even if the task completed it)

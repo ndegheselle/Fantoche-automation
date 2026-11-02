@@ -10,7 +10,7 @@ namespace Fantoche.Worker.UserInterfaces;
 /// question shown by the <see cref="IPageHost"/> of the application, the task waiting for the
 /// answer meanwhile, its instance reported as waiting for the user.
 /// </summary>
-internal sealed class PageSession : IUserInterface
+internal sealed class PageSession : IUserPrompt
 {
     private readonly IPageHost _host;
     private readonly string _folder;

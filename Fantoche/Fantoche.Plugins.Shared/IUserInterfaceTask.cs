@@ -44,7 +44,7 @@ public abstract class UserInterfaceTask<TParameters> : BaseTask<TParameters, TPa
 
     public sealed override async Task<TParameters> DoAsync(TParameters parameters, ITaskRuntime runtime, CancellationToken? cancellation = null)
     {
-        IUserInterface page = runtime.UserInterface
+        IUserPrompt page = runtime.UserPrompt
             ?? throw new InvalidOperationException("A page task runs where its page can be shown.");
         return await page.AskAsync<TParameters>(parameters, cancellation ?? CancellationToken.None);
     }
@@ -53,7 +53,7 @@ public abstract class UserInterfaceTask<TParameters> : BaseTask<TParameters, TPa
 /// <summary>
 /// The page of a task while it runs, see <see cref="IUserInterfaceTask"/>.
 /// </summary>
-public interface IUserInterface
+public interface IUserPrompt
 {
     /// <summary>
     /// Show the page with [input] until the user answers it, the answer read as a
