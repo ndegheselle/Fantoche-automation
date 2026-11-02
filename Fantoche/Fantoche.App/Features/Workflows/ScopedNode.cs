@@ -20,6 +20,9 @@ namespace Fantoche.App.Features.Workflows
         public EnumScopedType Type => Element.Metadata.Type;
         public bool IsScope => Type == EnumScopedType.Scope;
 
+        /// <summary>Whether the element is a page asking the user for the parameters of a task.</summary>
+        public bool IsUserInterface => Element is AutomationTask { IsUserInterface: true };
+
         /// <summary>
         /// Whether a page can be added under the element : a task asks for its parameters through
         /// the pages hanging under it. A control is built in, and a page asks for no page.

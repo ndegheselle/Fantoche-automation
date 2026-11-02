@@ -43,7 +43,6 @@
     <!--  Muted lines and connectors, as Joufflu mutes text : the foreground at the muted opacity  -->
     <SolidColorBrush
         x:Key="Nodify.MutedBrush"
-        Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}"
         Color="{DynamicResource {x:Static joufflu:Colors.ForegroundColor}}" />
 
     <!--  Editor  -->
@@ -131,21 +130,6 @@
     <Style BasedOn="{StaticResource {x:Type nodify:Connection}}" TargetType="{x:Type nodify:Connection}">
         <Setter Property="Stroke" Value="{DynamicResource {x:Static joufflu:Brushes.DisplayBorderBrush}}" />
         <Setter Property="Fill" Value="{DynamicResource {x:Static joufflu:Brushes.DisplayBorderBrush}}" />
-    </Style>
-
-    <Style BasedOn="{StaticResource {x:Type nodify:LineConnection}}" TargetType="{x:Type nodify:LineConnection}">
-        <Setter Property="Stroke" Value="{StaticResource Nodify.MutedBrush}" />
-        <Setter Property="Fill" Value="{StaticResource Nodify.MutedBrush}" />
-    </Style>
-
-    <Style BasedOn="{StaticResource {x:Type nodify:CircuitConnection}}" TargetType="{x:Type nodify:CircuitConnection}">
-        <Setter Property="Stroke" Value="{StaticResource Nodify.MutedBrush}" />
-        <Setter Property="Fill" Value="{StaticResource Nodify.MutedBrush}" />
-    </Style>
-
-    <Style BasedOn="{StaticResource {x:Type nodify:StepConnection}}" TargetType="{x:Type nodify:StepConnection}">
-        <Setter Property="Stroke" Value="{StaticResource Nodify.MutedBrush}" />
-        <Setter Property="Fill" Value="{StaticResource Nodify.MutedBrush}" />
     </Style>
 
     <Style BasedOn="{StaticResource {x:Type nodify:PendingConnection}}" TargetType="{x:Type nodify:PendingConnection}">

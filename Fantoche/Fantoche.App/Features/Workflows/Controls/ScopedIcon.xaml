@@ -18,6 +18,13 @@
             <DataTrigger Binding="{Binding Type}" Value="{x:Static scoped:EnumScopedType.Task}">
                 <Setter Property="Text" Value="{x:Static jonts:LucideFontIcons.SquareTerminal}" />
             </DataTrigger>
+            <!--
+                A page asking the user for the parameters of a task. The metadata doesn't know it, it
+                is read from the element owning the metadata, the DataContext of the parent.
+            -->
+            <DataTrigger Binding="{Binding DataContext.IsUserInterface, RelativeSource={RelativeSource AncestorType={x:Type FrameworkElement}}}" Value="True">
+                <Setter Property="Text" Value="{x:Static jonts:LucideFontIcons.Monitor}" />
+            </DataTrigger>
 
             <!--
                 Customization of the metadata, declared last so it takes precedence over the icon of

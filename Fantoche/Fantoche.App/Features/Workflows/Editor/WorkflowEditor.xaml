@@ -146,9 +146,9 @@
                                 -->
                                 <Path
                                     x:Name="PART_Connector"
-                                    Width="11"
-                                    Height="11"
-                                    Data="M5.5,0 L11,5.5 5.5,11 0,5.5 Z"
+                                    Width="16"
+                                    Height="16"
+                                    Data="M8,0 L16,8 8,16 0,8 Z"
                                     Fill="{DynamicResource {x:Static joufflu:Brushes.Base0Brush}}"
                                     Stroke="{DynamicResource {x:Static joufflu:Brushes.DisplayBorderBrush}}"
                                     StrokeThickness="1.5" />
@@ -431,7 +431,6 @@
                                 <!--  Where the node stands in the run being followed, nothing while none is  -->
                                 <jonts:FontIcon
                                     x:Name="StateIcon"
-                                    Margin="-16"
                                     HorizontalAlignment="Right"
                                     VerticalAlignment="Top"
                                     Style="{StaticResource NodeStateIcon}">
@@ -560,11 +559,12 @@
                 <nodify:NodifyEditor.ConnectionTemplate>
                     <DataTemplate DataType="{x:Type viewModels:ConnectionViewModel}">
                         <!--  The themed style is given explicitly, an implicit style not applying to a derived type  -->
-                        <local:EditorConnection
+                        <nodify:Connection 
                             x:Name="Line"
                             Source="{Binding Source.Anchor}"
                             Style="{StaticResource {x:Type nodify:Connection}}"
-                            Target="{Binding Target.Anchor}" />
+                            Target="{Binding Target.Anchor}"
+                            />
                         <DataTemplate.Triggers>
                             <!--
                                 A page sits above its task : the attachment goes up, dashed, carrying no
@@ -575,7 +575,11 @@
                                 <Setter TargetName="Line" Property="SourceOrientation" Value="Vertical" />
                                 <Setter TargetName="Line" Property="TargetOrientation" Value="Vertical" />
                                 <Setter TargetName="Line" Property="Direction" Value="Backward" />
-                                <Setter TargetName="Line" Property="StrokeDashArray" Value="4 2" />
+                                <Setter TargetName="Line" Property="StrokeDashArray" Value="2 2" />
+                                <Setter TargetName="Line" Property="Spacing" Value="0" />
+                                <Setter TargetName="Line" Property="ArrowSize" Value="0 0" />
+                                <Setter TargetName="Line" Property="SourceOffset" Value="0 0" />
+                                <Setter TargetName="Line" Property="TargetOffset" Value="0 0" />
                             </DataTrigger>
                             <!--
                                 The branch the node it leads to can't handle : the node holds up when
