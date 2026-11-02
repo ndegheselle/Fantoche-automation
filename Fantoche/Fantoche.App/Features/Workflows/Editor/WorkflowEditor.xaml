@@ -311,6 +311,7 @@
     </UserControl.Resources>
     <!--  Drop target of the whole editor, the toolbars over it included, so a node can be dropped anywhere in it  -->
     <Border
+        x:Name="DropArea"
         joolkit:DropTarget.Command="{Binding DropCommand, RelativeSource={RelativeSource AncestorType={x:Type local:WorkflowEditor}}}"
         Background="{DynamicResource {x:Static joufflu:Brushes.Base0Brush}}"
         BorderThickness="{DynamicResource {x:Static joufflu:Dimensions.Thickness}}"
@@ -574,6 +575,10 @@
                             </Setter.Value>
                         </Setter>
                         <Style.Triggers>
+                            <!--  Greyed out while what is dragged or linked can't reach it, see WorkflowEditorViewModel.Mute  -->
+                            <DataTrigger Binding="{Binding IsMuted}" Value="True">
+                                <Setter Property="Opacity" Value="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}" />
+                            </DataTrigger>
                             <!--
                                 A node of a selection of several opens the menu acting on all of them.
                                 Its commands are left without parameter, which makes them act on the

@@ -149,7 +149,7 @@ namespace Fantoche.Shared.Data.Graph
         public void Attach(BaseGraphTask task, GraphUserInterface page)
         {
             if (task.UserInterface == null || page.UserInterface == null || !CanConnect(task.UserInterface, page.UserInterface))
-                throw new InvalidOperationException($"'{page.Name}' can't be attached to '{task.Name}'.");
+                throw new InvalidOperationException(GetAttachError(task, page) ?? $"'{page.Name}' can't be attached to '{task.Name}'.");
 
             Connections.Add(new GraphConnection(task.UserInterface, page.UserInterface));
         }
@@ -189,12 +189,27 @@ namespace Fantoche.Shared.Data.Graph
             BaseGraphTask? task = FindNode(x => OptionalList(x.UserInterface), slot);
             BaseGraphTask? page = FindNode(x => OptionalList(x.UserInterface), plug);
 
-            // Dragged the wrong way around : a slot only takes a page.
-            if (task is null or GraphUserInterface || page is not GraphUserInterface)
-                return false;
+            return task != null && page != null && GetAttachError(task, page) == null;
+        }
 
-            bool isTaken = Connections.Any(x => x.SourceId == slot.Id || x.TargetId == plug.Id);
-            return !isTaken && task.InputSchemaJson == page.InputSchemaJson;
+        /// <summary>
+        /// Why [page] can't be attached under [task], null when it can (see <see cref="CanAttach"/>).
+        /// The page doesn't have to be in the graph yet : a page dropped on its task is checked before
+        /// it is added.
+        /// </summary>
+        public string? GetAttachError(BaseGraphTask task, BaseGraphTask page)
+        {
+            if (page is not GraphUserInterface || page.UserInterface == null)
+                return $"'{page.Name}' is not a page, only a page asks for the parameters of a task.";
+            if (task is GraphUserInterface || task.UserInterface == null)
+                return $"'{task.Name}' takes no page.";
+            if (Connections.Any(x => x.SourceId == task.UserInterface.Id))
+                return $"'{task.Name}' already has a page.";
+            if (Connections.Any(x => x.TargetId == page.UserInterface.Id))
+                return $"'{page.Name}' is already attached to another task.";
+            if (task.InputSchemaJson != page.InputSchemaJson)
+                return $"'{page.Name}' doesn't edit the parameters of '{task.Name}'.";
+            return null;
         }
 
         private static IEnumerable<GraphConnector> OptionalList(GraphConnector? connector)

@@ -86,4 +86,28 @@ internal sealed class PageAttachmentTests
 
         Assert.That(_graph.CanConnect(task.UserInterface!, Task().UserInterface!), Is.False);
     }
+
+    [Test]
+    public void PageNotYetInTheGraph_IsCheckedAgainstItsTask()
+    {
+        GraphTask task = Task();
+        GraphUserInterface page = Page();
+        _graph.Nodes.Remove(page);
+
+        Assert.That(_graph.GetAttachError(task, page), Is.Null, "a page dropped on its task is checked before being added");
+    }
+
+    [Test]
+    public void RefusedAttachment_TellsWhy()
+    {
+        GraphTask task = Task();
+        _graph.Attach(task, Page());
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(_graph.GetAttachError(Task(), Page(OtherParameters)), Does.Contain("doesn't edit the parameters"));
+            Assert.That(_graph.GetAttachError(task, Page()), Does.Contain("already has a page"));
+            Assert.That(_graph.GetAttachError(task, Task()), Does.Contain("is not a page"));
+        });
+    }
 }

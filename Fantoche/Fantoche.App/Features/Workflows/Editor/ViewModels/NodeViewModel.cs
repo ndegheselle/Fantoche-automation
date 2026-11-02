@@ -52,6 +52,12 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
         [ObservableProperty] private string _nameDraft = string.Empty;
 
         /// <summary>
+        /// Whether the node is greyed out : it can't take what is being dragged or linked, a page
+        /// that doesn't set it up. Only shown during the drag, never saved.
+        /// </summary>
+        [ObservableProperty] private bool _isMuted;
+
+        /// <summary>
         /// State of the last instance of this node in the run being followed. Null while the node
         /// hasn't run : the state belongs to a run, not to the graph, and a new run clears it.
         /// </summary>

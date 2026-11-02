@@ -292,12 +292,13 @@ namespace Fantoche.App.Features.Workflows.Editor
 
         /// <summary>
         /// Add a node targeting [task] at [location] in the graph, at the center of the viewport
-        /// when no location is given.
+        /// when no location is given. A page dropped [onto] a task is attached under it, placed
+        /// above it : the node added is returned, null when it wasn't.
         /// </summary>
-        public void Add(BaseAutomationTask task, Point? location = null)
+        public NodeViewModel? Add(BaseAutomationTask task, Point? location = null, NodeViewModel? onto = null)
         {
             if (!IsEditable)
-                return;
+                return null;
 
             BaseGraphTask graphTask = BaseGraphTask.For(task);
 
@@ -307,20 +308,106 @@ namespace Fantoche.App.Features.Workflows.Editor
                 _toasts.Warning(
                     $"The workflow '{Workflow.Metadata.Name}' already holds one.",
                     $"'{task.Metadata.Name}' can only be added once");
-                return;
+                return null;
             }
 
-            // The name is only a label within the graph, it has to stay unique to identify the node
-            graphTask.Metadata.Name = Graph.GetUniqueNodeName(graphTask.Metadata.Name);
+            if (graphTask is GraphUserInterface && onto != null)
+                return AddUnder(graphTask, task, onto);
+
             Point placement = location ?? new Point(
                 ViewportLocation.X + ViewportSize.Width / 2,
                 ViewportLocation.Y + ViewportSize.Height / 2);
-            graphTask.LocationX = placement.X;
-            graphTask.LocationY = placement.Y;
-            graphTask.AutomationTask = task;
-
-            var node = new NodeViewModel(graphTask);
+            NodeViewModel node = Wrap(graphTask, task, placement);
             History.Apply(new ReversibleAction($"Add '{node.Name}'", () => AddNode(node), () => RemoveNode(node)));
+            return node;
+        }
+
+        /// <summary>How far above its task a page attached by a drop is placed.</summary>
+        private const double PageSpacing = 128;
+
+        /// <summary>
+        /// Add the page [graphPage] targeting [automationPage] attached under [task], [PageSpacing]
+        /// above it : added and attached as a single step, undone at once. Refused with an error when
+        /// the page can't set the task up.
+        /// </summary>
+        private NodeViewModel? AddUnder(BaseGraphTask graphPage, BaseAutomationTask automationPage, NodeViewModel task)
+        {
+            // Checked before the page is added : a page that can't be attached isn't added either,
+            // it was dropped on the task to set it up.
+            if (Graph.GetAttachError(task.Model, graphPage) is string error)
+            {
+                _toasts.Error(error, $"'{graphPage.Name}' can't be attached to '{task.Name}'");
+                return null;
+            }
+
+            NodeViewModel page = Wrap(graphPage, automationPage, new Point(task.Location.X, task.Location.Y - PageSpacing));
+            var attachment = new ConnectionViewModel(task.UserInterfaceSlot!, page.UserInterfacePlug!);
+            History.Apply(new CompositeReversibleAction(
+                $"Add '{page.Name}' to '{task.Name}'",
+                new ReversibleAction($"Add '{page.Name}'", () => AddNode(page), () => RemoveNode(page)),
+                new ReversibleAction(
+                    $"Attach '{page.Name}' to '{task.Name}'",
+                    () => AddConnection(attachment),
+                    () => RemoveConnection(attachment))));
+            return page;
+        }
+
+        #region Muting
+        /// <summary>
+        /// Grey out the nodes a link started from [connector] can't reach, for now only the link of
+        /// a page to its task : from a page, the tasks it can't set up, from the slot of a task, the
+        /// pages that can't set it up.
+        /// </summary>
+        public void MuteIncompatibleWith(ConnectorViewModel connector)
+        {
+            if (!IsEditable || !connector.IsUserInterface)
+                return;
+
+            NodeViewModel source = connector.Node;
+            if (source.IsUserInterface)
+                MuteIncompatibleWith(source.Model);
+            else
+                Mute(node => node == source || CanTakePage(source.Model, node.Model));
+        }
+
+        /// <summary>Grey out the tasks [page] can't set up : a page dragged on the graph, or one being linked.</summary>
+        public void MuteIncompatibleWith(BaseGraphTask page)
+        {
+            if (IsEditable)
+                Mute(node => node.Model == page || CanTakePage(node.Model, page));
+        }
+
+        /// <summary>Back to every node shown as it is, once the drag or the link ended.</summary>
+        public void Unmute()
+        {
+            foreach (NodeViewModel node in Nodes)
+                node.IsMuted = false;
+        }
+
+        private void Mute(Func<NodeViewModel, bool> isCompatible)
+        {
+            foreach (NodeViewModel node in Nodes)
+                node.IsMuted = !isCompatible(node);
+        }
+
+        /// <summary>
+        /// Whether [page] can be linked to [task] : attached to it, or already attached to it, linking
+        /// them again being how the attachment is undone (see <see cref="ConnectionCompleted"/>).
+        /// </summary>
+        private bool CanTakePage(BaseGraphTask task, BaseGraphTask page)
+            => Graph.GetAttachError(task, page) == null
+            || (page is GraphUserInterface attached && Graph.GetTaskAskedBy(attached) == task);
+        #endregion
+
+        /// <summary>The view model of [graphTask], a new node targeting [task] at [location].</summary>
+        private NodeViewModel Wrap(BaseGraphTask graphTask, BaseAutomationTask task, Point location)
+        {
+            // The name is only a label within the graph, it has to stay unique to identify the node
+            graphTask.Metadata.Name = Graph.GetUniqueNodeName(graphTask.Metadata.Name);
+            graphTask.LocationX = location.X;
+            graphTask.LocationY = location.Y;
+            graphTask.AutomationTask = task;
+            return new NodeViewModel(graphTask);
         }
 
         /// <summary>
@@ -589,7 +676,18 @@ namespace Fantoche.App.Features.Workflows.Editor
             }
 
             if (!Graph.CanConnect(source.Model, target.Model))
+            {
+                // A page linked to a task is meant to set it up : the user is told why it can't,
+                // where a refused branch is plain enough to not need it.
+                if (source.IsUserInterface || target.IsUserInterface)
+                {
+                    (NodeViewModel task, NodeViewModel page) = target.Node.IsUserInterface ? (source.Node, target.Node) : (target.Node, source.Node);
+                    _toasts.Error(
+                        Graph.GetAttachError(task.Model, page.Model) ?? "A page only plugs into the top of a task.",
+                        $"'{page.Name}' can't be attached to '{task.Name}'");
+                }
                 return;
+            }
 
             var connection = new ConnectionViewModel(source, target);
             History.Apply(new ReversibleAction(
