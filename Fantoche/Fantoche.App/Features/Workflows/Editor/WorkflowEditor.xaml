@@ -340,6 +340,16 @@
                 SelectedItems="{Binding SelectedNodes}"
                 ViewportLocation="{Binding ViewportLocation, Mode=TwoWay}"
                 ViewportSize="{Binding ViewportSize, Mode=OneWayToSource}">
+                <!--  Snapping to the small cells of the grid drawn behind the nodes, see SmallGridLinesDrawingBrush  -->
+                <nodify:NodifyEditor.Style>
+                    <Style BasedOn="{StaticResource {x:Type nodify:NodifyEditor}}" TargetType="{x:Type nodify:NodifyEditor}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsSnappingToGrid}" Value="True">
+                                <Setter Property="GridCellSize" Value="20" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </nodify:NodifyEditor.Style>
                 <nodify:NodifyEditor.InputBindings>
                     <KeyBinding Key="Delete" Command="{Binding RemoveCommand}" />
                     <KeyBinding Command="{Binding History.UndoCommand}" Gesture="Ctrl+Z" />
@@ -550,9 +560,105 @@
                                             <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Pencil}" />
                                         </MenuItem.Icon>
                                     </MenuItem>
+                                    <Separator />
+                                    <MenuItem
+                                        Style="{StaticResource DangerMenuItem}"
+                                        Command="{Binding Tag.RemoveCommand}"
+                                        CommandParameter="{Binding DataContext}"
+                                        Header="Remove">
+                                        <MenuItem.Icon>
+                                            <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Trash}" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
                                 </ContextMenu>
                             </Setter.Value>
                         </Setter>
+                        <Style.Triggers>
+                            <!--
+                                A node of a selection of several opens the menu acting on all of them.
+                                Its commands are left without parameter, which makes them act on the
+                                selection. The alignment is the Nodify one, routed from the container
+                                to the editor, which records it in the history (see WorkflowEditor).
+                            -->
+                            <MultiDataTrigger>
+                                <MultiDataTrigger.Conditions>
+                                    <Condition Binding="{Binding IsSelected, RelativeSource={RelativeSource Self}}" Value="True" />
+                                    <Condition Binding="{Binding DataContext.HasMultipleSelection, RelativeSource={RelativeSource AncestorType={x:Type nodify:NodifyEditor}}}" Value="True" />
+                                </MultiDataTrigger.Conditions>
+                                <Setter Property="ContextMenu">
+                                    <Setter.Value>
+                                        <ContextMenu DataContext="{Binding PlacementTarget, RelativeSource={RelativeSource Self}}">
+                                            <MenuItem Header="Align">
+                                                <MenuItem.Icon>
+                                                    <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.AlignStartVertical}" />
+                                                </MenuItem.Icon>
+                                                <MenuItem
+                                                    Command="{x:Static nodify:EditorCommands.Align}"
+                                                    CommandParameter="{x:Static nodify:Alignment.Left}"
+                                                    CommandTarget="{Binding}"
+                                                    Header="Left">
+                                                    <MenuItem.Icon>
+                                                        <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.AlignStartVertical}" />
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+                                                <MenuItem
+                                                    Command="{x:Static nodify:EditorCommands.Align}"
+                                                    CommandParameter="{x:Static nodify:Alignment.Center}"
+                                                    CommandTarget="{Binding}"
+                                                    Header="Center vertically">
+                                                    <MenuItem.Icon>
+                                                        <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.AlignCenterVertical}" />
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+                                                <MenuItem
+                                                    Command="{x:Static nodify:EditorCommands.Align}"
+                                                    CommandParameter="{x:Static nodify:Alignment.Right}"
+                                                    CommandTarget="{Binding}"
+                                                    Header="Right">
+                                                    <MenuItem.Icon>
+                                                        <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.AlignEndVertical}" />
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+                                                <Separator />
+                                                <MenuItem
+                                                    Command="{x:Static nodify:EditorCommands.Align}"
+                                                    CommandParameter="{x:Static nodify:Alignment.Top}"
+                                                    CommandTarget="{Binding}"
+                                                    Header="Top">
+                                                    <MenuItem.Icon>
+                                                        <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.AlignStartHorizontal}" />
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+                                                <MenuItem
+                                                    Command="{x:Static nodify:EditorCommands.Align}"
+                                                    CommandParameter="{x:Static nodify:Alignment.Middle}"
+                                                    CommandTarget="{Binding}"
+                                                    Header="Center horizontally">
+                                                    <MenuItem.Icon>
+                                                        <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.AlignCenterHorizontal}" />
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+                                                <MenuItem
+                                                    Command="{x:Static nodify:EditorCommands.Align}"
+                                                    CommandParameter="{x:Static nodify:Alignment.Bottom}"
+                                                    CommandTarget="{Binding}"
+                                                    Header="Bottom">
+                                                    <MenuItem.Icon>
+                                                        <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.AlignEndHorizontal}" />
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+                                            </MenuItem>
+                                            <Separator />
+                                            <MenuItem Command="{Binding Tag.RemoveCommand}" Header="Remove the selection" Style="{StaticResource DangerMenuItem}">
+                                                <MenuItem.Icon>
+                                                    <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Trash}" />
+                                                </MenuItem.Icon>
+                                            </MenuItem>
+                                        </ContextMenu>
+                                    </Setter.Value>
+                                </Setter>
+                            </MultiDataTrigger>
+                        </Style.Triggers>
                     </Style>
                 </nodify:NodifyEditor.ItemContainerStyle>
 

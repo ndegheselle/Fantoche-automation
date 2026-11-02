@@ -1,10 +1,12 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using Fantoche.App.Features.Workflows.Editor.ViewModels;
 using Fantoche.Shared.Data.Scoped;
 using CommunityToolkit.Mvvm.Input;
 using Joufflu;
 using Joufflu.Toolkit;
+using Nodify;
 
 namespace Fantoche.App.Features.Workflows.Editor
 {
@@ -23,7 +25,39 @@ namespace Fantoche.App.Features.Workflows.Editor
         {
             InitializeComponent();
             DropCommand = new RelayCommand<IDataObject>(OnDrop, CanDrop);
+
+            // Nodify aligns the containers itself, without raising its drag commands : the alignment
+            // is intercepted on its way to the editor and applied here, so it goes through the history.
+            CommandManager.AddPreviewCanExecuteHandler(Editor, OnEditorPreviewCanExecute);
+            CommandManager.AddPreviewExecutedHandler(Editor, OnEditorPreviewExecuted);
         }
+
+        /// <summary>A graph that can't be edited can't be aligned either, Nodify knowing nothing of it.</summary>
+        private void OnEditorPreviewCanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            if (e.Command == EditorCommands.Align && ViewModel?.IsEditable != true)
+            {
+                e.CanExecute = false;
+                e.Handled = true;
+            }
+        }
+
+        private void OnEditorPreviewExecuted(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (e.Command != EditorCommands.Align || ViewModel == null || GetAlignment(e.Parameter) is not Alignment alignment)
+                return;
+
+            e.Handled = true;
+            ViewModel.Move("Align", () => Editor.AlignSelection(alignment));
+        }
+
+        /// <summary>The alignment Nodify accepts : the value itself or its name.</summary>
+        private static Alignment? GetAlignment(object? parameter) => parameter switch
+        {
+            Alignment alignment => alignment,
+            string name when Enum.TryParse(name, out Alignment alignment) => alignment,
+            _ => null,
+        };
 
         private void OnDrop(IDataObject? data)
         {

@@ -11,6 +11,7 @@
     xmlns:local="clr-namespace:Fantoche.App.Features.Workflows.Controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     d:DataContext="{d:DesignInstance Type=local:TaskSelectionViewModel}"
+    Width="500"
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
@@ -23,8 +24,6 @@
     </UserControl.Resources>
 
     <Grid
-        MinWidth="500"
-        MinHeight="400"
         joolkit:Spacing.Gap="4">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />

@@ -35,6 +35,12 @@ namespace Fantoche.App.Features.Workflows.Editor
         /// <summary>Selection of the editor, filled by Nodify.</summary>
         public ObservableCollection<NodeViewModel> SelectedNodes { get; } = [];
 
+        /// <summary>Whether several nodes are selected : a node then opens the menu acting on all of them.</summary>
+        public bool HasMultipleSelection => SelectedNodes.Count > 1;
+
+        /// <summary>Whether a dragged node lands on the grid of the editor rather than where it is dropped.</summary>
+        [ObservableProperty] private bool _isSnappingToGrid;
+
         public EditorHistory History { get; } = new();
 
         /// <summary>
@@ -102,6 +108,7 @@ namespace Fantoche.App.Features.Workflows.Editor
             _loading = WrapAsync(workflow.Graph);
             SelectedNodes.CollectionChanged += (_, _) =>
             {
+                OnPropertyChanged(nameof(HasMultipleSelection));
                 RemoveCommand.NotifyCanExecuteChanged();
                 OpenSettingsCommand.NotifyCanExecuteChanged();
                 RenameCommand.NotifyCanExecuteChanged();
@@ -443,11 +450,13 @@ namespace Fantoche.App.Features.Workflows.Editor
         }
         #endregion
 
-        /// <summary>Remove the selected nodes, along with the connections linked to them.</summary>
+        /// <summary>
+        /// Remove [node], or the selected nodes without one, along with the connections linked to them.
+        /// </summary>
         [RelayCommand(CanExecute = nameof(CanRemove))]
-        private void Remove()
+        private void Remove(NodeViewModel? node)
         {
-            List<NodeViewModel> nodes = [.. SelectedNodes];
+            List<NodeViewModel> nodes = node != null ? [node] : [.. SelectedNodes];
             // Materialized right away : executing mutates the very collection it reads.
             List<ConnectionViewModel> connections =
                 [.. Connections.Where(x => nodes.Contains(x.Source.Node) || nodes.Contains(x.Target.Node))];
@@ -483,7 +492,7 @@ namespace Fantoche.App.Features.Workflows.Editor
                     })));
         }
 
-        private bool CanRemove => IsEditable && SelectedNodes.Count > 0;
+        private bool CanRemove(NodeViewModel? node) => IsEditable && (node != null || SelectedNodes.Count > 0);
 
         /// <summary>
         /// Location of every node when a drag started, so the move is recorded as a single
@@ -503,7 +512,24 @@ namespace Fantoche.App.Features.Workflows.Editor
         }
 
         [RelayCommand]
-        private void ItemsDragCompleted()
+        private void ItemsDragCompleted() => RecordMoves("Move");
+
+        /// <summary>
+        /// Move the nodes through [move], made by the editor itself rather than by a drag : an
+        /// alignment, which Nodify applies without raising its drag commands. Recorded like a drag.
+        /// </summary>
+        public void Move(string verb, Action move)
+        {
+            if (!IsEditable)
+                return;
+
+            ItemsDragStarted();
+            move();
+            RecordMoves(verb);
+        }
+
+        /// <summary>Record the nodes that moved since <see cref="ItemsDragStarted"/> as a single reversible action.</summary>
+        private void RecordMoves(string verb)
         {
             // Materialized right away : the destinations have to be read while the nodes are still
             // where the drag left them, an undo moving them back to their origin.
@@ -515,7 +541,7 @@ namespace Fantoche.App.Features.Workflows.Editor
                 return;
 
             History.Apply(new ReversibleAction(
-                $"Move {moves.Count} node(s)",
+                $"{verb} {moves.Count} node(s)",
                 () =>
                 {
                     foreach ((NodeViewModel node, _, Point to) in moves)
