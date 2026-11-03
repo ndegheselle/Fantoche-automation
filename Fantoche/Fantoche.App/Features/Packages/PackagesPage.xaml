@@ -85,7 +85,7 @@
                                 ViewportUnits="Absolute">
                                 <DrawingBrush.Drawing>
                                     <DrawingGroup>
-                                        <GeometryDrawing Brush="{DynamicResource {x:Static joufflu:Brushes.DisplayBorderBrush}}">
+                                        <GeometryDrawing Brush="{DynamicResource {x:Static joufflu:Brushes.DisplayBorder0Brush}}">
                                             <GeometryDrawing.Geometry>
                                                 <GeometryGroup>
                                                     <RectangleGeometry Rect="0,0,50,50" />

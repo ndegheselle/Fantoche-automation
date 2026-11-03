@@ -95,50 +95,50 @@
             Style="{StaticResource Card}">
             <StackPanel joolkit:Spacing.Gap="4">
                 <Button
+                    joolkit:ThemedTooltip.Placement="Left"
                     Command="{x:Static nodify:EditorCommands.ZoomIn}"
                     Style="{StaticResource EditorButton}"
-                    ToolTip="Zoom in"
-                    joolkit:ThemedTooltip.Placement="Left">
+                    ToolTip="Zoom in">
                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Plus}" />
                 </Button>
                 <Button
+                    joolkit:ThemedTooltip.Placement="Left"
                     Command="{x:Static nodify:EditorCommands.FitToScreen}"
                     Style="{StaticResource EditorButton}"
-                    ToolTip="Adjust zoom"
-                    joolkit:ThemedTooltip.Placement="Left">
+                    ToolTip="Adjust zoom">
                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Fullscreen}" />
                 </Button>
                 <Button
+                    joolkit:ThemedTooltip.Placement="Left"
                     Command="{x:Static nodify:EditorCommands.ZoomOut}"
                     Style="{StaticResource EditorButton}"
-                    ToolTip="Zoom out"
-                    joolkit:ThemedTooltip.Placement="Left">
+                    ToolTip="Zoom out">
                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Minus}" />
                 </Button>
                 <Separator />
                 <ToggleButton
                     joolkit:Sizing.IsSquare="True"
+                    joolkit:ThemedTooltip.Placement="Left"
                     IsChecked="{Binding IsSnappingToGrid}"
                     Style="{StaticResource GhostToggleButton}"
-                    ToolTip="Snap the nodes to the grid"
-                    joolkit:ThemedTooltip.Placement="Left">
+                    ToolTip="Snap the nodes to the grid">
                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Grid3X3}" />
                 </ToggleButton>
                 <Separator />
                 <Button
                     joolkit:Sizing.IsSquare="True"
+                    joolkit:ThemedTooltip.Placement="Left"
                     Command="{Binding History.UndoCommand}"
                     Style="{StaticResource GhostButton}"
-                    ToolTip="Undo"
-                    joolkit:ThemedTooltip.Placement="Left">
+                    ToolTip="Undo">
                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Undo}" />
                 </Button>
                 <Button
                     joolkit:Sizing.IsSquare="True"
+                    joolkit:ThemedTooltip.Placement="Left"
                     Command="{Binding History.RedoCommand}"
                     Style="{StaticResource GhostButton}"
-                    ToolTip="Redo"
-                    joolkit:ThemedTooltip.Placement="Left">
+                    ToolTip="Redo">
                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Redo}" />
                 </Button>
             </StackPanel>
@@ -153,38 +153,38 @@
             <StackPanel joolkit:Spacing.Gap="4" Orientation="Horizontal">
                 <Button
                     joolkit:Sizing.IsSquare="True"
+                    joolkit:ThemedTooltip.Placement="Top"
                     Command="{Binding AddCommand}"
                     Style="{StaticResource GhostButton}"
-                    ToolTip="Add a node"
-                    joolkit:ThemedTooltip.Placement="Top">
+                    ToolTip="Add a node">
                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Plus}" />
                 </Button>
                 <Button
                     joolkit:Sizing.IsSquare="True"
+                    joolkit:ThemedTooltip.Placement="Top"
                     Command="{Binding OpenSettingsCommand}"
                     Style="{StaticResource GhostButton}"
-                    ToolTip="Settings of the selected node"
-                    joolkit:ThemedTooltip.Placement="Top">
+                    ToolTip="Settings of the selected node">
                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Settings}" />
                 </Button>
                 <Button
                     joolkit:Sizing.IsSquare="True"
+                    joolkit:ThemedTooltip.Placement="Top"
                     Command="{Binding RemoveCommand}"
                     Style="{StaticResource GhostButton}"
-                    ToolTip="Remove the selected nodes"
-                    joolkit:ThemedTooltip.Placement="Top">
+                    ToolTip="Remove the selected nodes">
                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Trash}" />
                 </Button>
                 <Rectangle
                     Width="1"
                     VerticalAlignment="Stretch"
-                    Fill="{DynamicResource {x:Static joufflu:Brushes.DisplayBorderBrush}}" />
+                    Fill="{DynamicResource {x:Static joufflu:Brushes.DisplayBorder0Brush}}" />
                 <Button
                     joolkit:Sizing.IsSquare="True"
+                    joolkit:ThemedTooltip.Placement="Top"
                     Command="{Binding SaveCommand}"
                     Style="{StaticResource GhostButton}"
-                    ToolTip="Save the graph"
-                    joolkit:ThemedTooltip.Placement="Top">
+                    ToolTip="Save the graph">
                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Save}" />
                 </Button>
             </StackPanel>

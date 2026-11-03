@@ -150,12 +150,12 @@
                                     Height="16"
                                     Data="M8,0 L16,8 8,16 0,8 Z"
                                     Fill="{DynamicResource {x:Static joufflu:Brushes.Base0Brush}}"
-                                    Stroke="{DynamicResource {x:Static joufflu:Brushes.DisplayBorderBrush}}"
+                                    Stroke="{DynamicResource {x:Static joufflu:Brushes.DisplayBorder0Brush}}"
                                     StrokeThickness="1.5" />
                             </Grid>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsConnected" Value="True">
-                                    <Setter TargetName="PART_Connector" Property="Fill" Value="{DynamicResource {x:Static joufflu:Brushes.DisplayBorderBrush}}" />
+                                    <Setter TargetName="PART_Connector" Property="Fill" Value="{DynamicResource {x:Static joufflu:Brushes.DisplayBorder0Brush}}" />
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -319,7 +319,7 @@
         CornerRadius="{DynamicResource {x:Static joufflu:Dimensions.Radius}}">
         <Border.Style>
             <Style TargetType="Border">
-                <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.DisplayBorderBrush}}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource {x:Static joufflu:Brushes.DisplayBorder0Brush}}" />
                 <Style.Triggers>
                     <!--  True only for a task or a workflow, what the editor refuses never lights the border up  -->
                     <Trigger Property="joolkit:DropTarget.IsDragOver" Value="True">
