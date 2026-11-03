@@ -442,7 +442,7 @@
                                 <!--  Where the node stands in the run being followed, nothing while none is  -->
                                 <jonts:FontIcon
                                     x:Name="StateIcon"
-                                    Margin="-20"
+                                    Margin="-12"
                                     HorizontalAlignment="Right"
                                     VerticalAlignment="Top"
                                     Style="{StaticResource NodeStateIcon}">
