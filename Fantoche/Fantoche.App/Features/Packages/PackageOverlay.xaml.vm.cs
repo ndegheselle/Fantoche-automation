@@ -38,7 +38,8 @@ namespace Fantoche.App.Features.Packages
                 Versions.Add(version);
 
             Classes.Clear();
-            foreach (var classe in await _packages.GetClassesAsync(Package.Identifier.Id, Package.Identifier.Version))
+            // A package always has its version, only a task target goes without one
+            foreach (var classe in await _packages.GetClassesAsync(Package.Identifier.Id, Package.Identifier.Version!))
                 Classes.Add(classe);
         }
 

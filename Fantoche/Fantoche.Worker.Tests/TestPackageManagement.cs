@@ -34,7 +34,7 @@ internal sealed class TestPackageManagement : IPackageManagement
         return Task.FromResult<IEnumerable<string>>([Resolve(id, version, id)]);
     }
 
-    public Task<string> DownloadPackageAsync(string id, Version version, string dll)
+    public Task<string> DownloadPackageAsync(string id, Version? version, string dll)
     {
         lock (Requests)
             Requests.Add($"{id}/{version}/{dll}");
@@ -42,7 +42,7 @@ internal sealed class TestPackageManagement : IPackageManagement
         return Task.FromResult(Resolve(id, version, dll));
     }
 
-    private string Resolve(string id, Version version, string dll)
+    private string Resolve(string id, Version? version, string dll)
     {
         string path = Path.Combine(_folder, $"{dll}.dll");
         if (!File.Exists(path))

@@ -33,6 +33,32 @@ public sealed class TaskLoaders : IDisposable
     /// <exception cref="PackageDownloadException">The package or its assembly can't be resolved.</exception>
     public async Task<ITask> CreateAsync(PackageClassTarget target)
     {
+        (ITask task, _) = await LoadAsync(target);
+        return task;
+    }
+
+    /// <summary>
+    /// The folder holding the page of the user interface task [target] points at, its package
+    /// downloaded if needed.
+    /// </summary>
+    /// <exception cref="PackageDownloadException">The package or its assembly can't be resolved.</exception>
+    /// <exception cref="InvalidOperationException">[target] isn't a user interface task.</exception>
+    public async Task<string> GetPageFolderAsync(PackageClassTarget target)
+    {
+        (ITask task, string dllPath) = await LoadAsync(target);
+        if (task is not IUserInterfaceTask userInterface)
+            throw new InvalidOperationException($"[{target.ClassFullName}] has no page : it isn't a user interface task.");
+
+        string assemblyFolder = Path.GetDirectoryName(dllPath) ?? throw new InvalidOperationException($"[{dllPath}] has no folder.");
+        return Path.GetFullPath(Path.Combine(assemblyFolder, userInterface.PageFolder));
+    }
+
+    /// <summary>
+    /// The task with the dll it was loaded from : a target following the newest version could
+    /// resolve another one if its package was downloaded a second time.
+    /// </summary>
+    private async Task<(ITask Task, string DllPath)> LoadAsync(PackageClassTarget target)
+    {
         string dllPath = await _packages.DownloadPackageAsync(target.Package.Id, target.Package.Version, target.Dll);
 
         TaskLoader loader;
@@ -45,23 +71,6 @@ public sealed class TaskLoaders : IDisposable
             }
         }
 
-        return loader.CreateInstance(target.ClassFullName);
-    }
-
-    /// <summary>
-    /// The folder holding the page of the user interface task [target] points at, its package
-    /// downloaded if needed.
-    /// </summary>
-    /// <exception cref="PackageDownloadException">The package or its assembly can't be resolved.</exception>
-    /// <exception cref="InvalidOperationException">[target] isn't a user interface task.</exception>
-    public async Task<string> GetPageFolderAsync(PackageClassTarget target)
-    {
-        ITask task = await CreateAsync(target);
-        if (task is not IUserInterfaceTask userInterface)
-            throw new InvalidOperationException($"[{target.ClassFullName}] has no page : it isn't a user interface task.");
-
-        string dllPath = await _packages.DownloadPackageAsync(target.Package.Id, target.Package.Version, target.Dll);
-        string assemblyFolder = Path.GetDirectoryName(dllPath) ?? throw new InvalidOperationException($"[{dllPath}] has no folder.");
-        return Path.GetFullPath(Path.Combine(assemblyFolder, userInterface.PageFolder));
+        return (loader.CreateInstance(target.ClassFullName), dllPath);
     }
 }

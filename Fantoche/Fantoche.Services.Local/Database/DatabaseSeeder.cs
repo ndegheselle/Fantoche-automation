@@ -342,13 +342,14 @@ internal static class Samples
 
     /// <summary>
     /// The package the table samples run : it has to be added to the packages for the samples to run.
-    /// A property rather than a field : the task fields above are initialized first, and would read a
-    /// field declared after them as null.
+    /// Its newest version rather than a fixed one, so the samples keep running as the plugins get
+    /// new versions. A property rather than a field : the task fields above are initialized first,
+    /// and would read a field declared after them as null.
     /// </summary>
-    private static PackageIdentifier PluginsPackage => new() { Id = "Fantoche.Plugins.Example", Version = new Version("2.0.0") };
+    private static PackageIdentifier PluginsPackage => new() { Id = "Fantoche.Plugins.Example", Version = null };
 
     /// <summary>The package of the engine samples, see <see cref="PluginsPackage"/>.</summary>
-    private static PackageIdentifier EnginePackage => new() { Id = "Fantoche.Plugins", Version = new Version("1.0.0") };
+    private static PackageIdentifier EnginePackage => new() { Id = "Fantoche.Plugins", Version = null };
 
     /// <summary>
     /// The schemas of the tasks, with the markers of the engine : a table or file handle

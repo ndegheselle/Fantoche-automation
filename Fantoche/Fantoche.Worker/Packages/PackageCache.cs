@@ -88,11 +88,22 @@ public class PackageCache : IPackageManagement
     /// <exception cref="PackageDownloadException">
     /// The package can't be downloaded (see above) or has no assembly named [dll].
     /// </exception>
-    public async Task<string> DownloadPackageAsync(string id, Version version, string dll)
+    public async Task<string> DownloadPackageAsync(string id, Version? version, string dll)
     {
-        var files = await DownloadPackageAsync(id, version);
+        Version resolved = version ?? await GetNewestVersionAsync(id);
+        var files = await DownloadPackageAsync(id, resolved);
         var target = files.FirstOrDefault(x => Path.GetFileName(x) == $"{dll}.dll");
-        return target ?? throw new PackageDownloadException($"Could not find dll for [id:{id}][version:{version}] in downloaded package.");
+        return target ?? throw new PackageDownloadException($"Could not find dll for [id:{id}][version:{resolved}] in downloaded package.");
+    }
+
+    /// <summary>
+    /// Asked to the source every time rather than cached : a task following the newest version
+    /// picks up the one added since its last run.
+    /// </summary>
+    private async Task<Version> GetNewestVersionAsync(string id)
+    {
+        IEnumerable<Version> versions = await _source.GetVersionsAsync(id);
+        return versions.FirstOrDefault() ?? throw new PackageDownloadException($"Package not found [id:{id}]");
     }
 
     /// <summary>

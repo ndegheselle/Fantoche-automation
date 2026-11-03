@@ -18,7 +18,7 @@
                 VerticalAlignment="Center"
                 Text="{Binding ClassFullName}"
                 TextTrimming="CharacterEllipsis" />
-            <feedback:Badge VerticalAlignment="Center" Content="{Binding Package.Version}" />
+            <feedback:Badge VerticalAlignment="Center" Content="{Binding Package.Version, TargetNullValue=Latest}" />
         </StackPanel>
     </Border>
 </UserControl>

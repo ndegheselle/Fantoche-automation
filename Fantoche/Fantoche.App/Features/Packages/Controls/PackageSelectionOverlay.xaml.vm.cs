@@ -15,6 +15,14 @@ namespace Fantoche.App.Features.Packages.Controls
         Class
     }
 
+    /// <summary>A version to pick, or <see cref="Latest"/> to follow the newest one each time the task runs.</summary>
+    public record VersionOption(Version? Version)
+    {
+        public static readonly VersionOption Latest = new((Version?)null);
+
+        public override string ToString() => Version?.ToString() ?? "Latest";
+    }
+
     /// <summary>
     /// Pick a class to run : a package first, then one of the classes a version of it holds.
     /// </summary>
@@ -37,10 +45,10 @@ namespace Fantoche.App.Features.Packages.Controls
         private PackageInfos? _selectedPackage;
 
         // Step 2 : version and class selection
-        public ObservableCollection<Version> Versions { get; } = [];
+        public ObservableCollection<VersionOption> Versions { get; } = [];
         public ObservableCollection<ClassTarget> Classes { get; } = [];
 
-        [ObservableProperty] private Version? _selectedVersion;
+        [ObservableProperty] private VersionOption? _selectedVersion;
 
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(ValidateCommand))]
@@ -48,7 +56,10 @@ namespace Fantoche.App.Features.Packages.Controls
 
         public OverlayOptions Options { get; }
 
-        /// <summary>The class picked, with the version it was picked from, null while incomplete.</summary>
+        /// <summary>
+        /// The class picked, with the version it was picked from (none for <see cref="VersionOption.Latest"/>),
+        /// null while incomplete.
+        /// </summary>
         public PackageClassTarget? Result
             => SelectedPackage == null || SelectedVersion == null || SelectedClass == null
                 ? null
@@ -60,7 +71,7 @@ namespace Fantoche.App.Features.Packages.Controls
                     Package = new PackageIdentifier()
                     {
                         Id = SelectedPackage.Identifier.Id,
-                        Version = SelectedVersion
+                        Version = SelectedVersion.Version
                     }
                 };
 
@@ -99,13 +110,12 @@ namespace Fantoche.App.Features.Packages.Controls
             Step = EnumPackageSelectionStep.Class;
 
             Versions.Clear();
+            Versions.Add(VersionOption.Latest);
             foreach (var version in await _packages.GetVersionsAsync(SelectedPackage.Identifier.Id))
-                Versions.Add(version);
+                Versions.Add(new VersionOption(version));
 
-            // Default to the package version, or the newest one when not available
-            SelectedVersion = Versions.Contains(SelectedPackage.Identifier.Version)
-                ? SelectedPackage.Identifier.Version
-                : Versions.FirstOrDefault();
+            // Latest by default : the task picks up the new versions of its package without being edited
+            SelectedVersion = VersionOption.Latest;
         }
 
         [RelayCommand]
@@ -136,10 +146,15 @@ namespace Fantoche.App.Features.Packages.Controls
             if (SelectedPackage == null || SelectedVersion == null)
                 return;
 
-            foreach (var classe in await _packages.GetClassesAsync(SelectedPackage.Identifier.Id, SelectedVersion))
+            // The classes of the latest are the ones of the newest version, listed first
+            Version? version = SelectedVersion.Version ?? Versions.Select(x => x.Version).FirstOrDefault(x => x != null);
+            if (version == null)
+                return;
+
+            foreach (var classe in await _packages.GetClassesAsync(SelectedPackage.Identifier.Id, version))
                 Classes.Add(classe);
         }
 
-        partial void OnSelectedVersionChanged(Version? value) => _ = RefreshClassesAsync();
+        partial void OnSelectedVersionChanged(VersionOption? value) => _ = RefreshClassesAsync();
     }
 }

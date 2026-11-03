@@ -19,8 +19,8 @@ public interface IPackageManagement
 
     /// <summary>
     /// Make the assemblies of [id] [version] available locally and return the path of [dll] (its
-    /// name, without the extension) among them.
+    /// name, without the extension) among them. A null [version] stands for the newest one.
     /// </summary>
     /// <exception cref="PackageDownloadException">The package or that assembly can't be resolved.</exception>
-    Task<string> DownloadPackageAsync(string id, Version version, string dll);
+    Task<string> DownloadPackageAsync(string id, Version? version, string dll);
 }

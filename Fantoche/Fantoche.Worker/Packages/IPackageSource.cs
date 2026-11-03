@@ -11,4 +11,7 @@ public interface IPackageSource
 
     /// <summary>The ".snupkg" of [id] [version], null when none was added.</summary>
     Task<Stream?> OpenSymbolsAsync(string id, Version version);
+
+    /// <summary>Every version of [id], from the newest to the oldest.</summary>
+    Task<IEnumerable<Version>> GetVersionsAsync(string id);
 }

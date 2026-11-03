@@ -6,11 +6,16 @@
     public class PackageIdentifier
     {
         public string Id { get; set; } = "";
-        public Version Version { get; set; } = new Version();
+
+        /// <summary>
+        /// Null for a task target following the newest version of its package, resolved each time
+        /// the task runs. Always set for a package itself.
+        /// </summary>
+        public Version? Version { get; set; } = new Version();
 
         public override string ToString()
         {
-            return $"{Id} (version {Version})";
+            return $"{Id} (version {Version?.ToString() ?? "latest"})";
         }
     }
 

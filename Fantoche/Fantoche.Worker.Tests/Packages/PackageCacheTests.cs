@@ -42,6 +42,17 @@ internal sealed class PackageCacheTests
     }
 
     [Test]
+    public async Task Download_WithoutVersion_ResolvesTheNewestOne()
+    {
+        await _packages.AddAsync(TestNupkg.Write(Path.Combine(_folder, "upload-1"), "Tests.Package", "1.0.0"));
+        await _packages.AddAsync(TestNupkg.Write(Path.Combine(_folder, "upload-2"), "Tests.Package", "2.0.0"));
+
+        string path = await _cache.DownloadPackageAsync("Tests.Package", null, TestNupkg.Dll);
+
+        Assert.That(path, Does.StartWith(Path.Combine(_folder, "cache", "Tests.Package", "2.0.0")));
+    }
+
+    [Test]
     public async Task PageOfAPageTask_IsExtractedInItsFolder()
     {
         await _packages.AddAsync(TestNupkg.Write(Path.Combine(_folder, "upload"), "Tests.Package", "1.0.0"));

@@ -39,17 +39,19 @@ public class LocalPackagesService : IPackagesService, IPackageSource
     public async Task<PackageAdded> AddAsync(string filePath)
     {
         var infos = await _folder.AddAsync(filePath);
+        // Only a task target goes without a version, a package always has one.
+        Version version = infos.Identifier.Version!;
 
         // A symbol package only makes the tasks of the package it belongs to debuggable, there is
         // nothing to look for in it.
         if (infos.IsSymbols)
         {
-            await _cache.ExtractSymbolsAsync(infos.Identifier.Id, infos.Identifier.Version);
+            await _cache.ExtractSymbolsAsync(infos.Identifier.Id, version);
             return new PackageAdded() { Infos = infos };
         }
 
         // Check if the package contain tasks
-        var dllsPaths = await _cache.DownloadPackageAsync(infos.Identifier.Id, infos.Identifier.Version);
+        var dllsPaths = await _cache.DownloadPackageAsync(infos.Identifier.Id, version);
         List<string> classes = [];
         foreach (var path in dllsPaths)
         {

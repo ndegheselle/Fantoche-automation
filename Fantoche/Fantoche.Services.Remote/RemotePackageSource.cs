@@ -21,6 +21,9 @@ public sealed class RemotePackageSource : IPackageSource
 
     public Task<Stream?> OpenSymbolsAsync(string id, Version version) => DownloadAsync(id, version, "symbols");
 
+    public async Task<IEnumerable<Version>> GetVersionsAsync(string id)
+        => await new SupervisorHttp(_client).GetAsync<List<Version>>($"packages/{SupervisorHttp.Query(id)}/versions");
+
     /// <summary>
     /// Read whole before being handed over : a package is read back and forth while extracted,
     /// which a network stream can't do.
