@@ -49,23 +49,27 @@
                         </StackPanel>
                     </nav:NavigationMenu.Header>
 
+
+                    <nav:NavigationTitle>Tasks</nav:NavigationTitle>
                     <nav:NavigationItem TargetType="{x:Type workflows:WorkflowsViewModel}">
                         <nav:NavigationItem.Icon>
                             <fonts:FontIcon Text="{x:Static fonts:LucideFontIcons.Boxes}" />
                         </nav:NavigationItem.Icon>
                         Workflows / tasks
                     </nav:NavigationItem>
-                    <nav:NavigationItem TargetType="{x:Type packages:PackagesViewModel}">
-                        <nav:NavigationItem.Icon>
-                            <fonts:FontIcon Text="{x:Static fonts:LucideFontIcons.Package}" />
-                        </nav:NavigationItem.Icon>
-                        Packages
-                    </nav:NavigationItem>
                     <nav:NavigationItem TargetType="{x:Type scheduler:SchedulerViewModel}">
                         <nav:NavigationItem.Icon>
                             <fonts:FontIcon Text="{x:Static fonts:LucideFontIcons.CalendarClock}" />
                         </nav:NavigationItem.Icon>
                         Scheduler
+                    </nav:NavigationItem>
+
+                    <nav:NavigationTitle>Admin</nav:NavigationTitle>
+                    <nav:NavigationItem TargetType="{x:Type packages:PackagesViewModel}">
+                        <nav:NavigationItem.Icon>
+                            <fonts:FontIcon Text="{x:Static fonts:LucideFontIcons.Package}" />
+                        </nav:NavigationItem.Icon>
+                        Packages
                     </nav:NavigationItem>
                     <nav:NavigationItem TargetType="{x:Type workers:WorkersViewModel}">
                         <nav:NavigationItem.Icon>

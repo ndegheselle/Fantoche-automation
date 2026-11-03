@@ -76,7 +76,8 @@ public static class ReferencesHandler
         }
         else
         {
-            foreach (var child in template.Children())
+            // A copy : the items of a list are replaced in the list being walked.
+            foreach (var child in template.Children().ToList())
             {
                 ReplaceReferences(child, context, rowScoped, out var childErrors);
                 errors.AddRange(childErrors);

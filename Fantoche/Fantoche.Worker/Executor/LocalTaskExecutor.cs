@@ -1,4 +1,5 @@
 ﻿using Fantoche.Plugins.Shared;
+using Fantoche.Shared.Data;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Data.Scoped;
 using Fantoche.Worker.Packages;
@@ -130,7 +131,7 @@ public class LocalTaskExecutor : ITaskExecutor
         var result = await task.DoAsync(parameter, runtime, cancellation);
 
         if (result != null)
-            instance.Output = JToken.FromObject(result);
+            instance.Output = Schemas.ValueOf(result);
         else
             instance.Output = new JObject();
 

@@ -180,11 +180,11 @@
                 <Setter Property="Visibility" Value="{Binding HasState, Converter={x:Static jonverters:VisibilityConverter.Default}}" />
                 <Style.Triggers>
                     <DataTrigger Binding="{Binding State}" Value="Pending">
-                        <Setter Property="Text" Value="{x:Static jonts:LucideFontIcons.Hourglass}" />
+                        <Setter Property="Text" Value="{x:Static jonts:LucideFontIcons.ClockFading}" />
                         <Setter Property="Foreground" Value="{DynamicResource {x:Static joufflu:Brushes.InfoBrush}}" />
                     </DataTrigger>
                     <DataTrigger Binding="{Binding State}" Value="Waiting">
-                        <Setter Property="Text" Value="{x:Static jonts:LucideFontIcons.Timer}" />
+                        <Setter Property="Text" Value="{x:Static jonts:LucideFontIcons.Clock1}" />
                         <Setter Property="Foreground" Value="{DynamicResource {x:Static joufflu:Brushes.WarningBrush}}" />
                     </DataTrigger>
                     <DataTrigger Binding="{Binding State}" Value="Progressing">
@@ -192,7 +192,7 @@
                         <Setter Property="Foreground" Value="{DynamicResource {x:Static joufflu:Brushes.InfoBrush}}" />
                     </DataTrigger>
                     <DataTrigger Binding="{Binding State}" Value="Completed">
-                        <Setter Property="Text" Value="{x:Static jonts:LucideFontIcons.Check}" />
+                        <Setter Property="Text" Value="{x:Static jonts:LucideFontIcons.CheckCircle}" />
                         <Setter Property="Foreground" Value="{DynamicResource {x:Static joufflu:Brushes.SuccessBrush}}" />
                     </DataTrigger>
                     <DataTrigger Binding="{Binding State}" Value="Failed">
@@ -209,7 +209,7 @@
                     </DataTrigger>
                     <DataTrigger Binding="{Binding State}" Value="AwaitingUser">
                         <Setter Property="FontSize" Value="{DynamicResource {x:Static joufflu:Dimensions.FontSizeXl}}" />
-                        <Setter Property="Text" Value="{x:Static jonts:LucideFontIcons.UserPen}" />
+                        <Setter Property="Text" Value="{x:Static jonts:LucideFontIcons.CircleUser}" />
                         <Setter Property="Foreground" Value="{DynamicResource {x:Static joufflu:Brushes.WarningBrush}}" />
                     </DataTrigger>
                 </Style.Triggers>
@@ -442,6 +442,7 @@
                                 <!--  Where the node stands in the run being followed, nothing while none is  -->
                                 <jonts:FontIcon
                                     x:Name="StateIcon"
+                                    Margin="-20"
                                     HorizontalAlignment="Right"
                                     VerticalAlignment="Top"
                                     Style="{StaticResource NodeStateIcon}">
@@ -563,10 +564,10 @@
                                     </MenuItem>
                                     <Separator />
                                     <MenuItem
-                                        Style="{StaticResource DangerMenuItem}"
                                         Command="{Binding Tag.RemoveCommand}"
                                         CommandParameter="{Binding DataContext}"
-                                        Header="Remove">
+                                        Header="Remove"
+                                        Style="{StaticResource DangerMenuItem}">
                                         <MenuItem.Icon>
                                             <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Trash}" />
                                         </MenuItem.Icon>
@@ -654,7 +655,10 @@
                                                 </MenuItem>
                                             </MenuItem>
                                             <Separator />
-                                            <MenuItem Command="{Binding Tag.RemoveCommand}" Header="Remove the selection" Style="{StaticResource DangerMenuItem}">
+                                            <MenuItem
+                                                Command="{Binding Tag.RemoveCommand}"
+                                                Header="Remove the selection"
+                                                Style="{StaticResource DangerMenuItem}">
                                                 <MenuItem.Icon>
                                                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Trash}" />
                                                 </MenuItem.Icon>
@@ -670,12 +674,11 @@
                 <nodify:NodifyEditor.ConnectionTemplate>
                     <DataTemplate DataType="{x:Type viewModels:ConnectionViewModel}">
                         <!--  The themed style is given explicitly, an implicit style not applying to a derived type  -->
-                        <nodify:Connection 
+                        <nodify:Connection
                             x:Name="Line"
                             Source="{Binding Source.Anchor}"
                             Style="{StaticResource {x:Type nodify:Connection}}"
-                            Target="{Binding Target.Anchor}"
-                            />
+                            Target="{Binding Target.Anchor}" />
                         <DataTemplate.Triggers>
                             <!--
                                 A page sits above its task : the attachment goes up, dashed, carrying no

@@ -52,9 +52,9 @@ public static class DatabaseSeeder
 }
 
 /// <summary>
-/// Sample tasks and a workflow showing them at work, so the interface has something to display and
-/// to execute right after a fresh install. They target the classes of the Fantoche.Plugins.Example package,
-/// which has to be added to the packages for the samples to run.
+/// Sample tasks and workflows showing them at work, so the interface has something to display and
+/// to execute right after a fresh install. They target the classes of the Fantoche.Plugins.Example
+/// and Fantoche.Plugins packages, which have to be added to the packages for the samples to run.
 /// </summary>
 internal static class Samples
 {
@@ -67,6 +67,14 @@ internal static class Samples
         Id = Id(0x01),
         ParentId = Scope.Root.Id,
         Metadata = new ScopedMetadata("Samples", EnumScopedType.Scope),
+    };
+
+    /// <summary>The samples of the engine itself : runs slow enough to be paused, stopped and resumed.</summary>
+    private static readonly Scope EngineScope = new Scope()
+    {
+        Id = Id(0x02),
+        ParentId = SamplesScope.Id,
+        Metadata = new ScopedMetadata("Engine", EnumScopedType.Scope),
     };
 
     #region Tasks
@@ -105,6 +113,32 @@ internal static class Samples
         Id(0x39), "Compose the document", "Fantoche.Plugins.Example.Tasks.Pdf.ExportPdfUi",
         ExportPdfInputSchema, ExportPdf);
 
+    private static readonly AutomationTask AddValue = MakeEngineTask(
+        Id(0x40), "Add", "Fantoche.Plugins.TestTask",
+        Schema(("Message", "string"), ("Value", "integer"), ("Add", "integer")),
+        Schema(("Value", "integer"), ("Message", "string")));
+
+    private static readonly AutomationTask Delay = MakeEngineTask(
+        Id(0x41), "Delay", "Fantoche.Plugins.TestDelay",
+        Schema(("DelayMs", "integer")), PassThroughSchema, isPassThrough: true);
+
+    private static readonly AutomationTask LoopGate = MakeEngineTask(
+        Id(0x42), "Loop gate", "Fantoche.Plugins.LoopGateTask",
+        Schema(("Value", "integer"), ("Max", "integer"), ("WhileUnder", "boolean")), PassThroughSchema, isPassThrough: true);
+
+    private static readonly AutomationTask Conditional = MakeEngineTask(
+        Id(0x43), "Conditional", "Fantoche.Plugins.ConditionalTask",
+        Schema(("TestDeactivate", "boolean")), PassThroughSchema, isPassThrough: true);
+
+    private static readonly AutomationTask Reorder = MakeEngineTask(
+        Id(0x44), "Reorder", "Fantoche.Plugins.UserInterfaces.ReorderTask",
+        ReorderInputSchema, ItemsSchema);
+
+    /// <summary>Lets the user put the items in order : hangs under the task it asks for.</summary>
+    private static readonly AutomationTask ReorderUi = MakeUi(
+        Id(0x45), "Put in order", "Fantoche.Plugins.UserInterfaces.ReorderUi",
+        ReorderInputSchema, Reorder, EnginePackage);
+
     #endregion
 
     public static IEnumerable<ScopedElement> Build()
@@ -121,6 +155,14 @@ internal static class Samples
             ExportPdf,
             ExportPdfUi,
             BuildCustomersOrders(),
+            EngineScope,
+            AddValue,
+            Delay,
+            LoopGate,
+            Conditional,
+            Reorder,
+            ReorderUi,
+            BuildStates(),
         ];
 
         // The schemas of a workflow are declared by its start and its end, the element only holding
@@ -225,17 +267,88 @@ internal static class Samples
         return workflow;
     }
 
+    /// <summary>
+    /// What the engine shows of a run, slow enough to pause, stop and resume it on the way : a loop,
+    /// a branch waiting, a join waiting for it, a branch closed and a page waiting for the user.
+    /// <code>
+    /// Start ─┬─> Wait 3 s ─> Count(+1) ─> Wait 2 s ─┬─> Again (under Max) ─> back to Count
+    ///        │                                       └─> Done (reached Max) ──┐
+    ///        ├─> Wait 15 s ─> Slow(+100) ────────────────────────────────────┼─> Results ─> Sort ─> End
+    ///        │                                                                              │
+    ///        └─> Closed ─> Never                                                      Put in order
+    /// </code>
+    /// The loop counts from the value the run starts with (1 by default) up to 5, a turn every
+    /// 2 s, while the slow branch holds the join until its 15 s are over. The closed branch never
+    /// gets further than its condition.
+    /// </summary>
+    private static AutomationWorkflow BuildStates()
+    {
+        const int Max = 5;
+        AutomationWorkflow workflow = MakeWorkflow(Id(0x25), "Pause, stop and resume", EngineScope.Id);
+
+        GraphControl start = StartNode(0, 150, Schema(("Value", "integer")), new { Value = 1 });
+
+        GraphTask firstWait = Node(new GraphTask(Delay), "Wait 3 s", 220, 0, new { DelayMs = 3000 });
+        GraphTask count = Node(new GraphTask(AddValue), "Count", 440, 0,
+            new { Message = "count", Value = "$previous.Value", Add = 1 });
+        GraphTask turnWait = Node(new GraphTask(Delay), "Wait 2 s", 660, 0, new { DelayMs = 2000 });
+        GraphTask again = Node(new GraphTask(LoopGate), "Again", 880, -60,
+            new { Value = "$previous.Value", Max, WhileUnder = true });
+        GraphTask done = Node(new GraphTask(LoopGate), "Done", 880, 60,
+            new { Value = "$previous.Value", Max, WhileUnder = false });
+
+        GraphTask slowWait = Node(new GraphTask(Delay), "Wait 15 s", 220, 150, new { DelayMs = 15000 });
+        GraphTask slow = Node(new GraphTask(AddValue), "Slow", 440, 150,
+            new { Message = "slow", Value = "$previous.Value", Add = 100 });
+
+        GraphTask closed = Node(new GraphTask(Conditional), "Closed", 220, 300, new { TestDeactivate = true });
+        GraphTask never = Node(new GraphTask(AddValue), "Never", 440, 300,
+            new { Message = "never", Value = "$previous.Value", Add = 1000 });
+
+        GraphControl results = Node(new GraphControl(AutomationControl.JoinTask), "Results", 1100, 150,
+            new { Items = new[] { "$previous.Count.Message", "$previous.Slow.Message" } });
+        GraphTask sort = Node(new GraphTask(Reorder), "Sort", 1320, 150,
+            new { Title = "Put the branches in the order you like", Items = "$previous.Items" });
+        GraphUserInterface sortPage = Node(new GraphUserInterface(ReorderUi), "Put in order", 1320, 270);
+        GraphControl end = EndNode(1540, 150, new { Items = "$previous.Items" }, Schema(("Items", "array")));
+
+        Add(workflow, start, firstWait, count, turnWait, again, done, slowWait, slow, closed, never,
+            results, sort, sortPage, end);
+
+        workflow.Graph.Connect(start, firstWait);
+        workflow.Graph.Connect(firstWait, count);
+        workflow.Graph.Connect(count, turnWait);
+        workflow.Graph.Connect(turnWait, again);
+        workflow.Graph.Connect(turnWait, done);
+        workflow.Graph.Connect(again, count);
+        workflow.Graph.Connect(done, results);
+        workflow.Graph.Connect(start, slowWait);
+        workflow.Graph.Connect(slowWait, slow);
+        workflow.Graph.Connect(slow, results);
+        workflow.Graph.Connect(start, closed);
+        workflow.Graph.Connect(closed, never);
+        workflow.Graph.Connect(results, sort);
+        workflow.Graph.Connect(sort, end);
+
+        workflow.Graph.Attach(sort, sortPage);
+
+        return workflow;
+    }
+
     /// <summary>A name of the workflow and the column of the sample files it stands for.</summary>
     private static object Column(string name, string column) => new { Name = name, Column = column };
 
     #region Building blocks
 
     /// <summary>
-    /// The package the sample tasks run : it has to be added to the packages for the samples to run.
+    /// The package the table samples run : it has to be added to the packages for the samples to run.
     /// A property rather than a field : the task fields above are initialized first, and would read a
     /// field declared after them as null.
     /// </summary>
-    private static Version PluginsVersion => new("2.0.0");
+    private static PackageIdentifier PluginsPackage => new() { Id = "Fantoche.Plugins.Example", Version = new Version("2.0.0") };
+
+    /// <summary>The package of the engine samples, see <see cref="PluginsPackage"/>.</summary>
+    private static PackageIdentifier EnginePackage => new() { Id = "Fantoche.Plugins", Version = new Version("1.0.0") };
 
     /// <summary>
     /// The schemas of the tasks, with the markers of the engine : a table or file handle
@@ -316,6 +429,17 @@ internal static class Samples
             "Files":{"type":"array","items":{"type":"object","x-fantoche-type":"file","properties":{"Id":{"type":"string"},"Name":{"type":"string"}}}}}}
         """;
 
+    /// <summary>The output of a pass-through task : none, the next node reading past it.</summary>
+    private const string PassThroughSchema = "{}";
+
+    private const string ReorderInputSchema = """
+        {"type":"object","properties":{"Title":{"type":"string"},"Items":{"type":"array","items":{"type":"string"}}}}
+        """;
+
+    private const string ItemsSchema = """
+        {"type":"object","properties":{"Items":{"type":"array","items":{"type":"string"}}}}
+        """;
+
     private static Guid Id(byte index) => new Guid($"00000000-0000-0000-0000-2000000000{index:x2}");
 
     /// <summary>
@@ -338,6 +462,7 @@ internal static class Samples
             new GraphControl(AutomationControl.EndTask) { InputSchemaJson = schema },
             "End", x, y, mapping);
 
+    /// <param name="package">The package holding [className], <see cref="PluginsPackage"/> by default.</param>
     private static AutomationTask MakeTask(
         Guid id,
         string name,
@@ -345,40 +470,52 @@ internal static class Samples
         string inputSchema,
         string outputSchema,
         bool isUserInterface = false,
-        Guid? parentId = null)
-        => new AutomationTask()
+        Guid? parentId = null,
+        PackageIdentifier? package = null,
+        bool isPassThrough = false)
+    {
+        PackageIdentifier target = package ?? PluginsPackage;
+        return new AutomationTask()
         {
             Id = id,
             ParentId = parentId ?? SamplesScope.Id,
             Metadata = new ScopedMetadata(name, EnumScopedType.Task) { Tags = ["Sample"] },
             Target = new PackageClassTarget()
             {
-                Dll = "Fantoche.Plugins.Example",
+                Dll = target.Id,
                 ClassFullName = className,
                 IsUserInterface = isUserInterface,
-                Package = new PackageIdentifier() { Id = "Fantoche.Plugins.Example", Version = PluginsVersion }
+                Package = target,
             },
             InputSchemaJson = inputSchema,
             OutputSchemaJson = outputSchema,
+            Settings = new TaskSettings() { IsPassingThrough = isPassThrough },
         };
+    }
+
+    /// <summary>A task of the engine samples, see <see cref="EnginePackage"/>.</summary>
+    private static AutomationTask MakeEngineTask(
+        Guid id, string name, string className, string inputSchema, string outputSchema, bool isPassThrough = false)
+        => MakeTask(id, name, className, inputSchema, outputSchema,
+            parentId: EngineScope.Id, package: EnginePackage, isPassThrough: isPassThrough);
 
     /// <summary>
     /// The page editing the parameters of [task] : it reads and hands over what the task reads, and
     /// hangs under it in the tree.
     /// </summary>
-    private static AutomationTask MakeUi(Guid id, string name, string className, string parametersSchema, AutomationTask task)
-        => MakeTask(id, name, className, parametersSchema, parametersSchema, isUserInterface: true, parentId: task.Id);
+    private static AutomationTask MakeUi(Guid id, string name, string className, string parametersSchema, AutomationTask task, PackageIdentifier? package = null)
+        => MakeTask(id, name, className, parametersSchema, parametersSchema, isUserInterface: true, parentId: task.Id, package: package);
 
     /// <summary>
     /// A workflow with an empty graph. Its schemas are not set here : they are declared by the start
     /// and the end of the graph, and copied onto the element by
     /// <see cref="AutomationWorkflow.DeriveSchemas"/> once it is built.
     /// </summary>
-    private static AutomationWorkflow MakeWorkflow(Guid id, string name)
+    private static AutomationWorkflow MakeWorkflow(Guid id, string name, Guid? parentId = null)
         => new AutomationWorkflow()
         {
             Id = id,
-            ParentId = SamplesScope.Id,
+            ParentId = parentId ?? SamplesScope.Id,
             Metadata = new ScopedMetadata(name, EnumScopedType.Workflow) { Tags = ["Sample"] },
         };
 

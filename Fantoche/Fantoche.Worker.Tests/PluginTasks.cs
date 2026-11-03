@@ -16,7 +16,7 @@ namespace Fantoche.Worker.Tests;
 /// </summary>
 internal static class PluginTasks
 {
-    /// <summary>The tasks exercising the engine, shipped with no package.</summary>
+    /// <summary>The tasks exercising the engine.</summary>
     public const string Package = "Fantoche.Plugins";
 
     /// <summary>The tasks of the practical workflow.</summary>

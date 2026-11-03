@@ -2,14 +2,15 @@
 
   <!--
     The tasks the tests of the engine build their workflows with : they only exercise the engine
-    (values, delays, gates, a page), so they ship with no package. See Fantoche.Plugins.Example for
-    the tasks of a practical workflow.
+    (values, delays, gates, a page). Packed for the "Pause, stop and resume" sample, which runs them
+    in the application. See Fantoche.Plugins.Example for the tasks of a practical workflow.
   -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <IsPackable>false</IsPackable>
+    <Title>Engine test plugins</Title>
+    <Version>1.0.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,7 +19,7 @@
 
   <!-- The page of the reorder task, next to the assembly it is read relative to (see IUserInterfaceTask.PageFolder). -->
   <ItemGroup>
-    <Content Include="UserInterfaces\**\*" Exclude="UserInterfaces\**\*.cs" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="UserInterfaces\**\*" Exclude="UserInterfaces\**\*.cs" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="lib\$(TargetFramework)\UserInterfaces" />
   </ItemGroup>
 
 </Project>

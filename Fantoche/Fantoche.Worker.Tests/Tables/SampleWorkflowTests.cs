@@ -9,27 +9,24 @@ using Newtonsoft.Json.Linq;
 namespace Fantoche.Worker.Tests.Tables;
 
 /// <summary>
-/// The workflow a fresh install holds (see DatabaseSeeder), as the editor shows it : its schemas are
-/// written by hand, so nothing but this checks that they fit the mappings of the sample.
+/// The workflows a fresh install holds (see DatabaseSeeder), as the editor shows them : their schemas
+/// are written by hand, so nothing but this checks that they fit the mappings of the samples.
 /// </summary>
 [TestFixture]
 internal sealed class SampleWorkflowTests
 {
     private static readonly Guid CustomersOrdersId = new("00000000-0000-0000-0000-200000000024");
+    private static readonly Guid PauseStopResumeId = new("00000000-0000-0000-0000-200000000025");
+    private static readonly Guid[] SampleIds = [CustomersOrdersId, PauseStopResumeId];
 
     private string _folder = null!;
-    private GraphExecutionPreview _preview = null!;
-    private AutomationWorkflow _workflow = null!;
+    private LocalScopedService _scoped = null!;
 
     [SetUp]
-    public async Task SetUp()
+    public void SetUp()
     {
         _folder = Path.Combine(Path.GetTempPath(), "fantoche-tests", Guid.NewGuid().ToString("N"));
-        LocalScopedService scoped = new(new DatabaseFactory(Path.Combine(_folder, "fantoche.db")));
-        _workflow = (AutomationWorkflow)await scoped.LoadRunnableAsync(CustomersOrdersId);
-
-        _preview = new GraphExecutionPreview();
-        _preview.BuildSamples(_workflow.Graph, new GraphContextResolution());
+        _scoped = new LocalScopedService(new DatabaseFactory(Path.Combine(_folder, "fantoche.db")));
     }
 
     [TearDown]
@@ -40,24 +37,35 @@ internal sealed class SampleWorkflowTests
         Directory.Delete(_folder, true);
     }
 
-    private BaseGraphTask Node(string name) => _workflow.Graph.Nodes.OfType<BaseGraphTask>().Single(x => x.Name == name);
-
-    [Test]
-    public void Sample_ResolvesEveryReference()
+    /// <summary>The sample [id], and what the editor previews of it.</summary>
+    private async Task<(AutomationWorkflow Workflow, GraphExecutionPreview Preview)> LoadAsync(Guid id)
     {
-        IEnumerable<string> errors = _preview.NodesErrors.SelectMany(x => x.Value).Select(x => x.Message);
+        AutomationWorkflow workflow = (AutomationWorkflow)await _scoped.LoadRunnableAsync(id);
+        GraphExecutionPreview preview = new();
+        preview.BuildSamples(workflow.Graph, new GraphContextResolution());
+        return (workflow, preview);
+    }
+
+    [TestCaseSource(nameof(SampleIds))]
+    public async Task Sample_ResolvesEveryReference(Guid id)
+    {
+        (_, GraphExecutionPreview preview) = await LoadAsync(id);
+
+        IEnumerable<string> errors = preview.NodesErrors.SelectMany(x => x.Value).Select(x => x.Message);
 
         Assert.That(errors, Is.Empty);
     }
 
-    [Test]
-    public void Sample_FitsTheSchemasOfItsTasks()
+    [TestCaseSource(nameof(SampleIds))]
+    public async Task Sample_FitsTheSchemasOfItsTasks(Guid id)
     {
+        (AutomationWorkflow workflow, GraphExecutionPreview preview) = await LoadAsync(id);
+
         List<string> errors = [];
         // A page has no mapping of its own : it is handed the parameters of its task.
-        foreach (GraphTask node in _workflow.Graph.Nodes.OfType<GraphTask>().Where(x => x is not GraphUserInterface))
+        foreach (GraphTask node in workflow.Graph.Nodes.OfType<GraphTask>().Where(x => x is not GraphUserInterface))
         {
-            List<NodePreviewContext> contexts = _preview.NodesContexts.GetValueOrDefault(node.Id) ?? [];
+            List<NodePreviewContext> contexts = preview.NodesContexts.GetValueOrDefault(node.Id) ?? [];
             JToken mapping = JToken.Parse(node.InputTemplateJson!);
             errors.AddRange(MappingCheck.Check(mapping, contexts, node.InputSchema, allowMissingRequired: false)
                 .Select(error => $"{node.Name} : {error.Message}"));
@@ -67,9 +75,12 @@ internal sealed class SampleWorkflowTests
     }
 
     [Test]
-    public void Merge_ReadsTheNamesTheMappingsGive()
+    public async Task Merge_ReadsTheNamesTheMappingsGive()
     {
-        JObject context = _preview.NodesContexts[Node("Merge").Id].Single().Context;
+        (AutomationWorkflow workflow, GraphExecutionPreview preview) = await LoadAsync(CustomersOrdersId);
+        BaseGraphTask merge = workflow.Graph.Nodes.OfType<BaseGraphTask>().Single(x => x.Name == "Merge");
+
+        JObject context = preview.NodesContexts[merge.Id].Single().Context;
 
         JToken? mapping = context.SelectToken("previous.Orders.Mapping");
         Assert.That(mapping?.ToObject<Dictionary<string, string>>()?.Keys, Is.EqualTo(new[] { "OrderId", "CustomerId", "Amount", "Date" }));

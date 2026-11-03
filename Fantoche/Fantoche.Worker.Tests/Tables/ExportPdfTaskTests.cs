@@ -31,7 +31,8 @@ internal sealed class ExportPdfTaskTests
     [TearDown]
     public void TearDown() => _files.Dispose();
 
-    private Task<WorkflowRun> RunAsync(int rows, int batchSize, object document, string fileName = "orders-{index}")
+    /// <param name="user">Answers the page composing the document, attached to the export when given.</param>
+    private Task<WorkflowRun> RunAsync(int rows, int batchSize, object document, string fileName = "orders-{index}", ScriptedUser? user = null)
     {
         StringBuilder csv = new("order,total\n");
         for (int i = 0; i < rows; i++)
@@ -45,7 +46,9 @@ internal sealed class ExportPdfTaskTests
             .Task("Export", PluginTasks.ExportPdf, new { Sources = "$previous.Batches", Document = document, FileName = fileName })
             .End(new { Files = "$previous.Files" })
             .Chain("Start", "Import", "Split", "Export", "End");
-        return workflow.RunAsync(new { Path = path });
+        if (user != null)
+            workflow.Ui("Compose", PluginTasks.ExportPdfUi, of: "Export");
+        return workflow.RunAsync(new { Path = path }, user: user);
     }
 
     private static readonly object Report = new
@@ -89,6 +92,21 @@ internal sealed class ExportPdfTaskTests
         WorkflowRun run = await RunAsync(rows: 5, batchSize: 10, new { Blocks = Array.Empty<object>() });
 
         Assert.That(await PagesOfAsync(run, FilesOf(run).Single()), Is.EqualTo(1));
+    }
+
+    [Test]
+    public async Task DocumentAnsweredByThePage_IsExported()
+    {
+        // The page answers the document it is handed, the kinds of its blocks written by name both ways.
+        ScriptedUser user = new((request, _) => Task.FromResult(request.Input));
+
+        WorkflowRun run = await RunAsync(rows: 25, batchSize: 10, Report, user: user);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(user.Asked.Single().Input?.SelectToken("Document.Blocks[0].Kind")?.ToString(), Is.EqualTo("Heading"));
+            Assert.That(run.Of("Export").Last().State, Is.EqualTo(EnumTaskState.Completed));
+        });
     }
 
     [Test]

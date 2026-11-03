@@ -1,7 +1,16 @@
 /* Pico styles the page (linked by the application, see PageFiles) : only its layout is here. */
 
+/* The window is the height of the page : the content scrolls, the actions stay at its bottom. */
 main {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
     padding-block: var(--pico-spacing);
+}
+
+.content {
+    flex: 1;
+    overflow: auto;
 }
 
 h2 {

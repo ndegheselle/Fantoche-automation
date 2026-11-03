@@ -112,13 +112,13 @@ public class AutomationTask : BaseAutomationTask
             Settings.IsPassingThrough = packageTask.Output.Type == null;
             OutputSchema = packageTask.Output?.Type == null
                 ? new JsonSchema()
-                : JsonSchema.FromType(packageTask.Output.Type);
+                : Schemas.Of(packageTask.Output.Type);
         }
 
         if (packageTask.Input != null)
             InputSchema = packageTask.Input?.Type == null
                 ? new JsonSchema()
-                : JsonSchema.FromType(packageTask.Input.Type);
+                : Schemas.Of(packageTask.Input.Type);
     }
 }
 

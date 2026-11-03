@@ -1,4 +1,5 @@
 using Fantoche.Plugins.Shared;
+using Fantoche.Shared.Data;
 using Fantoche.Shared.Data.Execution;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -48,7 +49,7 @@ internal sealed class PageSession : IUserPrompt
             Instance = _instance,
             RunId = _runId,
             Folder = _folder,
-            Input = input == null ? null : JToken.FromObject(input),
+            Input = input == null ? null : Schemas.ValueOf(input),
             Storage = _storage,
             CallAsync = (name, args, token) => PageMethods.CallAsync(_task, name, args, runtime, token),
             Answer = answer => TryAnswer(answer, answered),

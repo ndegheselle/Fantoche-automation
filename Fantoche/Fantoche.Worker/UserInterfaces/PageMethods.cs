@@ -1,5 +1,6 @@
 using System.Reflection;
 using Fantoche.Plugins.Shared;
+using Fantoche.Shared.Data;
 using Newtonsoft.Json.Linq;
 
 namespace Fantoche.Worker.UserInterfaces;
@@ -32,7 +33,7 @@ public static class PageMethods
         }
 
         object? result = await ResultOfAsync(method, returned);
-        return result == null ? null : JToken.FromObject(result);
+        return result == null ? null : Schemas.ValueOf(result);
     }
 
     /// <summary>The runtime and the cancellation where asked for, [args] for the one value it takes.</summary>
