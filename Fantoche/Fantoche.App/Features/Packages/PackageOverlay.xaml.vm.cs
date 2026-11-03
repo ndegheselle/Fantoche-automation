@@ -50,6 +50,10 @@ namespace Fantoche.App.Features.Packages
 
             await _packages.RemoveAsync(Package.Identifier.Id, version);
             Versions.Remove(version);
+
+            // Without versions the package is gone : nothing is left to detail.
+            if (Versions.Count == 0)
+                _overlayer.Cancel(this);
         }
     }
 }

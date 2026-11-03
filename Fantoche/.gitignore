@@ -404,3 +404,5 @@ FodyWeavers.xsd
 .env
 # Test data written by Fantoche.Plugins.Example/Resources/Samples/generate-test-data.ps1
 Fantoche.Plugins.Example/Resources/Samples/generated/
+
+volumes/

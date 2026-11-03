@@ -1,0 +1,16 @@
+[
+  {
+    "Name": "Docker + App",
+    "Projects": [
+      {
+        "Path": "docker-compose.dcproj",
+        "Action": "Start",
+        "DebugTarget": "Docker Compose"
+      },
+      {
+        "Path": "Fantoche.App\\Fantoche.App.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

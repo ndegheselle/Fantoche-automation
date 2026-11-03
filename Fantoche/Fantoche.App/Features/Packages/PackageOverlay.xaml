@@ -9,9 +9,9 @@
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Fantoche.App.Features.Packages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    MaxWidth="800"
+    MaxHeight="800"
     d:DataContext="{d:DesignInstance Type=local:PackageViewModel}"
-    d:DesignHeight="450"
-    d:DesignWidth="800"
     mc:Ignorable="d">
     <Grid joolkit:Spacing.Gap="4">
         <Grid.RowDefinitions>

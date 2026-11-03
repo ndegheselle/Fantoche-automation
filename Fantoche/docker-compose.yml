@@ -14,7 +14,7 @@ services:
       - "8080:8080"
       - "8081:8081"
     volumes:
-      # The database and the packages served to the workers.
+      # Its database, and the packages the workers download from it.
       - ./volumes/supervisor:/app/data
       # The storage of the workers, cleaned along with the history.
       - ./volumes/storage:/app/storage

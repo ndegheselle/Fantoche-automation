@@ -36,9 +36,11 @@ namespace Fantoche.App.Features.Packages
         }
 
         [RelayCommand]
-        public void OpenPackage(PackageInfos package)
+        public async Task OpenPackage(PackageInfos package)
         {
-            _overlays.ShowAsync(new PackageViewModel(package, _packages, _overlays));
+            await _overlays.ShowAsync(new PackageViewModel(package, _packages, _overlays));
+            // Versions may have been removed, the package itself with its last one.
+            await RefreshAsync();
         }
 
         public async Task AddPackagesAsync(IEnumerable<string> filePaths)
@@ -50,14 +52,19 @@ namespace Fantoche.App.Features.Packages
 
         private async Task AddPackageAsync(string filePath)
         {
+            var toastInstance = _toasts.Loading("Adding the package ...", "Add package");
             var result = await _packages.AddAsync(filePath);
             if (result.Warnings.Any())
             {
-                _toasts.Warning(string.Join("\n", result.Warnings.SelectMany(x => x.Message)), "Package added with errors");
+                toastInstance.Type = ToastType.Warning;
+                toastInstance.Message = string.Join("\n", result.Warnings.SelectMany(x => x.Message));
+                toastInstance.Duration = TimeSpan.FromSeconds(5);
             }
             else
             {
-                _toasts.Success($"Package '{result.Infos.Identifier}' added.", "Package added");
+                toastInstance.Type = ToastType.Success;
+                toastInstance.Message = $"Package '{result.Infos.Identifier}' added.";
+                toastInstance.Duration = TimeSpan.FromSeconds(5);
             }
         }
 
