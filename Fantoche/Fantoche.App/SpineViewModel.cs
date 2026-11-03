@@ -38,7 +38,7 @@ public class SpineViewModel : ObservableObject
     #region UI
     public Navigator Navigator { get; }
     public Overlayer Overlayer { get; } = new();
-    public ToastService Toasts { get; } = new();
+    public ToastService Toasting { get; } = new();
     #endregion
 
     #region services
@@ -111,7 +111,7 @@ public class SpineViewModel : ObservableObject
             Path.Combine(Settings.LocalFolderPath, "browser"),
             supervisor.History,
             async executionId => await (await registration!).TakeAsync(executionId));
-        prompts.Asked += request => Ui.Post(() => Toasts.Info($"'{request.Instance.NodeName}' waits for you : answer it from its run.", "A task asks for you"));
+        prompts.Asked += request => Ui.Post(() => Toasting.Info($"'{request.Instance.NodeName}' waits for you : answer it from its run.", "A task asks for you"));
         LocalWorker worker = LocalWorker.InFolder(supervisor, workerFolder, storageFolder, prompts);
 
         // Alone, the application is also the only worker there is to run what the supervisor dispatches.
@@ -132,7 +132,7 @@ public class SpineViewModel : ObservableObject
 
         services.AddSingleton(Settings);
         services.AddSingleton<IOverlayer>(Overlayer);
-        services.AddSingleton<IToastService>(Toasts);
+        services.AddSingleton<IToastService>(Toasting);
     }
 
     /// <summary>

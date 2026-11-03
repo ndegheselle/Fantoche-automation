@@ -35,10 +35,11 @@
                     Width="*"
                     Binding="{Binding}"
                     Header="Version" />
-                <DataGridTemplateColumn>
+                <DataGridTemplateColumn Width="64">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <Button
+                                HorizontalAlignment="Right"
                                 joolkit:Sizing.IsSquare="True"
                                 joolkit:Sizing.Size="sm"
                                 Command="{Binding ViewModel.RemoveVersionCommand, RelativeSource={RelativeSource AncestorType={x:Type local:PackageOverlay}}}"

@@ -6,6 +6,8 @@ namespace Fantoche.App
 {
     public partial class App : Application
     {
+        private const string ErrorTitle = "Ooops";
+
         private SpineViewModel? shell;
         protected override void OnStartup(StartupEventArgs e)
         {
@@ -38,9 +40,17 @@ namespace Fantoche.App
 
         private void HandleException(Exception exception)
         {
+            if (shell == null)
+                return;
+
             try
             {
-                shell?.Toasts.Error(exception.Message, "Ooops");
+                // A toast failing to render raises the same exception again : toasting it once more
+                // would loop, piling up toasts until the application hangs.
+                if (shell.Toasting.Toasts.Any(x => x.Title == ErrorTitle && x.Message == exception.Message))
+                    return;
+
+                shell.Toasting.Error(exception.Message, ErrorTitle);
             }
             catch
             { }

@@ -100,7 +100,7 @@ namespace Fantoche.App.Features.Workflows.Details.Controls
             SpineViewModel shell = SpineViewModel.Instance;
             IOverlayer overlayer = shell.Overlayer;
 
-            var viewModel = new InstanceDetailViewModel(instance, shell.History, shell.Prompts, shell.Execution, shell.Dispatch, overlayer, shell.Toasts);
+            var viewModel = new InstanceDetailViewModel(instance, shell.History, shell.Prompts, shell.Execution, shell.Dispatch, overlayer, shell.Toasting);
             // Read before it is shown : the detail opens on what the execution amounts to rather
             // than filling in under the reader.
             await viewModel.RefreshAsync();

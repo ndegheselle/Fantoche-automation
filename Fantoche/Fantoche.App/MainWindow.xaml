@@ -32,7 +32,7 @@
             <fonts:FontIcon Text="{x:Static fonts:LucideFontIcons.Settings}" />
         </Button>
     </controls:ThemedWindow.TitleBarContent>
-    <jeedback:ToastContainer Toasts="{Binding Toasts}">
+    <jeedback:ToastContainer Toasts="{Binding Toasting}">
         <javigation:OverlayContainer Overlays="{Binding Overlayer}">
             <DockPanel>
                 <nav:NavigationMenu DockPanel.Dock="Left" Navigator="{Binding Navigator}">
