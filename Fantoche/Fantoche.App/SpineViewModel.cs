@@ -50,9 +50,6 @@ public class SpineViewModel : ObservableObject
     public IPackagesService Packages => _provider.GetRequiredService<IPackagesService>();
     public IHistoryService History => _provider.GetRequiredService<IHistoryService>();
     public IScopedService Scoped => _provider.GetRequiredService<IScopedService>();
-    public IExecutionService Execution => _provider.GetRequiredService<IExecutionService>();
-    public IDispatchService Dispatch => _provider.GetRequiredService<IDispatchService>();
-    public UserPrompts Prompts => _provider.GetRequiredService<UserPrompts>();
     #endregion
 
     public IRelayCommand OpenSettingsCommand { get; }
@@ -166,7 +163,6 @@ public class SpineViewModel : ObservableObject
         RegisterView<TaskSettingsViewModel, TaskSettingsOverlay>();
         RegisterView<StartSettingsViewModel, StartSettingsOverlay>();
         RegisterView<InstanceDetailViewModel, InstanceDetailOverlay>();
-        RegisterView<NodeErrorViewModel, NodeErrorOverlay>();
         RegisterView<ScheduleViewModel, ScheduleOverlay>();
 
         RegisterView<PackagesViewModel, PackagesPage>();

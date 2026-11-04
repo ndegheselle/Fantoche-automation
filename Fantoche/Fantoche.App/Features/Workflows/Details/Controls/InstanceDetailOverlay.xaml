@@ -2,7 +2,9 @@
     x:Class="Fantoche.App.Features.Workflows.Details.Controls.InstanceDetailOverlay"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:common="clr-namespace:Fantoche.App.Common"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:jata="clr-namespace:Joufflu.Data.Controls;assembly=Joufflu.Data"
     xmlns:jeedback="clr-namespace:Joufflu.Feedback.Controls;assembly=Joufflu.Feedback"
     xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
     xmlns:jonverters="clr-namespace:Joufflu.Converters;assembly=Joufflu"
@@ -10,6 +12,7 @@
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Fantoche.App.Features.Workflows.Details.Controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    MaxHeight="600"
     d:DataContext="{d:DesignInstance Type=local:InstanceDetailViewModel}"
     mc:Ignorable="d">
     <UserControl.Resources>
@@ -17,6 +20,8 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/Fantoche.App;component/Features/Workflows/Details/Controls/InstanceState.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
+            <common:BindingProxy x:Key="ViewModel" Data="{Binding}" />
 
             <!--  The values of an execution are read only, they are what it ran with  -->
             <Style
@@ -44,31 +49,28 @@
 
         <!--  What ran, in which state and for how long  -->
         <Border Style="{StaticResource Card}">
-            <Grid joolkit:Spacing.Gap="2">
+            <Grid joolkit:Spacing.Gap="4">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="auto" />
                 </Grid.ColumnDefinitions>
 
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="auto" />
-                    <RowDefinition Height="auto" />
-                </Grid.RowDefinitions>
-
                 <TextBlock FontWeight="Bold" Text="{Binding Instance.NodeName}" />
-                <StackPanel Grid.Row="1" Grid.ColumnSpan="2" joolkit:Spacing.Gap="8" Orientation="Horizontal">
+                <StackPanel
+                    Grid.Column="1"
+                    VerticalAlignment="Center"
+                    joolkit:Spacing.Gap="8"
+                    Orientation="Horizontal">
                     <TextBlock Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}" Text="{Binding Instance.CreatedAt}" />
                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.ArrowRight}" />
                     <TextBlock Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}" Text="{Binding Instance.FinishedAt}" />
                     <TextBlock Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}" Text="{Binding Duration}" />
+                    <jeedback:Badge
+                        VerticalAlignment="Center"
+                        joolkit:Sizing.Size="xs"
+                        DataContext="{Binding Instance}"
+                        Style="{StaticResource InstanceStateBadge}" />
                 </StackPanel>
-
-                <jeedback:Badge
-                    joolkit:Sizing.Size="xs"
-                    Grid.Column="1"
-                    VerticalAlignment="Center"
-                    Content="{Binding Instance.State}"
-                    Style="{StaticResource InstanceStateBadge}" />
             </Grid>
         </Border>
 
@@ -84,22 +86,20 @@
             </Grid.RowDefinitions>
 
             <TextBlock Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}" Text="Parameters" />
-            <TextBox
+            <jata:DataDisplay
                 Grid.Row="1"
                 Height="140"
-                Style="{StaticResource ValueTextBox}"
-                Text="{Binding ParametersJson, Mode=OneWay}" />
+                Node="{Binding Instance.Parameters, Mode=OneWay}" />
 
             <TextBlock
                 Grid.Column="1"
                 Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}"
-                Text="Output" />
-            <TextBox
+                Text="{Binding OutputLabel}" />
+            <jata:DataDisplay
                 Grid.Row="1"
                 Grid.Column="1"
                 Height="140"
-                Style="{StaticResource ValueTextBox}"
-                Text="{Binding OutputJson, Mode=OneWay}" />
+                Node="{Binding Instance.Output, Mode=OneWay}" />
         </Grid>
 
         <!--  The nodes a workflow ran, each opening its own detail. Hidden for a simple task.  -->
@@ -114,9 +114,9 @@
 
             <TextBlock Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}" Text="Executed nodes" />
             <DataGrid
-                joolkit:Sizing.Size="xs"
                 Grid.Row="1"
                 MinHeight="160"
+                joolkit:Sizing.Size="xs"
                 AutoGenerateColumns="False"
                 CanUserReorderColumns="False"
                 IsReadOnly="True"
@@ -141,9 +141,8 @@
                                 <!--  The row only knows its own instance, the command lives on the detail  -->
                                 <Button
                                     joolkit:Sizing.IsSquare="True"
-                                    Command="{Binding DataContext.OpenChildCommand, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"
+                                    Command="{Binding Data.OpenChildCommand, Source={StaticResource ViewModel}}"
                                     CommandParameter="{Binding}"
-                                    Style="{StaticResource GhostButton}"
                                     ToolTip="Detail of the execution">
                                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.ChevronRight}" />
                                 </Button>
@@ -154,27 +153,31 @@
             </DataGrid>
         </Grid>
 
-        <StackPanel
-            Grid.Row="3"
-            HorizontalAlignment="Right"
-            joolkit:Spacing.Gap="4"
-            Orientation="Horizontal">
+        <Grid Grid.Row="3" joolkit:Spacing.Gap="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition Width="auto" />
+            </Grid.ColumnDefinitions>
             <Button
-                Command="{Binding AnswerCommand}"
+                HorizontalAlignment="Left"
+                Command="{Binding OpenExecutionCommand}"
                 Style="{StaticResource PrimaryButton}"
-                ToolTip="Open the page the run waits on you for"
-                Visibility="{Binding CanAnswer, Converter={x:Static jonverters:VisibilityConverter.Default}}">
-                Answer
+                ToolTip="Follow the run on the graph of its workflow, and answer its pages"
+                Visibility="{Binding IsWorkflow, Converter={x:Static jonverters:VisibilityConverter.Default}}">
+                Open execution
             </Button>
             <Button
-                Command="{Binding ResumeCommand}"
-                Style="{StaticResource SecondaryButton}"
-                ToolTip="Carry on from where the run was suspended"
-                Visibility="{Binding CanResume, Converter={x:Static jonverters:VisibilityConverter.Default}}">
-                Resume
+                Grid.Column="1"
+                Command="{Binding RefreshCommand}">
+                Refresh
             </Button>
-            <Button Command="{Binding RefreshCommand}" Style="{StaticResource SecondaryButton}">Refresh</Button>
-            <Button Command="{Binding ValidateCommand}" Style="{StaticResource PrimaryButton}">Close</Button>
-        </StackPanel>
+            <Button
+                Grid.Column="2"
+                Command="{Binding ValidateCommand}"
+                Style="{StaticResource PrimaryButton}">
+                Close
+            </Button>
+        </Grid>
     </Grid>
 </UserControl>

@@ -2,10 +2,8 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Fantoche.App.Common;
-using Fantoche.App.Features.UserInterfaces;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Services;
-using Joufflu.Feedback;
 using Joufflu.Navigation;
 
 namespace Fantoche.App.Features.Workflows.Details.Controls
@@ -18,8 +16,8 @@ namespace Fantoche.App.Features.Workflows.Details.Controls
     /// actually failed.
     /// </para>
     /// <para>
-    /// A suspended run is resumed from here : by this application for the runs it started, by the
-    /// supervisor for the ones it dispatched.
+    /// A run of a workflow is acted upon from its editor (see <see cref="OpenExecutionCommand"/>) :
+    /// resumed, stopped, its pages answered.
     /// </para>
     /// </summary>
     public partial class InstanceDetailViewModel : ObservableObject, IOverlayContent
@@ -39,6 +37,9 @@ namespace Fantoche.App.Features.Workflows.Details.Controls
 
         public string OutputJson => Json.Format(Instance.Output);
 
+        /// <summary>A failed execution holds the error it failed with in place of an output.</summary>
+        public string OutputLabel => Instance.State == EnumTaskState.Failed ? "Error" : "Output";
+
         /// <summary>
         /// The instances run by this one, empty for a task. They are read again on
         /// <see cref="RefreshCommand"/> : a workflow displayed while it runs keeps producing them.
@@ -47,60 +48,36 @@ namespace Fantoche.App.Features.Workflows.Details.Controls
 
         public bool HasChildren => Children.Count > 0;
 
-        /// <summary>
-        /// Whether this application can resume the run : a suspended one it started, or
-        /// one the supervisor dispatched. The rest of the rules are checked as it is resumed.
-        /// </summary>
-        public bool CanResume => Instance.ParentInstanceId == null
-            && Instance.State == EnumTaskState.Suspended
-            && (Instance.ApplicationId == null || Instance.ApplicationId == Environment.MachineName);
+        /// <summary>Whether the execution is a run of a workflow, which opens on its graph.</summary>
+        public bool IsWorkflow => Instance.WorkflowVersion != null;
 
-        /// <summary>
-        /// Whether the execution waits for the user : the task itself, or a run holding one. Who takes
-        /// it is checked as it is answered, another application may have.
-        /// </summary>
-        public bool CanAnswer => Instance.State == EnumTaskState.AwaitingUser
-            || Children.Any(x => x.State == EnumTaskState.AwaitingUser)
-            || _prompts.AskingFor(Instance.Id).Count > 0;
-
+        private readonly Func<TaskInstance, Task> _openRun;
         private readonly IHistoryService _history;
-        private readonly UserPrompts _prompts;
-        private readonly IExecutionService _execution;
-        private readonly IDispatchService _dispatch;
         private readonly IOverlayer _overlayer;
-        private readonly IToastService _toasts;
 
+        /// <param name="openRun">Draw a run of a workflow on the graph of its editor.</param>
         public InstanceDetailViewModel(
             TaskInstance instance,
+            Func<TaskInstance, Task> openRun,
             IHistoryService history,
-            UserPrompts prompts,
-            IExecutionService execution,
-            IDispatchService dispatch,
-            IOverlayer overlayer,
-            IToastService toasts)
+            IOverlayer overlayer)
         {
             Instance = instance;
+            _openRun = openRun;
             _history = history;
-            _prompts = prompts;
-            _execution = execution;
-            _dispatch = dispatch;
             _overlayer = overlayer;
-            _toasts = toasts;
             Options = new OverlayOptions() { Title = $"Execution - {instance.NodeName}" };
 
-            Children.CollectionChanged += (_, _) =>
-            {
-                OnPropertyChanged(nameof(HasChildren));
-                OnPropertyChanged(nameof(CanAnswer));
-            };
+            Children.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasChildren));
         }
 
-        public static async Task ShowAsync(TaskInstance instance)
+        /// <param name="openRun">Draw a run of a workflow on the graph of its editor.</param>
+        public static async Task ShowAsync(TaskInstance instance, Func<TaskInstance, Task> openRun)
         {
             SpineViewModel shell = SpineViewModel.Instance;
             IOverlayer overlayer = shell.Overlayer;
 
-            var viewModel = new InstanceDetailViewModel(instance, shell.History, shell.Prompts, shell.Execution, shell.Dispatch, overlayer, shell.Toasting);
+            var viewModel = new InstanceDetailViewModel(instance, openRun, shell.History, overlayer);
             // Read before it is shown : the detail opens on what the execution amounts to rather
             // than filling in under the reader.
             await viewModel.RefreshAsync();
@@ -131,48 +108,17 @@ namespace Fantoche.App.Features.Workflows.Details.Controls
         /// </summary>
         [RelayCommand]
         private Task OpenChild(TaskInstance? child)
-            => child == null ? Task.CompletedTask : ShowAsync(child);
+            => child == null ? Task.CompletedTask : ShowAsync(child, _openRun);
 
         /// <summary>
-        /// Resume the run where it was suspended, then close the detail : the history follows it
-        /// from there.
+        /// Open the run on the graph of its workflow, where it is followed and its pages answered :
+        /// the detail closes.
         /// </summary>
         [RelayCommand]
-        private async Task Resume()
-        {
-            try
-            {
-                if (Instance.ApplicationId == null)
-                    await _dispatch.ResumeAsync(Instance.Id);
-                else
-                    await _execution.ResumeAsync(Instance.Id);
-            }
-            catch (Exception exception)
-            {
-                _toasts.Error(exception.Message, $"The run of '{Instance.NodeName}' could not be resumed");
-                return;
-            }
-
-            _overlayer.Validate(this);
-        }
-
-        /// <summary>
-        /// Open the page of the task waiting for the user, the first one for a run holding several,
-        /// taking it first when it waits at the supervisor : the detail closes, the run carrying on
-        /// once the page is answered.
-        /// </summary>
-        [RelayCommand]
-        private async Task Answer()
+        private Task OpenExecution()
         {
             _overlayer.Validate(this);
-            try
-            {
-                await _prompts.AnswerAsync(Instance);
-            }
-            catch (Exception exception)
-            {
-                _toasts.Error(exception.Message, $"'{Instance.NodeName}' could not be answered");
-            }
+            return _openRun(Instance);
         }
 
         [RelayCommand]

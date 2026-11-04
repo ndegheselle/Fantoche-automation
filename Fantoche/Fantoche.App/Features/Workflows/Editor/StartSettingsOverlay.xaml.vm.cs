@@ -8,6 +8,12 @@ using Newtonsoft.Json.Linq;
 namespace Fantoche.App.Features.Workflows.Editor
 {
     /// <summary>
+    /// How a run is started : with [Parameters], here or on the workers of the supervisor
+    /// [IsOnRemoteWorker].
+    /// </summary>
+    public record StartSettings(JToken? Parameters, bool IsOnRemoteWorker);
+
+    /// <summary>
     /// Settings a workflow is started with, see <see cref="ParametersForm"/>.
     /// <para>
     /// Only displayed when the workflow actually expects something, see
@@ -15,15 +21,18 @@ namespace Fantoche.App.Features.Workflows.Editor
     /// right away.
     /// </para>
     /// </summary>
-    public partial class StartSettingsViewModel : ObservableObject, IOverlayContent<JToken>
+    public partial class StartSettingsViewModel : ObservableObject, IOverlayContent<StartSettings>
     {
         public AutomationWorkflow Workflow { get; }
 
         public OverlayOptions Options { get; }
 
-        public JToken? Result => Settings.ToToken();
+        public StartSettings? Result => new(Settings.ToToken(), IsOnRemoteWorker);
 
         public ParametersForm Settings { get; }
+
+        /// <summary>Run on the workers of the supervisor rather than in this application.</summary>
+        [ObservableProperty] private bool _isOnRemoteWorker;
 
         private readonly IOverlayer _overlayer;
 
@@ -39,7 +48,7 @@ namespace Fantoche.App.Features.Workflows.Editor
         /// <summary>
         /// Ask for the settings of the next run of [workflow], <see langword="null"/> when cancelled.
         /// </summary>
-        public static Task<JToken?> ShowAsync(AutomationWorkflow workflow)
+        public static Task<StartSettings?> ShowAsync(AutomationWorkflow workflow)
             => SpineViewModel.Instance.Overlayer.ShowAsync(new StartSettingsViewModel(workflow, SpineViewModel.Instance.Overlayer));
 
         [RelayCommand(CanExecute = nameof(CanStart))]

@@ -35,14 +35,14 @@ namespace Fantoche.App.Features.Workflows.Details
             IScopedService scoped,
             IHistoryService history,
             IExecutionService execution,
+            IDispatchService dispatch,
             UserPrompts prompts,
             IOverlayer overlays,
             IToastService toasts)
             : base(node, parent, scoped, history, overlays, toasts)
         {
-            Editor = new WorkflowEditorViewModel(Workflow, SaveGraphCommand, scoped, execution, prompts, history, toasts);
+            Editor = new WorkflowEditorViewModel(Workflow, SaveGraphCommand, parent.OpenRunAsync, scoped, execution, dispatch, prompts, history, toasts);
             Schedules = new SchedulesViewModel(Workflow, overlays, () => SaveElementAsync($"The schedules of the workflow '{Node.Name}' have been saved."));
-            History.OpenInEditor = OpenRunInEditorAsync;
             Editor.History.PropertyChanged += (_, e) =>
             {
                 if (e.PropertyName == nameof(EditorHistory.HasUnsavedChanges))
@@ -51,7 +51,7 @@ namespace Fantoche.App.Features.Workflows.Details
         }
 
         /// <summary>Show [run] on the graph of the editor, which the page switches to.</summary>
-        private Task OpenRunInEditorAsync(TaskInstance run)
+        public Task OpenRunInEditorAsync(TaskInstance run)
         {
             CurrentTab = EnumDetailTab.Editor;
             return Editor.ShowRunAsync(run);

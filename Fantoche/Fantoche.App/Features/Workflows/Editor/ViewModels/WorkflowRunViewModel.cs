@@ -1,6 +1,7 @@
 using Fantoche.App.Features.Workflows.Controls;
 using Fantoche.App.Common;
 using Fantoche.App.Features.UserInterfaces;
+using Fantoche.App.Features.Workflows.Details.Controls;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Data.Scoped;
 using Fantoche.Shared.Services;
@@ -62,7 +63,11 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
         /// </summary>
         private readonly Func<Task<bool>> _saveAsync;
 
+        /// <summary>Draw a run of a workflow on the graph of its editor, what a nested run is opened with.</summary>
+        private readonly Func<TaskInstance, Task> _openRun;
+
         private readonly IExecutionService _execution;
+        private readonly IDispatchService _dispatch;
         private readonly UserPrompts _prompts;
         private readonly IHistoryService _history;
         private readonly IToastService _toasts;
@@ -83,7 +88,9 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
         /// </summary>
         private readonly Dictionary<Guid, Guid> _nodeOfInstance = [];
 
-        /// <summary>The last instance of each node of the run, by node id : what answering a node opens.</summary>
+        /// <summary>
+        /// The last instance of each node of the run, by node id : what answering or seeing a node opens.
+        /// </summary>
         private readonly Dictionary<Guid, TaskInstance> _instanceOfNode = [];
 
         public WorkflowRunViewModel(
@@ -91,7 +98,9 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
             IReadOnlyCollection<NodeViewModel> nodes,
             IReadOnlyCollection<ConnectionViewModel> connections,
             Func<Task<bool>> saveAsync,
+            Func<TaskInstance, Task> openRun,
             IExecutionService execution,
+            IDispatchService dispatch,
             UserPrompts prompts,
             IHistoryService history,
             IToastService toasts)
@@ -100,7 +109,9 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
             _nodes = nodes;
             _connections = connections;
             _saveAsync = saveAsync;
+            _openRun = openRun;
             _execution = execution;
+            _dispatch = dispatch;
             _prompts = prompts;
             _history = history;
             _toasts = toasts;
@@ -110,20 +121,21 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
         /// Start the workflow, the graph turning read only until the execution is over. Returns as
         /// soon as the execution started, its end being reported by the history service.
         /// <para>
-        /// A workflow expecting an input asks for it first, the run being cancelled when the user
-        /// gives up on the settings. The graph is then saved : what runs is the persisted workflow,
-        /// so what is displayed has to be what was persisted.
+        /// A workflow expecting an input asks for it first, and where it runs, the run being
+        /// cancelled when the user gives up on the settings. The graph is then saved : what runs is
+        /// the persisted workflow, so what is displayed has to be what was persisted.
         /// </para>
         /// </summary>
         [RelayCommand(CanExecute = nameof(CanStart))]
         private async Task Start()
         {
-            JToken? settings = null;
+            StartSettings settings = new(Parameters: null, IsOnRemoteWorker: false);
             if (ParametersForm.IsExpectingParameters(_workflow))
             {
-                settings = await StartSettingsViewModel.ShowAsync(_workflow);
-                if (settings == null)
+                StartSettings? asked = await StartSettingsViewModel.ShowAsync(_workflow);
+                if (asked == null)
                     return;
+                settings = asked;
             }
 
             if (!await _saveAsync())
@@ -137,7 +149,9 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
             try
             {
                 // Started by id : what runs is the workflow just saved, read back by the executor.
-                DisplayedRun = await _execution.StartAsync(_workflow.Id, settings);
+                DisplayedRun = settings.IsOnRemoteWorker
+                    ? await _dispatch.StartAsync(_workflow.Id, _workflow.Metadata.Name, settings.Parameters)
+                    : await _execution.StartAsync(_workflow.Id, settings.Parameters);
             }
             catch (Exception exception)
             {
@@ -227,6 +241,31 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
                 Unfollow();
                 _toasts.Error(exception.Message, $"The workflow '{_workflow.Metadata.Name}' could not be resumed");
             }
+        }
+
+        /// <summary>
+        /// Show what one node of the displayed run ran with and produced, or the error it failed
+        /// with : the nodes a nested workflow ran are walked down from there.
+        /// </summary>
+        [RelayCommand]
+        private async Task SeeExecution(NodeViewModel? node)
+        {
+            if (node == null || !_instanceOfNode.TryGetValue(node.Model.Id, out TaskInstance? instance))
+                return;
+
+            // The instance kept is the last one reported, a node still running has moved on since.
+            TaskInstance? current;
+            try
+            {
+                current = await _history.GetAsync(instance.Id);
+            }
+            catch (Exception exception)
+            {
+                _toasts.Error(exception.Message, $"The execution of '{node.Name}' could not be read");
+                return;
+            }
+
+            await InstanceDetailViewModel.ShowAsync(current ?? instance, _openRun);
         }
 
         /// <summary>
@@ -394,10 +433,7 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
             // The instance is only timed once it is over, what it holds meanwhile being the last
             // change of state rather than an end.
             bool finished = (instance.State & EnumTaskState.Finished) != 0;
-            node.Follow(
-                instance.State,
-                finished && instance.FinishedAt is DateTime end ? end - instance.CreatedAt : null,
-                instance.State == EnumTaskState.Failed ? instance.Output?.ToString() ?? "The execution failed." : null);
+            node.Follow(instance.State, finished && instance.FinishedAt is DateTime end ? end - instance.CreatedAt : null);
 
             _nodeOfInstance[instance.Id] = nodeId;
             _instanceOfNode[nodeId] = instance;

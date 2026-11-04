@@ -47,11 +47,11 @@ public class LocalHistoryService : IHistoryService
         // of the tree : a common table expression only lives for the statement it is written on.
         using var results = await connection.QueryMultipleAsync($"""
             {BranchQuery}
-            SELECT COUNT(*) FROM TaskInstances WHERE TaskId IN (SELECT Id FROM Branch);
+            SELECT COUNT(*) FROM TaskInstances WHERE TaskId IN (SELECT Id FROM Branch) AND ParentInstanceId IS NULL;
 
             {BranchQuery}
             SELECT {TaskInstanceModel.Columns} FROM TaskInstances
-            WHERE TaskId IN (SELECT Id FROM Branch)
+            WHERE TaskId IN (SELECT Id FROM Branch) AND ParentInstanceId IS NULL
             ORDER BY CreatedAt DESC
             LIMIT @take OFFSET @skip;
             """,
@@ -284,5 +284,56 @@ public class LocalHistoryService : IHistoryService
             InstanceAdded?.Invoke(instance);
         else
             InstanceUpdated?.Invoke(instance);
+
+        await CarryAwaitingUserUpAsync(instance.ParentInstanceId);
+    }
+
+    /// <summary>
+    /// A run waits for the user while one of its nodes does : [runId] and the runs holding it are
+    /// turned <see cref="EnumTaskState.AwaitingUser"/>, then back to progressing once nothing under
+    /// them waits anymore. Only a run still going is touched, its end is what its executor reports.
+    /// </summary>
+    private async Task CarryAwaitingUserUpAsync(Guid? runId)
+    {
+        while (runId is Guid id)
+        {
+            int changed;
+            await _writeLock.WaitAsync();
+            try
+            {
+                using var connection = _databaseFactory.Create();
+                // Read and written in one statement : two nodes changing at once can't leave the run
+                // on the state the first one saw.
+                changed = await connection.ExecuteAsync("""
+                    UPDATE TaskInstances
+                    SET State = CASE WHEN State = @awaitingUser THEN @progressing ELSE @awaitingUser END
+                    WHERE Id = @id
+                        AND State IN (@progressing, @awaitingUser)
+                        AND (State = @awaitingUser) <> EXISTS (
+                            SELECT 1 FROM TaskInstances WHERE ParentInstanceId = @id AND State = @awaitingUser);
+                    """,
+                    new
+                    {
+                        id,
+                        progressing = (int)EnumTaskState.Progressing,
+                        awaitingUser = (int)EnumTaskState.AwaitingUser,
+                    });
+            }
+            finally
+            {
+                _writeLock.Release();
+            }
+
+            // Already showing it : so are the runs above.
+            if (changed == 0)
+                return;
+
+            TaskInstance? run = await GetAsync(id);
+            if (run == null)
+                return;
+
+            InstanceUpdated?.Invoke(run);
+            runId = run.ParentInstanceId;
+        }
     }
 }

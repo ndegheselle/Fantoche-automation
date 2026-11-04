@@ -22,12 +22,20 @@
 
         <controls:ParametersFormView DataContext="{Binding Settings}" />
 
+        <CheckBox
+            Grid.Row="1"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Center"
+            Content="On remote worker"
+            IsChecked="{Binding IsOnRemoteWorker}"
+            ToolTip="Run it on the workers of the supervisor rather than in this application" />
+
         <StackPanel
             Grid.Row="1"
             HorizontalAlignment="Right"
             joolkit:Spacing.Gap="4"
             Orientation="Horizontal">
-            <Button Command="{Binding CancelCommand}" Style="{StaticResource SecondaryButton}">Cancel</Button>
+            <Button Command="{Binding CancelCommand}">Cancel</Button>
             <Button Command="{Binding StartCommand}" Style="{StaticResource PrimaryButton}">
                 <StackPanel Orientation="Horizontal">
                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.CirclePlay}" />

@@ -1,4 +1,6 @@
+using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Remote;
+using Newtonsoft.Json.Linq;
 
 namespace Fantoche.Shared.Services;
 
@@ -9,6 +11,13 @@ namespace Fantoche.Shared.Services;
 public interface IDispatchService
 {
     public Task<DispatchStatus> GetStatusAsync();
+
+    /// <summary>
+    /// Start [taskId], named [name] in the history, with [parameters] on whichever worker has room.
+    /// Nobody waits on it : it is followed through the history, where one that can't be loaded is
+    /// stored as failed.
+    /// </summary>
+    public Task<TaskInstance> StartAsync(Guid taskId, string name, JToken? parameters);
 
     /// <summary>
     /// Resume the suspended run [runId] the supervisor dispatched, on whichever worker has

@@ -88,9 +88,7 @@
                 SelectedItem="{Binding SelectedClass, Mode=TwoWay}"
                 SelectionMode="Single">
                 <DataGrid.Columns>
-                    <DataGridTextColumn
-                        Binding="{Binding ClassFullName}"
-                        Header="Name" />
+                    <DataGridTextColumn Binding="{Binding ClassFullName}" Header="Name" />
                     <DataGridTextColumn Binding="{Binding Dll}" Header="Dll" />
                 </DataGrid.Columns>
             </DataGrid>
@@ -100,7 +98,7 @@
                 HorizontalAlignment="Right"
                 joolkit:Spacing.Gap="4"
                 Orientation="Horizontal">
-                <Button Command="{Binding BackCommand}" Style="{StaticResource SecondaryButton}">
+                <Button Command="{Binding BackCommand}">
                     <StackPanel Orientation="Horizontal">
                         <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.ArrowLeft}" />
                         <TextBlock Margin="4,0,0,0">Back</TextBlock>

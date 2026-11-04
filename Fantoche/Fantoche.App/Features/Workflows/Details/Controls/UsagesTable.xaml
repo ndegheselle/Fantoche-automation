@@ -2,6 +2,7 @@
     x:Class="Fantoche.App.Features.Workflows.Details.Controls.UsagesTable"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:common="clr-namespace:Fantoche.App.Common"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
     xmlns:jonverters="clr-namespace:Joufflu.Converters;assembly=Joufflu"
@@ -11,6 +12,10 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     d:DataContext="{d:DesignInstance Type=local:UsagesViewModel}"
     mc:Ignorable="d">
+    <UserControl.Resources>
+        <common:BindingProxy x:Key="ViewModel" Data="{Binding}" />
+    </UserControl.Resources>
+
     <Grid joolkit:Spacing.Gap="4">
         <Grid.RowDefinitions>
             <RowDefinition />
@@ -39,7 +44,7 @@
                             <!--  The row only knows its own usage, the command lives on the usages  -->
                             <Button
                                 joolkit:Sizing.IsSquare="True"
-                                Command="{Binding DataContext.OpenWorkflowCommand, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"
+                                Command="{Binding Data.OpenWorkflowCommand, Source={StaticResource ViewModel}}"
                                 CommandParameter="{Binding}"
                                 Style="{StaticResource GhostButton}"
                                 ToolTip="Open the workflow using it">

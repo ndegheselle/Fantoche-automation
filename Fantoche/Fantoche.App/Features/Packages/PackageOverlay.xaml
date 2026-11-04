@@ -2,6 +2,7 @@
     x:Class="Fantoche.App.Features.Packages.PackageOverlay"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:common="clr-namespace:Fantoche.App.Common"
     xmlns:controls="clr-namespace:Fantoche.App.Features.Packages.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
@@ -13,6 +14,10 @@
     MaxHeight="800"
     d:DataContext="{d:DesignInstance Type=local:PackageViewModel}"
     mc:Ignorable="d">
+    <UserControl.Resources>
+        <common:BindingProxy x:Key="ViewModel" Data="{Binding}" />
+    </UserControl.Resources>
+
     <Grid joolkit:Spacing.Gap="4">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
@@ -42,7 +47,7 @@
                                 HorizontalAlignment="Right"
                                 joolkit:Sizing.IsSquare="True"
                                 joolkit:Sizing.Size="sm"
-                                Command="{Binding ViewModel.RemoveVersionCommand, RelativeSource={RelativeSource AncestorType={x:Type local:PackageOverlay}}}"
+                                Command="{Binding Data.RemoveVersionCommand, Source={StaticResource ViewModel}}"
                                 CommandParameter="{Binding}"
                                 Style="{StaticResource SoftDangerButton}">
                                 <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Trash}" />

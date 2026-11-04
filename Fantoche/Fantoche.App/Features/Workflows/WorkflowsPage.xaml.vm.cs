@@ -1,8 +1,10 @@
 ﻿using Fantoche.App.Features.Workflows.Details;
+using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Data.Scoped;
 using Fantoche.Shared.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Joufflu.Feedback;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Fantoche.App.Features.Workflows
@@ -33,6 +35,7 @@ namespace Fantoche.App.Features.Workflows
         private readonly IServiceProvider _services;
 
         private readonly IScopedService _scoped;
+        private readonly IToastService _toasts;
 
         /// <summary>
         /// Element another page asked to open (see <see cref="OpenWhenShown"/>), opened by the next
@@ -40,10 +43,11 @@ namespace Fantoche.App.Features.Workflows
         /// </summary>
         private Guid? _toOpen;
 
-        public WorkflowsViewModel(IServiceProvider services, IScopedService scoped)
+        public WorkflowsViewModel(IServiceProvider services, IScopedService scoped, IToastService toasts)
         {
             _services = services;
             _scoped = scoped;
+            _toasts = toasts;
             Root = new ScopedNode(Scope.Root, null);
         }
 
@@ -53,11 +57,28 @@ namespace Fantoche.App.Features.Workflows
 
             ScopedNode? requested = _toOpen is Guid id ? Root.Find(id) : null;
             _toOpen = null;
-            Open(requested ?? Root.Children.FirstOrDefault());
+            ScopedNode? firstShown = Root.SortedChildren.Cast<ScopedNode>().FirstOrDefault();
+            Open(requested ?? firstShown);
         }
 
         /// <summary>Open the element [elementId] once the page is next shown.</summary>
         public void OpenWhenShown(Guid elementId) => _toOpen = elementId;
+
+        /// <summary>Show [run] on the editor of its workflow, opened first when another element is.</summary>
+        public async Task OpenRunAsync(TaskInstance run)
+        {
+            ScopedNode? node = Root.Find(run.TaskId);
+            if (node == null)
+            {
+                // The tree only holds the matches of the search.
+                _toasts.Warning("Clear the search to open the workflow of this run.", "The workflow isn't in the tree");
+                return;
+            }
+
+            Open(node);
+            if (Details is WorkflowDetailsViewModel workflow)
+                await workflow.OpenRunInEditorAsync(run);
+        }
 
         /// <summary>
         /// Rebuild the tree with the tasks and workflows matching <see cref="Search"/> and the scopes

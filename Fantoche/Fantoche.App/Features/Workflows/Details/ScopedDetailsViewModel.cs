@@ -69,7 +69,7 @@ namespace Fantoche.App.Features.Workflows.Details
             _overlays = overlays;
             _toasts = toasts;
             OpenCommand = parent.OpenCommand;
-            History = new HistoryViewModel(node, history);
+            History = new HistoryViewModel(node, history, parent.OpenRunAsync);
             Usages = new UsagesViewModel(node, parent, scoped);
 
             // The views edit the metadata itself, so its changes are what tells the element needs

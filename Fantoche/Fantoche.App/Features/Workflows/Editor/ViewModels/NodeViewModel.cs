@@ -62,7 +62,7 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
         /// hasn't run : the state belongs to a run, not to the graph, and a new run clears it.
         /// </summary>
         [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(HasState), nameof(StateText), nameof(IsAwaitingUser))]
+        [NotifyPropertyChangedFor(nameof(HasState), nameof(HasFailure), nameof(StateText), nameof(IsAwaitingUser))]
         private EnumTaskState? _state;
 
         /// <summary>
@@ -72,17 +72,9 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
         [NotifyPropertyChangedFor(nameof(StateText))]
         private TimeSpan? _duration;
 
-        /// <summary>
-        /// The whole message the last instance failed with, read in a modal rather than in a tooltip
-        /// that would cut it. Null while it hasn't failed.
-        /// </summary>
-        [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(HasFailure), nameof(StateText))]
-        private string? _failure;
-
         public bool HasState => State != null;
 
-        public bool HasFailure => Failure != null;
+        public bool HasFailure => State == EnumTaskState.Failed;
 
         /// <summary>Whether the last instance waits for the user to answer its page.</summary>
         public bool IsAwaitingUser => State == EnumTaskState.AwaitingUser;
@@ -102,7 +94,7 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
                     return "Waiting for your answer : double click to open the page";
 
                 string text = Duration is TimeSpan duration ? $"{state} in {Durations.Format(duration)}" : state.ToString();
-                return HasFailure ? $"{text} : double click to read the error" : text;
+                return HasFailure ? $"{text} : double click to see the error" : $"{text} : double click to see the execution";
             }
         }
 
@@ -110,11 +102,10 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
         /// Display where [state] left the node in the run being followed. Called without anything it
         /// clears the run : what the node shows belongs to one run.
         /// </summary>
-        public void Follow(EnumTaskState? state = null, TimeSpan? duration = null, string? failure = null)
+        public void Follow(EnumTaskState? state = null, TimeSpan? duration = null)
         {
             State = state;
             Duration = duration;
-            Failure = failure;
         }
 
         /// <summary>

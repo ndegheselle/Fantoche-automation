@@ -72,7 +72,7 @@
             HorizontalAlignment="Right"
             joolkit:Spacing.Gap="4"
             Orientation="Horizontal">
-            <Button Command="{Binding CancelCommand}" Style="{StaticResource SecondaryButton}">Cancel</Button>
+            <Button Command="{Binding CancelCommand}">Cancel</Button>
             <Button Command="{Binding ValidateCommand}" Style="{StaticResource PrimaryButton}">
                 <StackPanel Orientation="Horizontal">
                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Save}" />

@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Windows.Data;
 using Fantoche.Shared.Data.Scoped;
 using CommunityToolkit.Mvvm.ComponentModel;
 
@@ -14,6 +15,12 @@ namespace Fantoche.App.Features.Workflows
         public ScopedElement Element { get; }
         public ScopedNode? Parent { get; }
         public ObservableCollection<ScopedNode> Children { get; } = [];
+
+        /// <summary>
+        /// <see cref="Children"/> as the tree shows them : scopes, then workflows, then tasks, each by
+        /// name. Live, so a renamed element moves to its place.
+        /// </summary>
+        public ListCollectionView SortedChildren { get; }
 
         public ScopedMetadata Metadata => Element.Metadata;
         public string Name => Element.Metadata.Name;
@@ -45,6 +52,11 @@ namespace Fantoche.App.Features.Workflows
         {
             Element = element;
             Parent = parent;
+
+            SortedChildren = new ListCollectionView(Children) { IsLiveSorting = true };
+            SortedChildren.SortDescriptions.Add(new SortDescription(nameof(Type), ListSortDirection.Ascending));
+            SortedChildren.SortDescriptions.Add(new SortDescription(nameof(Name), ListSortDirection.Ascending));
+
             // Name and Type are read from the metadata, which the details pages edit directly.
             Element.Metadata.PropertyChanged += OnMetadataChanged;
         }

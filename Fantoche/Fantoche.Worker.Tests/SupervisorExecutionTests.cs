@@ -291,6 +291,14 @@ internal sealed class SupervisorExecutionTests
             await Task.Delay(10, timeout.Token);
     }
 
+    /// <summary>[instanceId] reached [state] in the history.</summary>
+    private async Task WaitForStateAsync(Guid instanceId, EnumTaskState state)
+    {
+        using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(10));
+        while ((await _supervisor.History.GetAsync(instanceId))?.State != state)
+            await Task.Delay(10, timeout.Token);
+    }
+
     /// <summary>A new version of the line workflow [workflowId], whose end hands the message over as its value.</summary>
     private async Task EditEndAsync(Guid workflowId)
     {
@@ -317,7 +325,8 @@ internal sealed class SupervisorExecutionTests
         while (true)
         {
             TaskInstance? run = await _supervisor.History.GetAsync(runId);
-            if (run != null && run.State != EnumTaskState.Progressing)
+            // A run waits for the user along the way, which isn't its end.
+            if (run != null && (run.State & EnumTaskState.Finished) != 0)
                 return run;
             await Task.Delay(20, timeout.Token);
         }
@@ -724,6 +733,51 @@ internal sealed class SupervisorExecutionTests
             Assert.That(ended.Output?["Items"]?.ToObject<string[]>(), Is.EqualTo(new[] { "b", "a" }));
             Assert.That(_user.Asked.Single().RunId, Is.EqualTo(started.Id));
         });
+    }
+
+    [Test]
+    public async Task StartedOnTheSupervisor_RunsOnItsWorkers()
+    {
+        await ConnectWorkerAsync();
+        AutomationWorkflow workflow = await StoreLineAsync(await StoreTestAsync());
+
+        TaskInstance started = await _supervisor.Dispatch.StartAsync(workflow.Id, "Line", JToken.FromObject(new { Value = 1 }));
+        await WaitForStateAsync(started.Id, EnumTaskState.Completed);
+
+        Assert.That((await _supervisor.History.GetAsync(started.Id))?.Output?["Value"]?.Value<int>(), Is.EqualTo(11));
+    }
+
+    [Test]
+    public async Task RunOfTheApplication_WaitsForTheUserWhileItsPageAsks()
+    {
+        TaskCompletionSource answered = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        _answer = async (_, cancellation) =>
+        {
+            await answered.Task.WaitAsync(cancellation);
+            return Reordered;
+        };
+        ExecutionService execution = ApplicationExecution();
+        var (workflow, _) = await StoreAskAsync();
+
+        TaskInstance started = await execution.StartAsync(workflow.Id, JToken.FromObject(new { Items = new[] { "a", "b" } }));
+        await WaitForStateAsync(started.Id, EnumTaskState.AwaitingUser);
+        answered.SetResult();
+        await execution.WaitAsync(started.Id);
+
+        Assert.That((await _supervisor.History.GetAsync(started.Id))?.State, Is.EqualTo(EnumTaskState.Completed));
+    }
+
+    [Test]
+    public async Task DispatchedRun_WaitsForTheUserWhileItsPageAsks()
+    {
+        await ConnectWorkerAsync();
+        await ConnectApplicationAsync();
+        _ = DispatchAskAsync();
+
+        Guid waiting = await WaitForTaskToTakeAsync();
+        TaskInstance? page = await _supervisor.History.GetAsync(waiting);
+
+        await WaitForStateAsync(page!.ParentInstanceId!.Value, EnumTaskState.AwaitingUser);
     }
 
     [Test]

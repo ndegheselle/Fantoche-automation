@@ -1,7 +1,9 @@
+using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Remote;
 using Fantoche.Shared.Services;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json.Linq;
 
 namespace Fantoche.Services.Remote;
 
@@ -53,6 +55,12 @@ public sealed class RemoteDispatchService : IDispatchService, IAsyncDisposable
     }
 
     public Task<DispatchStatus> GetStatusAsync() => _http.GetAsync<DispatchStatus>("dispatch/status");
+
+    public Task<TaskInstance> StartAsync(Guid taskId, string name, JToken? parameters)
+    {
+        StartRequest request = new() { Name = name, Parameters = parameters };
+        return _http.SendAsync<StartRequest, TaskInstance>(HttpMethod.Post, $"dispatch/tasks/{taskId}/start", request);
+    }
 
     public Task ResumeAsync(Guid runId) => _http.PostAsync($"dispatch/runs/{runId}/resume");
 }

@@ -92,8 +92,10 @@ namespace Fantoche.App.Features.Workflows.Editor
         public WorkflowEditorViewModel(
             AutomationWorkflow workflow,
             IAsyncRelayCommand saveCommand,
+            Func<TaskInstance, Task> openRun,
             IScopedService scoped,
             IExecutionService execution,
+            IDispatchService dispatch,
             UserPrompts prompts,
             IHistoryService history,
             IToastService toasts)
@@ -102,7 +104,7 @@ namespace Fantoche.App.Features.Workflows.Editor
             SaveCommand = saveCommand;
             _scoped = scoped;
             _toasts = toasts;
-            Run = new WorkflowRunViewModel(workflow, Nodes, Connections, SaveAsync, execution, prompts, history, toasts);
+            Run = new WorkflowRunViewModel(workflow, Nodes, Connections, SaveAsync, openRun, execution, dispatch, prompts, history, toasts);
 
             _shownGraph = workflow.Graph;
             _loading = WrapAsync(workflow.Graph);
@@ -433,8 +435,9 @@ namespace Fantoche.App.Features.Workflows.Editor
         private bool CanOpenSettings(NodeViewModel? node) => node != null || SelectedNodes.Count == 1;
 
         /// <summary>
-        /// What a double click on a node does : read the error of a node that failed, answer the page
-        /// of one waiting for the user, open the settings otherwise.
+        /// What a double click on a node does : answer the page of one waiting for the user, see the
+        /// execution of one the displayed run reached (its error when it failed), open the settings
+        /// otherwise.
         /// </summary>
         [RelayCommand]
         private async Task OpenNode(NodeViewModel? node)
@@ -442,24 +445,20 @@ namespace Fantoche.App.Features.Workflows.Editor
             if (node == null)
                 return;
 
-            if (node.HasFailure)
-            {
-                await NodeErrorViewModel.ShowAsync(node.Name, node.Failure!);
-                return;
-            }
-
             if (node.IsAwaitingUser)
             {
                 await Run.AnswerNodeCommand.ExecuteAsync(node);
                 return;
             }
 
+            if (node.HasState)
+            {
+                await Run.SeeExecutionCommand.ExecuteAsync(node);
+                return;
+            }
+
             await OpenSettings(node);
         }
-
-        [RelayCommand]
-        private Task ShowError(NodeViewModel? node)
-            => node?.Failure == null ? Task.CompletedTask : NodeErrorViewModel.ShowAsync(node.Name, node.Failure);
 
         /// <summary>
         /// Whether [node], or the selection it falls back on, can be acted upon : one node has to be

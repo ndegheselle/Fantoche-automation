@@ -190,6 +190,7 @@
                     <DataTrigger Binding="{Binding State}" Value="Progressing">
                         <Setter Property="Text" Value="{x:Static jonts:LucideFontIcons.Loader}" />
                         <Setter Property="Foreground" Value="{DynamicResource {x:Static joufflu:Brushes.InfoBrush}}" />
+                        <Setter Property="joolkit:Animate.Spin" Value="True" />
                     </DataTrigger>
                     <DataTrigger Binding="{Binding State}" Value="Completed">
                         <Setter Property="Text" Value="{x:Static jonts:LucideFontIcons.CheckCircle}" />
@@ -208,9 +209,9 @@
                         <Setter Property="Foreground" Value="{DynamicResource {x:Static joufflu:Brushes.WarningBrush}}" />
                     </DataTrigger>
                     <DataTrigger Binding="{Binding State}" Value="AwaitingUser">
-                        <Setter Property="FontSize" Value="{DynamicResource {x:Static joufflu:Dimensions.FontSizeXl}}" />
                         <Setter Property="Text" Value="{x:Static jonts:LucideFontIcons.CircleUser}" />
                         <Setter Property="Foreground" Value="{DynamicResource {x:Static joufflu:Brushes.WarningBrush}}" />
+                        <Setter Property="joolkit:Animate.Bounce" Value="True" />
                     </DataTrigger>
                 </Style.Triggers>
             </Style>
@@ -453,54 +454,6 @@
                                 </jonts:FontIcon>
                             </Grid>
                         </nodify:Node>
-                        <DataTemplate.Triggers>
-                            <!--
-                                A node that is running is the one the reader is waiting on : its icon
-                                turns for as long as it does, so the graph tells where the run is at
-                                a glance rather than by reading every outline.
-                            -->
-                            <DataTrigger Binding="{Binding State}" Value="Progressing">
-                                <DataTrigger.EnterActions>
-                                    <BeginStoryboard x:Name="SpinStateIcon">
-                                        <Storyboard>
-                                            <DoubleAnimation
-                                                RepeatBehavior="Forever"
-                                                Storyboard.TargetName="StateIconRotation"
-                                                Storyboard.TargetProperty="Angle"
-                                                From="0"
-                                                To="360"
-                                                Duration="0:0:1.2" />
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </DataTrigger.EnterActions>
-                                <DataTrigger.ExitActions>
-                                    <StopStoryboard BeginStoryboardName="SpinStateIcon" />
-                                </DataTrigger.ExitActions>
-                            </DataTrigger>
-                            <!--
-                                A node waiting for the user is the one holding the run up : its icon
-                                pulses so it is seen from afar, whatever the outline color it shares.
-                            -->
-                            <DataTrigger Binding="{Binding State}" Value="AwaitingUser">
-                                <DataTrigger.EnterActions>
-                                    <BeginStoryboard x:Name="PulseStateIcon">
-                                        <Storyboard>
-                                            <DoubleAnimation
-                                                AutoReverse="True"
-                                                RepeatBehavior="Forever"
-                                                Storyboard.TargetName="StateIcon"
-                                                Storyboard.TargetProperty="Opacity"
-                                                From="1"
-                                                To="0.3"
-                                                Duration="0:0:0.7" />
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </DataTrigger.EnterActions>
-                                <DataTrigger.ExitActions>
-                                    <StopStoryboard BeginStoryboardName="PulseStateIcon" />
-                                </DataTrigger.ExitActions>
-                            </DataTrigger>
-                        </DataTemplate.Triggers>
                     </DataTemplate>
                 </nodify:NodifyEditor.Resources>
 
@@ -529,12 +482,12 @@
                             <Setter.Value>
                                 <ContextMenu DataContext="{Binding PlacementTarget, RelativeSource={RelativeSource Self}}">
                                     <MenuItem
-                                        Command="{Binding Tag.ShowErrorCommand}"
+                                        Command="{Binding Tag.Run.SeeExecutionCommand}"
                                         CommandParameter="{Binding DataContext}"
-                                        Header="Show error"
-                                        Visibility="{Binding DataContext.HasFailure, Converter={x:Static jonverters:VisibilityConverter.Default}}">
+                                        Header="See execution"
+                                        Visibility="{Binding DataContext.HasState, Converter={x:Static jonverters:VisibilityConverter.Default}}">
                                         <MenuItem.Icon>
-                                            <jonts:FontIcon Foreground="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}" Text="{x:Static jonts:LucideFontIcons.AlertCircle}" />
+                                            <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.ScrollText}" />
                                         </MenuItem.Icon>
                                     </MenuItem>
                                     <MenuItem

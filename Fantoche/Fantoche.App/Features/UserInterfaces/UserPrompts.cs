@@ -84,10 +84,11 @@ namespace Fantoche.App.Features.UserInterfaces
                 return;
             }
 
-            // Marked taken before it is : the task may ask before the supervisor answers.
+            // Marked taken before it is : the task may ask before the supervisor answers. The nested
+            // runs holding it wait as well, only the task itself is taken.
             IReadOnlyList<TaskInstance> descendants = await _history.GetDescendantsAsync(instance.Id);
             IEnumerable<TaskInstance> waiting = descendants.Prepend(instance)
-                .Where(x => x.State == EnumTaskState.AwaitingUser && x.ParentInstanceId != null);
+                .Where(x => x.State == EnumTaskState.AwaitingUser && x.ParentInstanceId != null && x.WorkflowVersion == null);
             foreach (TaskInstance node in waiting)
             {
                 lock (_lock)

@@ -6,6 +6,10 @@ namespace Fantoche.Shared.Services;
 
 public interface IHistoryService
 {
+    /// <summary>
+    /// The runs of [elementId], or of every task and workflow under it for a scope, most recent
+    /// first. Only the ones started on their own : a node of a workflow is read from its run.
+    /// </summary>
     public Task<Paginated<TaskInstance>> GetByScopedAsync(Guid elementId, PaginationOptions options = default);
 
     /// <summary>

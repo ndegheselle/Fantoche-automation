@@ -2,6 +2,7 @@
 using Fantoche.App.Common;
 using Fantoche.Shared.Base;
 using Fantoche.Shared.Data.Execution;
+using Fantoche.Shared.Data.Scoped;
 using Fantoche.Shared.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -9,8 +10,9 @@ using CommunityToolkit.Mvvm.Input;
 namespace Fantoche.App.Features.Workflows.Details.Controls
 {
     /// <summary>
-    /// Execution history of a scoped element : its own instances for a task or a workflow, the ones
-    /// of every task and workflow it contains for a scope. While it is displayed it follows the
+    /// Execution history of a scoped element : its own runs for a task or a workflow, the ones of
+    /// every task and workflow it contains for a scope. Only the runs started on their own, a node
+    /// of a workflow being read from the detail of its run. While it is displayed it follows the
     /// executions live, the history service reporting every instance as it is created and changes.
     /// </summary>
     public partial class HistoryViewModel : ObservableObject
@@ -23,15 +25,16 @@ namespace Fantoche.App.Features.Workflows.Details.Controls
         [ObservableProperty] private long _total;
 
         /// <summary>
-        /// Draw a run on the graph of the editor, only for the history of a workflow : set by its
-        /// page, which holds the editor.
+        /// Whether the rows open their run in the editor : only in the history of a workflow, every
+        /// row being one of its runs. The detail of a run opens it from any history.
         /// </summary>
-        public Func<TaskInstance, Task>? OpenInEditor { get; set; }
-
-        public bool CanOpenInEditor => OpenInEditor != null;
+        public bool CanOpenInEditor => _node.Type == EnumScopedType.Workflow;
 
         private readonly ScopedNode _node;
         private readonly IHistoryService _history;
+
+        /// <summary>Draw a run of a workflow on the graph of its editor.</summary>
+        private readonly Func<TaskInstance, Task> _openRun;
 
         /// <summary>
         /// Whether the realtime events are currently listened to, so a displayed page isn't
@@ -39,10 +42,11 @@ namespace Fantoche.App.Features.Workflows.Details.Controls
         /// </summary>
         private bool _isSubscribed;
 
-        public HistoryViewModel(ScopedNode node, IHistoryService history)
+        public HistoryViewModel(ScopedNode node, IHistoryService history, Func<TaskInstance, Task> openRun)
         {
             _node = node;
             _history = history;
+            _openRun = openRun;
             Paging = new PagingViewModel(RefreshAsync);
         }
 
@@ -78,12 +82,12 @@ namespace Fantoche.App.Features.Workflows.Details.Controls
         /// </summary>
         [RelayCommand]
         private Task OpenDetail(TaskInstance? instance)
-            => instance == null ? Task.CompletedTask : InstanceDetailViewModel.ShowAsync(instance);
+            => instance == null ? Task.CompletedTask : InstanceDetailViewModel.ShowAsync(instance, _openRun);
 
         /// <summary>See how [instance] went on the graph of the editor, as it goes on if it still runs.</summary>
         [RelayCommand]
         private Task OpenRunInEditor(TaskInstance? instance)
-            => instance == null || OpenInEditor == null ? Task.CompletedTask : OpenInEditor(instance);
+            => instance == null ? Task.CompletedTask : _openRun(instance);
 
         public async Task RefreshAsync()
         {
@@ -103,6 +107,10 @@ namespace Fantoche.App.Features.Workflows.Details.Controls
                 // Only the first page shows the executions as they start, the following ones holding
                 // older instances that a new one doesn't belong to.
                 if (Paging.PageNumber != 1)
+                    return;
+
+                // A node of a workflow is read from its run, only the runs started on their own are listed.
+                if (instance.ParentInstanceId != null)
                     return;
 
                 // A scope covers every task and workflow under it, which only the service knows :

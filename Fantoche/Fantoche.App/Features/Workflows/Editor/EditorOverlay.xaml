@@ -83,7 +83,7 @@
                     <Run Text="of the graph, read only. The workflow is at version" />
                     <Run Text="{Binding Workflow.Version, Mode=OneWay}" /><Run Text="." />
                 </TextBlock>
-                <Button Command="{Binding ShowCurrentCommand}" Style="{StaticResource SecondaryButton}">Show current</Button>
+                <Button Command="{Binding ShowCurrentCommand}">Show current</Button>
             </StackPanel>
         </Border>
 
