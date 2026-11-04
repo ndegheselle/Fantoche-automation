@@ -151,7 +151,8 @@
         <GridSplitter
             Grid.Column="1"
             Width="4"
-            Margin="2,0" />
+            Margin="2,0"
+            HorizontalAlignment="Center" />
 
         <Grid Grid.Column="2" joolkit:Spacing.Gap="2">
             <Grid.RowDefinitions>

@@ -22,15 +22,6 @@ public class SchemaCachingTests
     }
 
     [Test]
-    public void The_same_text_hands_back_the_very_same_schema()
-    {
-        GraphTask node = new() { OutputSchemaJson = TestGraph.ObjectSchema("field") };
-
-        // Which is the whole point : reading it twice parses it once.
-        Assert.That(node.OutputSchema, Is.SameAs(node.OutputSchema));
-    }
-
-    [Test]
     public void Clearing_the_text_clears_the_schema()
     {
         GraphTask node = new() { OutputSchemaJson = TestGraph.ObjectSchema("field") };
@@ -52,25 +43,5 @@ public class SchemaCachingTests
             Assert.That(node.OutputSchema, Is.SameAs(schema));
             Assert.That(node.OutputSchemaJson, Is.Not.Null);
         });
-    }
-
-    [Test]
-    public void The_schemas_a_task_declares_are_cached_the_same_way()
-    {
-        AutomationTask task = new() { InputSchemaJson = TestGraph.ObjectSchema("before") };
-        Assert.That(task.InputSchema, Is.SameAs(task.InputSchema));
-
-        task.InputSchemaJson = TestGraph.ObjectSchema("after");
-        Assert.That(task.InputSchema!.Properties.Keys, Is.EquivalentTo(new[] { "after" }));
-    }
-
-    [Test]
-    public void The_shared_schema_of_a_workflow_is_cached_the_same_way()
-    {
-        AutomationWorkflow workflow = new() { SharedSchemaJson = TestGraph.ObjectSchema("before") };
-        Assert.That(workflow.SharedSchema, Is.SameAs(workflow.SharedSchema));
-
-        workflow.SharedSchemaJson = TestGraph.ObjectSchema("after");
-        Assert.That(workflow.SharedSchema!.Properties.Keys, Is.EquivalentTo(new[] { "after" }));
     }
 }

@@ -25,7 +25,7 @@ public class PackageFolder : IPackageSource
     private const string PackageExtension = ".nupkg";
 
     private readonly string _folder;
-    private readonly Task<SourceRepository> _repositoryTask;
+    private readonly SourceRepository _repositoryTask;
     private readonly SourceCacheContext _cacheContext = new();
 
     public PackageFolder(string folderPath)
@@ -34,7 +34,7 @@ public class PackageFolder : IPackageSource
         Directory.CreateDirectory(_folder);
 
         var packageSource = new PackageSource(folderPath);
-        _repositoryTask = Task.Run(() => Repository.Factory.GetCoreV3(packageSource));
+        _repositoryTask = Repository.Factory.GetCoreV3(packageSource);
     }
 
     #region Search
@@ -44,7 +44,8 @@ public class PackageFolder : IPackageSource
     /// </summary>
     public async Task<Paginated<PackageInfos>> SearchAsync(string name = "", PaginationOptions options = default)
     {
-        var resource = await (await _repositoryTask).GetResourceAsync<PackageSearchResource>();
+        var resource = await _repositoryTask.GetResourceAsync<PackageSearchResource>() ?? throw new Exception("Could not load nuget [FindPackageByIdResource] resource.");
+
         var packages = await resource.SearchAsync(
             name,
             new SearchFilter(false),
@@ -66,8 +67,8 @@ public class PackageFolder : IPackageSource
     /// </summary>
     public async Task<IEnumerable<Version>> GetVersionsAsync(string packageId)
     {
-        var resource = await (await _repositoryTask).GetResourceAsync<FindPackageByIdResource>();
-
+        var resource = await _repositoryTask.GetResourceAsync<FindPackageByIdResource>() ?? throw new Exception("Could not load nuget [FindPackageByIdResource] resource.");
+        
         IEnumerable<NuGetVersion> versions = await resource.GetAllVersionsAsync(
             packageId,
             _cacheContext,
