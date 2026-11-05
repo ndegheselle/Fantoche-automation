@@ -95,21 +95,21 @@
             Style="{StaticResource Card}">
             <StackPanel joolkit:Spacing.Gap="4">
                 <Button
-                    joolkit:ThemedTooltip.Placement="Left"
+                    joolkit:Tooltip.Placement="Left"
                     Command="{x:Static nodify:EditorCommands.ZoomIn}"
                     Style="{StaticResource EditorButton}"
                     ToolTip="Zoom in">
                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Plus}" />
                 </Button>
                 <Button
-                    joolkit:ThemedTooltip.Placement="Left"
+                    joolkit:Tooltip.Placement="Left"
                     Command="{x:Static nodify:EditorCommands.FitToScreen}"
                     Style="{StaticResource EditorButton}"
                     ToolTip="Adjust zoom">
                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Fullscreen}" />
                 </Button>
                 <Button
-                    joolkit:ThemedTooltip.Placement="Left"
+                    joolkit:Tooltip.Placement="Left"
                     Command="{x:Static nodify:EditorCommands.ZoomOut}"
                     Style="{StaticResource EditorButton}"
                     ToolTip="Zoom out">
@@ -118,7 +118,7 @@
                 <Separator />
                 <ToggleButton
                     joolkit:Sizing.IsSquare="True"
-                    joolkit:ThemedTooltip.Placement="Left"
+                    joolkit:Tooltip.Placement="Left"
                     IsChecked="{Binding IsSnappingToGrid}"
                     Style="{StaticResource GhostToggleButton}"
                     ToolTip="Snap the nodes to the grid">
@@ -127,7 +127,7 @@
                 <Separator />
                 <Button
                     joolkit:Sizing.IsSquare="True"
-                    joolkit:ThemedTooltip.Placement="Left"
+                    joolkit:Tooltip.Placement="Left"
                     Command="{Binding History.UndoCommand}"
                     Style="{StaticResource GhostButton}"
                     ToolTip="Undo">
@@ -135,7 +135,7 @@
                 </Button>
                 <Button
                     joolkit:Sizing.IsSquare="True"
-                    joolkit:ThemedTooltip.Placement="Left"
+                    joolkit:Tooltip.Placement="Left"
                     Command="{Binding History.RedoCommand}"
                     Style="{StaticResource GhostButton}"
                     ToolTip="Redo">
@@ -153,7 +153,7 @@
             <StackPanel joolkit:Spacing.Gap="4" Orientation="Horizontal">
                 <Button
                     joolkit:Sizing.IsSquare="True"
-                    joolkit:ThemedTooltip.Placement="Top"
+                    joolkit:Tooltip.Placement="Top"
                     Command="{Binding AddCommand}"
                     Style="{StaticResource GhostButton}"
                     ToolTip="Add a node">
@@ -161,7 +161,7 @@
                 </Button>
                 <Button
                     joolkit:Sizing.IsSquare="True"
-                    joolkit:ThemedTooltip.Placement="Top"
+                    joolkit:Tooltip.Placement="Top"
                     Command="{Binding OpenSettingsCommand}"
                     Style="{StaticResource GhostButton}"
                     ToolTip="Settings of the selected node">
@@ -169,7 +169,7 @@
                 </Button>
                 <Button
                     joolkit:Sizing.IsSquare="True"
-                    joolkit:ThemedTooltip.Placement="Top"
+                    joolkit:Tooltip.Placement="Top"
                     Command="{Binding RemoveCommand}"
                     Style="{StaticResource GhostButton}"
                     ToolTip="Remove the selected nodes">
@@ -181,7 +181,7 @@
                     Fill="{DynamicResource {x:Static joufflu:Brushes.DisplayBorder0Brush}}" />
                 <Button
                     joolkit:Sizing.IsSquare="True"
-                    joolkit:ThemedTooltip.Placement="Top"
+                    joolkit:Tooltip.Placement="Top"
                     Command="{Binding SaveCommand}"
                     Style="{StaticResource GhostButton}"
                     ToolTip="Save the graph">
