@@ -3,7 +3,7 @@
 The standalone and remote modes run the same code: one supervisor (`LocalSupervisor`) and one kind of worker (`LocalWorker`). A remote supervisor only adds an HTTP/SignalR layer between them, and a remote worker only adds a hub connection.
 
 Two rules keep the interactions simple:
-- What the application starts runs in the application. The workers run what the supervisor dispatches to them: the scheduled items (to come).
+- What the application starts runs in the application, unless the user starts it on the workers. The workers run what the supervisor dispatches to them: the schedules, and the runs started on them from the application.
 - Once a worker (the application's included) starts an execution, everything of it stays there. Every node of a workflow runs where the workflow runs, and its tables and files never leave the storage of its run. A suspended run is resumed by whoever can reach that storage (see [Suspended runs](#suspended-runs)).
 - The one exception is a page asking the user: it always runs in an application, where the user is. A worker hands it to one through the supervisor (see [User interface tasks](#user-interface-tasks)).
 
@@ -43,7 +43,7 @@ flowchart TD
 | Supervisor | `LocalSupervisor` in the application | `LocalSupervisor` behind `Fantoche.Supervisor.Api`, reached with `SupervisorClient` |
 | Transport | Calls in the process, messages copied as over the wire | HTTP for the data, SignalR hubs for the executions and the history |
 | Workers the supervisor dispatches to | The application | The worker services (`Fantoche.Worker.Service`) |
-| A task or workflow started from the application | Runs in the application | Runs in the application |
+| A workflow started from the application | Runs in the application, or through the supervisor on the application's own worker ("On remote worker") | Runs in the application, or on the worker services ("On remote worker") |
 
 Both supervisors implement `ISupervisor`, which is all the application and the workers know of them. That is why the mode only changes how the application is built (`SpineViewModel.AddServices`), never what it does.
 
@@ -51,7 +51,7 @@ In the process, the messages are copied the way the wire would copy them (`Fanto
 
 ## An execution dispatched to a worker
 
-An execution is handed whole to the supervisor (`ICallerHub.Execute`, what `RemoteTaskExecutor` calls), and the worker it is dispatched to runs all of it:
+An execution is handed whole to the supervisor, and the worker it is dispatched to runs all of it. A caller waiting on its outcome hands it over with `ICallerHub.Execute` (what `RemoteTaskExecutor` calls, for a page asking the user); a run nobody waits on but the history (a schedule, a workflow started "On remote worker") is started with `IDispatchService.StartAsync` (`POST /dispatch/tasks/{id}/start`, `Dispatcher.StartAsync`):
 
 ```mermaid
 sequenceDiagram
@@ -71,9 +71,10 @@ sequenceDiagram
 - Only JSON travels: the parameters and the output. A table or file the output points at stays in the storage of its run.
 - A worker lost while running an execution leaves it suspended. A worker that reconnects meanwhile can't report on it anymore: its states are dropped.
 - A worker registers with its roles (`EnumWorkerRoles`): the worker services take runs, up to their capacity. The applications take the tasks asking the user, as many as come, since those wait on the user rather than on a slot. In standalone mode the application takes both.
-- Nothing in the application dispatches yet: the scheduled items will.
+- A workflow started from the editor is only sent to the workers when the user asks for it in its start settings ("On remote worker"). These settings only show for a workflow expecting parameters: one taking none starts right away, in the application.
+- A run that can't be loaded (`Dispatcher.StartAsync`) is stored as a failed run: nobody waits on it to be told.
 
-### Why nothing started by hand is sent to a worker
+### Why a single node is never sent to a worker
 
 Sending a single node of a workflow to a worker was implemented, then removed. Each worker only reads its own storage, so the tables and files a node needed had to travel with it, through a transit held by the supervisor:
 - the caller put the items the parameters pointed at in the transit, the worker took them into its storage, and the output came back the same way;
@@ -82,7 +83,13 @@ Sending a single node of a workflow to a worker was implemented, then removed. E
 
 It worked, but it took a transit store in the supervisor, an HTTP API to stream it, a copy of every table a node read or wrote, and the cleanup of what a lost execution left behind. Few workflows need a node of theirs elsewhere, and such a node can be made a workflow of its own.
 
-A "Run on a worker" setting on the tasks and workflows, sending a whole execution started from the application to a worker, was removed too. A run started by hand is for building and checking a workflow, close to the editor and the local files. Where an execution runs belongs to what schedules it, not to the task or workflow itself.
+A "Run on a worker" setting on the tasks and workflows was removed too. Where an execution runs belongs to what starts it, not to the task or workflow itself: a schedule always runs on the workers, and a run started by hand runs in the application, close to the editor and the local files, unless the user chooses otherwise as they start it.
+
+## Following a run
+
+- The history of a task, workflow or scope only lists the runs started on their own (`IHistoryService.GetByScopedAsync`, `ParentInstanceId` empty). A node of a workflow is read from its run.
+- The detail of an execution shows what it ran with, its output (or the error it failed with) and the executions it ran. It only reads: a run of a workflow is acted upon from its editor ("Open execution").
+- The editor draws a run on the graph of its workflow, as the history holds it, then as it goes on (`WorkflowRunViewModel`). From there its pages are answered, and a run of the application is paused, stopped and resumed (see [Suspended runs](#suspended-runs)). Double-clicking a node shows the detail of its execution, or opens its page when it waits for the user.
 
 ## Suspended runs
 
@@ -90,7 +97,7 @@ A run nothing runs anymore, waiting to be resumed, is `Suspended`. Its output te
 - **Paused by the user** from the editor: the nodes it runs finish, no other task starts (the controls still pass, so a run whose tasks are over reaches its end), and its nested runs pause with it. Nothing runs twice.
 - **Cut short** by a crash or a lost worker: the nodes it was running run again once resumed.
 
-It is resumed by hand, from the editor or from the detail of the execution ("Resume"), or stopped instead, which cancels it for good.
+It is resumed by hand from the editor, the run opened on the graph of its workflow ("Resume"), or stopped instead, which cancels it for good. The editor only pauses, stops and resumes the runs of an application (`IExecutionService`): the supervisor resumes its own (`IDispatchService.ResumeAsync`, `POST /dispatch/runs/{id}/resume`), which nothing in the application calls anymore since the detail of an execution lost its "Resume".
 
 | A run started by | Is cut short when | Is resumed by |
 | --- | --- | --- |
@@ -112,7 +119,7 @@ Resuming walks the run again from its history (`WorkflowExecutor`, with `Workflo
 What the history stores for this:
 - Each instance stores the ids of the instances it carries on from (`PreviousIds`) and the shared context it was given. Pass-through nodes and loops are walked again from these links.
 - The run stores its global context, the version of the graph it ran (`TaskInstance.WorkflowVersion`) and the version of every workflow nested in it (`TaskInstance.NestedVersions`).
-- A run resumes on these versions, whatever the workflows became since (see [Workflow versions](#workflow-versions)). The tasks are read as they are now: a resumed node runs the package its task points at today.
+- A run resumes on these versions, whatever the workflows became since (see [Workflow versions](#workflow-versions)). The tasks are read as they are now: a resumed node runs the package its task points at today, the newest version for a task following the latest one (see [Packages and caches](#packages-and-caches)).
 
 A remote run carries on in the storage of its first worker, so the workers share their storage (`STORAGE_FOLDER`).
 
@@ -192,7 +199,8 @@ Why a task of its own rather than a switch on the task (an `AskUser` input, as b
   - A worker reaching no page at all (no supervisor) fails the page, and its task never runs.
 - **While it asks:** the page is `AwaitingUser` and the branch of its task waits, the rest of the run going on.
   - The worker keeps the run in memory meanwhile, and counts it against its capacity.
-  - For a run of the application, the editor following the run opens the page by itself. Otherwise the application tells the user, who answers from the detail of the run ("Answer").
+  - For a run of the application, the editor following the run opens the page by itself. Otherwise the application tells the user, who opens the run on the graph of its workflow (from its history, or the detail of the execution) and double-clicks the node waiting.
+  - The run shows `AwaitingUser` in the history while a node under it waits, nested runs included, and goes back to `Progressing` once none does (`LocalHistoryService.CarryAwaitingUserUpAsync`). Answering takes the task itself, not the nested runs holding it.
   - Only the application running the page can answer it. A second answer is refused.
 - **When it goes wrong:**
   - An application lost while running the page leaves the node `Suspended`, and its run with it. Resuming the run asks again.
@@ -281,6 +289,7 @@ flowchart LR
     workerCache --> loaders
 ```
 
+- A task points at a package and a version, or at no version to follow the latest one (`PackageIdentifier.Version` null, "Latest" when the class is picked, and the default). The newest version is asked to the supervisor each time the task runs (`PackageCache.DownloadPackageAsync`, `IPackageSource.GetVersionsAsync`), never cached, so a version added since the last run is picked up without editing the task. The samples follow the latest version of the example plugins.
 - A cache never refreshes a version it already extracted, so a version can't be added twice. Publish a changed package under a new version.
 - The supervisor's cache only serves to check what a package holds when it is added. The tasks themselves always run from the cache of a worker, in both modes.
 
