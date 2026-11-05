@@ -41,6 +41,7 @@ public sealed class RemoteWorkerConnection : IWorkerHub, IWorkerRegistration
 
         _connection.On<RemoteExecution>(nameof(IWorkerClient.Execute), _session.Execute);
         _connection.On<Guid>(nameof(IWorkerClient.Cancel), _session.Cancel);
+        _connection.On<Guid>(nameof(IWorkerClient.Pause), _session.Pause);
         // The supervisor suspends the executions of a connection it lost, to be resumed elsewhere.
         _connection.Reconnecting += _ =>
         {

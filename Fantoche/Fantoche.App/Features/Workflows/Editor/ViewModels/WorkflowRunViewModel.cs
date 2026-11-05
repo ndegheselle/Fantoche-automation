@@ -42,11 +42,10 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
         private bool _isPausing;
 
         /// <summary>
-        /// Whether the displayed run waits to be resumed : paused, or cut short by a crash. Only the
-        /// runs of an application are resumed from the editor, the supervisor resuming its own.
+        /// Whether the displayed run waits to be resumed : paused, or cut short by a crash. Who may
+        /// resume it is checked as it is resumed.
         /// </summary>
-        public bool CanResume => !IsRunning
-            && DisplayedRun is { State: EnumTaskState.Suspended, ApplicationId: not null };
+        public bool CanResume => !IsRunning && DisplayedRun is { State: EnumTaskState.Suspended };
 
 
         /// <summary>Whether there is a run to stop : the one followed, or one waiting to be resumed.</summary>
@@ -184,7 +183,10 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
             IsPausing = true;
             try
             {
-                await _execution.PauseAsync(run.Id);
+                if (IsDispatched(run))
+                    await _dispatch.PauseAsync(run.Id);
+                else
+                    await _execution.PauseAsync(run.Id);
             }
             catch (Exception exception)
             {
@@ -208,7 +210,10 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
 
             try
             {
-                await _execution.CancelAsync(run.Id);
+                if (IsDispatched(run))
+                    await _dispatch.CancelAsync(run.Id);
+                else
+                    await _execution.CancelAsync(run.Id);
             }
             catch (Exception exception)
             {
@@ -232,16 +237,44 @@ namespace Fantoche.App.Features.Workflows.Editor.ViewModels
                 return;
 
             Follow();
+            _isHolding = true;
             try
             {
-                DisplayedRun = await _execution.ResumeAsync(run.Id);
+                DisplayedRun = await ResumeAsync(run);
             }
             catch (Exception exception)
             {
                 Unfollow();
                 _toasts.Error(exception.Message, $"The workflow '{_workflow.Metadata.Name}' could not be resumed");
+                return;
             }
+            finally
+            {
+                ReleaseHeldReports();
+            }
+
+            // The run may already be over, its end reported before it was displayed.
+            EndIfOver();
         }
+
+        /// <summary>
+        /// Resume [run] where it runs : in this application, or on the workers of the supervisor,
+        /// which nobody waits on, so what it became is read back.
+        /// </summary>
+        private async Task<TaskInstance> ResumeAsync(TaskInstance run)
+        {
+            if (!IsDispatched(run))
+                return await _execution.ResumeAsync(run.Id);
+
+            await _dispatch.ResumeAsync(run.Id);
+            return await _history.GetAsync(run.Id) ?? run;
+        }
+
+        /// <summary>
+        /// Whether the supervisor dispatched [run] to its workers : it pauses, stops and resumes it,
+        /// an application only the runs it started (see <see cref="TaskInstance.ApplicationId"/>).
+        /// </summary>
+        private static bool IsDispatched(TaskInstance run) => run.ApplicationId == null;
 
         /// <summary>
         /// Show what one node of the displayed run ran with and produced, or the error it failed

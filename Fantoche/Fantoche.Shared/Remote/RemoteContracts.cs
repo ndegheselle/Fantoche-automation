@@ -107,4 +107,10 @@ public interface IWorkerClient
     Task Execute(RemoteExecution execution);
 
     Task Cancel(Guid executionId);
+
+    /// <summary>
+    /// Let the nodes [executionId] runs finish and start no other : the run then completes
+    /// <see cref="EnumTaskState.Suspended"/>. A task on its own simply runs to its end.
+    /// </summary>
+    Task Pause(Guid executionId);
 }

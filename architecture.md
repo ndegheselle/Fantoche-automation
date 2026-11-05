@@ -89,7 +89,7 @@ A "Run on a worker" setting on the tasks and workflows was removed too. Where an
 
 - The history of a task, workflow or scope only lists the runs started on their own (`IHistoryService.GetByScopedAsync`, `ParentInstanceId` empty). A node of a workflow is read from its run.
 - The detail of an execution shows what it ran with, its output (or the error it failed with) and the executions it ran. It only reads: a run of a workflow is acted upon from its editor ("Open execution").
-- The editor draws a run on the graph of its workflow, as the history holds it, then as it goes on (`WorkflowRunViewModel`). From there its pages are answered, and a run of the application is paused, stopped and resumed (see [Suspended runs](#suspended-runs)). Double-clicking a node shows the detail of its execution, or opens its page when it waits for the user.
+- The editor draws a run on the graph of its workflow, as the history holds it, then as it goes on (`WorkflowRunViewModel`). From there it is paused, stopped and resumed, and its pages answered (see [Suspended runs](#suspended-runs)). Double-clicking a node shows the detail of its execution, or opens its page when it waits for the user.
 
 ## Suspended runs
 
@@ -97,7 +97,9 @@ A run nothing runs anymore, waiting to be resumed, is `Suspended`. Its output te
 - **Paused by the user** from the editor: the nodes it runs finish, no other task starts (the controls still pass, so a run whose tasks are over reaches its end), and its nested runs pause with it. Nothing runs twice.
 - **Cut short** by a crash or a lost worker: the nodes it was running run again once resumed.
 
-It is resumed by hand from the editor, the run opened on the graph of its workflow ("Resume"), or stopped instead, which cancels it for good. The editor only pauses, stops and resumes the runs of an application (`IExecutionService`): the supervisor resumes its own (`IDispatchService.ResumeAsync`, `POST /dispatch/runs/{id}/resume`), which nothing in the application calls anymore since the detail of an execution lost its "Resume".
+It is resumed by hand from the editor, the run opened on the graph of its workflow ("Resume"), or stopped instead, which cancels it for good. The editor pauses, stops and resumes a run through whoever runs it:
+- a run of the application (`TaskInstance.ApplicationId` set) through `IExecutionService`;
+- a run the supervisor dispatched through `IDispatchService` (`POST /dispatch/runs/{id}/pause`, `/cancel`, `/resume`). The supervisor passes a pause or a stop on to the worker running it (`IWorkerClient.Pause`, `IWorkerClient.Cancel`), which pauses it the way the application does. A run still waiting for a worker is suspended or canceled right away.
 
 | A run started by | Is cut short when | Is resumed by |
 | --- | --- | --- |

@@ -84,9 +84,16 @@ public sealed class WorkerSession : IWorkerClient
         }
     }
 
+    /// <summary>
+    /// What stops an execution : <see cref="Cancellation"/> at once, <see cref="Pause"/> once the
+    /// nodes it runs are over. Not disposed : a cancel can still reach them once it is over, and
+    /// they hold no timer.
+    /// </summary>
+    private sealed record Controls(CancellationTokenSource Cancellation, CancellationTokenSource Pause);
+
     private readonly LocalWorker _worker;
     private readonly IWorkerHub _supervisor;
-    private readonly ConcurrentDictionary<Guid, CancellationTokenSource> _running = [];
+    private readonly ConcurrentDictionary<Guid, Controls> _running = [];
 
     /// <param name="supervisor">What the executions are reported through.</param>
     public WorkerSession(LocalWorker worker, IWorkerHub supervisor)
@@ -97,18 +104,28 @@ public sealed class WorkerSession : IWorkerClient
 
     /// <summary>
     /// Run apart rather than awaited : the transport doesn't hand anything else over while it waits,
-    /// a cancel included, and a supervisor of the same process would wait on the whole run.
+    /// a cancel included, and a supervisor of the same process would wait on the whole run. Its
+    /// controls are in place before : a cancel or a pause sent right after it isn't lost.
     /// </summary>
     public Task Execute(RemoteExecution execution)
     {
-        _ = Task.Run(() => RunAsync(execution));
+        Controls controls = new(new CancellationTokenSource(), new CancellationTokenSource());
+        _running[execution.Instance.Id] = controls;
+        _ = Task.Run(() => RunAsync(execution, controls));
         return Task.CompletedTask;
     }
 
     public Task Cancel(Guid executionId)
     {
-        if (_running.TryGetValue(executionId, out var cancellation))
-            cancellation.Cancel();
+        if (_running.TryGetValue(executionId, out Controls? controls))
+            controls.Cancellation.Cancel();
+        return Task.CompletedTask;
+    }
+
+    public Task Pause(Guid executionId)
+    {
+        if (_running.TryGetValue(executionId, out Controls? controls))
+            controls.Pause.Cancel();
         return Task.CompletedTask;
     }
 
@@ -118,16 +135,13 @@ public sealed class WorkerSession : IWorkerClient
     /// </summary>
     public void CancelAll()
     {
-        foreach (CancellationTokenSource cancellation in _running.Values)
-            cancellation.Cancel();
+        foreach (Controls controls in _running.Values)
+            controls.Cancellation.Cancel();
     }
 
-    private async Task RunAsync(RemoteExecution execution)
+    private async Task RunAsync(RemoteExecution execution, Controls controls)
     {
         Guid executionId = execution.Instance.Id;
-        // Not disposed : a cancel can still reach it once it is over, and it holds no timer.
-        CancellationTokenSource cancellation = new();
-        _running[executionId] = cancellation;
 
         ThrottledNotifications notifications = new(x => _supervisor.ReportNotification(executionId, x));
 
@@ -140,7 +154,7 @@ public sealed class WorkerSession : IWorkerClient
                 Notifications = notifications,
             };
 
-            result = await _worker.ExecuteDispatchedAsync(execution, progress, cancellation.Token);
+            result = await _worker.ExecuteDispatchedAsync(execution, progress, controls.Cancellation.Token, controls.Pause.Token);
         }
         catch (Exception ex)
         {
@@ -151,7 +165,8 @@ public sealed class WorkerSession : IWorkerClient
         }
         finally
         {
-            _running.TryRemove(executionId, out _);
+            // Only its own : a run resumed on this worker meanwhile has controls of its own.
+            _running.TryRemove(KeyValuePair.Create(executionId, controls));
         }
 
         await notifications.FlushAsync();
