@@ -27,6 +27,21 @@ public interface IDispatchService
     public Task ResumeAsync(Guid runId);
 
     /// <summary>
+    /// Pause the run [runId] the supervisor dispatched : the nodes it runs finish on its worker, no
+    /// other task starts, and it ends <see cref="EnumTaskState.Suspended"/>, to be resumed (see
+    /// <see cref="ResumeAsync"/>). One still waiting for a worker is suspended right away.
+    /// </summary>
+    /// <exception cref="ExecutionException">The run isn't one this supervisor runs.</exception>
+    public Task PauseAsync(Guid runId);
+
+    /// <summary>
+    /// Stop the run [runId] the supervisor dispatched, every node it runs included. A suspended run
+    /// is canceled rather than left to be resumed. A no-op for a run that is over.
+    /// </summary>
+    /// <exception cref="ExecutionException">The run is run by another supervisor or by an application.</exception>
+    public Task CancelAsync(Guid runId);
+
+    /// <summary>
     /// Raised with the new status whenever a worker comes or goes, or an execution is queued,
     /// handed to a worker or over.
     /// </summary>

@@ -22,6 +22,8 @@ public static class DispatchApi
         app.MapPost("/dispatch/tasks/{id:guid}/start", (Dispatcher dispatcher, Guid id, StartRequest request)
             => dispatcher.StartAsync(id, request.Name, request.Parameters));
         app.MapPost("/dispatch/runs/{id:guid}/resume", (Dispatcher dispatcher, Guid id) => dispatcher.ResumeAsync(id));
+        app.MapPost("/dispatch/runs/{id:guid}/pause", (Dispatcher dispatcher, Guid id) => dispatcher.PauseAsync(id));
+        app.MapPost("/dispatch/runs/{id:guid}/cancel", (Dispatcher dispatcher, Guid id) => dispatcher.CancelAsync(id));
 
         app.MapHub<DispatchHub>($"/{SupervisorRoutes.Dispatch}");
 

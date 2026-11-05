@@ -63,4 +63,8 @@ public sealed class RemoteDispatchService : IDispatchService, IAsyncDisposable
     }
 
     public Task ResumeAsync(Guid runId) => _http.PostAsync($"dispatch/runs/{runId}/resume");
+
+    public Task PauseAsync(Guid runId) => _http.PostAsync($"dispatch/runs/{runId}/pause");
+
+    public Task CancelAsync(Guid runId) => _http.PostAsync($"dispatch/runs/{runId}/cancel");
 }

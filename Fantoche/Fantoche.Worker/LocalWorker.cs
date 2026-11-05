@@ -81,14 +81,18 @@ public sealed class LocalWorker : ITaskExecutor, IDisposable
 
     /// <summary>
     /// An execution the supervisor dispatched : a whole run, or a task asking the user handed over by
-    /// the worker running its run, whose storage it uses.
+    /// the worker running its run, whose storage it uses. A workflow is paused by [pauseRequested]
+    /// (see <see cref="WorkflowInstance.PauseRequested"/>).
     /// </summary>
     public async Task<TaskInstance> ExecuteDispatchedAsync(
         RemoteExecution execution,
         TaskInstancesProgress progress,
-        CancellationToken cancellation)
+        CancellationToken cancellation,
+        CancellationToken pauseRequested)
     {
         var (task, instance) = execution.Unpack();
+        if (instance is WorkflowInstance workflow)
+            workflow.PauseRequested = pauseRequested;
         if (execution.RunId is not Guid runId)
             return await ExecuteAsync(task, instance, progress, cancellation);
 

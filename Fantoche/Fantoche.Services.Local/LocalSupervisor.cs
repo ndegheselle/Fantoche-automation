@@ -92,6 +92,8 @@ public sealed class LocalSupervisor : ISupervisor
         public Task Execute(RemoteExecution execution) => _session.Execute(FantocheJson.Copy(execution));
 
         public Task Cancel(Guid executionId) => _session.Cancel(executionId);
+
+        public Task Pause(Guid executionId) => _session.Pause(executionId);
     }
 
     private readonly DatabaseFactory _database;

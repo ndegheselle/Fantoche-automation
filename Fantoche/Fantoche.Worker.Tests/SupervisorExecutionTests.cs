@@ -719,6 +719,67 @@ internal sealed class SupervisorExecutionTests
     }
 
     [Test]
+    public async Task DispatchedRun_IsPausedThenResumedOnTheWorkers()
+    {
+        await ConnectWorkerAsync();
+        AutomationWorkflow workflow = await StoreWaitingLineAsync();
+
+        TaskInstance started = await _supervisor.Dispatch.StartAsync(workflow.Id, "Waiting line", JToken.FromObject(new { Value = 1 }));
+        await WaitForNodeAsync(started.Id, "Wait", EnumTaskState.Progressing);
+        await _supervisor.Dispatch.PauseAsync(started.Id);
+        TaskInstance paused = await WaitForTheEndOfAsync(started.Id);
+        await _supervisor.Dispatch.ResumeAsync(started.Id);
+        await WaitForStateAsync(started.Id, EnumTaskState.Completed);
+        TaskInstance resumed = (await _supervisor.History.GetAsync(started.Id))!;
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(paused.State, Is.EqualTo(EnumTaskState.Suspended));
+            Assert.That(paused.Output?.Value<string>(), Does.Contain("Paused"), "paused rather than cut short");
+            Assert.That(resumed.Output?["Value"]?.Value<int>(), Is.EqualTo(11));
+        });
+    }
+
+    [Test]
+    public async Task StoppingADispatchedRun_CancelsItOnTheWorker()
+    {
+        await ConnectWorkerAsync();
+        AutomationTask delay = await StoreDelayAsync();
+
+        TaskInstance started = await _supervisor.Dispatch.StartAsync(delay.Id, "Delay", JToken.FromObject(new { DelayMs = 60_000 }));
+        await WaitUntilRunningAsync();
+        await _supervisor.Dispatch.CancelAsync(started.Id);
+
+        await WaitForStateAsync(started.Id, EnumTaskState.Canceled);
+    }
+
+    [Test]
+    public async Task StoppingADispatchedRunWaitingForAWorker_CancelsIt()
+    {
+        AutomationTask delay = await StoreDelayAsync();
+
+        TaskInstance started = await _supervisor.Dispatch.StartAsync(delay.Id, "Delay", JToken.FromObject(new { DelayMs = 60_000 }));
+        await _supervisor.Dispatch.CancelAsync(started.Id);
+
+        Assert.Multiple(async () =>
+        {
+            Assert.That((await _supervisor.History.GetAsync(started.Id))?.State, Is.EqualTo(EnumTaskState.Canceled));
+            Assert.That(_dispatcher.GetStatus().Pending, Is.Empty);
+        });
+    }
+
+    [Test]
+    public async Task StoppingASuspendedDispatchedRun_CancelsIt()
+    {
+        TaskInstance suspended = await StoreSuspendedLineAsync(applicationId: null);
+
+        await _supervisor.Dispatch.CancelAsync(suspended.Id);
+
+        Assert.That((await _supervisor.History.GetAsync(suspended.Id))?.State, Is.EqualTo(EnumTaskState.Canceled));
+        await Assert.ThrowsAsync<Shared.Services.ExecutionException>(() => _supervisor.Dispatch.ResumeAsync(suspended.Id), "a canceled run isn't resumed");
+    }
+
+    [Test]
     public async Task RunOfTheApplication_AsksItsOwnUser()
     {
         ExecutionService execution = ApplicationExecution();

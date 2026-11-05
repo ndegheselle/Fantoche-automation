@@ -235,28 +235,98 @@ public class Dispatcher : IDispatchService
         await DispatchAsync();
     }
 
+    /// <summary>Stop [executionId] for the caller that asked for it, see <see cref="CancelHeldAsync"/>.</summary>
     public async Task CancelAsync(string callerConnectionId, Guid executionId)
+    {
+        bool isItsCaller;
+        lock (_lock)
+            isItsCaller = _executions.TryGetValue(executionId, out Execution? execution) && execution.CallerConnectionId == callerConnectionId;
+
+        if (isItsCaller)
+            await CancelHeldAsync(executionId);
+    }
+
+    /// <summary>
+    /// Stop the run [runId], whoever started it : the one this supervisor runs or queues (see
+    /// <see cref="CancelHeldAsync"/>), or a suspended one, given up on rather than left to be resumed.
+    /// </summary>
+    /// <exception cref="ExecutionException">The run is run by an application, or by another supervisor.</exception>
+    public async Task CancelAsync(Guid runId)
+    {
+        if (await CancelHeldAsync(runId))
+            return;
+
+        TaskInstance? run = await _history.GetAsync(runId);
+        if (run == null)
+            return;
+
+        if (run.State == EnumTaskState.Suspended && run.ApplicationId == null)
+        {
+            run.State = EnumTaskState.Canceled;
+            await _history.SaveAsync(run);
+            return;
+        }
+
+        if ((run.State & EnumTaskState.Finished) == 0)
+            throw new ExecutionException("The run is run elsewhere : by an application, or by another supervisor sharing the database.");
+    }
+
+    /// <summary>
+    /// Stop [executionId] when this supervisor holds it : its worker cancels it and completes it as
+    /// canceled, one waiting for a worker is canceled right away. False when it isn't held here.
+    /// </summary>
+    private async Task<bool> CancelHeldAsync(Guid executionId)
     {
         Execution? execution;
         Worker? worker;
         lock (_lock)
         {
-            if (!_executions.TryGetValue(executionId, out execution) || execution.CallerConnectionId != callerConnectionId)
-                return;
+            if (!_executions.TryGetValue(executionId, out execution))
+                return false;
 
             worker = execution.Worker;
             if (worker == null)
                 _executions.Remove(executionId);
         }
 
-        // A running execution is stopped by its worker, which completes it as canceled.
         if (worker != null)
-            await worker.Client.Cancel(executionId);
-        else
         {
-            NotifyStatusChanged();
-            await FinishAsync(execution, EnumTaskState.Canceled);
+            await worker.Client.Cancel(executionId);
+            return true;
         }
+
+        NotifyStatusChanged();
+        await FinishAsync(execution, EnumTaskState.Canceled);
+        return true;
+    }
+
+    /// <summary>
+    /// Pause the run [runId] : its worker lets the nodes it runs finish and completes it suspended.
+    /// One waiting for a worker is suspended right away, nothing of it having run.
+    /// </summary>
+    /// <exception cref="ExecutionException">This supervisor doesn't run it.</exception>
+    public async Task PauseAsync(Guid runId)
+    {
+        Execution? execution;
+        Worker? worker;
+        lock (_lock)
+        {
+            if (!_executions.TryGetValue(runId, out execution))
+                throw new ExecutionException("The run isn't run by this supervisor : only the one running it can pause it.");
+
+            worker = execution.Worker;
+            if (worker == null)
+                _executions.Remove(runId);
+        }
+
+        if (worker != null)
+        {
+            await worker.Client.Pause(runId);
+            return;
+        }
+
+        NotifyStatusChanged();
+        await SuspendAsync(execution, "Paused by the user.");
     }
 
     /// <summary>
