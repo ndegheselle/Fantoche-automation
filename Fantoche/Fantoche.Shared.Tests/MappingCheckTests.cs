@@ -76,4 +76,42 @@ public class MappingCheckTests
         Assert.That(allowed, Is.Empty);
         Assert.That(refused, Has.Count.EqualTo(1));
     }
+
+    private static readonly JsonSchema CountFromOneToTen = JsonSchema.FromJsonAsync("""
+        {"type":"object","properties":{"count":{"type":"integer","minimum":1,"maximum":10}}}
+        """).Result;
+
+    [Test]
+    public void A_value_written_out_of_its_limits_is_reported()
+    {
+        JObject mapping = JObject.Parse("""{"count":0}""");
+
+        List<MappingError> errors = MappingCheck.Check(mapping, [Reached("{}")], CountFromOneToTen, allowMissingRequired: false);
+
+        Assert.That(errors.Single().Message, Is.EqualTo("count : at least 1"));
+    }
+
+    [Test]
+    public void A_referenced_value_is_not_held_to_the_limits_of_its_field()
+    {
+        // The editor resolves a reference to a sample, which knows nothing of what the run will read.
+        JObject mapping = JObject.Parse("""{"count":"$previous.Count"}""");
+
+        List<MappingError> errors = MappingCheck.Check(mapping, [Reached("""{"Count":0}""")], CountFromOneToTen, allowMissingRequired: false);
+
+        Assert.That(errors, Is.Empty);
+    }
+
+    [Test]
+    public void A_value_inside_a_referenced_object_is_not_held_to_its_limits()
+    {
+        JsonSchema expectsSettings = JsonSchema.FromJsonAsync("""
+            {"type":"object","properties":{"settings":{"type":"object","properties":{"count":{"type":"integer","minimum":1}}}}}
+            """).Result;
+        JObject mapping = JObject.Parse("""{"settings":"$previous.Settings"}""");
+
+        List<MappingError> errors = MappingCheck.Check(mapping, [Reached("""{"Settings":{"count":0}}""")], expectsSettings, allowMissingRequired: false);
+
+        Assert.That(errors, Is.Empty);
+    }
 }

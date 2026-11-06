@@ -57,7 +57,7 @@ public class LocalTaskExecutor : ITaskExecutor
             {
                 var errors = automationTask.InputSchema?.Validate(instance.Parameters);
                 if (errors?.Count > 0)
-                    throw new ExecutionException($"Parameters don't correspond to schema : {string.Join(", ", errors)}");
+                    throw new ExecutionException($"Parameters don't correspond to schema : {string.Join(", ", errors.Select(Schemas.Describe))}");
             }
 
             instance = automationTask switch
@@ -106,8 +106,7 @@ public class LocalTaskExecutor : ITaskExecutor
             throw new ExecutionException("Task target is not a package.");
 
         // A page runs where the user is : a worker hands it to an application.
-        bool asksUser = automationTask.IsUserInterface;
-        if (asksUser && _users.Pages == null)
+        if (instance.AsksUser && _users.Pages == null)
         {
             ITaskExecutor applications = _users.Applications
                 ?? throw new ExecutionException($"'{instance.NodeName}' asks the user, and nothing here shows its page.");
@@ -115,6 +114,15 @@ public class LocalTaskExecutor : ITaskExecutor
         }
 
         var task = await _tasks.CreateAsync(target);
+        var runtime = new TaskRuntime(progress?.Notifications, _storage);
+
+        if (instance.AsksUser)
+        {
+            PageSession page = await PageOfAsync(task, target, instance, runtime, progress);
+            instance.Output = await page.AskAsync(instance.Parameters, cancellation ?? CancellationToken.None);
+            instance.State = EnumTaskState.Completed;
+            return instance;
+        }
 
         // Pass-through with no parameters: nothing to deserialize, nothing for the plugin
         // to do — short-circuit before forcing a TInput-typed conversion that would throw.
@@ -125,9 +133,6 @@ public class LocalTaskExecutor : ITaskExecutor
         if (instance.Parameters != null && task.Input?.Type != null)
             parameter = instance.Parameters.ToObject(task.Input.Type);
 
-        PageSession? page = asksUser ? await PageOfAsync(task, target, instance, progress) : null;
-        var runtime = new TaskRuntime(progress?.Notifications, _storage, page);
-        page?.Bind(runtime);
         var result = await task.DoAsync(parameter, runtime, cancellation);
 
         if (result != null)
@@ -143,12 +148,12 @@ public class LocalTaskExecutor : ITaskExecutor
     }
 
     /// <summary>The page [task] asks the user through, shown by the pages of the application.</summary>
-    private async Task<PageSession> PageOfAsync(ITask task, PackageClassTarget target, TaskInstance instance, TaskInstancesProgress? progress)
+    private async Task<PageSession> PageOfAsync(ITask task, PackageClassTarget target, TaskInstance instance, TaskRuntime runtime, TaskInstancesProgress? progress)
     {
-        if (task is not IUserInterfaceTask)
-            throw new ExecutionException($"'{instance.NodeName}' is a page, but its task has none.");
+        if (task is not ITaskWithPage)
+            throw new ExecutionException($"'{instance.NodeName}' asks the user, but its task has no page.");
 
         string folder = await _tasks.GetPageFolderAsync(target);
-        return new PageSession(_users.Pages!, folder, task, instance, _runId, _storage, progress?.StateChanges);
+        return new PageSession(_users.Pages!, folder, task, runtime, instance, _runId, _storage, progress?.StateChanges);
     }
 }

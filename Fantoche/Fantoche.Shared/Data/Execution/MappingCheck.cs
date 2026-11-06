@@ -35,6 +35,7 @@ public static class MappingCheck
         bool allowMissingRequired)
     {
         List<MappingError> errors = [];
+        List<string> referenced = ReferencedPaths(mapping);
         foreach (NodePreviewContext context in contexts)
         {
             string? branch = BranchLabel(context, contexts);
@@ -50,10 +51,34 @@ public static class MappingCheck
             if (expected == null || result.HasErrors)
                 continue;
 
-            errors.AddRange(SchemaErrors(expected, result.Replaced, allowMissingRequired, branch));
+            errors.AddRange(SchemaErrors(expected, result.Replaced, referenced, allowMissingRequired, branch));
         }
         return errors;
     }
+
+    /// <summary>
+    /// The errors about a value rather than its type. A referenced value is resolved to a sample in
+    /// the editor, which knows nothing of what the run will read : only its type is worth checking.
+    /// </summary>
+    private static readonly HashSet<ValidationErrorKind> ValueKinds =
+    [
+        ValidationErrorKind.NumberTooSmall,
+        ValidationErrorKind.NumberTooBig,
+        ValidationErrorKind.NumberNotMultipleOf,
+        ValidationErrorKind.StringTooShort,
+        ValidationErrorKind.StringTooLong,
+        ValidationErrorKind.PatternMismatch,
+        ValidationErrorKind.NotInEnumeration,
+        ValidationErrorKind.TooFewItems,
+        ValidationErrorKind.TooManyItems,
+        ValidationErrorKind.ItemsNotUnique,
+    ];
+
+    /// <summary>The paths of [mapping] holding a reference, as <see cref="JToken.Path"/> writes them.</summary>
+    private static List<string> ReferencedPaths(JToken mapping)
+        => [.. (mapping as JContainer)?.DescendantsAndSelf()
+            .Where(ReferencesHandler.IsReference)
+            .Select(token => token.Path) ?? []];
 
     /// <summary>
     /// The branches feeding the node through [context], null when there is only one way in and so
@@ -65,12 +90,23 @@ public static class MappingCheck
     private static IEnumerable<MappingError> SchemaErrors(
         JsonSchema expected,
         JToken resolved,
+        List<string> referenced,
         bool allowMissingRequired,
         string? branch)
     {
         string json = resolved.ToString(Formatting.None);
         return expected.Validate(json)
             .Where(error => !allowMissingRequired || error.Kind != ValidationErrorKind.PropertyRequired)
-            .Select(error => new MappingError($"{error.Path} : {error.Kind}", branch));
+            .Where(error => !IsAboutReferencedValue(error, referenced))
+            .Select(error => new MappingError(Schemas.Describe(error), branch));
+    }
+
+    private static bool IsAboutReferencedValue(ValidationError error, List<string> referenced)
+    {
+        if (!ValueKinds.Contains(error.Kind))
+            return false;
+
+        string path = Schemas.PathOf(error);
+        return referenced.Any(reference => ReferencesHandler.IsUnder(path, reference));
     }
 }

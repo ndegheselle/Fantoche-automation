@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using Fantoche.App.Common;
+using Fantoche.Shared.Data;
 using Fantoche.Shared.Data.Scoped;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Joufflu.Data.Model;
@@ -111,7 +112,7 @@ namespace Fantoche.App.Features.Workflows.Controls
             }
 
             foreach (var error in schema?.Validate(Values.ToToken()!) ?? [])
-                Errors.Add($"{error.Path} : {error.Kind}");
+                Errors.Add(Schemas.Describe(error));
         }
 
         /// <summary>
@@ -122,8 +123,7 @@ namespace Fantoche.App.Features.Workflows.Controls
         {
             try
             {
-                JsonSchema? schema = task.InputSchema?.ActualSchema;
-                return schema?.IsObject == true ? schema.ToDataNode() as DataObject : null;
+                return SchemaTree.Of(task.InputSchema);
             }
             catch (Exception)
             {

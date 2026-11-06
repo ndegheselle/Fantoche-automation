@@ -15,27 +15,17 @@ public class ReorderResult
 }
 
 /// <summary>
-/// The items in the order they are given : its page, <see cref="ReorderUi"/>, lets the user put
-/// them in order first.
+/// The items in the order they are given : its page, <c>UserInterfaces/Reorder</c>, lets the user
+/// put them in order first, by dragging them.
 /// </summary>
-public class ReorderTask : BaseTask<ReorderParameters, ReorderResult>
+public class ReorderTask : BaseTask<ReorderParameters, ReorderResult>, ITaskWithPage
 {
+    public string PageFolder => "UserInterfaces/Reorder";
+
     public override Task<ReorderResult> DoAsync(ReorderParameters parameters, ITaskRuntime runtime, CancellationToken? cancellation = null)
         => Task.FromResult(new ReorderResult { Items = parameters.Items });
 
-    /// <summary>The items in alphabetical order.</summary>
-    public static List<string> Sorted(ReorderParameters parameters) => [.. parameters.Items.Order(StringComparer.CurrentCulture)];
-}
-
-/// <summary>
-/// The page of <see cref="ReorderTask"/>, <c>UserInterfaces/Reorder</c> : the user puts the items in
-/// order by dragging them.
-/// </summary>
-public class ReorderUi : UserInterfaceTask<ReorderParameters>
-{
-    public override string PageFolder => "UserInterfaces/Reorder";
-
-    /// <summary>What the page offers to start from.</summary>
+    /// <summary>The items in alphabetical order : what the page offers to start from.</summary>
     [PageMethod]
-    public List<string> Sorted(ReorderParameters parameters) => ReorderTask.Sorted(parameters);
+    public static List<string> Sorted(ReorderParameters parameters) => [.. parameters.Items.Order(StringComparer.CurrentCulture)];
 }

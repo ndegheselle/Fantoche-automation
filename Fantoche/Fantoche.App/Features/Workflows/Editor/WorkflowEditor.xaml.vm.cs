@@ -183,8 +183,8 @@ namespace Fantoche.App.Features.Workflows.Editor
 
             _previewer.Load(globalContext, tasks);
             graph.Refresh(tasks, force: true);
-            // Saved with the graph the next time it is : only a graph from before the pages were
-            // nodes of their own lacks them.
+            // Saved with the graph the next time it is : a task given a page after its node was added
+            // lacks one.
             foreach (GraphTask task in graph.Nodes.OfType<GraphTask>())
                 task.AddUserInterfaceSlot();
 
@@ -294,10 +294,9 @@ namespace Fantoche.App.Features.Workflows.Editor
 
         /// <summary>
         /// Add a node targeting [task] at [location] in the graph, at the center of the viewport
-        /// when no location is given. A page dropped [onto] a task is attached under it, placed
-        /// above it : the node added is returned, null when it wasn't.
+        /// when no location is given : the node added is returned, null when it wasn't.
         /// </summary>
-        public NodeViewModel? Add(BaseAutomationTask task, Point? location = null, NodeViewModel? onto = null)
+        public NodeViewModel? Add(BaseAutomationTask task, Point? location = null)
         {
             if (!IsEditable)
                 return null;
@@ -313,9 +312,6 @@ namespace Fantoche.App.Features.Workflows.Editor
                 return null;
             }
 
-            if (graphTask is GraphUserInterface && onto != null)
-                return AddUnder(graphTask, task, onto);
-
             Point placement = location ?? new Point(
                 ViewportLocation.X + ViewportSize.Width / 2,
                 ViewportLocation.Y + ViewportSize.Height / 2);
@@ -324,25 +320,34 @@ namespace Fantoche.App.Features.Workflows.Editor
             return node;
         }
 
-        /// <summary>How far above its task a page attached by a drop is placed.</summary>
+        /// <summary>How far above its task an "ask the user" node is placed.</summary>
         private const double PageSpacing = 128;
 
         /// <summary>
-        /// Add the page [graphPage] targeting [automationPage] attached under [task], [PageSpacing]
-        /// above it : added and attached as a single step, undone at once. Refused with an error when
-        /// the page can't set the task up.
+        /// Ask the user for the parameters of [node] before it runs, through the page of its task :
+        /// an "ask the user" node attached under it, [PageSpacing] above it, added and attached as a
+        /// single step, undone at once. Refused with an error when the task has no page or is
+        /// already asked.
         /// </summary>
-        private NodeViewModel? AddUnder(BaseGraphTask graphPage, BaseAutomationTask automationPage, NodeViewModel task)
+        [RelayCommand(CanExecute = nameof(CanActOn))]
+        private void AskUser(NodeViewModel? node)
         {
-            // Checked before the page is added : a page that can't be attached isn't added either,
-            // it was dropped on the task to set it up.
-            if (Graph.GetAttachError(task.Model, graphPage) is string error)
+            node = Target(node);
+            if (node?.Model.AutomationTask is not AutomationTask automationTask)
+                return;
+
+            var graphPage = new GraphUserInterface(automationTask);
+            graphPage.Metadata.Name = $"Ask {node.Name}";
+
+            // Checked before the node is added : one that can't be attached isn't added either.
+            if (Graph.GetAttachError(node.Model, graphPage) is string error)
             {
-                _toasts.Error(error, $"'{graphPage.Name}' can't be attached to '{task.Name}'");
-                return null;
+                _toasts.Error(error, $"'{node.Name}' can't ask the user");
+                return;
             }
 
-            NodeViewModel page = Wrap(graphPage, automationPage, new Point(task.Location.X, task.Location.Y - PageSpacing));
+            NodeViewModel task = node;
+            NodeViewModel page = Wrap(graphPage, automationTask, new Point(task.Location.X, task.Location.Y - PageSpacing));
             var attachment = new ConnectionViewModel(task.UserInterfaceSlot!, page.UserInterfacePlug!);
             History.Apply(new CompositeReversibleAction(
                 $"Add '{page.Name}' to '{task.Name}'",
@@ -351,14 +356,13 @@ namespace Fantoche.App.Features.Workflows.Editor
                     $"Attach '{page.Name}' to '{task.Name}'",
                     () => AddConnection(attachment),
                     () => RemoveConnection(attachment))));
-            return page;
         }
 
         #region Muting
         /// <summary>
         /// Grey out the nodes a link started from [connector] can't reach, for now only the link of
-        /// a page to its task : from a page, the tasks it can't set up, from the slot of a task, the
-        /// pages that can't set it up.
+        /// an "ask the user" node to its task : from that node, the tasks it can't ask for, from the
+        /// slot of a task, the nodes that can't ask for it.
         /// </summary>
         public void MuteIncompatibleWith(ConnectorViewModel connector)
         {
@@ -372,8 +376,8 @@ namespace Fantoche.App.Features.Workflows.Editor
                 Mute(node => node == source || CanTakePage(source.Model, node.Model));
         }
 
-        /// <summary>Grey out the tasks [page] can't set up : a page dragged on the graph, or one being linked.</summary>
-        public void MuteIncompatibleWith(BaseGraphTask page)
+        /// <summary>Grey out the tasks the "ask the user" node [page] being linked can't ask for.</summary>
+        private void MuteIncompatibleWith(BaseGraphTask page)
         {
             if (IsEditable)
                 Mute(node => node.Model == page || CanTakePage(node.Model, page));
@@ -421,7 +425,7 @@ namespace Fantoche.App.Features.Workflows.Editor
         private async Task OpenSettings(NodeViewModel? node)
         {
             node = Target(node);
-            // A page has nothing to set : it is handed the parameters of its task.
+            // Asking the user has nothing to set : it is handed the parameters of its task.
             if (node == null || node.IsUserInterface)
                 return;
 
@@ -676,13 +680,13 @@ namespace Fantoche.App.Features.Workflows.Editor
 
             if (!Graph.CanConnect(source.Model, target.Model))
             {
-                // A page linked to a task is meant to set it up : the user is told why it can't,
+                // A node asking the user linked to a task is meant to ask for it : the user is told why it can't,
                 // where a refused branch is plain enough to not need it.
                 if (source.IsUserInterface || target.IsUserInterface)
                 {
                     (NodeViewModel task, NodeViewModel page) = target.Node.IsUserInterface ? (source.Node, target.Node) : (target.Node, source.Node);
                     _toasts.Error(
-                        Graph.GetAttachError(task.Model, page.Model) ?? "A page only plugs into the top of a task.",
+                        Graph.GetAttachError(task.Model, page.Model) ?? "It only plugs into the top of a task.",
                         $"'{page.Name}' can't be attached to '{task.Name}'");
                 }
                 return;

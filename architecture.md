@@ -136,11 +136,10 @@ The versions are stored as reverse diffs, so a past version costs only what chan
 
 ## User interface tasks
 
-A page asks the user for the parameters of a task, before the task runs. Use it for what a form can't describe, like picking the columns of a file or composing a document. The page is a task of its own, so a workflow without it (a schedule, an automated run) runs the task unattended.
+A task can have a page asking the user for its parameters, before it runs. Use it for what a form can't describe, like picking the columns of a file or composing a document. A workflow only asks where the node of the task is given an "ask the user" node, so the same task runs unattended elsewhere (a schedule, an automated run).
 
-- **In the tree:** a page hangs under the task it asks for ("Add a page to the task").
-- **In a workflow:** it is a round node attached under its task, through the diamond under the task (`GraphUserInterface`, `BaseGraphTask.UserInterface`). It sits apart from the branches: nothing flows into it nor out of it. A task takes one page, a page reads and hands over the parameters of its task (`TasksGraph.CanConnect`).
-- **When the task is reached:** its parameters are resolved, the page is asked with them, and the task runs with what the user answered, carrying on from the node before it (`WorkflowExecutor.RunUiAsync`). A resume asks again a page that was asking, and runs the task with the answer kept when the page was answered but the task never started.
+- **In a workflow:** "Ask the user" on a node whose task has a page (`AutomationTask.HasPage`) adds a round node attached under it, through the diamond under the task (`GraphUserInterface`, `BaseGraphTask.UserInterface`). It points at the same task and sits apart from the branches: nothing flows into it nor out of it. A task is asked by one node, which asks for that task only (`TasksGraph.CanConnect`).
+- **When the task is reached:** its parameters are resolved, an instance of the asking node shows the page of the task with them (`TaskInstance.AsksUser`), and the task runs with what the user answered, carrying on from the node before it (`WorkflowExecutor.RunUiAsync`). A resume asks again a page that was asking, and runs the task with the answer kept when the page was answered but the task never started.
 
 ```mermaid
 sequenceDiagram
@@ -151,8 +150,7 @@ sequenceDiagram
     Supervisor->>Supervisor: queue it, waiting for a user (AwaitingUser)
     App->>Supervisor: Take(page), its user answering it from its run
     Supervisor->>App: Execute(page), the application being a worker for the pages
-    App->>App: DoAsync, until it asks (AwaitingUser)
-    App->>App: the page, calling the methods of the page task
+    App->>App: the page of the task (AwaitingUser), calling the methods of the task
     App->>Supervisor: the storage of the run, read and written through its API
     App->>Supervisor: Complete(page), the answer as its output
     Supervisor->>Worker: Completed(page)
@@ -161,23 +159,25 @@ sequenceDiagram
 
 A run started in the application skips the supervisor: the application runs the page itself.
 
-Why a task of its own rather than a switch on the task (an `AskUser` input, as before): a workflow run unattended holds only the task, the page is seen as a step of the workflow, and the task runs on a worker while only the page needs an application.
+Why a node of its own rather than a switch on the task (an `AskUser` input, as before): a workflow run unattended holds only the task, asking is seen as a step of the workflow, and the task runs on a worker while only the page needs an application.
 
-- **Writing one:** derive from `UserInterfaceTask<TParameters>`, `TParameters` being the parameters of the task, and give the folder of its page (`PageFolder`, relative to the assembly). Its page methods call static methods of the task, so the page applies the rules of the task rather than a copy of them:
+Why the page belongs to the task rather than to a task of its own (a `UserInterfaceTask<TParameters>`, as before): the page edits the parameters of one task only, its methods were the rules of that task, and picking a page for a task was a choice nobody needed. The same page is meant to edit the settings of the node in the editor too.
+
+- **Writing one:** implement `ITaskWithPage` on the task and give the folder of its page (`PageFolder`, relative to the assembly). Mark the rules of the task the page calls with `[PageMethod]`, static or not, so the page applies them rather than a copy:
 
   ```csharp
-  public class MapColumnsUi : UserInterfaceTask<MapColumnsParameters>
+  public class MapColumnsTask : BaseTask<MapColumnsParameters, TableRef>, ITaskWithPage
   {
-      public override string PageFolder => "UI/MapColumns";
+      public string PageFolder => "UI/MapColumns";
 
       [PageMethod]
-      public string? Check(MapColumnsParameters parameters) => MapColumnsTask.Check(parameters);
+      public static string? Check(MapColumnsParameters parameters) => ...;
   }
   ```
 
-  See `MapColumnsUi` and `ExportPdfUi` in `Fantoche.Plugins.Example`.
-- **The page:** it reads the parameters of the task as `window.fantoche.input` and answers them with `await window.fantoche.answer(value)`, rejected when the answer doesn't fit what the task expects. `window.fantoche.close()` closes it unanswered, and it can be opened again.
-- **Calling the page task:** `await window.fantoche.call('Suggest', args)` calls a method of the running page task marked `[PageMethod]`. It takes at most one value, plus the `ITaskRuntime` and a `CancellationToken` if it asks for them. So the page reuses the rules of the task rather than writing them again in JavaScript: `MapColumnsTask.Check`, `ExportPdfTask.PreviewAsync` rendering the real PDF.
+  See `MapColumnsTask` and `ExportPdfTask` in `Fantoche.Plugins.Example`.
+- **The page:** it reads the parameters of the task as `window.fantoche.input` and answers them with `await window.fantoche.answer(value)`, rejected when the answer doesn't fit the parameters of the task. `window.fantoche.close()` closes it unanswered, and it can be opened again.
+- **Calling the task:** `await window.fantoche.call('Suggest', args)` calls a method of the task marked `[PageMethod]`. It takes at most one value, plus the `ITaskRuntime` and a `CancellationToken` if it asks for them. So the page reuses the rules of the task rather than writing them again in JavaScript: `MapColumnsTask.Check`, `ExportPdfTask.PreviewAsync` rendering the real PDF.
 - **Packing it:** the folder is packed next to the assembly, the way `Fantoche.Plugins.Example.csproj` does it:
 
   ```xml
@@ -188,7 +188,7 @@ Why a task of its own rather than a switch on the task (an `AskUser` input, as b
 - **Where it runs:** always in an application (`UserTasks`).
   - A run of the application runs it there.
   - A worker hands it to the supervisor as any caller does (`RemoteTaskExecutor`). The supervisor never hands it out on its own: it waits in the queue, `AwaitingUser` in the history, and the branch of the run with it.
-  - A user answering it from its run takes it (`IWorkerRegistration.TakeAsync`): the supervisor hands it to that application (`EnumWorkerRoles.UserTasks`, which every application registers in both modes), and its page opens once the task asks. A second application taking it is refused. No page shows up unasked.
+  - A user answering it from its run takes it (`IWorkerRegistration.TakeAsync`): the supervisor hands it to that application (`EnumWorkerRoles.UserTasks`, which every application registers in both modes), and its page opens once it asks. A second application taking it is refused. No page shows up unasked.
   - A worker reaching no page at all (no supervisor) fails the page, and its task never runs.
 - **While it asks:** the page is `AwaitingUser` and the branch of its task waits, the rest of the run going on.
   - The worker keeps the run in memory meanwhile, and counts it against its capacity.

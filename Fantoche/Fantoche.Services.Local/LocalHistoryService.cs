@@ -260,6 +260,7 @@ public class LocalHistoryService : IHistoryService
                         ParentInstanceId = @ParentInstanceId,
                         PreviousIds = @PreviousIds,
                         NodeName = @NodeName,
+                        AsksUser = @AsksUser,
                         Shared = @Shared,
                         Parameters = @Parameters,
                         Output = @Output,

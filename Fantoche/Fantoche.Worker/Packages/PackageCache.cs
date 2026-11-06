@@ -216,7 +216,7 @@ public class PackageCache : IPackageManagement
     /// <summary>
     /// The files are written in [folder] where they stand under [root] in the package : the
     /// assemblies next to each other, where the loader resolves the dependencies of a task, and the
-    /// page of a user interface task in its own folder (see <c>IUserInterfaceTask.PageFolder</c>).
+    /// page of a task in its own folder (see <c>ITaskWithPage.PageFolder</c>).
     /// A file out of [root] is written at the top.
     /// </summary>
     private static async Task CopyFilesAsync(PackageArchiveReader packageReader, IEnumerable<string> items, string root, string folder)

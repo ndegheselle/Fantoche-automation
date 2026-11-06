@@ -348,8 +348,7 @@ namespace Fantoche.App.Features.Workflows.Editor
         {
             try
             {
-                JsonSchema? schema = Schemas.Parse(json)?.ActualSchema;
-                return schema?.IsObject == true ? schema.ToDataNode() as DataObject : null;
+                return SchemaTree.Of(Schemas.Parse(json));
             }
             catch (Exception)
             {

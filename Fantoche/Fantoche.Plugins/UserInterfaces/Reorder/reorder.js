@@ -1,5 +1,5 @@
 // The page of the reorder task : window.fantoche is handed over by the application, see
-// IUserInterfaceTask.
+// ITaskWithPage.
 const list = document.getElementById('items');
 const error = document.getElementById('error');
 let dragged = null;

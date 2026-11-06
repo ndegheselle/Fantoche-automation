@@ -69,11 +69,11 @@ internal sealed class TestWorkflow
         return Add(name, node);
     }
 
-    /// <summary>A node named [name] for the page [page], attached under the node [of].</summary>
-    public TestWorkflow Ui(string name, AutomationTask page, string of)
+    /// <summary>A node named [name] asking the user through the page of the task of the node [of], attached under it.</summary>
+    public TestWorkflow Ui(string name, string of)
     {
-        _tasks[page.Id] = page;
-        GraphUserInterface node = new(page);
+        AutomationTask task = (AutomationTask)_tasks[_nodes[of].TaskId];
+        GraphUserInterface node = new(task);
         node.Metadata.Name = name;
         Add(name, node);
         Workflow.Graph.Attach(_nodes[of], node);

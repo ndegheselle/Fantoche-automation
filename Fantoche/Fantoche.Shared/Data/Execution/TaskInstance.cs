@@ -40,6 +40,14 @@ namespace Fantoche.Shared.Data.Execution
         public string NodeName { get; set; } = string.Empty;
 
         /// <summary>
+        /// Whether the instance asks the user for the parameters of its task through the page of the
+        /// task, rather than running it : the instance of an "ask the user" node (see
+        /// <see cref="GraphUserInterface"/>). Its output is what the user answered. It runs
+        /// where the user is, in an application.
+        /// </summary>
+        public bool AsksUser { get; set; }
+
+        /// <summary>
         /// The state of the shared context then reaching this instance.
         /// </summary>
         public JToken? Shared { get; set; }

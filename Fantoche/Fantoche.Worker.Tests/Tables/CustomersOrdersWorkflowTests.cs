@@ -68,7 +68,7 @@ internal sealed class CustomersOrdersWorkflowTests
         })
         .End(new { Table = "$previous" })
         .Chain("Start", "Import", "Map", "End")
-        .Ui("Map page", PluginTasks.MapColumnsUi, of: "Map");
+        .Ui("Map page", of: "Map");
 
     private Task<WorkflowRun> RunMapAsync(ScriptedUser user)
     {

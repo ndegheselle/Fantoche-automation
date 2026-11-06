@@ -321,10 +321,10 @@ public class WorkflowExecutor
         TaskInstancesProgress? progress,
         CancellationToken? cancellation)
     {
-        BaseGraphTask page = pageInstance.Node!;
+        // The page shown is the one of the task asked for, which [context] reached.
         progress?.StateChanges?.Report(pageInstance);
         pageInstance = await _executor.ExecuteAsync(
-            page.AutomationTask ?? throw new ExecutionException("Workflow tasks are not loaded (is the graph refreshed?)."),
+            context.Node.AutomationTask ?? throw new ExecutionException("Workflow tasks are not loaded (is the graph refreshed?)."),
             pageInstance,
             progress,
             cancellation);

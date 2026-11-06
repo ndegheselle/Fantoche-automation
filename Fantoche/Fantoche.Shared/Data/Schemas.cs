@@ -1,7 +1,9 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using NJsonSchema;
 using NJsonSchema.Generation;
+using NJsonSchema.Validation;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 
@@ -49,4 +51,46 @@ public static class Schemas
     /// <see cref="Of"/>).
     /// </summary>
     public static JToken ValueOf(object value) => JToken.FromObject(value, ValueSerializer);
+
+    /// <summary>
+    /// [error] as the user reads it : the value it is about (its JSON path, as
+    /// <see cref="JToken.Path"/> writes it), then what is expected of it.
+    /// </summary>
+    public static string Describe(ValidationError error)
+    {
+        string path = PathOf(error);
+        string place = path.Length > 0 ? path : "value";
+        return $"{place} : {Expectation(error)}";
+    }
+
+    /// <summary>The path of the value [error] is about, as <see cref="JToken.Path"/> writes it.</summary>
+    public static string PathOf(ValidationError error) => error.Path?.TrimStart('#', '/') ?? "";
+
+    private static string Expectation(ValidationError error)
+    {
+        JsonSchema? schema = error.Schema;
+        return error.Kind switch
+        {
+            ValidationErrorKind.PropertyRequired => "required",
+            // The exclusive limit is a number of its own since draft 6, a flag on the limit before.
+            ValidationErrorKind.NumberTooSmall when schema?.ExclusiveMinimum != null => Invariant($"more than {schema.ExclusiveMinimum}"),
+            ValidationErrorKind.NumberTooSmall when schema?.IsExclusiveMinimum == true => Invariant($"more than {schema.Minimum}"),
+            ValidationErrorKind.NumberTooSmall => Invariant($"at least {schema?.Minimum}"),
+            ValidationErrorKind.NumberTooBig when schema?.ExclusiveMaximum != null => Invariant($"less than {schema.ExclusiveMaximum}"),
+            ValidationErrorKind.NumberTooBig when schema?.IsExclusiveMaximum == true => Invariant($"less than {schema.Maximum}"),
+            ValidationErrorKind.NumberTooBig => Invariant($"at most {schema?.Maximum}"),
+            ValidationErrorKind.StringTooShort => $"at least {schema?.MinLength} characters",
+            ValidationErrorKind.StringTooLong => $"at most {schema?.MaxLength} characters",
+            ValidationErrorKind.TooFewItems => $"at least {schema?.MinItems} items",
+            ValidationErrorKind.TooManyItems => $"at most {schema?.MaxItems} items",
+            ValidationErrorKind.PatternMismatch => $"has to match {schema?.Pattern}",
+            ValidationErrorKind.NotInEnumeration => $"one of {string.Join(", ", schema?.Enumeration ?? [])}",
+            // The other kinds read well enough as words : "IntegerExpected" as "integer expected".
+            _ => Words(error.Kind.ToString()),
+        };
+    }
+
+    private static string Invariant(FormattableString text) => FormattableString.Invariant(text);
+
+    private static string Words(string name) => Regex.Replace(name, "(?<!^)([A-Z])", " $1").ToLowerInvariant();
 }

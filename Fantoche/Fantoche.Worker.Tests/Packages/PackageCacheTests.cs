@@ -53,12 +53,12 @@ internal sealed class PackageCacheTests
     }
 
     [Test]
-    public async Task PageOfAPageTask_IsExtractedInItsFolder()
+    public async Task PageOfATask_IsExtractedInItsFolder()
     {
         await _packages.AddAsync(TestNupkg.Write(Path.Combine(_folder, "upload"), "Tests.Package", "1.0.0"));
         PackageClassTarget reorder = new(
             new PackageIdentifier { Id = "Tests.Package", Version = new Version(1, 0, 0) },
-            "Fantoche.Plugins.UserInterfaces.ReorderUi")
+            "Fantoche.Plugins.UserInterfaces.ReorderTask")
         {
             Dll = TestNupkg.Dll,
         };

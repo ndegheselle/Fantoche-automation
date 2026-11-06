@@ -16,11 +16,11 @@ To run it : add the package (`dotnet pack Fantoche.Plugins.Example`, version 2.0
 | Task | Does |
 | --- | --- |
 | Import CSV | A file into a table, the delimiter, columns and types detected from the content. The table is named after the file unless given a name. |
-| Map columns | Adds the names to the table (`TableRef.Mapping`), without copying it. Its page, `MapColumnsUi`, lets you pick the column of the file each name of the workflow stands for, and name the other ones if needed. |
+| Map columns | Adds the names to the table (`TableRef.Mapping`), without copying it. Its page (`UI/MapColumns`), asked where the workflow asks the user, lets you pick the column of the file each name of the workflow stands for, and name the other ones if needed. |
 | Merge | Joins two tables on pairs of columns (inner or left), in the order of the left table. A right column clashing with a left one is prefixed with the name of its table (`customers_Name`). |
 | Update | Gives a value to a column of the rows matching conditions, or adds a column. |
 | Split | Cuts a table into batches of `BatchSize` rows (10 000 by default). |
-| Export PDF | Saves a PDF per table, one per processor at once. Its page, `ExportPdfUi`, lets you compose the document first (headings, texts, tables), previewed on the first batch, as a sketch or as the PDF the task renders. |
+| Export PDF | Saves a PDF per table, one per processor at once. Its page (`UI/ComposePdf`), asked where the workflow asks the user, lets you compose the document first (headings, texts, tables), previewed on the first batch, as a sketch or as the PDF the task renders. |
 
 A page is a task of its own, attached under the task it edits the parameters of : a workflow without it (a schedule, a test on large files) writes them in the mapping instead. `CustomersOrdersWorkflow` in the tests is the sample written that way. The page reuses the rules of the task through its page methods, which call static methods of the task : `Suggest` and `Check` for the columns, `PreviewAsync` for the PDF (see [User interface tasks](../../architecture.md#user-interface-tasks)).
 

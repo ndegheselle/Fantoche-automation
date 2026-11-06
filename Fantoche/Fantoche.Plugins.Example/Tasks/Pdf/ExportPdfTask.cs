@@ -26,11 +26,14 @@ public class ExportPdfResult
 /// rows of the table where it has a table. The documents are rendered side by side, one per
 /// processor, which is what makes a large table split in batches fast to export.
 /// <para>
-/// Its page, <see cref="ExportPdfUi"/>, lets the user compose the document first.
+/// Its page, <c>UI/ComposePdf</c>, lets the user compose the document first, previewed on the first
+/// table as the page shows it and as the PDF the export renders.
 /// </para>
 /// </summary>
-public class ExportPdfTask : BaseTask<ExportPdfParameters, ExportPdfResult>
+public class ExportPdfTask : BaseTask<ExportPdfParameters, ExportPdfResult>, ITaskWithPage
 {
+    public string PageFolder => "UI/ComposePdf";
+
     public override async Task<ExportPdfResult> DoAsync(ExportPdfParameters parameters, ITaskRuntime runtime, CancellationToken? cancellation = null)
     {
         CancellationToken token = cancellation ?? CancellationToken.None;
@@ -69,6 +72,7 @@ public class ExportPdfTask : BaseTask<ExportPdfParameters, ExportPdfResult>
     /// The document of the first table as [parameters] composes it, saved in the storage of the run
     /// for a page to show : what the export will look like, rendered by the export itself.
     /// </summary>
+    [PageMethod]
     public static async Task<FileRef> PreviewAsync(ExportPdfParameters parameters, ITaskRuntime runtime, CancellationToken cancellation)
     {
         TableRef source = parameters.Sources.FirstOrDefault()
