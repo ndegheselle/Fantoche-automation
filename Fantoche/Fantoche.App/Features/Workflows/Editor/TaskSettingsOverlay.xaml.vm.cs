@@ -289,7 +289,7 @@ namespace Fantoche.App.Features.Workflows.Editor
         /// <summary>
         /// [reference], then the reference of every value under it : an array is referenced whole.
         /// </summary>
-        private static IEnumerable<DataManualValue> ReferencesTo(JToken value, string reference)
+        internal static IEnumerable<DataManualValue> ReferencesTo(JToken value, string reference)
         {
             var entry = new DataManualValue(TypeOf(value), reference);
             if (value is not JObject values)

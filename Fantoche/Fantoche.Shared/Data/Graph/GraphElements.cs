@@ -182,27 +182,28 @@ namespace Fantoche.Shared.Data.Graph
         {
         }
 
+        /// <summary>
+        /// Any task can ask the user : the user decides it by plugging an "ask the user" node into
+        /// it, which shows the interface of the task, or the form generated from its parameters.
+        /// </summary>
         public GraphTask(AutomationTask task) : base(task)
         {
-            if (task.HasPage)
-                UserInterface = new GraphConnector(this);
+            UserInterface = new GraphConnector(this);
         }
 
         /// <summary>
-        /// Give the node the slot an "ask the user" node plugs into when its task has a page and the
-        /// node has none : the task may have been given its page after the node was added. Read once
-        /// the graph is refreshed, which is what links the node to its task.
+        /// Give the node the slot an "ask the user" node plugs into when it has none : a graph saved
+        /// when only the tasks with a page had one.
         /// </summary>
         public void AddUserInterfaceSlot()
         {
-            if (UserInterface == null && AutomationTask is AutomationTask { HasPage: true })
-                UserInterface = new GraphConnector(this);
+            UserInterface ??= new GraphConnector(this);
         }
     }
 
     /// <summary>
-    /// Asks the user for the parameters of the task it is attached to, through the page of that task
-    /// (see <see cref="Fantoche.Plugins.Shared.ITaskWithPage"/>), before the task runs. It points at
+    /// Asks the user for the parameters of the task it is attached to, through the interface of that
+    /// task (see <see cref="BaseAutomationTask.Interface"/>), before the task runs. It points at
     /// that same task and sits apart from the branches : nothing flows into it nor out of it, the
     /// task it plugs into hands it its parameters and runs with what the user answered.
     /// </summary>

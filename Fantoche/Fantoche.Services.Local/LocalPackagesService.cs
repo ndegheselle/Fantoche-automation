@@ -3,6 +3,8 @@ using Fantoche.Shared.Base;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Services;
 using Fantoche.Worker.Packages;
+using NuGet.Frameworks;
+using NuGet.Packaging;
 
 namespace Fantoche.Services.Local;
 
@@ -50,6 +52,11 @@ public class LocalPackagesService : IPackagesService, IPackageSource
             return new PackageAdded() { Infos = infos };
         }
 
+        // The interfaces of the tasks are for Windows : only the application loads them, and lists
+        // them itself (see TaskInterfaces in Fantoche.App).
+        if (await IsPlatformOnlyAsync(infos.Identifier.Id, version))
+            return new PackageAdded() { Infos = infos };
+
         // Check if the package contain tasks
         var dllsPaths = await _cache.DownloadPackageAsync(infos.Identifier.Id, version);
         List<string> classes = [];
@@ -83,23 +90,35 @@ public class LocalPackagesService : IPackagesService, IPackageSource
     public async Task<List<ClassTarget>> GetClassesAsync(string id, Version version)
     {
         var identifier = new PackageIdentifier { Id = id, Version = version };
+        if (await IsPlatformOnlyAsync(id, version))
+            return [];
+
         var dllsPaths = await _cache.DownloadPackageAsync(id, version);
 
         List<ClassTarget> targets = [];
         foreach (var path in dllsPaths)
         {
-            string dll = Path.GetFileName(path);
+            // Without its extension : the worker looks the assembly up as "{Dll}.dll".
+            string dll = Path.GetFileNameWithoutExtension(path);
             using TaskLoader loader = new TaskLoader(path);
             foreach (Type type in loader.GetTypes())
             {
-                targets.Add(new PackageClassTarget(identifier, type.FullName ?? "")
-                {
-                    Dll = dll,
-                    HasPage = typeof(ITaskWithPage).IsAssignableFrom(type),
-                });
+                targets.Add(new PackageClassTarget(identifier, type.FullName ?? "") { Dll = dll });
             }
         }
 
         return targets;
+    }
+
+    /// <summary>Whether [id] [version] only holds assemblies for a platform, see <see cref="PackageCache.IsPlatformOnly"/>.</summary>
+    private async Task<bool> IsPlatformOnlyAsync(string id, Version version)
+    {
+        await using Stream? package = await _folder.OpenPackageAsync(id, version);
+        if (package == null)
+            return false;
+
+        using PackageArchiveReader reader = new(package);
+        List<NuGetFramework> frameworks = [.. reader.GetLibItems().Select(x => x.TargetFramework)];
+        return PackageCache.IsPlatformOnly(frameworks);
     }
 }

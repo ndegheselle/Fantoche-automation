@@ -9,6 +9,7 @@
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Fantoche.App.Features.Workflows.Details"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:userInterfaces="clr-namespace:Fantoche.App.Features.UserInterfaces"
     d:DataContext="{d:DesignInstance Type=local:WorkflowDetailsViewModel}"
     mc:Ignorable="d">
     <TabControl SelectedValue="{Binding CurrentTab, Mode=TwoWay}" SelectedValuePath="Tag">
@@ -29,6 +30,8 @@
 
                     <TextBlock Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}">Execution settings</TextBlock>
                     <CheckBox IsChecked="{Binding StopIfAnyTaskFail}">Stop if any task fail</CheckBox>
+
+                    <userInterfaces:InterfaceSelection DataContext="{Binding Interface}" />
                 </StackPanel>
 
                 <controls:ScopedActions Grid.Row="2" />

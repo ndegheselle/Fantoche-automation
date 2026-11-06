@@ -9,12 +9,6 @@ namespace Fantoche.Shared.Data.Execution
     {
         public string ClassFullName { get; set; } = "";
         public string Dll { get; set; } = "";
-
-        /// <summary>
-        /// Whether the class has a page asking the user for its parameters (an <c>ITaskWithPage</c>),
-        /// read from the package when the class is picked so the editor tells it without loading it.
-        /// </summary>
-        public bool HasPage { get; set; }
     }
 
     /// <summary>

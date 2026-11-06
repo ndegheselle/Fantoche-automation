@@ -105,11 +105,11 @@ public class LocalTaskExecutor : ITaskExecutor
         if (automationTask.Target is not PackageClassTarget target)
             throw new ExecutionException("Task target is not a package.");
 
-        // A page runs where the user is : a worker hands it to an application.
+        // Asking runs where the user is : a worker hands it to an application.
         if (instance.AsksUser && _users.Pages == null)
         {
             ITaskExecutor applications = _users.Applications
-                ?? throw new ExecutionException($"'{instance.NodeName}' asks the user, and nothing here shows its page.");
+                ?? throw new ExecutionException($"'{instance.NodeName}' asks the user, and nothing here can show it.");
             return await applications.ExecuteAsync(automationTask, instance, progress, cancellation);
         }
 
@@ -118,7 +118,7 @@ public class LocalTaskExecutor : ITaskExecutor
 
         if (instance.AsksUser)
         {
-            PageSession page = await PageOfAsync(task, target, instance, runtime, progress);
+            PageSession page = new(_users.Pages!, automationTask, task, runtime, instance, _runId, progress?.StateChanges);
             instance.Output = await page.AskAsync(instance.Parameters, cancellation ?? CancellationToken.None);
             instance.State = EnumTaskState.Completed;
             return instance;
@@ -147,13 +147,4 @@ public class LocalTaskExecutor : ITaskExecutor
         return instance;
     }
 
-    /// <summary>The page [task] asks the user through, shown by the pages of the application.</summary>
-    private async Task<PageSession> PageOfAsync(ITask task, PackageClassTarget target, TaskInstance instance, TaskRuntime runtime, TaskInstancesProgress? progress)
-    {
-        if (task is not ITaskWithPage)
-            throw new ExecutionException($"'{instance.NodeName}' asks the user, but its task has no page.");
-
-        string folder = await _tasks.GetPageFolderAsync(target);
-        return new PageSession(_users.Pages!, folder, task, runtime, instance, _runId, _storage, progress?.StateChanges);
-    }
 }

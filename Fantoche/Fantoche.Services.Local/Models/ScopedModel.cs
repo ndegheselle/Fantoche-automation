@@ -24,7 +24,7 @@ internal sealed record ScopedModel
     /// </summary>
     public const string Columns = """
         Id, ParentId, ElementKind, Name, Type, Color, Icon, IsReadOnly, Tags, ContextJson,
-        InputSchemaJson, OutputSchemaJson, Schedules, Settings, Target,
+        InputSchemaJson, OutputSchemaJson, Schedules, Settings, Target, Interface,
         WorkflowSettings, SharedSchemaJson
         """;
 
@@ -33,7 +33,7 @@ internal sealed record ScopedModel
     /// </summary>
     public const string Values = """
         @Id, @ParentId, @ElementKind, @Name, @Type, @Color, @Icon, @IsReadOnly, @Tags, @ContextJson,
-        @InputSchemaJson, @OutputSchemaJson, @Schedules, @Settings, @Target,
+        @InputSchemaJson, @OutputSchemaJson, @Schedules, @Settings, @Target, @Interface,
         @WorkflowSettings, @SharedSchemaJson
         """;
 
@@ -63,6 +63,7 @@ internal sealed record ScopedModel
         Schedules = @Schedules,
         Settings = @Settings,
         Target = @Target,
+        Interface = @Interface,
         WorkflowSettings = @WorkflowSettings,
         SharedSchemaJson = @SharedSchemaJson
         """;
@@ -100,6 +101,7 @@ internal sealed record ScopedModel
             Schedules TEXT NULL,
             Settings TEXT NULL,
             Target TEXT NULL,
+            Interface TEXT NULL,
             WorkflowSettings TEXT NULL,
             SharedSchemaJson TEXT NULL
         );
@@ -129,6 +131,9 @@ internal sealed record ScopedModel
 
     /// <summary>Tasks and controls.</summary>
     public string? Target { get; init; }
+
+    /// <summary>Tasks and workflows : the interface their parameters are edited with.</summary>
+    public string? Interface { get; init; }
 
     /// <summary>Workflows only.</summary>
     public string? WorkflowSettings { get; init; }
@@ -166,6 +171,7 @@ internal sealed record ScopedModel
             task.OutputSchemaJson = OutputSchemaJson;
             task.Schedules = DatabaseJson.Deserialize<List<Schedule>>(Schedules) ?? [];
             task.Settings = DatabaseJson.Deserialize<TaskSettings>(Settings) ?? new TaskSettings();
+            task.Interface = DatabaseJson.Deserialize<PackageClassTarget>(Interface);
         }
 
         // A control points at the class of a hard coded task, a plain task at one of a package.
@@ -197,6 +203,7 @@ internal sealed record ScopedModel
             Schedules = DatabaseJson.Serialize(task?.Schedules),
             Settings = DatabaseJson.Serialize(task?.Settings),
             Target = DatabaseJson.Serialize((element as AutomationTask)?.Target),
+            Interface = DatabaseJson.Serialize(task?.Interface),
             WorkflowSettings = DatabaseJson.Serialize(workflow?.WorkflowSettings),
             SharedSchemaJson = workflow?.SharedSchemaJson,
         };

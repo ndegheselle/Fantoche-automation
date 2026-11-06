@@ -1,4 +1,4 @@
-using Fantoche.Plugins;
+﻿using Fantoche.Plugins;
 using Fantoche.Plugins.Example.Tasks.Tables;
 using Fantoche.Plugins.Shared;
 using Fantoche.Services.Local;
@@ -242,8 +242,7 @@ internal sealed class SupervisorExecutionTests
     {
         AutomationTask reorder = await StoreAsync(PluginTasks.Make(
             "Fantoche.Plugins.UserInterfaces.ReorderTask", "Reorder",
-            JsonSchema.FromType<Plugins.UserInterfaces.ReorderParameters>(), JsonSchema.FromType<Plugins.UserInterfaces.ReorderResult>(),
-            hasPage: true));
+            JsonSchema.FromType<Plugins.UserInterfaces.ReorderParameters>(), JsonSchema.FromType<Plugins.UserInterfaces.ReorderResult>()));
         TestWorkflow ask = new TestWorkflow("Ask", requireOutput: false)
             .Start()
             .Task("Ask", reorder, new { Title = "Sort them", Items = "$previous.Items" })
@@ -928,7 +927,7 @@ internal sealed class SupervisorExecutionTests
         AutomationTask import = await StoreAsync(PluginTasks.Make(typeof(ImportCsvTask).FullName!, "ImportCsv",
             JsonSchema.FromType<ImportCsvParameters>(), JsonSchema.FromType<TableRef>(), package: PluginTasks.TablesPackage));
         AutomationTask map = await StoreAsync(PluginTasks.Make(typeof(MapColumnsTask).FullName!, "MapColumns",
-            JsonSchema.FromType<MapColumnsParameters>(), JsonSchema.FromType<TableRef>(), package: PluginTasks.TablesPackage, hasPage: true));
+            JsonSchema.FromType<MapColumnsParameters>(), JsonSchema.FromType<TableRef>(), package: PluginTasks.TablesPackage));
         TestWorkflow tables = new TestWorkflow("Pick", requireOutput: false)
             .Start()
             .Task("Import", import, new { Path = "$previous.Path" })
@@ -940,14 +939,14 @@ internal sealed class SupervisorExecutionTests
         string csv = Path.Combine(_folder, "orders.csv");
         await File.WriteAllTextAsync(csv, "order,ordered on\nA,2026-03-01\nB,2026-03-02\n");
 
-        // The page reads the table and writes a file, the way the pages of the tasks do.
+        // The interface reads the table and writes a file, the way the interfaces of the tasks do.
         TablePage? read = null;
         FileRef? written = null;
         _answer = async (request, cancellation) =>
         {
             TableRef source = request.Input!["Source"]!.ToObject<TableRef>()!;
-            read = await request.Storage.ReadPageAsync(source, 0, 10, cancellation);
-            written = await request.Storage.SaveFileAsync("notes.txt", new MemoryStream([1, 2, 3]), cancellation);
+            read = await request.Runtime.Storage.ReadPageAsync(source, 0, 10, cancellation);
+            written = await request.Runtime.Storage.SaveFileAsync("notes.txt", new MemoryStream([1, 2, 3]), cancellation);
             return JToken.FromObject(new { Source = source, Columns = new[] { new { Name = "When", Column = "ordered on" } } });
         };
         await ConnectWorkerAsync();

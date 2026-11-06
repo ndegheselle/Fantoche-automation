@@ -50,6 +50,7 @@ public class SpineViewModel : ObservableObject
     public IPackagesService Packages => _provider.GetRequiredService<IPackagesService>();
     public IHistoryService History => _provider.GetRequiredService<IHistoryService>();
     public IScopedService Scoped => _provider.GetRequiredService<IScopedService>();
+    public TaskInterfaces Interfaces => _provider.GetRequiredService<TaskInterfaces>();
     #endregion
 
     public IRelayCommand OpenSettingsCommand { get; }
@@ -104,8 +105,9 @@ public class SpineViewModel : ObservableObject
         // hands them over then.
         // The prompts and the worker need each other : the registration is set right after both exist.
         Task<IWorkerRegistration>? registration = null;
+        TaskInterfaces interfaces = new(supervisor.PackageFiles, Path.Combine(Settings.LocalFolderPath, "interfaces"));
         UserPrompts prompts = new(
-            Path.Combine(Settings.LocalFolderPath, "browser"),
+            interfaces,
             supervisor.History,
             async executionId => await (await registration!).TakeAsync(executionId));
         prompts.Asked += request => Ui.Post(() => Toasting.Info($"'{request.Instance.NodeName}' waits for you : answer it from its run.", "A task asks for you"));
@@ -125,6 +127,7 @@ public class SpineViewModel : ObservableObject
         _ = SuspendLeftRunsAsync(execution);
         services.AddSingleton<IExecutionService>(execution);
         services.AddSingleton(prompts);
+        services.AddSingleton(interfaces);
         services.AddSingleton(new ApplicationWorker(dispatchId));
 
         services.AddSingleton(Settings);
@@ -161,6 +164,7 @@ public class SpineViewModel : ObservableObject
         RegisterView<WorkflowsViewModel, WorkflowsPage>();
         RegisterView<TaskSelectionViewModel, TaskSelectionOverlay>();
         RegisterView<TaskSettingsViewModel, TaskSettingsOverlay>();
+        RegisterView<TaskInterfaceSetupViewModel, TaskInterfaceSetupOverlay>();
         RegisterView<StartSettingsViewModel, StartSettingsOverlay>();
         RegisterView<InstanceDetailViewModel, InstanceDetailOverlay>();
         RegisterView<ScheduleViewModel, ScheduleOverlay>();

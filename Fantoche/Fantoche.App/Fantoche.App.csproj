@@ -16,11 +16,11 @@
     <PackageReference Include="Joufflu.Navigation" Version="1.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Common" Version="10.0.13" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.13" />
-    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4258.31" />
     <PackageReference Include="Nodify" Version="7.3.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Fantoche.Plugins.Shared.Ui\Fantoche.Plugins.Shared.Ui.csproj" />
     <ProjectReference Include="..\Fantoche.Services.Local\Fantoche.Services.Local.csproj" />
     <ProjectReference Include="..\Fantoche.Services.Remote\Fantoche.Services.Remote.csproj" />
     <ProjectReference Include="..\Fantoche.Shared\Fantoche.Shared.csproj" />

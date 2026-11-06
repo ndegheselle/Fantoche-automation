@@ -1,45 +1,43 @@
 using Fantoche.Plugins.Shared;
 using Fantoche.Shared.Data;
 using Fantoche.Shared.Data.Execution;
+using Fantoche.Shared.Data.Scoped;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Fantoche.Worker.UserInterfaces;
 
 /// <summary>
-/// The page of a task asking the user for its parameters (see <see cref="ITaskWithPage"/>) : shown
-/// by the <see cref="IPageHost"/> of the application, the instance asking reported as waiting for
-/// the user meanwhile.
+/// A task asking the user for its parameters : shown by the <see cref="IPageHost"/> of the
+/// application, the instance asking reported as waiting for the user meanwhile.
 /// </summary>
 internal sealed class PageSession
 {
     private readonly IPageHost _host;
-    private readonly string _folder;
+    private readonly AutomationTask _automationTask;
     private readonly ITask _task;
     private readonly ITaskRuntime _runtime;
     private readonly TaskInstance _instance;
     private readonly Guid _runId;
-    private readonly IStorage _storage;
     private readonly IProgress<TaskInstance>? _states;
 
-    /// <param name="task">An instance of the task asked for, whose page methods the page calls.</param>
-    /// <param name="runtime">What the page methods are handed.</param>
+    /// <param name="task">An instance of the task asked for, which the answer is read as the parameters of.</param>
+    /// <param name="runtime">What the interface hands the rules of the task.</param>
     /// <param name="states">Where the instance is reported waiting for the user, then running again.</param>
-    public PageSession(IPageHost host, string folder, ITask task, ITaskRuntime runtime, TaskInstance instance, Guid runId, IStorage storage, IProgress<TaskInstance>? states)
+    public PageSession(IPageHost host, AutomationTask automationTask, ITask task, ITaskRuntime runtime, TaskInstance instance, Guid runId, IProgress<TaskInstance>? states)
     {
         _host = host;
-        _folder = folder;
+        _automationTask = automationTask;
         _task = task;
         _runtime = runtime;
         _instance = instance;
         _runId = runId;
-        _storage = storage;
         _states = states;
     }
 
     /// <summary>
-    /// Show the page with the parameters [input] until the user answers it : the answer, written as
-    /// the parameters of the task are.
+    /// Ask the user with the parameters [input] until they answer : the answer, written as the
+    /// parameters of the task are.
     /// </summary>
     public async Task<JToken?> AskAsync(JToken? input, CancellationToken cancellation)
     {
@@ -48,10 +46,9 @@ internal sealed class PageSession
         {
             Instance = _instance,
             RunId = _runId,
-            Folder = _folder,
+            Task = _automationTask,
             Input = input,
-            Storage = _storage,
-            CallAsync = (name, args, token) => PageMethods.CallAsync(_task, name, args, _runtime, token),
+            Runtime = _runtime,
             Answer = answer => TryAnswer(answer, answered),
         };
 

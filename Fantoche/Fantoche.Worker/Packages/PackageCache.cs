@@ -40,12 +40,16 @@ public class PackageCache : IPackageManagement
     /// tasks can be stepped into. Defaults to <see cref="IsHostDebuggable"/> : a released
     /// application has nothing to debug, and the symbols only make the loading heavier.
     /// </param>
-    public PackageCache(IPackageSource source, string folderPath, bool? loadSymbols = null)
+    /// <param name="framework">
+    /// The framework the assemblies are picked for, the runtime by default. The application asks for
+    /// Windows to extract the interfaces of the tasks, a worker loads the tasks on any system.
+    /// </param>
+    public PackageCache(IPackageSource source, string folderPath, bool? loadSymbols = null, NuGetFramework? framework = null)
     {
         _source = source;
         _folder = folderPath;
         _loadSymbols = loadSymbols ?? IsHostDebuggable();
-        _framework = GetCurrentFramework();
+        _framework = framework ?? CurrentFramework;
     }
 
     #region Download
@@ -215,9 +219,8 @@ public class PackageCache : IPackageManagement
 
     /// <summary>
     /// The files are written in [folder] where they stand under [root] in the package : the
-    /// assemblies next to each other, where the loader resolves the dependencies of a task, and the
-    /// page of a task in its own folder (see <c>ITaskWithPage.PageFolder</c>).
-    /// A file out of [root] is written at the top.
+    /// assemblies next to each other, where the loader resolves the dependencies of a task, and
+    /// the other files of the package in their folders. A file out of [root] is written at the top.
     /// </summary>
     private static async Task CopyFilesAsync(PackageArchiveReader packageReader, IEnumerable<string> items, string root, string folder)
     {
@@ -275,8 +278,29 @@ public class PackageCache : IPackageManagement
     /// The runtime rather than the framework the entry assembly targets : what matters is what the
     /// running process can load, and the entry assembly isn't ours under a test host.
     /// </summary>
-    private static NuGetFramework GetCurrentFramework()
+    public static NuGetFramework CurrentFramework
         => new(FrameworkConstants.FrameworkIdentifiers.NetCoreApp, new Version(Environment.Version.Major, Environment.Version.Minor));
+
+    /// <summary>
+    /// What the interfaces of the tasks are extracted for, in the application : WPF on the version of
+    /// Windows running. A package built for "net10.0-windows" targets Windows 7 and up, which a bare
+    /// "windows" wouldn't take.
+    /// </summary>
+    public static NuGetFramework WindowsFramework
+    {
+        get
+        {
+            Version os = Environment.OSVersion.Version;
+            return NuGetFramework.Parse($"net{Environment.Version.Major}.{Environment.Version.Minor}-windows{os.Major}.{os.Minor}.{os.Build}");
+        }
+    }
+
+    /// <summary>
+    /// Whether a package of [frameworks] only runs on a platform of its own : a package of
+    /// interfaces, for Windows, which nothing but the application loads.
+    /// </summary>
+    public static bool IsPlatformOnly(IReadOnlyCollection<NuGetFramework> frameworks)
+        => frameworks.Count > 0 && frameworks.All(x => x.HasPlatform);
 
     #endregion
 }

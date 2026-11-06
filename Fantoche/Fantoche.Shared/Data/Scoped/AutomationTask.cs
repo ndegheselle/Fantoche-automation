@@ -74,6 +74,13 @@ public abstract class BaseAutomationTask : ScopedElement
 
     public TaskSettings Settings { get; set; } = new();
 
+    /// <summary>
+    /// The interface its parameters are edited with, in the editor and when a run asks the user (an
+    /// <c>ITaskInterface</c> of a package of interfaces). Null for the form generated from
+    /// <see cref="InputSchema"/>.
+    /// </summary>
+    public PackageClassTarget? Interface { get; set; }
+
     public BaseAutomationTask(EnumScopedType type) : base(type)
     {
     }
@@ -86,14 +93,6 @@ public abstract class BaseAutomationTask : ScopedElement
 public class AutomationTask : BaseAutomationTask
 {
     public PackageClassTarget? Target { get; set; }
-
-    /// <summary>
-    /// Whether the task has a page asking the user for its parameters (see <see cref="ITaskWithPage"/>) :
-    /// a workflow asks it where the node of the task is given an "ask the user" node.
-    /// </summary>
-    [JsonIgnore]
-    [Newtonsoft.Json.JsonIgnore]
-    public bool HasPage => Target?.HasPage == true;
 
     public AutomationTask() : base(EnumScopedType.Task)
     {

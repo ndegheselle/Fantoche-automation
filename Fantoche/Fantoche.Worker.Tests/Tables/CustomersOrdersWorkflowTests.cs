@@ -1,3 +1,4 @@
+using Fantoche.Plugins.Example.Tasks.Tables;
 using Fantoche.Plugins.Shared;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Worker.UserInterfaces;
@@ -77,13 +78,14 @@ internal sealed class CustomersOrdersWorkflowTests
     }
 
     [Test]
-    public async Task ColumnsThePageSuggests_AreTheOnesNamedAlike()
+    public async Task ColumnsTheInterfaceSuggests_AreTheOnesNamedAlike()
     {
-        JToken? suggested = null;
-        ScriptedUser user = new(async (request, cancellation) =>
+        // The interface applies the rule of the task to what the run hands it.
+        List<ColumnMapping>? suggested = null;
+        ScriptedUser user = new((request, cancellation) =>
         {
-            suggested = await request.CallAsync("Suggest", request.Input, cancellation);
-            return null;
+            suggested = MapColumnsTask.Suggest(request.Input!.ToObject<MapColumnsParameters>()!);
+            return Task.FromResult<JToken?>(null);
         });
         using CancellationTokenSource stop = new();
         Task<WorkflowRun> running = BuildMapAskingTheUser().RunAsync(new { Path = _files.Write("customers.csv", $"{CustomersOrdersWorkflow.CustomersHeader}\n1;Alice;Paris\n") }, stop.Token, user);
@@ -97,19 +99,19 @@ internal sealed class CustomersOrdersWorkflowTests
         await running;
 
         // "Name" is held by "full name", "CustomerId" looks like nothing of the file.
-        Assert.That(suggested!.ToObject<List<ColumnMapping>>()!.Select(x => (x.Name, x.Column)), Is.EqualTo(new[] { ("CustomerId", ""), ("Name", "full name") }));
+        Assert.That(suggested!.Select(x => (x.Name, x.Column)), Is.EqualTo(new[] { ("CustomerId", ""), ("Name", "full name") }));
     }
 
     [Test]
-    public async Task ColumnsThePagePicks_AreTheOnesTheMapGives()
+    public async Task ColumnsTheInterfacePicks_AreTheOnesTheMapGives()
     {
-        ScriptedUser user = new(async (request, cancellation) =>
+        ScriptedUser user = new((request, cancellation) =>
         {
             JObject answer = (JObject)request.Input!.DeepClone();
             answer["Columns"] = JArray.FromObject(new[] { new { Name = "CustomerId", Column = "client id" }, new { Name = "Name", Column = "full name" }, new { Name = "Town", Column = "town" } });
-            // Checked by the task before the page answers.
-            JToken? refusal = await request.CallAsync("Check", answer, cancellation);
-            return refusal?.Type == JTokenType.String ? null : answer;
+            // Checked by the task before the interface answers.
+            string? refusal = MapColumnsTask.Check(answer.ToObject<MapColumnsParameters>()!);
+            return Task.FromResult<JToken?>(refusal == null ? answer : null);
         });
 
         WorkflowRun run = await RunMapAsync(user);
@@ -119,20 +121,20 @@ internal sealed class CustomersOrdersWorkflowTests
     }
 
     [Test]
-    public async Task ColumnsNamedTwice_AreRefusedByTheCheckOfThePage()
+    public async Task ColumnsNamedTwice_AreRefusedByTheCheckOfTheTask()
     {
-        JToken? refusal = null;
-        ScriptedUser user = new(async (request, cancellation) =>
+        string? refusal = null;
+        ScriptedUser user = new((request, cancellation) =>
         {
             JObject answer = (JObject)request.Input!.DeepClone();
             answer["Columns"] = JArray.FromObject(new[] { new { Name = "Id", Column = "client id" }, new { Name = "CustomerId", Column = "client id" } });
-            refusal = await request.CallAsync("Check", answer, cancellation);
+            refusal = MapColumnsTask.Check(answer.ToObject<MapColumnsParameters>()!);
             answer["Columns"] = JArray.FromObject(new[] { new { Name = "CustomerId", Column = "client id" }, new { Name = "Name", Column = "full name" } });
-            return answer;
+            return Task.FromResult<JToken?>(answer);
         });
 
         await RunMapAsync(user);
 
-        Assert.That(refusal?.Value<string>(), Is.EqualTo("The column [client id] is given two names."));
+        Assert.That(refusal, Is.EqualTo("The column [client id] is given two names."));
     }
 }

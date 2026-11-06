@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The interfaces of the tasks of Fantoche.Plugins.Example, for Windows : only the application loads
+    them, the workers loading the tasks on any system from their own package. Added to the packages
+    like any other, see TaskInterfaces in Fantoche.App.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Title>Interfaces of the table automation plugins</Title>
+    <!-- Its assembly version follows : WPF tells two versions of an interface apart by it. -->
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Found in the application, never packed : the application and its interfaces share them. -->
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <ProjectReference Include="..\Fantoche.Plugins.Shared.Ui\Fantoche.Plugins.Shared.Ui.csproj" />
+    <!-- The tasks the interfaces call the rules of, packed along : see PackTasks below. -->
+    <ProjectReference Include="..\Fantoche.Plugins.Example\Fantoche.Plugins.Example.csproj" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!--
+    The application extracts a package alone, without its dependencies : the assembly of the tasks is
+    packed next to the interfaces, which run the version they were built against. Its own
+    dependencies (PDFsharp) aren't : the rules the interfaces call don't reach them.
+  -->
+  <PropertyGroup>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);PackTasks</TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+  <Target Name="PackTasks" DependsOnTargets="ResolveReferences">
+    <ItemGroup>
+      <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.Filename)%(ReferenceCopyLocalPaths.Extension)' == 'Fantoche.Plugins.Example.dll'" />
+    </ItemGroup>
+  </Target>
+
+</Project>

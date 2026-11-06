@@ -1,23 +1,23 @@
-using Fantoche.Shared.Data.Execution;
+﻿using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Data.Graph;
 using Fantoche.Shared.Data.Scoped;
 
 namespace Fantoche.Shared.Tests;
 
 /// <summary>
-/// Which "ask the user" node can be attached under which task : it shows the page of a task, so a
-/// wrong attachment would hand the task the answer to another task's page, or ask the user twice.
+/// Which "ask the user" node can be attached under which task : it shows the interface of a task, so
+/// a wrong attachment would hand the task the answer meant for another task, or ask the user twice.
 /// </summary>
 [TestFixture]
 internal sealed class PageAttachmentTests
 {
     private readonly TasksGraph _graph = new();
 
-    private static AutomationTask TaskWithPage() => new("Task", Guid.Empty)
+    private static AutomationTask Task() => new("Task", Guid.Empty)
     {
         Id = Guid.NewGuid(),
         InputSchemaJson = """{"type":"object","properties":{"Items":{"type":"array"}}}""",
-        Target = new PackageClassTarget { HasPage = true },
+        Target = new PackageClassTarget(),
     };
 
     private GraphTask Node(AutomationTask task)
@@ -37,7 +37,7 @@ internal sealed class PageAttachmentTests
     [Test]
     public void AttachedNode_AsksForItsTask()
     {
-        AutomationTask reorder = TaskWithPage();
+        AutomationTask reorder = Task();
         GraphTask task = Node(reorder);
         GraphUserInterface page = Asking(reorder);
 
@@ -52,18 +52,20 @@ internal sealed class PageAttachmentTests
     }
 
     [Test]
-    public void TaskWithoutAPage_TakesNoAskingNode()
+    public void AnyTask_TakesAnAskingNode()
     {
+        // The user decides which task asks : without an interface of its own, it shows the form
+        // generated from its parameters.
         GraphTask task = Node(new AutomationTask("Task", Guid.Empty) { Id = Guid.NewGuid(), InputSchemaJson = "{}" });
 
-        Assert.That(task.UserInterface, Is.Null);
+        Assert.That(task.UserInterface, Is.Not.Null);
     }
 
     [Test]
-    public void NodeShowingThePageOfAnotherTask_CantBeAttached()
+    public void NodeAskingForAnotherTask_CantBeAttached()
     {
-        GraphTask task = Node(TaskWithPage());
-        GraphUserInterface page = Asking(TaskWithPage());
+        GraphTask task = Node(Task());
+        GraphUserInterface page = Asking(Task());
 
         Assert.That(_graph.CanConnect(task.UserInterface!, page.UserInterface!), Is.False);
     }
@@ -71,7 +73,7 @@ internal sealed class PageAttachmentTests
     [Test]
     public void SecondAskingNode_CantBeAttachedToTheSameTask()
     {
-        AutomationTask reorder = TaskWithPage();
+        AutomationTask reorder = Task();
         GraphTask task = Node(reorder);
         _graph.Attach(task, Asking(reorder));
 
@@ -81,7 +83,7 @@ internal sealed class PageAttachmentTests
     [Test]
     public void AskingNode_CantBeAttachedToTwoTasks()
     {
-        AutomationTask reorder = TaskWithPage();
+        AutomationTask reorder = Task();
         GraphUserInterface page = Asking(reorder);
         _graph.Attach(Node(reorder), page);
 
@@ -91,7 +93,7 @@ internal sealed class PageAttachmentTests
     [Test]
     public void TaskSlot_CantTakeAnotherTask()
     {
-        AutomationTask reorder = TaskWithPage();
+        AutomationTask reorder = Task();
         GraphTask task = Node(reorder);
 
         Assert.That(_graph.CanConnect(task.UserInterface!, Node(reorder).UserInterface!), Is.False);
@@ -100,7 +102,7 @@ internal sealed class PageAttachmentTests
     [Test]
     public void AskingNodeNotYetInTheGraph_IsCheckedAgainstItsTask()
     {
-        AutomationTask reorder = TaskWithPage();
+        AutomationTask reorder = Task();
         GraphTask task = Node(reorder);
         GraphUserInterface page = new(reorder);
 
@@ -110,13 +112,13 @@ internal sealed class PageAttachmentTests
     [Test]
     public void RefusedAttachment_TellsWhy()
     {
-        AutomationTask reorder = TaskWithPage();
+        AutomationTask reorder = Task();
         GraphTask task = Node(reorder);
         _graph.Attach(task, Asking(reorder));
 
         Assert.Multiple(() =>
         {
-            Assert.That(_graph.GetAttachError(Node(reorder), Asking(TaskWithPage())), Does.Contain("page of another task"));
+            Assert.That(_graph.GetAttachError(Node(reorder), Asking(Task())), Does.Contain("asks for another task"));
             Assert.That(_graph.GetAttachError(task, Asking(reorder)), Does.Contain("already asks the user"));
             Assert.That(_graph.GetAttachError(task, Node(reorder)), Does.Contain("doesn't ask the user"));
         });
@@ -125,7 +127,7 @@ internal sealed class PageAttachmentTests
     [Test]
     public void InstanceOfAnAskingNode_AsksTheUser()
     {
-        AutomationTask reorder = TaskWithPage();
+        AutomationTask reorder = Task();
         GraphContextResolution resolution = new(Guid.NewGuid());
 
         TaskInstance asking = resolution.CreateInstance(Asking(reorder), null);

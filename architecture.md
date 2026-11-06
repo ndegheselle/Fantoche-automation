@@ -5,7 +5,7 @@ The standalone and remote modes run the same code: one supervisor (`LocalSupervi
 Two rules keep the interactions simple:
 - What the application starts runs in the application, unless the user starts it on the workers. The workers run what the supervisor dispatches to them: the schedules, and the runs started on them from the application.
 - Once a worker (the application's included) starts an execution, everything of it stays there. Every node of a workflow runs where the workflow runs, and its tables and files never leave the storage of its run. A suspended run is resumed by whoever can reach that storage (see [Suspended runs](#suspended-runs)).
-- The one exception is a page asking the user: it always runs in an application, where the user is. A worker hands it to one through the supervisor (see [User interface tasks](#user-interface-tasks)).
+- The one exception is a task asking the user: the asking always runs in an application, where the user is. A worker hands it to one through the supervisor (see [User interface tasks](#user-interface-tasks)).
 
 ## Standalone and remote
 
@@ -51,7 +51,7 @@ In the process, the messages are copied the way the wire would copy them (`Fanto
 
 ## An execution dispatched to a worker
 
-An execution is handed whole to the supervisor, and the worker it is dispatched to runs all of it. A caller waiting on its outcome hands it over with `ICallerHub.Execute` (what `RemoteTaskExecutor` calls, for a page asking the user); a run nobody waits on but the history (a schedule, a workflow started "On remote worker") is started with `IDispatchService.StartAsync` (`POST /dispatch/tasks/{id}/start`, `Dispatcher.StartAsync`):
+An execution is handed whole to the supervisor, and the worker it is dispatched to runs all of it. A caller waiting on its outcome hands it over with `ICallerHub.Execute` (what `RemoteTaskExecutor` calls, for a task asking the user); a run nobody waits on but the history (a schedule, a workflow started "On remote worker") is started with `IDispatchService.StartAsync` (`POST /dispatch/tasks/{id}/start`, `Dispatcher.StartAsync`):
 
 ```mermaid
 sequenceDiagram
@@ -89,7 +89,7 @@ A "Run on a worker" setting on the tasks and workflows was removed too. Where an
 
 - The history of a task, workflow or scope only lists the runs started on their own (`IHistoryService.GetByScopedAsync`, `ParentInstanceId` empty). A node of a workflow is read from its run.
 - The detail of an execution shows what it ran with, its output (or the error it failed with) and the executions it ran. It only reads: a run of a workflow is acted upon from its editor ("Open execution").
-- The editor draws a run on the graph of its workflow, as the history holds it, then as it goes on (`WorkflowRunViewModel`). From there it is paused, stopped and resumed, and its pages answered (see [Suspended runs](#suspended-runs)). Double-clicking a node shows the detail of its execution, or opens its page when it waits for the user.
+- The editor draws a run on the graph of its workflow, as the history holds it, then as it goes on (`WorkflowRunViewModel`). From there it is paused, stopped and resumed, and its tasks asking the user answered (see [Suspended runs](#suspended-runs)). Double-clicking a node shows the detail of its execution, or opens the window asking the user when it waits for them.
 
 ## Suspended runs
 
@@ -145,79 +145,109 @@ The versions are stored as reverse diffs, so a past version costs only what chan
 
 ## User interface tasks
 
-A task can have a page asking the user for its parameters, before it runs. Use it for what a form can't describe, like picking the columns of a file or composing a document. A workflow only asks where the node of the task is given an "ask the user" node, so the same task runs unattended elsewhere (a schedule, an automated run).
+Any task can ask the user for its parameters before it runs, and any task or workflow is set up in the editor. Both show the interface of the element (`BaseAutomationTask.Interface`): a WPF view from a package of interfaces, or the form generated from its parameters when it has none. A workflow only asks where the node of the task is given an "ask the user" node, so the same task runs unattended elsewhere (a schedule, an automated run).
 
-- **In a workflow:** "Ask the user" on a node whose task has a page (`AutomationTask.HasPage`) adds a round node attached under it, through the diamond under the task (`GraphUserInterface`, `BaseGraphTask.UserInterface`). It points at the same task and sits apart from the branches: nothing flows into it nor out of it. A task is asked by one node, which asks for that task only (`TasksGraph.CanConnect`).
-- **When the task is reached:** its parameters are resolved, an instance of the asking node shows the page of the task with them (`TaskInstance.AsksUser`), and the task runs with what the user answered, carrying on from the node before it (`WorkflowExecutor.RunUiAsync`). A resume asks again a page that was asking, and runs the task with the answer kept when the page was answered but the task never started.
+- **In a workflow:** "Ask the user" on a task node adds a round node attached under it, through the diamond under the task (`GraphUserInterface`, `BaseGraphTask.UserInterface`). It points at the same task and sits apart from the branches: nothing flows into it nor out of it. A task is asked by one node, which asks for that task only (`TasksGraph.CanConnect`).
+- **When the task is reached:** its parameters are resolved, an instance of the asking node shows the interface of the task with them (`TaskInstance.AsksUser`, `AskingWindow`), and the task runs with what the user answered, carrying on from the node before it (`WorkflowExecutor.RunUiAsync`). A resume asks again a task that was asking, and runs the task with the answer kept when it was answered but the task never started.
+- **In the editor:** the settings of a node show the interface when it handles the editor (`TaskInterfaceSetupViewModel`), the generated settings otherwise (`TaskSettingsViewModel`). Either way the mapping is checked by `MappingCheck` and undone like any edit.
 
 ```mermaid
 sequenceDiagram
     participant Worker as Worker running the run
     participant Supervisor
     participant App as Application
-    Worker->>Supervisor: Execute(page), as a caller
+    Worker->>Supervisor: Execute(asking), as a caller
     Supervisor->>Supervisor: queue it, waiting for a user (AwaitingUser)
-    App->>Supervisor: Take(page), its user answering it from its run
-    Supervisor->>App: Execute(page), the application being a worker for the pages
-    App->>App: the page of the task (AwaitingUser), calling the methods of the task
+    App->>Supervisor: Take(asking), its user answering it from its run
+    Supervisor->>App: Execute(asking), the application being a worker for them
+    App->>App: the interface of the task (AwaitingUser)
     App->>Supervisor: the storage of the run, read and written through its API
-    App->>Supervisor: Complete(page), the answer as its output
-    Supervisor->>Worker: Completed(page)
+    App->>Supervisor: Complete(asking), the answer as its output
+    Supervisor->>Worker: Completed(asking)
     Worker->>Worker: the task, with the answer as its parameters
 ```
 
-A run started in the application skips the supervisor: the application runs the page itself.
+A run started in the application skips the supervisor: the application asks itself.
 
-Why a node of its own rather than a switch on the task (an `AskUser` input, as before): a workflow run unattended holds only the task, asking is seen as a step of the workflow, and the task runs on a worker while only the page needs an application.
+Why a node of its own rather than a switch on the task (an `AskUser` input, as before): a workflow run unattended holds only the task, asking is seen as a step of the workflow, and the task runs on a worker while only the interface needs an application.
 
-Why the page belongs to the task rather than to a task of its own (a `UserInterfaceTask<TParameters>`, as before): the page edits the parameters of one task only, its methods were the rules of that task, and picking a page for a task was a choice nobody needed. The same page is meant to edit the settings of the node in the editor too.
+Why the interface is picked on the element rather than declared by the task class: every task asks with the generated form without anything to write, a workflow gets an interface the same way, and the interfaces are packed apart. WPF only runs on Windows, while the workers load the tasks on any system.
 
-- **Writing one:** implement `ITaskWithPage` on the task and give the folder of its page (`PageFolder`, relative to the assembly). Mark the rules of the task the page calls with `[PageMethod]`, static or not, so the page applies them rather than a copy:
+Why WPF rather than HTML pages (as before): an interface is typed C# running in the application, calling the rules of its task directly, styled by the theme of the application, without a bridge in JavaScript.
 
-  ```csharp
-  public class MapColumnsTask : BaseTask<MapColumnsParameters, TableRef>, ITaskWithPage
-  {
-      public string PageFolder => "UI/MapColumns";
+### Writing an interface
 
-      [PageMethod]
-      public static string? Check(MapColumnsParameters parameters) => ...;
-  }
-  ```
+A project for Windows (`net10.0-windows`, WPF) referencing `Fantoche.Plugins.Shared.Ui` and the project of its tasks. See `Fantoche.Plugins.Example.Ui`.
 
-  See `MapColumnsTask` and `ExportPdfTask` in `Fantoche.Plugins.Example`.
-- **The page:** it reads the parameters of the task as `window.fantoche.input` and answers them with `await window.fantoche.answer(value)`, rejected when the answer doesn't fit the parameters of the task. `window.fantoche.close()` closes it unanswered, and it can be opened again.
-- **Calling the task:** `await window.fantoche.call('Suggest', args)` calls a method of the task marked `[PageMethod]`. It takes at most one value, plus the `ITaskRuntime` and a `CancellationToken` if it asks for them. So the page reuses the rules of the task rather than writing them again in JavaScript: `MapColumnsTask.Check`, `ExportPdfTask.PreviewAsync` rendering the real PDF.
-- **Packing it:** the folder is packed next to the assembly, the way `Fantoche.Plugins.Example.csproj` does it:
+```csharp
+public class MapColumnsInterface : ITaskInterface
+{
+    private MapColumnsViewModel? _columns;
+
+    // The generated form shows in the modes it doesn't handle : here, the editor.
+    public bool Handles(EnumInterfaceMode mode) => mode == EnumInterfaceMode.Execution;
+
+    public FrameworkElement Show(TaskInterfaceContext context)
+    {
+        _columns = new MapColumnsViewModel(context.ParametersAs<MapColumnsParameters>()!, context.Runtime!.Storage);
+        _ = _columns.LoadAsync();
+        return new MapColumnsView { DataContext = _columns };
+    }
+
+    public Task<JToken?> ReadAsync()
+    {
+        MapColumnsParameters answer = _columns!.Answer();
+        // The rule of the task, not a copy : thrown, the message is shown and the user stays on it.
+        if (MapColumnsTask.Check(answer) is string refusal)
+            throw new TaskInterfaceException(refusal);
+        return Task.FromResult<JToken?>(JToken.FromObject(answer));
+    }
+}
+```
+
+- **The modes:** in a run, `Parameters` holds the parameters and `Runtime` what the rules of the task are handed (its storage first). In the editor, `Parameters` holds the mapping, a field pointing at what the node reads holding a reference (`"$previous.Table"`), and `References` what the node reads, typed. Nothing ran there: `Runtime` is null.
+- **The answer:** the application checks it before taking it. In a run, it must read as the parameters of the task, else the refusal is shown above the buttons. In the editor, `MappingCheck` checks it as it checks the generated settings.
+- **The view:** only what the user edits. The application shows the name of the node, the refusal and the buttons around it. Plain WPF controls take the theme of the application. The resources of the view stay in the view: put in the application, they would apply to every interface.
+- **Packing it:** the package carries the assembly of the tasks it was built against. It doesn't carry what the application already holds (WPF, Joufflu, CommunityToolkit.Mvvm, Newtonsoft.Json, `Fantoche.Plugins.Shared` and `.Ui`), which it shares with it. See `Fantoche.Plugins.Example.Ui.csproj`:
 
   ```xml
-  <Content Include="UI\**\*" Exclude="UI\**\*.cs" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="lib\$(TargetFramework)\UI" />
+  <ProjectReference Include="..\Fantoche.Plugins.Example\Fantoche.Plugins.Example.csproj" PrivateAssets="all" />
+  <Target Name="PackTasks" DependsOnTargets="ResolveReferences">
+    <ItemGroup>
+      <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.Filename)%(ReferenceCopyLocalPaths.Extension)' == 'Fantoche.Plugins.Example.dll'" />
+    </ItemGroup>
+  </Target>
   ```
 
-  A package keeps the folders it has under `lib/<framework>` once extracted.
+- **Picking it:** the package is added from the Packages page like any other. The supervisor doesn't look for tasks in a package built only for a platform (`PackageCache.IsPlatformOnly`): it may run on Linux, where WPF can't load. The details of a task or a workflow pick the interface ("Select interface"), listed by the application itself.
+
+### Loading the interfaces
+
+The application extracts the packages of interfaces for its own version of Windows (`PackageCache.WindowsFramework`), apart from the cache of its worker, and loads them (`TaskInterfaces`):
+
+- **A context per version of a package**, holding the interface and the assembly of the tasks it carries. Two versions of an interface show side by side, each calling the rules of its own version of the tasks.
+- **Never unloaded:** WPF keeps hold of the types it showed (the dependency properties, the XAML caches), so a context holding a view can't be collected. A version stays loaded until the application closes.
+- **The assembly version changes with every version of the package.** WPF finds the XAML of a view by the name and the version of its assembly: two versions sharing one would show each other's views. The second one is refused. The SDK derives the assembly version from `<Version>`, but a prerelease (`1.1.0-beta`) and its release share `1.1.0.0`.
+- **Built against what the application holds:** an interface referencing a newer `Fantoche.Plugins.Shared.Ui` or Joufflu than the application's doesn't load.
+- **When it can't be shown**, the generated form is shown instead with the reason, in a run as in the editor: the parameters can still be answered.
+
+### While a task asks
+
 - **Where it runs:** always in an application (`UserTasks`).
-  - A run of the application runs it there.
-  - A worker hands it to the supervisor as any caller does (`RemoteTaskExecutor`). The supervisor never hands it out on its own: it waits in the queue, `AwaitingUser` in the history, and the branch of the run with it.
-  - A user answering it from its run takes it (`IWorkerRegistration.TakeAsync`): the supervisor hands it to that application (`EnumWorkerRoles.UserTasks`, which every application registers in both modes), and its page opens once it asks. A second application taking it is refused. No page shows up unasked.
-  - A worker reaching no page at all (no supervisor) fails the page, and its task never runs.
-- **While it asks:** the page is `AwaitingUser` and the branch of its task waits, the rest of the run going on.
+  - A run of the application asks there.
+  - A worker hands the asking to the supervisor as any caller does (`RemoteTaskExecutor`). The supervisor never hands it out on its own: it waits in the queue, `AwaitingUser` in the history, and the branch of the run with it.
+  - A user answering it from its run takes it (`IWorkerRegistration.TakeAsync`): the supervisor hands it to that application (`EnumWorkerRoles.UserTasks`, which every application registers in both modes), and its window opens once it asks. A second application taking it is refused. Nothing shows up unasked.
+  - A worker reaching no application at all (no supervisor) fails the asking, and its task never runs.
+- **While it asks:** the asking node is `AwaitingUser` and the branch of its task waits, the rest of the run going on.
   - The worker keeps the run in memory meanwhile, and counts it against its capacity.
-  - For a run of the application, the editor following the run opens the page by itself. Otherwise the application tells the user, who opens the run on the graph of its workflow (from its history, or the detail of the execution) and double-clicks the node waiting.
+  - For a run of the application, the editor following the run opens the window by itself. Otherwise the application tells the user, who opens the run on the graph of its workflow (from its history, or the detail of the execution) and double-clicks the node waiting.
   - The run shows `AwaitingUser` in the history while a node under it waits, nested runs included, and goes back to `Progressing` once none does (`LocalHistoryService.CarryAwaitingUserUpAsync`). Answering takes the task itself, not the nested runs holding it.
-  - Only the application running the page can answer it. A second answer is refused.
+  - Only the application showing it can answer it. A second answer is refused.
 - **When it goes wrong:**
-  - An application lost while running the page leaves the node `Suspended`, and its run with it. Resuming the run asks again.
-  - A run canceled stops the page and closes it.
-- **Showing files and tables:** the page reads the ones its input points at, and the ones a page method hands back (`PageFiles`).
-
-  ```js
-  image.src = fantoche.fileUrl(fantoche.input.Scan);
-  const { Columns, Total, Rows } = await fantoche.readTable(fantoche.input.Orders, { offset: 0, limit: 100 });
-  ```
-
-  - A page can't browse the rest of the storage.
-  - Tables are read a slice at a time (`limit` up to 1000), so a large one doesn't load whole.
-  - For a run of the workers, the application reaches the storage of the run through the supervisor (`RemoteStorage`), which reads the volume the workers share. The queries run there, only their results travel; the dates come back as dates.
-- **What the page can reach:** only the files of its folder and the storage above, served under `https://page.fantoche/` with a content security policy allowing nothing from the network. No navigation elsewhere, no new window, no object of the application. Only JSON travels: the input, the calls and the answer.
+  - An application lost while asking leaves the node `Suspended`, and its run with it. Resuming the run asks again.
+  - A run canceled stops the asking and closes its window.
+- **Files and tables:** the interface reads them through the storage of the run (`context.Runtime.Storage`), a slice of rows at a time for a table (`ReadPageAsync`). For a run of the workers, the application reaches that storage through the supervisor (`RemoteStorage`), which reads the volume the workers share. The queries run there, only their results travel.
+- **What an interface can reach:** it runs in the application with the rights of the application, as the tasks the application loads already do. Nothing sandboxes it, as the HTML pages were: a package of interfaces is trusted as much as a package of tasks.
 
 ## What the editor previews of a task
 
@@ -294,6 +324,7 @@ flowchart LR
 - A task points at a package and a version, or at no version to follow the latest one (`PackageIdentifier.Version` null, "Latest" when the class is picked, and the default). The newest version is asked to the supervisor each time the task runs (`PackageCache.DownloadPackageAsync`, `IPackageSource.GetVersionsAsync`), never cached, so a version added since the last run is picked up without editing the task. The samples follow the latest version of the example plugins.
 - A cache never refreshes a version it already extracted, so a version can't be added twice. Publish a changed package under a new version.
 - The supervisor's cache only serves to check what a package holds when it is added. The tasks themselves always run from the cache of a worker, in both modes.
+- A package of interfaces, built for Windows, is only extracted by the application, in a cache of its own (see [Loading the interfaces](#loading-the-interfaces)).
 
 ## Folders
 
@@ -306,4 +337,7 @@ Supervisor (DATA_FOLDER, or %AppData%/Automation in standalone mode)
 Worker (DATA_FOLDER, or %AppData%/Automation/worker for the application)
   cache/            the packages extracted to run the tasks
   storage/          the storage of its executions
+
+Application (%AppData%/Automation)
+  interfaces/       the packages of interfaces extracted to show them
 ```

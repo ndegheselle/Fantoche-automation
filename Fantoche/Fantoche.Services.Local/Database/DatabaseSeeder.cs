@@ -85,7 +85,7 @@ internal static class Samples
 
     private static readonly AutomationTask MapColumns = MakeTask(
         Id(0x32), "Map columns", "Fantoche.Plugins.Example.Tasks.Tables.MapColumnsTask",
-        MapColumnsInputSchema, TableSchema, hasPage: true);
+        MapColumnsInputSchema, TableSchema, @interface: MapColumnsInterface);
 
     private static readonly AutomationTask Merge = MakeTask(
         Id(0x33), "Merge", "Fantoche.Plugins.Example.Tasks.Tables.MergeTask",
@@ -101,7 +101,7 @@ internal static class Samples
 
     private static readonly AutomationTask ExportPdf = MakeTask(
         Id(0x37), "Export PDF", "Fantoche.Plugins.Example.Tasks.Pdf.ExportPdfTask",
-        ExportPdfInputSchema, ExportPdfOutputSchema, hasPage: true);
+        ExportPdfInputSchema, ExportPdfOutputSchema);
 
     private static readonly AutomationTask AddValue = MakeEngineTask(
         Id(0x40), "Add", "Fantoche.Plugins.TestTask",
@@ -122,7 +122,7 @@ internal static class Samples
 
     private static readonly AutomationTask Reorder = MakeEngineTask(
         Id(0x44), "Reorder", "Fantoche.Plugins.UserInterfaces.ReorderTask",
-        ReorderInputSchema, ItemsSchema, hasPage: true);
+        ReorderInputSchema, ItemsSchema);
 
     #endregion
 
@@ -330,6 +330,17 @@ internal static class Samples
     /// </summary>
     private static PackageIdentifier PluginsPackage => new() { Id = "Fantoche.Plugins.Example", Version = null };
 
+    /// <summary>
+    /// The interface the user picks the columns with, from the package of the interfaces of the
+    /// example plugins : without it, the run shows the form generated from the parameters instead.
+    /// </summary>
+    private static PackageClassTarget MapColumnsInterface => new(
+        new PackageIdentifier { Id = "Fantoche.Plugins.Example.Ui", Version = null },
+        "Fantoche.Plugins.Example.Ui.Tables.MapColumnsInterface")
+    {
+        Dll = "Fantoche.Plugins.Example.Ui",
+    };
+
     /// <summary>The package of the engine samples, see <see cref="PluginsPackage"/>.</summary>
     private static PackageIdentifier EnginePackage => new() { Id = "Fantoche.Plugins", Version = null };
 
@@ -452,7 +463,7 @@ internal static class Samples
         string className,
         string inputSchema,
         string outputSchema,
-        bool hasPage = false,
+        PackageClassTarget? @interface = null,
         Guid? parentId = null,
         PackageIdentifier? package = null,
         bool isPassThrough = false)
@@ -467,9 +478,9 @@ internal static class Samples
             {
                 Dll = target.Id,
                 ClassFullName = className,
-                HasPage = hasPage,
                 Package = target,
             },
+            Interface = @interface,
             InputSchemaJson = inputSchema,
             OutputSchemaJson = outputSchema,
             Settings = new TaskSettings() { IsPassingThrough = isPassThrough },
@@ -478,9 +489,9 @@ internal static class Samples
 
     /// <summary>A task of the engine samples, see <see cref="EnginePackage"/>.</summary>
     private static AutomationTask MakeEngineTask(
-        Guid id, string name, string className, string inputSchema, string outputSchema, bool isPassThrough = false, bool hasPage = false)
+        Guid id, string name, string className, string inputSchema, string outputSchema, bool isPassThrough = false)
         => MakeTask(id, name, className, inputSchema, outputSchema,
-            hasPage: hasPage, parentId: EngineScope.Id, package: EnginePackage, isPassThrough: isPassThrough);
+            parentId: EngineScope.Id, package: EnginePackage, isPassThrough: isPassThrough);
 
     /// <summary>
     /// A workflow with an empty graph. Its schemas are not set here : they are declared by the start

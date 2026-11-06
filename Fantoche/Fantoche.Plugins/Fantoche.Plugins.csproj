@@ -2,7 +2,7 @@
 
   <!--
     The tasks the tests of the engine build their workflows with : they only exercise the engine
-    (values, delays, gates, a page). Packed for the "Pause, stop and resume" sample, which runs them
+    (values, delays, gates, asking the user). Packed for the "Pause, stop and resume" sample, which runs them
     in the application. See Fantoche.Plugins.Example for the tasks of a practical workflow.
   -->
   <PropertyGroup>
@@ -13,16 +13,11 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
     <Title>Engine test plugins</Title>
-    <Version>1.0.0</Version>
+    <Version>1.1.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Fantoche.Plugins.Shared\Fantoche.Plugins.Shared.csproj" />
-  </ItemGroup>
-
-  <!-- The page of the reorder task, next to the assembly it is read relative to (see IUserInterfaceTask.PageFolder). -->
-  <ItemGroup>
-    <Content Include="UserInterfaces\**\*" Exclude="UserInterfaces\**\*.cs" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="lib\$(TargetFramework)\UserInterfaces" />
   </ItemGroup>
 
 </Project>

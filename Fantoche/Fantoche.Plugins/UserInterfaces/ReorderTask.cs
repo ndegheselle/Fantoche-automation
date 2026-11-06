@@ -15,17 +15,11 @@ public class ReorderResult
 }
 
 /// <summary>
-/// The items in the order they are given : its page, <c>UserInterfaces/Reorder</c>, lets the user
-/// put them in order first, by dragging them.
+/// The items in the order they are given : asking the user lets them put the items in order first,
+/// in the form generated from the parameters.
 /// </summary>
-public class ReorderTask : BaseTask<ReorderParameters, ReorderResult>, ITaskWithPage
+public class ReorderTask : BaseTask<ReorderParameters, ReorderResult>
 {
-    public string PageFolder => "UserInterfaces/Reorder";
-
     public override Task<ReorderResult> DoAsync(ReorderParameters parameters, ITaskRuntime runtime, CancellationToken? cancellation = null)
         => Task.FromResult(new ReorderResult { Items = parameters.Items });
-
-    /// <summary>The items in alphabetical order : what the page offers to start from.</summary>
-    [PageMethod]
-    public static List<string> Sorted(ReorderParameters parameters) => [.. parameters.Items.Order(StringComparer.CurrentCulture)];
 }

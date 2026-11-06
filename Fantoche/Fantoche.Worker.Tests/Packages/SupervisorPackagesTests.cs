@@ -1,3 +1,5 @@
+using Fantoche.Shared.Data.Execution;
+using Fantoche.Shared.Services;
 using Fantoche.Services.Remote;
 using Fantoche.Supervisor.Api;
 using Fantoche.Worker.Packages;
@@ -45,6 +47,37 @@ internal sealed class SupervisorPackagesTests
     }
 
     private Task AddAsync(string id) => _packages.AddAsync(TestNupkg.Write(Path.Combine(_folder, "upload"), id, TestVersion.ToString()));
+
+    /// <summary>A package of interfaces : built for Windows, as a WPF project is.</summary>
+    private Task<PackageAdded> AddInterfacesAsync(string id)
+        => _packages.AddAsync(TestNupkg.Write(Path.Combine(_folder, "upload"), id, TestVersion.ToString(), "net10.0-windows7.0"));
+
+    [Test]
+    public async Task PackageOfInterfaces_IsAddedWithoutItsTasksBeingLookedFor()
+    {
+        // The supervisor may run on Linux, where WPF can't be loaded : only the application lists
+        // the interfaces.
+        PackageAdded added = await AddInterfacesAsync("Tests.Interfaces");
+        List<ClassTarget> classes = await _packages.GetClassesAsync("Tests.Interfaces", TestVersion);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(added.Warnings, Is.Empty);
+            Assert.That(classes, Is.Empty);
+        });
+    }
+
+    [Test]
+    [Platform(Include = "Win")]
+    public async Task PackageOfInterfaces_IsExtractedForTheApplication()
+    {
+        await AddInterfacesAsync("Tests.Interfaces");
+        PackageCache applicationCache = new(new RemotePackageSource(_http), Path.Combine(_folder, "interfaces"), framework: PackageCache.WindowsFramework);
+
+        string path = await applicationCache.DownloadPackageAsync("Tests.Interfaces", TestVersion, TestNupkg.Dll);
+
+        Assert.That(File.Exists(path), Is.True);
+    }
 
     [Test]
     public async Task Download_ExtractsThePackageTheSupervisorHolds()

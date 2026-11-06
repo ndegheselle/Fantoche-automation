@@ -203,13 +203,13 @@ namespace Fantoche.Shared.Data.Graph
             if (page is not GraphUserInterface || page.UserInterface == null)
                 return $"'{page.Name}' doesn't ask the user, only an \"ask the user\" node does.";
             if (task is GraphUserInterface || task.UserInterface == null)
-                return $"'{task.Name}' has no page to ask the user with.";
+                return $"'{task.Name}' can't ask the user : only a task can.";
             if (Connections.Any(x => x.SourceId == task.UserInterface.Id))
                 return $"'{task.Name}' already asks the user.";
             if (Connections.Any(x => x.TargetId == page.UserInterface.Id))
                 return $"'{page.Name}' is already attached to another task.";
             if (task.TaskId != page.TaskId)
-                return $"'{page.Name}' shows the page of another task than '{task.Name}'.";
+                return $"'{page.Name}' asks for another task than '{task.Name}'.";
             return null;
         }
 

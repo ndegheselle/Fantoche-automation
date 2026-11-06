@@ -499,7 +499,7 @@
                                             <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.UserPen}" />
                                         </MenuItem.Icon>
                                     </MenuItem>
-                                    <!--  Only on a task with a page, not asking the user yet : the slot of its page is free  -->
+                                    <!--  Only on a task not asking the user yet : its slot is free  -->
                                     <MenuItem
                                         Command="{Binding Tag.AskUserCommand}"
                                         CommandParameter="{Binding DataContext}"

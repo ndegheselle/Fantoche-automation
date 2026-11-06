@@ -11,8 +11,11 @@ internal static class TestNupkg
 {
     public const string Dll = PluginTasks.Package;
 
-    /// <summary>Write the package [id] [version] in [folder] and return its path.</summary>
-    public static string Write(string folder, string id, string version)
+    /// <summary>
+    /// Write the package [id] [version] in [folder] and return its path, its assembly built for
+    /// [framework] : "net10.0-windows7.0" for a package of interfaces.
+    /// </summary>
+    public static string Write(string folder, string id, string version, string framework = "net10.0")
     {
         var builder = new PackageBuilder
         {
@@ -24,16 +27,8 @@ internal static class TestNupkg
         builder.Files.Add(new PhysicalPackageFile
         {
             SourcePath = Path.Combine(AppContext.BaseDirectory, $"{Dll}.dll"),
-            TargetPath = $"lib/net10.0/{Dll}.dll",
+            TargetPath = $"lib/{framework}/{Dll}.dll",
         });
-
-        // The pages of the user interface tasks, packed as the plugin project packs them.
-        string pages = Path.Combine(AppContext.BaseDirectory, "UserInterfaces");
-        foreach (string page in Directory.EnumerateFiles(pages, "*", SearchOption.AllDirectories))
-        {
-            string relative = Path.GetRelativePath(AppContext.BaseDirectory, page).Replace('\\', '/');
-            builder.Files.Add(new PhysicalPackageFile { SourcePath = page, TargetPath = $"lib/net10.0/{relative}" });
-        }
 
         Directory.CreateDirectory(folder);
         string path = Path.Combine(folder, $"{id}.{version}.nupkg");

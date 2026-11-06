@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using Fantoche.App.Common;
+using Fantoche.App.Features.UserInterfaces;
 using Fantoche.Shared.Base;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Services;
@@ -24,7 +25,8 @@ namespace Fantoche.App.Features.Packages.Controls
     }
 
     /// <summary>
-    /// Pick a class to run : a package first, then one of the classes a version of it holds.
+    /// Pick a class of a package : a task to run, or the interface of a task. A package first, then
+    /// one of the classes a version of it holds.
     /// </summary>
     public partial class PackageSelectionViewModel : ObservableObject, IOverlayContent<PackageClassTarget>
     {
@@ -67,7 +69,6 @@ namespace Fantoche.App.Features.Packages.Controls
                 {
                     ClassFullName = SelectedClass.ClassFullName,
                     Dll = SelectedClass.Dll,
-                    HasPage = SelectedClass.HasPage,
                     Package = new PackageIdentifier()
                     {
                         Id = SelectedPackage.Identifier.Id,
@@ -77,24 +78,47 @@ namespace Fantoche.App.Features.Packages.Controls
 
         private readonly IPackagesService _packages;
         private readonly IOverlayer _overlayer;
+        private readonly Func<string, Version, Task<IEnumerable<ClassTarget>>> _classesOf;
 
-        public PackageSelectionViewModel(IPackagesService packages, IOverlayer overlayer)
+        /// <param name="classesOf">The classes a version of a package holds, which the user picks from.</param>
+        public PackageSelectionViewModel(IPackagesService packages, IOverlayer overlayer, string title, Func<string, Version, Task<IEnumerable<ClassTarget>>> classesOf)
         {
             _packages = packages;
             _overlayer = overlayer;
+            _classesOf = classesOf;
             Paging = new SearchedPagingViewModel(RefreshAsync);
-            Options = new OverlayOptions() { Title = "Select a class" };
+            Options = new OverlayOptions() { Title = title };
 
             _ = RefreshAsync();
         }
 
         /// <summary>
-        /// Show the selection overlay and wait for a class to be picked, null when dismissed.
+        /// Show the selection overlay and wait for a task to be picked, null when dismissed. The
+        /// supervisor lists the tasks : it loads them as the workers do.
         /// </summary>
         public static Task<PackageClassTarget?> ShowAsync()
-            => SpineViewModel.Instance.Overlayer.ShowAsync(new PackageSelectionViewModel(
+        {
+            IPackagesService packages = SpineViewModel.Instance.Packages;
+            return SpineViewModel.Instance.Overlayer.ShowAsync(new PackageSelectionViewModel(
+                packages,
+                SpineViewModel.Instance.Overlayer,
+                "Select a class",
+                async (id, version) => await packages.GetClassesAsync(id, version)));
+        }
+
+        /// <summary>
+        /// Show the selection overlay and wait for the interface of a task to be picked, null when
+        /// dismissed. The application lists the interfaces : only it can load them.
+        /// </summary>
+        public static Task<PackageClassTarget?> ShowInterfacesAsync()
+        {
+            TaskInterfaces interfaces = SpineViewModel.Instance.Interfaces;
+            return SpineViewModel.Instance.Overlayer.ShowAsync(new PackageSelectionViewModel(
                 SpineViewModel.Instance.Packages,
-                SpineViewModel.Instance.Overlayer));
+                SpineViewModel.Instance.Overlayer,
+                "Select an interface",
+                interfaces.GetClassesAsync));
+        }
 
         public async Task RefreshAsync()
         {
@@ -151,7 +175,7 @@ namespace Fantoche.App.Features.Packages.Controls
             if (version == null)
                 return;
 
-            foreach (var classe in await _packages.GetClassesAsync(SelectedPackage.Identifier.Id, version))
+            foreach (var classe in await _classesOf(SelectedPackage.Identifier.Id, version))
                 Classes.Add(classe);
         }
 

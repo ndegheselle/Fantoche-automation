@@ -52,25 +52,5 @@ internal sealed class PackageCacheTests
         Assert.That(path, Does.StartWith(Path.Combine(_folder, "cache", "Tests.Package", "2.0.0")));
     }
 
-    [Test]
-    public async Task PageOfATask_IsExtractedInItsFolder()
-    {
-        await _packages.AddAsync(TestNupkg.Write(Path.Combine(_folder, "upload"), "Tests.Package", "1.0.0"));
-        PackageClassTarget reorder = new(
-            new PackageIdentifier { Id = "Tests.Package", Version = new Version(1, 0, 0) },
-            "Fantoche.Plugins.UserInterfaces.ReorderTask")
-        {
-            Dll = TestNupkg.Dll,
-        };
-        using TaskLoaders tasks = new(_cache);
-
-        string page = await tasks.GetPageFolderAsync(reorder);
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(File.Exists(Path.Combine(page, "index.html")), Is.True);
-            Assert.That(File.Exists(Path.Combine(page, "reorder.js")), Is.True, "the rest of the folder comes along");
-        });
-    }
 
 }

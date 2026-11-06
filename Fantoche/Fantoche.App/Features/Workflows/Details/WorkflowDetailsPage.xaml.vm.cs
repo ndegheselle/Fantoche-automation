@@ -23,6 +23,9 @@ namespace Fantoche.App.Features.Workflows.Details
         /// <summary>When the workflow is started on its own, displayed by the schedules tab.</summary>
         public SchedulesViewModel Schedules { get; }
 
+        /// <summary>What its parameters are edited with where it is nested in another workflow.</summary>
+        public InterfaceSelectionViewModel Interface { get; }
+
         public bool StopIfAnyTaskFail
         {
             get => Workflow.WorkflowSettings.StopIfAnyTaskFail;
@@ -43,6 +46,7 @@ namespace Fantoche.App.Features.Workflows.Details
         {
             Editor = new WorkflowEditorViewModel(Workflow, SaveGraphCommand, parent.OpenRunAsync, scoped, execution, dispatch, prompts, history, toasts);
             Schedules = new SchedulesViewModel(Workflow, overlays, () => SaveElementAsync($"The schedules of the workflow '{Node.Name}' have been saved."));
+            Interface = new InterfaceSelectionViewModel(Workflow, MarkChanged);
             Editor.History.PropertyChanged += (_, e) =>
             {
                 if (e.PropertyName == nameof(EditorHistory.HasUnsavedChanges))

@@ -10,9 +10,9 @@ public class MapColumnsParameters
     public TableRef Source { get; set; } = new();
 
     /// <summary>
-    /// The name to give each column, a column being named once. With its page, the names are the
-    /// ones of the workflow and the columns what the page starts from : left empty, it picks the
-    /// column whose name looks the most alike.
+    /// The name to give each column, a column being named once. With its interface, the names are
+    /// the ones of the workflow and the columns what the interface starts from : left empty, it
+    /// picks the column whose name looks the most alike.
     /// </summary>
     [JsonSchemaExtensionData(OutputPreview.MappingSchemaKey, OutputPreview.Whole)]
     public List<ColumnMapping> Columns { get; set; } = [];
@@ -23,15 +23,14 @@ public class MapColumnsParameters
 /// (<see cref="TableRef.Mapping"/>) rather than the table being copied, which costs nothing however
 /// large it is. The tasks reading the table read the columns by these names.
 /// <para>
-/// Its page, <c>UI/MapColumns</c>, lets the user pick the columns first : the names are the ones of
-/// the workflow, written in the editor, so the nodes after are written against them whatever the
-/// file calls its columns.
+/// Its interface, <c>MapColumnsInterface</c> (Fantoche.Plugins.Example.Ui), lets the user pick the
+/// columns first : the names are the ones of the workflow, written in the editor, so the nodes after
+/// are written against them whatever the file calls its columns. It applies the rules below
+/// (<see cref="Suggest"/>, <see cref="Check"/>) rather than a copy of them.
 /// </para>
 /// </summary>
-public class MapColumnsTask : BaseTask<MapColumnsParameters, TableRef>, ITaskWithPage
+public class MapColumnsTask : BaseTask<MapColumnsParameters, TableRef>
 {
-    public string PageFolder => "UI/MapColumns";
-
     public override Task<TableRef> DoAsync(MapColumnsParameters parameters, ITaskRuntime runtime, CancellationToken? cancellation = null)
     {
         Dictionary<string, string> mapping = MappingOf(parameters);
@@ -47,10 +46,9 @@ public class MapColumnsTask : BaseTask<MapColumnsParameters, TableRef>, ITaskWit
     }
 
     /// <summary>
-    /// The columns the page starts from : the one given to each name, or the stored column whose
+    /// The columns the interface starts from : the one given to each name, or the stored column whose
     /// name looks the most alike ("Client ID", "client_id" and "clientid" read the same), or holds it.
     /// </summary>
-    [PageMethod]
     public static List<ColumnMapping> Suggest(MapColumnsParameters parameters)
     {
         TableRef source = parameters.Source;
@@ -72,7 +70,6 @@ public class MapColumnsTask : BaseTask<MapColumnsParameters, TableRef>, ITaskWit
     }
 
     /// <summary>Why the task can't run with [parameters], null when it can.</summary>
-    [PageMethod]
     public static string? Check(MapColumnsParameters parameters)
     {
         try

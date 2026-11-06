@@ -8,21 +8,21 @@ namespace Fantoche.App.Features.UserInterfaces
     /// <summary>
     /// The tasks asking the user in this application, while they run : the ones its own runs reach,
     /// and the ones its user takes from the runs of the workers (see <see cref="AnswerAsync"/>). Each
-    /// one is held until the task gets its answer, its page shown in a window of its own whenever
-    /// the user opens it : nothing shows up unasked.
+    /// one is held until the task gets its answer, shown in a window of its own (<see cref="AskingWindow"/>)
+    /// whenever the user opens it : nothing shows up unasked.
     /// </summary>
     public sealed class UserPrompts : IPageHost
     {
         private sealed class Prompt
         {
             public required PageRequest Request { get; init; }
-            /// <summary>The window showing the page, null while it is closed. Read and written on the UI thread.</summary>
-            public PageWindow? Window { get; set; }
+            /// <summary>The window showing it, null while it is closed. Read and written on the UI thread.</summary>
+            public AskingWindow? Window { get; set; }
             /// <summary>Closed once the task stops asking, whether the page is open or not.</summary>
             public bool IsOver { get; set; }
         }
 
-        private readonly string _browserFolder;
+        private readonly TaskInterfaces _interfaces;
         private readonly IHistoryService _history;
         private readonly Func<Guid, Task<bool>> _takeAsync;
         private readonly object _lock = new();
@@ -39,14 +39,14 @@ namespace Fantoche.App.Features.UserInterfaces
         /// <summary>A task started or stopped asking, raised by the thread running it.</summary>
         public event Action? AskingChanged;
 
-        /// <param name="browserFolder">Where the browser showing the pages keeps its data.</param>
+        /// <param name="interfaces">What the interfaces of the tasks are loaded with.</param>
         /// <param name="takeAsync">
         /// Take a task asking the user waiting at the supervisor, false when another application took
         /// it first (see <see cref="Worker.IWorkerRegistration.TakeAsync"/>).
         /// </param>
-        public UserPrompts(string browserFolder, IHistoryService history, Func<Guid, Task<bool>> takeAsync)
+        public UserPrompts(TaskInterfaces interfaces, IHistoryService history, Func<Guid, Task<bool>> takeAsync)
         {
-            _browserFolder = browserFolder;
+            _interfaces = interfaces;
             _history = history;
             _takeAsync = takeAsync;
         }
@@ -134,7 +134,10 @@ namespace Fantoche.App.Features.UserInterfaces
                 return;
             }
 
-            prompt.Window = PageWindow.Open(request, _browserFolder);
+            prompt.Window = await AskingWindow.OpenAsync(request, _interfaces);
+            // Stopped while its interface was loading.
+            if (prompt.IsOver)
+                prompt.Window.Close();
             try
             {
                 await prompt.Window.Dismissed;

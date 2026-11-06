@@ -71,45 +71,9 @@ internal sealed class UserInterfaceWorkflowTests
         Assert.Multiple(() =>
         {
             Assert.That(asked.Input?["Items"]?.ToObject<string[]>(), Is.EqualTo(new[] { "b", "a" }));
-            Assert.That(asked.Folder, Does.EndWith(Path.Combine("UserInterfaces", "Reorder")));
+            // What the application shows it with : the interface of the task, or the form of its parameters.
+            Assert.That(asked.Task.Target?.ClassFullName, Is.EqualTo("Fantoche.Plugins.UserInterfaces.ReorderTask"));
         });
-    }
-
-    [Test]
-    public async Task Page_CallsItsMethods()
-    {
-        // The page answers with what its task sorts.
-        ScriptedUser user = new(async (request, cancellation) =>
-        {
-            JToken? sorted = await request.CallAsync("Sorted", request.Input, cancellation);
-            return new JObject { ["Title"] = "Sort them", ["Items"] = sorted };
-        });
-
-        WorkflowRun run = await BuildAsk().RunAsync(Items, user: user);
-
-        Assert.That(ItemsOf(run), Is.EqualTo(new[] { "a", "b" }));
-    }
-
-    [Test]
-    public async Task UnknownPageMethod_IsRefused()
-    {
-        string? refusal = null;
-        ScriptedUser user = new(async (request, cancellation) =>
-        {
-            try
-            {
-                await request.CallAsync("Nothing", null, cancellation);
-            }
-            catch (ArgumentException exception)
-            {
-                refusal = exception.Message;
-            }
-            return JToken.FromObject(Answer("c"));
-        });
-
-        await BuildAsk().RunAsync(Items, user: user);
-
-        Assert.That(refusal, Is.EqualTo("[Nothing] isn't a page method of the task."));
     }
 
     [Test]
@@ -163,7 +127,7 @@ internal sealed class UserInterfaceWorkflowTests
         Assert.Multiple(() =>
         {
             Assert.That(page.State, Is.EqualTo(EnumTaskState.Failed));
-            Assert.That(page.Output?.ToString(), Does.Contain("'Page' asks the user, and nothing here shows its page."));
+            Assert.That(page.Output?.ToString(), Does.Contain("'Page' asks the user, and nothing here can show it."));
             Assert.That(run.States("Ask"), Is.Empty);
         });
     }

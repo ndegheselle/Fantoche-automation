@@ -9,7 +9,11 @@ public class PluginLoader<TPlugin>: AssemblyLoadContext, IDisposable where TPlug
     private readonly string _pluginPath;
     private readonly AssemblyDependencyResolver _resolver;
 
-    public PluginLoader(string pluginPath) : base(true)
+    /// <param name="isCollectible">
+    /// Whether the context can be unloaded : the tasks can, an interface can't, WPF keeping hold of
+    /// the types it showed (see TaskInterfaces in Fantoche.App).
+    /// </param>
+    public PluginLoader(string pluginPath, bool isCollectible = true) : base(isCollectible)
     {
         _pluginPath = pluginPath;
         _resolver = new AssemblyDependencyResolver(_pluginPath);

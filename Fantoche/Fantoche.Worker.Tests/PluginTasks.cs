@@ -1,4 +1,4 @@
-using Fantoche.Plugins;
+﻿using Fantoche.Plugins;
 using Fantoche.Plugins.Example.Tasks.Pdf;
 using Fantoche.Plugins.Example.Tasks.Tables;
 using Fantoche.Plugins.Shared;
@@ -48,11 +48,10 @@ internal static class PluginTasks
         "Fantoche.Plugins.LoopGateTask", "LoopGate",
         JsonSchema.FromType<LoopGateParameters>(), new JsonSchema(), passThrough: true);
 
-    /// <summary>Hands the items over in the order they are given, which its page lets the user change.</summary>
+    /// <summary>Hands the items over in the order they are given, which asking the user lets them change.</summary>
     public static readonly AutomationTask Reorder = Make(
         "Fantoche.Plugins.UserInterfaces.ReorderTask", "Reorder",
-        JsonSchema.FromType<Plugins.UserInterfaces.ReorderParameters>(), JsonSchema.FromType<Plugins.UserInterfaces.ReorderResult>(),
-        hasPage: true);
+        JsonSchema.FromType<Plugins.UserInterfaces.ReorderParameters>(), JsonSchema.FromType<Plugins.UserInterfaces.ReorderResult>());
 
     /// <summary>A task pointing at a class the assembly doesn't hold.</summary>
     public static readonly AutomationTask UnknownClass = Make(
@@ -67,15 +66,15 @@ internal static class PluginTasks
     #region Tables
 
     public static readonly AutomationTask ImportCsv = Table<ImportCsvTask, ImportCsvParameters, TableRef>("ImportCsv");
-    public static readonly AutomationTask MapColumns = Table<MapColumnsTask, MapColumnsParameters, TableRef>("MapColumns", hasPage: true);
+    public static readonly AutomationTask MapColumns = Table<MapColumnsTask, MapColumnsParameters, TableRef>("MapColumns");
     public static readonly AutomationTask Merge = Table<MergeTask, MergeParameters, TableRef>("Merge");
     public static readonly AutomationTask Update = Table<UpdateTask, UpdateParameters, TableRef>("Update");
     public static readonly AutomationTask Split = Table<SplitTask, SplitParameters, SplitResult>("Split");
-    public static readonly AutomationTask ExportPdf = Table<ExportPdfTask, ExportPdfParameters, ExportPdfResult>("ExportPdf", hasPage: true);
+    public static readonly AutomationTask ExportPdf = Table<ExportPdfTask, ExportPdfParameters, ExportPdfResult>("ExportPdf");
 
     /// <summary>A task of Fantoche.Plugins.Example, with the schemas its types declare as adding it from its package does.</summary>
-    private static AutomationTask Table<TTask, TInput, TOutput>(string name, bool hasPage = false)
-        => Make(typeof(TTask).FullName!, name, JsonSchema.FromType<TInput>(), JsonSchema.FromType<TOutput>(), package: TablesPackage, hasPage: hasPage);
+    private static AutomationTask Table<TTask, TInput, TOutput>(string name)
+        => Make(typeof(TTask).FullName!, name, JsonSchema.FromType<TInput>(), JsonSchema.FromType<TOutput>(), package: TablesPackage);
 
     #endregion
 
@@ -89,8 +88,7 @@ internal static class PluginTasks
         JsonSchema? input,
         JsonSchema? output,
         bool passThrough = false,
-        string package = Package,
-        bool hasPage = false)
+        string package = Package)
         => new()
         {
             Id = Guid.NewGuid(),
@@ -98,7 +96,6 @@ internal static class PluginTasks
             {
                 Dll = package,
                 ClassFullName = className,
-                HasPage = hasPage,
                 Package = new PackageIdentifier()
                 {
                     Id = package,

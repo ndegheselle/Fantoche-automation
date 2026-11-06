@@ -429,7 +429,7 @@ namespace Fantoche.App.Features.Workflows.Editor
             if (node == null || node.IsUserInterface)
                 return;
 
-            IReversibleAction? edition = await TaskSettingsViewModel.ShowAsync(node.Model, Preview);
+            IReversibleAction? edition = await TaskInterfaceSetupViewModel.ShowAsync(node.Model, Preview);
 
             // Readable while a run is followed, but what runs has to stay what is displayed.
             if (edition != null && IsEditable)
