@@ -499,6 +499,25 @@
                                             <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.UserPen}" />
                                         </MenuItem.Icon>
                                     </MenuItem>
+                                    <!--  Only on a task with a page, not asking the user yet : the slot of its page is free  -->
+                                    <MenuItem
+                                        Command="{Binding Tag.AskUserCommand}"
+                                        CommandParameter="{Binding DataContext}"
+                                        Header="Ask the user">
+                                        <MenuItem.Style>
+                                            <Style BasedOn="{StaticResource {x:Type MenuItem}}" TargetType="MenuItem">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding DataContext.UserInterfaceSlot.IsConnected}" Value="False">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </MenuItem.Style>
+                                        <MenuItem.Icon>
+                                            <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.AppWindow}" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
                                     <MenuItem
                                         Command="{Binding Tag.OpenSettingsCommand}"
                                         CommandParameter="{Binding DataContext}"

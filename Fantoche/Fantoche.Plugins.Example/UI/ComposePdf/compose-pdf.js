@@ -1,5 +1,5 @@
 // The page of the export PDF task : window.fantoche is handed over by the application, see
-// IUserInterfaceTask. The page edits the parameters of the task, the task rendering the PDF of the
+// ITaskWithPage. The page edits the parameters of the task, the task rendering the PDF of the
 // first table on demand. The logic works on the document as it is answered, the DOM only shows it
 // and edits it. What the sheet shows follows what PdfRenderer draws.
 const PreviewSize = 20;

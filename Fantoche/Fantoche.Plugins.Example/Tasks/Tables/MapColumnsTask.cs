@@ -10,9 +10,9 @@ public class MapColumnsParameters
     public TableRef Source { get; set; } = new();
 
     /// <summary>
-    /// The name to give each column, a column being named once. With a page (see
-    /// <see cref="MapColumnsUi"/>), the names are the ones of the workflow and the columns what the
-    /// page starts from : left empty, it picks the column whose name looks the most alike.
+    /// The name to give each column, a column being named once. With its page, the names are the
+    /// ones of the workflow and the columns what the page starts from : left empty, it picks the
+    /// column whose name looks the most alike.
     /// </summary>
     [JsonSchemaExtensionData(OutputPreview.MappingSchemaKey, OutputPreview.Whole)]
     public List<ColumnMapping> Columns { get; set; } = [];
@@ -23,11 +23,15 @@ public class MapColumnsParameters
 /// (<see cref="TableRef.Mapping"/>) rather than the table being copied, which costs nothing however
 /// large it is. The tasks reading the table read the columns by these names.
 /// <para>
-/// Its page, <see cref="MapColumnsUi"/>, lets the user pick the columns first.
+/// Its page, <c>UI/MapColumns</c>, lets the user pick the columns first : the names are the ones of
+/// the workflow, written in the editor, so the nodes after are written against them whatever the
+/// file calls its columns.
 /// </para>
 /// </summary>
-public class MapColumnsTask : BaseTask<MapColumnsParameters, TableRef>
+public class MapColumnsTask : BaseTask<MapColumnsParameters, TableRef>, ITaskWithPage
 {
+    public string PageFolder => "UI/MapColumns";
+
     public override Task<TableRef> DoAsync(MapColumnsParameters parameters, ITaskRuntime runtime, CancellationToken? cancellation = null)
     {
         Dictionary<string, string> mapping = MappingOf(parameters);
@@ -46,6 +50,7 @@ public class MapColumnsTask : BaseTask<MapColumnsParameters, TableRef>
     /// The columns the page starts from : the one given to each name, or the stored column whose
     /// name looks the most alike ("Client ID", "client_id" and "clientid" read the same), or holds it.
     /// </summary>
+    [PageMethod]
     public static List<ColumnMapping> Suggest(MapColumnsParameters parameters)
     {
         TableRef source = parameters.Source;
@@ -67,6 +72,7 @@ public class MapColumnsTask : BaseTask<MapColumnsParameters, TableRef>
     }
 
     /// <summary>Why the task can't run with [parameters], null when it can.</summary>
+    [PageMethod]
     public static string? Check(MapColumnsParameters parameters)
     {
         try

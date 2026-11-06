@@ -87,7 +87,8 @@ public static class ReferencesHandler
         return template;
     }
 
-    private static bool IsUnder(string path, string property)
+    /// <summary>Whether the JSON [path] is [property] or something it holds.</summary>
+    public static bool IsUnder(string path, string property)
         => path == property || path.StartsWith($"{property}.") || path.StartsWith($"{property}[");
 
     /// <summary>
@@ -95,7 +96,7 @@ public static class ReferencesHandler
     /// </summary>
     /// <param name="token"></param>
     /// <returns></returns>
-    private static bool IsReference(JToken token)
+    public static bool IsReference(JToken token)
     {
         if (token.Type != JTokenType.String)
             return false;

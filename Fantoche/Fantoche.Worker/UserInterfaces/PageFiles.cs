@@ -83,7 +83,7 @@ namespace Fantoche.Worker.UserInterfaces
         /// <summary>Guarded by itself : a page method hands ids over while the page reads.</summary>
         private readonly HashSet<string> _reachableIds = [];
 
-        /// <param name="folder">The folder of the page, see <c>IUserInterfaceTask.PageFolder</c>.</param>
+        /// <param name="folder">The folder of the page, see <c>ITaskWithPage.PageFolder</c>.</param>
         /// <param name="storage">The storage of the run of the task, wherever it is held.</param>
         /// <param name="input">What the page is asked with : the files and tables of [storage] it can read.</param>
         public PageFiles(string folder, IStorage storage, JToken? input)

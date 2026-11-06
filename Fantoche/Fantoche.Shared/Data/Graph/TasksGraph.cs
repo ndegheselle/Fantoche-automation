@@ -143,7 +143,8 @@ namespace Fantoche.Shared.Data.Graph
         }
 
         /// <summary>
-        /// Attach [page] under [task] : the user is asked the parameters of the task before it runs.
+        /// Attach [page] under [task] : the user is asked the parameters of the task through its page
+        /// before it runs.
         /// </summary>
         /// <exception cref="InvalidOperationException">The page can't be attached, see <see cref="CanConnect"/>.</exception>
         public void Attach(BaseGraphTask task, GraphUserInterface page)
@@ -180,9 +181,9 @@ namespace Fantoche.Shared.Data.Graph
         }
 
         /// <summary>
-        /// Whether the page plugged by [plug] can be attached to the task holding the slot [slot] :
-        /// the page edits the parameters of the task, so both read the same ones. A task asks a
-        /// single page, and a page is asked by a single task.
+        /// Whether the "ask the user" node plugged by [plug] can be attached to the task holding the
+        /// slot [slot] : it shows the page of that task. A task is asked by a single node, and a node
+        /// asks for a single task.
         /// </summary>
         private bool CanAttach(GraphConnector slot, GraphConnector plug)
         {
@@ -194,21 +195,21 @@ namespace Fantoche.Shared.Data.Graph
 
         /// <summary>
         /// Why [page] can't be attached under [task], null when it can (see <see cref="CanAttach"/>).
-        /// The page doesn't have to be in the graph yet : a page dropped on its task is checked before
+        /// The page doesn't have to be in the graph yet : one added under its task is checked before
         /// it is added.
         /// </summary>
         public string? GetAttachError(BaseGraphTask task, BaseGraphTask page)
         {
             if (page is not GraphUserInterface || page.UserInterface == null)
-                return $"'{page.Name}' is not a page, only a page asks for the parameters of a task.";
+                return $"'{page.Name}' doesn't ask the user, only an \"ask the user\" node does.";
             if (task is GraphUserInterface || task.UserInterface == null)
-                return $"'{task.Name}' takes no page.";
+                return $"'{task.Name}' has no page to ask the user with.";
             if (Connections.Any(x => x.SourceId == task.UserInterface.Id))
-                return $"'{task.Name}' already has a page.";
+                return $"'{task.Name}' already asks the user.";
             if (Connections.Any(x => x.TargetId == page.UserInterface.Id))
                 return $"'{page.Name}' is already attached to another task.";
-            if (task.InputSchemaJson != page.InputSchemaJson)
-                return $"'{page.Name}' doesn't edit the parameters of '{task.Name}'.";
+            if (task.TaskId != page.TaskId)
+                return $"'{page.Name}' shows the page of another task than '{task.Name}'.";
             return null;
         }
 
@@ -216,7 +217,7 @@ namespace Fantoche.Shared.Data.Graph
             => connector == null ? [] : [connector];
 
         /// <summary>
-        /// The page asking the user for the parameters of [task] before it runs, null when it runs
+        /// The node asking the user for the parameters of [task] before it runs, null when it runs
         /// unattended.
         /// </summary>
         public GraphUserInterface? GetUserInterfaceOf(BaseGraphTask task)

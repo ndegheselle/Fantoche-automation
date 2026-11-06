@@ -85,12 +85,7 @@ internal static class Samples
 
     private static readonly AutomationTask MapColumns = MakeTask(
         Id(0x32), "Map columns", "Fantoche.Plugins.Example.Tasks.Tables.MapColumnsTask",
-        MapColumnsInputSchema, TableSchema);
-
-    /// <summary>Lets the user pick the column each name stands for : hangs under the task it asks for.</summary>
-    private static readonly AutomationTask MapColumnsUi = MakeUi(
-        Id(0x38), "Pick the columns", "Fantoche.Plugins.Example.Tasks.Tables.MapColumnsUi",
-        MapColumnsInputSchema, MapColumns);
+        MapColumnsInputSchema, TableSchema, hasPage: true);
 
     private static readonly AutomationTask Merge = MakeTask(
         Id(0x33), "Merge", "Fantoche.Plugins.Example.Tasks.Tables.MergeTask",
@@ -106,12 +101,7 @@ internal static class Samples
 
     private static readonly AutomationTask ExportPdf = MakeTask(
         Id(0x37), "Export PDF", "Fantoche.Plugins.Example.Tasks.Pdf.ExportPdfTask",
-        ExportPdfInputSchema, ExportPdfOutputSchema);
-
-    /// <summary>Lets the user compose the document : hangs under the task it asks for.</summary>
-    private static readonly AutomationTask ExportPdfUi = MakeUi(
-        Id(0x39), "Compose the document", "Fantoche.Plugins.Example.Tasks.Pdf.ExportPdfUi",
-        ExportPdfInputSchema, ExportPdf);
+        ExportPdfInputSchema, ExportPdfOutputSchema, hasPage: true);
 
     private static readonly AutomationTask AddValue = MakeEngineTask(
         Id(0x40), "Add", "Fantoche.Plugins.TestTask",
@@ -132,12 +122,7 @@ internal static class Samples
 
     private static readonly AutomationTask Reorder = MakeEngineTask(
         Id(0x44), "Reorder", "Fantoche.Plugins.UserInterfaces.ReorderTask",
-        ReorderInputSchema, ItemsSchema);
-
-    /// <summary>Lets the user put the items in order : hangs under the task it asks for.</summary>
-    private static readonly AutomationTask ReorderUi = MakeUi(
-        Id(0x45), "Put in order", "Fantoche.Plugins.UserInterfaces.ReorderUi",
-        ReorderInputSchema, Reorder, EnginePackage);
+        ReorderInputSchema, ItemsSchema, hasPage: true);
 
     #endregion
 
@@ -148,12 +133,10 @@ internal static class Samples
             SamplesScope,
             ImportCsv,
             MapColumns,
-            MapColumnsUi,
             Merge,
             Update,
             Split,
             ExportPdf,
-            ExportPdfUi,
             BuildCustomersOrders(),
             EngineScope,
             AddValue,
@@ -161,7 +144,6 @@ internal static class Samples
             LoopGate,
             Conditional,
             Reorder,
-            ReorderUi,
             BuildStates(),
         ];
 
@@ -203,7 +185,7 @@ internal static class Samples
                 Source = "$previous",
                 Columns = new[] { Column("CustomerId", "client id"), Column("Name", "full name"), Column("City", "town") },
             });
-        GraphUserInterface customersPage = Node(new GraphUserInterface(MapColumnsUi), "Pick the customers columns", 660, 120);
+        GraphUserInterface customersPage = Node(new GraphUserInterface(MapColumns), "Pick the customers columns", 660, 120);
 
         GraphTask importOrders = Node(new GraphTask(ImportCsv), "Import orders", 440, 300,
             new { Path = "$previous.Orders" });
@@ -213,7 +195,7 @@ internal static class Samples
                 Source = "$previous",
                 Columns = new[] { Column("OrderId", "order no"), Column("CustomerId", "client"), Column("Amount", "total"), Column("Date", "ordered on") },
             });
-        GraphUserInterface ordersPage = Node(new GraphUserInterface(MapColumnsUi), "Pick the orders columns", 660, 420);
+        GraphUserInterface ordersPage = Node(new GraphUserInterface(MapColumns), "Pick the orders columns", 660, 420);
 
         GraphControl tables = Node(new GraphControl(AutomationControl.JoinTask), "Tables", 880, 150,
             new { Customers = "$previous.Customers", Orders = "$previous.Orders" });
@@ -242,7 +224,7 @@ internal static class Samples
                 Document = new { Landscape = true, Blocks = Array.Empty<object>() },
                 FileName = "orders-{index}",
             });
-        GraphUserInterface exportPage = Node(new GraphUserInterface(ExportPdfUi), "Compose the document", 1760, 270);
+        GraphUserInterface exportPage = Node(new GraphUserInterface(ExportPdf), "Compose the document", 1760, 270);
         GraphControl end = EndNode(1980, 150, new { Files = "$previous.Files" }, Schema(("Files", "array")));
 
         Add(workflow, start, importCustomers, customers, customersPage, importOrders, orders, ordersPage,
@@ -309,7 +291,7 @@ internal static class Samples
             new { Items = new[] { "$previous.Count.Message", "$previous.Slow.Message" } });
         GraphTask sort = Node(new GraphTask(Reorder), "Sort", 1320, 150,
             new { Title = "Put the branches in the order you like", Items = "$previous.Items" });
-        GraphUserInterface sortPage = Node(new GraphUserInterface(ReorderUi), "Put in order", 1320, 270);
+        GraphUserInterface sortPage = Node(new GraphUserInterface(Reorder), "Put in order", 1320, 270);
         GraphControl end = EndNode(1540, 150, new { Items = "$previous.Items" }, Schema(("Items", "array")));
 
         Add(workflow, start, firstWait, count, turnWait, again, done, slowWait, slow, closed, never,
@@ -470,7 +452,7 @@ internal static class Samples
         string className,
         string inputSchema,
         string outputSchema,
-        bool isUserInterface = false,
+        bool hasPage = false,
         Guid? parentId = null,
         PackageIdentifier? package = null,
         bool isPassThrough = false)
@@ -485,7 +467,7 @@ internal static class Samples
             {
                 Dll = target.Id,
                 ClassFullName = className,
-                IsUserInterface = isUserInterface,
+                HasPage = hasPage,
                 Package = target,
             },
             InputSchemaJson = inputSchema,
@@ -496,16 +478,9 @@ internal static class Samples
 
     /// <summary>A task of the engine samples, see <see cref="EnginePackage"/>.</summary>
     private static AutomationTask MakeEngineTask(
-        Guid id, string name, string className, string inputSchema, string outputSchema, bool isPassThrough = false)
+        Guid id, string name, string className, string inputSchema, string outputSchema, bool isPassThrough = false, bool hasPage = false)
         => MakeTask(id, name, className, inputSchema, outputSchema,
-            parentId: EngineScope.Id, package: EnginePackage, isPassThrough: isPassThrough);
-
-    /// <summary>
-    /// The page editing the parameters of [task] : it reads and hands over what the task reads, and
-    /// hangs under it in the tree.
-    /// </summary>
-    private static AutomationTask MakeUi(Guid id, string name, string className, string parametersSchema, AutomationTask task, PackageIdentifier? package = null)
-        => MakeTask(id, name, className, parametersSchema, parametersSchema, isUserInterface: true, parentId: task.Id, package: package);
+            hasPage: hasPage, parentId: EngineScope.Id, package: EnginePackage, isPassThrough: isPassThrough);
 
     /// <summary>
     /// A workflow with an empty graph. Its schemas are not set here : they are declared by the start

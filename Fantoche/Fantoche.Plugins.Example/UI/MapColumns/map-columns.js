@@ -1,5 +1,5 @@
 // The page of the map columns task : window.fantoche is handed over by the application, see
-// IUserInterfaceTask. The page edits the parameters of the task, the task suggesting the columns
+// ITaskWithPage. The page edits the parameters of the task, the task suggesting the columns
 // and checking the answer (its page methods Suggest and Check). The logic works on a plain state,
 // the DOM only shows it and edits it.
 const PreviewSize = 20;

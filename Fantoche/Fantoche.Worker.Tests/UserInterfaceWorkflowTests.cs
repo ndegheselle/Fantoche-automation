@@ -24,7 +24,7 @@ internal sealed class UserInterfaceWorkflowTests
             .Task("Ask", PluginTasks.Reorder, new { Title = "Sort them", Items = "$previous.Items" })
             .End(new { Items = "$previous.Items" })
             .Chain("Start", "Ask", "End");
-        return withPage ? workflow.Ui("Page", PluginTasks.ReorderUi, of: "Ask") : workflow;
+        return withPage ? workflow.Ui("Page", of: "Ask") : workflow;
     }
 
     private static readonly object Items = new { Items = new[] { "b", "a" } };
@@ -216,7 +216,7 @@ internal sealed class UserInterfaceWorkflowTests
             .Task("Ask", PluginTasks.Reorder, new { Title = "Sort them", Items = "$previous.Items" })
             .End(new { Items = "$previous.Items" })
             .Chain("Start", "Ask", "End")
-            .Ui("Page", PluginTasks.ReorderUi, of: "Ask");
+            .Ui("Page", of: "Ask");
         inner.Workflow.OutputSchema = NJsonSchema.JsonSchema.FromType<Plugins.UserInterfaces.ReorderResult>();
         TestWorkflow outer = new TestWorkflow("Outer", requireOutput: false)
             .Start()

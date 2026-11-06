@@ -95,7 +95,7 @@ public class LocalPackagesService : IPackagesService, IPackageSource
                 targets.Add(new PackageClassTarget(identifier, type.FullName ?? "")
                 {
                     Dll = dll,
-                    IsUserInterface = typeof(IUserInterfaceTask).IsAssignableFrom(type),
+                    HasPage = typeof(ITaskWithPage).IsAssignableFrom(type),
                 });
             }
         }

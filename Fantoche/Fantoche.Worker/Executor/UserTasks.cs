@@ -1,10 +1,10 @@
-using Fantoche.Plugins.Shared;
+using Fantoche.Shared.Data.Execution;
 using Fantoche.Worker.UserInterfaces;
 
 namespace Fantoche.Worker.Executor;
 
 /// <summary>
-/// Where the tasks asking the user run (see <see cref="IUserInterfaceTask"/>) : always in an
+/// Where the instances asking the user run (see <see cref="TaskInstance.AsksUser"/>) : always in an
 /// application, where the user is. An application runs them itself, showing their page ; a worker
 /// hands them to an application through the supervisor, as it would to a remote worker.
 /// </summary>

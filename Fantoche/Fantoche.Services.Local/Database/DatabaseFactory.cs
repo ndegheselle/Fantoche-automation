@@ -104,6 +104,8 @@ namespace Fantoche.Services.Local.Database
         {
             // What a resumed run reads of its history.
             DropWithout(connection, "TaskInstances", "NestedVersions");
+            // Which instances ask the user, since the pages belong to their task.
+            DropWithout(connection, "TaskInstances", "AsksUser");
         }
 
         private static void DropWithout(IDbConnection connection, string table, string column)

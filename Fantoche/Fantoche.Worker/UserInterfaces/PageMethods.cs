@@ -16,8 +16,9 @@ public static class PageMethods
     /// <exception cref="ArgumentException">[task] has no page method [name], or [args] doesn't fit it.</exception>
     public static async Task<JToken?> CallAsync(object task, string name, JToken? args, ITaskRuntime runtime, CancellationToken cancellation)
     {
+        // Static as well : a page method is usually a rule of the task, which needs no instance.
         MethodInfo method = task.GetType()
-            .GetMethods(BindingFlags.Public | BindingFlags.Instance)
+            .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static)
             .FirstOrDefault(x => x.Name == name && x.IsDefined(typeof(PageMethodAttribute)))
             ?? throw new ArgumentException($"[{name}] isn't a page method of the task.");
 

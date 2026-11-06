@@ -95,6 +95,7 @@ public class GraphContextResolution
         instance.TaskId = node.TaskId;
         instance.NodeId = node.Id;
         instance.NodeName = node.Name;
+        instance.AsksUser = node is GraphUserInterface;
         instance.Node = node;
         instance.Parameters = parameters;
         instance.State = state;

@@ -22,7 +22,6 @@ namespace Fantoche.App.Features.Workflows
         public IEnumerable<ScopedNode> Breadcrumb => Selected?.Path ?? [];
 
         [ObservableProperty]
-        [NotifyCanExecuteChangedFor(nameof(CreateUiCommand))]
         private ScopedNode? _selected;
 
         [ObservableProperty] private object? _details;
@@ -121,7 +120,7 @@ namespace Fantoche.App.Features.Workflows
         public async Task Create(EnumScopedType type)
         {
             ScopedNode selected = Selected ?? Root;
-            // A page hangs under a task, which hangs under a scope : the closest scope is a few levels up.
+            // An element hangs under a scope : with a task or a workflow selected, the scope above it.
             ScopedNode parent = selected.Path.LastOrDefault(x => x.IsScope) ?? Root;
             Guid parentId = parent.Element.Id;
             string name = await GetAvailableNameAsync(parentId, $"New {type.ToString().ToLower()}");
@@ -129,23 +128,6 @@ namespace Fantoche.App.Features.Workflows
             ScopedElement element = ScopedElement.Create(type, name, parentId);
             await AddAsync(element, parent);
         }
-
-        /// <summary>
-        /// Create a new page under the selected task : it asks the user for the parameters of the
-        /// task, once its package targets a page and it is attached under the task in a workflow.
-        /// </summary>
-        [RelayCommand(CanExecute = nameof(CanCreateUi))]
-        public async Task CreateUi()
-        {
-            if (Selected is not ScopedNode task || !task.CanHoldUi)
-                return;
-
-            Guid taskId = task.Element.Id;
-            string name = await GetAvailableNameAsync(taskId, "New page");
-            await AddAsync(new AutomationTask(name, taskId), task);
-        }
-
-        private bool CanCreateUi() => Selected?.CanHoldUi == true;
 
         private async Task AddAsync(ScopedElement element, ScopedNode parent)
         {

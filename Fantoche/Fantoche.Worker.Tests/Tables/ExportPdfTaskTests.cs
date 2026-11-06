@@ -47,7 +47,7 @@ internal sealed class ExportPdfTaskTests
             .End(new { Files = "$previous.Files" })
             .Chain("Start", "Import", "Split", "Export", "End");
         if (user != null)
-            workflow.Ui("Compose", PluginTasks.ExportPdfUi, of: "Export");
+            workflow.Ui("Compose", of: "Export");
         return workflow.RunAsync(new { Path = path }, user: user);
     }
 

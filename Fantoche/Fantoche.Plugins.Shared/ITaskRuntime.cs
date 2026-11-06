@@ -19,11 +19,6 @@ public interface ITaskRuntime
     IStorage Storage { get; }
 
     /// <summary>
-    /// The page of the task, null for any task but a page task (see <see cref="IUserInterfaceTask"/>).
-    /// </summary>
-    IUserPrompt? UserPrompt { get; }
-
-    /// <summary>
     /// Deactivate the output (even if the task completed it)
     /// </summary>
     public void DeactivateOutput(bool deactivate = true);

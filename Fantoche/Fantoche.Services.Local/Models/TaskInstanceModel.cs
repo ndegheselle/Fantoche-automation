@@ -14,11 +14,11 @@ internal sealed record TaskInstanceModel
     /// The columns making up a stored instance, in the order the insert writes them.
     /// </summary>
     public const string Columns =
-        "Id, TaskId, WorkflowVersion, NodeId, ParentInstanceId, PreviousIds, NodeName, Shared, Parameters, Output, GlobalContext, ApplicationId, SessionId, NestedVersions, State, CreatedAt, FinishedAt";
+        "Id, TaskId, WorkflowVersion, NodeId, ParentInstanceId, PreviousIds, NodeName, AsksUser, Shared, Parameters, Output, GlobalContext, ApplicationId, SessionId, NestedVersions, State, CreatedAt, FinishedAt";
 
     /// <summary>The parameters of an insert, in the order of <see cref="Columns"/>.</summary>
     public const string Values =
-        "@Id, @TaskId, @WorkflowVersion, @NodeId, @ParentInstanceId, @PreviousIds, @NodeName, @Shared, @Parameters, @Output, @GlobalContext, @ApplicationId, @SessionId, @NestedVersions, @State, @CreatedAt, @FinishedAt";
+        "@Id, @TaskId, @WorkflowVersion, @NodeId, @ParentInstanceId, @PreviousIds, @NodeName, @AsksUser, @Shared, @Parameters, @Output, @GlobalContext, @ApplicationId, @SessionId, @NestedVersions, @State, @CreatedAt, @FinishedAt";
 
     public static readonly string Schema = """
         CREATE TABLE IF NOT EXISTS TaskInstances (
@@ -29,6 +29,7 @@ internal sealed record TaskInstanceModel
             ParentInstanceId TEXT NULL REFERENCES TaskInstances (Id) ON DELETE CASCADE,
             PreviousIds TEXT NOT NULL,
             NodeName TEXT NOT NULL,
+            AsksUser INTEGER NOT NULL,
             Shared TEXT NULL,
             Parameters TEXT NULL,
             Output TEXT NULL,
@@ -54,6 +55,7 @@ internal sealed record TaskInstanceModel
     /// <summary>A JSON array of the ids.</summary>
     public string PreviousIds { get; init; } = "[]";
     public string NodeName { get; init; } = string.Empty;
+    public bool AsksUser { get; init; }
     public string? Shared { get; init; }
     public string? Parameters { get; init; }
     public string? Output { get; init; }
@@ -77,6 +79,7 @@ internal sealed record TaskInstanceModel
             ParentInstanceId = ParentInstanceId,
             PreviousIds = JsonConvert.DeserializeObject<List<Guid>>(PreviousIds) ?? [],
             NodeName = NodeName,
+            AsksUser = AsksUser,
             Shared = Parse(Shared),
             Parameters = Parse(Parameters),
             Output = Parse(Output),
@@ -105,6 +108,7 @@ internal sealed record TaskInstanceModel
             ParentInstanceId = instance.ParentInstanceId,
             PreviousIds = JsonConvert.SerializeObject(instance.PreviousIds),
             NodeName = instance.NodeName,
+            AsksUser = instance.AsksUser,
             Shared = Text(instance.Shared),
             Parameters = Text(instance.Parameters),
             Output = Text(instance.Output),

@@ -55,9 +55,9 @@ namespace Fantoche.Shared.Data.Graph
         public List<GraphConnector> Outputs { get; set; } = [];
 
         /// <summary>
-        /// Where a page plugs into a task, drawn under the nodes rather than on their sides : the slot
-        /// of a task its page is attached to, the plug of the page itself. Null for the nodes that
-        /// take no page (the controls, the workflows, a task reading nothing). See
+        /// Where an "ask the user" node plugs into its task, drawn under the nodes rather than on their
+        /// sides : the slot of a task with a page, the plug of the node asking. Null for the nodes that
+        /// take none (the controls, the workflows, a task without a page). See
         /// <see cref="TasksGraph.GetUserInterfaceOf"/>.
         /// </summary>
         public GraphConnector? UserInterface { get; set; }
@@ -168,7 +168,6 @@ namespace Fantoche.Shared.Data.Graph
         {
             AutomationWorkflow workflow => new GraphWorkflow(workflow),
             AutomationControl control => new GraphControl(control),
-            AutomationTask { IsUserInterface: true } page => new GraphUserInterface(page),
             AutomationTask automationTask => new GraphTask(automationTask),
             _ => throw new NotSupportedException($"Unknown task type '{task.GetType().Name}'")
         };
@@ -185,26 +184,27 @@ namespace Fantoche.Shared.Data.Graph
 
         public GraphTask(AutomationTask task) : base(task)
         {
-            if (task.InputSchema != null)
+            if (task.HasPage)
                 UserInterface = new GraphConnector(this);
         }
 
         /// <summary>
-        /// Give the node the slot its page plugs into when it has none : the nodes saved before the
-        /// pages were nodes of their own were never given one.
+        /// Give the node the slot an "ask the user" node plugs into when its task has a page and the
+        /// node has none : the task may have been given its page after the node was added. Read once
+        /// the graph is refreshed, which is what links the node to its task.
         /// </summary>
         public void AddUserInterfaceSlot()
         {
-            if (UserInterface == null && Inputs.Count > 0)
+            if (UserInterface == null && AutomationTask is AutomationTask { HasPage: true })
                 UserInterface = new GraphConnector(this);
         }
     }
 
     /// <summary>
-    /// A page asking the user for the parameters of the task it is attached to, before that task
-    /// runs (see <see cref="Fantoche.Plugins.Shared.IUserInterfaceTask"/>). It sits apart from the
-    /// branches : nothing flows into it nor out of it, the task it plugs into hands it its parameters
-    /// and runs with what the user answered.
+    /// Asks the user for the parameters of the task it is attached to, through the page of that task
+    /// (see <see cref="Fantoche.Plugins.Shared.ITaskWithPage"/>), before the task runs. It points at
+    /// that same task and sits apart from the branches : nothing flows into it nor out of it, the
+    /// task it plugs into hands it its parameters and runs with what the user answered.
     /// </summary>
     public class GraphUserInterface : GraphTask
     {
@@ -212,7 +212,8 @@ namespace Fantoche.Shared.Data.Graph
         {
         }
 
-        public GraphUserInterface(AutomationTask page) : base(page)
+        /// <param name="task">The task asked for, whose page is shown.</param>
+        public GraphUserInterface(AutomationTask task) : base(task)
         {
             Inputs = [];
             Outputs = [];
