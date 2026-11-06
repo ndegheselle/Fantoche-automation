@@ -11,7 +11,6 @@
     xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Fantoche.App.Features.Workflows.Details"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:userInterfaces="clr-namespace:Fantoche.App.Features.UserInterfaces"
     d:DataContext="{d:DesignInstance Type=local:TaskDetailsViewModel}"
     mc:Ignorable="d">
     <TabControl SelectedValue="{Binding CurrentTab, Mode=TwoWay}" SelectedValuePath="Tag">
@@ -63,7 +62,6 @@
                         </StackPanel>
                     </Grid>
 
-                    <userInterfaces:InterfaceSelection DataContext="{Binding Interface}" Visibility="{Binding DataContext.Metadata.IsReadOnly, RelativeSource={RelativeSource AncestorType=UserControl, AncestorLevel=1}, Mode=OneTime, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}" />
                 </StackPanel>
 
                 <details:ScopedActions Grid.Row="1" />

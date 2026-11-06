@@ -27,8 +27,23 @@ public static class ScopedServiceExtensions
 
         if (task is AutomationWorkflow workflow)
             await RefreshGraphAsync(scoped, workflow, nestedVersions ?? new Dictionary<Guid, int>(), []);
+        else
+            await scoped.ResolveInterfacesAsync([task]);
 
         return task;
+    }
+
+    /// <summary>
+    /// Give each task of [tasks] the interface hanging under it (see <see cref="AutomationInterface"/>),
+    /// null for the generated form : the task carries it to wherever it is asked.
+    /// </summary>
+    public static async Task ResolveInterfacesAsync(this IScopedService scoped, IEnumerable<BaseAutomationTask> tasks)
+    {
+        foreach (AutomationTask task in tasks.OfType<AutomationTask>().Where(x => x is not AutomationControl))
+        {
+            List<ScopedElement> children = await scoped.GetChildrensAsync(task.Id);
+            task.Interface = children.OfType<AutomationInterface>().FirstOrDefault(x => x.Target != null)?.Target;
+        }
     }
 
     /// <summary>
@@ -92,6 +107,7 @@ public static class ScopedServiceExtensions
             await RefreshGraphAsync(scoped, nested, nestedVersions, visited);
         }
 
+        await scoped.ResolveInterfacesAsync(tasks.Values);
         workflow.Graph.Refresh(tasks, force: true);
     }
 }

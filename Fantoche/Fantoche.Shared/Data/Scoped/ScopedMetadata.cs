@@ -8,7 +8,9 @@ namespace Fantoche.Shared.Data.Scoped
     {
         Scope,
         Workflow,
-        Task
+        Task,
+        /// <summary>An interface of a task, see <see cref="AutomationInterface"/>.</summary>
+        Interface
     }
 
     /// <summary>

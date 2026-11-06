@@ -1,0 +1,91 @@
+<UserControl
+    x:Class="Fantoche.App.Features.Workflows.Details.InterfaceDetailsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="clr-namespace:Fantoche.App.Features.Packages.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:details="clr-namespace:Fantoche.App.Features.Workflows.Details.Controls"
+    xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
+    xmlns:jonverters="clr-namespace:Joufflu.Converters;assembly=Joufflu"
+    xmlns:joolkit="clr-namespace:Joufflu.Toolkit;assembly=Joufflu"
+    xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
+    xmlns:local="clr-namespace:Fantoche.App.Features.Workflows.Details"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DataContext="{d:DesignInstance Type=local:InterfaceDetailsViewModel}"
+    mc:Ignorable="d">
+    <TabControl SelectedValue="{Binding CurrentTab, Mode=TwoWay}" SelectedValuePath="Tag">
+        <TabItem Header="Settings" Tag="{x:Static local:EnumDetailTab.Settings}">
+            <Grid joolkit:Spacing.Gap="4">
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition Height="auto" />
+                </Grid.RowDefinitions>
+
+                <StackPanel joolkit:Spacing.Gap="4">
+                    <details:MetadataEditor DataContext="{Binding Metadata}" />
+
+                    <!--  The built-in form : nothing to set, only to drag.  -->
+                    <TextBlock
+                        Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}"
+                        Text="The form generated from the parameters of a task, shown for the tasks with no interface of their own. Drag it onto a node of a task to ask the user before it runs."
+                        TextWrapping="Wrap"
+                        Visibility="{Binding IsForm, Mode=OneTime, Converter={x:Static jonverters:VisibilityConverter.Default}}" />
+
+                    <StackPanel joolkit:Spacing.Gap="4" Visibility="{Binding IsForm, Mode=OneTime, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}">
+                        <!--  The class it points at  -->
+                        <TextBlock Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}">Interface</TextBlock>
+                        <Grid VerticalAlignment="Top" Visibility="{Binding HasTarget, Converter={x:Static jonverters:VisibilityConverter.Default}}">
+                            <controls:PackageTargetSummary DataContext="{Binding Target}" />
+                            <Button
+                                Margin="{StaticResource {x:Static joufflu:Dimensions.Spacing}}"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Top"
+                                joolkit:Sizing.IsSquare="True"
+                                joolkit:Sizing.Size="sm"
+                                Command="{Binding RemoveClassCommand}"
+                                Style="{StaticResource SoftDangerButton}"
+                                ToolTip="Remove the class">
+                                <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Trash}" />
+                            </Button>
+                        </Grid>
+                        <Button
+                            HorizontalAlignment="Left"
+                            Command="{Binding SelectClassCommand}"
+                            Visibility="{Binding HasTarget, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}">
+                            <StackPanel Orientation="Horizontal">
+                                <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Package}" />
+                                <TextBlock Margin="4,0,0,0">Select interface</TextBlock>
+                            </StackPanel>
+                        </Button>
+
+                        <!--  The task it hangs under  -->
+                        <TextBlock Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}">Task</TextBlock>
+                        <Grid Visibility="{Binding IsLinked, Converter={x:Static jonverters:VisibilityConverter.Default}}">
+                            <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                                <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.SquareTerminal}" />
+                                <TextBlock Margin="8,0,0,0" Text="{Binding LinkedTask.Metadata.Name}" />
+                            </StackPanel>
+                            <Button HorizontalAlignment="Right" Command="{Binding UnlinkCommand}">
+                                <StackPanel Orientation="Horizontal">
+                                    <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Unlink}" />
+                                    <TextBlock Margin="4,0,0,0">Unlink</TextBlock>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                        <Grid Visibility="{Binding IsLinked, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}">
+                            <TextBlock VerticalAlignment="Center" TextWrapping="Wrap">Linked to no task : link it to show it under the task, which then asks with it.</TextBlock>
+                            <Button HorizontalAlignment="Right" Command="{Binding LinkCommand}">
+                                <StackPanel Orientation="Horizontal">
+                                    <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Link}" />
+                                    <TextBlock Margin="4,0,0,0">Link to a task</TextBlock>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                    </StackPanel>
+                </StackPanel>
+
+                <details:ScopedActions Grid.Row="1" />
+            </Grid>
+        </TabItem>
+    </TabControl>
+</UserControl>

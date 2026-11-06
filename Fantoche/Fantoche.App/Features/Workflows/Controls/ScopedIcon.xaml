@@ -18,6 +18,9 @@
             <DataTrigger Binding="{Binding Type}" Value="{x:Static scoped:EnumScopedType.Task}">
                 <Setter Property="Text" Value="{x:Static jonts:LucideFontIcons.SquareTerminal}" />
             </DataTrigger>
+            <DataTrigger Binding="{Binding Type}" Value="{x:Static scoped:EnumScopedType.Interface}">
+                <Setter Property="Text" Value="{x:Static jonts:LucideFontIcons.AppWindow}" />
+            </DataTrigger>
             <!--
                 Customization of the metadata, declared last so it takes precedence over the icon of
                 the type. The foreground is only set when a color was picked, to keep the inherited
@@ -43,6 +46,9 @@
             </DataTrigger>
             <DataTrigger Binding="{Binding FallbackValue={x:Null}}" Value="{x:Static scoped:EnumScopedType.Task}">
                 <Setter Property="Text" Value="{x:Static jonts:LucideFontIcons.SquareTerminal}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding FallbackValue={x:Null}}" Value="{x:Static scoped:EnumScopedType.Interface}">
+                <Setter Property="Text" Value="{x:Static jonts:LucideFontIcons.AppWindow}" />
             </DataTrigger>
         </Style.Triggers>
     </Style>

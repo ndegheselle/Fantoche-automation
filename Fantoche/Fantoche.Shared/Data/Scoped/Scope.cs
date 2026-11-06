@@ -7,6 +7,7 @@ namespace Fantoche.Shared.Data.Scoped
     [JsonDerivedType(typeof(AutomationTask), "task")]
     [JsonDerivedType(typeof(AutomationControl), "control")]
     [JsonDerivedType(typeof(AutomationWorkflow), "workflow")]
+    [JsonDerivedType(typeof(AutomationInterface), "interface")]
     public abstract partial class ScopedElement : IIdentifier
     {
         public Guid Id { get; set; }
@@ -33,6 +34,7 @@ namespace Fantoche.Shared.Data.Scoped
             EnumScopedType.Scope => new Scope(name, parentId),
             EnumScopedType.Workflow => new AutomationWorkflow(name, parentId),
             EnumScopedType.Task => new AutomationTask(name, parentId),
+            EnumScopedType.Interface => new AutomationInterface(name, parentId),
             _ => throw new NotSupportedException($"Unknown scoped type '{type}'")
         };
     }

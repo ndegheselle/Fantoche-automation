@@ -2,12 +2,14 @@ using System.IO;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
-using Fantoche.Plugins.Shared.Ui;
+using System.Windows;
+using Fantoche.Plugins.Shared;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Worker.Packages;
 
 namespace Fantoche.App.Features.UserInterfaces
 {
+
     /// <summary>
     /// The interfaces of the tasks (<see cref="ITaskInterface"/>), which only the application loads :
     /// a package of interfaces is extracted for Windows, apart from the cache of the worker.
@@ -19,7 +21,8 @@ namespace Fantoche.App.Features.UserInterfaces
     /// </summary>
     public sealed class TaskInterfaces
     {
-        private static readonly string ContractAssembly = typeof(ITaskInterface).Assembly.GetName().Name!;
+        private static readonly string ContractNamespace = typeof(ITaskInterface).Namespace!;
+        private static readonly string ContractName = typeof(ITaskInterface).Name;
 
         private readonly PackageCache _packages;
 
@@ -42,22 +45,39 @@ namespace Fantoche.App.Features.UserInterfaces
             return loader.CreateInstance(target.ClassFullName);
         }
 
-        /// <summary>The interfaces [id] [version] holds.</summary>
-        public async Task<IEnumerable<ClassTarget>> GetClassesAsync(string id, Version version)
+        /// <summary>The interfaces [id] [version] holds, each with the task it edits.</summary>
+        public async Task<List<TaskInterfaceClass>> GetInterfacesAsync(string id, Version version)
         {
             PackageIdentifier identifier = new() { Id = id, Version = version };
             IEnumerable<string> dllPaths = await _packages.DownloadPackageAsync(id, version);
 
-            List<ClassTarget> classes = [];
-            // The assembly of the tasks it carries isn't loaded on its own : only the interfaces are,
-            // the tasks being loaded along by their context.
-            foreach (string dllPath in dllPaths.Where(ReferencesContract))
+            List<TaskInterfaceClass> interfaces = [];
+            // The assembly of the tasks a package carries isn't loaded on its own : only the
+            // interfaces are, the tasks being loaded along in their context.
+            foreach (string dllPath in dllPaths.Where(DeclaresInterface))
             {
                 string dll = Path.GetFileNameWithoutExtension(dllPath);
                 PluginLoader<ITaskInterface> loader = LoaderOf(dllPath);
-                classes.AddRange(loader.GetClasses().Select(name => new PackageClassTarget(identifier, name) { Dll = dll }));
+                foreach (Type type in loader.GetTypes())
+                {
+                    PackageClassTarget target = new(identifier, type.FullName ?? "") { Dll = dll };
+                    string? taskClass = type.GetCustomAttribute<TaskInterfaceAttribute>()?.Task.FullName;
+                    interfaces.Add(new TaskInterfaceClass(target, taskClass));
+                }
             }
-            return classes;
+            return interfaces;
+        }
+
+        /// <summary>
+        /// The view [taskInterface] shows with [context]. An interface hands it as an object, its
+        /// contract being free of WPF : anything but a WPF element can't be shown.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">The view isn't a WPF element.</exception>
+        public static FrameworkElement ViewOf(ITaskInterface taskInterface, TaskInterfaceContext context)
+        {
+            object view = taskInterface.Show(context);
+            return view as FrameworkElement
+                ?? throw new InvalidOperationException($"[{taskInterface.GetType().FullName}] shows a {view?.GetType().Name ?? "null"} rather than a WPF element.");
         }
 
         /// <summary>
@@ -85,8 +105,12 @@ namespace Fantoche.App.Features.UserInterfaces
             }
         }
 
-        /// <summary>Whether [dllPath] references the contract of the interfaces, read without loading it.</summary>
-        private static bool ReferencesContract(string dllPath)
+        /// <summary>
+        /// Whether a class of [dllPath] implements <see cref="ITaskInterface"/>, read without loading
+        /// it : the assembly of the tasks a package carries references the same contract, and loading
+        /// it on its own would keep a second copy of it for nothing.
+        /// </summary>
+        private static bool DeclaresInterface(string dllPath)
         {
             using FileStream stream = File.OpenRead(dllPath);
             using PEReader reader = new(stream);
@@ -94,9 +118,21 @@ namespace Fantoche.App.Features.UserInterfaces
                 return false;
 
             MetadataReader metadata = reader.GetMetadataReader();
-            return metadata.AssemblyReferences
-                .Select(metadata.GetAssemblyReference)
-                .Any(reference => metadata.GetString(reference.Name) == ContractAssembly);
+            foreach (TypeDefinitionHandle typeHandle in metadata.TypeDefinitions)
+            {
+                TypeDefinition type = metadata.GetTypeDefinition(typeHandle);
+                foreach (InterfaceImplementationHandle implementationHandle in type.GetInterfaceImplementations())
+                {
+                    EntityHandle implemented = metadata.GetInterfaceImplementation(implementationHandle).Interface;
+                    if (implemented.Kind != HandleKind.TypeReference)
+                        continue;
+
+                    TypeReference reference = metadata.GetTypeReference((TypeReferenceHandle)implemented);
+                    if (metadata.GetString(reference.Name) == ContractName && metadata.GetString(reference.Namespace) == ContractNamespace)
+                        return true;
+                }
+            }
+            return false;
         }
     }
 }

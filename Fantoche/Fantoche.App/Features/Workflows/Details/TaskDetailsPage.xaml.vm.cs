@@ -1,6 +1,5 @@
 using Fantoche.App.Common;
 using Fantoche.App.Features.Packages.Controls;
-using Fantoche.App.Features.UserInterfaces;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Data.Scoped;
 using Fantoche.Shared.Services;
@@ -38,11 +37,7 @@ namespace Fantoche.App.Features.Workflows.Details
             : base(node, parent, scoped, history, overlays, toasts)
         {
             Schedules = new SchedulesViewModel(Task, overlays, () => SaveElementAsync($"The schedules of the task '{Node.Name}' have been saved."));
-            Interface = new InterfaceSelectionViewModel(Task, MarkChanged);
         }
-
-        /// <summary>What its parameters are edited with, in the editor and when a run asks the user.</summary>
-        public InterfaceSelectionViewModel Interface { get; }
 
         /// <summary>When the task is started on its own, displayed by the schedules tab.</summary>
         public SchedulesViewModel Schedules { get; }

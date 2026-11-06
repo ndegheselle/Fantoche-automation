@@ -145,11 +145,35 @@ The versions are stored as reverse diffs, so a past version costs only what chan
 
 ## User interface tasks
 
-Any task can ask the user for its parameters before it runs, and any task or workflow is set up in the editor. Both show the interface of the element (`BaseAutomationTask.Interface`): a WPF view from a package of interfaces, or the form generated from its parameters when it has none. A workflow only asks where the node of the task is given an "ask the user" node, so the same task runs unattended elsewhere (a schedule, an automated run).
+Any task can ask the user for its parameters before it runs, and any task is set up in the editor. Both show the interface of the task: a WPF view from a package of interfaces, or the form generated from its parameters when it has none. A workflow only asks where the node of the task is given an "ask the user" node, so the same task runs unattended elsewhere (a schedule, an automated run).
 
 - **In a workflow:** "Ask the user" on a task node adds a round node attached under it, through the diamond under the task (`GraphUserInterface`, `BaseGraphTask.UserInterface`). It points at the same task and sits apart from the branches: nothing flows into it nor out of it. A task is asked by one node, which asks for that task only (`TasksGraph.CanConnect`).
+- **An interface is an element of the tree** (`AutomationInterface`, pointing at a class implementing `ITaskInterface`), shown like a task. It is linked to a task by hanging under it: the tree then shows it as the child of the task, and a task linked to none has no child. "Add an interface" with a task selected links it to that task; its details link it to another task or unlink it.
+- **The generated form** is an element of its own too, built in, in the controls scope with the start and the end (`AutomationInterface.Form`).
+- **Which one a task uses:** the interface hanging under it, the generated form otherwise. Read from the tree when a workflow is loaded to run or to edit (`ScopedServiceExtensions.ResolveInterfacesAsync`, into `BaseAutomationTask.Interface`, which isn't stored), and carried with the task to the application asking.
+- **From the tree to a graph:** an interface dropped on the graph asks the user for its task. Dropped on a node of that task, it is attached under it; dropped elsewhere, under the only node of the task not asking yet, or on its own when there are none or several (`WorkflowEditorViewModel.AskWith`). The form asks for the task of the node it is dropped on. An interface linked to no task asks for none.
 - **When the task is reached:** its parameters are resolved, an instance of the asking node shows the interface of the task with them (`TaskInstance.AsksUser`, `AskingWindow`), and the task runs with what the user answered, carrying on from the node before it (`WorkflowExecutor.RunUiAsync`). A resume asks again a task that was asking, and runs the task with the answer kept when it was answered but the task never started.
 - **In the editor:** the settings of a node show the interface when it handles the editor (`TaskInterfaceSetupViewModel`), the generated settings otherwise (`TaskSettingsViewModel`). Either way the mapping is checked by `MappingCheck` and undone like any edit.
+
+### The generated form
+
+Without an interface, the parameters are filled in with Joufflu.Data's `DataForm`, built from the schema of the parameters (`SchemaTree`): in a run (`ParametersFormView`, also used to start and schedule a workflow), and in the settings of a node in the editor, where a field can point at what the node reads instead of holding a value. The schema is generated from the class of the parameters, so the attributes of its properties shape the form:
+
+```csharp
+public class ImportCsvParameters
+{
+    /// <summary>Path of the CSV file on the worker.</summary>      // the description, under the label
+    [FilePath("CSV files|*.csv|All files|*.*")]                    // a file picker, the dialog showing the filter
+    public string Path { get; set; } = "";
+
+    [Range(1, int.MaxValue)]                                       // checked as it is typed : "At least 1."
+    public int BatchSize { get; set; } = 10000;
+}
+```
+
+- Read by the form: the XML summary or `[Description]`, `[Display(Name = ...)]` as the label, `[Required]`, `[Range]`, `[MinLength]`, `[MaxLength]`, `[RegularExpression]`.
+- Fantoche's own (`FormInputs`, in `Fantoche.Plugins.Shared`): `[FilePath(filter)]` and `[Multiline]`, written in the schema as the `x-input` keys Joufflu.Data reads.
+- The schema of a task is stored when the task is created from its class : a task created before an attribute was added keeps its former schema until it is created again.
 
 ```mermaid
 sequenceDiagram
@@ -171,15 +195,16 @@ A run started in the application skips the supervisor: the application asks itse
 
 Why a node of its own rather than a switch on the task (an `AskUser` input, as before): a workflow run unattended holds only the task, asking is seen as a step of the workflow, and the task runs on a worker while only the interface needs an application.
 
-Why the interface is picked on the element rather than declared by the task class: every task asks with the generated form without anything to write, a workflow gets an interface the same way, and the interfaces are packed apart. WPF only runs on Windows, while the workers load the tasks on any system.
+Why the interface is an element linked to a task rather than declared by the task class: every task asks with the generated form without anything to write, a user can link another interface to a task without rebuilding it, and the interfaces are packed apart. WPF only runs on Windows, while the workers load the tasks on any system.
 
 Why WPF rather than HTML pages (as before): an interface is typed C# running in the application, calling the rules of its task directly, styled by the theme of the application, without a bridge in JavaScript.
 
 ### Writing an interface
 
-A project for Windows (`net10.0-windows`, WPF) referencing `Fantoche.Plugins.Shared.Ui` and the project of its tasks. See `Fantoche.Plugins.Example.Ui`.
+A project for Windows (`net10.0-windows`, WPF) referencing `Fantoche.Plugins.Shared` and the project of its tasks. See `Fantoche.Plugins.Example.Ui`. The contract stays in `Fantoche.Plugins.Shared`, which the workers load on any system: it holds nothing of WPF, the view being handed as an object (`TaskInterfaces.ViewOf` checks it is a WPF element).
 
 ```csharp
+[TaskInterface(typeof(MapColumnsTask))]          // the task it edits, see "Picking it"
 public class MapColumnsInterface : ITaskInterface
 {
     private MapColumnsViewModel? _columns;
@@ -187,7 +212,7 @@ public class MapColumnsInterface : ITaskInterface
     // The generated form shows in the modes it doesn't handle : here, the editor.
     public bool Handles(EnumInterfaceMode mode) => mode == EnumInterfaceMode.Execution;
 
-    public FrameworkElement Show(TaskInterfaceContext context)
+    public object Show(TaskInterfaceContext context)
     {
         _columns = new MapColumnsViewModel(context.ParametersAs<MapColumnsParameters>()!, context.Runtime!.Storage);
         _ = _columns.LoadAsync();
@@ -208,7 +233,7 @@ public class MapColumnsInterface : ITaskInterface
 - **The modes:** in a run, `Parameters` holds the parameters and `Runtime` what the rules of the task are handed (its storage first). In the editor, `Parameters` holds the mapping, a field pointing at what the node reads holding a reference (`"$previous.Table"`), and `References` what the node reads, typed. Nothing ran there: `Runtime` is null.
 - **The answer:** the application checks it before taking it. In a run, it must read as the parameters of the task, else the refusal is shown above the buttons. In the editor, `MappingCheck` checks it as it checks the generated settings.
 - **The view:** only what the user edits. The application shows the name of the node, the refusal and the buttons around it. Plain WPF controls take the theme of the application. The resources of the view stay in the view: put in the application, they would apply to every interface.
-- **Packing it:** the package carries the assembly of the tasks it was built against. It doesn't carry what the application already holds (WPF, Joufflu, CommunityToolkit.Mvvm, Newtonsoft.Json, `Fantoche.Plugins.Shared` and `.Ui`), which it shares with it. See `Fantoche.Plugins.Example.Ui.csproj`:
+- **Packing it:** the package carries the assembly of the tasks it was built against. It doesn't carry what the application already holds (WPF, Joufflu, CommunityToolkit.Mvvm, Newtonsoft.Json, `Fantoche.Plugins.Shared`), which it shares with it. See `Fantoche.Plugins.Example.Ui.csproj`:
 
   ```xml
   <ProjectReference Include="..\Fantoche.Plugins.Example\Fantoche.Plugins.Example.csproj" PrivateAssets="all" />
@@ -219,7 +244,7 @@ public class MapColumnsInterface : ITaskInterface
   </Target>
   ```
 
-- **Picking it:** the package is added from the Packages page like any other. The supervisor doesn't look for tasks in a package built only for a platform (`PackageCache.IsPlatformOnly`): it may run on Linux, where WPF can't load. The details of a task or a workflow pick the interface ("Select interface"), listed by the application itself.
+- **Picking it:** the package is added from the Packages page like any other. The supervisor doesn't look for tasks in a package built only for a platform (`PackageCache.IsPlatformOnly`): it may run on Linux, where WPF can't load. The details of an interface element pick its class ("Select interface"), listed by the application itself. `[TaskInterface(typeof(...))]` tells which task an interface edits: the samples link it to the tasks running that class (see [Samples](#samples)).
 
 ### Loading the interfaces
 
@@ -228,7 +253,7 @@ The application extracts the packages of interfaces for its own version of Windo
 - **A context per version of a package**, holding the interface and the assembly of the tasks it carries. Two versions of an interface show side by side, each calling the rules of its own version of the tasks.
 - **Never unloaded:** WPF keeps hold of the types it showed (the dependency properties, the XAML caches), so a context holding a view can't be collected. A version stays loaded until the application closes.
 - **The assembly version changes with every version of the package.** WPF finds the XAML of a view by the name and the version of its assembly: two versions sharing one would show each other's views. The second one is refused. The SDK derives the assembly version from `<Version>`, but a prerelease (`1.1.0-beta`) and its release share `1.1.0.0`.
-- **Built against what the application holds:** an interface referencing a newer `Fantoche.Plugins.Shared.Ui` or Joufflu than the application's doesn't load.
+- **Built against what the application holds:** an interface referencing a newer `Fantoche.Plugins.Shared` or Joufflu than the application's doesn't load.
 - **When it can't be shown**, the generated form is shown instead with the reason, in a run as in the editor: the parameters can still be answered.
 
 ### While a task asks
@@ -248,6 +273,14 @@ The application extracts the packages of interfaces for its own version of Windo
   - A run canceled stops the asking and closes its window.
 - **Files and tables:** the interface reads them through the storage of the run (`context.Runtime.Storage`), a slice of rows at a time for a table (`ReadPageAsync`). For a run of the workers, the application reaches that storage through the supervisor (`RemoteStorage`), which reads the volume the workers share. The queries run there, only their results travel.
 - **What an interface can reach:** it runs in the application with the rights of the application, as the tasks the application loads already do. Nothing sandboxes it, as the HTML pages were: a package of interfaces is trusted as much as a package of tasks.
+
+## Samples
+
+A fresh database only holds the root scope and the controls (`DatabaseSeeder`). The samples come with the packages they run, created by the application once the package is added from the Packages page (`ExampleSamples`, `PackageSamples`):
+
+- **`Fantoche.Plugins.Example`:** a task per class of the package, in a scope named after it, named after the class ("Import csv") and following its newest version. Their schemas are generated from the classes, as for any task, rather than written by hand. Then the "Customers and orders" workflow running them, when the package holds every task it needs.
+- **`Fantoche.Plugins.Example.Ui`:** an interface element under each task running the class an interface declares (`[TaskInterface]`), unless the task has one already. Added first, it waits for the example package, which links them when it is added.
+- Adding a package again (another version) creates only what is missing: a task is found by its class, wherever the user moved it.
 
 ## What the editor previews of a task
 

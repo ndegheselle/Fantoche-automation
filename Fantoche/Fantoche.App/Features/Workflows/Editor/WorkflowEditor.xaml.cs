@@ -80,23 +80,46 @@ namespace Fantoche.App.Features.Workflows.Editor
 
         private void OnDrop(IDataObject? data)
         {
-            if (GetTask(data) is not BaseAutomationTask task || data is not DropData drop)
-                return;
-
-            if (ViewModel == null)
+            if (data is not DropData drop || ViewModel == null)
                 return;
 
             // The drop is placed on the border holding the target, which the editor translates to
             // the graph itself.
-            ViewModel.Add(task, Editor.GetLocationInsideEditor(drop.Position, drop.Target));
+            Point location = Editor.GetLocationInsideEditor(drop.Position, drop.Target);
+            if (GetInterface(data) is ScopedNode interfaceNode)
+            {
+                // Dropped on a node, it asks for that node's task.
+                ItemContainer? onto = ContainerAt(drop.Target.TranslatePoint(drop.Position, Editor));
+                ViewModel.AskWith(
+                    (AutomationInterface)interfaceNode.Element,
+                    interfaceNode.Parent?.Element as AutomationTask,
+                    location,
+                    onto?.DataContext as NodeViewModel);
+                return;
+            }
+
+            if (GetTask(data) is BaseAutomationTask task)
+                ViewModel.Add(task, location);
+        }
+
+        /// <summary>The node container under [position] in the editor, null over its background.</summary>
+        private ItemContainer? ContainerAt(Point position)
+        {
+            DependencyObject? hit = Editor.InputHitTest(position) as DependencyObject;
+            while (hit != null && hit is not ItemContainer)
+                hit = VisualTreeHelper.GetParent(hit);
+            return hit as ItemContainer;
         }
 
         /// <summary>
         /// Only a task or a workflow can be dropped, a scope having nothing to run, and the workflow
-        /// being edited can't contain itself.
+        /// being edited can't contain itself. An interface is dropped to ask the user.
         /// </summary>
         private bool CanDrop(IDataObject? data)
         {
+            if (GetInterface(data) != null)
+                return ViewModel?.IsEditable == true;
+
             BaseAutomationTask? task = GetTask(data);
             // Nothing can be added to a running workflow, its graph being read only.
             return task != null && task.Id != ViewModel?.Workflow.Id && ViewModel?.IsEditable == true;
@@ -130,5 +153,9 @@ namespace Fantoche.App.Features.Workflows.Editor
         /// </summary>
         private static BaseAutomationTask? GetTask(IDataObject? data)
             => (data?.GetData(typeof(ScopedNode)) as ScopedNode)?.TaskElement;
+
+        /// <summary>An interface dragged from the tree, null for anything else.</summary>
+        private static ScopedNode? GetInterface(IDataObject? data)
+            => data?.GetData(typeof(ScopedNode)) is ScopedNode { Element: AutomationInterface } node ? node : null;
     }
 }

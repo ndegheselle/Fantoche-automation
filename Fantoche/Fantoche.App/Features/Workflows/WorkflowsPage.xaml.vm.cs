@@ -121,7 +121,10 @@ namespace Fantoche.App.Features.Workflows
         {
             ScopedNode selected = Selected ?? Root;
             // An element hangs under a scope : with a task or a workflow selected, the scope above it.
-            ScopedNode parent = selected.Path.LastOrDefault(x => x.IsScope) ?? Root;
+            // An interface created with a task selected is linked to it, hanging under it.
+            ScopedNode parent = type == EnumScopedType.Interface && selected.CanHoldInterface
+                ? selected
+                : selected.Path.LastOrDefault(x => x.IsScope) ?? Root;
             Guid parentId = parent.Element.Id;
             string name = await GetAvailableNameAsync(parentId, $"New {type.ToString().ToLower()}");
 
@@ -172,6 +175,7 @@ namespace Fantoche.App.Features.Workflows
             {
                 AutomationWorkflow => ActivatorUtilities.CreateInstance<WorkflowDetailsViewModel>(_services, value, this),
                 AutomationTask => ActivatorUtilities.CreateInstance<TaskDetailsViewModel>(_services, value, this),
+                AutomationInterface => ActivatorUtilities.CreateInstance<InterfaceDetailsViewModel>(_services, value, this),
                 Scope => ActivatorUtilities.CreateInstance<ScopeDetailsViewModel>(_services, value, this),
                 _ => null
             };

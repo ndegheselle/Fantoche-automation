@@ -1,8 +1,9 @@
+using Fantoche.Plugins.Shared;
 using System.Collections.ObjectModel;
 using System.Windows;
 using Fantoche.App.Common;
+using Fantoche.App.Features.UserInterfaces;
 using Fantoche.App.Features.Workflows.Editor.History;
-using Fantoche.Plugins.Shared.Ui;
 using Fantoche.Shared.Data;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Shared.Data.Graph;
@@ -78,7 +79,7 @@ namespace Fantoche.App.Features.Workflows.Editor
                     Parameters = Json.Parse(node.InputTemplateJson),
                     References = ReferencesOf(node, contexts),
                 };
-                FrameworkElement view = taskInterface.Show(context);
+                FrameworkElement view = TaskInterfaces.ViewOf(taskInterface, context);
                 settings = new TaskInterfaceSetupViewModel(node, taskInterface, view, contexts, SpineViewModel.Instance.Overlayer);
             }
             catch (Exception exception)

@@ -1,7 +1,6 @@
 using System.Windows;
 using Fantoche.Plugins.Example.Tasks.Tables;
 using Fantoche.Plugins.Shared;
-using Fantoche.Plugins.Shared.Ui;
 using Newtonsoft.Json.Linq;
 
 namespace Fantoche.Plugins.Example.Ui.Tables;
@@ -11,13 +10,14 @@ namespace Fantoche.Plugins.Example.Ui.Tables;
 /// name of the workflow stands for, and names the other columns they need, previewed on the first
 /// rows. In the editor the table isn't read yet : the generated form edits the names there.
 /// </summary>
+[TaskInterface(typeof(MapColumnsTask))]
 public class MapColumnsInterface : ITaskInterface
 {
     private MapColumnsViewModel? _columns;
 
     public bool Handles(EnumInterfaceMode mode) => mode == EnumInterfaceMode.Execution;
 
-    public FrameworkElement Show(TaskInterfaceContext context)
+    public object Show(TaskInterfaceContext context)
     {
         MapColumnsParameters parameters = context.ParametersAs<MapColumnsParameters>() ?? new MapColumnsParameters();
         ITaskRuntime runtime = context.Runtime

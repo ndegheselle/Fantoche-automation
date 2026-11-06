@@ -24,10 +24,9 @@ See [architecture.md](architecture.md) : the standalone and remote modes, where 
 
 1. Start the `docker-compose` startup project (or `Fantoche.Supervisor.Api` and `Fantoche.Worker.Service`).
 2. Start `Fantoche.App`, and set the supervisor address in its settings (gear of the title bar).
-3. To see the table tasks at work, run the "Customers and orders" sample : see [the table tasks](Fantoche/Fantoche.Plugins.Example/readme.md).
-4. To try pausing, stopping and resuming a run, add the `Fantoche.Plugins` package (`dotnet pack Fantoche/Fantoche.Plugins`, version 1.1.0) from the Packages page and run the "Pause, stop and resume" sample (Samples / Engine). It takes about 15 s : a loop, a branch the join waits for, a closed branch, then a task asking you to reorder items.
+3. To see the table tasks at work, add the `Fantoche.Plugins.Example` package, then `Fantoche.Plugins.Example.Ui`, from the Packages page : they create the "Customers and orders" sample. See [the table tasks](Fantoche/Fantoche.Plugins.Example/readme.md).
 
-The samples are written to the database when it is created : an existing database doesn't get the new ones.
+The samples come with the packages they run : a database written by an older version keeps the samples it had.
 
 ### Modes
 

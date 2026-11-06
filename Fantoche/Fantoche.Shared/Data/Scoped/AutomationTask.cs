@@ -75,9 +75,11 @@ public abstract class BaseAutomationTask : ScopedElement
     public TaskSettings Settings { get; set; } = new();
 
     /// <summary>
-    /// The interface its parameters are edited with, in the editor and when a run asks the user (an
-    /// <c>ITaskInterface</c> of a package of interfaces). Null for the form generated from
-    /// <see cref="InputSchema"/>.
+    /// The interface its parameters are edited with, in the editor and when a run asks the user : the
+    /// class of the <see cref="AutomationInterface"/> hanging under it, null for the form generated
+    /// from <see cref="InputSchema"/>. Not stored on the element : read from the tree as it is loaded
+    /// to be run or edited (see <c>ScopedServiceExtensions.ResolveInterfacesAsync</c>), and carried
+    /// along with it to a worker.
     /// </summary>
     public PackageClassTarget? Interface { get; set; }
 

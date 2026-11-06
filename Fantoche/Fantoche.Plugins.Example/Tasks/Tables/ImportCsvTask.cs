@@ -7,6 +7,7 @@ public class ImportCsvParameters
     /// <summary>
     /// Path of the CSV file on the worker.
     /// </summary>
+    [FilePath("CSV files|*.csv|All files|*.*")]
     public string Path { get; set; } = "";
 
     /// <summary>

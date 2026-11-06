@@ -18,8 +18,9 @@
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
-        <data:DataFill
-            Height="240"
+        <!--  The form generated from the schema of the parameters, see SchemaTree.  -->
+        <data:DataForm
+            MaxHeight="420"
             ManualValues="{Binding References}"
             Node="{Binding Values, Mode=OneWay}" />
 

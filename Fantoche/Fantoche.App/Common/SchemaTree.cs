@@ -1,4 +1,4 @@
-using Joufflu.Data.Model;
+﻿using Joufflu.Data.Model;
 using NJsonSchema;
 
 namespace Fantoche.App.Common
@@ -9,44 +9,16 @@ namespace Fantoche.App.Common
     public static class SchemaTree
     {
         /// <summary>
-        /// The tree of the object [schema] describes, each field described the way its schema
-        /// describes it (the summary of a property of the parameters of a task). Null when [schema]
-        /// describes no object.
+        /// The tree of the object [schema] describes, null when it describes none. Joufflu.Data reads
+        /// what the form shows of each field from the schema : the summary of a property of the
+        /// parameters of a task as its description, its rules and its input (see FormInputs).
         /// </summary>
         public static DataObject? Of(JsonSchema? schema)
         {
             JsonSchema? actual = schema?.ActualSchema;
-            if (actual?.IsObject != true || actual.ToDataNode() is not DataObject tree)
+            if (actual?.IsObject != true)
                 return null;
-
-            Describe(tree, actual);
-            return tree;
-        }
-
-        /// <summary>
-        /// Joufflu.Data builds the tree without the descriptions of the schema, which the form shows
-        /// next to each field : they are copied here until it reads them itself.
-        /// </summary>
-        private static void Describe(DataNode node, JsonSchema schema)
-        {
-            JsonSchema actual = schema.ActualSchema;
-            switch (node)
-            {
-                case DataObject values:
-                    foreach (DataNode property in values.Properties)
-                    {
-                        if (property.Key == null || !actual.ActualProperties.TryGetValue(property.Key, out JsonSchemaProperty? propertySchema))
-                            continue;
-
-                        // A property of a type of its own (a table) is described on the property, not on its type.
-                        property.Description = propertySchema.Description ?? propertySchema.ActualSchema.Description;
-                        Describe(property, propertySchema);
-                    }
-                    break;
-                case DataArray { Template: DataNode template } when actual.Item != null:
-                    Describe(template, actual.Item);
-                    break;
-            }
+            return actual.ToDataNode() as DataObject;
         }
     }
 }

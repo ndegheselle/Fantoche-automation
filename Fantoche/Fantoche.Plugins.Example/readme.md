@@ -1,6 +1,6 @@
 # Table tasks
 
-`Fantoche.Plugins.Example` holds the tasks of a practical workflow : two CSV files imported, given clear column names, merged, updated, split in batches and exported to PDF. The samples of a fresh install hold it as **Customers and orders**.
+`Fantoche.Plugins.Example` holds the tasks of a practical workflow : two CSV files imported, given clear column names, merged, updated, split in batches and exported to PDF. Adding the package creates its tasks and the **Customers and orders** workflow, in a scope named after it (see [Samples](../../architecture.md#samples)).
 
 ```text
 Start ─┬─> Import CSV ─> Map columns ─┬─> Join ─> Merge ─> Update ─> Split ─> Export PDF ─> End
@@ -9,7 +9,7 @@ Start ─┬─> Import CSV ─> Map columns ─┬─> Join ─> Merge ─> Upd
                             (asks)
 ```
 
-To run it : add the package (`dotnet pack Fantoche.Plugins.Example`, version 2.1.0) from the Packages page, and the package of its interfaces (`dotnet pack Fantoche.Plugins.Example.Ui`, version 1.0.0). Generate the files with `Resources/Samples/generate-test-data.ps1`, open the workflow and start it with their paths. Both mappings and the export ask you through the "ask the user" node attached under them. With those nodes removed, the run is unattended, the columns being the ones of the generated files.
+To run it : add the package (`dotnet pack Fantoche.Plugins.Example`, version 2.1.0) from the Packages page, then the package of its interfaces (`dotnet pack Fantoche.Plugins.Example.Ui`, version 1.0.0), which links its interface under the Map columns task. Generate the files with `Resources/Samples/generate-test-data.ps1`, open the workflow and start it with their paths. Both mappings and the export ask you through the "ask the user" node attached under them. With those nodes removed, the run is unattended, the columns being the ones of the generated files.
 
 ## The tasks
 

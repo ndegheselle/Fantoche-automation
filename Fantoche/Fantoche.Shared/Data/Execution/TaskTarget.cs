@@ -12,6 +12,12 @@ namespace Fantoche.Shared.Data.Execution
     }
 
     /// <summary>
+    /// An interface of a package, and the class of the task it edits (its <c>TaskInterfaceAttribute</c>),
+    /// null when it doesn't say.
+    /// </summary>
+    public sealed record TaskInterfaceClass(PackageClassTarget Target, string? TaskClass);
+
+    /// <summary>
     /// Package class target, the target class is contained in a separated package
     /// </summary>
     public class PackageClassTarget : ClassTarget

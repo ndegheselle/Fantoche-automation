@@ -117,7 +117,7 @@ namespace Fantoche.App.Features.Packages.Controls
                 SpineViewModel.Instance.Packages,
                 SpineViewModel.Instance.Overlayer,
                 "Select an interface",
-                interfaces.GetClassesAsync));
+                async (id, version) => (await interfaces.GetInterfacesAsync(id, version)).Select(x => (ClassTarget)x.Target)));
         }
 
         public async Task RefreshAsync()

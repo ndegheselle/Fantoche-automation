@@ -2,7 +2,6 @@ using System.Collections.ObjectModel;
 using System.Data;
 using Fantoche.Plugins.Example.Tasks.Tables;
 using Fantoche.Plugins.Shared;
-using Fantoche.Plugins.Shared.Ui;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Fantoche.Plugins.Example.Ui.Tables;

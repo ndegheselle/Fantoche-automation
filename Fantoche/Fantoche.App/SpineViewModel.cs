@@ -128,6 +128,8 @@ public class SpineViewModel : ObservableObject
         services.AddSingleton<IExecutionService>(execution);
         services.AddSingleton(prompts);
         services.AddSingleton(interfaces);
+        services.AddSingleton(worker);
+        services.AddSingleton<PackageSamples>();
         services.AddSingleton(new ApplicationWorker(dispatchId));
 
         services.AddSingleton(Settings);

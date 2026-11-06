@@ -235,9 +235,10 @@ public class LocalScopedService : IScopedService
     {
         using var connection = _databaseFactory.Create();
 
-        // Only the tasks and workflows are searched, a scope is not something that runs.
+        // Only the tasks and workflows are searched : a scope is not something that runs, nor is
+        // an interface, which only shows the parameters of a task.
         const string filter = """
-            WHERE ElementKind <> @scopeKind AND (@term = '' OR instr(lower(Name), @term) > 0)
+            WHERE ElementKind NOT IN (@scopeKind, @interfaceKind) AND (@term = '' OR instr(lower(Name), @term) > 0)
             """;
 
         using var results = await connection.QueryMultipleAsync($"""
@@ -250,6 +251,7 @@ public class LocalScopedService : IScopedService
             new
             {
                 scopeKind = ScopedModel.ScopeKind,
+                interfaceKind = ScopedModel.InterfaceKind,
                 term = SearchTerm(search),
                 take = options.PageSize,
                 skip = (options.Page - 1) * options.PageSize,

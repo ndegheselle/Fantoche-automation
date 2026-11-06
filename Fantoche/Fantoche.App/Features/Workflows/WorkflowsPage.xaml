@@ -30,6 +30,9 @@
             <DataTemplate DataType="{x:Type details:TaskDetailsViewModel}">
                 <details:TaskDetailsPage />
             </DataTemplate>
+            <DataTemplate DataType="{x:Type details:InterfaceDetailsViewModel}">
+                <details:InterfaceDetailsPage />
+            </DataTemplate>
         </ResourceDictionary>
     </UserControl.Resources>
 
@@ -86,6 +89,17 @@
                             <StackPanel Orientation="Horizontal">
                                 <jonts:FontIcon DataContext="{x:Static scoped:EnumScopedType.Task}" Style="{StaticResource ScopedIcon}" />
                                 <TextBlock Margin="8,0,0,0">Add a task</TextBlock>
+                            </StackPanel>
+                        </Button>
+                        <!--  Linked to the selected task, hanging under it ; in the scope otherwise.  -->
+                        <Button
+                            HorizontalContentAlignment="Left"
+                            Command="{Binding CreateCommand}"
+                            CommandParameter="{x:Static scoped:EnumScopedType.Interface}"
+                            Style="{StaticResource GhostButton}">
+                            <StackPanel Orientation="Horizontal">
+                                <jonts:FontIcon DataContext="{x:Static scoped:EnumScopedType.Interface}" Style="{StaticResource ScopedIcon}" />
+                                <TextBlock Margin="8,0,0,0">Add an interface</TextBlock>
                             </StackPanel>
                         </Button>
                     </StackPanel>

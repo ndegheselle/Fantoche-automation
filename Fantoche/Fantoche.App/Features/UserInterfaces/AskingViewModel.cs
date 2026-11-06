@@ -1,6 +1,6 @@
+using Fantoche.Plugins.Shared;
 using System.Windows;
 using Fantoche.App.Features.Workflows.Controls;
-using Fantoche.Plugins.Shared.Ui;
 using Fantoche.Shared.Data.Execution;
 using Fantoche.Worker.UserInterfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -78,7 +78,7 @@ namespace Fantoche.App.Features.UserInterfaces
                     Parameters = request.Input,
                     Runtime = request.Runtime,
                 };
-                FrameworkElement view = taskInterface.Show(context);
+                FrameworkElement view = TaskInterfaces.ViewOf(taskInterface, context);
                 return new AskingViewModel(request, taskInterface, view, null);
             }
             catch (Exception exception)

@@ -18,13 +18,14 @@ internal sealed record ScopedModel
     public const string TaskKind = "task";
     public const string ControlKind = "control";
     public const string WorkflowKind = "workflow";
+    public const string InterfaceKind = "interface";
 
     /// <summary>
     /// The columns making up a stored element, in the order the insert writes them.
     /// </summary>
     public const string Columns = """
         Id, ParentId, ElementKind, Name, Type, Color, Icon, IsReadOnly, Tags, ContextJson,
-        InputSchemaJson, OutputSchemaJson, Schedules, Settings, Target, Interface,
+        InputSchemaJson, OutputSchemaJson, Schedules, Settings, Target,
         WorkflowSettings, SharedSchemaJson
         """;
 
@@ -33,7 +34,7 @@ internal sealed record ScopedModel
     /// </summary>
     public const string Values = """
         @Id, @ParentId, @ElementKind, @Name, @Type, @Color, @Icon, @IsReadOnly, @Tags, @ContextJson,
-        @InputSchemaJson, @OutputSchemaJson, @Schedules, @Settings, @Target, @Interface,
+        @InputSchemaJson, @OutputSchemaJson, @Schedules, @Settings, @Target,
         @WorkflowSettings, @SharedSchemaJson
         """;
 
@@ -63,7 +64,6 @@ internal sealed record ScopedModel
         Schedules = @Schedules,
         Settings = @Settings,
         Target = @Target,
-        Interface = @Interface,
         WorkflowSettings = @WorkflowSettings,
         SharedSchemaJson = @SharedSchemaJson
         """;
@@ -101,7 +101,6 @@ internal sealed record ScopedModel
             Schedules TEXT NULL,
             Settings TEXT NULL,
             Target TEXT NULL,
-            Interface TEXT NULL,
             WorkflowSettings TEXT NULL,
             SharedSchemaJson TEXT NULL
         );
@@ -129,11 +128,8 @@ internal sealed record ScopedModel
     public string? Schedules { get; init; }
     public string? Settings { get; init; }
 
-    /// <summary>Tasks and controls.</summary>
+    /// <summary>Tasks and controls, and interfaces : the class they point at.</summary>
     public string? Target { get; init; }
-
-    /// <summary>Tasks and workflows : the interface their parameters are edited with.</summary>
-    public string? Interface { get; init; }
 
     /// <summary>Workflows only.</summary>
     public string? WorkflowSettings { get; init; }
@@ -146,6 +142,7 @@ internal sealed record ScopedModel
             ScopeKind => new Scope() { ContextJson = ContextJson },
             TaskKind => new AutomationTask(),
             ControlKind => new AutomationControl(),
+            InterfaceKind => new AutomationInterface() { Target = DatabaseJson.Deserialize<PackageClassTarget>(Target) },
             // The graph is read on its own, from the tables holding its nodes.
             WorkflowKind => new AutomationWorkflow()
             {
@@ -171,7 +168,6 @@ internal sealed record ScopedModel
             task.OutputSchemaJson = OutputSchemaJson;
             task.Schedules = DatabaseJson.Deserialize<List<Schedule>>(Schedules) ?? [];
             task.Settings = DatabaseJson.Deserialize<TaskSettings>(Settings) ?? new TaskSettings();
-            task.Interface = DatabaseJson.Deserialize<PackageClassTarget>(Interface);
         }
 
         // A control points at the class of a hard coded task, a plain task at one of a package.
@@ -202,8 +198,7 @@ internal sealed record ScopedModel
             OutputSchemaJson = task?.OutputSchemaJson,
             Schedules = DatabaseJson.Serialize(task?.Schedules),
             Settings = DatabaseJson.Serialize(task?.Settings),
-            Target = DatabaseJson.Serialize((element as AutomationTask)?.Target),
-            Interface = DatabaseJson.Serialize(task?.Interface),
+            Target = DatabaseJson.Serialize((element as AutomationTask)?.Target ?? (element as AutomationInterface)?.Target),
             WorkflowSettings = DatabaseJson.Serialize(workflow?.WorkflowSettings),
             SharedSchemaJson = workflow?.SharedSchemaJson,
         };
@@ -215,6 +210,7 @@ internal sealed record ScopedModel
         // A control derives from a task : the most precise kind first.
         AutomationControl => ControlKind,
         AutomationWorkflow => WorkflowKind,
+        AutomationInterface => InterfaceKind,
         AutomationTask => TaskKind,
         _ => throw new InvalidOperationException($"'{element.GetType().Name}' can't be stored as a scoped element."),
     };

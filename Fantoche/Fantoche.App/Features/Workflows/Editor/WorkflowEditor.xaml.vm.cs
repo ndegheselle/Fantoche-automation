@@ -173,6 +173,8 @@ namespace Fantoche.App.Features.Workflows.Editor
                     if (element is BaseAutomationTask task)
                         tasks[task.Id] = task;
                 }
+                // The settings of a node show the interface of its task.
+                await _scoped.ResolveInterfacesAsync(tasks.Values);
             }
             catch (Exception exception)
             {
@@ -183,8 +185,8 @@ namespace Fantoche.App.Features.Workflows.Editor
 
             _previewer.Load(globalContext, tasks);
             graph.Refresh(tasks, force: true);
-            // Saved with the graph the next time it is : a task given a page after its node was added
-            // lacks one.
+            // Saved with the graph the next time it is : a node saved when only the tasks with a page
+            // could ask the user lacks one.
             foreach (GraphTask task in graph.Nodes.OfType<GraphTask>())
                 task.AddUserInterfaceSlot();
 
@@ -318,6 +320,63 @@ namespace Fantoche.App.Features.Workflows.Editor
             NodeViewModel node = Wrap(graphTask, task, placement);
             History.Apply(new ReversibleAction($"Add '{node.Name}'", () => AddNode(node), () => RemoveNode(node)));
             return node;
+        }
+
+        /// <summary>
+        /// Ask the user with [face], dropped from the tree at [location] on [onto] : for [linkedTask],
+        /// the task it hangs under, or for the task of [onto] when it is the generated form. An
+        /// interface linked to no task asks for none.
+        /// </summary>
+        public void AskWith(AutomationInterface face, AutomationTask? linkedTask, Point location, NodeViewModel? onto)
+        {
+            if (linkedTask != null)
+            {
+                AddAskingNode(linkedTask, location, onto);
+                return;
+            }
+
+            if (!face.IsForm)
+            {
+                _toasts.Warning($"Link '{face.Metadata.Name}' to a task first : it asks for the parameters of that task.", "The interface has no task");
+                return;
+            }
+
+            if (onto is not { IsUserInterface: false } || onto.Model.AutomationTask is not AutomationTask task || task is AutomationControl)
+            {
+                _toasts.Warning("Drop the form on the node of a task : it asks for the parameters of that task.", "Which task does it ask for ?");
+                return;
+            }
+
+            if (task.Interface != null)
+                _toasts.Info($"'{task.Metadata.Name}' asks with the interface linked to it rather than with the form.", "The task has an interface");
+            AddAskingNode(task, location, onto);
+        }
+
+        /// <summary>
+        /// Ask the user for the parameters of [task], dropped from the tree at [location] : attached
+        /// under [onto] when it is a node of the task, else under the only node of the task not
+        /// asking yet. With none or several to pick from, the node is added on its own, to be
+        /// plugged into one of them.
+        /// </summary>
+        public void AddAskingNode(AutomationTask task, Point location, NodeViewModel? onto)
+        {
+            if (!IsEditable)
+                return;
+
+            List<NodeViewModel> free = [.. Nodes.Where(x => !x.IsUserInterface
+                && x.Model.TaskId == task.Id
+                && x.UserInterfaceSlot is { IsConnected: false })];
+            NodeViewModel? target = onto != null && free.Contains(onto) ? onto : free.Count == 1 ? free[0] : null;
+            if (target != null)
+            {
+                AskUser(target);
+                return;
+            }
+
+            var graphAsking = new GraphUserInterface(task);
+            graphAsking.Metadata.Name = $"Ask {task.Metadata.Name}";
+            NodeViewModel asking = Wrap(graphAsking, task, location);
+            History.Apply(new ReversibleAction($"Add '{asking.Name}'", () => AddNode(asking), () => RemoveNode(asking)));
         }
 
         /// <summary>How far above its task an "ask the user" node is placed.</summary>

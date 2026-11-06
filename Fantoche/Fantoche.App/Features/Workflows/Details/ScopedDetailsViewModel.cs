@@ -97,6 +97,17 @@ namespace Fantoche.App.Features.Workflows.Details
             _toasts.Success(message, $"{Node.Type} saved");
         }
 
+        /// <summary>
+        /// Hang the element under [parentId] and save it, the tree then showing it there, still open.
+        /// </summary>
+        protected async Task MoveAsync(Guid parentId, string message)
+        {
+            Element.ParentId = parentId;
+            await SaveElementAsync(message);
+            _parent.OpenWhenShown(Element.Id);
+            await _parent.RefreshAsync();
+        }
+
         /// <summary>Record an edit, so <see cref="SaveCommand"/> is only enabled while there is one.</summary>
         protected void MarkChanged()
         {

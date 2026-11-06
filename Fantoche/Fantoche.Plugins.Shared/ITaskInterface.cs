@@ -1,7 +1,6 @@
-using System.Windows;
 using Newtonsoft.Json.Linq;
 
-namespace Fantoche.Plugins.Shared.Ui;
+namespace Fantoche.Plugins.Shared;
 
 /// <summary>Where an interface is shown.</summary>
 public enum EnumInterfaceMode
@@ -20,7 +19,8 @@ public enum EnumInterfaceMode
 /// The interface of a task : what the user edits its parameters with, in the editor and in a run.
 /// An element of the workflows points at one (<c>BaseAutomationTask.Interface</c>), the form
 /// generated from the schema of its parameters being shown otherwise, and in the modes the
-/// interface doesn't handle.
+/// interface doesn't handle. Mark it with <see cref="TaskInterfaceAttribute"/> to tell which task
+/// it is the interface of.
 /// <para>
 /// It lives in a project of its own, for Windows (<c>net10.0-windows</c>, WPF), packed apart from
 /// the tasks : the workers load the tasks on any system and never the interfaces. It can reference
@@ -39,8 +39,11 @@ public interface ITaskInterface
     /// <summary>Whether it is shown in [mode], the generated form being shown otherwise.</summary>
     bool Handles(EnumInterfaceMode mode);
 
-    /// <summary>The view, built once, on the thread of the interface.</summary>
-    FrameworkElement Show(TaskInterfaceContext context);
+    /// <summary>
+    /// The view, built once, on the thread of the interface : a WPF <c>FrameworkElement</c>. Typed
+    /// as an object so this assembly stays free of WPF, the workers loading it on any system.
+    /// </summary>
+    object Show(TaskInterfaceContext context);
 
     /// <summary>
     /// What the user confirmed : the parameters in a run, the mapping in the editor. The application
@@ -48,6 +51,16 @@ public interface ITaskInterface
     /// </summary>
     /// <exception cref="TaskInterfaceException">The user has something left to fix, the message telling what.</exception>
     Task<JToken?> ReadAsync();
+}
+
+/// <summary>
+/// The task an <see cref="ITaskInterface"/> edits the parameters of : the application offers the
+/// interface to the elements running that task, as the child of the task in the tree.
+/// </summary>
+[AttributeUsage(AttributeTargets.Class, Inherited = false)]
+public sealed class TaskInterfaceAttribute(Type task) : Attribute
+{
+    public Type Task { get; } = task;
 }
 
 /// <summary>What an interface is shown with.</summary>

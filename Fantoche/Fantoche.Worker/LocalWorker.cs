@@ -67,6 +67,13 @@ public sealed class LocalWorker : ITaskExecutor, IDisposable
 
     public void Dispose() => _tasks.Dispose();
 
+    /// <summary>
+    /// An instance of the task [target] points at, its package downloaded if needed : what it reads
+    /// and hands over, for the schemas of an element running it.
+    /// </summary>
+    /// <exception cref="PackageDownloadException">The package or its assembly can't be resolved.</exception>
+    public Task<ITask> LoadTaskAsync(PackageClassTarget target) => _tasks.CreateAsync(target);
+
     /// <summary>An execution started in this process.</summary>
     public async Task<TaskInstance> ExecuteAsync(
         BaseAutomationTask task,

@@ -34,7 +34,7 @@
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto" />
-                <RowDefinition Height="300" />
+                <RowDefinition Height="420" />
             </Grid.RowDefinitions>
 
             <TextBlock Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}" Text="Available (force a field to reference one)" />
@@ -45,7 +45,8 @@
                 Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}"
                 Text="{Binding Texts.MappingLabel}" />
 
-            <jata:DataFill
+            <!--  The form generated from the schema of the task, a field pointing at what the node reads through its toggle.  -->
+            <jata:DataForm
                 Grid.Row="1"
                 Grid.Column="1"
                 ManualValues="{Binding References}"

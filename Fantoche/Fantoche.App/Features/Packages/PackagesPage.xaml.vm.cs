@@ -18,12 +18,14 @@ namespace Fantoche.App.Features.Packages
         public SearchedPagingViewModel Paging { get; }
 
         private readonly IPackagesService _packages;
+        private readonly PackageSamples _samples;
         private readonly IOverlayer _overlays;
         private readonly IToastService _toasts;
 
-        public PackagesViewModel(IPackagesService packages, IOverlayer overlays, IToastService toasts)
+        public PackagesViewModel(IPackagesService packages, PackageSamples samples, IOverlayer overlays, IToastService toasts)
         {
             _packages = packages;
+            _samples = samples;
             _overlays = overlays;
             _toasts = toasts;
             Paging = new SearchedPagingViewModel(RefreshAsync);
@@ -65,6 +67,23 @@ namespace Fantoche.App.Features.Packages
                 toastInstance.Type = ToastType.Success;
                 toastInstance.Message = $"Package '{result.Infos.Identifier}' added.";
                 toastInstance.Duration = TimeSpan.FromSeconds(5);
+            }
+
+            await CreateSamplesAsync(result.Infos);
+        }
+
+        /// <summary>The samples the package comes with, if any : the package stays added when they fail.</summary>
+        private async Task CreateSamplesAsync(PackageInfos package)
+        {
+            try
+            {
+                string? created = await _samples.CreateAsync(package);
+                if (created != null)
+                    _toasts.Success(created, "Samples");
+            }
+            catch (Exception exception)
+            {
+                _toasts.Error(exception.Message, "The samples could not be created");
             }
         }
 

@@ -18,7 +18,7 @@
   <ItemGroup>
     <!-- Found in the application, never packed : the application and its interfaces share them. -->
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-    <ProjectReference Include="..\Fantoche.Plugins.Shared.Ui\Fantoche.Plugins.Shared.Ui.csproj" />
+    <ProjectReference Include="..\Fantoche.Plugins.Shared\Fantoche.Plugins.Shared.csproj" />
     <!-- The tasks the interfaces call the rules of, packed along : see PackTasks below. -->
     <ProjectReference Include="..\Fantoche.Plugins.Example\Fantoche.Plugins.Example.csproj" PrivateAssets="all" />
   </ItemGroup>

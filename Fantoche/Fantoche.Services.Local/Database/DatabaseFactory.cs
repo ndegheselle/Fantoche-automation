@@ -94,7 +94,6 @@ namespace Fantoche.Services.Local.Database
             connection.Execute(ScheduledStartModel.Schema);
 
             RenameLegacyColumns(connection);
-            AddMissingColumns(connection);
         }
 
         /// <summary>
@@ -127,25 +126,6 @@ namespace Fantoche.Services.Local.Database
         private static void RenameLegacyColumns(IDbConnection connection)
         {
             Rename(connection, "GraphNodes", "ParametersJson", "InputMappingJson");
-        }
-
-        /// <summary>
-        /// Add the nullable columns a database written by an older version lacks : creating the
-        /// tables leaves an existing one untouched, and these are worth keeping its rows for.
-        /// </summary>
-        private static void AddMissingColumns(IDbConnection connection)
-        {
-            // The interface the parameters of a task or a workflow are edited with.
-            AddColumn(connection, "Scoped", "Interface", "TEXT NULL");
-        }
-
-        private static void AddColumn(IDbConnection connection, string table, string column, string definition)
-        {
-            List<string> columns = [.. connection.Query<string>($"SELECT name FROM pragma_table_info('{table}');")];
-            if (columns.Contains(column))
-                return;
-
-            connection.Execute($"ALTER TABLE {table} ADD COLUMN {column} {definition};");
         }
 
         /// <summary>
