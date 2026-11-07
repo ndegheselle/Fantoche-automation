@@ -70,7 +70,7 @@ public class SpineViewModel : ObservableObject
         RegisterViews();
 
         Navigator = new Navigator(_provider.GetRequiredService);
-        OpenSettingsCommand = new RelayCommand(() => Navigator.Navigate(typeof(SettingsViewModel)));
+        OpenSettingsCommand = new AsyncRelayCommand(SettingsViewModel.ShowAsync);
         // Land on a page at startup.
         Navigator.Navigate(typeof(WorkflowsViewModel));
     }
@@ -148,7 +148,6 @@ public class SpineViewModel : ObservableObject
     /// </summary>
     private static void AddPages(ServiceCollection services)
     {
-        services.AddSingleton<SettingsViewModel>();
         services.AddSingleton<WorkflowsViewModel>();
         services.AddSingleton<PackagesViewModel>();
         services.AddSingleton<SchedulerViewModel>();
@@ -161,7 +160,7 @@ public class SpineViewModel : ObservableObject
     /// </summary>
     private void RegisterViews()
     {
-        RegisterView<SettingsViewModel, SettingsPage>();
+        RegisterView<SettingsViewModel, SettingsOverlay>();
 
         RegisterView<WorkflowsViewModel, WorkflowsPage>();
         RegisterView<TaskSelectionViewModel, TaskSelectionOverlay>();

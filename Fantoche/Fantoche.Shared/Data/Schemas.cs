@@ -22,6 +22,8 @@ public static class Schemas
     private static readonly SystemTextJsonSchemaGeneratorSettings GeneratorSettings = new()
     {
         SerializerOptions = new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } },
+        // [Description] only: the <summary> are written for developers, not for the editor's fields.
+        UseXmlDocumentation = false,
     };
 
     private static readonly Newtonsoft.Json.JsonSerializer ValueSerializer = Newtonsoft.Json.JsonSerializer.Create(

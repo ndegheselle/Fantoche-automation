@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Globalization;
 using Fantoche.Plugins.Shared;
 
@@ -5,19 +6,19 @@ namespace Fantoche.Plugins.Example.Tasks.Pdf;
 
 public class ExportPdfParameters
 {
-    /// <summary>A document per table.</summary>
+    [Description("A document per table.")]
     public List<TableRef> Sources { get; set; } = [];
 
-    /// <summary>The whole table when it holds no block.</summary>
+    [Description("The whole table when it holds no block.")]
     public PdfLayout Document { get; set; } = new();
 
-    /// <summary>Name of the file of each document, ".pdf" being added : it can hold the same placeholders as the text of a block.</summary>
+    [Description("Name of the file of each document, \".pdf\" being added. Can hold {index}, {count} and {rows}.")]
     public string FileName { get; set; } = "document-{index}";
 }
 
 public class ExportPdfResult
 {
-    /// <summary>A file per source, in their order.</summary>
+    [Description("A file per source, in their order.")]
     public List<FileRef> Files { get; set; } = [];
 }
 

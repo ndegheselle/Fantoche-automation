@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using Fantoche.Plugins.Example.Common;
 using Fantoche.Plugins.Shared;
 using NJsonSchema.Annotations;
@@ -10,10 +11,10 @@ public class MapColumnsParameters
     public TableRef Source { get; set; } = new();
 
     /// <summary>
-    /// The name to give each column, a column being named once. With its interface, the names are
-    /// the ones of the workflow and the columns what the interface starts from : left empty, it
-    /// picks the column whose name looks the most alike.
+    /// With its interface, the names are the ones of the workflow and the columns what the
+    /// interface starts from.
     /// </summary>
+    [Description("The name to give each column, a column being named once. Left empty, the column whose name looks the most alike is picked.")]
     [JsonSchemaExtensionData(OutputPreview.MappingSchemaKey, OutputPreview.Whole)]
     public List<ColumnMapping> Columns { get; set; } = [];
 }

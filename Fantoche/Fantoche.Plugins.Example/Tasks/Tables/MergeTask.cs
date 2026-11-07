@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Text.Json.Serialization;
 using Fantoche.Plugins.Example.Common;
 using Fantoche.Plugins.Shared;
@@ -18,7 +19,10 @@ public enum EnumMergeKind
 /// <summary>A column of each table, the rows merged when their values are equal.</summary>
 public class MergeKey
 {
+    [Description("A column of the left table.")]
     public string Left { get; set; } = "";
+
+    [Description("A column of the right table.")]
     public string Right { get; set; } = "";
 }
 
@@ -30,9 +34,10 @@ public class MergeParameters
     [JsonSchemaExtensionData(OutputPreview.SchemaKey, OutputPreview.Whole)]
     public TableRef Right { get; set; } = new();
 
-    /// <summary>The rows are merged when every pair holds the same value.</summary>
+    [Description("The rows are merged when every pair of columns holds the same value.")]
     public List<MergeKey> On { get; set; } = [];
 
+    [Description("Inner : only the rows matching on both sides. Left : every row of the left table, with empty right columns when nothing matches.")]
     public EnumMergeKind Kind { get; set; } = EnumMergeKind.Inner;
 }
 

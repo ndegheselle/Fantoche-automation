@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Text.Json.Serialization;
 
 namespace Fantoche.Plugins.Example.Tasks.Pdf;
@@ -15,10 +16,10 @@ public enum EnumPdfBlock
 /// <summary>A column a table block shows, under its header.</summary>
 public class PdfColumn
 {
-    /// <summary>A name of the mapping of the table, or a stored column.</summary>
+    [Description("A name of the mapping of the table, or a stored column.")]
     public string Column { get; set; } = "";
 
-    /// <summary>The name of the column when empty.</summary>
+    [Description("The name of the column when empty.")]
     public string Header { get; set; } = "";
 }
 
@@ -30,9 +31,11 @@ public class PdfColumn
 public class PdfBlock
 {
     public EnumPdfBlock Kind { get; set; } = EnumPdfBlock.Text;
+
+    [Description("For a heading or a paragraph. Can hold {index}, {count} and {rows}.")]
     public string Text { get; set; } = "";
 
-    /// <summary>For a table : every column of the table when empty.</summary>
+    [Description("For a table : every column of the table when empty.")]
     public List<PdfColumn> Columns { get; set; } = [];
 }
 

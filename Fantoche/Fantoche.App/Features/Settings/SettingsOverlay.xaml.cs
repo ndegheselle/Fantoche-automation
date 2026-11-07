@@ -2,9 +2,9 @@ using System.Windows.Controls;
 
 namespace Fantoche.App.Features.Settings
 {
-    public partial class SettingsPage : UserControl
+    public partial class SettingsOverlay : UserControl
     {
-        public SettingsPage()
+        public SettingsOverlay()
         {
             InitializeComponent();
         }

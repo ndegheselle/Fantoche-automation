@@ -4,9 +4,6 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <!-- The summaries of the parameters describe their fields in the editor : NJsonSchema reads them from the XML file next to the assembly. -->
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);CS1591</NoWarn>
     <Title>Table automation plugins</Title>
     <PackageIcon></PackageIcon>
     <Version>2.1.0</Version>

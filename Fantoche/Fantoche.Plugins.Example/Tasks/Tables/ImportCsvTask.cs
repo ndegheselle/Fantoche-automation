@@ -1,19 +1,16 @@
+using System.ComponentModel;
 using Fantoche.Plugins.Shared;
 
 namespace Fantoche.Plugins.Example.Tasks.Tables;
 
 public class ImportCsvParameters
 {
-    /// <summary>
-    /// Path of the CSV file on the worker.
-    /// </summary>
+    [Description("Path of the CSV file on the worker.")]
     [FilePath("CSV files|*.csv|All files|*.*")]
     public string Path { get; set; } = "";
 
-    /// <summary>
-    /// The name of the table (see <see cref="TableRef.Name"/>), the name of the file without its
-    /// extension when empty.
-    /// </summary>
+    /// <summary>See <see cref="TableRef.Name"/>.</summary>
+    [Description("The name of the table, the name of the file without its extension when empty.")]
     public string Name { get; set; } = "";
 }
 

@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Text.Json.Serialization;
 using Fantoche.Plugins.Shared;
 
@@ -21,8 +22,12 @@ public enum EnumConditionOperator
 /// </summary>
 public class RowCondition
 {
+    [Description("A value, or a reference to the row ($row.columns.name).")]
     public object? Left { get; set; }
+
     public EnumConditionOperator Operator { get; set; }
+
+    [Description("A value, or a reference to the row ($row.columns.name).")]
     public object? Right { get; set; }
 }
 

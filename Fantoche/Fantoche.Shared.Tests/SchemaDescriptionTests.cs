@@ -1,5 +1,6 @@
 using Fantoche.Shared.Data;
 using NJsonSchema;
+using DescriptionAttribute = System.ComponentModel.DescriptionAttribute;
 using RangeAttribute = System.ComponentModel.DataAnnotations.RangeAttribute;
 using RequiredAttribute = System.ComponentModel.DataAnnotations.RequiredAttribute;
 
@@ -14,20 +15,29 @@ public class SchemaDescriptionTests
 {
     public class Parameters
     {
-        /// <summary>Rows per batch.</summary>
+        [Description("Rows per batch.")]
         [Range(1, 1000)]
         public int BatchSize { get; set; } = 10;
 
+        /// <summary>Not for the editor.</summary>
         [Required]
         public string Name { get; set; } = "";
     }
 
     [Test]
-    public void A_property_is_described_by_its_xml_documentation()
+    public void A_property_is_described_by_its_description_attribute()
     {
         JsonSchema schema = Schemas.Of(typeof(Parameters));
 
         Assert.That(schema.ActualProperties[nameof(Parameters.BatchSize)].Description, Is.EqualTo("Rows per batch."));
+    }
+
+    [Test]
+    public void The_xml_documentation_of_a_property_is_not_its_description()
+    {
+        JsonSchema schema = Schemas.Of(typeof(Parameters));
+
+        Assert.That(schema.ActualProperties[nameof(Parameters.Name)].Description, Is.Null);
     }
 
     [Test]

@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using Fantoche.Plugins.Example.Common;
 using Fantoche.Plugins.Shared;
 using NJsonSchema.Annotations;
@@ -7,8 +8,10 @@ namespace Fantoche.Plugins.Example.Tasks.Tables;
 /// <summary>The value a column is given : a value or a reference to the row (see <see cref="RowScope"/>).</summary>
 public class ColumnValue
 {
-    /// <summary>A column of the table, or the name of a column to add.</summary>
+    [Description("A column of the table, or the name of a column to add.")]
     public string Column { get; set; } = "";
+
+    [Description("A value, or a reference to the row ($row.columns.name).")]
     public object? Value { get; set; }
 }
 
@@ -17,15 +20,14 @@ public class UpdateParameters
     [JsonSchemaExtensionData(OutputPreview.SchemaKey, OutputPreview.Whole)]
     public TableRef Source { get; set; } = new();
 
-    /// <summary>The rows updated, every row without conditions.</summary>
+    [Description("The rows to update, every row when empty.")]
     [JsonSchemaExtensionData(RowScope.SchemaKey, nameof(Source))]
     public List<RowCondition> Conditions { get; set; } = [];
 
-    /// <summary>
-    /// Update a row when every condition holds, otherwise when any of them does.
-    /// </summary>
+    [Description("Update a row when every condition holds, otherwise when any of them does.")]
     public bool MatchAll { get; set; } = true;
 
+    [Description("The columns given a value on the updated rows.")]
     [JsonSchemaExtensionData(RowScope.SchemaKey, nameof(Source))]
     public List<ColumnValue> Set { get; set; } = [];
 }

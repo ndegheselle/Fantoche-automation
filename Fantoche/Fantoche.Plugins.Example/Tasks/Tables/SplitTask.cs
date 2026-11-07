@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using Fantoche.Plugins.Example.Common;
 using Fantoche.Plugins.Shared;
 
@@ -6,12 +7,14 @@ namespace Fantoche.Plugins.Example.Tasks.Tables;
 public class SplitParameters
 {
     public TableRef Source { get; set; } = new();
+
+    [Description("The most rows a table of the output holds.")]
     public int BatchSize { get; set; } = 10000;
 }
 
 public class SplitResult
 {
-    /// <summary>The rows of the source in order, [BatchSize] at most per table.</summary>
+    [Description("The rows of the source in order, BatchSize at most per table.")]
     public List<TableRef> Batches { get; set; } = [];
 }
 
