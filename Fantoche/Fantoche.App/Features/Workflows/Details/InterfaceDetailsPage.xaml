@@ -27,7 +27,7 @@
                     <!--  The built-in form : nothing to set, only to drag.  -->
                     <TextBlock
                         Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}"
-                        Text="The form generated from the parameters of a task, shown for the tasks with no interface of their own. Drag it onto a node of a task to ask the user before it runs."
+                        Text="The form generated from the parameters of a task, shown for the tasks with no interface of their own, or picking it in their settings. Drag it onto a node of a task to ask the user before it runs."
                         TextWrapping="Wrap"
                         Visibility="{Binding IsForm, Mode=OneTime, Converter={x:Static jonverters:VisibilityConverter.Default}}" />
 
@@ -58,8 +58,8 @@
                             </StackPanel>
                         </Button>
 
-                        <!--  The task it hangs under  -->
-                        <TextBlock Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}">Task</TextBlock>
+                        <!--  The task or workflow it hangs under  -->
+                        <TextBlock Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}">Linked to</TextBlock>
                         <Grid Visibility="{Binding IsLinked, Converter={x:Static jonverters:VisibilityConverter.Default}}">
                             <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
                                 <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.SquareTerminal}" />
@@ -73,11 +73,11 @@
                             </Button>
                         </Grid>
                         <Grid Visibility="{Binding IsLinked, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}">
-                            <TextBlock VerticalAlignment="Center" TextWrapping="Wrap">Linked to no task : link it to show it under the task, which then asks with it.</TextBlock>
+                            <TextBlock VerticalAlignment="Center" TextWrapping="Wrap">Linked to nothing : link it to a task or a workflow to show it under it, which then asks with it.</TextBlock>
                             <Button HorizontalAlignment="Right" Command="{Binding LinkCommand}">
                                 <StackPanel Orientation="Horizontal">
                                     <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Link}" />
-                                    <TextBlock Margin="4,0,0,0">Link to a task</TextBlock>
+                                    <TextBlock Margin="4,0,0,0">Link</TextBlock>
                                 </StackPanel>
                             </Button>
                         </Grid>

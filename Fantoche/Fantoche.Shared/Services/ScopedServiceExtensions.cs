@@ -34,15 +34,16 @@ public static class ScopedServiceExtensions
     }
 
     /// <summary>
-    /// Give each task of [tasks] the interface hanging under it (see <see cref="AutomationInterface"/>),
-    /// null for the generated form : the task carries it to wherever it is asked.
+    /// Give each task or workflow of [tasks] the interface its settings pick among those hanging
+    /// under it (see <see cref="AutomationInterface.Pick"/>), null for the generated form : the
+    /// element carries it to wherever it is set up or asked.
     /// </summary>
     public static async Task ResolveInterfacesAsync(this IScopedService scoped, IEnumerable<BaseAutomationTask> tasks)
     {
-        foreach (AutomationTask task in tasks.OfType<AutomationTask>().Where(x => x is not AutomationControl))
+        foreach (BaseAutomationTask task in tasks.Where(x => x is not AutomationControl))
         {
             List<ScopedElement> children = await scoped.GetChildrensAsync(task.Id);
-            task.Interface = children.OfType<AutomationInterface>().FirstOrDefault(x => x.Target != null)?.Target;
+            task.Interface = AutomationInterface.Pick(task.Settings, children.OfType<AutomationInterface>())?.Target;
         }
     }
 

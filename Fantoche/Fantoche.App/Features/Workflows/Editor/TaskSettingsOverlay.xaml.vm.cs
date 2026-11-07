@@ -22,7 +22,8 @@ namespace Fantoche.App.Features.Workflows.Editor
 
     /// <summary>
     /// Settings of a graph node : the mapping it runs with, edited between what the node reads and
-    /// the shape expected of it. The mapping is checked by <see cref="MappingCheck"/>.
+    /// the shape expected of it, with the form generated from the schema or with the interface its
+    /// task picks (see <see cref="NodeInterface"/>). The mapping is checked by <see cref="MappingCheck"/>.
     /// <para>
     /// Nothing is edited in place : the settings are handed to the editor as an
     /// <see cref="IReversibleAction"/>, so cancelling has nothing to restore and undo works.
@@ -44,9 +45,24 @@ namespace Fantoche.App.Features.Workflows.Editor
 
         public OverlayOptions Options { get; }
 
-        public IReversibleAction? Result => BuildEdition();
+        public IReversibleAction? Result { get; private set; }
 
         public NodeKindTexts Texts { get; }
+
+        /// <summary>
+        /// The view of the interface the task picks, shown instead of the generated form. Null for
+        /// the form.
+        /// </summary>
+        public System.Windows.FrameworkElement? InterfaceView => _interface?.View;
+
+        public bool HasInterface => _interface != null;
+
+        /// <summary>A field of the generated form can be forced to a reference ; an interface offers its own way.</summary>
+        public string AvailableLabel => HasInterface ? "Available" : "Available (force a field to reference one)";
+
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(ValidateCommand))]
+        private bool _isValidating;
 
         /// <summary>
         /// Mapping the node runs with, references to the context included (e.g. "$previous.Value").
@@ -100,6 +116,7 @@ namespace Fantoche.App.Features.Workflows.Editor
         private readonly BaseGraphTask _node;
         private readonly EnumNodeKind _kind;
         private readonly IOverlayer _overlayer;
+        private readonly NodeInterface? _interface;
 
         /// <summary>
         /// The ways a run can reach the node, empty when the graph could not be walked.
@@ -121,15 +138,18 @@ namespace Fantoche.App.Features.Workflows.Editor
         /// </summary>
         private string? NodeSchemaJson => IsStart ? _node.OutputSchemaJson : _node.InputSchemaJson;
 
-        public TaskSettingsViewModel(
+        /// <param name="nodeInterface">The interface the task picks, null for the generated form.</param>
+        private TaskSettingsViewModel(
             BaseGraphTask node,
-            GraphExecutionPreview? preview,
+            IReadOnlyList<NodePreviewContext> contexts,
+            NodeInterface? nodeInterface,
             IOverlayer overlayer)
         {
             _node = node;
             _overlayer = overlayer;
+            _interface = nodeInterface;
             _kind = KindOf(node);
-            _contexts = preview?.NodesContexts.GetValueOrDefault(node.Id) ?? [];
+            _contexts = contexts;
 
             string kindName = AutomationControl.Get(node.TaskId)?.Metadata.Name ?? _kind.ToString();
             Options = new OverlayOptions() { Title = $"{node.Name} - {kindName}" };
@@ -162,24 +182,29 @@ namespace Fantoche.App.Features.Workflows.Editor
                 OnPropertyChanged(nameof(HasErrors));
                 ValidateCommand.NotifyCanExecuteChanged();
             };
-            Mapping.Changed += (_, _) => Refresh();
+            // The interface checks what it edits itself, its answer being checked once confirmed.
+            if (HasInterface)
+                return;
 
+            Mapping.Changed += (_, _) => Refresh();
             Refresh();
         }
 
         /// <summary>
-        /// Show the settings of [node] and return the edition to apply to the graph, null when
-        /// cancelled.
+        /// Show the settings of [node], with the interface its task picks when it handles the setup,
+        /// and return the edition to apply to the graph, null when cancelled.
         /// <para>
         /// [preview] is the editor's last walk of the graph : walking it again here could disagree
         /// with what the editor is drawing.
         /// </para>
         /// </summary>
-        public static Task<IReversibleAction?> ShowAsync(BaseGraphTask node, GraphExecutionPreview? preview)
+        public static async Task<IReversibleAction?> ShowAsync(BaseGraphTask node, GraphExecutionPreview? preview)
         {
+            IReadOnlyList<NodePreviewContext> contexts = preview?.NodesContexts.GetValueOrDefault(node.Id) ?? [];
+            NodeInterface? nodeInterface = await NodeInterface.CreateAsync(node, contexts);
             IOverlayer overlayer = SpineViewModel.Instance.Overlayer;
-            var settings = new TaskSettingsViewModel(node, preview, overlayer);
-            return overlayer.ShowAsync(settings);
+            var settings = new TaskSettingsViewModel(node, contexts, nodeInterface, overlayer);
+            return await overlayer.ShowAsync(settings);
         }
 
         private static EnumNodeKind KindOf(BaseGraphTask node)
@@ -422,20 +447,56 @@ namespace Fantoche.App.Features.Workflows.Editor
             => node is IDataParent parent ? parent.Children.SelectMany(NodesOf).Prepend(node) : [node];
 
         [RelayCommand(CanExecute = nameof(CanValidate))]
-        private void Validate() => _overlayer.Validate(this);
+        private async Task Validate()
+        {
+            if (_interface == null)
+            {
+                Result = BuildEdition(Mapping.ToToken()!);
+                _overlayer.Validate(this);
+                return;
+            }
+
+            Errors.Clear();
+            IsValidating = true;
+            try
+            {
+                JToken mapping = await _interface.ReadAsync();
+                foreach (MappingError error in MappingCheck.Check(mapping, _contexts, ParseTaskSchema(), allowMissingRequired: false))
+                    Errors.Add(error);
+                if (HasErrors)
+                    return;
+
+                Result = BuildEdition(mapping);
+                _overlayer.Validate(this);
+            }
+            catch (Exception exception)
+            {
+                // A TaskInterfaceException tells what is left to fix ; anything else is a bug of the
+                // interface, shown the same way rather than losing what the user set.
+                Errors.Add(new MappingError(exception.Message));
+            }
+            finally
+            {
+                IsValidating = false;
+            }
+        }
 
         [RelayCommand]
         private void Cancel() => _overlayer.Cancel(this);
 
-        private bool CanValidate() => !HasErrors;
+        /// <summary>
+        /// The form is refused while it holds errors ; an interface is only checked once confirmed,
+        /// so the errors of its last answer don't keep it from being confirmed again.
+        /// </summary>
+        private bool CanValidate() => HasInterface ? !IsValidating : !HasErrors;
 
         /// <summary>
         /// The edition holds both the new and the previous values, so the editor can undo it. The
         /// node's name is not part of it : it is edited on the graph itself.
         /// </summary>
-        private IReversibleAction BuildEdition()
+        private IReversibleAction BuildEdition(JToken edited)
         {
-            string mapping = Mapping.ToToken()!.ToString(Formatting.Indented);
+            string mapping = edited.ToString(Formatting.Indented);
             string? previousMapping = _node.InputTemplateJson;
             string? schema = _expectedSchemaJson;
             string? previousSchema = NodeSchemaJson;

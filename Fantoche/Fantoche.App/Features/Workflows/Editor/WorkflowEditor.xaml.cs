@@ -92,7 +92,7 @@ namespace Fantoche.App.Features.Workflows.Editor
                 ItemContainer? onto = ContainerAt(drop.Target.TranslatePoint(drop.Position, Editor));
                 ViewModel.AskWith(
                     (AutomationInterface)interfaceNode.Element,
-                    interfaceNode.Parent?.Element as AutomationTask,
+                    interfaceNode.Parent?.Element as BaseAutomationTask,
                     location,
                     onto?.DataContext as NodeViewModel);
                 return;

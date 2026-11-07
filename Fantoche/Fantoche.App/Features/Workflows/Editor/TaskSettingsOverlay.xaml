@@ -12,9 +12,19 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:packages="clr-namespace:Fantoche.App.Features.Packages.Controls"
     x:Name="RootElement"
-    MinWidth="900"
     d:DataContext="{d:DesignInstance Type=local:TaskSettingsViewModel}"
     mc:Ignorable="d">
+    <!--  An interface is laid out for more room than the generated form.  -->
+    <UserControl.Style>
+        <Style TargetType="UserControl">
+            <Setter Property="MinWidth" Value="900" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding HasInterface}" Value="True">
+                    <Setter Property="MinWidth" Value="1300" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Style>
 
     <Grid joolkit:Spacing.Gap="2">
         <Grid.RowDefinitions>
@@ -34,10 +44,21 @@
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto" />
-                <RowDefinition Height="420" />
+                <RowDefinition>
+                    <RowDefinition.Style>
+                        <Style TargetType="RowDefinition">
+                            <Setter Property="Height" Value="420" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasInterface}" Value="True">
+                                    <Setter Property="Height" Value="560" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </RowDefinition.Style>
+                </RowDefinition>
             </Grid.RowDefinitions>
 
-            <TextBlock Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}" Text="Available (force a field to reference one)" />
+            <TextBlock Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}" Text="{Binding AvailableLabel}" />
             <jata:DataDisplay Grid.Row="1" Node="{Binding Context, Mode=OneWay}" />
 
             <TextBlock
@@ -46,18 +67,26 @@
                 Text="{Binding Texts.MappingLabel}" />
 
             <!--  The form generated from the schema of the task, a field pointing at what the node reads through its toggle.  -->
-            <jata:DataForm
+            <Grid
                 Grid.Row="1"
                 Grid.Column="1"
-                ManualValues="{Binding References}"
-                Node="{Binding Mapping, Mode=OneWay}"
-                Visibility="{Binding IsFilled, Converter={x:Static jonverters:VisibilityConverter.Default}}" />
-            <jata:DataEdit
+                Visibility="{Binding HasInterface, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}">
+                <jata:DataForm
+                    ManualValues="{Binding References}"
+                    Node="{Binding Mapping, Mode=OneWay}"
+                    Visibility="{Binding IsFilled, Converter={x:Static jonverters:VisibilityConverter.Default}}" />
+                <jata:DataEdit
+                    ManualValues="{Binding References}"
+                    Node="{Binding Mapping, Mode=OneWay}"
+                    Visibility="{Binding IsFilled, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}" />
+            </Grid>
+
+            <!--  Or the interface the task picks, editing the same mapping  -->
+            <ContentControl
                 Grid.Row="1"
                 Grid.Column="1"
-                ManualValues="{Binding References}"
-                Node="{Binding Mapping, Mode=OneWay}"
-                Visibility="{Binding IsFilled, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}" />
+                Content="{Binding InterfaceView}"
+                Visibility="{Binding HasInterface, Converter={x:Static jonverters:VisibilityConverter.Default}}" />
 
             <TextBlock
                 Grid.Column="2"

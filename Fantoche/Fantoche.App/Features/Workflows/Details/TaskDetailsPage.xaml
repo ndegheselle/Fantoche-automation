@@ -62,6 +62,11 @@
                         </StackPanel>
                     </Grid>
 
+                    <!--  A control is built in : it is set up by its own settings, never through an interface.  -->
+                    <Grid Visibility="{Binding Metadata.IsReadOnly, Mode=OneTime, Converter={x:Static jonverters:VisibilityConverter.Default}, ConverterParameter=False}">
+                        <details:InterfaceChoice DataContext="{Binding InterfaceChoice}" />
+                    </Grid>
+
                 </StackPanel>
 
                 <details:ScopedActions Grid.Row="1" />

@@ -145,19 +145,20 @@ The versions are stored as reverse diffs, so a past version costs only what chan
 
 ## User interface tasks
 
-Any task can ask the user for its parameters before it runs, and any task is set up in the editor. Both show the interface of the task: a WPF view from a package of interfaces, or the form generated from its parameters when it has none. A workflow only asks where the node of the task is given an "ask the user" node, so the same task runs unattended elsewhere (a schedule, an automated run).
+Any task can ask the user for its parameters before it runs, and any task is set up in the editor. A task or a workflow started or scheduled on its own is given its parameters too. All of them show the interface of the element: a WPF view from a package of interfaces, or the form generated from its parameters. A workflow only asks where the node of the task is given an "ask the user" node, so the same task runs unattended elsewhere (a schedule, an automated run).
 
 - **In a workflow:** "Ask the user" on a task node adds a round node attached under it, through the diamond under the task (`GraphUserInterface`, `BaseGraphTask.UserInterface`). It points at the same task and sits apart from the branches: nothing flows into it nor out of it. A task is asked by one node, which asks for that task only (`TasksGraph.CanConnect`).
-- **An interface is an element of the tree** (`AutomationInterface`, pointing at a class implementing `ITaskInterface`), shown like a task. It is linked to a task by hanging under it: the tree then shows it as the child of the task, and a task linked to none has no child. "Add an interface" with a task selected links it to that task; its details link it to another task or unlink it.
+- **An interface is an element of the tree** (`AutomationInterface`, pointing at a class implementing `ITaskInterface`), shown like a task. It is linked to a task or a workflow by hanging under it: the tree then shows it as the child of the element, and an element linked to none has no child. "Add an interface" with a task or workflow selected links it to that element; its details link it to another one or unlink it.
 - **The generated form** is an element of its own too, built in, in the controls scope with the start and the end (`AutomationInterface.Form`).
-- **Which one a task uses:** the interface hanging under it, the generated form otherwise. Read from the tree when a workflow is loaded to run or to edit (`ScopedServiceExtensions.ResolveInterfacesAsync`, into `BaseAutomationTask.Interface`, which isn't stored), and carried with the task to the application asking.
-- **From the tree to a graph:** an interface dropped on the graph asks the user for its task. Dropped on a node of that task, it is attached under it; dropped elsewhere, under the only node of the task not asking yet, or on its own when there are none or several (`WorkflowEditorViewModel.AskWith`). The form asks for the task of the node it is dropped on. An interface linked to no task asks for none.
+- **Which one a task or workflow uses:** the "Interface" of its settings picks it (`TaskSettings.InterfaceId`): the default, the generated form, or one of the interfaces hanging under it. The default is the interface hanging under it, the generated form when it has none. A pick that can't be shown anymore (unlinked, removed, without a class) falls back on the default (`AutomationInterface.Pick`). Read from the tree when a workflow is loaded to run or to edit, and as an element is started or scheduled (`ScopedServiceExtensions.ResolveInterfacesAsync`, into `BaseAutomationTask.Interface`, which isn't stored), and carried with the task to the application asking.
+- **From the tree to a graph:** an interface dropped on the graph asks the user for its task. Dropped on a node of that task, it is attached under it; dropped elsewhere, under the only node of the task not asking yet, or on its own when there are none or several (`WorkflowEditorViewModel.AskWith`). The form asks for the task of the node it is dropped on. An interface linked to no task asks for none, and one linked to a workflow is shown as the workflow starts.
 - **When the task is reached:** its parameters are resolved, an instance of the asking node shows the interface of the task with them (`TaskInstance.AsksUser`, `AskingWindow`), and the task runs with what the user answered, carrying on from the node before it (`WorkflowExecutor.RunUiAsync`). A resume asks again a task that was asking, and runs the task with the answer kept when it was answered but the task never started.
-- **In the editor:** the settings of a node show the interface when it handles the editor (`TaskInterfaceSetupViewModel`), the generated settings otherwise (`TaskSettingsViewModel`). Either way the mapping is checked by `MappingCheck` and undone like any edit.
+- **In the editor:** the settings of a node (`TaskSettingsViewModel`) show what the node reads, the mapping and the schema of its task side by side. The mapping is edited with the interface of its task or nested workflow when it handles `EnumInterfaceMode.Setup` (`NodeInterface`), in place of the generated form, so what the node reads and expects stays in sight. Either way the mapping is checked by `MappingCheck` and undone like any edit: the form as it is edited, the interface once its answer is confirmed.
+- **Started or scheduled on its own:** the start settings of a workflow and the parameters of a schedule show the interface of the element when it handles `EnumInterfaceMode.Setup`, the generated form otherwise (`ParametersInput`). What the interface answers is checked against the schema of the parameters.
 
 ### The generated form
 
-Without an interface, the parameters are filled in with Joufflu.Data's `DataForm`, built from the schema of the parameters (`SchemaTree`): in a run (`ParametersFormView`, also used to start and schedule a workflow), and in the settings of a node in the editor, where a field can point at what the node reads instead of holding a value. The schema is generated from the class of the parameters, so the attributes of its properties shape the form:
+Without an interface, the parameters are filled in with Joufflu.Data's `DataForm`, built from the schema of the parameters (`SchemaTree`): in a run, as an element is started or scheduled (`ParametersFormView`), and in the settings of a node in the editor, where a field can point at what the node reads instead of holding a value. The schema is generated from the class of the parameters, so the attributes of its properties shape the form:
 
 ```csharp
 public class ImportCsvParameters
@@ -209,7 +210,8 @@ public class MapColumnsInterface : ITaskInterface
 {
     private MapColumnsViewModel? _columns;
 
-    // The generated form shows in the modes it doesn't handle : here, the editor.
+    // The generated form shows in the modes it doesn't handle : here, outside a run. (The actual
+    // MapColumnsInterface also handles Setup, with a view of its own, switching on context.Mode.)
     public bool Handles(EnumInterfaceMode mode) => mode == EnumInterfaceMode.Execution;
 
     public object Show(TaskInterfaceContext context)
@@ -230,9 +232,11 @@ public class MapColumnsInterface : ITaskInterface
 }
 ```
 
-- **The modes:** in a run, `Parameters` holds the parameters and `Runtime` what the rules of the task are handed (its storage first). In the editor, `Parameters` holds the mapping, a field pointing at what the node reads holding a reference (`"$previous.Table"`), and `References` what the node reads, typed. Nothing ran there: `Runtime` is null.
+- **The modes:** `Execution` is a run: `Parameters` holds the parameters and `Runtime` what the rules of the task are handed (its storage first). `Setup` is outside a run, nothing having run: `Runtime` is null.
+  - In the editor, `Parameters` holds the mapping, a field pointing at what the node reads holding a reference (`"$previous.Table"`), and `References` what the node reads, typed.
+  - As a workflow or a task is started or scheduled, `Parameters` holds the parameters given so far (the defaults of the start of a workflow, the parameters of the schedule), and `References` is empty.
 - **The answer:** the application checks it before taking it. In a run, it must read as the parameters of the task, else the refusal is shown above the buttons. In the editor, `MappingCheck` checks it as it checks the generated settings.
-- **The view:** only what the user edits. The application shows the name of the node, the refusal and the buttons around it. Plain WPF controls take the theme of the application. The resources of the view stay in the view: put in the application, they would apply to every interface.
+- **The view:** only what the user edits. The application shows the name of the node, the refusal and the buttons around it; in the editor, also what the node reads and the schema of its task on each side, the view taking the middle column. Joufflu, which the application holds and shares with it, gives it the controls, styles (`Card`, `GhostButton`...), brushes and icons of the application, following its theme; plain WPF controls take the theme too. Reference the Joufflu version of the application, no newer. The resources of the view stay in the view: put in the application, they would apply to every interface.
 - **Packing it:** the package carries the assembly of the tasks it was built against. It doesn't carry what the application already holds (WPF, Joufflu, CommunityToolkit.Mvvm, Newtonsoft.Json, `Fantoche.Plugins.Shared`), which it shares with it. See `Fantoche.Plugins.Example.Ui.csproj`:
 
   ```xml

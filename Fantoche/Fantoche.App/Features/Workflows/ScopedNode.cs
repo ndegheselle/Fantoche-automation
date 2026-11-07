@@ -34,10 +34,10 @@ namespace Fantoche.App.Features.Workflows
         public BaseAutomationTask? TaskElement => Element as BaseAutomationTask;
 
         /// <summary>
-        /// Whether an interface can hang under the element, linked to it : a task asks for its
-        /// parameters through it. A control is built in.
+        /// Whether an interface can hang under the element, linked to it : a task or a workflow is set
+        /// up, started and asked with it. A control is built in.
         /// </summary>
-        public bool CanHoldInterface => Element is AutomationTask and not AutomationControl;
+        public bool CanHoldInterface => Element is BaseAutomationTask and not AutomationControl;
 
         /// <summary>Ancestors then itself, root first.</summary>
         public IEnumerable<ScopedNode> Path => Parent == null ? [this] : Parent.Path.Append(this);

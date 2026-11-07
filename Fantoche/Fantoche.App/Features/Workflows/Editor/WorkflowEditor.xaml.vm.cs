@@ -323,13 +323,20 @@ namespace Fantoche.App.Features.Workflows.Editor
         }
 
         /// <summary>
-        /// Ask the user with [face], dropped from the tree at [location] on [onto] : for [linkedTask],
+        /// Ask the user with [face], dropped from the tree at [location] on [onto] : for [linkedTo],
         /// the task it hangs under, or for the task of [onto] when it is the generated form. An
-        /// interface linked to no task asks for none.
+        /// interface linked to no task asks for none, and one linked to a workflow is shown as the
+        /// workflow starts.
         /// </summary>
-        public void AskWith(AutomationInterface face, AutomationTask? linkedTask, Point location, NodeViewModel? onto)
+        public void AskWith(AutomationInterface face, BaseAutomationTask? linkedTo, Point location, NodeViewModel? onto)
         {
-            if (linkedTask != null)
+            if (linkedTo is AutomationWorkflow workflow)
+            {
+                _toasts.Warning($"'{face.Metadata.Name}' is shown as '{workflow.Metadata.Name}' starts : only a task is asked from a node.", "The interface is a workflow's");
+                return;
+            }
+
+            if (linkedTo is AutomationTask linkedTask)
             {
                 AddAskingNode(linkedTask, location, onto);
                 return;
@@ -348,7 +355,7 @@ namespace Fantoche.App.Features.Workflows.Editor
             }
 
             if (task.Interface != null)
-                _toasts.Info($"'{task.Metadata.Name}' asks with the interface linked to it rather than with the form.", "The task has an interface");
+                _toasts.Info($"'{task.Metadata.Name}' asks with the interface linked to it : pick the form in its settings to ask with the form.", "The task has an interface");
             AddAskingNode(task, location, onto);
         }
 
@@ -488,7 +495,7 @@ namespace Fantoche.App.Features.Workflows.Editor
             if (node == null || node.IsUserInterface)
                 return;
 
-            IReversibleAction? edition = await TaskInterfaceSetupViewModel.ShowAsync(node.Model, Preview);
+            IReversibleAction? edition = await TaskSettingsViewModel.ShowAsync(node.Model, Preview);
 
             // Readable while a run is followed, but what runs has to stay what is displayed.
             if (edition != null && IsEditable)

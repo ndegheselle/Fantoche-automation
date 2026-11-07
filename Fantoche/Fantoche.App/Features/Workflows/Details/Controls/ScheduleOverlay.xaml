@@ -60,7 +60,7 @@
 
         <StackPanel Grid.Row="1" joolkit:Spacing.Gap="4">
             <TextBlock Text="Parameters" />
-            <controls:ParametersFormView DataContext="{Binding Parameters}" Visibility="{Binding Parameters, Converter={x:Static jonverters:VisibilityConverter.Default}}" />
+            <controls:ParametersInputView DataContext="{Binding Parameters}" Visibility="{Binding Parameters, Converter={x:Static jonverters:VisibilityConverter.Default}}" />
             <TextBlock
                 Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}"
                 Text="The element expects no parameters."

@@ -1,0 +1,23 @@
+<UserControl
+    x:Class="Fantoche.App.Features.Workflows.Details.Controls.InterfaceChoice"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:joolkit="clr-namespace:Joufflu.Toolkit;assembly=Joufflu"
+    xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
+    xmlns:local="clr-namespace:Fantoche.App.Features.Workflows.Details.Controls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DataContext="{d:DesignInstance Type=local:InterfaceChoiceViewModel}"
+    mc:Ignorable="d">
+    <StackPanel joolkit:Spacing.Gap="4">
+        <TextBlock Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}">Interface</TextBlock>
+        <ComboBox
+            DisplayMemberPath="Name"
+            ItemsSource="{Binding Options}"
+            SelectedItem="{Binding Selected, Mode=TwoWay}" />
+        <TextBlock
+            Opacity="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}"
+            Text="What its parameters are set up, started and asked with. By default the interface linked to it, the form generated from its parameters when it has none. Add an interface with it selected to link one."
+            TextWrapping="Wrap" />
+    </StackPanel>
+</UserControl>

@@ -1,0 +1,248 @@
+<UserControl
+    x:Class="Fantoche.Plugins.Example.Ui.Pdf.PdfComposerView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
+    xmlns:jonverters="clr-namespace:Joufflu.Converters;assembly=Joufflu"
+    xmlns:joolkit="clr-namespace:Joufflu.Toolkit;assembly=Joufflu"
+    xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
+    xmlns:local="clr-namespace:Fantoche.Plugins.Example.Ui.Pdf"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    x:Name="Root"
+    d:DataContext="{d:DesignInstance Type=local:PdfComposerViewModel}"
+    mc:Ignorable="d">
+    <!--
+        Joufflu, shared with the application : its controls, styles and brushes follow the theme of the
+        application. The resources of the view stay here, never in the application, where they would
+        apply to every interface.
+    -->
+    <UserControl.Resources>
+        <Style x:Key="Muted" TargetType="TextBlock">
+            <Setter Property="Opacity" Value="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+    </UserControl.Resources>
+
+    <Grid joolkit:Spacing.Gap="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel joolkit:Spacing.Gap="2">
+            <StackPanel joolkit:Spacing.Gap="4" Orientation="Horizontal">
+                <jonts:FontIcon VerticalAlignment="Center" Text="{x:Static jonts:LucideFontIcons.FileText}" />
+                <TextBlock
+                    VerticalAlignment="Center"
+                    joolkit:Sizing.Size="lg"
+                    Text="Compose the document" />
+            </StackPanel>
+            <TextBlock Style="{StaticResource Muted}" Text="The blocks follow each other from top to bottom, the pages following as they fill up. A document without blocks shows the whole table. Headings and texts can hold {index} (the number of the document, from 1), {count} (how many documents there are) and {rows} (how many rows its table holds)." />
+        </StackPanel>
+
+        <!--  The settings of every document  -->
+        <Grid Grid.Row="1" joolkit:Spacing.Gap="8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <CheckBox
+                VerticalAlignment="Center"
+                Content="Landscape"
+                IsChecked="{Binding Landscape}" />
+            <TextBlock
+                Grid.Column="1"
+                VerticalAlignment="Center"
+                Text="File name" />
+            <TextBox
+                Grid.Column="2"
+                Text="{Binding FileName, UpdateSourceTrigger=PropertyChanged}"
+                ToolTip="&quot;.pdf&quot; is added. Can hold {index}, {count} and {rows}." />
+        </Grid>
+
+        <!--  The blocks, in the order of the document  -->
+        <ScrollViewer
+            Grid.Row="2"
+            MaxHeight="480"
+            VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding Blocks}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type local:PdfBlockViewModel}">
+                        <Border Margin="0,0,0,8" Style="{StaticResource Card}">
+                            <StackPanel joolkit:Spacing.Gap="4">
+                                <DockPanel>
+                                    <StackPanel
+                                        joolkit:Spacing.Gap="2"
+                                        DockPanel.Dock="Right"
+                                        Orientation="Horizontal">
+                                        <Button
+                                            joolkit:Sizing.IsSquare="True"
+                                            joolkit:Sizing.Size="sm"
+                                            Command="{Binding DataContext.MoveUpCommand, ElementName=Root}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource GhostButton}"
+                                            ToolTip="Move up">
+                                            <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.ChevronUp}" />
+                                        </Button>
+                                        <Button
+                                            joolkit:Sizing.IsSquare="True"
+                                            joolkit:Sizing.Size="sm"
+                                            Command="{Binding DataContext.MoveDownCommand, ElementName=Root}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource GhostButton}"
+                                            ToolTip="Move down">
+                                            <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.ChevronDown}" />
+                                        </Button>
+                                        <Button
+                                            joolkit:Sizing.IsSquare="True"
+                                            joolkit:Sizing.Size="sm"
+                                            Command="{Binding DataContext.RemoveBlockCommand, ElementName=Root}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource SoftDangerButton}"
+                                            ToolTip="Remove the block">
+                                            <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Trash}" />
+                                        </Button>
+                                    </StackPanel>
+                                    <ComboBox
+                                        Width="120"
+                                        HorizontalAlignment="Left"
+                                        ItemsSource="{Binding DataContext.Kinds, ElementName=Root}"
+                                        SelectedItem="{Binding Kind, Mode=TwoWay}" />
+                                </DockPanel>
+
+                                <!--  A heading or a paragraph  -->
+                                <StackPanel joolkit:Spacing.Gap="4" Visibility="{Binding IsText, Converter={x:Static jonverters:VisibilityConverter.Default}}">
+                                    <TextBox
+                                        MinHeight="24"
+                                        AcceptsReturn="True"
+                                        Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}"
+                                        TextWrapping="Wrap" />
+                                    <StackPanel joolkit:Spacing.Gap="2" Orientation="Horizontal">
+                                        <TextBlock Style="{StaticResource Muted}" Text="Add" />
+                                        <Button
+                                            joolkit:Sizing.Size="xs"
+                                            Command="{Binding AddPlaceholderCommand}"
+                                            CommandParameter="{}{index}"
+                                            Content="{}{index}"
+                                            Style="{StaticResource GhostButton}" />
+                                        <Button
+                                            joolkit:Sizing.Size="xs"
+                                            Command="{Binding AddPlaceholderCommand}"
+                                            CommandParameter="{}{count}"
+                                            Content="{}{count}"
+                                            Style="{StaticResource GhostButton}" />
+                                        <Button
+                                            joolkit:Sizing.Size="xs"
+                                            Command="{Binding AddPlaceholderCommand}"
+                                            CommandParameter="{}{rows}"
+                                            Content="{}{rows}"
+                                            Style="{StaticResource GhostButton}" />
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!--  The rows of the table, under the columns listed  -->
+                                <StackPanel joolkit:Spacing.Gap="4" Visibility="{Binding IsTable, Converter={x:Static jonverters:VisibilityConverter.Default}}">
+                                    <TextBlock Style="{StaticResource Muted}" Text="Every column of the table when none is listed. The header is the name of the column when empty." />
+                                    <ItemsControl ItemsSource="{Binding Columns}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate DataType="{x:Type local:PdfColumnViewModel}">
+                                                <Grid Margin="0,0,0,4" joolkit:Spacing.Gap="8">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition />
+                                                        <ColumnDefinition />
+                                                        <ColumnDefinition Width="auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <!--  Editable : outside a run, the columns of the table aren't known yet.  -->
+                                                    <ComboBox
+                                                        IsEditable="True"
+                                                        ItemsSource="{Binding DataContext.SourceColumns, ElementName=Root}"
+                                                        Text="{Binding Column, UpdateSourceTrigger=PropertyChanged}"
+                                                        ToolTip="The column shown" />
+                                                    <TextBox
+                                                        Grid.Column="1"
+                                                        Text="{Binding Header, UpdateSourceTrigger=PropertyChanged}"
+                                                        ToolTip="Its header" />
+                                                    <Button
+                                                        Grid.Column="2"
+                                                        joolkit:Sizing.IsSquare="True"
+                                                        joolkit:Sizing.Size="sm"
+                                                        Command="{Binding DataContext.RemoveColumnCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                        CommandParameter="{Binding}"
+                                                        Style="{StaticResource GhostButton}"
+                                                        ToolTip="Remove the column">
+                                                        <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Trash}" />
+                                                    </Button>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <Button
+                                        HorizontalAlignment="Left"
+                                        joolkit:Sizing.Size="sm"
+                                        Command="{Binding AddColumnCommand}"
+                                        Style="{StaticResource GhostButton}">
+                                        <StackPanel joolkit:Spacing.Gap="4" Orientation="Horizontal">
+                                            <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Plus}" />
+                                            <TextBlock>Add a column</TextBlock>
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <StackPanel
+            Grid.Row="3"
+            joolkit:Spacing.Gap="4"
+            Orientation="Horizontal">
+            <TextBlock Style="{StaticResource Muted}" Text="Add a block" />
+            <Button Command="{Binding AddHeadingCommand}">
+                <StackPanel joolkit:Spacing.Gap="4" Orientation="Horizontal">
+                    <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Heading}" />
+                    <TextBlock>Heading</TextBlock>
+                </StackPanel>
+            </Button>
+            <Button Command="{Binding AddTextCommand}">
+                <StackPanel joolkit:Spacing.Gap="4" Orientation="Horizontal">
+                    <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Pilcrow}" />
+                    <TextBlock>Text</TextBlock>
+                </StackPanel>
+            </Button>
+            <Button Command="{Binding AddTableCommand}">
+                <StackPanel joolkit:Spacing.Gap="4" Orientation="Horizontal">
+                    <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.Table}" />
+                    <TextBlock>Table</TextBlock>
+                </StackPanel>
+            </Button>
+        </StackPanel>
+
+        <!--  The preview, rendered by the export itself  -->
+        <DockPanel Grid.Row="4">
+            <Button
+                Margin="0,0,8,0"
+                VerticalAlignment="Top"
+                Command="{Binding PreviewCommand}"
+                DockPanel.Dock="Left"
+                Style="{StaticResource SoftPrimaryButton}"
+                Visibility="{Binding CanPreviewDocument, Converter={x:Static jonverters:VisibilityConverter.Default}}">
+                <StackPanel joolkit:Spacing.Gap="4" Orientation="Horizontal">
+                    <jonts:FontIcon Text="{x:Static jonts:LucideFontIcons.FileDown}" />
+                    <TextBlock>Preview</TextBlock>
+                </StackPanel>
+            </Button>
+            <StackPanel joolkit:Spacing.Gap="2">
+                <TextBlock Style="{StaticResource Muted}" Text="{Binding Summary}" />
+                <TextBlock Style="{StaticResource Muted}" Text="{Binding PreviewStatus}" />
+            </StackPanel>
+        </DockPanel>
+    </Grid>
+</UserControl>

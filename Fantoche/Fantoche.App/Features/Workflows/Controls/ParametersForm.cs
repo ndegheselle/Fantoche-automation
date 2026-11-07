@@ -12,7 +12,8 @@ namespace Fantoche.App.Features.Workflows.Controls
     /// <summary>
     /// The parameters a task or workflow is started with : the input the executor validates against
     /// its <see cref="BaseAutomationTask.InputSchema"/>, filled in as a tree built from that schema.
-    /// Used to start a workflow and to schedule an element.
+    /// Used to start a workflow and to schedule an element, when it has no interface of its own
+    /// (see <see cref="ParametersInput"/>), and when a run asks the user.
     /// </summary>
     public partial class ParametersForm : ObservableObject
     {
@@ -135,7 +136,7 @@ namespace Fantoche.App.Features.Workflows.Controls
         /// What the start of a workflow hands over for the values the caller doesn't give, null for a
         /// task, when the start holds none or when what it holds can't be read.
         /// </summary>
-        private static JToken? Defaults(BaseAutomationTask task)
+        internal static JToken? Defaults(BaseAutomationTask task)
         {
             if (task is not AutomationWorkflow workflow)
                 return null;

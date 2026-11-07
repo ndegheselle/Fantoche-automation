@@ -37,10 +37,16 @@ namespace Fantoche.App.Features.Workflows.Details
             : base(node, parent, scoped, history, overlays, toasts)
         {
             Schedules = new SchedulesViewModel(Task, overlays, () => SaveElementAsync($"The schedules of the task '{Node.Name}' have been saved."));
+            InterfaceChoice = new InterfaceChoiceViewModel(Task, MarkChanged);
+            if (!Metadata.IsReadOnly)
+                _ = InterfaceChoice.LoadAsync(scoped, toasts);
         }
 
         /// <summary>When the task is started on its own, displayed by the schedules tab.</summary>
         public SchedulesViewModel Schedules { get; }
+
+        /// <summary>What the task is set up, started and asked with.</summary>
+        public InterfaceChoiceViewModel InterfaceChoice { get; }
 
         [RelayCommand]
         public async Task SelectPackage()

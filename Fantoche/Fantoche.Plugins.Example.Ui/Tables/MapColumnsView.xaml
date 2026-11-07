@@ -3,31 +3,30 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:jonts="clr-namespace:Joufflu.Assets.Fonts;assembly=Joufflu"
+    xmlns:jonverters="clr-namespace:Joufflu.Converters;assembly=Joufflu"
+    xmlns:joolkit="clr-namespace:Joufflu.Toolkit;assembly=Joufflu"
+    xmlns:joufflu="clr-namespace:Joufflu;assembly=Joufflu"
     xmlns:local="clr-namespace:Fantoche.Plugins.Example.Ui.Tables"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     x:Name="Root"
     d:DataContext="{d:DesignInstance Type=local:MapColumnsViewModel}"
     mc:Ignorable="d">
     <!--
-        Plain WPF controls : the application styles them with its theme. Its resources stay here, never
-        in the application, where they would apply to every interface.
+        Joufflu, shared with the application : its controls, styles and brushes follow the theme of the
+        application. The resources of the view stay here, never in the application, where they would
+        apply to every interface.
     -->
     <UserControl.Resources>
-        <BooleanToVisibilityConverter x:Key="Visible" />
         <Style x:Key="Muted" TargetType="TextBlock">
-            <Setter Property="Opacity" Value="0.6" />
+            <Setter Property="Opacity" Value="{DynamicResource {x:Static joufflu:Colors.MutedOpacity}}" />
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="TextTrimming" Value="CharacterEllipsis" />
         </Style>
-        <Style x:Key="Heading" TargetType="TextBlock">
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Margin" Value="0,0,0,4" />
-        </Style>
     </UserControl.Resources>
 
-    <Grid>
+    <Grid joolkit:Spacing.Gap="8">
         <Grid.RowDefinitions>
-            <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
@@ -35,105 +34,114 @@
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
-        <TextBlock FontSize="18" Text="{Binding Title}" />
-        <TextBlock
-            Grid.Row="1"
-            Margin="0,0,0,8"
-            Style="{StaticResource Muted}"
-            Text="Pick the column of the file each name stands for, name the other columns you need, then confirm."
-            TextWrapping="Wrap" />
-        <TextBlock
-            Grid.Row="2"
-            Margin="0,0,0,8"
-            Foreground="IndianRed"
-            Text="{Binding Error}"
-            TextWrapping="Wrap" />
+        <StackPanel joolkit:Spacing.Gap="2">
+            <StackPanel joolkit:Spacing.Gap="4" Orientation="Horizontal">
+                <jonts:FontIcon VerticalAlignment="Center" Text="{x:Static jonts:LucideFontIcons.Table}" />
+                <TextBlock
+                    VerticalAlignment="Center"
+                    joolkit:Sizing.Size="lg"
+                    Text="{Binding Title}" />
+            </StackPanel>
+            <TextBlock
+                Style="{StaticResource Muted}"
+                Text="Pick the column of the file each name stands for, name the other columns you need, then confirm."
+                TextTrimming="None"
+                TextWrapping="Wrap" />
+        </StackPanel>
 
-        <Grid Grid.Row="3" Margin="0,0,0,8">
+        <StackPanel
+            Grid.Row="1"
+            joolkit:Spacing.Gap="4"
+            Orientation="Horizontal"
+            Visibility="{Binding Error, Converter={x:Static jonverters:VisibilityConverter.Default}}">
+            <jonts:FontIcon Foreground="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}" Text="{x:Static jonts:LucideFontIcons.AlertCircle}" />
+            <TextBlock
+                Foreground="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}"
+                Text="{Binding Error}"
+                TextWrapping="Wrap" />
+        </StackPanel>
+
+        <Grid Grid.Row="2" joolkit:Spacing.Gap="8">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition />
-                <ColumnDefinition Width="16" />
                 <ColumnDefinition />
             </Grid.ColumnDefinitions>
 
             <!--  The names of the workflow, each given a column of the file  -->
-            <StackPanel Grid.IsSharedSizeScope="True">
-                <TextBlock Style="{StaticResource Heading}" Text="Names of the workflow" />
-                <ItemsControl ItemsSource="{Binding Expected}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate DataType="{x:Type local:NamedColumn}">
-                            <Grid Margin="0,0,0,4">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="auto" SharedSizeGroup="Name" />
-                                    <ColumnDefinition Width="2*" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock
-                                    Margin="0,0,8,0"
-                                    VerticalAlignment="Center"
-                                    Text="{Binding Name}" />
-                                <ComboBox
-                                    Grid.Column="1"
-                                    ItemsSource="{Binding DataContext.StoredColumns, ElementName=Root}"
-                                    SelectedItem="{Binding Column, Mode=TwoWay}" />
-                                <TextBlock
-                                    Grid.Column="2"
-                                    Margin="8,0,0,0"
-                                    Style="{StaticResource Muted}"
-                                    Text="{Binding Sample}" />
-                                <TextBlock
-                                    Grid.Column="2"
-                                    Margin="8,0,0,0"
-                                    VerticalAlignment="Center"
-                                    Foreground="IndianRed"
-                                    Text="Pick a column"
-                                    Visibility="{Binding IsMissing, Converter={StaticResource Visible}}" />
-                            </Grid>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </StackPanel>
+            <Border Style="{StaticResource Card}">
+                <StackPanel Grid.IsSharedSizeScope="True" joolkit:Spacing.Gap="4">
+                    <TextBlock FontWeight="SemiBold" Text="Names of the workflow" />
+                    <ItemsControl ItemsSource="{Binding Expected}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type local:NamedColumn}">
+                                <Grid Margin="0,0,0,4" joolkit:Spacing.Gap="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="auto" SharedSizeGroup="Name" />
+                                        <ColumnDefinition Width="2*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock VerticalAlignment="Center" Text="{Binding Name}" />
+                                    <ComboBox
+                                        Grid.Column="1"
+                                        ItemsSource="{Binding DataContext.StoredColumns, ElementName=Root}"
+                                        SelectedItem="{Binding Column, Mode=TwoWay}" />
+                                    <TextBlock
+                                        Grid.Column="2"
+                                        Style="{StaticResource Muted}"
+                                        Text="{Binding Sample}" />
+                                    <StackPanel
+                                        Grid.Column="2"
+                                        VerticalAlignment="Center"
+                                        joolkit:Spacing.Gap="4"
+                                        Orientation="Horizontal"
+                                        Visibility="{Binding IsMissing, Converter={x:Static jonverters:VisibilityConverter.Default}}">
+                                        <jonts:FontIcon Foreground="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}" Text="{x:Static jonts:LucideFontIcons.AlertCircle}" />
+                                        <TextBlock Foreground="{DynamicResource {x:Static joufflu:Brushes.DangerBrush}}" Text="Pick a column" />
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
 
             <!--  The columns no name picked, named if they need to be  -->
-            <StackPanel Grid.Column="2" Grid.IsSharedSizeScope="True">
-                <TextBlock Style="{StaticResource Heading}" Text="Other columns, read under their own name unless named" />
-                <ItemsControl ItemsSource="{Binding Others}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate DataType="{x:Type local:OtherColumn}">
-                            <Grid Margin="0,0,0,4">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="auto" SharedSizeGroup="Column" />
-                                    <ColumnDefinition Width="2*" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock
-                                    Margin="0,0,8,0"
-                                    VerticalAlignment="Center"
-                                    Text="{Binding Column}" />
-                                <TextBox Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
-                                <TextBlock
-                                    Grid.Column="2"
-                                    Margin="8,0,0,0"
-                                    Style="{StaticResource Muted}"
-                                    Text="{Binding Sample}" />
-                            </Grid>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </StackPanel>
+            <Border Grid.Column="1" Style="{StaticResource Card}">
+                <StackPanel Grid.IsSharedSizeScope="True" joolkit:Spacing.Gap="4">
+                    <TextBlock FontWeight="SemiBold" Text="Other columns, read under their own name unless named" />
+                    <ItemsControl ItemsSource="{Binding Others}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type local:OtherColumn}">
+                                <Grid Margin="0,0,0,4" joolkit:Spacing.Gap="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="auto" SharedSizeGroup="Column" />
+                                        <ColumnDefinition Width="2*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock VerticalAlignment="Center" Text="{Binding Column}" />
+                                    <TextBox Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock
+                                        Grid.Column="2"
+                                        Style="{StaticResource Muted}"
+                                        Text="{Binding Sample}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
         </Grid>
 
         <!--  The first rows, as the names read them  -->
         <DataGrid
-            Grid.Row="4"
+            Grid.Row="3"
             AutoGeneratingColumn="OnAutoGeneratingColumn"
             CanUserAddRows="False"
             IsReadOnly="True"
             ItemsSource="{Binding Preview}" />
 
         <TextBlock
-            Grid.Row="5"
-            Margin="0,4,0,0"
+            Grid.Row="4"
             Style="{StaticResource Muted}"
             Text="{Binding Summary}" />
     </Grid>

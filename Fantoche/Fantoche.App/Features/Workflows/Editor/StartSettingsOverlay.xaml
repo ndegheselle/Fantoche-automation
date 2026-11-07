@@ -20,7 +20,7 @@
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
-        <controls:ParametersFormView DataContext="{Binding Settings}" />
+        <controls:ParametersInputView DataContext="{Binding Settings}" />
 
         <CheckBox
             Grid.Row="1"

@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Globalization;
+using Fantoche.Plugins.Example.Common;
 using Fantoche.Plugins.Shared;
 
 namespace Fantoche.Plugins.Example.Tasks.Pdf;
@@ -26,6 +27,10 @@ public class ExportPdfResult
 /// Save a PDF per table, laid out as the document says : its headings and paragraphs, then the
 /// rows of the table where it has a table. The documents are rendered side by side, one per
 /// processor, which is what makes a large table split in batches fast to export.
+/// <para>
+/// Its interface, <c>PdfComposerInterface</c> (Fantoche.Plugins.Example.Ui), composes the document,
+/// previewed with <see cref="PreviewAsync"/> and checked with <see cref="Check"/>.
+/// </para>
 /// </summary>
 public class ExportPdfTask : BaseTask<ExportPdfParameters, ExportPdfResult>
 {
@@ -66,7 +71,6 @@ public class ExportPdfTask : BaseTask<ExportPdfParameters, ExportPdfResult>
     /// <summary>
     /// The document of the first table as [parameters] composes it, saved in the storage of the run
     /// for an interface to show : what the export will look like, rendered by the export itself.
-    /// Kept for the interface composing the document, the next one to move to WPF.
     /// </summary>
     public static async Task<FileRef> PreviewAsync(ExportPdfParameters parameters, ITaskRuntime runtime, CancellationToken cancellation)
     {
@@ -77,6 +81,31 @@ public class ExportPdfTask : BaseTask<ExportPdfParameters, ExportPdfResult>
 
         using MemoryStream content = await PdfRenderer.RenderAsync(parameters.Document, source, placeholders, runtime.Storage, cancellation);
         return await runtime.Storage.SaveFileAsync("preview.pdf", content, cancellation);
+    }
+
+    /// <summary>
+    /// Why [layout] can't be rendered for [sources], null when it can : each column a table shows
+    /// has to be one of every source. Without sources (outside a run), only that each is named.
+    /// </summary>
+    public static string? Check(PdfLayout layout, IReadOnlyList<TableRef> sources)
+    {
+        List<PdfColumn> columns = [.. layout.Blocks.Where(x => x.Kind == EnumPdfBlock.Table).SelectMany(x => x.Columns)];
+        if (columns.Any(x => string.IsNullOrWhiteSpace(x.Column)))
+            return "A column of a table has no name : pick the column it shows, or remove it.";
+
+        try
+        {
+            foreach (TableRef source in sources)
+            {
+                foreach (PdfColumn column in columns)
+                    Sql.ColumnOf(source, column.Column);
+            }
+            return null;
+        }
+        catch (ArgumentException exception)
+        {
+            return exception.Message;
+        }
     }
 
     private static string FileNameOf(string text)

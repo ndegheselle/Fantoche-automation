@@ -165,7 +165,6 @@ public class SpineViewModel : ObservableObject
         RegisterView<WorkflowsViewModel, WorkflowsPage>();
         RegisterView<TaskSelectionViewModel, TaskSelectionOverlay>();
         RegisterView<TaskSettingsViewModel, TaskSettingsOverlay>();
-        RegisterView<TaskInterfaceSetupViewModel, TaskInterfaceSetupOverlay>();
         RegisterView<StartSettingsViewModel, StartSettingsOverlay>();
         RegisterView<InstanceDetailViewModel, InstanceDetailOverlay>();
         RegisterView<ScheduleViewModel, ScheduleOverlay>();

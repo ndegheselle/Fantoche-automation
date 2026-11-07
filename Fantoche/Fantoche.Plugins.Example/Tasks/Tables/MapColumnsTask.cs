@@ -84,23 +84,48 @@ public class MapColumnsTask : BaseTask<MapColumnsParameters, TableRef>
         }
     }
 
+    /// <summary>
+    /// Why the names of [columns] can't be given, null when they can : what is checked without the
+    /// table, before a run.
+    /// </summary>
+    public static string? CheckNames(IEnumerable<ColumnMapping> columns)
+    {
+        try
+        {
+            EnsureNames(columns);
+            return null;
+        }
+        catch (ArgumentException exception)
+        {
+            return exception.Message;
+        }
+    }
+
+    /// <summary>Refuse a column given no name, or a name given twice.</summary>
+    private static void EnsureNames(IEnumerable<ColumnMapping> columns)
+    {
+        // DuckDB reads the names regardless of their case : two of them differing only by it would
+        // be the same column once stored.
+        HashSet<string> names = new(StringComparer.OrdinalIgnoreCase);
+        foreach (ColumnMapping column in columns)
+        {
+            if (string.IsNullOrWhiteSpace(column.Name))
+                throw new ArgumentException($"The column [{column.Column}] is given no name.");
+            if (!names.Add(column.Name))
+                throw new ArgumentException($"The name [{column.Name}] is given twice.");
+        }
+    }
+
     /// <summary>The mapping [parameters] gives the source, refused when it names a column twice or clashes.</summary>
     private static Dictionary<string, string> MappingOf(MapColumnsParameters parameters)
     {
         TableRef source = parameters.Source;
         Dictionary<string, string> mapping = new(source.Mapping);
 
-        // DuckDB reads the names regardless of their case : two of them differing only by it would
-        // be the same column once stored.
-        HashSet<string> names = new(StringComparer.OrdinalIgnoreCase);
+        EnsureNames(parameters.Columns);
         HashSet<string> mappedColumns = [];
         foreach (ColumnMapping column in parameters.Columns)
         {
-            if (string.IsNullOrWhiteSpace(column.Name))
-                throw new ArgumentException($"The column [{column.Column}] is given no name.");
-            if (!names.Add(column.Name))
-                throw new ArgumentException($"The name [{column.Name}] is given twice.");
-
             string stored = Sql.ColumnOf(source, column.Column);
             if (!mappedColumns.Add(stored))
                 throw new ArgumentException($"The column [{stored}] is given two names.");

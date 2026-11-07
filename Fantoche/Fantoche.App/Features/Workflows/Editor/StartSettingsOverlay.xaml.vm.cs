@@ -14,7 +14,8 @@ namespace Fantoche.App.Features.Workflows.Editor
     public record StartSettings(JToken? Parameters, bool IsOnRemoteWorker);
 
     /// <summary>
-    /// Settings a workflow is started with, see <see cref="ParametersForm"/>.
+    /// Settings a workflow is started with : its parameters, filled in with its interface or the
+    /// generated form (see <see cref="ParametersInput"/>).
     /// <para>
     /// Only displayed when the workflow actually expects something, see
     /// <see cref="ParametersForm.IsExpectingParameters"/> : a workflow taking no input is started
@@ -27,36 +28,61 @@ namespace Fantoche.App.Features.Workflows.Editor
 
         public OverlayOptions Options { get; }
 
-        public StartSettings? Result => new(Settings.ToToken(), IsOnRemoteWorker);
+        public StartSettings? Result { get; private set; }
 
-        public ParametersForm Settings { get; }
+        public ParametersInput Settings { get; }
 
         /// <summary>Run on the workers of the supervisor rather than in this application.</summary>
         [ObservableProperty] private bool _isOnRemoteWorker;
 
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(StartCommand))]
+        private bool _isReading;
+
         private readonly IOverlayer _overlayer;
 
-        public StartSettingsViewModel(AutomationWorkflow workflow, IOverlayer overlayer)
+        private StartSettingsViewModel(AutomationWorkflow workflow, ParametersInput settings, IOverlayer overlayer)
         {
             Workflow = workflow;
+            Settings = settings;
             _overlayer = overlayer;
             Options = new OverlayOptions() { Title = $"Start - {workflow.Metadata.Name}" };
-            Settings = new ParametersForm(workflow);
-            Settings.Errors.CollectionChanged += (_, _) => StartCommand.NotifyCanExecuteChanged();
+            if (settings.Form != null)
+                settings.Form.Errors.CollectionChanged += (_, _) => StartCommand.NotifyCanExecuteChanged();
         }
 
         /// <summary>
         /// Ask for the settings of the next run of [workflow], <see langword="null"/> when cancelled.
         /// </summary>
-        public static Task<StartSettings?> ShowAsync(AutomationWorkflow workflow)
-            => SpineViewModel.Instance.Overlayer.ShowAsync(new StartSettingsViewModel(workflow, SpineViewModel.Instance.Overlayer));
+        public static async Task<StartSettings?> ShowAsync(AutomationWorkflow workflow)
+        {
+            ParametersInput settings = await ParametersInput.CreateAsync(workflow, null);
+            IOverlayer overlayer = SpineViewModel.Instance.Overlayer;
+            return await overlayer.ShowAsync(new StartSettingsViewModel(workflow, settings, overlayer));
+        }
 
         [RelayCommand(CanExecute = nameof(CanStart))]
-        private void Start() => _overlayer.Validate(this);
+        private async Task Start()
+        {
+            IsReading = true;
+            try
+            {
+                ParametersAnswer answer = await Settings.ReadAsync();
+                if (answer.IsRefused)
+                    return;
+
+                Result = new StartSettings(answer.Parameters, IsOnRemoteWorker);
+                _overlayer.Validate(this);
+            }
+            finally
+            {
+                IsReading = false;
+            }
+        }
 
         [RelayCommand]
         private void Cancel() => _overlayer.Cancel(this);
 
-        private bool CanStart() => !Settings.HasErrors;
+        private bool CanStart() => !IsReading && !Settings.HasFormErrors;
     }
 }

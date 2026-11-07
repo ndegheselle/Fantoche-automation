@@ -9,6 +9,13 @@ namespace Fantoche.Shared.Data.Scoped;
 public class TaskSettings
 {
     public bool IsPassingThrough { get; set; } = false;
+
+    /// <summary>
+    /// The interface the element is set up, started and asked with : one hanging under it, or
+    /// <see cref="AutomationInterface.Form"/> for the generated form. Null for the default, see
+    /// <see cref="AutomationInterface.Pick"/>.
+    /// </summary>
+    public Guid? InterfaceId { get; set; }
 }
 
 [JsonDerivedType(typeof(AutomationTask), "task")]
@@ -75,11 +82,12 @@ public abstract class BaseAutomationTask : ScopedElement
     public TaskSettings Settings { get; set; } = new();
 
     /// <summary>
-    /// The interface its parameters are edited with, in the editor and when a run asks the user : the
-    /// class of the <see cref="AutomationInterface"/> hanging under it, null for the form generated
-    /// from <see cref="InputSchema"/>. Not stored on the element : read from the tree as it is loaded
-    /// to be run or edited (see <c>ScopedServiceExtensions.ResolveInterfacesAsync</c>), and carried
-    /// along with it to a worker.
+    /// The interface its parameters are edited with, in the editor, as it is started or scheduled,
+    /// and when a run asks the user : the class of the <see cref="AutomationInterface"/> its settings
+    /// pick among those hanging under it (see <see cref="AutomationInterface.Pick"/>), null for the
+    /// form generated from <see cref="InputSchema"/>. Not stored on the element : read from the tree
+    /// as it is loaded to be run or edited (see <c>ScopedServiceExtensions.ResolveInterfacesAsync</c>),
+    /// and carried along with it to a worker.
     /// </summary>
     public PackageClassTarget? Interface { get; set; }
 

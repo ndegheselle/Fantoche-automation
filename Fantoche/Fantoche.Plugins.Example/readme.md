@@ -9,20 +9,20 @@ Start ─┬─> Import CSV ─> Map columns ─┬─> Join ─> Merge ─> Upd
                             (asks)
 ```
 
-To run it : add the package (`dotnet pack Fantoche.Plugins.Example`, version 2.1.0) from the Packages page, then the package of its interfaces (`dotnet pack Fantoche.Plugins.Example.Ui`, version 1.0.0), which links its interface under the Map columns task. Generate the files with `Resources/Samples/generate-test-data.ps1`, open the workflow and start it with their paths. Both mappings and the export ask you through the "ask the user" node attached under them. With those nodes removed, the run is unattended, the columns being the ones of the generated files.
+To run it : add the package (`dotnet pack Fantoche.Plugins.Example`, version 2.1.0) from the Packages page, then the package of its interfaces (`dotnet pack Fantoche.Plugins.Example.Ui`, version 1.2.0), which links its interfaces under the Map columns and Export PDF tasks. Generate the files with `Resources/Samples/generate-test-data.ps1`, open the workflow and start it with their paths. Both mappings and the export ask you through the "ask the user" node attached under them. With those nodes removed, the run is unattended, the columns being the ones of the generated files.
 
 ## The tasks
 
 | Task | Does |
 | --- | --- |
 | Import CSV | A file into a table, the delimiter, columns and types detected from the content. The table is named after the file unless given a name. |
-| Map columns | Adds the names to the table (`TableRef.Mapping`), without copying it. Its interface (`MapColumnsInterface`, in Fantoche.Plugins.Example.Ui), shown where the workflow asks the user, lets you pick the column of the file each name of the workflow stands for, and name the other ones if needed. |
+| Map columns | Adds the names to the table (`TableRef.Mapping`), without copying it. Its interface (`MapColumnsInterface`, in Fantoche.Plugins.Example.Ui) has two views. In the editor, you write the names of the workflow and the column each is expected to stand for (the table isn't read yet). Where the workflow asks the user, you pick the column of the file each name stands for, and name the other ones if needed. |
 | Merge | Joins two tables on pairs of columns (inner or left), in the order of the left table. A right column clashing with a left one is prefixed with the name of its table (`customers_Name`). |
 | Update | Gives a value to a column of the rows matching conditions, or adds a column. |
 | Split | Cuts a table into batches of `BatchSize` rows (10 000 by default). |
-| Export PDF | Saves a PDF per table, one per processor at once. Asked where the workflow asks the user, the form generated from its parameters lets you set the document first (headings, texts, tables) : its own interface, previewing the document, is the next to come. |
+| Export PDF | Saves a PDF per table, one per processor at once. Its interface (`PdfComposerInterface`), shown in the editor and where the workflow asks the user, composes the document (headings, texts, tables, landscape) and names its files. In a run it previews the first document, rendered by the export itself and opened with the PDF viewer of the system. |
 
-Asking the user is a node of its own, attached under the task it edits the parameters of : a workflow without it (a schedule, a test on large files) writes them in the mapping instead. `CustomersOrdersWorkflow` in the tests is the sample written that way. The interfaces live in `Fantoche.Plugins.Example.Ui`, for Windows, and call the rules of the tasks directly : `MapColumnsTask.Suggest` and `Check` for the columns (see [User interface tasks](../../architecture.md#user-interface-tasks)).
+Asking the user is a node of its own, attached under the task it edits the parameters of : a workflow without it (a schedule, a test on large files) writes them in the mapping instead. `CustomersOrdersWorkflow` in the tests is the sample written that way. The interfaces live in `Fantoche.Plugins.Example.Ui`, for Windows, and call the rules of the tasks directly : `MapColumnsTask.Suggest`, `Check` and `CheckNames` for the columns, `ExportPdfTask.Check` and `PreviewAsync` for the document (see [User interface tasks](../../architecture.md#user-interface-tasks)).
 
 ## Clear names for the columns
 

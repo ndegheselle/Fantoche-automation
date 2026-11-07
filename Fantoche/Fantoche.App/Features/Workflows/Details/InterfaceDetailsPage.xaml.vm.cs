@@ -10,8 +10,8 @@ using Joufflu.Navigation;
 namespace Fantoche.App.Features.Workflows.Details
 {
     /// <summary>
-    /// An interface of a task (see <see cref="AutomationInterface"/>) : the class it points at, and
-    /// the task it is linked to by hanging under it.
+    /// An interface of a task or a workflow (see <see cref="AutomationInterface"/>) : the class it
+    /// points at, and the element it is linked to by hanging under it.
     /// </summary>
     public partial class InterfaceDetailsViewModel : ScopedDetailsViewModel<AutomationInterface>
     {
@@ -36,8 +36,8 @@ namespace Fantoche.App.Features.Workflows.Details
 
         public bool HasTarget => Target != null;
 
-        /// <summary>The task it hangs under, which shows and asks with it ; null while it is linked to none.</summary>
-        public AutomationTask? LinkedTask => Node.Parent?.Element as AutomationTask;
+        /// <summary>The task or workflow it hangs under, which can show and ask with it ; null while it is linked to none.</summary>
+        public BaseAutomationTask? LinkedTask => Node.Parent?.Element as BaseAutomationTask;
 
         public bool IsLinked => LinkedTask != null;
 
@@ -65,31 +65,34 @@ namespace Fantoche.App.Features.Workflows.Details
         [RelayCommand]
         private void RemoveClass() => Target = null;
 
-        /// <summary>Hang the interface under a task : the task then shows and asks with it.</summary>
+        /// <summary>
+        /// Hang the interface under a task or a workflow : the element then shows and asks with it,
+        /// unless its settings pick another one.
+        /// </summary>
         [RelayCommand]
         private async Task Link()
         {
             BaseAutomationTask? picked = await TaskSelectionViewModel.ShowAsync();
             if (picked == null)
                 return;
-            if (picked is not AutomationTask task || picked is AutomationControl)
+            if (picked is AutomationControl)
             {
-                _toasts.Warning("Only a task shows the parameters it asks for : a workflow or a control can't be given an interface.", "Pick a task");
+                _toasts.Warning("A control is built in : it can't be given an interface.", "Pick a task or a workflow");
                 return;
             }
 
-            await MoveAsync(task.Id, $"The interface '{Node.Name}' is linked to the task '{task.Metadata.Name}'.");
+            await MoveAsync(picked.Id, $"The interface '{Node.Name}' is linked to '{picked.Metadata.Name}'.");
         }
 
-        /// <summary>Take the interface back from its task, into the scope holding the task.</summary>
+        /// <summary>Take the interface back from its element, into the scope holding the element.</summary>
         [RelayCommand]
         private async Task Unlink()
         {
-            if (LinkedTask is not AutomationTask task)
+            if (LinkedTask is not BaseAutomationTask task)
                 return;
 
             Guid scopeId = task.ParentId ?? Scope.Root.Id;
-            await MoveAsync(scopeId, $"The interface '{Node.Name}' is no longer linked to the task '{task.Metadata.Name}'.");
+            await MoveAsync(scopeId, $"The interface '{Node.Name}' is no longer linked to '{task.Metadata.Name}'.");
         }
     }
 }
