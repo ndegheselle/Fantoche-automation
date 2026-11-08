@@ -1,74 +1,45 @@
 # Fantoche
-No-code solution to create workflow automation based on a node editor.
 
-Objectives:
+No-code workflow automation built around a node editor.
 
-- Create tasks based on various technical packages.
-- Create workflows composed of tasks and sub-workflows connected to each other.
-	- During the execution of a workflow, pass the result of a node to each connected node.
-	- Flexible data handling while still supporting typed task results.
-- Order tasks and workflows by scopes.
-- Provide context on scope, tasks, and workflows to allow complex settings.
+![preview](./preview.png)
 
-Backend Requirements:
+Tasks come from NuGet packages and are connected into workflows, where each node passes its result to the nodes that follow it. Workflows can contain sub-workflows, and both are organized by scope. A supervisor dispatches executions to workers that can be scaled horizontally, and the desktop application is used to edit, start and follow them.
 
-- One supervisor that handles comms between clients and workers. Supervisor is an unique entry point for simplification sake.
-- Workers that can be horizontally scaled to execute tasks.
-- Fast real-time communication between workers and supervisor (as opposed to loops with delays).
+The application is also a worker of its own: what it starts runs on the machine of the user, close to their files and without going through the network, unless it is started on the remote workers. Heavy workflows can run locally for performance, and the workers keep the scheduled and long-running ones.
 
-## Architecture
-
-See [architecture.md](architecture.md) : the standalone and remote modes, where an execution runs and its storage, the packages and their caches.
+For the technical details (standalone and remote modes, where an execution runs, storage, packages and their caches), see [architecture.md](architecture.md).
 
 ## Getting started
 
-1. Start the `docker-compose` startup project (or `Fantoche.Supervisor.Api` and `Fantoche.Worker.Service`).
-2. Start `Fantoche.App`, and set the supervisor address in its settings (gear of the title bar).
-3. To see the table tasks at work, add the `Fantoche.Plugins.Example` package, then `Fantoche.Plugins.Example.Ui`, from the Packages page : they create the "Customers and orders" sample. See [the table tasks](Fantoche/Fantoche.Plugins.Example/readme.md).
+1. Build the NuGet packages of the example tasks and of their interfaces, from the `Fantoche` folder:
 
-The samples come with the packages they run : a database written by an older version keeps the samples it had.
+   ```bash
+   dotnet pack Fantoche.Plugins.Example -c Release -o packages
+   ```
 
-### Modes
+   ```bash
+   dotnet pack Fantoche.Plugins.Example.Ui -c Release -o packages
+   ```
 
-- **Supervisor** (default) : the supervisor holds the database, the application and the workers reach it through its API. What the application starts runs in the worker of the application, the worker services run what the supervisor dispatches (the scheduled items, to come). A workflow is handed whole to a single worker, and its nodes all run where it runs.
-- **Standalone** : the supervisor runs in the application, which is its only worker. Only for debugging or very particular uses.
+2. Start `Fantoche.App`, open the **Packages** page and add `Fantoche.Plugins.Example`, then `Fantoche.Plugins.Example.Ui` from the `packages` folder.
+3. Check out what they created: the table tasks and the **Customers and orders** workflow, in a scope named after the package. Generate input files with `Fantoche.Plugins.Example/Resources/Samples/generate-test-data.ps1`, then open the workflow and start it with their paths. See [the table tasks](Fantoche/Fantoche.Plugins.Example/readme.md).
 
-The mode and the supervisor are applied when the application starts.
+### Standalone and remote supervisor
 
-### Configuration
+By default, the application runs standalone: the supervisor runs inside the application, which is its only worker. Nothing else needs to be started.
 
-- Supervisor : `DATA_FOLDER` (its database, the `nuget` packages, their cache and the storage in `transit`).
-- Worker : `SUPERVISOR_URL`, `WORKER_ID`, `WORKER_CAPACITY` (executions run at once) and `DATA_FOLDER` (the `cache` of the packages and the `storage` of its executions).
-- Application : its local folder (`%AppData%/Automation`) holds the data of its worker (`worker`) and, in standalone mode, the one of its supervisor (as in its `DATA_FOLDER`).
-- A package version can't be added twice, since the caches would keep the first one : publish a changed package under a new version.
-- Only the last executions of a task or a workflow keep their storage, on each worker : 10 by default, set on the task or the workflow ("Executions keeping their storage").
+To use a remote supervisor and its workers:
 
-The supervisor has no authentication yet.
+1. Start them with Docker, from the `Fantoche` folder (or start `Fantoche.Supervisor.Api` and `Fantoche.Worker.Service`). The supervisor listens on `http://localhost:8080`.
 
-## Links
+   ```bash
+   docker compose up -d --build
+   ```
 
-- [Adonis UI](https://benruehl.github.io/adonis-ui/) for styles
-- [Fontawesome](https://fontawesome.com/) icons
-- [PropertyChanged.Fody](https://www.nuget.org/packages/PropertyChanged.Fody) for boilerplate
-- [Nodify](https://miroiu.github.io/nodify/) for the node editor
+2. In the application settings (gear of the title bar), uncheck **Standalone** and set the **Supervisor address**.
+3. Restart the application: the mode and the supervisor are applied when it starts.
 
-# TODO
+## Built with Joufflu
 
-- Scripting language to handle contexte change in tasks settings
-- Generic way to create UI form for settings
-    - Also handle validation and types with this ?
-- Handle supervisor edge case for flow control tasks
-- Add user management with roles and permissions
-- Handle proper state (going back and forth with history) in the editor
-- handle read and write tasks in the interface
-- Supervisor
-
-- Display workers list and allow supervision
-- Workflow validation with potential errors prompting (infinite loop. dead branches, ...)
-
-# ToThink
-
-- Allow multiple supervisor and more complex worker assignation
-- Re-dispatch the executions of a lost worker rather than failing them
-- Resume a workflow after a crash (would need the previous instance and the shared context to be stored)
-- display potential errors in workflow creation
+The WPF application uses [Joufflu](https://www.nuget.org/packages/Joufflu) for its controls, styles, theme and generated forms (`Joufflu.Data`, `Joufflu.Inputs`, `Joufflu.Navigation`, `Joufflu.Feedback`). Task interfaces shipped in packages share the application's Joufflu, so they must reference the same version or an older one.

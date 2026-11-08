@@ -29,9 +29,9 @@ namespace Fantoche.App
 
         /// <summary>
         /// The supervisor is run in the application rather than reached through its API, the
-        /// application being its only worker. Only for debugging or very particular uses.
+        /// application being its only worker. The default, so the application runs without a supervisor to start.
         /// </summary>
-        public bool IsStandalone { get; set; }
+        public bool IsStandalone { get; set; } = true;
 
         public string SupervisorUrl { get; set; } = "http://localhost:8080/";
 

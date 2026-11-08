@@ -74,17 +74,6 @@ sequenceDiagram
 - A workflow started from the editor is only sent to the workers when the user asks for it in its start settings ("On remote worker"). These settings only show for a workflow expecting parameters: one taking none starts right away, in the application.
 - A run that can't be loaded (`Dispatcher.StartAsync`) is stored as a failed run: nobody waits on it to be told.
 
-### Why a single node is never sent to a worker
-
-Sending a single node of a workflow to a worker was implemented, then removed. Each worker only reads its own storage, so the tables and files a node needed had to travel with it, through a transit held by the supervisor:
-- the caller put the items the parameters pointed at in the transit, the worker took them into its storage, and the output came back the same way;
-- the items were found by their ids anywhere in the JSON, and kept their ids once copied, so the `TableRef` and `FileRef` stayed valid;
-- each side emptied the transit as it took the items, and the supervisor cleared it when a caller disconnected or when it started.
-
-It worked, but it took a transit store in the supervisor, an HTTP API to stream it, a copy of every table a node read or wrote, and the cleanup of what a lost execution left behind. Few workflows need a node of theirs elsewhere, and such a node can be made a workflow of its own.
-
-A "Run on a worker" setting on the tasks and workflows was removed too. Where an execution runs belongs to what starts it, not to the task or workflow itself: a schedule always runs on the workers, and a run started by hand runs in the application, close to the editor and the local files, unless the user chooses otherwise as they start it.
-
 ## Following a run
 
 - The history of a task, workflow or scope only lists the runs started on their own (`IHistoryService.GetByScopedAsync`, `ParentInstanceId` empty). A node of a workflow is read from its run.
@@ -147,7 +136,7 @@ The versions are stored as reverse diffs, so a past version costs only what chan
 
 Any task can ask the user for its parameters before it runs, and any task is set up in the editor. A task or a workflow started or scheduled on its own is given its parameters too. All of them show the interface of the element: a WPF view from a package of interfaces, or the form generated from its parameters. A workflow only asks where the node of the task is given an "ask the user" node, so the same task runs unattended elsewhere (a schedule, an automated run).
 
-- **In a workflow:** "Ask the user" on a task node adds a round node attached under it, through the diamond under the task (`GraphUserInterface`, `BaseGraphTask.UserInterface`). It points at the same task and sits apart from the branches: nothing flows into it nor out of it. A task is asked by one node, which asks for that task only (`TasksGraph.CanConnect`).
+- **In a workflow:** "Ask the user" on a task node adds a round node attached on top of it. It points at the same task and sits apart from the branches: nothing flows into it nor out of it. A task is asked by one node, which asks for that task only (`TasksGraph.CanConnect`).
 - **An interface is an element of the tree** (`AutomationInterface`, pointing at a class implementing `ITaskInterface`), shown like a task. It is linked to a task or a workflow by hanging under it: the tree then shows it as the child of the element, and an element linked to none has no child. "Add an interface" with a task or workflow selected links it to that element; its details link it to another one or unlink it.
 - **The generated form** is an element of its own too, built in, in the controls scope with the start and the end (`AutomationInterface.Form`).
 - **Which one a task or workflow uses:** the "Interface" of its settings picks it (`TaskSettings.InterfaceId`): the default, the generated form, or one of the interfaces hanging under it. The default is the interface hanging under it, the generated form when it has none. A pick that can't be shown anymore (unlinked, removed, without a class) falls back on the default (`AutomationInterface.Pick`). Read from the tree when a workflow is loaded to run or to edit, and as an element is started or scheduled (`ScopedServiceExtensions.ResolveInterfacesAsync`, into `BaseAutomationTask.Interface`, which isn't stored), and carried with the task to the application asking.

@@ -32,18 +32,18 @@ namespace Fantoche.App.Features.Settings
         }
 
         [ObservableProperty]
-        private bool _isStandalone;
+        public partial bool IsStandalone { get; set; }
 
         [ObservableProperty]
-        private string _supervisorUrl;
+        public partial string SupervisorUrl { get; set; }
 
         public SettingsViewModel(AppSettings settings, IToastService toasts, IOverlayer overlayer)
         {
             _settings = settings;
             _toasts = toasts;
             _overlayer = overlayer;
-            _isStandalone = settings.IsStandalone;
-            _supervisorUrl = settings.SupervisorUrl;
+            IsStandalone = settings.IsStandalone;
+            SupervisorUrl = settings.SupervisorUrl;
         }
 
         /// <summary>Built on each opening so unsaved edits of a cancelled one are dropped.</summary>

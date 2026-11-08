@@ -194,7 +194,7 @@ public static class ExampleSamples
                 Source = "$previous",
                 Columns = new[] { Column("CustomerId", "client id"), Column("Name", "full name"), Column("City", "town") },
             });
-        GraphUserInterface customersAsking = Node(new GraphUserInterface(mapColumns), "Pick the customers columns", 660, 120);
+        GraphUserInterface customersAsking = Node(new GraphUserInterface(mapColumns), "Pick the customers columns", 660, -120);
 
         GraphTask importOrders = Node(new GraphTask(importCsv), "Import orders", 440, 300,
             new { Path = "$previous.Orders" });
@@ -204,7 +204,7 @@ public static class ExampleSamples
                 Source = "$previous",
                 Columns = new[] { Column("OrderId", "order no"), Column("CustomerId", "client"), Column("Amount", "total"), Column("Date", "ordered on") },
             });
-        GraphUserInterface ordersAsking = Node(new GraphUserInterface(mapColumns), "Pick the orders columns", 660, 420);
+        GraphUserInterface ordersAsking = Node(new GraphUserInterface(mapColumns), "Pick the orders columns", 660, 180);
 
         GraphControl tables = Node(new GraphControl(AutomationControl.JoinTask), "Tables", 880, 150,
             new { Customers = "$previous.Customers", Orders = "$previous.Orders" });
@@ -233,7 +233,7 @@ public static class ExampleSamples
                 Document = new { Landscape = true, Blocks = Array.Empty<object>() },
                 FileName = "orders-{index}",
             });
-        GraphUserInterface exportAsking = Node(new GraphUserInterface(exportPdf), "Compose the document", 1760, 270);
+        GraphUserInterface exportAsking = Node(new GraphUserInterface(exportPdf), "Compose the document", 1760, 30);
         GraphControl end = Node(
             new GraphControl(AutomationControl.EndTask) { InputSchemaJson = Schema(("Files", "array")) },
             "End", 1980, 150, new { Files = "$previous.Files" });

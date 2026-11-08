@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="Joufflu" Version="1.1.0" />
-    <PackageReference Include="Joufflu.Data" Version="1.3.0" />
+    <PackageReference Include="Joufflu.Data" Version="1.4.0" />
     <PackageReference Include="Joufflu.Feedback" Version="1.0.0" />
     <PackageReference Include="Joufflu.Inputs" Version="1.1.0" />
     <PackageReference Include="Joufflu.Navigation" Version="1.0.0" />
